@@ -72,7 +72,7 @@ The document is born holding nothing. Its arrangement is the empty partial funct
 
 There are no V-positions, hence no V→I mappings, hence no I-addresses referenced. This is the formal reading of "creates an empty document" (4/65). Because the Vstream is dense — a contiguous sequence of positions — a document with zero references occupies zero V-addresses; there is no inherent starting state, no default text, no placeholder the user can rely on. Content is added only by subsequent operations.
 
-We note one consequence immediately, to be discharged as an invariant below: with `ran(M'(d)) = ∅`, referential integrity `ran(M'(d)) ⊆ dom(C')` (S3, ASN-0036) holds *vacuously* for `d`. An empty document cannot dangle.
+We note one consequence immediately, to be discharged as an invariant below: with `ran(M'(d)) = ∅`, referential integrity `ran(M'(d)) ⊆ dom(C')` (S3★, ASN-0047) holds *vacuously* for `d`. An empty document cannot dangle.
 
 ### Effect Three: Nothing Else Changes
 
@@ -92,7 +92,7 @@ This is the abstract statement of "adds a place, not content." The document is, 
 
   `E' = E ∪ {d}` with `d ∉ E`.
 
-In particular every existing document, account, and node keeps its address. Entity permanence (P1, ASN-0047) is preserved, and the document population grows by *exactly one* (Q10): `|E'_doc| = |E_doc| + 1`.
+In particular every existing document, account, and node keeps its address. Entity permanence (P1, ASN-0047) is preserved, and the document population grows by *exactly one* (CND.E): `|E'_doc| = |E_doc| + 1`.
 
 *Every existing document's arrangement is untouched.* `(A d' : d' ∈ E_doc : M'(d') = M(d'))`. No other document's Vstream, content, or links shift. This is the cross-document frame: the operation reaches into no subtree but the one it baptises.
 
@@ -128,7 +128,7 @@ Empty versus inherited. That is the whole distinction, and it is visible in our 
 
 Two guarantees attach to the new address the instant it exists.
 
-**Ownership is structural.** The document is bound to the account that created it not by metadata but by its address: `d` is forked beneath `A`, so `parent(d) = A` and `A ≼ d`. The creating principal `π` was authorised because it owns the account (`pfx(π) ≼ A`); the allocation places `d` strictly under that prefix (O5, SubdivisionAuthority; ASN-0042). To read off the effective owner we must descend to the baptismal registry over which `ω` is defined (ASN-0042) — the operation is specified over the entity set `E`, so the registry/entity coupling must be named explicitly. The account, a previously baptised entity, is a registry member `A ∈ Σ.B`, and the baptism of `d` adjoins it to the registry, `d ∈ Σ'.B` (registry coupling, O17b; ASN-0042); so `ω_{Σ'}(d)` is defined. Let `π_A = ω_Σ(A)`; then `pfx(π_A) ≼ A ≼ d`, so `π_A` covers `d`. No principal covers `d` with a strictly *longer* prefix: every principal's prefix satisfies `zeros(pfx(·)) ≤ 1` (account-tier boundary, O1a; ASN-0042), whereas `d = [A, 0, p]` has `zeros = 2`, and any prefix of `d` strictly longer than `A` already includes `d`'s second zero at position `#A+1`, forcing `zeros ≥ 2` — excluded. Thus every principal covering `d` has prefix `≼ A`, the longest being `π_A`; and `d` being fresh, the transition introduces no finer principal at `Σ'`. By the `ω` definition (longest-prefix coverer is the effective owner), `ω_{Σ'}(d) = ω_Σ(A)`. The binding is the act of creation itself — there is no document except as a number forked beneath an owning account.
+**Ownership is structural.** The document is bound to the account that created it not by metadata but by its address: `d` is forked beneath `A`, so `parent(d) = A` and `A ≼ d`. The creating principal `π` was authorised because it owns the account (`pfx(π) ≼ A`); the allocation places `d` strictly under that prefix (O5, SubdivisionAuthority; ASN-0042). To read off the effective owner we must descend to the baptismal registry over which `ω` is defined (ASN-0042) — the operation is specified over the entity set `E`, so the registry/entity coupling must be named explicitly. The account is a registry member by precondition — `A ∈ Σ.B` (CND.pre) — so `ω_Σ(A)` is defined; and the baptism of `d` adjoins it to the registry, `d ∈ Σ'.B` (registry coupling, O17b; ASN-0042), so `ω_{Σ'}(d)` is defined. Let `π_A = ω_Σ(A)`; then `pfx(π_A) ≼ A ≼ d`, so `π_A` covers `d`. No principal covers `d` with a strictly *longer* prefix: every principal's prefix satisfies `zeros(pfx(·)) ≤ 1` (account-tier boundary, O1a; ASN-0042), whereas `d = [A, 0, p]` has `zeros = 2`, and any prefix of `d` strictly longer than `A` already includes `d`'s second zero at position `#A+1`, forcing `zeros ≥ 2` — excluded. Thus every principal covering `d` has prefix `≼ A`, the longest being `π_A`; and `d` being fresh, the transition introduces no finer principal at `Σ'`. By the `ω` definition (longest-prefix coverer is the effective owner), `ω_{Σ'}(d) = ω_Σ(A)`. The binding is the act of creation itself — there is no document except as a number forked beneath an owning account.
 
 **Referability is immediate.** The moment `d` exists, it is a permanent, unique, unambiguously referable position. A link may target `d` before a single byte is stored, because referability attaches to the *address*, not the content — the ghost-element principle again:
 
@@ -152,6 +152,7 @@ where `D_A = {e ∈ E : Document(e) ∧ parent(e) = A ∧ #e = #A + 2}` is the d
 **State preconditions** (against pre-state `Σ`):
 
   - `A ∈ E ∧ Account(A)` — the account exists and is account-level;
+  - `A ∈ Σ.B` — the account is a member of the baptismal registry (so `ω_Σ(A)` is defined; ASN-0042);
   - the invoking principal `π` satisfies `pfx(π) ≼ A` — it owns the account (O5, ASN-0042).
 
 (The freshness `d ∉ E` is discharged by the allocator discipline, not imposed on the caller.)
@@ -198,7 +199,7 @@ All invariants hold at `Σ'`, and since the composite is a single atomic transit
 | Label | Statement | Status |
 |-------|-----------|--------|
 | CND.def | CREATENEWDOCUMENT(A) is a substrate composite Σ →* Σ' under ValidComposite★ (ASN-0047) realised as a single K.δ firing (case (ii): k=2 off A when D_A=∅, else k=0 off max(D_A)) registering d into E_doc with M(d)=∅; it returns d | introduced |
-| CND.pre | Preconditions: A ∈ E ∧ Account(A); the invoking principal π owns the account (pfx(π) ≼ A, ASN-0042). No content argument | introduced |
+| CND.pre | Preconditions: A ∈ E ∧ Account(A); A ∈ Σ.B (account is a registry member, so ω_Σ(A) is defined; ASN-0042); the invoking principal π owns the account (pfx(π) ≼ A, ASN-0042). No content argument | introduced |
 | CND.alloc | Allocates exactly one fresh document address d from A_doc(A)=S(A,2): d = inc(A,2) if D_A=∅ else inc(max(D_A),0), where D_A = {e ∈ E : Document(e) ∧ parent(e)=A ∧ #e=#A+2} is the length-restricted document-chain frontier (versions, length ≥ #A+3, excluded); with Document(d), zeros(d)=2, parent(d)=A, T4-valid(d), d ∉ E | introduced |
 | CND.empty | M'(d) = ∅: dom(M'(d)) = ∅ and ran(M'(d)) = ∅ — the new document holds no V-positions, no V→I mappings, no content | introduced |
 | CND.C-frame | C' = C: the content store is entirely unchanged — no byte added, no value altered. Creation adds a place, not content (ghost element) | introduced |
@@ -209,7 +210,7 @@ All invariants hold at `Σ'`, and since the composite is a single atomic transit
 | CND.monotone | d strictly exceeds every document address ever baptised under A (document-chain emission or version), including never-populated ones; existing addresses remain valid; d is never a reuse. Same-allocator ordering by S0 (ASN-0040); cross-allocator/version ordering by direct T1 lexicographic dominance at position #A+2 (T9 does not apply across allocators); disjointness/uniqueness by B7, B8 (ASN-0040); permanence T8, GlobalUniqueness (ASN-0034) | introduced |
 | CND.subAlloc | Creation activates A_C(d) and A_L(d) (content and link sub-allocators, anchors [d.0.s_C], [d.0.s_L]) without emission; both subspaces are available but empty at Σ' (SubAllocatorBundle, ASN-0047) | introduced |
 | CND.no-sharing | The fresh document shares no I-address with any prior document: ran(M'(d)) = ∅; and future content drawn from A_C(d) has origin = d, so by S4 (ASN-0036) it shares no I-address with any other document regardless of value coincidence | introduced |
-| CND.own | Ownership is structural: parent(d)=A and A ≼ d; via registry coupling (O17b) A ∈ Σ.B and d ∈ Σ'.B, and the account-tier boundary (O1a, zeros(pfx(·)) ≤ 1) excludes any principal prefix strictly between A and d (d has zeros=2), so by the ω definition ω_{Σ'}(d) = ω_Σ(A); allocation authorised by O5 (ASN-0042) | introduced |
+| CND.own | Ownership is structural: parent(d)=A and A ≼ d; A ∈ Σ.B by precondition (CND.pre) so ω_Σ(A) is defined, and registry coupling (O17b) gives d ∈ Σ'.B, and the account-tier boundary (O1a, zeros(pfx(·)) ≤ 1) excludes any principal prefix strictly between A and d (d has zeros=2), so by the ω definition ω_{Σ'}(d) = ω_Σ(A); allocation authorised by O5 (ASN-0042) | introduced |
 | CND.refer | d is immediately, permanently, and unambiguously referable: a link may target d at Σ' before any content exists; uniqueness is decentralised (B8, ASN-0040) and identity is immutable for the life of the system | introduced |
 | CND.atomicity | The single-K.δ decomposition is atomic by the sequential-transition axiom (ASN-0093); no observable intermediate state exists, so all invariants hold throughout. Coupling constraints J0, J1★, J1'★ hold vacuously | introduced |
 | CND.inv | Σ' maintains P0, P1, M0, S2, S3★, P6, P8 (ASN-0047/0036/0093) and address permanence/distinctness (T8, GlobalUniqueness; ASN-0034); referential integrity for d holds vacuously via the empty arrangement | introduced |
