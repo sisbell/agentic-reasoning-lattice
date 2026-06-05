@@ -78,7 +78,7 @@ The new I-addresses must appear at V-positions `p, shift(p, 1), …, shift(p, n�
 
 By OrdAddHom clause (b) (ASN-0082) applied to `w = δ(k, m_C)`, every `shift(p, k)` for `k ≥ 1` lies in the same subspace as `p`: `subspace(shift(p, k)) = s_C`. The result-length identity of TumblerAdd (ASN-0034) gives `#shift(p, k) = m_C`. For `k = 0`, `shift(p, 0) = p` shares subspace and depth with `p` trivially. The placement effect is thus that each Insertion position is `shift(p, k)` for `0 ≤ k < n`, and the run of these positions merges to the block `(p, a_0, n)`.
 
-Each `shift(p, k)` is moreover a well-formed inhabitant of `V_{s_C}(d')`. For `k = 0`, `shift(p, 0) = p` satisfies S8a directly — `p` is zero-free, of depth `m_C ≥ 2`, with all components strictly positive — by ValidInsertionPosition postcondition (b) (non-empty case) or ValidFirstInsertionPosition postcondition (b) (empty case) (ASN-0036). For `k ≥ 1`, TumblerAdd's piecewise rule at action point `m_C` copies the leading `m_C − 1` components of `p`, all strictly positive (position 1 is the subspace identifier `s_C ≥ 1`; the remaining `m_C − 2` are `1`, by ValidInsertionPosition postcondition (d) or ValidFirstInsertionPosition postcondition (d), ASN-0036), and sets the final component to `p_m + k ≥ p_m ≥ 1`; so `zeros(shift(p, k)) = 0`, `#shift(p, k) = m_C ≥ 2`, and every component is strictly positive. This establishes S8a (claim **S8a**) and fixed depth `m_C` (claim **INS.inv.depth**) for every Insertion position; §Post-state V-position well-formedness extends both to the Left and Shifted-right regions.
+Each `shift(p, k)` is moreover a well-formed inhabitant of `V_{s_C}(d')`. For `k = 0`, `shift(p, 0) = p` satisfies S8a directly — `p` is zero-free, of depth `m_C ≥ 2`, with all components strictly positive — by ValidInsertionPosition postcondition (b) (non-empty case) or ValidFirstInsertionPosition postcondition (b) (empty case) (ASN-0036). For `k ≥ 1`, TumblerAdd's piecewise rule at action point `m_C` copies the leading `m_C − 1` components of `p`, all strictly positive (position 1 is the subspace identifier `s_C ≥ 1`; the remaining `m_C − 2` are `1`, by ValidInsertionPosition postcondition (d) or, in the empty case, ValidFirstInsertionPosition's definition fixing `v = [s_C, 1, …, 1]` of depth `m`, ASN-0036), and sets the final component to `p_m + k ≥ p_m ≥ 1`; so `zeros(shift(p, k)) = 0`, `#shift(p, k) = m_C ≥ 2`, and every component is strictly positive. This establishes S8a (claim **S8a**) and fixed depth `m_C` (claim **INS.inv.depth**) for every Insertion position; §Post-state V-position well-formedness extends both to the Left and Shifted-right regions.
 
 ### Effect Three: Shift
 
@@ -175,23 +175,7 @@ Verifying the three regions:
 
 The last-component values in `V_{s_C}(d')` are `{1, 2, 3, 4, 5, 6, 7}` — sequential, contiguous, starting at 1, satisfying INS.inv.seq with new cardinality `N + n = 7`.
 
-*Projection-shift correspondence — numeric instantiation of INS.proj.* Suppose a link `ℓ ∈ dom(L)` has a slot with endset `e_1` delivered by the canonical span `(a_2, δ(3, #a_2))`, whose coverage is the half-open tumbler interval `coverage(e_1) = [a_2, a_5)` (since `a_5 = a_2 ⊕ δ(3, #a_2) = shift(a_2, 3)` — INS.chain-shift applied to the pre-state chain segment `a_2, a_3, a_4, a_5`, all T4-valid same-length emissions of `A_C(d)`; ASN-0098). This interval strictly contains `{a₂, a₃, a₄}` — by T5 (ASN-0034) it also holds every descendant of `a₂, a₃, a₄`. The quantity that equals the three-element set is the *intersection with the range*: `coverage(e_1) ∩ ran(M(d)) = {a₂, a₃, a₄}`, the three I-addresses of the pre-state range that fall in the interval. By LP-Fin Corollary (CanonicalIntervalCharacterisation; ASN-0098), the F-candidates in the interval `[a_2, a_5)` are exactly `{[d.0.s_C.2], [d.0.s_C.3], [d.0.s_C.4]} = {a_2, a_3, a_4}`.
-
-The pre-state projection is the input to INS.proj: `project(ℓ, 1, d, Σ) = {v ∈ dom(M(d)) : M(d)(v) ∈ coverage(e_1)} = {[1,2], [1,3], [1,4]}`, since `coverage(e_1) ∩ ran(M(d)) = {a₂, a₃, a₄}`. Partitioned relative to `p = [1,3]`: `P_0^L = {[1,2]}` (the position with `v < p`), `P_0^R = {[1,3], [1,4]}` (positions with `v ≥ p`), `P_0^{s_L} = ∅` (empty link subspace).
-
-We now instantiate the INS.proj formula `project(ℓ, 1, d, Σ') = π(project(ℓ, 1, d, Σ)) ∪ N_{ℓ,1}` numerically and check it against the exhibited `M'(d)`. The region-aware shift map `π` is the identity on Left and link-subspace contributions and `shift(·, 2)` on Right contributions, so:
-
-- `π(P_0^L) = P_0^L = {[1,2]}` (Left, fixed);
-- `{shift(v, 2) : v ∈ P_0^R} = {shift([1,3], 2), shift([1,4], 2)} = {[1,5], [1,6]}` (Right, advanced by `n = 2`);
-- `π(P_0^{s_L}) = P_0^{s_L} = ∅` (empty link subspace).
-
-Hence `π(project(ℓ, 1, d, Σ)) = {[1,2]} ∪ {[1,5], [1,6]} ∪ ∅ = {[1,2], [1,5], [1,6]}`.
-
-For the `N_{ℓ,1}` term: K.α's subsequent-emission rule advances the chain frontier, so `a_{new0} = inc([d.0.s_C.5], 0) = [d.0.s_C.6]` and `a_{new1} = [d.0.s_C.7]` (last components 6, 7) both exceed `coverage(e_1) = [a_2, a_5)`'s ceiling `a_5 = [d.0.s_C.5]` under T1, hence lie outside coverage. So neither Insertion image is captured: `N_{ℓ,1} = {shift(p, k) : 0 ≤ k < 2 ∧ a_{new k} ∈ coverage(e_1)} = ∅`.
-
-Combining, INS.proj predicts `project(ℓ, 1, d, Σ') = {[1,2], [1,5], [1,6]} ∪ ∅ = {[1,2], [1,5], [1,6]}`. We confirm against the exhibited arrangement directly: the coverage targets persist by S0, so `coverage(e_1) ∩ ran(M'(d)) = {a₂, a₃, a₄}`, and the V-positions of `M'(d)` carrying those three I-addresses are `[1,2] ↦ a₂`, `[1,5] ↦ a₃`, `[1,6] ↦ a₄` — giving `{[1,2], [1,5], [1,6]}`, matching the formula's prediction.
-
-*A non-tight contrast.* Had the link's slot instead carried the wider canonical span `(a_2, δ(10, #a_2))` — call its endset `e_1'`, with `coverage(e_1') = [a_2, [d.0.s_C.12])` (since `a_2 ⊕ δ(10, #a_2) = shift(a_2, 10) = [d.0.s_C.12]`) — both fresh addresses would fall *inside* coverage: `a_{new0} = [d.0.s_C.6]` and `a_{new1} = [d.0.s_C.7]` satisfy `a_2 ≤ a_{new k} < [d.0.s_C.12]`, so the Insertion positions `[1,3]` and `[1,4]` both join the projection. The distinction between these two regimes — when a fresh `a_k` can land in an endset's coverage and when it cannot — is the tight/non-tight `N_{ℓ,i}` consequence of INS.proj.
+The effect of this rearrangement on link projection — how a link slot's pre-state projection transports across the operation, and when a freshly allocated `a_k` can land in an endset's coverage — is deferred to INS.proj (§Coverage and link discoverability), where the projection-shift correspondence is stated and derived in general.
 
 *Provenance discharge (J0, J1★, J1'★).* Step 4's two K.ρ firings add exactly `(a_{new0}, d)` and `(a_{new1}, d)` to R, giving `R' = R ∪ {(a_{new0}, d), (a_{new1}, d)}`. These are the two freshly allocated Insertion images, placed at `[1,3]` and `[1,4]`. The Shifted-right images `a₃, a₄, a₅` (placed at `[1,5], [1,6], [1,7]`) were already arranged pre-state at `[1,3], [1,4], [1,5]`, so they are already in R by pre-state P4★ and impose no new obligation. Here the coupling logic instantiates to the two pairs above: J0 pairs each fresh `dom(C') \ dom(C)` address with its K.μ⁺ placement, J1★ records each newly-arranged content-subspace image, and J1'★ matches each new R'-entry back to a placement — all satisfied when step 4's K.ρ firings commit.
 
@@ -336,8 +320,6 @@ S8★ is preserved.
 ### Cross-subspace isolation
 
 INSERT's shift is scoped strictly to `s_C`; non-text positions are never in the shift's carrier. The frame `(A v : v ∈ dom(M(d)) ∧ subspace(v) ≠ s_C : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v))` (`INS.frame.subspace`) directly preserves all subspaces of `d` other than the text subspace. In particular, `V_{s_L}(d') = V_{s_L}(d)`, and link-subspace mappings are unchanged.
-
-Gregory's implementation realises this isolation via a two-blade "knife" whose blades bracket the text subspace; link-subspace crums are classified as outside the shift region and are uniformly left untouched. The structural property is what we verify abstractly; the knife is one (efficient) implementation.
 
 ### Link store unchanged (L12, L0, L1, L3)
 
@@ -503,7 +485,7 @@ The fourth, conditional on K.μ⁻ firing:
 
 These forced orderings determine INSERT's boundary obligations; every other interleaving of the elementary steps reaches the same Σ'. No per-state invariant is sensitive to the relative order of the remaining steps, and the coupling constraints J0, J1★, J1'★ are obligations on INSERT's own boundary `(Σ, Σ')` — discharged there, where every `a_k` is both placed by K.μ⁺ and recorded by K.ρ, regardless of internal order — so the canonical placement of the K.ρ firings at the end of steps 1–4 is expository, not mandatory.
 
-This is what Nelson calls "all changes, once made, leave the file remaining in canonical order, which was an internal mandate of the system." What INSERT fixes is the post-state Σ': it is uniquely determined by `(Σ, p, content)`. The decomposition that realises it is not — many elementary interleavings reach the same Σ', and the abstract specification commits to none of them. Each such intermediate is itself a reachable state satisfying the per-state invariants, and the boundary couplings J0, J1★, J1'★ discharge at the composite boundary `(Σ, Σ')`.
+This is what Nelson calls "all changes, once made, leave the file remaining in canonical order, which was an internal mandate of the system." The abstract specification commits to none of the admissible interleavings; each intermediate is itself a reachable state satisfying the per-state invariants, and the boundary couplings J0, J1★, J1'★ discharge at the composite boundary `(Σ, Σ')`.
 
 ## Weakest-Precondition Analysis
 
