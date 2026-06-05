@@ -152,10 +152,12 @@ not a fault. So the contentless portion yields nothing, the named range remains 
 address, and the result is shorter than the request rather than padded or rejected.
 
 The over-extension case (the span reaching beyond the last active position) is not a
-separate rule; it is R4 specialized. We record it as **R5** (over-extension): a span whose
-`reach(σ)` exceeds `max(A) ⊕ δ` for any displacement past the last active position simply
-contributes the active positions it does cover and stops — the result terminates at the
-last active position, never at a padded boundary. Gregory's evidence agrees: the engine
+separate rule; it is R4 specialized. We record it as **R5** (over-extension), stated
+precisely and guarded against the empty case: *when `A ≠ ∅`*, the final record of `ρ` is
+`(max(A), M(d)(max(A)))` and `#ρ = |A|`, no matter how far `reach(σ)` extends beyond
+`max(A)` — every position `t ∈ ⟦σ⟧` with `t > max(A)` lies in `⟦σ⟧ \ dom(M(d))` and so
+contributes nothing by R4; *when `A = ∅`*, `ρ` is the empty sequence. The result terminates
+at the last active position, never at a padded boundary. Gregory's evidence agrees: the engine
 collects only the crums that physically intersect the span; positions past content end have
 no crum and are invisible to the traversal (consultation Q12, Q15). An implementation that
 returned trailing blanks to "fill" the requested width would violate R4 and R5.
@@ -225,6 +227,55 @@ back to its place in the document — Nelson's "you always know where you are" (
 the abstract content of the length-and-order correspondence: a span of `k` active positions
 yields exactly `k` records in V-order, and position `j` of the result denotes V-position
 `vⱼ`.
+
+---
+
+## A worked read
+
+Abstract claims are easiest to trust once instantiated. Take the document
+`d = [1.0.1.0.5]` (a document-level tumbler, `zeros(d) = 2`). Its content subspace has
+depth `m = 2`, and we give it three active positions:
+
+> `M(d) = { [1,1] ↦ a, [1,2] ↦ b, [1,3] ↦ a }`,
+
+where the I-addresses are element-level content keys (`zeros = 3`):
+
+> `a = [1.0.1.0.5.0.1.1]`,  `b = [1.0.1.0.8.0.1.1]`.
+
+By S7, `origin(a) = [1.0.1.0.5] = d` (so `a` is *native* to `d`) and
+`origin(b) = [1.0.1.0.8] ≠ d` (so `b` is *transcluded* from document `[1.0.1.0.8]`). Note `a`
+appears at two distinct V-positions, `[1,1]` and `[1,3]` — a self-transclusion.
+
+We read the span `σ = (s, ℓ)` with `s = [1,1]` and `ℓ = [0,3]`. Check the preconditions:
+`#s = #ℓ = 2 = m` (level-uniform), and `actionPoint(ℓ) = 2 = #ℓ` (ordinal-level, the first
+nonzero of `[0,3]` sitting at position 2), so precondition 3 is met. The reach is
+`reach(σ) = s ⊕ ℓ = [1,1] ⊕ [0,3] = [1, 1+3] = [1,4]` (TumblerAdd copies position 1 below
+the action point, sums at position 2), so `⟦σ⟧ = {t : [1,1] ≤ t < [1,4]}` covers the
+depth-2 content positions `[1,1], [1,2], [1,3]`.
+
+Now run the operation. The active set is `A = dom(M(d)) ∩ ⟦σ⟧ = {[1,1], [1,2], [1,3]}`,
+ascending under T1, so
+
+> `ρ = ⟨ ([1,1], a), ([1,2], b), ([1,3], a) ⟩`.
+
+Verify the claims against this sequence:
+
+- **R0**: `{pos(ρ.j)} = {[1,1],[1,2],[1,3]} = A`. ✓
+- **R1**: `[1,1] < [1,2] < [1,3]` strictly ascending. ✓ (Note the I-addresses are *not*
+  monotone: `a, b, a` — R1 orders by V-position, not storage identity, as claimed.)
+- **R2**: `iaddr(ρ.1) = a = M(d)([1,1])`, `iaddr(ρ.2) = b = M(d)([1,2])`,
+  `iaddr(ρ.3) = a = M(d)([1,3])`. ✓
+- **R3**: any reordering breaks R1; any omission breaks R0; so `ρ` is the unique faithful
+  rendering. ✓
+- **R7**: `a` occupies two V-positions and surfaces in *two* records (`ρ.1` and `ρ.3`) — no
+  deduplication. ✓
+- **R8**: the boundary between `ρ.2` and `ρ.3` is a cross-origin boundary, recoverable from
+  `origin(iaddr(ρ.2)) = [1.0.1.0.8] ≠ [1.0.1.0.5] = origin(iaddr(ρ.3))`. ✓
+
+Finally R5: had we instead read the over-extended span `σ' = ([1,1], [0,6])` with
+`reach(σ') = [1,7]`, the active set would be unchanged — `[1,4], [1,5], [1,6]` are in
+`⟦σ'⟧ \ dom(M(d))` and contribute nothing — so `ρ` would be identical, terminating at
+`max(A) = [1,3]` with `#ρ = |A| = 3`.
 
 ---
 
@@ -303,9 +354,10 @@ to one subspace. We require:
 1. `d ∈ dom(M)` — the document is allocated.
 2. `σ = (s, ℓ)` satisfies T12 — `Pos(ℓ)` and `actionPoint(ℓ) ≤ #s`, so `⟦σ⟧` is a
    well-defined position interval.
-3. **Content-subspace confinement.** `subspace(s) = s_C` and `σ` is level-uniform at the
-   content-subspace depth: `#s = #ℓ = m`, where `m` is the common depth of `V_1(d)`
-   (S8-depth). When `V_1(d) = ∅` the result is the empty sequence, trivially faithful.
+3. **Content-subspace confinement.** `subspace(s) = s_C`; `σ` is level-uniform at the
+   content-subspace depth (`#s = #ℓ = m`, where `m` is the common depth of `V_1(d)` by
+   S8-depth); and the displacement is *ordinal-level*: `actionPoint(ℓ) = #ℓ = m`. When
+   `V_1(d) = ∅` the result is the empty sequence, trivially faithful.
 
 Confinement is load-bearing. The arrangement maps both content (subspace 1) and link
 (subspace 2) V-positions; a span crossing from one into the other would, by R0–R3, return
@@ -316,14 +368,24 @@ discipline of confining a read to one subspace is a *caller obligation*, not an 
 guarantee (consultation Q19). We discharge it here as a precondition.
 
 We do not need to assume confinement holds at every interior position separately — it
-follows from the endpoints. With `subspace(s) = s_C` and the span level-uniform at depth
-`m`, foundation **T5** (ContiguousSubtrees, prefix `[s_C]`) gives that every depth-`m`
-position `t` with `s ≤ t < reach(σ)` has `t₁ = s_C`: a position with `t₁ > s_C` would
-exceed `reach(σ)`, and `t₁ = 0` is barred by S8a, so `t₁ = s_C`. Thus a single subspace-1
-level-uniform span automatically stays within subspace 1, and R0's `A = dom(M(d)) ∩ ⟦σ⟧`
-contains only content positions. This is Nelson's claim that "there is no choice as to what
-lies between" the endpoints (4/25) made precise: the endpoints determine the subspace of
-the whole interval.
+follows from the endpoints, and this is where the ordinal-level constraint of precondition 3
+earns its place. Because `actionPoint(ℓ) = m` and `m ≥ 2`, the displacement `ℓ` is zero at
+every position `i < m` and positive only at position `m`. By TumblerAdd, `reach(σ) = s ⊕ ℓ`
+copies `s` below the action point, so `reach(σ)ᵢ = sᵢ` for `i < m`; in particular
+`reach(σ)₁ = s₁ = s_C`. Both endpoints of the half-open interval thus carry the prefix
+`[s_C]`.
+
+This is exactly the hypothesis foundation **T5** (ContiguousSubtrees) needs. Take any `t`
+with `s ≤ t < reach(σ)`. Then `s ≤ t ≤ reach(σ)`, with `[s_C] ≼ s` and `[s_C] ≼ reach(σ)`
+(both established above), so T5 with prefix `p = [s_C]` gives `[s_C] ≼ t`, i.e. `t₁ = s_C`.
+The ordinal-level constraint is load-bearing: without it `actionPoint(ℓ)` could be `1`, the
+displacement could carry the first component upward (e.g. `s = [1,1]`, `ℓ = [2,1]` is
+level-uniform with `actionPoint(ℓ) = 1 ≤ #s`, giving `reach(σ) = [3,1]` and admitting the
+subspace-2 position `[2,1]` into `⟦σ⟧`), and the prefix argument would collapse. With it,
+`reach(σ)₁ = s_C` holds, a single subspace-1 ordinal-level span automatically stays within
+subspace 1, and R0's `A = dom(M(d)) ∩ ⟦σ⟧` contains only content positions. This is Nelson's
+claim that "there is no choice as to what lies between" the endpoints (4/25) made precise:
+the endpoints determine the subspace of the whole interval.
 
 ---
 
@@ -336,7 +398,7 @@ the whole interval.
 | R2 | Each record's I-address equals `M(d)(pos)` (pointwise fidelity) | introduced |
 | R3 | R0 ∧ R1 ∧ R2 determine the result uniquely — the faithful rendering of a span is unique | introduced |
 | R4 | Positions in `⟦σ⟧ \ dom(M(d))` yield no record; `#ρ = |A|`; no placeholder, no error (gap transparency) | introduced |
-| R5 | A span extending past the last active position terminates at content end, never at a padded boundary (over-extension) | introduced |
+| R5 | When `A ≠ ∅`: the final record is `(max(A), M(d)(max(A)))` and `#ρ = \|A\|`, independent of how far `reach(σ)` extends past `max(A)`; when `A = ∅`: `ρ` is empty (over-extension) | introduced |
 | R6a | Every record resolves to allocated content `C(iaddr)` (well-defined by S3) | introduced |
 | R6b | Every record resolves to a home document `origin(iaddr)` (well-defined by S7b) | introduced |
 | R7 | Each active V-position yields its own record; an I-address at `n` positions appears `n` times (occurrence fidelity) | introduced |
