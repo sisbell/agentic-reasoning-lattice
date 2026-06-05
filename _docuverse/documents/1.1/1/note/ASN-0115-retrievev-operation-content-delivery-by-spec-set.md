@@ -143,6 +143,15 @@ the concatenation in R0 has no factors, so `deliver(⟨⟩, Σ) = ⟨⟩` — th
 spec-set is a valid request whose delivery succeeds and returns nothing, the
 companion at the request level to R6's partial-success discipline within a spec.
 
+RETRIEVEV is a *pure query*. `deliver(R, Σ)` reads the state and produces no
+transition: no component of `Σ` is modified — neither the content store `Σ.C`,
+nor the link store `Σ.L`, nor any arrangement `Σ.M(d)`, nor any other component.
+The operation does not appear in the substrate's transition vocabulary at all;
+it is a function of state, not a state transition. We record this as a frame
+rather than leave it implicit in the functional notation, matching the
+convention the project's other query operation states explicitly (ASN-0086,
+Observe: "Observe leaves Σ unchanged").
+
 ## Delivery returns material, not location
 
 The first thing to settle is *what kind of thing* comes back. The contrast
@@ -278,10 +287,31 @@ what can be delivered, signal the gap by absence, and never fail the whole.
 > **R6 (SilentGapFiltering).** A named position with no binding in the consulted
 > arrangement — `v ∈ ⟦σⱼ⟧ \ dom(Σ.M(dⱼ))` — contributes nothing to the delivery
 > and causes no failure. Delivery succeeds and returns the items for the bound
-> positions; the unbound region is represented by its absence.
+> positions; the unbound positions are represented by their absence. Moreover the
+> unbound portion of `⟦σⱼ⟧` is always a *terminal overrun* of the subspace's
+> contiguous active range — the named positions past the bound frontier — never
+> an interior hole within that range.
 
 This is forced by the model: `act(ρ, Σ)` is an intersection, so an unbound
-position is simply not enumerated. It is also forced by Nelson's design intent. A
+position is simply not enumerated.
+
+The substrate sharpens *where* such a gap can fall. Fix a V-spec `(d, σ)` with
+`σ` rooted in subspace `S = s₁` at the subspace's common depth `m_S`. By
+D-SEQ★ (ASN-0047) — the content-subspace instance being D-SEQ (ASN-0036) — the
+active positions of `d` in subspace `S` are the contiguous prefix
+`V_S(d) = {[S, 1, …, 1, k] : 1 ≤ k ≤ n_S}`, varying only in the last component.
+The named interval `⟦σ⟧` is itself contiguous and confined to subspace `S` (the
+ContiguousSubtrees argument of the V-spec definition fixes every `t ∈ ⟦σ⟧` to
+first component `S`), and by D-CTG★/D-SEQ★ its depth-`m_S`, subspace-`S` members
+share the inner-component shape `[S, 1, …, 1, k]`, so within `⟦σ⟧` the only
+free coordinate is `k`. A named position `[S, 1, …, 1, k]` is bound iff
+`k ≤ n_S` — exactly the D-SEQ★ frontier. Therefore the unbound named positions
+of `⟦σ⟧` are precisely those with `k > n_S`: a contiguous tail beyond the active
+frontier. An *interior* gap — a named position `[S, 1, …, 1, k]` with `k ≤ n_S`
+yet absent from the arrangement — is impossible, because D-SEQ★ makes every such
+`k` bound. The gap is always an overrun past the frontier, never a hole inside
+it; this is the precise sense in which R6's "represented by its absence" lands,
+and it is what the §"Exactness" boundary-clip remark realizes operationally. It is also forced by Nelson's design intent. A
 span addresses a *range*, and "a span that contains nothing today may at a later
 time contain a million documents" (4/25) — an empty or partly-empty range is an
 anticipated, legal state, not a fault. The same architecture governs the only
@@ -299,6 +329,30 @@ about absence of binding, not about authorization or existence of the document
 entity. An implementation may legitimately refuse a request that names a document
 it cannot consult; what it may not do is fail a request merely because some named
 positions within a consultable arrangement are unbound.
+
+*Worked instance.* Let document `d` have a content arrangement bound at exactly
+four positions, `V_1(d) = {[1, k] : 1 ≤ k ≤ 4}` (so `n_1 = 4`), each resolving to
+its own content address `Σ.M(d)([1, k]) ∈ dom(Σ.C)`. Build the single-spec request
+`R = ⟨(d, σ)⟩` whose span starts at `s = [1, 2]` with ordinal width
+`ℓ = δ(5, 2) = [0, 5]`, so `reach(σ) = s ⊕ ℓ = [1, 7]` and the half-open
+denotation is `⟦σ⟧ = {[1, 2], [1, 3], [1, 4], [1, 5], [1, 6]}` — the span names
+`[1,2]` up to but not including `[1,7]`. Intersecting with the arrangement,
+`act((d, σ), Σ) = dom(Σ.M(d)) ∩ ⟦σ⟧ = {[1, 2], [1, 3], [1, 4]}`, so the delivery is
+`deliver(R, Σ) = ⟨⟨content, Σ.C(Σ.M(d)([1,2]))⟩, ⟨content, Σ.C(Σ.M(d)([1,3]))⟩,
+⟨content, Σ.C(Σ.M(d)([1,4]))⟩⟩`. Check the four claims against this result. R1:
+each item carries the *value* `Σ.C(Σ.M(d)([1,k]))`, not the address. R3 upper
+bound: every delivered item is named by `σ` (all three lie in `⟦σ⟧`), nothing
+extra. R3 lower bound: every named-and-bound position contributes — `[1,2]`,
+`[1,3]`, `[1,4]` are exactly `⟦σ⟧ ∩ dom(Σ.M(d))`, none omitted. R5: the three
+items are in ascending T1 order `[1,2] < [1,3] < [1,4]`. R6: the named positions
+`[1,5]` and `[1,6]` have no binding (`k = 5, 6 > n_1 = 4`), so they are filtered
+silently — the request succeeds and returns the three bound items, with the two
+unbound positions represented by their absence. The gap is a terminal overrun: it
+is exactly the named tail past the frontier `n_1 = 4`, not a hole inside the bound
+range `{[1,1], …, [1,4]}` (which the span happens not to name below `[1,2]` and
+fully names from `[1,2]` to `[1,4]`). This is the partial-delivery boundary in
+full: a multi-position span that reaches past the bound range, delivered up to
+the frontier and clipped to the interval exactly.
 
 ## Repeatability
 
