@@ -47,7 +47,12 @@ transformation. So the result of a read is an element of `Val` (or its
 absence), never a tumbler.
 
 We name the codomain of the operation. Let `Val⊥ = Val ∪ {⊥}`, where `⊥`
-denotes *no content delivered*. We will see that `⊥` is a legitimate,
+denotes *no content delivered*, and where `⊥ ∉ Val` — the sentinel is a
+fresh element disjoint from every content value, not some distinguished
+member of `Val`. This disjointness is load-bearing: several claims below
+read off "the result is `⊥`" or "the result is not `⊥`" to decide whether
+content was delivered, and that decision is meaningful only because no
+content value can equal `⊥`. We will see that `⊥` is a legitimate,
 designed-for result, not an error.
 
 We are looking for a function `retrieve` of the state and a *specification*.
