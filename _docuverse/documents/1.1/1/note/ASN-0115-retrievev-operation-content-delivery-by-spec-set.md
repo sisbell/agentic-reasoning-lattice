@@ -123,7 +123,14 @@ for `v` is determined by the position's subspace:
 > `  ⟨ref, a⟩`            if `subspace(v) = s_L`   (then `a ∈ dom(Σ.L)` by S3★)
 
 We may write `item` without case in what follows; the two cases are
-distinguished by tag. The *per-spec delivery* is the ascending-V sequence
+distinguished by tag. These two cases are *exhaustive* on active positions, so
+`item` is total on `act`: every `v ∈ act(ρ, Σ) ⊆ dom(Σ.M(d))` is an active
+V-position, and by S3★-aux (SubspaceExhaustiveness, ASN-0047) every active
+V-position has `subspace(v) = s_C` or `subspace(v) = s_L` — no third subspace
+arises. The per-case S3★ citations discharge store membership *within* each
+case; S3★-aux discharges that the case split *covers* `act`. Hence `item` —
+and therefore `deliver₁` and `deliver` below — is well-defined on its stated
+domain. The *per-spec delivery* is the ascending-V sequence
 `deliver₁(ρ, Σ) = ⟨item(v₁, ρ, Σ), …, item(v_k, ρ, Σ)⟩`, and the **delivery** of
 the whole spec-set is the concatenation in spec-set order:
 
