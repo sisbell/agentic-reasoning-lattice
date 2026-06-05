@@ -1,0 +1,343 @@
+# ASN-0110: RETRIEVEENDSETS Operation (content-region search)
+
+*2026-06-04*
+
+We are handed a region of content and asked a deceptively simple question: *which link
+endsets touch it?* To answer with any rigour we must pin down three things at once — what a
+"region" is, what "touch" means, and what the operation hands back. The temptation is to
+answer "the links that touch the region." But that is a different question, answered by a
+different operation: content→link discovery returns link *identities*. Here we are asked for
+the *endsets* — the span-sets through which links attach themselves to content. The operation
+returns spans, and it withholds the addresses of the links that own them. The whole character
+of the operation lives in that withholding, and most of this note is an attempt to say
+precisely what survives it and what does not.
+
+We will write `retrieveendsets` for this operation. It is a pure query: it reads state and
+changes none. Its frame is therefore total — `Σ' = Σ` for any state `Σ` it is evaluated at —
+and we shall not repeat this frame clause at each claim. What it *reads* is the more
+interesting question, and the answer turns out to govern almost everything else.
+
+## The state we consult, and the state we do not
+
+We work over the substrate state `Σ = (Σ.C, Σ.L, Σ.M, …)` in which `Σ.C : T ⇀ Val` is the
+content store, `Σ.L : T ⇀ Link` is the link store, and `Σ.M(d) : T ⇀ T` is document `d`'s
+arrangement mapping V-positions to I-addresses (ASN-0093, ASN-0047). A link value is a finite
+sequence of `N ≥ 3` endsets `(e₁, …, e_N)` with the type slot `e₃ ≠ ∅` (L3, ASN-0093); each
+endset is a finite set of well-formed spans, `Endset = 𝒫_fin(Span)` (ASN-0043). For a span
+`(s, ℓ)` its denotation is the half-open tumbler interval `⟦(s, ℓ)⟧ = {t ∈ T : s ≤ t < s ⊕ ℓ}`
+(T12, ASN-0034), and the *coverage* of an endset is the union of its spans' denotations,
+
+```
+coverage(e) = (∪ (s, ℓ) : (s, ℓ) ∈ e : {t ∈ T : s ≤ t < s ⊕ ℓ})        (ASN-0043, ASN-0098)
+```
+
+a set of I-addresses. Coverage is a purely combinatorial property of the endset's span
+representation; it consults no other state component.
+
+The first thing to observe — and it dictates the whole semantics — is that the touching test
+will be phrased against `coverage`, hence against `Σ.L` alone. The operation never reads
+`Σ.C(a)`: it does not look at *what content sits at* an address, only at *which addresses an
+endset references*. This is the same identity-not-value discipline that governs link
+discovery (F5, ASN-0099). Two queries that differ only in stored content values must return
+identical endsets. We will make this precise as determinism; for now we simply note which
+doors we have refused to open.
+
+## When does an endset touch a region?
+
+Let the queried region be an I-region `I ⊆ T` — a set of I-addresses. (We treat regions
+phrased in a document's V-space later, by reduction to this case.) We say an endset `e`
+*touches* `I` exactly when its coverage meets the region:
+
+> **RE-touch (definition).** `touches(e, I) ≡ coverage(e) ∩ I ≠ ∅`.
+
+The relation asked for in the question — what must hold between a returned endset and the
+region — is precisely non-empty intersection, and nothing stronger. We are not requiring the
+endset to be contained in the region, nor the region in the endset; a single shared address
+suffices. Unfolding the coverage union, `touches(e, I)` holds iff *some* span of `e` overlaps
+`I`:
+
+> **RE-overlap (lemma).** `touches(e, I) ⟺ (E (s, ℓ) : (s, ℓ) ∈ e : ⟦(s, ℓ)⟧ ∩ I ≠ ∅)`. When
+> `I` is itself a span denotation `⟦(q, m)⟧ = [q, q ⊕ m)`, a span `(s, ℓ) ∈ e` overlaps it iff
+> `q < s ⊕ ℓ` and `s < q ⊕ m` — the standard half-open interval-intersection predicate (SC,
+> ASN-0053). *Boundary contact is not touching:* if `q ⊕ m = s` (the region ends exactly where
+> the endset's span begins) then `s < q ⊕ m` fails, so adjacency in the sense of SC case (ii)
+> produces no overlap. Only SC cases (iii)–(v) — proper overlap, containment, equality —
+> qualify.
+
+Two structural facts about RE-overlap deserve emphasis because they distinguish this operation
+from its neighbours. First, within an endset the test is a disjunction over spans: *one* span
+landing in `I` is enough, exactly as Nelson's satisfaction rule demands ("one span of each
+endset satisfies a corresponding part of the request", LM 4/58). Second — and this is the
+sharp contrast with content→link discovery — there is only *one* region here, and every endset
+of every role is tested against that same region independently. Content→link discovery
+(FINDLINKSFROMTOTHREE) takes a region *per role* and conjoins: a link qualifies only if its
+from-set meets the from-region *and* its to-set meets the to-region *and* its type-set meets
+the type-region — an AND of ORs. `retrieveendsets` has no conjunction at all. It is a pure
+disjunction: report every endset, of any link, of any role, that meets the single region. The
+two operations sit on opposite sides of the same satisfaction algebra, and confusing them is
+the classic error.
+
+## What is returned
+
+We first record, for the purpose of precise statement, the complete internal account of which
+endsets qualify — the *witness set* of (link, slot) pairs:
+
+> **RE-witness (definition).**
+> `W(I, Σ) = {(a, i) : a ∈ dom(Σ.L) ∧ 1 ≤ i ≤ |Σ.L(a)| ∧ touches(Σ.L(a).eᵢ, I)}`.
+
+The witness set carries link addresses; it is the object against which we state soundness and
+completeness. But it is *not* what the operation returns. The operation returns endsets,
+organized by role, with the link address projected away. For each role index `i ≥ 1`:
+
+> **RE-result (definition).**
+> `Eᵢ(I, Σ) = {Σ.L(a).eᵢ : (a, i) ∈ W(I, Σ)}`, and
+> `retrieveendsets(I, Σ) = ⟨E₁(I, Σ), E₂(I, Σ), E₃(I, Σ), …⟩`.
+
+For the standard triple this is the familiar `⟨from-results, to-results, type-results⟩`
+(Q14); for `N`-ary links the family simply runs to `N`. Each `Eᵢ` is a *set of endsets* — a
+set whose members are themselves span-sets — and it is finite because `dom(Σ.L)` is finite
+(L-fin, ASN-0093) and a set cannot exceed its index. The role separation is intrinsic to the
+return shape: an endset appears under role `i` precisely when it is the `i`-th endset of some
+touching link, and there is no cross-role contamination, because slot index is a primitive of
+the link value, not a derived label (L6, ASN-0043).
+
+> **RE-role (lemma).** `e ∈ Eᵢ(I, Σ) ⟺ (E a : a ∈ dom(Σ.L) ∧ i ≤ |Σ.L(a)| : Σ.L(a).eᵢ = e ∧
+> touches(e, I))`. The same endset *value* may appear under two different roles (one link's
+> from-set may equal another link's to-set), but each occurrence is filed by the slot it
+> occupies, and the families `Eᵢ` are pairwise independent.
+
+A conforming implementation's role-`i` output `resultᵢ(I, Σ)` must reproduce `Eᵢ` exactly. We
+state the two halves separately because each is a genuine obligation:
+
+> **RE-sound (lemma).** `resultᵢ(I, Σ) ⊆ Eᵢ(I, Σ)`: every returned endset touches `I`. No
+> endset is returned which fails to touch the region at all — the soundness Nelson's design
+> requires of the constrained side of a search.
+
+> **RE-complete (lemma).** `Eᵢ(I, Σ) ⊆ resultᵢ(I, Σ)`: every endset that touches `I` is
+> returned. None is omitted. The quantity of *non*-touching endsets elsewhere in the store
+> cannot suppress a touching one (LM 4/60): completeness is a statement about the satisfaction
+> set, indifferent to the size of its complement.
+
+> **RE-exact (theorem).** `resultᵢ(I, Σ) = Eᵢ(I, Σ)`. Soundness and completeness together pin
+> the result down to exactly the touching endsets, leaving an implementation no latitude in
+> *which* endsets to report.
+
+## The returned endset is whole, not clipped
+
+A subtle point hides in RE-result. The witness condition requires only that *one* span of
+`Σ.L(a).eᵢ` overlap `I`. But the object placed in `Eᵢ` is the *entire* value `Σ.L(a).eᵢ` —
+every span of it, including spans whose denotation misses `I` entirely.
+
+> **RE-full (lemma).** For `(a, i) ∈ W(I, Σ)`, the member of `Eᵢ(I, Σ)` contributed by `a` is
+> the complete stored endset `Σ.L(a).eᵢ`, not the clipped span-set denoting `coverage(eᵢ) ∩ I`.
+
+We should justify why this is the right abstract choice and not merely an implementation
+accident. There are two arguments, and they agree. The first is structural: the stored value
+`Σ.L(a).eᵢ` is an atomic, immutable component of the link (L12, ASN-0043). The operation
+*reads* it; it does not synthesize a derived fragment. A returned object that was "the endset
+intersected with the query window" would be a new value the store never held, and there is no
+state in which it resides. The second is semantic, and it is Nelson's: an endset is the link's
+*reach* — to follow or comprehend the link one needs the whole of what it connects, not a
+truncation clipped to the accident of one's query window. A clipped endset would point only at
+the part of the link that one already knew about, which defeats the purpose of asking. So the
+returned endset is whole.
+
+This is worth contrasting with the I→V resolution layer, where clipping genuinely occurs: when
+an endset's coverage is *presented* in a querying document's V-space, only the portion of the
+endset the document currently arranges can be named, and the rest is silently dropped
+(ASN-0098 LP17; Q16). That clipping is a property of the *presentation*, not of the endset
+retrieval itself. The endset, as an object, is returned in full; what a particular document's
+coordinate system can *display* of it is a separate, lossy projection we treat below.
+
+## What the result reveals about the links — and what it withholds
+
+The operation returns endsets and never an address. We can make the withholding precise, and
+in doing so we discover that it withholds more than identity: it withholds count.
+
+> **RE-anon (theorem).** The result `retrieveendsets(I, Σ)` does not determine the set of
+> contributing link addresses. There exist states `Σ`, `Σ'` with
+> `retrieveendsets(I, Σ) = retrieveendsets(I, Σ')` but `{a : (a, i) ∈ W(I, Σ) for some i} ≠
+> {a : (a, i) ∈ W(I, Σ') for some i}`.
+
+*Construction.* The link store permits two distinct addresses to hold the same endset
+sequence (L11b non-injectivity, ASN-0043). Let `Σ` contain a single link `a₁` with value
+`(e, e', θ)` where `touches(e, I)`. Extend to `Σ'` by allocating a fresh `a₂ ≠ a₁` with the
+identical value `(e, e', θ)` — admissible by L11b and K.λ (ASN-0093). Now
+`E₁(I, Σ) = {e} = E₁(I, Σ')`, because the set comprehension collapses the two identical
+contributions; likewise for every role. So the results coincide. Yet the contributing-link
+sets are `{a₁}` and `{a₁, a₂}` — different, and of different cardinality. ∎
+
+The corollary is that the *number* of distinct links anchored to the region is not recoverable
+from the result. Two links with coincident endsets are indistinguishable in the output, so the
+result yields at most a lower bound (the number of distinct endset values present), never the
+true count. This is by design and by division of labour: counting how many links touch a
+region is a separate operation (FINDNUMOFLINKS), out of scope here, and an implementation of
+`retrieveendsets` is free to collapse or preserve multiplicities — so multiplicity is not part
+of the guaranteed semantics. What *is* guaranteed is the *set* of touching endset values per
+role.
+
+What, then, does the result reveal? It reveals connectivity, anonymously.
+
+> **RE-reveal (observation).** From `retrieveendsets(I, Σ)` one recovers, for each role, the
+> set of content regions the queried region is connected through — namely the coverages
+> `{coverage(e) : e ∈ Eᵢ(I, Σ)}`. One *cannot* recover which from-endset pairs with which
+> to-endset, because the per-link tuple grouping is dissolved by role separation: the operation
+> reports "here are the from-endsets that touch, here are the to-endsets that touch," never
+> "this from goes with that to." Reconstructing the pairing would be tantamount to naming the
+> links, which the operation refuses to do.
+
+So the per-link grouping that link-as-unit operations must preserve (so that following a link
+from one end to the other remains possible) is *exactly* the structure `retrieveendsets`
+sacrifices in exchange for withholding identity. The role separation is the only grouping that
+survives, and it is enough to surface connectivity while concealing which connective unit
+established it.
+
+## Endsets are I-address structure: stability under editing
+
+The coverage of an endset is a set of I-addresses, and I-addresses are permanent content
+identities, untouched by the editing operations that rearrange a document's V-space (P0/L12).
+This is the source of survivability, and it lets us separate cleanly the two senses in which a
+"region" can change.
+
+> **RE-immut (lemma).** Across any transition `Σ → Σ'` and for any link `a ∈ dom(Σ.L)` and slot
+> `i`, the endset value persists unchanged: `a ∈ dom(Σ'.L) ∧ Σ'.L(a).eᵢ = Σ.L(a).eᵢ`, hence
+> `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)` (L12, ASN-0043; LP3★, ASN-0098). The returned
+> endsets are verbatim stored values, and they reference the same content identities forever.
+
+Because the I-side touching test reads only `Σ.L` and the supplied region `I`, the result is
+invariant under every edit that leaves the link store alone:
+
+> **RE-surv (lemma).** Let `Σ → Σ'` be any arrangement edit — a K.μ-family transition
+> (`K.μ⁺`, `K.μ⁻`, `K.μ⁺_L`, or the composite `K.μ~`), each of which frames `L' = L` (A1a,
+> ASN-0099). Then `retrieveendsets(I, Σ') = retrieveendsets(I, Σ)`. Insertion, deletion, and
+> rearrangement of a document's V-positions do not change which endsets touch a given I-region.
+
+This is precisely Nelson's survivability ("links between bytes can survive deletions,
+insertions and rearrangements", LM 4/43), now stated as an invariance: the endsets follow the
+surviving content because they *are* the content's I-addresses, and an I-region query is blind
+to where those addresses currently sit in any document.
+
+## Determinism, idempotence, and the additive, monotone structure
+
+Gathering the read-set discipline into one statement:
+
+> **RE-det (lemma).** `retrieveendsets(I, Σ)` is a function of `(I, Σ.L)` alone. If
+> `Σ.L = Σ'.L` as partial functions then `retrieveendsets(I, Σ) = retrieveendsets(I, Σ')`. The
+> test consults `dom(Σ.L)`, the per-link arities and endset values, and `coverage`; it never
+> consults `Σ.M`, `Σ.C`, or any other component (cf. ComprehensionInvariantUnderΣL, ASN-0099).
+
+This is the exact sense in which the operation is *idempotent* — and it sharpens the naive
+expectation. Repeated queries return identical endsets **when the link store is unchanged**,
+not merely when the *content* is unchanged. The distinction is real and Nelson-faithful: a
+third party may anchor a brand-new link into the region without altering a single byte of its
+content (a link's home document records who owns it, not where it points, LM 4/12). Such an
+act changes `Σ.L` while leaving `Σ.C` and even the queried content untouched, and the result
+*may* legitimately grow. Idempotence is conditioned on `Σ.L`-fixity, which content-fixity does
+not imply.
+
+The direction of any such change is constrained. Endsets, once touching, stay touching, and
+the result only grows:
+
+> **RE-mono (lemma).** For every reachable `Σ →* Σ'`, `Eᵢ(I, Σ) ⊆ Eᵢ(I, Σ')`. *Proof.* For
+> `(a, i) ∈ W(I, Σ)`: link persistence gives `a ∈ dom(Σ'.L)` with `Σ'.L(a).eᵢ = Σ.L(a).eᵢ`
+> (RE-immut), coverage is preserved, so `touches` holds at `Σ'` and the same endset value lies
+> in `Eᵢ(I, Σ')`. ∎ New links allocated by `K.λ` may add further endsets; none are removed.
+
+Consequently an empty result is a faithful snapshot of present connectivity, never a permanent
+property of the region:
+
+> **RE-empty (lemma).** A region with no touching endset yields `Eᵢ(I, Σ) = ∅` for every `i` —
+> a normal, supported outcome, not an error. But emptiness is not permanent: provided `I ≠ ∅`
+> and `dom(Σ.M) ≠ ∅`, there is a `K.λ` extension `Σ → Σ'` after which the result is non-empty.
+> *Construction.* Pick `t ∈ I`; the unit-depth span `(t, δ(1, #t))` has coverage `{t' : t ≼ t'}
+> ∋ t`, so an endset `e = {(t, δ(1, #t))}` satisfies `touches(e, I)`. Allocate a link homed at
+> any `d ∈ dom(Σ.M)` with this `e` in slot 1 and any non-empty type endset in slot 3 (K.λ, L3,
+> ASN-0093). Then `e ∈ E₁(I, Σ')`. ∎
+
+The result is also additive in the region, which legitimizes decomposing a large query into
+sub-queries:
+
+> **RE-add (lemma).** `Eᵢ(I₁ ∪ I₂, Σ) = Eᵢ(I₁, Σ) ∪ Eᵢ(I₂, Σ)`. *Proof.* `touches(e, I₁ ∪ I₂)
+> ⟺ coverage(e) ∩ (I₁ ∪ I₂) ≠ ∅ ⟺ coverage(e) ∩ I₁ ≠ ∅ ∨ coverage(e) ∩ I₂ ≠ ∅`, and
+> set-builder distributes over the disjunction (cf. F13, ASN-0099). ∎
+
+## Regions phrased in a document's V-space
+
+So far the region has been an I-set. But "a region of content" is most naturally given as a
+V-region `R` inside a particular document `d` — a stretch of that document's arrangement. We
+reduce this to the I-side query through the document's own POOM, exactly as content→link
+discovery does (F12, ASN-0099). Let
+
+```
+image(R, d, Σ) = {Σ.M(d)(v) : v ∈ R ∩ dom(Σ.M(d))}                         (ASN-0099)
+```
+
+be the set of I-addresses that `d` currently maps `R` to, and define
+
+> **RE-Vside (definition).** For `d ∈ dom(Σ.M)`,
+> `retrieveendsets_V(R, d, Σ) = retrieveendsets(image(R, d, Σ), Σ)`. For `d ∉ dom(Σ.M)` the
+> operation is undefined — there is no silent fallback.
+
+Two behaviours follow from the structure of `image`, and both are forced rather than chosen.
+First, the conversion is *silently partial*: V-positions of `R` that are not in
+`dom(Σ.M(d))` — content the document never arranged, or arranged and since deleted —
+contribute nothing to `image(R, d, Σ)` and therefore cannot drag in any endset (Q11, Q16). A
+region whose content has been wholly deleted from `d` maps to the empty I-set and finds
+nothing, even though links to that now-departed content persist in the store and remain
+discoverable through *other* documents that still arrange it. The emptiness is again a
+statement about the present arrangement, not about the links.
+
+Second, the conversion is *document-agnostic at the touching layer*, which gives transclusion
+for free:
+
+> **RE-translucent (lemma).** If documents `d₁` and `d₂` both arrange a shared I-address `α`
+> (transclusion), and `v₁ ∈ R₁`, `v₂ ∈ R₂` with `Σ.M(d₁)(v₁) = Σ.M(d₂)(v₂) = α`, then for every
+> role `i`, `Eᵢ(image(R₁, d₁, Σ), Σ)` and `Eᵢ(image(R₂, d₂, Σ), Σ)` both contain every endset
+> whose coverage includes `α`. The touching test sees only `α`'s identity, not which document
+> phrased the query (cf. F6/LP16, ASN-0099). An endset anchored through transclusion is
+> discovered from any document sharing the content.
+
+The endsets returned by the V-side operation are, by RE-full, the whole stored endsets — their
+coverage in I-space. Whether they are then *presented* back in `d`'s V-coordinates (so the
+caller reads V-positions rather than raw I-addresses) is a separate projection, and it is
+lossy in exactly the way `image` is: an I-address of the endset that `d` does not currently
+arrange has no V-position to be named by, and is silently omitted from that presentation. The
+endset's identity (its I-coverage) is unaffected; only what `d`'s coordinate system can show of
+it is reduced. We leave the precise contract of that V-presentation to future work and record
+it among the open questions.
+
+## Claims Introduced
+
+| Label | Statement | Status |
+|-------|-----------|--------|
+| RE-touch | `touches(e, I) ≡ coverage(e) ∩ I ≠ ∅` | introduced |
+| RE-overlap | `touches(e, I)` is non-empty half-open span overlap; one span suffices; boundary contact does not qualify | introduced |
+| RE-witness | `W(I, Σ) = {(a, i) : a ∈ dom(Σ.L), i ≤ |Σ.L(a)|, touches(Σ.L(a).eᵢ, I)}` | introduced |
+| RE-result | `Eᵢ(I, Σ) = {Σ.L(a).eᵢ : (a, i) ∈ W(I, Σ)}`; result is the role-indexed family `⟨E₁, E₂, …⟩` | introduced |
+| RE-role | endset appears under role `i` iff it is the slot-`i` endset of a touching link; roles independent, no cross-contamination | introduced |
+| RE-sound | `resultᵢ ⊆ Eᵢ` — no returned endset fails to touch `I` | introduced |
+| RE-complete | `Eᵢ ⊆ resultᵢ` — every touching endset returned, none omitted | introduced |
+| RE-exact | `resultᵢ(I, Σ) = Eᵢ(I, Σ)` | introduced |
+| RE-full | the returned endset is the whole stored `Σ.L(a).eᵢ`, not clipped to `I` | introduced |
+| RE-anon | result does not determine the contributing link addresses, nor their count (via L11b) | introduced |
+| RE-reveal | result reveals per-role connectivity but dissolves per-link from/to/type pairing | introduced |
+| RE-immut | returned endsets are verbatim, immutable stored values with invariant coverage | introduced |
+| RE-surv | result invariant under K.μ-family arrangement edits (which fix `Σ.L`) | introduced |
+| RE-det | result is a function of `(I, Σ.L)` alone; idempotent under `Σ.L`-fixity, not content-fixity | introduced |
+| RE-mono | `Eᵢ(I, Σ) ⊆ Eᵢ(I, Σ')` across reachable `Σ →* Σ'` | introduced |
+| RE-empty | empty result permitted, not permanent; recoverable by `K.λ` when `I ≠ ∅`, `dom(Σ.M) ≠ ∅` | introduced |
+| RE-add | `Eᵢ(I₁ ∪ I₂, Σ) = Eᵢ(I₁, Σ) ∪ Eᵢ(I₂, Σ)` | introduced |
+| RE-Vside | `retrieveendsets_V(R, d, Σ) = retrieveendsets(image(R, d, Σ), Σ)`; silently partial under unmapped V-positions | introduced |
+| RE-translucent | transclusion-shared endsets discovered from any document arranging the shared I-address | introduced |
+
+## Open Questions
+
+What must the operation guarantee about an endset presented in a querying document's V-space when that document arranges only part of the endset's coverage?
+
+What invariant relates the endsets returned for a region to those returned for its sub-regions and super-regions, beyond additive union over the region?
+
+Under what conditions is the per-link from/to/type pairing reconstructible from a role-separated result, and when is that reconstruction provably impossible?
+
+What must the system guarantee about the relationship between the endsets a region-search returns and the count of distinct links anchored to that region?
+
+What must hold for two regions with equal current arrangements but distinct deletion histories to be guaranteed indistinguishable to a V-side region search?
