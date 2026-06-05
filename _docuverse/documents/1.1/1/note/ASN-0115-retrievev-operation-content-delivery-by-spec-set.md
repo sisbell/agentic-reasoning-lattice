@@ -561,6 +561,33 @@ concatenated — Gregory's `specset2ispanset` loop calls the per-document lookup
 once per spec, reading each document's arrangement in isolation, exactly the
 independence R9 requires.
 
+*Worked instance.* Let two **distinct** documents `d₁ ≠ d₂` (distinct
+document-level tumblers, `zeros(dⱼ) = 2`, with distinct allocation events,
+ASN-0036 S7d) each create and bind their own content. Document `d₁` binds a
+content position `v₁` (`subspace(v₁) = s_C`) to a content address `a₁ ∈ dom(Σ.C)`
+that `d₁` itself allocated, so `origin(a₁) = d₁` (S7b); document `d₂` binds a
+content position `v₂` (`subspace(v₂) = s_C`) to a content address `a₂ ∈ dom(Σ.C)`
+that `d₂` allocated, so `origin(a₂) = d₂`. Because `d₁ ≠ d₂` were distinct
+allocating documents, S7(c) (StructuralAttribution) gives `origin(a₁) ≠
+origin(a₂)` — the two fragments carry distinct, determinate home documents. Build
+the cross-document spec-set `R = ⟨(d₁, σ₁), (d₂, σ₂)⟩`, where `σ₁` is an
+`s_C`-rooted ordinal span over `d₁` naming `v₁` and `σ₂` is an `s_C`-rooted
+ordinal span over `d₂` naming `v₂`. By R4 each spec is resolved against its own
+arrangement in isolation: `(d₁, σ₁)` through `Σ.M(d₁)` yields
+`act((d₁,σ₁),Σ) = {v₁}` and item `⟨content, Σ.C(a₁)⟩`; `(d₂, σ₂)` through
+`Σ.M(d₂)` yields `act((d₂,σ₂),Σ) = {v₂}` and item `⟨content, Σ.C(a₂)⟩`. (a)
+Coherent ordered assembly: by R0's concatenation in spec-set order,
+`deliver(R, Σ) = ⟨⟨content, Σ.C(a₁)⟩, ⟨content, Σ.C(a₂)⟩⟩` — `d₁`'s item precedes
+`d₂`'s item because spec 1 precedes spec 2 (R5), irrespective of the T1-magnitudes
+of `a₁`, `a₂` or of `d₁`, `d₂`. (b) Traceable, non-collapsed provenance: each
+delivered item was resolved through a definite address whose home document is
+recoverable from the resolution mapping — `origin(a₁) = d₁` and `origin(a₂) = d₂`
+(S7) — and these are distinct, so co-assembly into one stream collapses neither
+origin into the other. The delivered stream is one coherent sequence (a) whose
+fragments remain individually attributable to their distinct creating documents
+(b) — exactly the dual obligation R9 names, shown here for the multi-origin case
+that R8 (single shared origin) and R11 (single forked lineage) do not exercise.
+
 ## What co-delivery reveals: subspace crossing
 
 The last revelation. A document's arrangement maps positions in two subspaces:
