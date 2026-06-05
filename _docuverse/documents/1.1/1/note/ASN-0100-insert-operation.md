@@ -60,25 +60,17 @@ The freshness of each `a_k` is established against the state immediately precedi
 
 By the chain discipline (ChainPrefixExtension, ChainEnumerationInjectivity; ASN-0093), every `a_k` has `origin(a_k) = d`, satisfies `b_C(d) ≼ a_k` (extending the content sub-allocator anchor), and is structurally produced by the sub-allocator's `inc(·, 0)` chain. The addresses `a_0, a_1, …, a_{n−1}` form a contiguous initial-segment extension of the chain: `a_{k+1} = inc(a_k, 0)` for `0 ≤ k < n − 1`, and `a_0` is either `[d.0.s_C.1]` (if `d` had no prior content emissions, per K.α's first-emission predicate in ASN-0093) or `inc(a_prev, 0)` where `a_prev = max{a ∈ dom(Σ.C) : origin(a) = d}` (per K.α's subsequent-emission predicate in ASN-0093).
 
-**Chain emissions in ordinal-shift form (INS.chain-shift).** The allocation recurrence `a_{k+1} = inc(a_k, 0)` admits an equivalent ordinal-shift reading. We claim that for any contiguous chain segment of `A_C(d)`, successive emissions are ordinal shifts: if `a_i` and `a_{i+j}` are chain elements with `a_{i+1} = inc(a_i, 0)` at each step, then `a_{i+j} = shift(a_i, j)`. In particular `a_k = shift(a_0, k)` for the Insertion chain (`0 ≤ k < n`).
-
-The single-step identity `inc(a_i, 0) = shift(a_i, 1)` is not definitional — it holds because each `a_i` is a T4-valid address. Each `a_i` is a chain element of `A_C(d)`, hence T4-valid by ChainElementT4Validity (ASN-0093). By TA5-SigValid (ASN-0034), a T4-valid address has `sig(a_i) = #a_i` — its rightmost nonzero component sits at its last position. Applying TA5 (HierarchicalIncrement, the `k = 0` case; ASN-0034) to `a_{i+1} = inc(a_i, 0)`: the increment modifies position `sig(a_i) = #a_i` to `(a_i)_{#a_i} + 1`, preserves the length (`#a_{i+1} = #a_i`), and leaves every other component fixed. This is precisely the action of `shift(a_i, 1) = a_i ⊕ δ(1, #a_i)` (OrdinalShift; ASN-0034), which advances the last component by 1 and copies the prefix. Hence `a_{i+1} = shift(a_i, 1)`.
-
-The identity iterates because `inc(·, 0)` preserves T4 (TA5a; ASN-0034) and preserves length (TA5(c); ASN-0034): every successor `a_{i+1}` is again a T4-valid same-length address, so `sig = #` holds at every index and the inc/shift equivalence applies at each step. Composing by TS3 (ShiftComposition; ASN-0034) — `shift(shift(a_i, j), 1) = shift(a_i, j + 1)` — and unfolding from the base `a_i = shift(a_i, 0)` yields `a_{i+j} = shift(a_i, j)` by induction on `j`. Specialising to `i = 0` gives `a_k = shift(a_0, k)`.
-
 The post-state content store grows by the fresh addresses `a_0, …, a_{n−1}` carrying the new values `v_0, …, v_{n−1}`, while every pre-existing binding is preserved unchanged (claim INS.C).
 
 The pre-existing content is *not touched*: its values are preserved bit-for-bit, and its addresses persist in the post-state. This is the foundational permanence guarantee S0.
 
 ### Effect Two: Placement
 
-The new I-addresses must appear at V-positions `p, shift(p, 1), …, shift(p, n−1)`. With `shift(p, 0) = p`, the mapping is exact:
+The new I-addresses must appear at V-positions `p, shift(p, 1), …, shift(p, n−1)`. The mapping is exact:
 
   `(A k : 0 ≤ k < n : M'(d)(shift(p, k)) = a_k)`
 
-By OrdAddHom clause (b) (ASN-0082) applied to `w = δ(k, m_C)`, every `shift(p, k)` for `k ≥ 1` lies in the same subspace as `p`: `subspace(shift(p, k)) = s_C`. The result-length identity of TumblerAdd (ASN-0034) gives `#shift(p, k) = m_C`. For `k = 0`, `shift(p, 0) = p` shares subspace and depth with `p` trivially. The placement effect is thus that each Insertion position is `shift(p, k)` for `0 ≤ k < n`, and the run of these positions merges to the block `(p, a_0, n)`.
-
-Each `shift(p, k)` is moreover a well-formed inhabitant of `V_{s_C}(d')`. For `k = 0`, `shift(p, 0) = p` satisfies S8a directly — `p` is zero-free, of depth `m_C ≥ 2`, with all components strictly positive — by ValidInsertionPosition postcondition (b) (non-empty case) or ValidFirstInsertionPosition postcondition (b) (empty case) (ASN-0036). For `k ≥ 1`, TumblerAdd's piecewise rule at action point `m_C` copies the leading `m_C − 1` components of `p`, all strictly positive (position 1 is the subspace identifier `s_C ≥ 1`; the remaining `m_C − 2` are `1`, by ValidInsertionPosition postcondition (d) or, in the empty case, ValidFirstInsertionPosition's definition fixing `v = [s_C, 1, …, 1]` of depth `m`, ASN-0036), and sets the final component to `p_m + k ≥ p_m ≥ 1`; so `zeros(shift(p, k)) = 0`, `#shift(p, k) = m_C ≥ 2`, and every component is strictly positive. This establishes S8a (claim **S8a**) and fixed depth `m_C` (claim **INS.inv.depth**) for every Insertion position. The Left and Shifted-right regions — which coincide with the post-insertion shift arrangement (§Effect Three) — inherit both: I3-VP (PostInsertionWellFormedness; ASN-0082) preserves zero-freedom, depth `≥ 2`, and positivity (S8a), and I3-VD (PostInsertionDepthUniformity; ASN-0082) preserves the common depth `m_C` (INS.inv.depth) across that arrangement. So S8a and INS.inv.depth hold for all three regions of `V_{s_C}(d')`.
+By OrdAddHom clause (b) (ASN-0082) applied to `w = δ(k, m_C)`, every `shift(p, k)` for `k ≥ 1` lies in the same subspace as `p`: `subspace(shift(p, k)) = s_C`. The result-length identity of TumblerAdd (ASN-0034) gives `#shift(p, k) = m_C`. For `k = 0`, the position is `p`, sharing subspace and depth trivially. The placement effect is thus that each Insertion position is `shift(p, k)` for `0 ≤ k < n`, mapping to `a_k`. Well-formedness and fixed depth of these positions (S8a, S8-depth) are discharged with the rest of the post-state in §Post-state V-position well-formedness.
 
 ### Effect Three: Shift
 
@@ -113,7 +105,7 @@ We state INSERT as a composite `Σ →* Σ'`.
 - depth of `p`, split by case:
   - *Non-empty `V_{s_C}(d)`:* `#p = m_C`, where `m_C` is the common depth of `V_{s_C}(d)` fixed by S8-depth (ASN-0036) — the caller cannot choose otherwise.
   - *Empty `V_{s_C}(d)`:* `#p ≥ 2` is the genuine constraint (there is no pre-existing depth to match); the operation then sets `m_C := #p`, binding the third argument of `ValidFirstInsertionPosition`.
-- `p` is a valid insertion position: either `ValidInsertionPosition(d, p)` (ASN-0036) for non-empty `V_{s_C}(d)` — equivalently `p ∈ {shift(min(V_{s_C}(d)), j) : 0 ≤ j ≤ |V_{s_C}(d)|}` (with `shift(t, 0) = t`) — or `ValidFirstInsertionPosition(d, p, m)` (ASN-0036) for empty `V_{s_C}(d)`, equivalently `p = [s_C, 1, …, 1]` of depth `m`
+- `p` is a valid insertion position: either `ValidInsertionPosition(d, p)` (ASN-0036) for non-empty `V_{s_C}(d)` — equivalently `p ∈ {shift(min(V_{s_C}(d)), j) : 0 ≤ j ≤ |V_{s_C}(d)|}` — or `ValidFirstInsertionPosition(d, p, m)` (ASN-0036) for empty `V_{s_C}(d)`, equivalently `p = [s_C, 1, …, 1]` of depth `m`
 - `n ≥ 1`
 - `v_k ∈ Val` for each `0 ≤ k < n`
 - *Composite-boundary premise.* The pre-state Σ is a composite boundary (ASN-0047), so the composite-boundary properties P4★, P4a, P7a of ExtendedReachableStateInvariants are available.
@@ -130,7 +122,7 @@ Three disjoint regions:
 
   *Left* — `(A v : v ∈ dom(M(d)) ∧ subspace(v) = s_C ∧ v < p :: v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v))`
 
-  *Insertion* — `(A k : 0 ≤ k < n :: shift(p, k) ∈ dom(M'(d)) ∧ M'(d)(shift(p, k)) = a_k)` — with `shift(p, 0) = p`.
+  *Insertion* — `(A k : 0 ≤ k < n :: shift(p, k) ∈ dom(M'(d)) ∧ M'(d)(shift(p, k)) = a_k)`.
 
   *Shifted right* — `(A v : v ∈ dom(M(d)) ∧ subspace(v) = s_C ∧ v ≥ p :: shift(v, n) ∈ dom(M'(d)) ∧ M'(d)(shift(v, n)) = M(d)(v))`
 
@@ -157,8 +149,6 @@ We instantiate INSERT to make the three regions concrete.
 
   `M(d) = {[1,1] ↦ a₁, [1,2] ↦ a₂, [1,3] ↦ a₃, [1,4] ↦ a₄, [1,5] ↦ a₅}`
 
-INS.chain-shift applies to a contiguous pre-state chain segment, so we stipulate one: `a_k = [d.0.s_C.k]` for `1 ≤ k ≤ 5`, making `a₁, …, a₅` the first five contiguous emissions of `A_C(d)` (`a_{k+1} = inc(a_k, 0)`), all T4-valid same-length addresses. This contiguous segment is what makes INS.chain-shift applicable below.
-
 Invoke `INSERT(d, [1,3], ⟨v₀, v₁⟩)` with `n = 2`. The position `p = [1,3]` corresponds to `j = 2` (since `shift([1,1], 2) = [1,3]`), interior to the `N + 1 = 6` valid positions. The substrate composite fires:
 
 1. **Two K.α firings.** A_C(d) emits `a_{new0}` and `a_{new1} = inc(a_{new0}, 0)`, both fresh.
@@ -172,7 +162,7 @@ The post-state arrangement:
 
 Verifying the three regions:
 - *Left:* `{[1,1] ↦ a₁, [1,2] ↦ a₂}` — matches `{v < p}` via INS.M-left.
-- *Insertion:* `{[1,3] ↦ a_{new0}, [1,4] ↦ a_{new1}}` — matches `shift(p, k) ↦ a_k` for `k ∈ {0, 1}` via INS.M-insert; note `shift([1,3], 0) = [1,3]`.
+- *Insertion:* `{[1,3] ↦ a_{new0}, [1,4] ↦ a_{new1}}` — matches `shift(p, k) ↦ a_k` for `k ∈ {0, 1}` via INS.M-insert.
 - *Shifted right:* `{[1,5] ↦ a₃, [1,6] ↦ a₄, [1,7] ↦ a₅}` — matches `shift(v, 2) ↦ M(d)(v)` for `v ∈ {[1,3], [1,4], [1,5]}` via INS.M-shift.
 
 The last-component values in `V_{s_C}(d')` are `{1, 2, 3, 4, 5, 6, 7}` — sequential, contiguous, starting at 1, satisfying INS.inv.seq with new cardinality `N + n = 7`.
@@ -191,7 +181,7 @@ The post-state arrangement:
 
   `M'(d) = {[1,1] ↦ a_{new0}, [1,2] ↦ a_{new1}, [1,3] ↦ a_{new2}}`
 
-with `V_{s_C}(d') = {[1,1], [1,2], [1,3]}` (depth pinned at `m_C = 2` per INS.inv.depth). Verifying the three regions: *Left* is empty (no pre-state position with `v < p`); *Insertion* is `{[1,1] ↦ a_{new0}, [1,2] ↦ a_{new1}, [1,3] ↦ a_{new2}}` matching `shift(p, k) ↦ a_k` for `k ∈ {0, 1, 2}` (with `shift([1,1], 0) = [1,1]`); *Shifted right* is empty (no pre-state position with `v ≥ p`).
+with `V_{s_C}(d') = {[1,1], [1,2], [1,3]}` (depth pinned at `m_C = 2` per INS.inv.depth). Verifying the three regions: *Left* is empty (no pre-state position with `v < p`); *Insertion* is `{[1,1] ↦ a_{new0}, [1,2] ↦ a_{new1}, [1,3] ↦ a_{new2}}` matching `shift(p, k) ↦ a_k` for `k ∈ {0, 1, 2}`; *Shifted right* is empty (no pre-state position with `v ≥ p`).
 
 *Cross-subspace and cross-document frames (empty case).* `V_{s_L}(d) = ∅` is preserved trivially: K.μ⁺'s content-subspace restriction adds no `s_L` positions, so `V_{s_L}(d') = ∅` matches. Other subspaces are vacuous. Other documents `d' ≠ d` have `M'(d') = M(d')` by each elementary step's cross-document frame.
 
@@ -199,7 +189,7 @@ with `V_{s_C}(d') = {[1,1], [1,2], [1,3]}` (depth pinned at `m_C = 2` per INS.in
 
 **Empty-document re-insertion after full clearance.** The preceding example stipulated away residual content (`{a' ∈ dom(Σ.C) : origin(a') = d} = ∅`), but the empty-arrangement precondition `V_{s_C}(d) = ∅` does *not* entail it. The substrate permits full content-subspace clearance — K.μ⁻ with retention count `n'_{s_C} = 0` (PerSubspaceContractionScope, ASN-0047) — after which `V_{s_C}(d) = ∅` while `d`'s prior content addresses persist in `dom(C)` by S0/P0 (the Istream/Vstream asymmetry; ASN-0047's `m_S(d)` note anticipates re-pinning "after full clearance"). We illustrate this sub-case. Let `d`'s content subspace have been cleared, with `{a' ∈ dom(Σ.C) : origin(a') = d} = {a_prev}` for `a_prev = max{a' ∈ dom(C) : origin(a') = d}` the chain frontier of `A_C(d)`, but `V_{s_C}(d) = ∅`. Invoke `INSERT(d, [s_C, 1], ⟨v₀, v₁⟩)` with `n = 2`; the caller picks depth `m = #p = 2`, which re-pins `m_C := #p` and *may differ* from the pre-clearance depth (the cleared arrangement imposes no surviving depth constraint — S8-depth ranges only over `dom(M(d))`, now empty in `s_C`). The position `p = [s_C, 1]` is the unique value admitted by `ValidFirstInsertionPosition(d, p, 2)` (ASN-0036). K.μ⁻ is omitted (empty content subspace). The composite reduces to:
 
-1. **Two K.α firings (subsequent-emission branch).** Because `{a' ∈ dom(C) : origin(a') = d} ≠ ∅`, K.α keys its branch on `dom(C)` (per INS.alloc) and fires the *subsequent-emission* branch — *not* first-emission. It emits `a_0 = inc(a_prev, 0)`, continuing `A_C(d)`'s `inc(·, 0)` chain past the persisted frontier, then `a_1 = inc(a_0, 0)`. Each satisfies its freshness precondition by SubsequentEmissionFreshness (ASN-0093) — freshness keys on `dom(C)`, so the persisted `a_prev` is correctly stepped past, no first-emission boundary arises, and the chain is continued rather than restarted. INS.chain-shift applies to the continued chain: `a_1 = shift(a_0, 1)`, hence `a_k = shift(a_0, k)`.
+1. **Two K.α firings (subsequent-emission branch).** Because `{a' ∈ dom(C) : origin(a') = d} ≠ ∅`, K.α keys its branch on `dom(C)` (per INS.alloc) and fires the *subsequent-emission* branch — *not* first-emission. It emits `a_0 = inc(a_prev, 0)`, continuing `A_C(d)`'s `inc(·, 0)` chain past the persisted frontier, then `a_1 = inc(a_0, 0)`. Each satisfies its freshness precondition by SubsequentEmissionFreshness (ASN-0093) — freshness keys on `dom(C)`, so the persisted `a_prev` is correctly stepped past, no first-emission boundary arises, and the chain is continued rather than restarted.
 2. **One K.μ⁺ on `d`** adding `[s_C, 1] ↦ a_0`, `[s_C, 2] ↦ a_1`, both in subspace `s_C`.
 3. **Two K.ρ firings** recording `(a_0, d)`, `(a_1, d)` in R.
 
@@ -273,7 +263,7 @@ Their union is `{[s_C, 1, …, 1, k] : 1 ≤ k ≤ N + n}`, which is exactly the
 
 For D-CTG★, the union `V_{s_C}(d') = {[s_C, 1, …, 1, k] : 1 ≤ k ≤ N + n}` is exactly `Pref(m_C, N + n)`, so the closed-interval reduction (instantiated with `m = m_C`, `K = N + n`) closes D-CTG★.
 
-For the empty pre-state case (`V_{s_C}(d) = ∅`) with `p = [s_C, 1, …, 1]` of depth `m = #p ≥ 2` (via ValidFirstInsertionPosition; ASN-0036): the post-state has only the Insertion region (Left and Shifted-right are empty). The Insertion positions are `shift(p, k) = [s_C, 1, …, 1, 1 + k]` for `0 ≤ k < n`, by OrdAddHom (ASN-0082) for `k ≥ 1` (where `shift(p, k) = p ⊕ δ(k, m)` agrees with `p` on positions `1, …, m − 1` and adds `k` to position `m`) and for `k = 0` (where `shift(p, 0) = p` resolves the position to `p` itself, which is `[s_C, 1, …, 1, 1] = [s_C, 1, …, 1]` since `p_m = 1`). Since `p_m = 1` (the unique valid first position has last component 1), the last components of the Insertion positions are `{1 + 0, 1 + 1, …, 1 + (n − 1)} = {1, 2, …, n}` and the leading `m − 1` components are all `1` throughout.
+For the empty pre-state case (`V_{s_C}(d) = ∅`) with `p = [s_C, 1, …, 1]` of depth `m = #p ≥ 2` (via ValidFirstInsertionPosition; ASN-0036): the post-state has only the Insertion region (Left and Shifted-right are empty). The Insertion positions are `shift(p, k) = [s_C, 1, …, 1, 1 + k]` for `0 ≤ k < n`, by OrdAddHom (ASN-0082) for `k ≥ 1` (where `shift(p, k) = p ⊕ δ(k, m)` agrees with `p` on positions `1, …, m − 1` and adds `k` to position `m`) and for `k = 0` (the position is `p = [s_C, 1, …, 1]` itself, since `p_m = 1`). Since `p_m = 1` (the unique valid first position has last component 1), the last components of the Insertion positions are `{1 + 0, 1 + 1, …, 1 + (n − 1)} = {1, 2, …, n}` and the leading `m − 1` components are all `1` throughout.
 
 Post-state `V_{s_C}(d') = {[s_C, 1, …, 1, k] : 1 ≤ k ≤ n}`. We verify each predicate:
 
@@ -281,7 +271,7 @@ Post-state `V_{s_C}(d') = {[s_C, 1, …, 1, k] : 1 ≤ k ≤ n}`. We verify each
 - *D-CTG★:* the post-state `V_{s_C}(d') = {[s_C, 1, …, 1, k] : 1 ≤ k ≤ n}` is exactly `Pref(m, n)`, so the closed-interval reduction (instantiated with `K = n`) closes D-CTG★.
 - *D-SEQ★:* the explicit form `V_{s_C}(d') = {[s_C, 1, …, 1, k] : 1 ≤ k ≤ n}` matches D-SEQ★ with `n_{s_C} = n` and depth `m_{s_C} = m`.
 - *S8-depth:* every position in `V_{s_C}(d')` has length `m`, the depth bound to `m_C` at the precondition (§The Operation: Formal Contract); pre-state `V_{s_C}(d) = ∅` imposes no prior depth constraint to conflict with it.
-- *S8a:* each Insertion position satisfies S8a by claim **S8a**, established at §Effect Two: Placement (whose `k = 0` / `k ≥ 1` split covers the empty case via ValidFirstInsertionPosition postcondition (b)).
+- *S8a:* the Insertion positions are well-formed (zero-free, depth `m`, all components positive); this is discharged uniformly with the non-empty case in §Post-state V-position well-formedness (whose `k = 0` / `k ≥ 1` split covers the empty case via ValidFirstInsertionPosition postcondition (b)).
 
 The empty case differs from the non-empty case in that no Left or Shifted-right regions appear and no K.μ⁻ fires in the composite (the content-subspace Right region is empty when `V_{s_C}(d) = ∅`), but the post-state invariants are verified by the same predicate checks on the post-state's exhibited form.
 
@@ -289,9 +279,7 @@ The empty case differs from the non-empty case in that no Left or Shifted-right 
 
 We verify the post-state V-position predicates (S8-depth, S8a, S8-fin) and the S7 invariants directly. The S7 invariants range over `dom(C)` and the document set: S7a/S7b/S7d on pre-existing addresses follow from pointwise S0/P0 preservation.
 
-- *S8-depth (FixedDepthVPositions, ASN-0036).* All three regions have depth `m_C` (claim **INS.inv.depth**), established for the post-state at §Effect Two: Placement. S8-depth holds across all subspaces of the post-state.
-
-- *S8a (VPositionWellFormedness, ASN-0036).* All three regions satisfy S8a (claim **S8a**), established for the post-state at §Effect Two: Placement. So S8a holds across the post-state.
+- *S8a (VPositionWellFormedness, ASN-0036) and S8-depth (FixedDepthVPositions, ASN-0036).* We discharge well-formedness (claim **S8a**) and fixed depth `m_C` (claim **INS.inv.depth**) for all three regions here. Each Insertion position `shift(p, k)` is a well-formed inhabitant of `V_{s_C}(d')`. For `k = 0`, the position is `p`, which satisfies S8a directly — `p` is zero-free, of depth `m_C ≥ 2`, with all components strictly positive — by ValidInsertionPosition postcondition (b) (non-empty case) or ValidFirstInsertionPosition postcondition (b) (empty case) (ASN-0036). For `k ≥ 1`, TumblerAdd's piecewise rule at action point `m_C` copies the leading `m_C − 1` components of `p`, all strictly positive (position 1 is the subspace identifier `s_C ≥ 1`; the remaining `m_C − 2` are `1`, by ValidInsertionPosition postcondition (d) or, in the empty case, ValidFirstInsertionPosition's definition fixing `v = [s_C, 1, …, 1]` of depth `m`, ASN-0036), and sets the final component to `p_m + k ≥ p_m ≥ 1`; so `zeros(shift(p, k)) = 0`, `#shift(p, k) = m_C ≥ 2`, and every component is strictly positive. This establishes S8a and fixed depth `m_C` for every Insertion position. The Left and Shifted-right regions — which coincide with the post-insertion shift arrangement (§Effect Three) — inherit both: I3-VP (PostInsertionWellFormedness; ASN-0082) preserves zero-freedom, depth `≥ 2`, and positivity (S8a), and I3-VD (PostInsertionDepthUniformity; ASN-0082) preserves the common depth `m_C` (INS.inv.depth) across that arrangement. So S8a and INS.inv.depth hold for all three regions of `V_{s_C}(d')`, hence across all subspaces of the post-state.
 
 - *S8-fin (FiniteArrangement, ASN-0036).* The Left and Shifted-right regions are finite by I3-fin (PostInsertionFiniteness; ASN-0082). The Insertion region contributes exactly `n` new V-positions to `dom(M'(d))`. The post-state `dom(M'(d))` is the union of finite Left + finite Shifted-right + finite Insertion (cardinality `n`) + finite cross-subspace contributions, hence finite.
 
@@ -308,8 +296,6 @@ S8★ (PerSubspaceSpanDecomposition; ASN-0047) requires that each per-subspace a
 Instantiating INS.C1a-app at `f = M'(d)|_{V_{s_C}(d')}` (S2 from §Arrangement functionality, in its extended S3★/S2 form; S8-fin from §Post-state V-position well-formedness; S8-depth from above, with `S = s_C` and `m_S = m_C ≥ 2`) yields the (unique maximally merged) block decomposition for `M'(d)|_{V_{s_C}(d')}`, discharging existence. The link-subspace branch S8★ requires for `M'(d)|_{V_{s_L}(d')}` is discharged by the trivial length-1 decomposition (per ASN-0047), inherited unchanged from the pre-state by the cross-subspace frame `V_{s_L}(d') = V_{s_L}(d)`.
 
 The single C1a object discharges all of S8★'s conditions on the content subspace; no separate run construction is needed. Because C1a's decomposition is *maximally merged*, M12b (ASN-0058) makes every one of its blocks a maximal run of `M'(d)|_{V_{s_C}(d')}`. A maximal run `(v, a, n)` satisfies condition (a) — lockstep displacement, `M'(d)(shift(v, k)) = shift(a, k)` for `0 ≤ k < n` — by the definition of a correspondence run, and condition (b) — label well-definedness — because each block is a well-formed mapping block whose I-addresses lie in `dom(C')` (S2 for functionality, S3★ for referential integrity). Condition (c) — uniqueness of the maximal-run decomposition, which S8★ requires only on the content subspace — is exactly C1a's uniqueness assertion: C1a lifts M12 to the restriction, factoring through M12a (maximal runs partition the domain) and M12b (every block of a maximally merged decomposition is a maximal run). (Condition (c) is not required on the link subspace, where S8★ asks only for the trivial length-1 decomposition.)
-
-*Supplementary characterization — shape of the canonical decomposition.* S8★ asks only for existence, but it is worth recording the shape the canonical decomposition takes over the Insertion region `{(shift(p, k), a_k) : 0 ≤ k < n}`: these `n` placements collapse into a single length-`n` run `(p, a_0, n)`. Successive length-1 blocks `(shift(p, k), a_k, 1)` and `(shift(p, k+1), a_{k+1}, 1)` satisfy both M7 (ASN-0058) adjacencies — V-adjacency `shift(p, k+1) = shift(shift(p, k), 1)` by TS3 (ShiftComposition; ASN-0034), and I-adjacency `a_{k+1} = shift(a_k, 1)` by INS.chain-shift — so the `n` blocks merge into `(p, a_0, n)`, whose denotation `{(shift(p, k), shift(a_0, k)) : 0 ≤ k < n}` (under OrdinalShiftBase, ASN-0058) equals the Insertion region by INS.chain-shift's `a_k = shift(a_0, k)`. The flanking regions appear as the pre-state's blocks: those entirely below `p` transfer unchanged (Left); those entirely at or above `p` have V-start advanced by `n` with I-start and width unchanged (Shifted-right); any pre-state block straddling `p` is split at the interior offset `c := p_m − v'_m ∈ {1, …, m' − 1}` via M4 (ASN-0058) before transfer.
 
 S8★ is preserved.
 
@@ -544,7 +530,6 @@ What the specification *does* cover is the precise per-state effect of one INSER
 | INS.def | INSERT(d, p, ⟨v_0, …, v_{n−1}⟩) is a substrate composite Σ →* Σ' under ValidComposite★ (ASN-0047), realised as n K.α + (optional K.μ⁻) + K.μ⁺ + n K.ρ | introduced |
 | INS.pre | INSERT preconditions: d ∈ dom(M); p valid in text subspace of d (binary predicate ValidInsertionPosition for non-empty case, ternary predicate ValidFirstInsertionPosition(d, p, m) with caller-chosen m ≥ 2 for empty case); n ≥ 1; v_k ∈ Val; pre-state Σ is a composite boundary (ASN-0047), making P4★/P4a/P7a available | introduced |
 | INS.alloc | INSERT allocates exactly n fresh I-addresses from d's content sub-allocator A_C(d); each a_k satisfies origin(a_k) = d; each K.α firing satisfies its freshness precondition against its own intermediate state by SubsequentEmissionFreshness and FirstEmissionFreshness (ASN-0093) | introduced |
-| INS.chain-shift | For contiguous emissions of A_C(d), a_{i+j} = shift(a_i, j); in particular a_k = shift(a_0, k) | introduced |
 | INS.C | dom(C') = dom(C) ∪ {a_0, …, a_{n−1}}; C'(a_k) = v_k; ∀a ∈ dom(C): C'(a) = C(a) | introduced |
 | INS.M-left | Text-subspace positions v < p in dom(M(d)) appear unchanged in M'(d) | introduced |
 | INS.M-insert | M'(d)(shift(p, k)) = a_k for 0 ≤ k < n, with shift(p, 0) = p | introduced |
