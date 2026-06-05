@@ -462,6 +462,24 @@ bypassing S3★'s subspace discipline) can dereference a link address as if it w
 content and deliver meaningless bytes; the abstract precondition that positions
 are resolved *through* the arrangement is exactly what rules this out.
 
+*Worked instance.* Let document `d` bind a content position
+`v_C` (`subspace(v_C) = s_C`) to a content address `a_C ∈ dom(Σ.C)`, and a link
+position `v_L` (`subspace(v_L) = s_L`) to a link address `a_L ∈ dom(Σ.L)`; the
+two are disjoint stores (SD). Build a two-spec spec-set with one span per
+subspace: `R = ⟨(d, σ_C), (d, σ_L)⟩`, where `σ_C` is an `s_C`-rooted ordinal span
+naming `v_C` and `σ_L` is an `s_L`-rooted ordinal span naming `v_L`. Each span,
+being ordinal-level, stays within its own subspace (the ContiguousSubtrees
+argument above), so neither straddles. Resolving the first spec gives
+`subspace(v_C) = s_C`, hence by S3★ `a_C ∈ dom(Σ.C)` and item
+`⟨content, Σ.C(a_C)⟩`; resolving the second gives `subspace(v_L) = s_L`, hence by
+S3★ `a_L ∈ dom(Σ.L)` and item `⟨ref, a_L⟩`. Therefore
+`deliver(R, Σ) = ⟨⟨content, Σ.C(a_C)⟩, ⟨ref, a_L⟩⟩` — a heterogeneous stream
+whose two items differ in tag (`content` vs `ref`), and the subspace boundary
+between the two specs is observable precisely as that change of item kind. A
+single text-subspace span could yield only `content`-tagged items and could never
+expose the `ref` item; the crossing is visible only because the spec-set
+designates both subspaces together.
+
 ## What governs the material: permanence of the source
 
 Finally, what invariant governs the addresses the bytes are drawn from?
@@ -479,17 +497,41 @@ Here is the decisive distinction between *deletion* and *removal of content*.
 `Σ.M(d)`; the bytes do not leave `Σ.C`, which is append-only and immutable
 (S0, S1). The content becomes *orphaned* relative to the contracting document
 (unreachable through *that* document's current arrangement) but is not absent
-from the store. So deliverability turns on exactly two conditions, and we can
-read them off as a weakest precondition: for the delivery of a spec to include
-the value at `a`, it suffices that (i) the consulted arrangement binds some named
-position to `a`, and (ii) `a ∈ dom(Σ.C)`. Immutability discharges (ii) the
-instant `a` is created and forever after; (i) is the live reference. A version
+from the store. The weakest precondition for delivery to include the value at
+`a` is therefore a *single* live condition: (i) the consulted arrangement binds
+some named content position to `a`. There is no independent store-membership
+conjunct to add. The named position is a content position
+(`subspace(v) = s_C`), so generalized referential integrity discharges store
+membership directly — `Σ.M(d)(v) = a ⟹ a ∈ dom(Σ.C)` (S3★) — the instant (i)
+holds; immutability (S0) then holds `Σ.C(a)` fixed for all time. The two facts
+are not two necessary preconditions to be conjoined but a *decomposition* of the
+one condition: (i) is the live reference the caller must establish, and
+`a ∈ dom(Σ.C)` is its automatic, permanent consequence (S3★ supplying membership,
+S0 supplying immutability). A version
 created before a deletion still binds the address, and so still delivers the
 content — which is what makes identity-preserving restoration possible at all,
 and what makes "any portion of any version (historical or alternative)" (2/19)
 retrievable. Gregory's content fetch confirms the asymmetry: the granfilade
 lookup is by I-address with no liveness check; whatever was committed at an
 address is returned whenever an arrangement resolves to it.
+
+*Worked instance.* Let content address `a` be created under document `d` and
+bound there at V-position `v_d` (`subspace(v_d) = s_C`), so `Σ.M(d)(v_d) = a` and
+`a ∈ dom(Σ.C)`. Fork a later version `d'` (a distinct document tumbler, ASN-0036
+S7d) that still binds `a` at some position `v'` (`subspace(v') = s_C`,
+`Σ.M(d')(v') = a`) — versions share the one Istream content pool, so this is the
+same address. Now contract `d`'s arrangement by K.μ⁻ (ASN-0047), removing the
+binding of `v_d`: the post-state `Σ'` has `v_d ∉ dom(Σ'.M(d))`, so `a` is
+orphaned relative to `d`. Yet `a` never leaves the store — `dom(Σ.C) ⊆ dom(Σ'.C)`
+and `Σ'.C(a) = Σ.C(a)` by S0/S1 — and the contraction touches only `Σ.M(d)`, so
+`Σ'.M(d')(v') = a` still holds (ASN-0047, K.μ⁻ frame: `(A d'' : d'' ≠ d :
+M'(d'') = M(d''))`). Take the spec-set `R = ⟨(d', σ')⟩` whose single span names
+`v'`. Then `act((d', σ'), Σ') ∋ v'`, the resolution is `Σ'.M(d')(v') = a`, and
+`deliver(R, Σ') = ⟨⟨content, Σ'.C(a)⟩⟩` — the spec over the *surviving* version
+delivers `Σ.C(a)` even though `d`'s current arrangement no longer references it.
+The wp's single live condition (i) holds at `d'` though it has been falsified at
+`d`; deletion-as-contraction is local to the arrangement it edits, never to the
+store.
 
 ## Synthesis
 
