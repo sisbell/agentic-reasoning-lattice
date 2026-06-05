@@ -24,14 +24,14 @@ COPY does not name bytes; it names *positions* that already hold bytes. Its sour
 
 `resolve_Σ(R) = ⟨(a₁, n₁), …, (a_k, n_k)⟩`,    `W = w(resolve_Σ(R)) = (+ j : 1 ≤ j ≤ k : n_j)`.
 
-Two facts about resolution are load-bearing and both come from ASN-0058. First, *every resolved address already exists*: by C1, `(A j : 1 ≤ j ≤ k : (A i : 0 ≤ i < n_j : a_j + i ∈ dom(Σ.C)))`. Second, *the run count `k` is the total number of runs of the concatenated resolution* — the sum over references `k = (+ i : 1 ≤ i ≤ q : k_i)`, where each `k_i` is the maximal-contiguous-I-run count of reference `r_i` taken in isolation (C1a, M12 applied per reference). Within a *single* reference, `k_i` is exactly the number of maximal contiguous I-runs that reference's source content occupies — a property of how fragmented that content is in I-space, not of its width. Across references, however, `k` may strictly *exceed* the number of maximal I-runs the combined source occupies: when two consecutive references draw I-adjacent content of shared origin, the concatenation carries the inter-reference boundary as two runs even though the source occupies it as a single maximal I-run. The canonical (maximally-merged) count of the copied region, which may differ from this constructed `k`, is characterised in X8.
+Two facts about resolution are load-bearing and both come from ASN-0058. First, *every resolved address already exists*: by C1, `(A j : 1 ≤ j ≤ k : (A i : 0 ≤ i < n_j : a_j + i ∈ dom(Σ.C)))`. Second, *the run count `k` is the total number of runs of the concatenated resolution* — the sum over references `k = (+ i : 1 ≤ i ≤ q : k_i)`, where each `k_i` is the maximal-contiguous-I-run count of reference `r_i` taken in isolation (C1a, M12 applied per reference).
 
 ### Precondition
 
 We collect the complete precondition under which `COPY(R, d, v)` is defined at `Σ`.
 
 - **(P1) Source resolvable at `Σ`, into the content subspace.** Each `rᵢ = (d_i, σ_i)` is a well-formed content reference (ASN-0058) with `d_i ∈ dom(Σ.M)` and, writing `σ_i = (u_i, ℓ_i)` for its V-span, **`subspace(u_i) = s_C`**, so `V_{s_C}(d_i) ≠ ∅`, `resolve_Σ(R)` is defined, and by C1 (ResolutionIntegrity, ASN-0058) every resolved address lies in `dom(Σ.C)`. Since `q ≥ 1` and each reference has positive resolved width (C2 gives `w(resolve_Σ(r_i)) = ℓ_{i,m} ≥ 1`), the total width satisfies **`W ≥ 1`** — the empty copy is excluded.
-- **(P2) Target document.** `d ∈ E_doc`, equivalently `d ∈ dom(Σ.M)`. These name the same set: in the integrated model K.δ's IsDocument case (ASN-0047) registers a new document into `Σ.E` and `dom(Σ.M)` in one indivisible step, so `dom(Σ.M) = E_doc` is a standing identity at every reachable state. We use whichever form is salient — `dom(Σ.M)` for arrangement reasoning, `E_doc` for the provenance typing `Σ.R ⊆ T_elem × E_doc` and the `E_doc`-quantified couplings J1★/J1'★/P4★ (X14). In particular the pair `(a_j + i, d)` that COPY's effect writes into `Σ.R` is well-typed precisely because `d ∈ E_doc`.
+- **(P2) Target document.** `d ∈ E_doc`, equivalently `d ∈ dom(Σ.M)`. These name the same set: in the integrated model K.δ's IsDocument case (ASN-0047) registers a new document into `Σ.E` and `dom(Σ.M)` in one indivisible step, so `dom(Σ.M) = E_doc` is a standing identity at every reachable state. In particular the pair `(a_j + i, d)` that COPY's effect writes into `Σ.R` is well-typed precisely because `d ∈ E_doc`.
 - **(P3) Content subspace.** The target subspace is the content (byte) subspace: `S = s_C`. COPY places transcluded *content*: by P1 every source span is content-subspace-resident, so C1 yields resolved addresses in `dom(Σ.C)`, carrying `subspace_I(·) = s_C`; the link subspace `s_L` is populated only in creation order by MAKELINK and is not a legal target for COPY (Q1). This pins `subspace(v) = s_C` for the inserted positions and is the conjunct S3★ will require below.
 - **(P4) Valid insertion position.** Write `n_S = |V_{s_C}(d)|`.
   - *Non-empty subspace* (`n_S ≥ 1`): by D-SEQ the positions of `V_{s_C}(d)` are `[s_C,1,…,1,c]` for `1 ≤ c ≤ n_S` at the common depth `m` (S8-depth), and `v = [s_C,1,…,1,p]` is a valid insertion position with `1 ≤ p ≤ n_S + 1` (ASN-0036, ValidInsertionPosition).
@@ -51,7 +51,7 @@ The operation `COPY(R, d, v)` carries `Σ → Σ'` as follows.
 `Σ'.C = Σ.C`.
 
 **Link store — untouched.**
-`Σ'.L = Σ.L`. COPY creates no link and alters none; this discharges the `s_L`-routing conjunct of S3★ below and preserves L12 (link immutability, ASN-0043) vacuously.
+`Σ'.L = Σ.L`.
 
 **Entity set — untouched.**
 `Σ'.E = Σ.E`. COPY allocates no node, account, or document.
@@ -73,7 +73,7 @@ a contiguous lay-down of the resolved I-sequence at consecutive target V-positio
 
 `Σ'.R = Σ.R ∪ {(a_j + i, d) : 1 ≤ j ≤ k, 0 ≤ i < n_j}`.
 
-This is a state component distinct from the *derived* containment relation `Contains_C` (which reads off `Σ'.M` automatically): the provenance relation `Σ.R` records the fact persistently, and it is the effect that discharges the coupling invariant J1★ (ExtensionRecordsProvenanceContentSubspace, ASN-0047) — see X14.
+This is a state component distinct from the *derived* containment relation `Contains_C` (which reads off `Σ'.M` automatically): the provenance relation `Σ.R` records the fact persistently.
 
 The displacement is the same forward shift that INSERT performs — Nelson treats COPY's positional effect as identical to INSERT's [LM 4/66–67] — and we specify it here only as far as needed to state COPY's invariants; its position-management mechanics are not the subject of this note. What *is* the subject is the half of the definition that distinguishes COPY from every content-creating operation: `Σ'.C = Σ.C`. We now derive its consequences.
 
