@@ -414,16 +414,27 @@ flags as not obviously safe (Open Question 2).
 **Cross-kind independence.** The extent reported for one kind does not depend on the
 population of the other. We record **W15** (Independence): `n_{s_C}(d)` is a function of
 `V_{s_C}(d)` alone, and `n_{s_L}(d)` of `V_{s_L}(d)` alone; consequently an edit confined to
-one subspace leaves the other subspace's reported extent unchanged. This follows because
-`V_S(d) = {v ∈ O(d) : v₁ = S}` is computed by a predicate on the first component, and the
-ASN-0047 editing transitions are each scoped to a single subspace: the amended K.μ⁺ confines
-its new V-positions to `subspace(v) = s_C` (content-subspace restriction), K.μ⁺_L confines
-its new V-positions to `subspace(v) = s_L` (link-subspace restriction), and K.μ⁻ contracts
-under a per-subspace retention count, removing positions only from the subspace it targets.
-Because every transition that adds or removes a V-position acts within one subspace, a
-content edit cannot alter `V_{s_L}(d)` and a link edit cannot alter `V_{s_C}(d)`. The link
-count can grow without altering the character count, and text can be inserted or deleted
-without altering the link count — the two members move independently.
+one subspace leaves the other subspace's reported extent unchanged. This follows because each
+count is read off a *disjoint* position set: `V_S(d) = {v ∈ O(d) : v₁ = S}` is selected by
+the predicate `v₁ = S`, and `s_C ≠ s_L` (SC-NEQ) makes `V_{s_C}(d)` and `V_{s_L}(d)` disjoint,
+so `n_{s_C} = |V_{s_C}(d)|` and `n_{s_L} = |V_{s_L}(d)|` are computed from non-overlapping data
+(W1). The independence is therefore a property of the *counts*, not a property of the
+transitions being single-subspace. The extension transitions happen to be single-subspace —
+the amended K.μ⁺ confines its new V-positions to `subspace(v) = s_C` (content-subspace
+restriction) and K.μ⁺_L confines its new V-positions to `subspace(v) = s_L` (link-subspace
+restriction) — but contraction is not. ASN-0047's K.μ⁻ selects a per-subspace retention count
+`n'_S` for *each* `S ∈ {s_C, s_L}` and contracts to `∪_S {[S,1,…,1,k] : 1 ≤ k ≤ n'_S}`,
+subject only to at least one `S` strictly contracting; a single K.μ⁻ may therefore shrink the
+text run and the link run *simultaneously*, so it is false that every V-position transition
+acts within one subspace. Independence survives this anyway: even the both-contracting K.μ⁻
+sets the new `n_{s_C}` by reading the retained text positions and the new `n_{s_L}` by reading
+the retained link positions, each settable without reference to the other, because the two
+counts are read off the disjoint sets `V_{s_C}(d)` and `V_{s_L}(d)`. As a *conditional*, then:
+an edit confined to one subspace leaves the other's count untouched — a content edit cannot
+alter `V_{s_L}(d)` and a link edit cannot alter `V_{s_C}(d)` — and even a joint contraction
+changes each count only through its own subspace's positions, with neither change forcing the
+other. The link count can grow without altering the character count, and text can be inserted
+or deleted without altering the link count — the two members move independently.
 
 **Partition of the counted content.** The members do not merely fail to overlap; together
 they account for exactly the counted V-positions. We record **W16** (Partition):
@@ -497,6 +508,38 @@ inactive position.
 The degenerate `m_S = 2` instance shows the canonical machinery surviving the collapse: with
 no interior `1`'s, `start_S = [S,1]` and the count `n_S` lives entirely in the last component
 of the width.
+
+**A one-member instance.** The single-occupied-subspace boundary — the default state of a
+freshly populated document with text but no links yet — sits between `⟨⟩` (W0) and the
+two-member report. Let `d'` hold three characters of text and *no* links, depth
+`m_{s_C} = 2`. By D-SEQ★,
+
+> `V_{s_C}(d') = {[1,1], [1,2], [1,3]}`,  `n_{s_C} = 3`,
+> `V_{s_L}(d') = ∅`,  `n_{s_L} = 0`.
+
+The link subspace is empty, so `occupied(d') = {s_C}` (W6) and `|occupied(d')| = 1` (W7): the
+operation emits exactly one member and *no* link member. The single extent span (W2) is
+`ext(d', s_C) = ([1,1], δ(3,2)) = ([1,1], [0,3])`, so
+
+> `RETRIEVEDOCVSPANSET(d') = ⟨ ([1,1], δ(3,2)) ⟩`.
+
+**W3 (well-formed).** `δ(3,2) = [0,3]` is positive (`Pos`), its action point is its last
+position `2 = #[1,1]`, and it is level-uniform (`#[0,3] = 2 = #[1,1]`); its reach is
+`[1,1] ⊕ [0,3] = [1,4] = [s_C,1,1+n_{s_C}]`. T12 holds.
+
+**W4 (exact coverage).** `⟦ext(d', s_C)⟧ = {t : [1,1] ≤ t < [1,4]}`; intersecting with
+`VSlice(s_C, 2) = {[1,j] : j ≥ 1}` pins the last component to `1..3`, giving
+`{[1,1],[1,2],[1,3]} = V_{s_C}(d')` — neither omitting an active position nor admitting an
+inactive one.
+
+**W7 / W13 (single-member normal form).** With one occupied subspace the result is the
+singleton `⟨ext(d', s_C)⟩`, trivially normalized: a one-member sequence is sorted and
+separated, so no merge is possible.
+
+**W14 (absent member, zero count).** The empty link subspace contributes *no* member to the
+report, yet `n_{s_L}(d') = 0` remains a fact about `V_{s_L}(d') = ∅` (W1), well-defined
+independently of whether the report emits a link member. The report omits the empty subspace
+while the count of that subspace is still a defined zero — the very separation W14 records.
 
 ---
 
