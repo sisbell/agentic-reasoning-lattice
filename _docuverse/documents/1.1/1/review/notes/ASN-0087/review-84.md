@@ -1,0 +1,30 @@
+# Review of ASN-0087
+
+## REVISE
+
+(none)
+
+## OUT_OF_SCOPE
+
+### Topic 1: Well-formedness of forward-reaching / never-allocated endset spans
+The first Open Question — what constraints govern endset spans referencing addresses outside `dom(C) ∪ dom(L)` — is correctly deferred. L4 (ASN-0043) already permits them, and the `StandardAuthoring` discipline is the right local handle; a full account belongs to a future ASN.
+
+### Topic 2: Deferred-consistency discoverability and protocol-level Σ_mid visibility
+Open Questions 3–4 (whether the discoverability guarantee may hold at a deferred state, and what protocol-level bound governs the intermediate state) sit above the substrate. M-CompAtomicity correctly assigns composite atomicity to "the protocol layer above the substrate."
+
+---
+
+Checks performed and passed:
+
+- **Decomposition `K.λ ; K.μ⁺_L`** — order forced by K.μ⁺_L's `ℓ ∈ dom(L)` precondition; correct.
+- **`ℓ ∉ ran(Σ_mid.M(d))`** — derived via S3★ + S3★-aux + K.λ freshness; both subspace branches cover the range. Sound.
+- **S2 exclusion** — split into within-subspace (D-SEQ★ strict inequality) and cross-subspace (SC-NEQ) exclusions; `v_ℓ ∉ dom(Σ.M(d))` correctly established, not merely `v_ℓ ∉ V_{s_L}(d)`.
+- **D-CTG★** — proved over the *full* depth-`m` slice for arbitrary `m ≥ 2`, not assuming `m = 2`; the T1 interior-component argument is correct and avoids circularity (it computes `V_{s_L}^{Σ'}(d)` explicitly from pre-state D-SEQ★, then verifies both invariants).
+- **wp analysis** — Case 1, Case 2 (arrangement-reach + reflexive disjuncts), and the standard-authoring collapse are all biconditional, hence genuinely weakest; membership clause `d_target ∈ dom(Σ.M)` correctly retained via M-DocFixity.
+- **Coupling constraints** — J0/J1★/J1'★ vacuous (frame fixes C, R; sole new V-position is `s_L`, not `s_C`). Correct.
+- **Worked example** — `a₁`, `ℓ` lengths and prefix tests verified; reflexive variant correctly shown non-standardly-authored.
+- **Boundary cases** — empty endset slots, empty vs non-empty `V_{s_L}(d)`, first-link-in-system, decoupling of subsequent-emission address from first V-position all handled by robust proofs.
+
+No correctness gap, no hand-waved case, no non-foundation cross-reference, and no degrading meta-prose accretion found. The general-depth D-CTG★ proof is defensive robustness (other composites may invoke K.μ⁺_L), not drift.
+
+VERDICT: CONVERGED
