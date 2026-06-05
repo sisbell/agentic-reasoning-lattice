@@ -1,0 +1,17 @@
+# Review of ASN-0113
+
+## REVISE
+
+### Issue 1: The non-trivial mechanism of W4/W10 is never exercised by a concrete instance
+
+**ASN-0113, "A worked instance" and W4 (ExactCoverage)**: Both worked instances (`d` with text/links, `d'` text-only) fix `m_{s_C} = m_{s_L} = 2`, and the note itself observes this is "the degenerate case in which the canonical `[S,1,…,1]` form collapses."
+
+**Problem**: W4's and W10's load-bearing step is the T5 (ContiguousSubtrees) argument that confines every interior tumbler of `⟦ext(d, S)⟧` to the prefix `[S,1,…,1]` of length `m_S − 1`, thereby excluding off-prefix V-slice tumblers. At `m_S = 2`, that prefix collapses to length 1 — just the subspace identifier `[S]` — so the only inactive same-depth tumblers in play are `[S,j]` with `j > n_S` (excluded by the last-component bound) and `[S',·]` with `S' ≠ S` (excluded by the first component). The interesting case — a tumbler that agrees on the subspace identifier and the last-component range but *diverges in an interior position* (e.g. `[S,2,1]` when `m_S = 3, n_S = 2`) — is exactly what T5 is invoked to rule out, and it is never checked against concrete tumblers. The general proof is sound, but the worked verification does not exercise the step that does the actual work.
+
+**Required**: Add a concrete instance at `m_S ≥ 3` — e.g. `V_S(d) = {[S,1,1], [S,1,2]}` with `ext = ([S,1,1], δ(2,3))`, `reach = [S,1,3]` — and verify that `[S,2,1] ∈ VSlice(S,3)` is excluded (`[S,2,1] > [S,1,3]` by T1 at position 2), confirming `⟦ext⟧ ∩ VSlice(S,3) = {[S,1,1],[S,1,2]} = V_S(d)`. This is the scenario in which the prefix-confinement is non-vacuous.
+
+## OUT_OF_SCOPE
+
+(none — the Open Questions correctly defer version-fork permanence, transclusion, overall-extent consistency, and subspace extension to future ASNs without asserting claims about them.)
+
+VERDICT: REVISE
