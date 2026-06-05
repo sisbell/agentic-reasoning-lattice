@@ -10,7 +10,7 @@ When new content is inserted at a position in a document's Vstream, what is the 
 - *What shifts* — which existing V→I mappings change position, and by how much?
 - *What invariants must hold after completion* — and atomically, with no observable intermediate state in which a *per-state* invariant is violated?
 
-We are careful with the word "atomically." As the Atomicity section establishes, the guarantee is genuinely two-tiered. The *per-state* invariants (Class (a)) hold at every intermediate state of the composite. The *coupling/boundary* properties — P4★ (`Contains_C(Σ) ⊆ R`), P4a, and P7a — are transiently unestablished mid-composite (for instance, at the post-K.μ⁺/pre-K.ρ intermediate, content is arranged but its provenance is not yet recorded, so P4★ is momentarily violated) and are restored only at the composite boundary `Σ →* Σ'`. So there is no observable intermediate state in which a per-state invariant fails, but the boundary properties are an end-to-end guarantee, not an everywhere guarantee.
+The word "atomically" raises a sub-question: *in what sense* is the post-state reached without observable intermediate violation? We defer the answer to the Atomicity section, which states and discharges the precise guarantee.
 
 The answer must be sharp enough that an implementation can be measured against it, and abstract enough that two implementations meeting the spec are externally indistinguishable.
 
@@ -48,7 +48,7 @@ These preconditions are necessary; we shall verify they are jointly sufficient.
 
 ## Discovering the Three Effects
 
-We reason from the intent backward to the formal specification. INSERT splices `n` new content units into `d`'s arrangement at V-position `p`. Three effects must obtain together.
+INSERT splices `n` new content units into `d`'s arrangement at V-position `p`. Three effects must obtain together.
 
 ### Effect One: Allocation
 
@@ -555,13 +555,13 @@ Nelson (Q8) distinguishes INSERT from COPY — two operations that may produce v
 
 The defining structural difference is captured by INS.identity: INSERT's allocation is fresh (INS.C, INS.alloc), each `a_k` a new emission of `A_C(d)` with `origin(a_k) = d`, whereas COPY introduces V→I references without allocating. The system tracks identity by allocation event, not by value: if two allocations carry coinciding bytes, that coincidence is observable but produces no shared identity.
 
-### Derived corollaries of INS.identity
+### Derived corollary of INS.identity
 
-The identity-by-allocation property has explicit consequences. We derive two.
+The identity-by-allocation property has an explicit cross-document consequence.
 
 *Corollary (cross-document allocation independence).* If two distinct documents `d_1 ≠ d_2` each invoke INSERT with the same value sequence `⟨v_0, …, v_{n−1}⟩` at any positions, they produce two disjoint sequences of fresh I-addresses `⟨a_0^{(1)}, …, a_{n−1}^{(1)}⟩` and `⟨a_0^{(2)}, …, a_{n−1}^{(2)}⟩` with `origin(a_k^{(1)}) = d_1 ≠ d_2 = origin(a_k^{(2)})`. The two address sets are disjoint by SubAllocatorBundle (ASN-0047): `dom(A_C(d_1)) ∩ dom(A_C(d_2)) = ∅` for `d_1 ≠ d_2`. Value coincidence at `Σ.C(a_k^{(1)}) = Σ.C(a_k^{(2)})` is observable but does not produce identity — the system observes it as two unrelated allocations.
 
-*Corollary (link survivability through value coincidence — INS.identity.tightsurv).* If a tight endset `e` was incorporated at state `Σ_e` (with `tight(e, Σ_e)`), and a subsequent INSERT in any document produces a fresh `a_new` whose value `Σ'.C(a_new) = Σ_e.C(a')` for some `a' ∈ coverage(e)`, then `a_new ∉ coverage(e)`. This is INS.proj's tight-endset case (`N_{ℓ,i} = ∅`): the endset's coverage is a set of I-addresses, not of values, so value coincidence is irrelevant and the link does not silently expand to capture the new content.
+The same value-vs-address distinction settles a link-survivability question without further derivation: a tight endset cannot silently expand to capture freshly inserted content, since INS.proj's tight-endset case (`N_{ℓ,i} = ∅`) already establishes that a fresh `a_new` lies outside the endset's coverage — coverage is a set of I-addresses, not of values, so value coincidence is irrelevant.
 
 ## Bounding the Scope
 
@@ -606,7 +606,6 @@ What the specification *does* cover is the precise per-state effect of one INSER
 | INS.position | INSERT permitted at any valid position: N+1 valid positions under ValidInsertionPosition for non-empty V_{s_C}(d), plus single first-insertion position under ValidFirstInsertionPosition(d, p, m) with caller-chosen m ≥ 2 for empty case | introduced |
 | INS.identity | INSERT creates fresh content identity: each a_k is a new allocation with origin(a_k) = d; INSERT cannot identify new content with any pre-existing I-address regardless of value coincidence | introduced |
 | INS.identity.crossdoc | Cross-document allocation independence: two distinct documents inserting identical values produce disjoint fresh I-address sequences with distinct origins (by SubAllocatorBundle, ASN-0047) | introduced |
-| INS.identity.tightsurv | Link survivability through value coincidence: tight endsets cannot accidentally capture freshly allocated content by LP19a (ASN-0098) | introduced |
 
 ## Open Questions
 
