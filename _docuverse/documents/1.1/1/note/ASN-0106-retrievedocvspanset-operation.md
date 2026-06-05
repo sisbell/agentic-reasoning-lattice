@@ -20,13 +20,17 @@ We must first reject the loosest possible answer. Nelson is explicit that the un
 
 But a collection *of what*? Here we depart from a naive reading. If the operation returned only content bytes — a flat concatenation — then much of what we are about to claim would be impossible, because bytes carry no address. Gregory's evidence is decisive on this point: the content-retrieval path discards I-addresses before the result leaves the back end, so two distinct regions returning identical text are indistinguishable from one region read twice. RETRIEVEDOCVSPANSET is the *other* kind of operation. It returns **spans**, each of which is an address-bearing description: a region of the document's arrangement together with the content identity it points to.
 
-We therefore take the returned object to be a sequence of mapping blocks. Given a span `σ` over `d`, let `f = M(d)|⟦σ⟧` be the arrangement restricted to the requested positions. By ASN-0058 (C1a, M11, M12) this restriction admits a *unique maximally-merged* block decomposition; list its blocks in increasing V-start order and call the list `blocks(d, σ)`. For a span-set `Σ = ⟨σ₁, …, σₚ⟩` define
+We therefore take the returned object to be a sequence of mapping blocks. The decomposition machinery we invoke carries preconditions, and we must attach them to the definition itself rather than discover them later. ASN-0058's C1a admits a unique maximally-merged block decomposition of a restriction only when the induced domain lies within a *single subspace* and the span is *level-uniform* (so all requested positions share one depth). We therefore say a span `σ` is **well-formed over `d`** when it is level-uniform and confined to one subspace — `(A v ∈ ⟦σ⟧ : subspace(v) = subspace(start(σ)))` — and we define `blocks(d, σ)` only for such spans. Given a well-formed `σ`, let `f = M(d)|⟦σ⟧` be the arrangement restricted to the requested positions. By ASN-0058 (C1a, M11, M12) this restriction admits a *unique maximally-merged* block decomposition; list its blocks in increasing V-start order and call the list `blocks(d, σ)`. For a span-set `Σ = ⟨σ₁, …, σₚ⟩` of well-formed spans define
 
 > **read(d, Σ) = blocks(d, σ₁) ⌢ blocks(d, σ₂) ⌢ … ⌢ blocks(d, σₚ)**,
 
 the concatenation of the per-span decompositions. Each block `(v, a, n)` records simultaneously *where in the document* the fragment sits (its V-start `v`) and *what content* it names (its I-start `a`). This is the surplus the combined act delivers and the loose concatenation cannot: a structure in which both coordinates survive.
 
-The canonical RETRIEVEDOCVSPANSET of 4/68 is the instance `read(d, Σ_full)` where `Σ_full = ⟨σ_text, σ_link⟩` designates the full V-extent of each subspace. By the subspace argument below the result is then exactly two blocks — the text extent and the link extent — which is precisely Nelson's "number of characters of text and number of links." We record this as a claim (R0) but spend our reasoning on the general act, of which it is a special case.
+The canonical RETRIEVEDOCVSPANSET of 4/68 is the document-extent reading, and here we must be careful not to confuse two different objects. Nelson's gloss asks for "the number of characters of text and the number of links" — these are *V-widths*, two summary counts, one per occupied subspace. A V-width is recoverable as a single V-span by the contiguity of each subspace's V-positions (ASN-0036 D-SEQ: `V_s(d) = {[s,1,…,1,k] : 1 ≤ k ≤ n}`), so the full-extent reading is at most two V-spans — `⟨σ_text, σ_link⟩` — whose widths are the character count and the link count, **independent of how the underlying I-addresses are fragmented**. This is *not* the maximally-merged block decomposition: a single V-extent span whose content was assembled from non-contiguous I-regions decomposes (by R-SPLIT below) into several blocks, yet its character *count* remains one V-width. The document-extent reading reports the count, i.e. the V-span, not the block list.
+
+> **R0.** The document-extent reading `RETRIEVEDOCVSPANSET(d)` returns the V-extent span-set `⟨σ_text, σ_link⟩` — at most two V-spans, one per occupied subspace, whose widths are the character count and the link count. These V-widths are recoverable as single contiguous V-spans by D-SEQ regardless of I-fragmentation, and so the document-extent reading does *not* collapse to one block per subspace: the same full text extent decomposes (R-SPLIT) into possibly many blocks whose V-widths sum to the character count.
+
+We spend our reasoning on the general block-returning act `read(d, Σ)`, of which the document-extent V-width reading is the summary projection: `read` exposes the per-block V↔I structure, while R0 reports only the aggregate V-width per subspace.
 
 **Frame.** The combined read is a pure query. It reads `M(d)` and `Σ`; it allocates no address, changes no arrangement, and writes nothing back: `C' = C`, `L' = L`, `(A d' :: M'(d') = M(d'))`, `Σ` unchanged. Every claim below is about a *state observed*, not a state transformed. We label this **R-FRAME**.
 
@@ -68,9 +72,9 @@ We now reach the heart of the question. A span read alone tells you only "from h
 
 ### Gaps and adjacency
 
-Consider two adjacent blocks `β, β'` in the result with `β` preceding `β'`. Either `reach`-of-`β`'s V-extent equals `start`-of-`β'`'s — they abut, no document position lies between them — or it does not, and the V-positions strictly between are *unrequested content the document holds but the request excluded*. By ASN-0053's classification (SC) this distinction is decidable from the boundaries alone. So:
+The abutment question is only meaningful when consecutive-in-list coincides with consecutive-in-arrangement. We therefore reason over the V-ordered view, which by R-ORDER is the result's actual listing order precisely when `Σ` is normalized; for non-normalized `Σ`, two list-adjacent blocks may sit arbitrarily far apart in V-space and the abutment test would be vacuous. So we attach normalization as a precondition. Consider two V-consecutive blocks `β, β'` in the result with `β` preceding `β'`. Either `reach`-of-`β`'s V-extent equals `start`-of-`β'`'s — they abut, no document position lies between them — or it does not, and the V-positions strictly between are *unrequested content the document holds but the request excluded*. By ASN-0053's classification (SC) this distinction is decidable from the boundaries alone. So:
 
-> **R-GAP.** From `read(d, Σ)` one may decide, for each consecutive pair of fragments, whether they abut in the arrangement or are separated by document content the request omitted; the size and location of each omission is recoverable from the block boundaries.
+> **R-GAP.** For normalized `Σ`, from `read(d, Σ)` one may decide, for each V-consecutive pair of fragments, whether they abut in the arrangement or are separated by document content the request omitted; the size and location of each omission is recoverable from the block boundaries.
 
 A lone span cannot expose this, because a lone span has no neighbour to abut or be separated from. The gap is "an active exclusion" (Nelson, on "including nothing else", 4/25) — and it is only visible once two fragments are placed side by side with their V-coordinates intact. This is why the surplus of the combined act is real: the relationship *between* fragments is information the fragments do not individually carry.
 
@@ -78,7 +82,13 @@ A lone span cannot expose this, because a lone span has no neighbour to abut or 
 
 Here is the deepest reveal, and the one that justifies returning addresses rather than bytes. Two distinct V-positions of a document may map to the *same* I-address — self-transclusion, internal sharing. The arrangement permits this (ASN-0058 M13): `(E d, a :: |{v : M(d)(v) = a}| > 1)`. Content identity in Xanadu is by *origin* (shared I-address), not by value (4/10–4/11); two regions that merely read alike are not "the same content" unless they trace to one I-address.
 
-Now observe what the combined read does. If span `σᵢ` covers one such V-position and `σⱼ` covers the other, then `read(d, Σ)` contains two blocks whose I-extents overlap. By ASN-0058 M14a such blocks *cannot* be merged — a shared I-extent defeats I-adjacency — so both survive in the result, each displaying the shared I-address `a`. The reader, comparing the two blocks' I-coordinates, sees that the regions are the same content, not coincidentally identical content.
+Now observe what the combined read does. There are two ways the two shared V-positions can arrive in the result, and the reason both blocks survive differs between them.
+
+*Within one span.* If a single requested span `σ` covers both shared V-positions, then `blocks(d, σ)` is the maximally-merged decomposition of one restriction, and the merge machinery would be tempted to coalesce. Here ASN-0058 M14a is load-bearing: the two blocks have overlapping (indeed shared) I-extents, and a shared I-extent defeats I-adjacency, so M14a *forbids* their merger. Both survive in the canonical decomposition, each displaying the shared I-address `a`.
+
+*Across spans.* If `σᵢ` covers one V-position and `σⱼ` the other, the two blocks come from *different* per-span decompositions. `read` concatenates these and never merges across span boundaries, so both blocks survive trivially — they were never merge candidates, and M14a is not needed for this case. The result still contains two blocks displaying the shared I-address `a`.
+
+In either case the reader, comparing the two blocks' I-coordinates, sees that the regions are the same content, not coincidentally identical content.
 
 > **R-CORR.** Distinct V-positions of `d` that share an I-address are exposed by `read(d, Σ)` as distinct blocks carrying that common I-address; this sharing is legible only when both positions are read together, and only because the result retains I-addresses.
 
@@ -128,11 +138,11 @@ No fragment can silently drift to a newer revision, because the arrangement is f
 
 ### The degenerate designation
 
-A zero-width or empty designation contributes nothing. If `σ` denotes `∅` (the degenerate limit of a span — note ASN-0053 S2: no well-formed span denotes `∅`, so this is a boundary input), then `M(d)|∅ = ∅` and `blocks(d, σ)` is empty. The combined result simply omits it; no empty placeholder fragment appears.
+Two boundary cases must be kept apart. The first is *ill-formed input*: a span whose denotation is `∅`. By ASN-0053 S2 no well-formed span denotes `∅`, so such a designation is not a contributing-nothing fragment — it is a malformed request, and the operation rejects it rather than silently dropping it. The second is the meaningful case fidelity must cover: a *well-formed* span `σ` whose denotation contains V-positions, but none of which is active in the arrangement — `V_req ∩ ⟦σ⟧ = ∅`, i.e. `⟦σ⟧ ∩ dom(M(d)) = ∅`. Here `f = M(d)|⟦σ⟧ = ∅` and `blocks(d, σ)` is empty. The combined result simply omits this span's contribution; no empty placeholder fragment appears.
 
-> **R-EMPTY.** A requested span designating no positions contributes no block to `read(d, Σ)`; the result is as if that span were absent.
+> **R-EMPTY.** A well-formed requested span whose designated positions are all absent from `dom(M(d))` contributes no block to `read(d, Σ)`; the result is as if that span were absent. An ill-formed span (one denoting `∅`, violating ASN-0053 S2) is a rejected input, not a contributing-nothing fragment.
 
-This is the right abstract reading of the boundary case: faithfulness "to exactly what is designated, including nothing else" (4/25) means a designation of nothing yields nothing.
+This is the right abstract reading of the boundary case: faithfulness "to exactly what is designated, including nothing else" (4/25) means a well-formed designation of currently-unmapped positions yields nothing, while a designation that cannot denote any region at all is refused.
 
 ### The overlap question — a genuine open boundary
 
@@ -145,17 +155,17 @@ We have proved R-FID for *disjoint* `Σ`. What if the request overlaps — two s
 | Label | Statement | Status |
 |-------|-----------|--------|
 | read(d, Σ) | `read(d, Σ) = blocks(d, σ₁) ⌢ … ⌢ blocks(d, σₚ)`, the per-span maximally-merged block decompositions of `M(d)\|⟦σᵢ⟧` concatenated in request order | introduced |
-| R0 | The document-extent instance `read(d, Σ_full)` returns exactly one text block and one link block — the two subspace extents | introduced |
+| R0 | The document-extent reading returns the V-extent span-set `⟨σ_text, σ_link⟩` — at most two V-spans whose widths are the character and link counts (recoverable by D-SEQ, independent of I-fragmentation); not one block per subspace, since the full text extent decomposes by R-SPLIT into possibly many blocks whose V-widths sum to the count | introduced |
 | R-FRAME | The combined read is a pure query: `C'=C`, `L'=L`, `(A d' :: M'(d')=M(d'))`, `Σ` unchanged | introduced |
 | R-ORDER | For normalized `Σ`, `read(d, Σ)` is globally ordered by V-position, and that order is the document's arrangement order, independent of request enumeration | introduced |
 | R-TRACE | Every returned fragment carries both its V-position and its I-address; each `(v+k, a+k)` satisfies `M(d)(v+k)=a+k` with `a+k ∈ dom(C)` | introduced |
 | R-SUBSPACE | Every block lies wholly in one subspace; text blocks precede link blocks; no block spans both subspaces | introduced |
-| R-GAP | From the result one may decide, for each consecutive fragment pair, abutment vs. separation by unrequested content, recovering each omission from the boundaries | introduced |
+| R-GAP | For normalized `Σ`, one may decide for each V-consecutive fragment pair abutment vs. separation by unrequested content, recovering each omission from the boundaries | introduced |
 | R-CORR | Distinct V-positions sharing an I-address are exposed as distinct blocks carrying that common I-address; visible only when read together and only because addresses are retained | introduced |
 | R-SPLIT | A V-span yields multiple blocks exactly when its content spans non-contiguous I-regions; the split is forced — no faithful merge crosses a non-contiguous or cross-origin I-boundary | introduced |
 | R-FID | For normalized `Σ` of level-uniform single-subspace spans, with `M(d)` satisfying S2, S3, S8a, `read(d, Σ)` reproduces `M(d)` over `V_req` with no loss, duplication, or reorder — a bijection of `V_req` onto its image | introduced |
 | R-VERSION | Every fragment resolves through one arrangement snapshot; every I-address named is permanent; repeating the read against the same arrangement returns identical pairs | introduced |
-| R-EMPTY | A span designating no positions contributes no block; the result is as if that span were absent | introduced |
+| R-EMPTY | A well-formed span whose designated positions are all absent from `dom(M(d))` contributes no block; an ill-formed span (denoting `∅`, S2-violating) is a rejected input, not a contributing-nothing fragment | introduced |
 
 ## Open Questions
 
