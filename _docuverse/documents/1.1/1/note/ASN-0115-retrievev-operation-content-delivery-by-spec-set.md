@@ -73,7 +73,16 @@ constraint on the span's start, whether or not that start is itself bound. The
 direct imposition is necessary: S8a is an invariant restricted to the active domain
 `dom(Σ.M(d))`, and R6 below contemplates named starts absent from the arrangement,
 so the shape cannot be borrowed from S8a's domain-restricted guarantee — `#s ≥ 2`
-is a property of the V-position *shape*, required of the spec. Ordinal-level means
+is a property of the V-position *shape*, required of the spec. We further require
+*depth compatibility* with the named subspace: writing `S = s₁` for the subspace
+the start designates, when `S` is already populated in `d` (`V_S(d) ≠ ∅`) the start
+must match that subspace's common depth, `#s = m_S(d)` (the depth S8-depth
+(ASN-0036) fixes uniformly on `V_S(d)`). This is the same discipline ASN-0058's
+ContentReference imposes (`#ℓ = #u = m` with `m` the common V-position depth); it
+is what lets R6 below reason about `⟦σ⟧` and `V_S(d)` at a single shared depth.
+When `V_S(d) = ∅` the constraint is vacuous — any well-formed start of depth `≥ 2`
+is admissible — but then `act = ∅` and the gap analysis is trivial (every named
+position is unbound). Ordinal-level means
 the width acts at the deepest component, `actionPoint(ℓ) = #ℓ` (ASN-0082,
 OrdinalLevel). Combined with level-uniformity (`#ℓ = #s`) and the start depth
 `#s ≥ 2`, this forces `actionPoint(ℓ) ≥ 2`, so both endpoints `s` and `s ⊕ ℓ`
@@ -295,8 +304,13 @@ what can be delivered, signal the gap by absence, and never fail the whole.
 This is forced by the model: `act(ρ, Σ)` is an intersection, so an unbound
 position is simply not enumerated.
 
-The substrate sharpens *where* such a gap can fall. Fix a V-spec `(d, σ)` with
-`σ` rooted in subspace `S = s₁` at the subspace's common depth `m_S`. By
+The substrate sharpens *where* such a gap can fall. Fix a V-spec `(d, σ)` rooted in
+subspace `S = s₁`. If `V_S(d) = ∅` the sharpening is trivial: `act = ∅`, every
+named position is an unbound terminal overrun of the empty active range, and there
+is no interior range for a hole to fall in. Otherwise `V_S(d) ≠ ∅`, and the V-spec
+definition's depth-compatibility conjunct gives `#s = m_S(d)` — the span is rooted
+at exactly the subspace's common depth `m_S`, which is the case the remainder of
+this argument analyses. By
 D-SEQ★ (ASN-0047) — the content-subspace instance being D-SEQ (ASN-0036) — the
 active positions of `d` in subspace `S` are the contiguous prefix
 `V_S(d) = {[S, 1, …, 1, k] : 1 ≤ k ≤ n_S}`, varying only in the last component.
@@ -334,9 +348,14 @@ positions within a consultable arrangement are unbound.
 four positions, `V_1(d) = {[1, k] : 1 ≤ k ≤ 4}` (so `n_1 = 4`), each resolving to
 its own content address `Σ.M(d)([1, k]) ∈ dom(Σ.C)`. Build the single-spec request
 `R = ⟨(d, σ)⟩` whose span starts at `s = [1, 2]` with ordinal width
-`ℓ = δ(5, 2) = [0, 5]`, so `reach(σ) = s ⊕ ℓ = [1, 7]` and the half-open
-denotation is `⟦σ⟧ = {[1, 2], [1, 3], [1, 4], [1, 5], [1, 6]}` — the span names
-`[1,2]` up to but not including `[1,7]`. Intersecting with the arrangement,
+`ℓ = δ(5, 2) = [0, 5]`, so `reach(σ) = s ⊕ ℓ = [1, 7]` — the span names `[1,2]` up
+to but not including `[1,7]`. Its depth-2 slice is
+`⟦σ⟧ ∩ {t : #t = 2} = {[1, 2], [1, 3], [1, 4], [1, 5], [1, 6]}`; the full
+denotation `⟦σ⟧ = {t ∈ T : [1,2] ≤ t < [1,7]}` also contains deeper tumblers such
+as `[1,2,1]` (a proper extension of `[1,2]`, hence `> [1,2]` by T1 case (ii), and
+`< [1,7]` by T1 case (i) at position 2), but the arrangement here binds only
+depth-2 positions, so only the slice meets `dom(Σ.M(d))`. Intersecting with the
+arrangement,
 `act((d, σ), Σ) = dom(Σ.M(d)) ∩ ⟦σ⟧ = {[1, 2], [1, 3], [1, 4]}`, so the delivery is
 `deliver(R, Σ) = ⟨⟨content, Σ.C(Σ.M(d)([1,2]))⟩, ⟨content, Σ.C(Σ.M(d)([1,3]))⟩,
 ⟨content, Σ.C(Σ.M(d)([1,4]))⟩⟩`. Check the four claims against this result. R1:
@@ -400,8 +419,15 @@ permanent I-address wherever it appears (ASN-0036, S5 UnrestrictedSharing).
 > **R8 (TransclusionRevelation).** If two active positions `v, v'` (within one
 > spec or across specs) satisfy `Σ.M(d)(v) = Σ.M(d')(v') = a`, then the two
 > positions share a single subspace: by S3★ the shared address `a` lies in
-> `dom(Σ.C)` or in `dom(Σ.L)` but, by store disjointness (SD), not both, and that
-> store membership fixes `subspace(v) = subspace(v')`. Two cases arise by that
+> `dom(Σ.C)` or in `dom(Σ.L)` but, by store disjointness (SD), not both. To run
+> store membership *back* to subspace we need that each of `subspace(v)`,
+> `subspace(v')` is one of `s_C`, `s_L` to begin with — supplied by S3★-aux
+> (SubspaceExhaustiveness, ASN-0047) for the active positions `v, v'` — whereupon
+> the contrapositive of the off-store S3★ branch closes the step: were
+> `subspace(v) = s_L` while `a ∈ dom(Σ.C)`, S3★ would force `a ∈ dom(Σ.L)`,
+> contradicting SD; so `a ∈ dom(Σ.C)` fixes `subspace(v) = s_C`, and symmetrically
+> `a ∈ dom(Σ.L)` fixes `subspace(v) = s_L`. The same dispatch applied to `v'`
+> yields `subspace(v) = subspace(v')`. Two cases arise by that
 > shared subspace, and they are *not* on equal footing. In the **content sub-case**
 > (`subspace(v) = s_C`, `a ∈ dom(Σ.C)`) — the realizable one, since S5
 > (UnrestrictedSharing) permits a content address to be bound at arbitrarily many
