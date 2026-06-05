@@ -84,6 +84,20 @@ precondition. We define:
 > distinguished error value `⊥`. When defined, the returned span-set `R`
 > satisfies `coverage(R) = coverage(Σ.L(a).eᵢ)`.
 
+**Status of the result — a relation, determinate up to coverage.** F0 asserts a
+satisfying `R` exists; we must exhibit one. This is immediate: `Σ.L(a).eᵢ ∈
+Endset = 𝒫_fin(Span)` is *already* a finite set of well-formed spans, so any
+sequencing of its members is a span-set whose coverage is `coverage(Σ.L(a).eᵢ)`
+by the definition of `coverage` as a union over the endset's spans. The recorded
+endset is thus its own F1-witness, and F1 is satisfiable. What F0 does *not*
+assert is uniqueness: F3 below shows the result is pinned only at the level of
+coverage, so distinct F1-witnesses may differ as span-sets. We therefore read
+`followlink(Σ, a, i)` as a *relation* — standing for any span-set `R` satisfying
+F1 — and, wherever it appears as a single term inside `coverage(·)` (F5, F6, F8),
+that term is well-defined because F3 makes coverage independent of which witness
+is chosen. The one case in which the witness is forced to a unique span-set is
+the empty end, treated in F7.
+
 We must justify each of the three clauses of this definition — the coverage
 relationship, the frame, the error case — and extract their consequences. We do
 so in turn.
@@ -210,17 +224,24 @@ transition (L12), so `Σ'.L(a) = Σ.L(a)`, hence `Σ'.L(a).eᵢ = Σ.L(a).eᵢ` 
 their coverages are equal. F1 applied at each state then equates the coverages
 of the two results. ∎
 
-This composes two distinct facts, and it is worth seeing that both are
-load-bearing. *Link immutability* (L12) fixes which addresses the end records.
-That the recorded addresses are themselves addresses of permanent content
-identity — not mutable positions — is what makes "the same addresses" mean "the
-same material" even after the surrounding documents are edited (Q3, Q7, Q8).
-Nelson's strap-between-bytes image (4/42) and the survivability annotation
-(4/43) are precisely the guarantee that editing reshuffles where the targeted
-material sits without changing which material the end names. Remove either
-fact — make link values mutable, or bind ends to positions rather than to
-content identity — and F5 fails. The result's identity is permanently tied to
-the same link and the same selector.
+F5 as stated is a *coverage*-permanence claim, and exactly one fact carries it:
+*link immutability* (L12). Because `Σ'.L(a) = Σ.L(a)`, the recorded spans — and
+hence their coverage — are fixed, whatever those spans happen to denote. We must
+not overstate what is load-bearing here. Were ends bound to V-positions rather
+than to I-addresses, L12 would *still* freeze the recorded spans, so
+coverage-permanence — and F5 exactly as written — would still hold; only the
+*meaning* of "the same coverage" would change. Content-identity addressing is
+therefore not load-bearing for F5's coverage equality. What it is load-bearing
+for is a separate, stronger reading: that the recorded addresses are addresses of
+permanent content identity, not mutable positions (Q3, Q7, Q8), is what upgrades
+coverage-permanence to *material*-permanence — what makes "the same addresses"
+mean "the same material" even after the surrounding documents are edited.
+Nelson's strap-between-bytes image (4/42) and the survivability annotation (4/43)
+are precisely that stronger guarantee: editing reshuffles where the targeted
+material sits without changing which material the end names. So L12 is what F5
+needs; content-identity addressing is what makes F5's coverage-permanence mean
+material-permanence — a reading F5 does not formally state. Either way, the
+result's coverage is permanently tied to the same link and the same selector.
 
 We note the one careful qualification Nelson and Gregory both flag. "Same
 material" means same *content identity*, not same *coordinates in some document's
@@ -271,8 +292,14 @@ part of any other.
 
 A subtle but decisive distinction remains. Slots `1` and `2` (and any slot
 beyond `3`) may legitimately be empty — a link may record no spans at a given
-end. The empty endset's coverage is the empty set, and by F1 the faithful result
-is the empty span-set. Nelson is firm that this is a *successful* answer, not a
+end. The empty endset's coverage is the empty set, and by F1 any faithful result
+has coverage `∅`. Here — unlike the non-empty case — the result is forced to a
+*unique* span-set. By ASN-0053 S2, every well-formed span denotes a non-empty
+set; hence no span-set with one or more spans can have empty coverage, and the
+empty span-set `⟨⟩` is the *only* span-set whose coverage is `∅`. This is what
+licenses writing `followlink(Σ, a, i) = ⟨⟩` as a literal value-equality in F7,
+whereas for a non-empty end we could assert only an equality of coverage. Nelson
+is firm that this is a *successful* answer, not a
 failure: emptiness is "a first-class, valid state," the correct answer to a
 valid question, and "a span that contains nothing today may at a later time
 contain a million documents" (Q6, 4/25). An invalid selector — one naming no
@@ -366,6 +393,48 @@ end, which persists by L12. Keeping this boundary sharp is what lets F1 and F5
 state unconditional guarantees: they hold of the recorded end precisely because
 they do not entangle the operation with the mutable arrangement of any document.
 
+## A worked instance
+
+The two claims a reader cannot check abstractly — F2 (a disconnected end forces
+`|R| ≥ 2`) and F7 (valid-empty `⟨⟩` versus invalid `⊥`) — are worth discharging
+against a specific link. Fix a document-level tumbler `d = 1.0.1.0.5` (`zeros(d)
+= 2`), and let its content sub-allocator produce the element-level addresses
+`aₖ = 1.0.1.0.5.0.1.k` for `k ≥ 1` (`zeros = 3`, subspace `s_C = 1`). Let
+`a ∈ dom(Σ.L)` be a link of arity `N = 3` with
+
+- `e₁ = {(a₃, δ(2, #a₃)), (a₇, δ(2, #a₇))}`,
+- `e₂ = ∅`,
+- `e₃ = {(τ, δ(1, #τ))}` for some type address `τ` (non-empty, as L3 requires).
+
+*Checking F1 and F2 on the from-end.* Each span is canonical. By OrdinalShift
+(ASN-0034), `a₃ ⊕ δ(2, #a₃)` increments the last component by 2, yielding `a₅`,
+so `(a₃, δ(2, #a₃))` denotes the half-open interval `{t : a₃ ≤ t < a₅}` — within
+the emittable addresses, `{a₃, a₄}`. Likewise `(a₇, δ(2, #a₇))` denotes
+`{a₇, a₈}`. Hence `coverage(e₁) = {a₃, a₄, a₇, a₈}`. This set is disconnected:
+take `p = a₃`, `q = a₅`, `r = a₇`; under T1 (same prefix, last components
+`3 < 5 < 7`) we have `p < q < r` with `p, r ∈ coverage(e₁)` but
+`q ∉ coverage(e₁)`. F1 demands `coverage(R) = {a₃, a₄, a₇, a₈}`. Could a single
+span suffice — `R = ⟨σ⟩`? It would need `a₃, a₇ ∈ ⟦σ⟧`; by span convexity (S0)
+`⟦σ⟧` would then contain `a₅`, forcing `a₅ ∈ coverage(R)` and breaking the
+equality with `coverage(e₁)`. So `|R| ≥ 2`, which is exactly F2; the witness
+`R = ⟨(a₃, δ(2, #a₃)), (a₇, δ(2, #a₇))⟩` has `|R| = 2` and satisfies F1. This is
+precisely the multi-region preservation Gregory's evidence records at
+`orglinks.c:412–413`.
+
+*Checking F7 on the to-end and on a bad selector.* The request
+`followlink(Σ, a, 2)` names a valid slot (`1 ≤ 2 ≤ 3`) whose end is empty;
+`coverage(e₂) = ∅`, and by the uniqueness argument of the previous section `⟨⟩`
+is the only span-set with empty coverage (ASN-0053 S2), so
+`followlink(Σ, a, 2) = ⟨⟩` — a *success* denoting nothing. By contrast
+`followlink(Σ, a, 4)` names no slot (`4 > |Σ.L(a)| = 3`) and returns `⊥`;
+similarly `followlink(Σ, a, 0)` (with `0 < 1`) returns `⊥`, as does
+`followlink(Σ, a'', i)` for any `a'' ∉ dom(Σ.L)`. The two outcomes are distinct
+return categories (F7): `⟨⟩` says "this end is presently empty," `⊥` says "there
+was no such end to read." This is the divergence the implementation evidence
+flags — Gregory's path would propagate a protocol failure for the empty `e₂`
+(`sporgl.c:93` → `putrequestfailed`), collapsing the first outcome into the
+second, the very conflation F7 forbids.
+
 ## Synthesis
 
 FOLLOWLINK is, abstractly, a projection. Given a link address and a slot
@@ -392,7 +461,7 @@ abstract specification exists to make visible.
 | F2 | DiscontiguityFaithfulness: if `coverage(Σ.L(a).eᵢ)` is disconnected, any F1-result has `≥ 2` spans (corollary of F1 and span convexity) | introduced |
 | F3 | RepresentationInvariance: any two F1-results for the same `(Σ, a, i)` are denotationally equal; the contract binds coverage, not span decomposition or order | introduced |
 | F4 | PureRead frame: `followlink` induces no state transition; `Σ.C`, `Σ.L`, every `Σ.M(d)`, and every slot `j ≠ i` are unchanged | introduced |
-| F5 | TemporalDeterminism: for `Σ →* Σ'` with `a ∈ dom(Σ.L)`, results at the two states are coverage-equal (from L12 immutability + content-identity addressing) | introduced |
+| F5 | TemporalDeterminism: for `Σ →* Σ'` with `a ∈ dom(Σ.L)`, results at the two states are coverage-equal (from L12 immutability alone; content-identity addressing upgrades this to material-permanence but is not needed for the coverage claim) | introduced |
 | F6 | SlotConfinement: the result is a function of `Σ.L(a).eᵢ` alone (up to coverage); independent of and non-disclosing of all `eⱼ`, `j ≠ i` | introduced |
 | F7 | EmptyVersusInvalid: `⟨⟩ ≠ ⊥`; a valid selector over an empty end returns `⟨⟩` (success); an invalid selector returns `⊥` (error); collapsing them is incorrect | introduced |
 | F8 | ContentIndependence: defined and exact whenever the link and slot exist, regardless of whether covered addresses currently hold content or links | introduced |
