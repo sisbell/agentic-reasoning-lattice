@@ -82,10 +82,32 @@ one partial function.
 
 Now the form the caller usually presents: a *V-spec* `(d, v)` — a document
 together with a V-position. The read must resolve the position to an
-address before it can resolve the address to content. We want
-`r := retrieveV(Σ, d, v)` establishing
+address before it can resolve the address to content.
 
-> `R1 : (v ∈ dom(Σ.M(d)) ∧ r = Σ.C(Σ.M(d)(v))) ∨ (v ∉ dom(Σ.M(d)) ∧ r = ⊥)`.
+Before we can even speak of `dom(Σ.M(d))` we must settle a boundary case.
+In the foundation the arrangement family has domain `dom(M) = E_doc`
+(ASN-0047 M1), so `Σ.M(d)` is undefined when `d ∉ dom(M)` — when `d` is an
+unallocated address, or an allocated address that is not a document. To
+keep the read a total function of its specification we adopt the
+convention that for `d ∉ dom(M)` the arrangement is the *empty* partial
+function: `dom(Σ.M(d)) = ∅`, so every position is unoccupied. This is not
+an arbitrary stipulation but the reading the foundation already licenses.
+A document address is, in Nelson's terms, a *ghost element* — a coordinate
+that may have nothing stored beneath it; "a span that contains nothing
+today may at a later time contain a million documents." There is no
+categorical difference between a document allocated with an empty
+arrangement and one not yet allocated: both are positions with nothing
+arranged. Treating `d ∉ dom(M)` as the empty arrangement makes the V-read
+answer the legitimate empty-answer question "what is at position `v` of
+`d`?" with `⊥`, rather than refusing the question. (We flag in the
+implementation observations that Gregory's backend instead *rejects* an
+unallocated-or-unopened document as a precondition failure; that is a
+gate-keeping choice of one implementation, not an abstract obligation.)
+
+With that convention fixed, we want `r := retrieveV(Σ, d, v)` establishing
+
+> `R1 : (v ∈ dom(Σ.M(d)) ∧ r = Σ.C(Σ.M(d)(v))) ∨ (v ∉ dom(Σ.M(d)) ∧ r = ⊥)`,
+> where `dom(Σ.M(d)) = ∅` when `d ∉ dom(M)`.
 
 The guarded command resolves V then I:
 
@@ -106,8 +128,14 @@ this as the dangling-freedom property:
 
 > `R2 : retrieveV(Σ, d, v) = ⊥ ⟺ v ∉ dom(Σ.M(d))`.
 
-The read returns nothing *only* when the position is unoccupied — never
-because a live position pointed at vanished content. The single-valuedness
+The ⟸ direction is the empty branch of the guarded command. The ⟹
+direction is its contrapositive: when `v ∈ dom(Σ.M(d))` the result is
+`Σ.C(Σ.M(d)(v))`, which lies in `Val` by S3, and `Val` is disjoint from
+`{⊥}` (the `⊥ ∉ Val` clause fixed when we named `Val⊥`); so the result is
+not `⊥`. Were a content value permitted to equal `⊥`, this forward
+direction would collapse — an occupied position could "read as empty." The
+read therefore returns nothing *only* when the position is unoccupied —
+never because a live position pointed at vanished content. The single-valuedness
 of `Σ.M(d)` (S2) is what makes `Σ.M(d)(v)` denote a unique address, so the
 resolution is a function and not a relation; without S2, `retrieveV` would
 not be well-defined as a function at all. So two foundation invariants are
@@ -161,10 +189,23 @@ I-address, derived directly from store immutability.
 > `R4 (read determinacy across time) : for any reachable transition sequence
 > Σ →* Σ' and any a ∈ dom(Σ.C),  retrieveI(Σ', a) = retrieveI(Σ, a).`
 
-*Proof.* By store monotonicity (S1), `dom(Σ.C) ⊆ dom(Σ'.C)`, so `a ∈
-dom(Σ'.C)`; both readers take the first branch of `R0`. By content
-immutability (S0b), `Σ'.C(a) = Σ.C(a)`. Hence both deliver the same value.
-∎
+*Proof.* The relation `Σ →* Σ'` is, by the SequentialTransitionAxiom, a
+finite sequence of atomic transitions `Σ = Σ₀ → Σ₁ → ⋯ → Σₙ = Σ'`. S1
+(monotonicity) and S0(b) (immutability) are stated for a *single*
+transition; we lift them across the sequence by induction on `n`, proving
+`P(n) : a ∈ dom(Σₙ.C) ∧ Σₙ.C(a) = Σ.C(a)` for every `a ∈ dom(Σ.C)`.
+
+*Base (`n = 0`).* `Σ₀ = Σ`, so `a ∈ dom(Σ₀.C)` and `Σ₀.C(a) = Σ.C(a)`
+trivially.
+
+*Step (`n → n+1`).* Assume `P(n)`: `a ∈ dom(Σₙ.C)` and `Σₙ.C(a) = Σ.C(a)`.
+The single transition `Σₙ → Σₙ₊₁` satisfies S1, giving `dom(Σₙ.C) ⊆
+dom(Σₙ₊₁.C)`, so `a ∈ dom(Σₙ₊₁.C)`; and it satisfies S0(b), giving
+`Σₙ₊₁.C(a) = Σₙ.C(a)`. Chaining with the hypothesis, `Σₙ₊₁.C(a) = Σ.C(a)`,
+which is `P(n+1)`.
+
+Hence `P(n)` holds, so `a ∈ dom(Σ'.C)` and `Σ'.C(a) = Σ.C(a)`. Both readers
+take the first branch of `R0` and deliver the same value. ∎
 
 R4 is the load-bearing invariant of the whole system stated as a read
 property. It is what Nelson means when he says an I-address "will always
@@ -180,7 +221,37 @@ V-read carries no such guarantee:
 This is unavoidable and intended: editing rearranges the V→I mapping, so
 "position 5 of this document" may resolve to different content after an
 insertion or reordering, even though every underlying byte is immutable at
-its I-address. Nelson: "The address of a byte in its native document is of
+its I-address. R5 is an *existence* claim, so we discharge it with a
+concrete witness rather than by appeal to plausibility.
+
+*Witness.* Take a document `d` whose content-subspace arrangement carries
+two occupied positions. Let `a₁`, `a₂ ∈ dom(Σ.C)` be distinct I-addresses
+with distinct content values, say `Σ.C(a₁) = "A"` and `Σ.C(a₂) = "B"`
+(`"A" ≠ "B"`). In state `Σ`,
+
+> `M(d)([1.1]) = a₁`,  `M(d)([1.2]) = a₂`,  `dom(M(d)) = {[1.1], [1.2]}`
+
+(content subspace `s_C = 1`, depth-2 V-positions, satisfying S8a, D-CTG★,
+D-MIN★). Apply the named composite `K.μ~` (arrangement reordering) with the
+swap bijection `π([1.1]) = [1.2]`, `π([1.2]) = [1.1]`. This `π` is
+admissible: it is length-preserving and subspace-preserving, and its net
+effect is non-trivial because `a₁ ≠ a₂`. By the defining bijection equation
+`M'(d)(π(v)) = M(d)(v)`, the post-state `Σ'` has
+
+> `M'(d)([1.1]) = a₂`,  `M'(d)([1.2]) = a₁`,
+
+and by K.μ~-FIX `dom(M'(d)) = dom(M(d)) = {[1.1], [1.2]}`. Now take `v =
+[1.1] ∈ dom(Σ.M(d)) ∩ dom(Σ'.M(d))`. Then
+
+> `retrieveV(Σ, d, v) = Σ.C(M(d)([1.1])) = Σ.C(a₁) = "A"`,
+> `retrieveV(Σ', d, v) = Σ.C(M'(d)([1.1])) = Σ.C(a₂) = "B"`,
+
+(using content immutability — `Σ'.C = Σ.C` across K.μ~, which touches only
+`M`). Since `"A" ≠ "B"`, `retrieveV(Σ, d, v) ≠ retrieveV(Σ', d, v)`, while
+`v` stayed occupied throughout. The witness exhibits exactly the states,
+position, addresses, and two distinct values R5 demands. ∎
+
+Nelson: "The address of a byte in its native document is of
 no concern to the user or to the front end; indeed, it may be constantly
 changing." The permanence guarantee attaches to identity, which is why links
 and durable references seize I-addresses and not V-positions.
@@ -238,8 +309,12 @@ occupancy is sparse and dynamic; asking about an empty coordinate must yield
 emptiness, not an exception.
 
 > `R8 (totality) : retrieveI and retrieveV are total. For every Σ, every a ∈
-> T, and every (d, v), the result is defined and lies in Val⊥; it equals ⊥
-> exactly when the addressed coordinate is unpopulated.`
+> T, and every (d, v) — including d ∉ dom(M), under the empty-arrangement
+> convention dom(Σ.M(d)) = ∅ — the result is defined and lies in Val⊥; it
+> equals ⊥ exactly when the addressed coordinate is unpopulated. (Totality
+> rests on ⊥ ∉ Val: the value branch lands in Val and the empty branch in
+> {⊥}, and these are disjoint, so the result is a single well-defined
+> element of Val⊥.)`
 
 One sharp consequence: the empty result carries *no diagnostic content*. A
 caller receiving `⊥` from `retrieveV(Σ, d, v)` cannot tell from the result
@@ -273,6 +348,42 @@ produces R9's equality. The read path is identical whether the content was
 natively inserted into `d` or transcluded into it — the arrangement records a
 V→I mapping in both cases, and the read does not and cannot distinguish how
 that mapping arose.
+
+## A worked instance of positive delivery
+
+The claims that *deliver* content — R1, R2, R9 — are worth checking against
+one concrete state rather than only symbolically. Fix a content store with
+a single populated address and a shared transclusion.
+
+Let `a = 1.0.1.0.1.0.1.1` be an element-level I-address whose origin is the
+document `1.0.1.0.1`, and let `Σ.C(a) = "H"` (`a ∈ dom(Σ.C)`). Take two
+documents,
+
+> `d₁ = 1.0.1.0.1`,  `d₂ = 1.0.1.0.2`,
+
+each carrying one content-subspace V-position (`s_C = 1`, depth 2) that
+resolves to the *same* address — `d₂` transcludes `d₁`'s fragment:
+
+> `M(d₁)([1.1]) = a`,  `dom(M(d₁)) = {[1.1]}`,
+> `M(d₂)([1.1]) = a`,  `dom(M(d₂)) = {[1.1]}`.
+
+Let `v' = [1.2]`, a well-formed content-subspace V-position that is *not* in
+`dom(M(d₁))`.
+
+*R1 (delivery).* `[1.1] ∈ dom(M(d₁))`, so the read takes its first branch:
+`retrieveV(Σ, d₁, [1.1]) = Σ.C(M(d₁)([1.1])) = Σ.C(a) = "H"`. The inner
+`retrieveI` does not degrade to `⊥` because `a ∈ dom(Σ.C)`, which S3
+guarantees from `[1.1] ∈ dom(M(d₁))`.
+
+*R2 (⊥ at an unoccupied position).* `v' = [1.2] ∉ dom(M(d₁))`, so the read
+takes its second branch: `retrieveV(Σ, d₁, v') = ⊥`. The result is `⊥` for
+the sole reason that the position is unoccupied — nothing is dangling.
+
+*R9 (equal delivery through two arrangements).* `M(d₁)([1.1]) =
+M(d₂)([1.1]) = a`, so both reads compose to `Σ.C(a)`:
+`retrieveV(Σ, d₁, [1.1]) = retrieveV(Σ, d₂, [1.1]) = "H"`. The two documents
+deliver bit-identical content through distinct V-specs because identity, not
+position, fixes the value.
 
 ## Opacity: the value is delivered verbatim
 
@@ -349,6 +460,15 @@ alternative implementation could satisfy R0–R10 by other means.
   caller's access list before the arrangement is consulted; the I-keyed path
   imposes no such precondition. This realizes the asymmetry in "what the
   caller must know."
+- For a document that is unallocated or simply not open in the session,
+  Gregory's backend does not return an empty result: `findorgl` fails the
+  open-list (and, for an unallocated address, the granfilade-lookup) check
+  and the operation answers with a precondition failure
+  (`putrequestfailed`). The abstract contract instead absorbs `d ∉ dom(M)`
+  into the empty-arrangement convention and answers `⊥` (R8). Both are
+  faithful at the boundary the abstract model cares about — no content is
+  delivered — and the choice between "empty answer" and "rejected request"
+  is a gate-keeping decision the abstract read does not fix.
 - Content granularity is one byte per element-level address, so `Val` is the
   byte alphabet and `vspan_width` equals byte count; sub-fragment reads clip
   by byte offset, producing the encoding-fracture behavior noted under R10.
@@ -365,10 +485,10 @@ alternative implementation could satisfy R0–R10 by other means.
 | R5 | The V-read is not time-invariant: a fixed `(d, v)` may deliver different content across states | introduced |
 | R6 | Once `a ∈ dom(Σ.C)`, `retrieveI` succeeds with an unchanging result in every later state (permanent readability) | introduced |
 | R7 | `retrieveI(Σ, a)` depends only on `Σ.C`; arrangement contraction does not affect it (arrangement-independence) | introduced |
-| R8 | `retrieveI` and `retrieveV` are total over Val⊥; `⊥` denotes an unpopulated coordinate, not an error | introduced |
+| R8 | `retrieveI` and `retrieveV` are total over Val⊥ (with `dom(Σ.M(d)) = ∅` when `d ∉ dom(M)`); `⊥` denotes an unpopulated coordinate, not an error | introduced |
 | R9 | If `Σ.M(d₁)(v₁) = Σ.M(d₂)(v₂) = a`, both V-reads deliver `Σ.C(a)` (transclusion transparency) | introduced |
 | R10 | The result is drawn from `{Σ.C(a), ⊥}`; no transformation is applied (verbatim delivery) | introduced |
-| Val⊥ | `Val⊥ = Val ∪ {⊥}`, the codomain of the read | introduced |
+| Val⊥ | `Val⊥ = Val ∪ {⊥}` with `⊥ ∉ Val`, the codomain of the read | introduced |
 
 ## Open Questions
 
