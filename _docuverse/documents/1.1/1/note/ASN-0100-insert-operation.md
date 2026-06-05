@@ -532,9 +532,9 @@ We claim INSERT is permitted at any valid insertion position — beginning, midd
 
 **Non-empty case (predicate `ValidInsertionPosition(d, p)`, ASN-0036).** For non-empty `V_{s_C}(d)` with cardinality `N`, the `N + 1` valid positions correspond to:
 
-- `j = 0`: insertion at the very beginning. Left is empty (no `v < p`); the entire pre-state text subspace shifts by `n`. K.μ⁻ in the composite shrinks `V_{s_C}(d)` to `∅` (`n'_{s_C} = 0`); K.μ⁺ re-adds Insertion + Shifted-right at the original positions advanced by `n`.
-- `j = N`: insertion at the end (append). Shifted-right is empty (no `v ≥ p`, since `p = shift(min, N)` and `max(V_{s_C}(d)) = shift(min, N−1) < p`); no shift occurs. K.μ⁻ is *omitted* from the composite — this is the append case of (INS.μ⁻-fires); K.μ⁺ adds only the Insertion positions at the high end of the existing sequence.
-- `j ∈ {1, …, N−1}`: interior insertion. Both Left and Shifted-right are non-empty; both are realised through K.μ⁻ (retaining Left) + K.μ⁺ (adding Insertion + Shifted-right).
+- `j = 0`: insertion at the very beginning. Left is empty (no `v < p`); the entire pre-state text subspace shifts by `n`.
+- `j = N`: insertion at the end (append). Shifted-right is empty (no `v ≥ p`, since `p = shift(min, N)` and `max(V_{s_C}(d)) = shift(min, N−1) < p`); no shift occurs.
+- `j ∈ {1, …, N−1}`: interior insertion. Both Left and Shifted-right are non-empty.
 
 The non-empty case's depth parameter is fixed by S8-depth (ASN-0036): `m_C` is the common depth of the pre-state `V_{s_C}(d)`, and the caller cannot choose otherwise.
 
@@ -542,7 +542,7 @@ The non-empty case's depth parameter is fixed by S8-depth (ASN-0036): `m_C` is t
 
 - The precondition is the *ternary* predicate `ValidFirstInsertionPosition(d, p, m)`, whose third argument is bound to `m := #p` (the depth of the supplied `p`, not a separate operation input), versus the *binary* `ValidInsertionPosition(d, p)`.
 - The depth `m = #p` is fixed by the supplied `p`; the strand model constrains only its lower bound `#p ≥ 2`.
-- K.μ⁻ is *omitted* from the composite — this is the empty-content-subspace case of (INS.μ⁻-fires); `dom(M(d))` may still contain link-subspace positions, but `V_{s_C}(d) = ∅` means there is no Right region to remove.
+- K.μ⁻ is omitted from the composite (the empty-content-subspace case of (INS.μ⁻-fires)).
 - The post-state has `V_{s_C}(d') ≠ ∅` for the first time, pinning `m_C = m` for `d` (INS.inv.depth).
 
 The two cases share the post-condition shape (Left ∪ Insertion ∪ Shifted-right partition with appropriate emptiness), but their precondition predicates and composite structures differ.
@@ -559,7 +559,7 @@ INSERT allocates *fresh* I-addresses for new content. The defining clause of the
 
 Two independent users who INSERT the word "the" into their respective documents produce two distinct addresses, two distinct origins; neither is a copy or transclusion of the other. The system tracks identity by allocation event, not by value. If their bytes happen to coincide — both authors wrote "the" — the system observes this as two unrelated allocations, not one shared content.
 
-By contrast, COPY creates V→I mappings to *existing* I-addresses without allocating new content — the defining structural difference being that INSERT allocates fresh I-addresses while COPY does not.
+The defining structural difference is that INSERT allocates fresh I-addresses (INS.identity); COPY does not.
 
 ### Derived corollaries of INS.identity
 
