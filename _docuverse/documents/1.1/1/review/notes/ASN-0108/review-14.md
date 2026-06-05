@@ -1,0 +1,21 @@
+# Review of ASN-0108
+
+## REVISE
+
+### Issue 1: W9a over-attributes termination's necessary condition to full state-stability (W5)
+
+**ASN-0108, W9a**: "State-stability is load-bearing here and not removable: *absent W5, even zero inflow does not guarantee termination*."
+
+**Problem**: The non-termination counterexample W9a offers (content-position key, two links, rearrangements `κ(a)=1→3`, then `κ(b)=2→4`, …) demonstrates necessity of only the *cut-point / discrimination* component of W5, not full W5. Trace it at the held cursor: when the cursor sits at `b` (κ=2) with `a` delivered (κ=1, below cursor), the rearrangement `κ(a)→3` lifts a *previously delivered* link *above the current cursor* — `κ(c) <_K κ(a)` flips from false to true. That is precisely a violation of W5's **clause 1** (the cursor's discrimination of a matching link must be preserved), evaluated at the cursor the reader holds.
+
+W5's **clause 2** (relative `≺`-order *among tail links*) is *not* required for termination. Suppose clause 1 holds at every successive cursor (no delivered link ever re-ascends above the current cursor) but clause 2 fails (the undelivered tail permutes freely). Then every delivered link keeps key `< κ(c)` for all future cursors, so it never re-enters `After` and is never re-delivered; with finite inflow the consumable supply is finite, each delivered once, and the cursor strictly advances each non-final call (window ⊆ `After`, so its `≺`-max `>_K κ(c)`). The loop terminates. So clause 2 *is* removable for termination.
+
+This is exactly the distinction the document already draws one claim earlier: W9 correctly isolates the *recoverable cursor key* as "implied by, but strictly weaker than, state-stability W5" for the single-call exhaustion signal. W9a should make the parallel weakening for the multi-call termination, but instead asserts full W5 is "not removable."
+
+**Required**: Restate W9a's necessity claim so it attributes termination to (finite tail inflow) + (cut-point/discrimination preservation at each successive cursor — the same recoverability-style component W9 isolates), and note explicitly that clause-2 tail-order preservation is sufficient-via-full-W5 but not necessary for termination. The supporting sentence "state-stability makes the cursor's key monotone across the whole run" should likewise be re-grounded on "no delivered link re-ascends above the advancing cursor" (clause 1), which is the operative fact, rather than on full W5.
+
+## OUT_OF_SCOPE
+
+(none — the six Open Questions, including the multi-document allocation-monotonicity blind spot deferred from W6, are correctly held as future work rather than gaps in this ASN.)
+
+VERDICT: REVISE
