@@ -18509,6 +18509,7 @@
     "_docuverse/documents/1.1/1/note/ASN-0109-retrieveendsets-operation.md": "1.1.0.1.0.38411",
     "_docuverse/documents/1.1/1/note/ASN-0111-readlink-operation-read-a-link's-structure-by-its-address.md": "1.1.0.1.0.38718",
     "_docuverse/documents/1.1/1/note/ASN-0112-retrievedocvspan-operation-document-v-stream-extent-query.md": "1.1.0.1.0.38732",
+    "_docuverse/documents/1.1/1/note/ASN-0113-retrievedocvspanset-operation-per-subspace-document-extent-query.md": "1.1.0.1.0.38836",
     "_docuverse/documents/1.1/1/patch/note/ASN-0036/restore-s8-correspondence-runs.md": "1.1.0.1.0.20397",
     "_docuverse/documents/1.1/1/patch/note/ASN-0047/patch-1.md": "1.1.0.1.0.9223",
     "_docuverse/documents/1.1/1/patch/note/ASN-0093/patch-1.md": "1.1.0.1.0.8810",
