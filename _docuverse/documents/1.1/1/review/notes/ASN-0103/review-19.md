@@ -1,0 +1,19 @@
+# Review of ASN-0103
+
+## REVISE
+
+### Issue 1: B8 (Uniqueness) invoked for same-chain distinctness without discharging its single-authority precondition
+
+**ASN-0103, Invariants Maintained / "Address permanence and distinctness" + CND.inv**: "d collides with no existing or future address: same-chain emissions by B8 (Uniqueness)..." and "distinctness (B7, B8, ASN-0040 ...) verified directly".
+
+**Problem**: B8 (ASN-0040) has two branches. The *cross-namespace* branch is unconditional, but the *same-namespace* branch — the one carrying same-chain (`S(A,2)`) distinctness — has the explicit precondition "committed under a single baptismal authority (so B-Seq applies)". The ASN invokes B8 for same-chain emission distinctness (present and future) but never establishes that creations occur under a single authority or that B-Seq holds. The premise is in fact discharged — SequentialTransitionAxiom (ASN-0047/0093) totally orders all reachable states, which is exactly B-Seq's "one serialized commit path" — but the ASN, which cites SequentialTransitionAxiom only for atomicity, never connects the two. As written, a load-bearing foundation theorem is cited with an unmet (merely implicit) precondition. Separately, intra-stream distinctness is available *unconditionally* from S0 (StreamOrdering) / enumeration injectivity, which needs no single-authority premise at all — so the weaker, conditioned B8 citation is also avoidable.
+
+**Required**: Either (a) state explicitly that SequentialTransitionAxiom discharges B-Seq, so B8's same-namespace branch applies; or (b) recite same-chain distinctness via S0 (StreamOrdering), which gives strict-increase / injectivity over `S(A,2)` without any single-authority assumption. The present-state distinctness already follows independently from `d ∉ D_A = E ∩ S(A,2)`; the citation gap concerns the "no other / future document-chain emission" portion of CND.monotone and CND.inv.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Effective-owner equality ω_{Σ'}(d) = ω_Σ(A) and the E↔B registry coupling
+
+**Why out of scope**: The ASN deliberately defers this to a registry-carrying ASN (CND.own, final open question), correctly noting that `ω` is defined over ASN-0042's registry `B`, which is absent from ASN-0047's state `(C,L,E,M,R)`, and that no foundation couples the entity-set document chain to the registry sibling stream. This is genuinely new territory, not a defect here — the structural ownership `pfx(π) ≼ d` is the right thing to claim over this state model.
+
+VERDICT: REVISE
