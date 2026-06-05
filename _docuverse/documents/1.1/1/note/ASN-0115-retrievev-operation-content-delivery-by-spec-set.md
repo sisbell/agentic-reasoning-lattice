@@ -31,6 +31,25 @@ are drawn from.
 
 ## The substrate we build on
 
+**Standing precondition (reachability).** Throughout this ASN, every state `Σ`
+— including the states named in the V-spec and `deliver` definitions and in
+every claim R0–R11 — ranges over states *reachable from the initial state `Σ₀`
+under the sequential transition order* (ASN-0047, SequentialTransitionAxiom).
+This scoping is load-bearing, not decorative: nearly every step below cites an
+invariant that ASN-0047 establishes only of reachable states — collected there
+as `ExtendedReachableStateInvariants` — among them S3★ and S3★-aux (which make
+`item` total and well-defined), S8-depth and D-SEQ★ (R6's terminal-overrun
+argument), CL-OWN and CL-UNIQ (R8's link-vacuity argument), and S8a/S8-fin
+(finiteness and enumeration of `act`). At a non-reachable state these may fail —
+S3★-aux could admit a position in a third subspace, leaving `item` undefined;
+D-SEQ★ could fail, defeating R6's no-hole claim; CL-OWN/CL-UNIQ could fail,
+defeating R8's link vacuity — so the precondition is exactly what licenses the
+per-state invariant citations that follow. The project's foundation ASNs scope
+this the same way (ASN-0086: "Σ ranges over the →*-reachable states"; ASN-0098:
+"every reachable state Σ"). R7 (Repeatability) additionally relates two such
+reachable states comparable under `→*`; the base definitions inherit the
+single-state form of this precondition.
+
 We take the strand model as given. The *content store* `Σ.C : T ⇀ Val`
 (ASN-0036) binds content addresses to values; it is append-only and immutable —
 once `a ∈ dom(Σ.C)`, `a` persists and `Σ.C(a)` never changes (ASN-0036, S0
@@ -61,6 +80,12 @@ distinct documents while identifying transcluded content as one (ASN-0036, S4
 OriginBasedIdentity; S7 StructuralAttribution).
 
 ## What a spec-set is, and what delivery is
+
+All definitions and claims in this section and below are stated at a state `Σ`
+reachable from `Σ₀` under the sequential transition order, per the standing
+precondition above; this is what licenses the per-state invariant citations
+(S3★, S3★-aux, S8-depth, D-SEQ★, CL-OWN, CL-UNIQ, S8a, S8-fin) that the
+definitions of `act`, `item`, and `deliver`, and the proofs of R1–R11, rely on.
 
 A *V-spec* is a pair `ρ = (d, σ)` naming an **allocated** document `d` — a
 tumbler with `zeros(d) = 2` (ASN-0045) that is present in the arrangement family,
