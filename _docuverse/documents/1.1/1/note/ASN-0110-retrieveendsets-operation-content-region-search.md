@@ -89,13 +89,43 @@ The witness set carries link addresses; it is the object against which we state 
 completeness. But it is *not* what the operation returns. The operation returns endsets,
 organized by role, with the link address projected away. For each role index `i ≥ 1`:
 
-> **RE-result (definition).**
-> `Eᵢ(I, Σ) = {Σ.L(a).eᵢ : (a, i) ∈ W(I, Σ)}`, and
-> `retrieveendsets(I, Σ) = ⟨E₁(I, Σ), E₂(I, Σ), E₃(I, Σ), …⟩`.
+> **RE-result (definition).** For each role index `i ≥ 1`,
+> `Eᵢ(I, Σ) = {Σ.L(a).eᵢ : (a, i) ∈ W(I, Σ)}`.
 
-For the standard triple this is the familiar `⟨from-results, to-results, type-results⟩`
-(Q14); for `N`-ary links the family simply runs to `N`. Each `Eᵢ` is a *set of endsets* — a
-set whose members are themselves span-sets — and it is finite because `dom(Σ.L)` is finite
+The operation returns these families *as a tuple*, and we must pin down its length, since a
+heterogeneous store (links of arity 3, 5, 7) does not fix it by inspection of the standard
+triple. The underlying object is the total function `i ↦ Eᵢ(I, Σ)` on `i ≥ 1`, and it is
+*eventually empty*: writing
+
+```
+N_max(Σ) = max{|Σ.L(a)| : a ∈ dom(Σ.L)}        (N_max(Σ) = 0 when dom(Σ.L) = ∅)
+```
+
+for the greatest arity *present in the store*, no link possesses a slot beyond `N_max(Σ)`, so
+`(a, i) ∈ W(I, Σ)` forces `i ≤ |Σ.L(a)| ≤ N_max(Σ)` and hence `Eᵢ(I, Σ) = ∅` for every
+`i > N_max(Σ)`. The family thus collapses to a finite prefix, which we take as the returned
+object:
+
+> **RE-arity (definition).** `retrieveendsets(I, Σ) = ⟨E₁(I, Σ), …, E_{N_max(Σ)}(I, Σ)⟩`, a
+> tuple of length `N_max(Σ)`. The length is fixed by the maximum arity among *all* links in the
+> store — not the maximum among *touching* links, and not the maximum within the region — so it
+> is stable under which region is queried. When `dom(Σ.L) = ∅` the tuple is empty.
+
+Whether the length is read from the store's maximum arity or, equivalently, taken as the
+total function `i ↦ Eᵢ` truncated at its last non-empty index is a presentational choice with
+no semantic content: the two agree because `Eᵢ = ∅` for `i > N_max(Σ)`. What does carry
+content is the treatment of *empty interior slots*. A role-slot `i ≤ N_max(Σ)` whose family
+`Eᵢ(I, Σ) = ∅` — say an arity-4 link is present, fixing `N_max(Σ) ≥ 4`, yet no slot-4 endset
+of any link touches `I` — still *occupies* position `i` in the tuple, reported as the empty
+set rather than dropped. The index range is determined by the store's arities; the contents of
+each slot, by the touching test; the two are independent. This matches Gregory's
+implementation, which always emits the three standard slots (from, to, type) and writes a
+count-zero endset for any role with no touching contribution rather than omitting the slot
+(SS-RETRIEVE-ENDSETS, ST-RETRIEVE-ENDSETS).
+
+For the standard triple `N_max(Σ) = 3` and the tuple is the familiar
+`⟨from-results, to-results, type-results⟩` (Q14). Each `Eᵢ` is a *set of endsets* — a set
+whose members are themselves span-sets — and it is finite because `dom(Σ.L)` is finite
 (L-fin, ASN-0093) and a set cannot exceed its index. The role separation is intrinsic to the
 return shape: an endset appears under role `i` precisely when it is the `i`-th endset of some
 touching link, and there is no cross-role contamination, because slot index is a primitive of
@@ -148,6 +178,79 @@ endset the document currently arranges can be named, and the rest is silently dr
 (ASN-0098 LP17; Q16). That clipping is a property of the *presentation*, not of the endset
 retrieval itself. The endset, as an object, is returned in full; what a particular document's
 coordinate system can *display* of it is a separate, lossy projection we treat below.
+
+## A worked instance
+
+The definitions above are easier to trust against concrete data. We fix a document
+`d = 1.0.1.0.1` (a document-level tumbler, `zeros(d) = 2`, T4-valid) and five element-level
+content addresses in its content subspace (`s_C = 1`), siblings differing only in their final
+ordinal:
+
+```
+c₂ = 1.0.1.0.1.0.1.2     c₃ = 1.0.1.0.1.0.1.3     c₄ = 1.0.1.0.1.0.1.4
+c₅ = 1.0.1.0.1.0.1.5     θ  = 1.0.1.0.1.0.1.7
+```
+
+Each has depth `#cₖ = 8`, so the unit ordinal displacement at that depth is
+`δ(1, 8) = [0,0,0,0,0,0,0,1]`, and a span `(cₖ, δ(1, 8))` covers exactly `{cₖ}` among the
+element-level addresses (its half-open interval `[cₖ, shift(cₖ, 1))` reaches up to but excludes
+the next sibling). We query the **I-region** `I = {c₂, c₃}`.
+
+The link store holds two arity-3 links, in the link subspace (`s_L = 2`):
+
+```
+a₁ = 1.0.1.0.1.0.2.1,  Σ.L(a₁) = (F₁, G₁, Θ)
+    F₁ = {(c₂, δ(1,8)), (c₄, δ(1,8))}   coverage {c₂, c₄}
+    G₁ = {(c₅, δ(1,8))}                 coverage {c₅}
+    Θ  = {(θ,  δ(1,8))}                 coverage {θ}
+
+a₂ = 1.0.1.0.1.0.2.2,  Σ.L(a₂) = (F₂, F₁, Θ)
+    F₂ = {(c₃, δ(1,8))}                 coverage {c₃}
+    e₂ = F₁  (the *same endset value* {(c₂,δ(1,8)),(c₄,δ(1,8))}, now filed in slot 2)
+    e₃ = Θ
+```
+
+`F₁` is deliberately constructed with one *touching* span `(c₂, δ(1,8))` — `c₂ ∈ I` — and one
+*non-touching* span `(c₄, δ(1,8))` — `c₄ ∉ I` — so the example exercises RE-full. And `a₂`
+reuses the value `F₁` in its **to**-slot (slot 2), which exercises RE-role's claim that one
+endset value may be filed under two different roles.
+
+*Touching test, slot by slot.* Applying RE-touch (`coverage(e) ∩ I ≠ ∅`):
+
+| (link, slot) | endset | coverage | `∩ I` | touches? |
+|---|---|---|---|---|
+| (a₁, 1) | F₁ | {c₂, c₄} | {c₂} | yes |
+| (a₁, 2) | G₁ | {c₅}     | ∅     | no |
+| (a₁, 3) | Θ  | {θ}      | ∅     | no |
+| (a₂, 1) | F₂ | {c₃}     | {c₃} | yes |
+| (a₂, 2) | F₁ | {c₂, c₄} | {c₂} | yes |
+| (a₂, 3) | Θ  | {θ}      | ∅     | no |
+
+So the witness set is `W(I, Σ) = {(a₁, 1), (a₂, 1), (a₂, 2)}`.
+
+*The returned families.* By RE-result, collecting endset *values* per role:
+
+```
+E₁(I, Σ) = {Σ.L(a₁).e₁, Σ.L(a₂).e₁} = {F₁, F₂} = { {(c₂,δ),(c₄,δ)}, {(c₃,δ)} }
+E₂(I, Σ) = {Σ.L(a₂).e₂}             = {F₁}     = { {(c₂,δ),(c₄,δ)} }
+E₃(I, Σ) = ∅
+```
+
+with `N_max(Σ) = 3` (both links arity 3), so
+`retrieveendsets(I, Σ) = ⟨{F₁, F₂}, {F₁}, ∅⟩` — a length-3 tuple whose third slot is the empty
+set *reported in position*, per RE-arity: no slot-3 endset touches `I`, but the slot is present.
+
+*RE-full check.* The member `F₁ ∈ E₁(I, Σ)` is returned **whole** — it includes the span
+`(c₄, δ(1,8))` whose coverage `{c₄}` misses `I` entirely. The operation does not clip `F₁` to
+`coverage(F₁) ∩ I = {c₂}`; the stored value `{(c₂,δ),(c₄,δ)}` is handed back intact, exactly as
+RE-full requires.
+
+*RE-role check.* The single endset value `F₁ = {(c₂,δ),(c₄,δ)}` appears in `E₁(I, Σ)` (as
+`a₁`'s from-slot) *and* in `E₂(I, Σ)` (as `a₂`'s to-slot). Its two occurrences are filed by the
+slot each occupies, not merged; the families `E₁` and `E₂` are independent, just as RE-role
+states. Conversely, `E₁` collects `F₁` and `F₂` from two different links into one role-set,
+confirming that a role-family is a union across all touching links at that slot, not a per-link
+tuple.
 
 ## What the result reveals about the links — and what it withholds
 
@@ -243,6 +346,44 @@ the result only grows:
 > (RE-immut), coverage is preserved, so `touches` holds at `Σ'` and the same endset value lies
 > in `Eᵢ(I, Σ')`. ∎ New links allocated by `K.λ` may add further endsets; none are removed.
 
+RE-mono tells us the result only grows, but not *what it takes* for a particular endset to
+enter under a particular role. The single growth step is `K.λ` — link allocation is the unique
+operation that touches `Σ.L` (A1, ASN-0099); every other transition fixes the store and leaves
+all families verbatim. So the sharp question is a weakest-precondition one: given that a `K.λ`
+step is about to allocate a link of value `(e₁, …, e_N)`, under what condition on that value
+does a target endset land in role `j` of the post-state? This is the region-search analogue of
+F9-λ (ASN-0099), and it makes the conditional-idempotence of RE-det precise.
+
+> **RE-wp (lemma).** Let the next transition be a `K.λ` step allocating a fresh link at address
+> `ℓ_new` with value `(e₁, …, e_N)` homed at `d` (the `K.λ` precondition `pre ≡ d ∈ dom(Σ.M) ∧
+> N ≥ 3 ∧ e₃ ≠ ∅ ∧ ℓ_new ∉ dom(Σ.L) ∪ dom(Σ.C)`, ASN-0093). For any endset value `e` and role
+> index `j`,
+> ```
+> wp(K.λ, "e ∈ Eⱼ(I, Σ')") = pre ∧ ( e ∈ Eⱼ(I, Σ)  ∨  (j ≤ N ∧ eⱼ = e ∧ touches(e, I)) ).
+> ```
+> *Proof.* `K.λ` sets `Σ'.L = Σ.L ∪ {ℓ_new ↦ (e₁, …, e_N)}` with `ℓ_new` fresh, so
+> `dom(Σ'.L) = dom(Σ.L) ⊎ {ℓ_new}`. A witness for `e ∈ Eⱼ(I, Σ')` is a link `a ∈ dom(Σ'.L)` with
+> `j ≤ |Σ'.L(a)|`, `Σ'.L(a).eⱼ = e`, and `touches(e, I)`. Two disjoint cases. If `a ∈ dom(Σ.L)`,
+> value preservation (RE-immut) makes the witness condition identical at `Σ`, i.e. exactly
+> `e ∈ Eⱼ(I, Σ)`. If `a = ℓ_new`, then `|Σ'.L(ℓ_new)| = N` and `Σ'.L(ℓ_new).eⱼ = eⱼ`, so the
+> witness reduces to `j ≤ N ∧ eⱼ = e ∧ touches(e, I)`. The two cases are mutually exclusive by
+> freshness, giving the disjunction. ∎
+
+The two disjuncts cleanly separate the two phenomena. The first, `e ∈ Eⱼ(I, Σ)`, is
+*unconditional persistence* — it places no constraint at all on the allocated value, and is
+just RE-mono restated: whatever was touching stays touching no matter what `K.λ` does. The
+second is the *genuine growth condition*, and it is gated **entirely on the allocated link
+value** — the role index `j ≤ N`, the slot value `eⱼ = e`, and `touches(e, I) ⟺ coverage(e) ∩ I
+≠ ∅`. It mentions neither `Σ.M` nor `Σ.C`: result growth is a pure `Σ.L` event, exactly as
+RE-det demands. Specialising to a *newly entering* endset (`e ∉ Eⱼ(I, Σ)`), the weakest
+precondition collapses to
+```
+wp(K.λ, "e newly in Eⱼ(I, Σ')") = pre ∧ j ≤ N ∧ eⱼ = e ∧ touches(e, I),
+```
+which is the precise statement of when a region's connectivity grows: someone files an endset
+value `e` that overlaps `I` into slot `j` of a freshly allocated link. The non-emptiness
+construction of RE-empty below is one instantiation of this precondition at `j = 1`.
+
 Consequently an empty result is a faithful snapshot of present connectivity, never a permanent
 property of the region:
 
@@ -313,7 +454,8 @@ it among the open questions.
 | RE-touch | `touches(e, I) ≡ coverage(e) ∩ I ≠ ∅` | introduced |
 | RE-overlap | `touches(e, I)` is non-empty half-open span overlap; one span suffices; boundary contact does not qualify | introduced |
 | RE-witness | `W(I, Σ) = {(a, i) : a ∈ dom(Σ.L), i ≤ |Σ.L(a)|, touches(Σ.L(a).eᵢ, I)}` | introduced |
-| RE-result | `Eᵢ(I, Σ) = {Σ.L(a).eᵢ : (a, i) ∈ W(I, Σ)}`; result is the role-indexed family `⟨E₁, E₂, …⟩` | introduced |
+| RE-result | `Eᵢ(I, Σ) = {Σ.L(a).eᵢ : (a, i) ∈ W(I, Σ)}` for each role `i ≥ 1` | introduced |
+| RE-arity | result is the tuple `⟨E₁, …, E_{N_max(Σ)}⟩`, length `N_max(Σ) = max{|Σ.L(a)| : a ∈ dom(Σ.L)}`; empty interior slots reported in position | introduced |
 | RE-role | endset appears under role `i` iff it is the slot-`i` endset of a touching link; roles independent, no cross-contamination | introduced |
 | RE-sound | `resultᵢ ⊆ Eᵢ` — no returned endset fails to touch `I` | introduced |
 | RE-complete | `Eᵢ ⊆ resultᵢ` — every touching endset returned, none omitted | introduced |
@@ -325,6 +467,7 @@ it among the open questions.
 | RE-surv | result invariant under K.μ-family arrangement edits (which fix `Σ.L`) | introduced |
 | RE-det | result is a function of `(I, Σ.L)` alone; idempotent under `Σ.L`-fixity, not content-fixity | introduced |
 | RE-mono | `Eᵢ(I, Σ) ⊆ Eᵢ(I, Σ')` across reachable `Σ →* Σ'` | introduced |
+| RE-wp | `wp(K.λ, e ∈ Eⱼ(I, Σ')) = pre ∧ (e ∈ Eⱼ(I, Σ) ∨ (j ≤ N ∧ eⱼ = e ∧ touches(e, I)))`; growth gated on allocated value alone | introduced |
 | RE-empty | empty result permitted, not permanent; recoverable by `K.λ` when `I ≠ ∅`, `dom(Σ.M) ≠ ∅` | introduced |
 | RE-add | `Eᵢ(I₁ ∪ I₂, Σ) = Eᵢ(I₁, Σ) ∪ Eᵢ(I₂, Σ)` | introduced |
 | RE-Vside | `retrieveendsets_V(R, d, Σ) = retrieveendsets(image(R, d, Σ), Σ)`; silently partial under unmapped V-positions | introduced |
