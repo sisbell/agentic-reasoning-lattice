@@ -494,7 +494,7 @@ The fourth, conditional on K.μ⁻ firing:
 
 These forced orderings determine INSERT's boundary obligations; every other interleaving of the elementary steps reaches the same Σ'. No per-state invariant is sensitive to the relative order of the remaining steps, and the coupling constraints J0, J1★, J1'★ are obligations on INSERT's own boundary `(Σ, Σ')` — discharged there, where every `a_k` is both placed by K.μ⁺ and recorded by K.ρ, regardless of internal order — so the canonical placement of the K.ρ firings at the end of steps 1–4 is expository, not mandatory.
 
-This is what Nelson calls "all changes, once made, leave the file remaining in canonical order, which was an internal mandate of the system." Implementations realise the composite via transactional sequencing, locking, copy-on-write, or log-and-commit — but the choice of decomposition is below the level of abstraction at which INSERT is specified. External observers see the composite boundary; the intermediate states are not externally observable.
+This is what Nelson calls "all changes, once made, leave the file remaining in canonical order, which was an internal mandate of the system." What INSERT fixes is the post-state Σ': it is uniquely determined by `(Σ, p, content)`. The decomposition that realises it is not — many elementary interleavings reach the same Σ', and the abstract specification commits to none of them. Each such intermediate is itself a reachable state satisfying the per-state invariants, and the boundary couplings J0, J1★, J1'★ discharge at the composite boundary `(Σ, Σ')`.
 
 ## Weakest-Precondition Analysis
 
@@ -597,7 +597,7 @@ What the specification *does* cover is the precise per-state effect of one INSER
 | INS.inv.refint | Referential integrity S3★ (ASN-0047) preserved: ran(M'(d)) ⊆ dom(C') ∪ dom(L') per-subspace, re-derived directly | introduced |
 | INS.inv.seq | D-CTG★, D-MIN★, D-SEQ★ (ASN-0047) preserved in text subspace: V_{s_C}(d') is sequential with cardinality \|V_{s_C}(d)\| + n | introduced |
 | INS.inv.depth | S8-depth (ASN-0036) preserved: non-empty case leaves m_C unchanged; empty case fixes m_C = m on first insertion | introduced |
-| INS.C1a-app | For any single-subspace restriction f = M(d)\|_{V_S(d)}, C1a's (ASN-0058) three preconditions are discharged uniformly from S2, S8-fin, S8-depth, yielding a unique maximally-merged decomposition; instantiated at each S8★ discharge site | introduced |
+| INS.C1a-app | For any single-subspace restriction f = M(d)\|_{V_S(d)}, C1a's (ASN-0058) three preconditions are discharged uniformly from S2, S8-fin, S8-depth, yielding a unique maximally-merged decomposition | introduced |
 | INS.inv.coverage | Endset coverage unchanged for every link by LP3★ (ASN-0098): coverage depends only on L, which is preserved | introduced |
 | INS.inv.discov | Pre-state discoverability preserved: every link discoverable from any document at Σ remains discoverable at Σ' | introduced |
 | INS.proj | Projection-shift correspondence: project(ℓ, i, d', Σ') = π(project(ℓ, i, d', Σ)) ∪ N_{ℓ,i} where π is region-aware (identity on Left, shift-by-n on Right, identity for d' ≠ d and link subspace) and N_{ℓ,i} ⊆ {shift(p, k) : 0 ≤ k < n} captures Insertion images whose fresh a_k lies in coverage; N_{ℓ,i} = ∅ for tight endsets | introduced |
