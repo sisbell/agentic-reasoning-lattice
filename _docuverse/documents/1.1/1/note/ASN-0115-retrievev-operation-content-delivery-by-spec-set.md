@@ -131,7 +131,10 @@ the whole spec-set is the concatenation in spec-set order:
 
 Everything that follows is an analysis of this object. We name `deliver` as R0;
 the named claims R1–R11 record the invariants any faithful realization must
-satisfy.
+satisfy. The empty-request boundary is settled by the definition: when `p = 0`
+the concatenation in R0 has no factors, so `deliver(⟨⟩, Σ) = ⟨⟩` — the empty
+spec-set is a valid request whose delivery succeeds and returns nothing, the
+companion at the request level to R6's partial-success discipline within a spec.
 
 ## Delivery returns material, not location
 
@@ -337,17 +340,30 @@ permanent I-address wherever it appears (ASN-0036, S5 UnrestrictedSharing).
 > spec or across specs) satisfy `Σ.M(d)(v) = Σ.M(d')(v') = a`, then the two
 > positions share a single subspace: by S3★ the shared address `a` lies in
 > `dom(Σ.C)` or in `dom(Σ.L)` but, by store disjointness (SD), not both, and that
-> store membership fixes `subspace(v) = subspace(v')`. In the **content sub-case**
-> (`subspace(v) = s_C`, `a ∈ dom(Σ.C)`): (i) the two delivered items carry the
-> identical value `Σ.C(a)`, by R2; (ii) both items are resolved *through* the one
-> shared address `a` — identity-preserving co-resolution — never fabricating two
-> independent origins, so `origin(a)` of both is one and the same (S4, S7); and
-> (iii) the operation performs no deduplication: each position yields its own item,
-> so the shared content appears once per V-position. In the **link sub-case**
-> (`subspace(v) = s_L`, `a ∈ dom(Σ.L)`): the two delivered items are the identical
-> reference `⟨ref, a⟩` (R10), again resolved through the one shared address, with
-> common provenance `home(a)` (ASN-0043, L1a); no deduplication, by the same
-> exactness argument as (iii).
+> store membership fixes `subspace(v) = subspace(v')`. Two cases arise by that
+> shared subspace, and they are *not* on equal footing. In the **content sub-case**
+> (`subspace(v) = s_C`, `a ∈ dom(Σ.C)`) — the realizable one, since S5
+> (UnrestrictedSharing) permits a content address to be bound at arbitrarily many
+> V-positions, within one document and across documents: (i) the two delivered
+> items carry the identical value `Σ.C(a)`, by R2; (ii) both items are resolved
+> *through* the one shared address `a` — identity-preserving co-resolution — never
+> fabricating two independent origins, so `origin(a)` of both is one and the same
+> (S4, S7); and (iii) the operation performs no deduplication: each position yields
+> its own item, so the shared content appears once per V-position. The **link
+> sub-case** (`subspace(v) = s_L`, `a ∈ dom(Σ.L)`) is, by contrast, *vacuous*: two
+> **distinct** active link positions can never share a link address. CL-OWN
+> (ASN-0047) forces `origin(Σ.M(d)(v)) = d` for every link-subspace position, so a
+> link address `a` can be bound only in the arrangement of `origin(a) = home(a)`;
+> two documents both binding `a` in their link subspaces are forced equal, `d = d'`.
+> Within that one document, CL-UNIQ (ASN-0047) makes `Σ.M(d)` injective on the link
+> subspace, so two positions both mapping to `a` are forced equal, `v = v'`. Both
+> are per-state invariants of every reachable state (ASN-0047,
+> ExtendedReachableStateInvariants). Genuine link transclusion therefore does not
+> occur, and the only multiplicity available for a link is a single bound
+> V-position named by two overlapping specs — which delivers the identical
+> reference `⟨ref, a⟩` (R10) twice with common provenance `home(a)` (ASN-0043,
+> L1a), and is *not* transclusion (it is one position, not two). The substantive
+> co-delivery guarantee of R8 is thus confined to content.
 
 Three points deserve emphasis. First, *identity is structural, not incidental*.
 Content identity in Xanadu is by creation, not by value: two independently
@@ -546,9 +562,12 @@ arrangements the result is bit-for-bit repeatable (R7), because the arrangement
 is the only mutable input and the stores never alter what they hold.
 
 Delivering a whole spec-set together is more than delivering its spans
-separately. Co-resolution reveals transclusion — positions sharing an address
-deliver identical, shared-origin material with no deduplication (R8); it
-assembles multi-origin material into one coherent, still-traceable stream (R9);
+separately. Co-resolution reveals transclusion — content positions sharing an
+address deliver identical, shared-origin material with no deduplication (R8);
+genuine transclusion is a content phenomenon, since CL-OWN and CL-UNIQ make
+distinct link positions sharing an address unreachable, so the link sub-case is
+vacuous (R8). It assembles multi-origin material into one coherent,
+still-traceable stream (R9);
 and it makes the text/link subspace boundary observable as a change in item kind
 (R10). Underneath all of it, the store is permanent: orphaned-but-referenced
 content remains deliverable for all time (R11). Each of R1–R11 is an obligation
@@ -568,7 +587,7 @@ absent consolidation step realizing the no-deduplication corollary of R3 and R8.
 | R5 | OrderFidelity: spec-set sequence order across specs (no global V re-sort); ascending V-order within a spec; boundaries implicit in spans | introduced |
 | R6 | SilentGapFiltering: a named position unbound in the consulted arrangement contributes nothing and causes no failure; the gap is signalled by absence | introduced |
 | R7 | Repeatability: equal consulted arrangement restrictions ⟹ identical delivery; the arrangement is the sole mutable input | introduced |
-| R8 | TransclusionRevelation: positions sharing a resolved address deliver identical material via identity-preserving co-resolution through the one shared address, with no deduplication (one item per V-position) | introduced |
+| R8 | TransclusionRevelation: content positions sharing a resolved address deliver identical material via identity-preserving co-resolution through the one shared address, with no deduplication (one item per V-position); the link sub-case is vacuous (CL-OWN + CL-UNIQ forbid distinct link positions sharing an address), so genuine transclusion is confined to content | introduced |
 | R9 | CoherentMultiOriginAssembly: multi-origin spec-sets deliver as one ordered stream, resolved per document; the resolution is provenance-traceable (each active position's `Σ.M(d)(v)` has determinate home document — `origin(a)` for content (S7), `home(a)` for links (L1a, HomeOriginCoincidence)), not asserting inline provenance in the delivered material | introduced |
 | R10 | SubspaceCrossingObservability: link-subspace positions resolve (S3★) to link addresses and deliver as references — kind-distinct from content items — making the subspace crossing observable | introduced |
 | R11 | PermanentSourcing: content is sourced from the immutable store by I-address; an address ever in `dom(Σ.C)` remains deliverable whenever any arrangement binds a position to it, including orphaned-but-referenced content | introduced |
