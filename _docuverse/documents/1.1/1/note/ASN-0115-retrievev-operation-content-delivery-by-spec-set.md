@@ -65,11 +65,23 @@ OriginBasedIdentity; S7 StructuralAttribution).
 A *V-spec* is a pair `ρ = (d, σ)` naming an **allocated** document `d` — a
 tumbler with `zeros(d) = 2` (ASN-0045) that is present in the arrangement family,
 `d ∈ dom(Σ.M)` — and a well-formed, level-uniform, **ordinal-level** span
-`σ = (s, ℓ)` whose start is a V-position of `d`. Ordinal-level means the width
-acts at the deepest component, `actionPoint(ℓ) = #ℓ` (ASN-0082, OrdinalLevel).
-Combined with level-uniformity (`#ℓ = #s`) and the V-position depth `#s ≥ 2`
-(ASN-0036, S8a), this forces `actionPoint(ℓ) ≥ 2`, so `s ⊕ ℓ` agrees with `s` on
-position 1 and the span's interval cannot cross the subspace boundary. This is
+`σ = (s, ℓ)` whose start `s` is a *well-formed V-position*: a zero-free tumbler of
+depth at least 2 with positive components,
+`zeros(s) = 0 ∧ #s ≥ 2 ∧ (A i : 1 ≤ i ≤ #s : sᵢ > 0)`. This is the shape
+ASN-0036's S8a requires of every *bound* position; we impose it here directly as a
+constraint on the span's start, whether or not that start is itself bound. The
+direct imposition is necessary: S8a is an invariant restricted to the active domain
+`dom(Σ.M(d))`, and R6 below contemplates named starts absent from the arrangement,
+so the shape cannot be borrowed from S8a's domain-restricted guarantee — `#s ≥ 2`
+is a property of the V-position *shape*, required of the spec. Ordinal-level means
+the width acts at the deepest component, `actionPoint(ℓ) = #ℓ` (ASN-0082,
+OrdinalLevel). Combined with level-uniformity (`#ℓ = #s`) and the start depth
+`#s ≥ 2`, this forces `actionPoint(ℓ) ≥ 2`, so both endpoints `s` and `s ⊕ ℓ`
+agree on position 1. The endpoint agreement extends to the whole interval by
+ContiguousSubtrees (ASN-0034, T5): taking prefix `p = [s₁]`, we have `p ≼ s` and
+`p ≼ s ⊕ ℓ`, so for any `t ∈ ⟦σ⟧` — i.e. `s ≤ t < s ⊕ ℓ`, hence `s ≤ t ≤ s ⊕ ℓ` —
+T5 gives `p ≼ t`. Thus every `t ∈ ⟦σ⟧` has first component `s₁`, and the span's
+interval cannot cross the subspace boundary. This is
 the deepest-action-point discipline R10 relies on; without it, a merely
 level-uniform well-formed span may have `actionPoint(ℓ) = 1` and straddle from
 the content subspace into the link subspace (e.g. `s = [1,5]`, `ℓ = [2,0]`:
@@ -281,9 +293,11 @@ positions within a consultable arrangement are unbound.
 If the same spec-set is asked again, against unchanged arrangements, must the
 delivered material be identical?
 
-> **R7 (Repeatability).** Let `Σ`, `Σ'` be any two states for which the consulted
-> arrangement restrictions agree — `Σ.M(dⱼ)|⟦σⱼ⟧ = Σ'.M(dⱼ)|⟦σⱼ⟧` for every
-> `j`. Then `deliver(R, Σ) = deliver(R, Σ')`.
+> **R7 (Repeatability).** Let `Σ`, `Σ'` be two states of one evolving docuverse —
+> both reachable from a common initial state along the sequential transition order
+> (ASN-0047, SequentialTransitionAxiom) — for which the consulted arrangement
+> restrictions agree, `Σ.M(dⱼ)|⟦σⱼ⟧ = Σ'.M(dⱼ)|⟦σⱼ⟧` for every `j`. Then
+> `deliver(R, Σ) = deliver(R, Σ')`.
 
 The proof is short and exposes which input is the variable one. `deliver` is a
 function of two things: the consulted arrangement restrictions, and the stores
@@ -291,8 +305,9 @@ the resolved values are drawn from. The restrictions are equal by hypothesis, so
 `act` and the resolved addresses agree position-for-position. Fix any resolved
 address `a`. Because the consulted restriction binds `a` at both states, S3★
 places `a` in the appropriate store at each: `a ∈ dom(Σ.C) ∩ dom(Σ'.C)` for a
-content position, `a ∈ dom(Σ.L) ∩ dom(Σ'.L)` for a link position. The states of a
-single docuverse are totally ordered (ASN-0047, SequentialTransitionAxiom), so
+content position, `a ∈ dom(Σ.L) ∩ dom(Σ'.L)` for a link position. Because both
+states lie on a common trace from the shared initial state, the sequential
+transition order (ASN-0047, SequentialTransitionAxiom) makes them comparable, so
 without loss of generality `Σ` precedes `Σ'`; over the intervening transitions
 content immutability (S0) and link immutability (L12) hold the stored entry fixed,
 giving `Σ.C(a) = Σ'.C(a)` (resp. `Σ.L(a) = Σ'.L(a)`). The choice of direction is
@@ -401,8 +416,8 @@ gathers positions of both kinds. (Whether a *single* span's denotation can itsel
 straddle the boundary — and what delivery must then guarantee — we leave to the
 Open Questions; the V-spec definition restricts `σ` to ordinal-level spans, for
 which `actionPoint(ℓ) ≥ 2`, so a text-rooted span cannot reach link positions:
-`s ⊕ ℓ` agrees with `s` on position 1 = `s_C`, hence every `t < s ⊕ ℓ` has first
-component `s_C`.)
+both endpoints `s` and `s ⊕ ℓ` agree on position 1 = `s_C`, so by ContiguousSubtrees
+(ASN-0034, T5) with prefix `[s_C]` every `t ∈ ⟦σ⟧` has first component `s_C`.)
 
 > **R10 (SubspaceCrossingObservability).** When an active position lies in the
 > link subspace (`subspace(v) = s_L`), it resolves (by S3★) to a link address
