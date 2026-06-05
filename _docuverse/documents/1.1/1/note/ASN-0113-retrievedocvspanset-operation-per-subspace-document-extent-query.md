@@ -201,10 +201,13 @@ implicit in the boundary, and made explicit only because the subspace is contigu
 **Exactness is contingent on contiguity.** We pause to record what makes W4 hold, because an
 alternative implementation must not lose it. The single covering span is exact *only because*
 `V_S(d)` is a contiguous run (D-CTG★). We state the dependence as a biconditional and prove
-both halves. We record **W5** (ExactnessRequiresContiguity): a single level-uniform span `σ`
-of subspace `S` at depth `m` satisfies `⟦σ⟧ ∩ VSlice(S, m) = V_S(d)` *if and only if*
-`V_S(d)` is contiguous in `VSlice(S, m)` — i.e. `V_S(d)` contains every V-slice tumbler lying
-(under T1) between its own minimum and maximum.
+both halves. We record **W5** (ExactnessRequiresContiguity): *there exists* a single
+level-uniform span `σ` of subspace `S` at depth `m` satisfying
+`⟦σ⟧ ∩ VSlice(S, m) = V_S(d)` *if and only if* `V_S(d)` is contiguous in `VSlice(S, m)` —
+i.e. `V_S(d)` contains every V-slice tumbler lying (under T1) between its own minimum and
+maximum. The existential is essential: the forward direction asserts that contiguity
+*permits* an exact span (a poorly chosen `σ` may overshoot even when `V_S(d)` is
+contiguous), while the converse asserts that non-contiguity *defeats every* `σ`.
 
 The *forward* direction (contiguous ⟹ a single exact span exists) is W4 itself: under D-CTG★
 the run is contiguous, and `ext(d, S)` exactly covers it.
@@ -381,7 +384,13 @@ W15, Independence, below); neither stream constrains the other, so every `(c, k)
 reachable (the empty subspace, count `0`, by performing zero extensions of that kind). To witness W12, fix `c, k₁, k₂ ∈ ℕ` with `k₁ ≠ k₂`: build `d₁` with profile
 `(c, k₁)` and `d₂` with profile `(c, k₂)` by the construction above; both share text extent
 `c` yet differ in link extent, so `n_{s_C}` does not determine `n_{s_L}`. The symmetric
-witness (fix the link extent, vary the text extent) is identical with the roles exchanged.
+proposition — fix the link extent at `k` and vary the text extent — is witnessed by the
+*same two recipes* with only the varying axis changed: coupled `K.α + K.μ⁺ + K.ρ` content
+composites drive `n_{s_C}` to the two distinct targets `c₁ ≠ c₂` while uncoupled
+`K.λ + K.μ⁺_L` link composites hold `n_{s_L} = k`. The content and link mechanisms are not
+exchanged — text is added only by coupled content composites and links only by uncoupled
+link composites, exactly as in the surrounding paragraph; what changes between the two
+witnesses is solely which count is driven and which is held.
 
 This is why the profile distinguishes documents that
 one axis cannot tell apart: high text with near-zero links is original prose; near-zero text
