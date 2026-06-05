@@ -84,17 +84,7 @@ By OrdAddHom clause (b) (ASN-0082) applied to `w = δ(k, m_C)`, every `shift(p, 
 
 Every existing V-position `v ∈ V_{s_C}(d)` with `v ≥ p` must remap. The content there does not change — it keeps its I-address — but its V-position advances by `n`. This is the *Shifted right* effect of INSERT's step-3 K.μ⁺ (claim INS.M-shift), which by construction adds exactly the mappings `shift(v, n) ↦ M(d)(v)` for each `v ∈ V_{s_C}(d)` with `v ≥ p`. The right region is the source of the shift; the shifted-right region is its image. The two are related by the order-preserving (TS1, ShiftOrderPreservation; ASN-0034) and injective (TS2, ShiftInjectivity; ASN-0034) shift map. The image of the shift map is exactly `{[s_C, 1, …, 1, k + n] : p_m ≤ k ≤ N}` when we write `p = [s_C, 1, …, 1, p_m]` with `p_m ∈ {1, …, N+1}`. The Insertion positions `shift(p, k)` for `0 ≤ k < n` are disjoint from these shift-images (by the pairwise-disjointness argument below for S2).
 
-INSERT is a substrate composite; each frame is determined by the K-step frames of its decomposition.
-
-For positions `v ∈ V_{s_C}(d)` with `v < p` (the left region), the arrangement is unchanged: step 2's K.μ⁻ retains the Left prefix (`n'_{s_C} = p_m − 1`) and the remaining steps frame `M` on those positions.
-
-For positions in subspaces other than `s_C` — including the link subspace — the arrangement is unchanged: K.μ⁺ adds only `s_C` positions (its content-subspace restriction, ASN-0047) and K.μ⁻ retains `V_{s_L}(d)` at `n'_{s_L} = n_{s_L}`.
-
-For other documents `d' ≠ d`, the arrangement is unchanged: every elementary step carries the cross-document frame `(A d' : d' ≠ d : M'(d') = M(d'))` (ASN-0047).
-
-Pre-existing content store entries are preserved pointwise — every `a ∈ dom(C)` has `a ∈ dom(C')` with `C'(a) = C(a)` (S0, ContentImmutability; ASN-0036, and P0, ContentPermanence; ASN-0047) — discharged by INS.C's third clause. INSERT extends `dom(C)` by the freshly allocated addresses (Effect One), so the store itself is *not* unchanged.
-
-These exhaust the cases.
+The shift's carrier is strictly the text-subspace positions at or after `p`. Everything else lies outside it and does not move: the left region (`v < p`) stays put, positions in other subspaces (including links) are untouched, other documents are untouched, and pre-existing content-store bindings are preserved (the store grows only by the fresh Effect-One addresses). The formal per-component frame clauses that pin these down appear under §The Operation: Formal Contract → Frame Conditions.
 
 ## The Operation: Formal Contract
 
@@ -141,9 +131,7 @@ Three disjoint regions:
 
   *Shifted right* — `(A v : v ∈ dom(M(d)) ∧ subspace(v) = s_C ∧ v ≥ p :: shift(v, n) ∈ dom(M'(d)) ∧ M'(d)(shift(v, n)) = M(d)(v))`
 
-  *Exhaustiveness* (INS.M-exhaustive) — `(A v : v ∈ dom(M'(d)) ∧ subspace(v) = s_C :: v ∈ Left ∪ Insertion ∪ Shifted-right)`, where Left, Insertion, and Shifted-right denote the three V-position sets defined by the per-region clauses above. Equivalently, `V_{s_C}(d') =` Left positions ∪ Insertion positions ∪ Shifted-right positions, with no additional `s_C` positions in the post-state.
-
-The exhaustiveness clause is a property of the post-state `V_{s_C}(d')`, and it follows directly from the composite construction. Steps 1 and 4 (the K.α and K.ρ firings) frame `M` (`M' = M`; ASN-0047), so they introduce no `s_C` position. Step 2's K.μ⁻ (when fired) only *removes* positions. Step 3's K.μ⁺ adds *exactly* the Insertion positions `{shift(p, k) : 0 ≤ k < n}` and the Shifted-right positions `{shift(v, n) : v ∈ V_{s_C}(d) ∧ v ≥ p}` (its specified effect). Hence every `s_C` position in `dom(M'(d))` is either a surviving pre-state position with `v < p` (Left), an Insertion position, or a Shifted-right position — no fourth region exists.
+  *Exhaustiveness* (INS.M-exhaustive) — `(A v : v ∈ dom(M'(d)) ∧ subspace(v) = s_C :: v ∈ Left ∪ Insertion ∪ Shifted-right)`, where Left, Insertion, and Shifted-right denote the three V-position sets defined by the per-region clauses above. Equivalently, `V_{s_C}(d') =` Left positions ∪ Insertion positions ∪ Shifted-right positions, with no additional `s_C` positions in the post-state. (Justified in §Arrangement functionality, where it is first consumed.)
 
 **Effect — Provenance:**
 
@@ -200,7 +188,7 @@ We compute the post-state projection *directly* from the exhibited `M'(d)`. The 
 
 **Empty-document first insertion.** Let `d` have `V_{s_C}(d) = ∅` and additionally `V_{s_L}(d) = ∅` (so the document's arrangement is entirely empty). Invoke `INSERT(d, [1,1], ⟨v₀, v₁, v₂⟩)` with `n = 3` (so the depth is `m = #p = #[1,1] = 2`). The position `p = [1,1]` is the unique value admitted by `ValidFirstInsertionPosition(d, p, 2)` (ASN-0036). K.μ⁻ is omitted — the empty-content-subspace case of (INS.μ⁻-fires). The composite reduces to:
 
-1. **Three K.α firings.** `A_C(d)` emits `a_{new0} = [d.0.s_C.1]` (first-emission predicate fires since `{a' ∈ dom(Σ.C) : origin(a') = d} = ∅`), then `a_{new1} = inc(a_{new0}, 0)`, then `a_{new2} = inc(a_{new1}, 0)`. Each freshly satisfies K.α's freshness precondition by ChainEnumerationInjectivity and FirstEmissionFreshness (ASN-0093).
+1. **Three K.α firings.** `A_C(d)` emits `a_{new0} = [d.0.s_C.1]` (first-emission predicate fires since `{a' ∈ dom(Σ.C) : origin(a') = d} = ∅`), then `a_{new1} = inc(a_{new0}, 0)`, then `a_{new2} = inc(a_{new1}, 0)`. Each freshly satisfies K.α's freshness precondition by SubsequentEmissionFreshness, with FirstEmissionFreshness covering the first-emission boundary `a_{new0}` (ASN-0093).
 2. **One K.μ⁺ on `d`** adding three V-positions: `[1,1] ↦ a_{new0}`, `[1,2] ↦ a_{new1}`, `[1,3] ↦ a_{new2}`. All in subspace `s_C` per the K.μ⁺ amendment.
 3. **Three K.ρ firings** recording `(a_{new0}, d)`, `(a_{new1}, d)`, `(a_{new2}, d)` in R.
 
@@ -212,7 +200,7 @@ with `V_{s_C}(d') = {[1,1], [1,2], [1,3]}` (depth pinned at `m_C = 2` per INS.in
 
 *Cross-subspace and cross-document frames (empty case).* `V_{s_L}(d) = ∅` is preserved trivially: K.μ⁺'s content-subspace restriction adds no `s_L` positions, so `V_{s_L}(d') = ∅` matches. Other subspaces are vacuous. Other documents `d' ≠ d` have `M'(d') = M(d')` by each elementary step's cross-document frame.
 
-*Discharge of J0, J1★, J1'★ (empty case).* Step 3's three K.ρ firings add `(a_{new0}, d), (a_{new1}, d), (a_{new2}, d)` to R. Since pre-state `ran(M(d)) = ∅`, all three Insertion images are newly-arranged, placed by step 2's K.μ⁺ at `[1,1], [1,2], [1,3]` respectively. Here the coupling logic instantiates to these three pairs — each fresh `a_{new k}` is placed at `[1,1+k]` (J0), is a newly-arranged content-subspace image (J1★), and matches its new R'-entry (J1'★) — satisfied when step 3's K.ρ firings commit.
+*Discharge of J0, J1★, J1'★ (empty case).* Step 3's three K.ρ firings add `(a_{new0}, d), (a_{new1}, d), (a_{new2}, d)` to R. Since pre-state `ran(M(d)) = ∅`, all three Insertion images are newly-arranged, placed by step 2's K.μ⁺ at `[1,1], [1,2], [1,3]` respectively; the coupling constraints then discharge exactly as in the interior example and §Provenance.
 
 ## Verifying the Invariants
 
@@ -220,7 +208,7 @@ The post-state Σ' must satisfy every system invariant. We verify the principal 
 
 ### Permanence of existing content (S0, P0)
 
-The content-store effect's third clause asserts `(A a : a ∈ dom(C) : a ∈ dom(C') ∧ C'(a) = C(a))`. This is S0 (ContentImmutability; ASN-0036), equivalently P0 (ContentPermanence; ASN-0047), which subsumes S0 ∧ S1. The first clause `dom(C') = dom(C) ∪ {a_0, …, a_{n−1}}` adds new addresses without removing any; the new addresses are fresh by ChainEnumerationInjectivity and FirstEmissionFreshness (ASN-0093), so no overwrite occurs. Store monotonicity `dom(C) ⊆ dom(C')` follows.
+The content-store effect's third clause asserts `(A a : a ∈ dom(C) : a ∈ dom(C') ∧ C'(a) = C(a))`. This is S0 (ContentImmutability; ASN-0036), equivalently P0 (ContentPermanence; ASN-0047), which subsumes S0 ∧ S1. The first clause `dom(C') = dom(C) ∪ {a_0, …, a_{n−1}}` adds new addresses without removing any; the new addresses are fresh against `dom(C) ∪ dom(L)` by SubsequentEmissionFreshness, with FirstEmissionFreshness covering the boundary (ASN-0093), so no overwrite occurs. Store monotonicity `dom(C) ⊆ dom(C')` follows.
 
 Each per-step K.α firing preserves S0 by its own frame (its effect adds a new binding without modifying existing ones); K.μ⁻, K.μ⁺, K.ρ have frame `C' = C` and so preserve S0 trivially. The composite preserves S0 by composition.
 
@@ -244,7 +232,11 @@ The Left, Insertion, and Shifted-right regions are pairwise disjoint as sets of 
 
 - *Left ∩ Shifted-right = ∅.* Left last components are `< p_m`; Shifted-right last components are `≥ p_m + n ≥ p_m + 1`.
 
-Within each region the mapping is uniquely defined: Left and Shifted-right by `M(d)` applied to a unique source position — for Shifted-right, source uniqueness follows from TS2 (ShiftInjectivity; ASN-0034) once its equal-length precondition is met: by S8-depth (FixedDepthVPositions; ASN-0036) all pre-state `s_C` positions share the common depth `m_C`, so for any pair of pre-state Right sources `v₁, v₂ ∈ V_{s_C}(d)` with `v₁ ≥ p` and `v₂ ≥ p`, `#v₁ = #v₂ = m_C` satisfies TS2's precondition; TS2 then yields injectivity — distinct sources `v₁ ≠ v₂` yield `shift(v₁, n) ≠ shift(v₂, n)`. Insertion images are uniquely indexed by `k`. The pairwise-disjoint and uniquely-defined regions together exhaust `V_{s_C}(d')` by INS.M-exhaustive — no fourth region of `s_C` positions exists in the post-state to violate functionality. So `M'(d)` is a well-defined function.
+Within each region the mapping is uniquely defined: Left and Shifted-right by `M(d)` applied to a unique source position — for Shifted-right, source uniqueness follows from TS2 (ShiftInjectivity; ASN-0034) once its equal-length precondition is met: by S8-depth (FixedDepthVPositions; ASN-0036) all pre-state `s_C` positions share the common depth `m_C`, so for any pair of pre-state Right sources `v₁, v₂ ∈ V_{s_C}(d)` with `v₁ ≥ p` and `v₂ ≥ p`, `#v₁ = #v₂ = m_C` satisfies TS2's precondition; TS2 then yields injectivity — distinct sources `v₁ ≠ v₂` yield `shift(v₁, n) ≠ shift(v₂, n)`. Insertion images are uniquely indexed by `k`.
+
+We now establish INS.M-exhaustive — that these three regions exhaust `V_{s_C}(d')`, so no fourth region of `s_C` positions exists in the post-state to violate functionality. The clause is a property of the post-state `V_{s_C}(d')`, and it follows directly from the composite construction. Steps 1 and 4 (the K.α and K.ρ firings) frame `M` (`M' = M`; ASN-0047), so they introduce no `s_C` position. Step 2's K.μ⁻ (when fired) only *removes* positions. Step 3's K.μ⁺ adds *exactly* the Insertion positions `{shift(p, k) : 0 ≤ k < n}` and the Shifted-right positions `{shift(v, n) : v ∈ V_{s_C}(d) ∧ v ≥ p}` (its specified effect). Hence every `s_C` position in `dom(M'(d))` is either a surviving pre-state position with `v < p` (Left), an Insertion position, or a Shifted-right position — no fourth region exists.
+
+The pairwise-disjoint and uniquely-defined regions together exhaust `V_{s_C}(d')` by INS.M-exhaustive, so `M'(d)` is a well-defined function.
 
 For other subspaces and other documents, `M'` equals `M`, which is already a function by the pre-state S2.
 
@@ -580,7 +572,7 @@ What the specification *does* cover is the precise per-state effect of one INSER
 |-------|-----------|--------|
 | INS.def | INSERT(d, p, ⟨v_0, …, v_{n−1}⟩) is a substrate composite Σ →* Σ' under ValidComposite★ (ASN-0047), realised as n K.α + (optional K.μ⁻) + K.μ⁺ + n K.ρ | introduced |
 | INS.pre | INSERT preconditions: d ∈ dom(M); p valid in text subspace of d (binary predicate ValidInsertionPosition for non-empty case, ternary predicate ValidFirstInsertionPosition(d, p, m) with caller-chosen m ≥ 2 for empty case); n ≥ 1; v_k ∈ Val | introduced |
-| INS.alloc | INSERT allocates exactly n fresh I-addresses from d's content sub-allocator A_C(d); each a_k satisfies origin(a_k) = d; each K.α firing satisfies its freshness precondition against its own intermediate state by ChainEnumerationInjectivity and FirstEmissionFreshness (ASN-0093) | introduced |
+| INS.alloc | INSERT allocates exactly n fresh I-addresses from d's content sub-allocator A_C(d); each a_k satisfies origin(a_k) = d; each K.α firing satisfies its freshness precondition against its own intermediate state by SubsequentEmissionFreshness and FirstEmissionFreshness (ASN-0093) | introduced |
 | INS.chain-shift | For contiguous emissions of A_C(d), a_{i+j} = shift(a_i, j); in particular a_k = shift(a_0, k) | introduced |
 | INS.C | dom(C') = dom(C) ∪ {a_0, …, a_{n−1}}; C'(a_k) = v_k; ∀a ∈ dom(C): C'(a) = C(a) | introduced |
 | INS.M-left | Text-subspace positions v < p in dom(M(d)) appear unchanged in M'(d) | introduced |
