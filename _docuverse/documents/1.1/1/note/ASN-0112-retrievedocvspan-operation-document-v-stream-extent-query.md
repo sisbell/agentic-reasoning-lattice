@@ -36,7 +36,12 @@ in the arrangement. This set is exactly what RETRIEVEDOCVSPAN must bound. We rel
 foundation facts:
 
 - **S2** (functionality): each occupied V-position has a single I-address.
-- **S3** (referential integrity): `(A v : v ∈ O(d) : M(d)(v) ∈ dom(C))`.
+- **S3★** (generalized referential integrity, ASN-0047): each occupied V-position maps
+  into the store appropriate to its subspace —
+  `(A v : v ∈ O(d) : subspace(v) = s_C ⟹ M(d)(v) ∈ dom(C)) ∧ (A v : v ∈ O(d) : subspace(v) = s_L ⟹ M(d)(v) ∈ dom(L))`.
+  We use the per-subspace S3★ rather than the content-only S3 (ASN-0036) precisely because
+  this ASN admits link V-positions into `O(d)` (V5 link-only case, V6, the worked example);
+  a link position's image lies in `dom(L)`, not `dom(C)`.
 - **S8-fin** (finiteness): `O(d)` is finite.
 - **S8a** (well-formedness): every `v ∈ O(d)` is zero-free, of depth `≥ 2`, all
   components positive; `subspace(v) = v₁`.
@@ -49,6 +54,8 @@ foundation facts:
   dense-run shape.
 - **S0 / P0** (content immutability and permanence): once `a ∈ dom(C)`, `a` stays in
   `dom(C)` forever and `C(a)` never changes.
+- **L12** (link immutability, ASN-0043): once `a ∈ dom(L)`, `a` stays in `dom(L)` forever
+  and the link value `L(a)` never changes — the link-store analogue of S0/P0.
 
 Two subspaces inhabit the arrangement: content positions carry `subspace = s_C` and link
 positions carry `subspace = s_L`, with the fixed convention `s_C = 1`, `s_L = 2`
@@ -306,7 +313,13 @@ We can make this precise. While the content subspace is occupied, D-MIN pins
 `min V_{s_C}(d) = [s_C,1,…,1]`, and since `s_C` is the least subspace identifier, this is
 also `min O(d) = origin_d` whenever content is present. We record **V8** (origin
 permanence): for every document state in which the content subspace is non-empty,
-`origin_d = [s_C,1,…,1]`, invariant under all editing that leaves content present. Editing
+`origin_d = [s_C,1,…,1]`, invariant under all editing that leaves content present. The
+invariance is over the *value* `[s_C,1,…,1]`, a tumbler of depth `m_C`, so it presumes `m_C`
+itself is fixed across the editing in question. It is: the content depth `m_C` is re-pinnable
+"at any value `≥ 2`" only on full subspace clearance — when `V_{s_C}(d) = ∅`, the next
+insertion re-pins `m_C` from scratch (S8a). Editing "that leaves content present" never
+empties `V_{s_C}(d)`, so the re-pinning trigger never fires and `m_C` — hence the depth of
+`[s_C,1,…,1]` — stays fixed throughout. Editing
 relocates I-addresses and shuffles V-positions, but it never moves the start of the stream:
 "the front-end application is unaware" of where bytes natively live (4/11), and the V-origin
 holds steady at the canonical first position. The origin is the stable anchor against which
@@ -406,8 +419,13 @@ arrangements" (2/19), and each document answers for its own bounds on its own te
 
 **Permanence of the underlying content.** We record **V14** (permanence): every *occupied*
 position in `O(d)` — every position the span covers that actually carries content — maps,
-through `M(d)`, to a permanent I-address in `dom(C)` (S3), and that content is immutable and
-never destroyed (S0, P0). The restriction to `O(d)` is essential: in the cross-subspace case
+through `M(d)`, to a permanent, immutable image, the store depending on the position's
+subspace (S3★). A *content* position (`subspace(v) = s_C`) maps to an I-address in `dom(C)`,
+permanent and immutable by content permanence (S0, P0); a *link* position
+(`subspace(v) = s_L`) maps to a link address in `dom(L)`, permanent and immutable by link
+permanence (L12). The split is forced: S0/P0 constrain the content store only, so they say
+nothing about a link image, while L12 supplies exactly the matching guarantee on the link
+store. The restriction to `O(d)` is essential: in the cross-subspace case
 V6 establishes `O(d) ⊊ ⟦σ_d⟧` strictly, so the span also covers inter-subspace and unoccupied
 positions (e.g. `[1,4]` in the worked example) on which `M(d)` is simply undefined; for those
 covered-but-unoccupied positions there is no image through `M(d)`, and the permanence claim
@@ -552,7 +570,7 @@ no range to validate.
 | V11 | The operation is total over allocated documents; `O(d) = ∅` yields the distinguished empty span-set `⟨⟩` (not a T12 span), with `origin_d` undefined and no extent — the implementation's zeros are a sentinel, not a legal address (TA6) | introduced |
 | V12 | The span discloses the live origin (addressing anchor) and current extent (present bounds) — neither derivable from `d`'s identity (information gain) | introduced |
 | V13 | `σ_d` depends only on `O(d)`; two documents sharing content report independent spans; transcluded positions count toward the borrowing document's extent (independence) | introduced |
-| V14 | Every *occupied* position in `O(d)` (every covered position carrying content) maps through `M(d)` to a permanent, immutable I-address (S3, S0, P0); covered-but-unoccupied positions in the cross-subspace case (V6) carry no `M(d)` image; sharing preserves what the span denotes (permanence) | introduced |
+| V14 | Every *occupied* position in `O(d)` maps through `M(d)` to a permanent, immutable image, by subspace (S3★): content positions to `dom(C)` (S0, P0), link positions to `dom(L)` (L12); covered-but-unoccupied positions in the cross-subspace case (V6) carry no `M(d)` image; sharing preserves what the span denotes (permanence) | introduced |
 | V15 | A returned span keeps its meaning under later edits to `d` or to home documents supplying its content; a fresh report is a new query, not a mutation (snapshot stability) | introduced |
 | V16 | `σ_d` is a pure function of `O(d)`; equal arrangements return identical spans, independent of how the arrangement was built (determinism) | introduced |
 | V17 | For non-empty `d`, `extent_d` is a positive tumbler with `actionPoint(extent_d) ≤ #origin_d` (well-formed T12 span); `reach_d > origin_d` always, so the extent is never negative | introduced |
