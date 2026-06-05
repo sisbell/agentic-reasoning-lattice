@@ -84,13 +84,13 @@ By OrdAddHom clause (b) (ASN-0082) applied to `w = δ(k, m_C)`, every `shift(p, 
 
 Every existing V-position `v ∈ V_{s_C}(d)` with `v ≥ p` must remap. The content there does not change — it keeps its I-address — but its V-position advances by `n`. This is the *Shifted right* effect of INSERT's step-3 K.μ⁺ (claim INS.M-shift), which by construction adds exactly the mappings `shift(v, n) ↦ M(d)(v)` for each `v ∈ V_{s_C}(d)` with `v ≥ p`. The right region is the source of the shift; the shifted-right region is its image. The two are related by the order-preserving (TS1, ShiftOrderPreservation; ASN-0034) and injective (TS2, ShiftInjectivity; ASN-0034) shift map. The image of the shift map is exactly `{[s_C, 1, …, 1, k + n] : p_m ≤ k ≤ N}` when we write `p = [s_C, 1, …, 1, p_m]` with `p_m ∈ {1, …, N+1}`. The Insertion positions `shift(p, k)` for `0 ≤ k < n` are disjoint from these shift-images (by the pairwise-disjointness argument below for S2).
 
-INSERT is a substrate composite, so each frame is determined by the K-step frames of its decomposition (the load-bearing source); ASN-0082's I3 lemmas characterise the same frames as postconditions of an insertion and are cited as corroboration.
+INSERT is a substrate composite; each frame is determined by the K-step frames of its decomposition.
 
-For positions `v ∈ V_{s_C}(d)` with `v < p` (the left region), the arrangement is unchanged: step 2's K.μ⁻ retains the Left prefix (`n'_{s_C} = p_m − 1`) and the remaining steps frame `M` on those positions (matching I3-L, PostInsertionLeftFrame; ASN-0082).
+For positions `v ∈ V_{s_C}(d)` with `v < p` (the left region), the arrangement is unchanged: step 2's K.μ⁻ retains the Left prefix (`n'_{s_C} = p_m − 1`) and the remaining steps frame `M` on those positions.
 
-For positions in subspaces other than `s_C` — including the link subspace — the arrangement is unchanged: K.μ⁺ adds only `s_C` positions (its content-subspace restriction, ASN-0047) and K.μ⁻ retains `V_{s_L}(d)` at `n'_{s_L} = n_{s_L}` (matching I3-X, PostInsertionCrossSubspaceFrame; ASN-0082).
+For positions in subspaces other than `s_C` — including the link subspace — the arrangement is unchanged: K.μ⁺ adds only `s_C` positions (its content-subspace restriction, ASN-0047) and K.μ⁻ retains `V_{s_L}(d)` at `n'_{s_L} = n_{s_L}`.
 
-For other documents `d' ≠ d`, the arrangement is unchanged: every elementary step carries the cross-document frame `(A d' : d' ≠ d : M'(d') = M(d'))` (ASN-0047) (matching I3-D, PostInsertionCrossDocumentFrame; ASN-0082).
+For other documents `d' ≠ d`, the arrangement is unchanged: every elementary step carries the cross-document frame `(A d' : d' ≠ d : M'(d') = M(d'))` (ASN-0047).
 
 Pre-existing content store entries are preserved pointwise — every `a ∈ dom(C)` has `a ∈ dom(C')` with `C'(a) = C(a)` (S0, ContentImmutability; ASN-0036, and P0, ContentPermanence; ASN-0047) — discharged by INS.C's third clause. INSERT extends `dom(C)` by the freshly allocated addresses (Effect One), so the store itself is *not* unchanged.
 
@@ -100,7 +100,7 @@ These exhaust the cases.
 
 INSERT is a **substrate composite** in the sense of ValidComposite★ (ASN-0047) — a finite sequence of elementary transitions drawn from the substrate's K-vocabulary, governed at the composite boundary by the coupling constraints J0, J1★, J1'★. It is *not* a new elementary primitive; the substrate transition vocabulary is not amended.
 
-The operative substrate is ValidComposite★ (ASN-0047), whose vocabulary is `{K.α (amended), K.δ, K.λ, K.μ⁺ (amended), K.μ⁺_L, K.μ⁻ (amended), K.μ~, K.ρ}`. Document registration in this framework is K.δ in its IsDocument sub-case.
+The operative substrate is ValidComposite★ (ASN-0047), whose atomic vocabulary is `{K.α (amended), K.δ, K.λ, K.μ⁺ (amended), K.μ⁺_L, K.μ⁻ (amended), K.ρ}`. Document registration in this framework is K.δ in its IsDocument sub-case.
 
 We state INSERT as a composite `Σ →* Σ'`.
 
@@ -166,6 +166,8 @@ We instantiate INSERT to make the three regions concrete.
 
   `M(d) = {[1,1] ↦ a₁, [1,2] ↦ a₂, [1,3] ↦ a₃, [1,4] ↦ a₄, [1,5] ↦ a₅}`
 
+We stipulate a *sequentially-built* pre-state: `a_k = [d.0.s_C.k]` for `1 ≤ k ≤ 5`, so `a₁, …, a₅` are the first five contiguous emissions of `A_C(d)` (`a_{k+1} = inc(a_k, 0)`), all T4-valid same-length addresses. This stipulation is what makes INS.chain-shift applicable below; a pre-state reached through prior deletion or copy could map V-positions to non-contiguous I-addresses, and the projection instantiation would then read off `M(d)` directly rather than via the chain-shift identity.
+
 Invoke `INSERT(d, [1,3], ⟨v₀, v₁⟩)` with `n = 2`. The position `p = [1,3]` corresponds to `j = 2` (since `shift([1,1], 2) = [1,3]`), interior to the `N + 1 = 6` valid positions. The substrate composite fires:
 
 1. **Two K.α firings.** A_C(d) emits `a_{new0}` and `a_{new1} = inc(a_{new0}, 0)`, both fresh.
@@ -212,8 +214,6 @@ with `V_{s_C}(d') = {[1,1], [1,2], [1,3]}` (depth pinned at `m_C = 2` per INS.in
 
 *Discharge of J0, J1★, J1'★ (empty case).* Step 3's three K.ρ firings add `(a_{new0}, d), (a_{new1}, d), (a_{new2}, d)` to R. Since pre-state `ran(M(d)) = ∅`, all three Insertion images are newly-arranged, placed by step 2's K.μ⁺ at `[1,1], [1,2], [1,3]` respectively. Here the coupling logic instantiates to these three pairs — each fresh `a_{new k}` is placed at `[1,1+k]` (J0), is a newly-arranged content-subspace image (J1★), and matches its new R'-entry (J1'★) — satisfied when step 3's K.ρ firings commit.
 
-*Empty-arrangement vs. fresh-allocator-state sub-case.* The example above has both `V_{s_C}(d) = ∅` and `{a' ∈ dom(Σ.C) : origin(a') = d} = ∅`. These conditions are independent: the empty-arrangement condition `V_{s_C}(d) = ∅` selects `ValidFirstInsertionPosition` and fixes the Insertion V-positions at `[1,1], [1,2], [1,3]`, while the K.α emission discipline (ASN-0093) fixes the address *values* from `A_C(d)`'s chain state — whether each `a_{new k}` is a first emission `[d.0.s_C.1]` or a continuation of a chain whose earlier elements were allocated and later removed (those remain permanent in `C` by P0 but absent from `M(d)`). The post-state predicates (D-CTG★, D-MIN★, D-SEQ★, S8a, S8-depth) and the couplings J0, J1★, J1'★ hold uniformly in either sub-case, since the fresh `a_{new k}` lie outside `ran(M(d)) = ∅` regardless of their chain index.
-
 ## Verifying the Invariants
 
 The post-state Σ' must satisfy every system invariant. We verify the principal ones.
@@ -230,7 +230,7 @@ The consequence Nelson emphasises (Q5): a reader holding any pre-state I-address
 
 The frame `(A d' : d' ≠ d : M'(d') = M(d'))` directly enforces independence: no document other than `d` has its arrangement altered. Coupled with `L' = L` and content-store preservation, this means that any document `d'` that transcludes content from `d` continues to map the same V-positions to the same I-addresses, and those I-addresses continue to resolve to the same values.
 
-Cross-document independence extends to link projection: for any link `ℓ ∈ dom(L)` and any document `d' ≠ d`, the projection from `d'` is unchanged, `project(ℓ, i, d', Σ') = project(ℓ, i, d', Σ)`, by LP4 (ArrangementSpecificity; ASN-0098) applied across each elementary step's cross-document frame.
+Cross-document independence extends to link projection: for any link `ℓ ∈ dom(L)` and any document `d' ≠ d`, the projection from `d'` is unchanged, `project(ℓ, i, d', Σ') = project(ℓ, i, d', Σ)`. This is the `d' ≠ d` branch of INS.proj (§Coverage and link discoverability), derived there.
 
 ### Arrangement functionality (S2)
 
@@ -595,7 +595,7 @@ What the specification *does* cover is the precise per-state effect of one INSER
 | INS.M-left | Text-subspace positions v < p in dom(M(d)) appear unchanged in M'(d) | introduced |
 | INS.M-insert | M'(d)(shift(p, k)) = a_k for 0 ≤ k < n, with shift(p, 0) = p | introduced |
 | INS.M-shift | For v ∈ V_{s_C}(d) with v ≥ p: shift(v, n) ∈ dom(M'(d)) ∧ M'(d)(shift(v, n)) = M(d)(v) | introduced |
-| INS.M-exhaustive | (A v : v ∈ dom(M'(d)) ∧ subspace(v) = s_C :: v ∈ Left ∪ Insertion ∪ Shifted-right); the post-state's text-subspace domain contains no s_C positions beyond the three regions — established at the effect specification from the composite construction (K.α/K.ρ frame M, K.μ⁻ only removes, K.μ⁺ adds exactly Insertion ∪ Shifted-right) | introduced |
+| INS.M-exhaustive | (A v : v ∈ dom(M'(d)) ∧ subspace(v) = s_C :: v ∈ Left ∪ Insertion ∪ Shifted-right); the post-state's text-subspace domain contains no s_C positions beyond the three regions | introduced |
 | INS.R | R' = R ∪ {(a_k, d) : 0 ≤ k < n}; discharges composite-boundary couplings J0, J1★, J1'★ (ASN-0047) | introduced |
 | INS.frame.subspace | Non-content subspaces of d are unchanged (bidirectionally): {v ∈ dom(M'(d)) : subspace(v) ≠ s_C} = {v ∈ dom(M(d)) : subspace(v) ≠ s_C}, and M'(d) agrees with M(d) pointwise on that set. No new non-s_C positions appear; no existing ones are removed | introduced |
 | INS.frame.doc | Other documents' arrangements are unchanged: ∀d' ≠ d: M'(d') = M(d') | introduced |
