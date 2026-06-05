@@ -462,8 +462,6 @@ The decomposition is admissible under ValidComposite★ because (i) every elemen
 
 This also discharges P3 (ExtendedTransitionInvariants; ASN-0047), the sole *composite-transition* obligation, which ASN-0047 states as the synthesis `P0 ∧ P1 ∧ P2 ∧ L12`. Each conjunct holds between the initial state Σ and the final state Σ': P0 (ContentPermanence — `dom(C) ⊆ dom(C')` with value preservation) follows from step 1's K.α firings extending `dom(C)` by fresh addresses while the K.μ⁻/K.μ⁺/K.ρ frames leave existing entries untouched; P1 (EntityPermanence — `E ⊆ E'`) follows from INS.frame.E (`E' = E`, no K.δ); P2 (ProvenancePermanence — `R ⊆ R'`) follows from step 4's K.ρ firings being purely additive on R; and L12 (LinkImmutability — `dom(L) ⊆ dom(L')` with value preservation) follows from INSERT firing no K.λ, so `L' = L`. Their conjunction is exactly P3, so the composite transition `Σ →* Σ'` satisfies ExtendedTransitionInvariants.
 
-The inter-step ordering constraints that *do* bind the decomposition — K.α before the K.μ⁺ that places its address, and (when K.μ⁻ fires) K.μ⁻ before K.μ⁺ — are enumerated once, below, under *forced orderings*; we do not restate them here as inadmissible alternatives.
-
 The post-state Σ' is *uniquely determined* by the operation contract; the substrate decomposition that realises it is not. We verify uniqueness component by component.
 
   *Content store.* Every admissible decomposition fires exactly `n` K.α steps in their forced order (per the K.α strict-order argument below — the `k`-th firing must produce the determined chain element `t_{m_d + k + 1}` of `A_C(d)`). So `dom(C') = dom(C) ∪ {a_0, …, a_{n−1}}` with each `a_k` determined uniquely by the pre-state's chain index `m_d` (read from `Σ.C`) and the inputs; the value `C'(a_k) = v_k` is set by the K.α firing's value parameter `v_k` from INSERT's input sequence. The frame of every other elementary step (K.μ⁻, K.μ⁺, K.ρ) leaves C unchanged, so `C'(a) = C(a)` for `a ∈ dom(C)` is preserved by composition.
@@ -502,7 +500,9 @@ The verification above proceeds forward — from preconditions and substrate eff
 
   `wp(INSERT(d, p, ⟨v_0, …, v_{n−1}⟩), discoverable_from(ℓ, d, ·))`
 
-By LP12 (DiscoverabilityCharacterisation; ASN-0098), `discoverable_from(ℓ, d, Σ')` is equivalent to `(E i : coverage(Σ'.L(ℓ).e_i) ∩ ran(Σ'.M(d)) ≠ ∅)`. By LP3★ (MultiStepCoverageInvariance; ASN-0098), `coverage(Σ'.L(ℓ).e_i) = coverage(Σ.L(ℓ).e_i)` since INSERT does not alter `L`. By the post-state's M-effect, `ran(M'(d)) = ran(M(d)) ∪ {a_k : 0 ≤ k < n}` — the pre-existing range augmented by the freshly allocated I-addresses. The wp expands to:
+For total-correctness `wp`, `wp(S, R)` must entail `S`'s precondition: the post-state effects we substitute below — `ran(M'(d)) = ran(M(d)) ∪ {a_k}` and, in the provenance computation, `R' = R ∪ {(a_k, d)}` — hold only when INSERT is enabled. We therefore carry INSERT's precondition INS.pre as a standing conjunct, matching the LP12a (ASN-0098) convention, whose wp likewise carries an explicit `enabled(K.μ⁻[d, R])` conjunct.
+
+By LP12 (DiscoverabilityCharacterisation; ASN-0098), `discoverable_from(ℓ, d, Σ')` is equivalent to `(E i : coverage(Σ'.L(ℓ).e_i) ∩ ran(Σ'.M(d)) ≠ ∅)`. By LP3★ (MultiStepCoverageInvariance; ASN-0098), `coverage(Σ'.L(ℓ).e_i) = coverage(Σ.L(ℓ).e_i)` since INSERT does not alter `L`. By the post-state's M-effect (available because INS.pre holds), `ran(M'(d)) = ran(M(d)) ∪ {a_k : 0 ≤ k < n}` — the pre-existing range augmented by the freshly allocated I-addresses. The wp expands to:
 
   `(E i : coverage(Σ.L(ℓ).e_i) ∩ (ran(Σ.M(d)) ∪ {a_k : 0 ≤ k < n}) ≠ ∅)`
 
@@ -512,17 +512,17 @@ which distributes to:
 
 The second disjunct — fresh-address capture — collapses to `false` for any *tight* endset `e_i` (with `tight(e_i, Σ_{e_i})` evaluated at the state of `e_i`'s incorporation). LP19a (TightFreshness; ASN-0098) establishes that a freshly allocated `a_k` cannot lie in a tight endset's coverage, because `a_k ∉ dom(Σ_{e_i}.C) ∪ dom(Σ_{e_i}.L)` by Store Monotonicity★ and the freshness of K.α's emission against the operation's pre-state. Thus, when every slot of `Σ.L(ℓ)` is tight at its incorporation state, the wp simplifies to:
 
-  `wp(INSERT(d, p, ⟨v_0, …, v_{n−1}⟩), discoverable_from(ℓ, d, ·)) ≡ discoverable_from(ℓ, d, Σ)`
+  `wp(INSERT(d, p, ⟨v_0, …, v_{n−1}⟩), discoverable_from(ℓ, d, ·)) ≡ INS.pre ∧ discoverable_from(ℓ, d, Σ)`
 
-— a non-trivial conclusion: discoverability of a tight-endset link from `d` is preserved exactly when it held at the pre-state. INSERT neither creates nor destroys discoverability for tight links; it is transparent to them.
+— a non-trivial conclusion: from an enabling pre-state, discoverability of a tight-endset link from `d` is preserved exactly when it held at the pre-state. INSERT neither creates nor destroys discoverability for tight links; it is transparent to them.
 
 **Provenance membership for a specific I-address.** Consider the postcondition `(a, d) ∈ R'` for a fixed I-address `a` and target document `d`. We compute:
 
   `wp(INSERT(d, p, ⟨v_0, …, v_{n−1}⟩), (a, d) ∈ R')`
 
-By the post-state's R-effect, `R' = R ∪ {(a_k, d) : 0 ≤ k < n}` where `a_0, …, a_{n−1}` are the freshly allocated content addresses. Thus `(a, d) ∈ R'` holds iff `(a, d) ∈ R` or `a ∈ {a_0, …, a_{n−1}}`. The second disjunct depends on the K.α emission discipline: `a = a_k` for some `k` iff `a` is the `(m_d + k + 1)`-th element of the chain `A_C(d)` (where `m_d` is the chain index of the last emission already in `dom(Σ.C)` for origin `d`). For a fixed `a`, this is a structural predicate on the pre-state: either `a` lies in `dom(C)` already (and is *not* a freshly allocated address — the second disjunct fails) or `a` is one of the next `n` chain elements of `A_C(d)` that K.α will produce. The wp is therefore:
+By the post-state's R-effect (available because INS.pre holds), `R' = R ∪ {(a_k, d) : 0 ≤ k < n}` where `a_0, …, a_{n−1}` are the freshly allocated content addresses. Thus, from an enabling pre-state, `(a, d) ∈ R'` holds iff `(a, d) ∈ R` or `a ∈ {a_0, …, a_{n−1}}`. The second disjunct depends on the K.α emission discipline: `a = a_k` for some `k` iff `a` is the `(m_d + k + 1)`-th element of the chain `A_C(d)` (where `m_d` is the chain index of the last emission already in `dom(Σ.C)` for origin `d`). For a fixed `a`, this is a structural predicate on the pre-state: either `a` lies in `dom(C)` already (and is *not* a freshly allocated address — the second disjunct fails) or `a` is one of the next `n` chain elements of `A_C(d)` that K.α will produce. Conjoining INSERT's precondition INS.pre (the standing total-correctness requirement noted above), the wp is therefore:
 
-  `(a, d) ∈ R  ∨  a ∈ {next n chain elements of A_C(d) starting from chain index m_d + 1}`
+  `INS.pre  ∧  ((a, d) ∈ R  ∨  a ∈ {next n chain elements of A_C(d) starting from chain index m_d + 1})`
 
 where the second-disjunct chain elements are determined by `Σ.C` and the chain enumeration of `A_C(d)`. The pre-state condition is operationally decidable: the chain index `m_d` is recoverable from `Σ.C` via the chain enumeration, and the next `n` chain elements are then determined.
 
