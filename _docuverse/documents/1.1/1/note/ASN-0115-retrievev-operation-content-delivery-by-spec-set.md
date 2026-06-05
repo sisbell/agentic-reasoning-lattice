@@ -296,10 +296,15 @@ what can be delivered, signal the gap by absence, and never fail the whole.
 > **R6 (SilentGapFiltering).** A named position with no binding in the consulted
 > arrangement — `v ∈ ⟦σⱼ⟧ \ dom(Σ.M(dⱼ))` — contributes nothing to the delivery
 > and causes no failure. Delivery succeeds and returns the items for the bound
-> positions; the unbound positions are represented by their absence. Moreover the
-> unbound portion of `⟦σⱼ⟧` is always a *terminal overrun* of the subspace's
-> contiguous active range — the named positions past the bound frontier — never
-> an interior hole within that range.
+> positions; the unbound positions are represented by their absence. Moreover,
+> restricted to the depth-`m_S`, subspace-`S` slice of `⟦σⱼ⟧` — the only named
+> positions the arrangement can bind — the unbound portion is always a *terminal
+> overrun* of the subspace's contiguous active range — the named positions past
+> the bound frontier — never an interior hole within that range. Named positions
+> of `⟦σⱼ⟧` deeper than `m_S` are unbound too, but they fall T1-interior to the
+> active range and are harmlessly filtered out of `act`; the no-interior-hole
+> guarantee is a claim about the bindable slice, not about every named tumbler in
+> the interval.
 
 This is forced by the model: `act(ρ, Σ)` is an intersection, so an unbound
 position is simply not enumerated.
@@ -314,18 +319,44 @@ this argument analyses. By
 D-SEQ★ (ASN-0047) — the content-subspace instance being D-SEQ (ASN-0036) — the
 active positions of `d` in subspace `S` are the contiguous prefix
 `V_S(d) = {[S, 1, …, 1, k] : 1 ≤ k ≤ n_S}`, varying only in the last component.
-The named interval `⟦σ⟧` is itself contiguous and confined to subspace `S` (the
-ContiguousSubtrees argument of the V-spec definition fixes every `t ∈ ⟦σ⟧` to
-first component `S`), and by D-CTG★/D-SEQ★ its depth-`m_S`, subspace-`S` members
-share the inner-component shape `[S, 1, …, 1, k]`, so within `⟦σ⟧` the only
-free coordinate is `k`. A named position `[S, 1, …, 1, k]` is bound iff
-`k ≤ n_S` — exactly the D-SEQ★ frontier. Therefore the unbound named positions
-of `⟦σ⟧` are precisely those with `k > n_S`: a contiguous tail beyond the active
-frontier. An *interior* gap — a named position `[S, 1, …, 1, k]` with `k ≤ n_S`
+
+We confine the gap analysis to the *bindable slice* of `⟦σ⟧`: its depth-`m_S`,
+subspace-`S` members. These are the only named positions `dom(Σ.M(d))` can
+contain, since every active position has depth `m_S` (S8-depth) and subspace `S`.
+Named positions of `⟦σ⟧` deeper than `m_S` are necessarily unbound, and they fall
+T1-*interior* to the active range — a depth-`m_S` member `[S, 1, …, 1, k]` is
+bracketed below and above by its own proper extensions, which lie in `⟦σ⟧` yet
+never reach `dom(Σ.M(d))` — so they are simply dropped from `act`. The
+no-interior-hole property is therefore a statement about the bindable slice, not
+about every tumbler of the interval.
+
+We pin the shape of that slice by ContiguousSubtrees (ASN-0034, T5), *not* by
+D-SEQ★: D-SEQ★ governs the *bound* set `V_S(d)`, not the arbitrary named positions
+of `⟦σ⟧`. Because the span is ordinal-level, `ℓ = δ(n, m_S)` acts at the deepest
+position `m_S`, so both endpoints `s` and `s ⊕ ℓ` agree on positions
+`1 … m_S − 1`; taking the length-`(m_S − 1)` prefix `p = [s₁, …, s_{m_S−1}]` we
+have `p ≼ s` and `p ≼ s ⊕ ℓ`, whence for every `t ∈ ⟦σ⟧` — i.e. `s ≤ t < s ⊕ ℓ`,
+hence `s ≤ t ≤ s ⊕ ℓ` — T5 gives `p ≼ t`. So every depth-`m_S` member of `⟦σ⟧`
+shares `s`'s first `m_S − 1` components and varies only in the last coordinate `k`.
+To name those components we appeal to `act ≠ ∅`, the substantive case: pick any
+`v ∈ act ⊆ V_S(d)`. By D-SEQ★ `v = [S, 1, …, 1, k_v]`, and `v ∈ ⟦σ⟧` at depth
+`m_S` forces `v` to agree with `s` on positions `1 … m_S − 1`, so `s`'s first
+`m_S − 1` components are exactly `[S, 1, …, 1]` — `act ≠ ∅` forces a canonical
+start `s = [S, 1, …, 1, s_{m_S}]`. Hence the depth-`m_S` slice of `⟦σ⟧` is exactly
+`{[S, 1, …, 1, k] : s_{m_S} ≤ k < s_{m_S} + n}`, the only free coordinate being
+`k`. (If instead `act = ∅`, then `⟦σ⟧` meets no bound position, and — exactly as in
+the `V_S(d) = ∅` branch — every named position is an unbound overrun with no
+interior active range for a hole to fall in.)
+
+A depth-`m_S` named position `[S, 1, …, 1, k]` is bound iff `k ≤ n_S` — exactly
+the D-SEQ★ frontier. Therefore the unbound members of the bindable slice are
+precisely those with `k > n_S`: a contiguous tail beyond the active frontier. An
+*interior* gap — a depth-`m_S` named position `[S, 1, …, 1, k]` with `k ≤ n_S`
 yet absent from the arrangement — is impossible, because D-SEQ★ makes every such
-`k` bound. The gap is always an overrun past the frontier, never a hole inside
-it; this is the precise sense in which R6's "represented by its absence" lands,
-and it is what the §"Exactness" boundary-clip remark realizes operationally. It is also forced by Nelson's design intent. A
+`k` bound. Within the bindable slice the gap is always an overrun past the
+frontier, never a hole inside it; this is the precise sense in which R6's
+"represented by its absence" lands, and it is what the §"Exactness" boundary-clip
+remark realizes operationally. It is also forced by Nelson's design intent. A
 span addresses a *range*, and "a span that contains nothing today may at a later
 time contain a million documents" (4/25) — an empty or partly-empty range is an
 anticipated, legal state, not a fault. The same architecture governs the only
