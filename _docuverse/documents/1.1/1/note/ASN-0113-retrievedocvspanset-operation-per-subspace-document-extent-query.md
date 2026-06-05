@@ -502,8 +502,8 @@ so the operation returns the normalized span-set
 **W3 (well-formed).** For `ext(d, s_C)`: the width `δ(5,2) = [0,5]` is positive (`Pos`), its
 action point is its last position `2`, and `#start = #[1,1] = 2`, so `actionPoint ≤ #start`;
 level-uniform since `#[0,5] = 2 = #[1,1]`. Its reach is `[1,1] ⊕ [0,5] = shift([1,1], 5) =
-[1,6] = [s_C,1,1+n_{s_C}]`. Identically `ext(d, s_L)` has reach `[2,3] = [s_L,1,1+n_{s_L}]`.
-Both satisfy T12.
+[1,6] = [s_C,1+n_{s_C}]` (empty interior segment at `m_S = 2`). Identically `ext(d, s_L)` has
+reach `[2,3] = [s_L,1+n_{s_L}]`. Both satisfy T12.
 
 **W4 (exact coverage).** `⟦ext(d, s_C)⟧ = {t : [1,1] ≤ t < [1,6]}`. Intersecting with
 `VSlice(s_C, 2) = {[1,j] : j ≥ 1}` pins the depth-2, prefix-`[1,·]` tumblers with last
@@ -543,7 +543,7 @@ operation emits exactly one member and *no* link member. The single extent span 
 
 **W3 (well-formed).** `δ(3,2) = [0,3]` is positive (`Pos`), its action point is its last
 position `2 = #[1,1]`, and it is level-uniform (`#[0,3] = 2 = #[1,1]`); its reach is
-`[1,1] ⊕ [0,3] = [1,4] = [s_C,1,1+n_{s_C}]`. T12 holds.
+`[1,1] ⊕ [0,3] = [1,4] = [s_C,1+n_{s_C}]` (empty interior segment at `m_S = 2`). T12 holds.
 
 **W4 (exact coverage).** `⟦ext(d', s_C)⟧ = {t : [1,1] ≤ t < [1,4]}`; intersecting with
 `VSlice(s_C, 2) = {[1,j] : j ≥ 1}` pins the last component to `1..3`, giving
