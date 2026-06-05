@@ -19,13 +19,24 @@ where `Endset = 𝒫_fin(Span)` is a finite set of well-formed spans (the type s
 `e₃`, non-empty). The link store `Σ.L : T ⇀ Link` maps addresses to link values.
 For an endset `e` we write `coverage(e) = (∪ (s, ℓ) : (s, ℓ) ∈ e : ⟦(s, ℓ)⟧)` for
 the set of addresses it names, and we use the field-projection `home(a) =
-N(a).0.U(a).0.D(a)` that recovers a document-level prefix from any address carrying
-a document field. These are taken from the foundations; we add nothing to them. We
-add only the operation that reads them.
+N(a).0.U(a).0.D(a)`. We use `home` exactly at its foundation domain and no wider:
+the T4b projections `N, U, D` — and hence `home` — are defined only on T4-valid
+addresses with at least a document field, i.e. `T4-valid(a) ∧ zeros(a) ≥ 2`. We do
+not extend it. By L4 (EndsetGenerality) an endset span may start at an arbitrary
+address — non-element-level, a link address, or a ghost address that need not be
+T4-valid — so `home(s)` is *not* total on span starts, and any use of it on spans
+must first guard `T4-valid(s) ∧ zeros(s) ≥ 2`. These are taken from the foundations;
+we add nothing to them. We add only the operation that reads them.
 
 ## The operation
 
-We specify the read as a pure function of the state.
+We specify the read as a pure function of the state. We name the operation
+**READENDSETS** throughout this ASN; this is our name for Nelson's RETRIEVEENDSETS
+(LM 4/70). The choice records what the operation *does* at our level of abstraction
+— it reads the stored endsets, full stop — without Nelson's connotation of a search
+or retrieval against a `<spec set>`, which belongs to a query operation we do not
+specify here. The two names denote the same operation; we use READENDSETS uniformly
+below.
 
 > **READENDSETS** `: Σ × T ⇀ Link`.
 > *Precondition.* `a ∈ dom(Σ.L)`.
@@ -47,6 +58,13 @@ the link. `Σ.L(a)` is the only representation of what `a` connects. The weakest
 precondition makes this exact: for any candidate result `R`,
 
   `wp(READENDSETS(·, a), result = R) ≡ a ∈ dom(Σ.L) ∧ Σ.L(a) = R`.
+
+This identity is degenerate by design — the postcondition `result = R` is just the
+operation's defining equation pushed back through a state-preserving read — and it
+is precisely *why* the read cannot lie: there is no slack between precondition and
+postcondition for an inconsistency to hide in. The analytically interesting weakest
+precondition is not this one but the one governing the *resolution* layer, where
+partiality genuinely enters; we compute it in the resolution section below.
 
 There is no second store to consult, no cache to invalidate, no projection that
 could supply a span absent from `Σ.L(a)` or suppress one present in it. We record
@@ -142,11 +160,27 @@ Reading must name content the same way every time, or the operation is worthless
 The guarantee comes for free from immutability of the stored value.
 
 - **(E6) ReadInvariance.** Let `Σ →* Σ'` be any reachable evolution with `a ∈
-  dom(Σ.L)`. By link immutability, `Σ'.L(a) = Σ.L(a)`; therefore
-  `READENDSETS(Σ', a) = READENDSETS(Σ, a)`. The same link read at two different
-  times returns the *same* endsets — the same spans, the same coverage —
-  *regardless of any editing performed between the reads*, because READENDSETS
-  consults only `Σ.L(a)` and never consults the arrangement family `Σ.M`.
+  dom(Σ.L)`. Then `a ∈ dom(Σ'.L)` and `Σ'.L(a) = Σ.L(a)`; therefore
+  `READENDSETS(Σ', a) = READENDSETS(Σ, a)`. The foundation invariants L12
+  (LinkImmutability) and L12a (LinkStoreMonotonicity) are stated for a *single*
+  transition; we lift both to the reflexive-transitive closure `→*` by induction on
+  the length `n` of the transition chain `Σ = Σ₀ → Σ₁ → ⋯ → Σₙ = Σ'`.
+
+  *Base (`n = 0`).* `Σ' = Σ`, so `a ∈ dom(Σ'.L)` and `Σ'.L(a) = Σ.L(a)` hold by
+  identity.
+
+  *Step (`n → n+1`).* Assume the induction hypothesis at `Σₙ`: `a ∈ dom(Σₙ.L)` and
+  `Σₙ.L(a) = Σ.L(a)`. Consider the final transition `Σₙ → Σₙ₊₁`. From `a ∈
+  dom(Σₙ.L)`, L12a gives `dom(Σₙ.L) ⊆ dom(Σₙ₊₁.L)`, hence `a ∈ dom(Σₙ₊₁.L)`
+  (membership persists); and L12, applied to this single transition at the link `a`,
+  gives `Σₙ₊₁.L(a) = Σₙ.L(a)`. Composing with the hypothesis, `Σₙ₊₁.L(a) = Σₙ.L(a) =
+  Σ.L(a)`. This closes the induction, establishing `a ∈ dom(Σ'.L)` and `Σ'.L(a) =
+  Σ.L(a)` for the whole `→*` evolution.
+
+  The same link read at two different times therefore returns the *same* endsets —
+  the same spans, the same coverage — *regardless of any editing performed between
+  the reads*, because READENDSETS consults only `Σ.L(a)` and never consults the
+  arrangement family `Σ.M`.
 
 The endsets name content by *address-identity* — positions on the permanent address
 space — not by where that content currently sits in any document. Identity cannot
@@ -166,14 +200,22 @@ look where editing acts.
 A returned endset is a set of spans, and a span names its document by construction.
 
 - **(E7) ParticipantDisclosure.** Define the participants of `a` as the set of
-  document-level prefixes appearing in any returned span:
+  document-level prefixes appearing in any returned span whose start address admits
+  the projection:
 
-    `participants(a) = { home(s) : (s, ℓ) ∈ Σ.L(a).eᵢ, 1 ≤ i ≤ N, s carries a document field }`.
+    `participants(a) = { home(s) : (s, ℓ) ∈ Σ.L(a).eᵢ, 1 ≤ i ≤ N, T4-valid(s) ∧ zeros(s) ≥ 2 }`.
 
-  Reading the endsets discloses every member of `participants(a)`, because the
-  document field of each span's start address is *inside the address the read
-  returns* and is recoverable from it by field projection alone — no further lookup.
-  This holds whether or not the reader has ever encountered those documents.
+  The guard `T4-valid(s) ∧ zeros(s) ≥ 2` is exactly the foundation domain of the
+  T4b projections, so `home(s)` is well-defined for every `s` admitted into the
+  set — `participants(a)` is total on the guarded span starts, with no appeal to a
+  broadened `home`. Reading the endsets discloses every such member of
+  `participants(a)`, because the document field of each guarded span's start address
+  is *inside the address the read returns* and is recoverable from it by field
+  projection alone — no further lookup. This holds whether or not the reader has ever
+  encountered those documents. Span starts that fall outside the guard — ghost
+  addresses that are not T4-valid, or addresses lacking a document field — name no
+  document-level prefix and contribute nothing to `participants(a)`; the read still
+  returns those spans (E1, E3), but they disclose no participant.
 
 There is no "summary" form of an endset that hides its participants; the
 participants *are* the endset. A from-set touching three authors' works names all
@@ -183,20 +225,29 @@ addresses. It does not deliver their bytes: fetching content is a separate opera
 (out of scope here). So a reader can learn that document `X` participates in a
 relationship without thereby being able to read `X`.
 
-## What reading reveals that following never could
+## What the read exposes as a whole object
 
-We can now collect the difference between the two ways of interrogating a link.
-Following privileges one direction and lands at one place; reading inspects the
-whole object. Three things are visible only to the read.
+We collect what a single read of `a` makes visible. Reading inspects the whole link
+object; three pieces of structure come back together.
 
-- **(E8) RevelationBeyondTraversal.** From `READENDSETS(Σ, a)` the reader learns,
-  and from arriving at any single endpoint the reader does *not* learn: (i) the
-  *discontiguity* of each end — that a connection touches several non-adjacent spans
-  as siblings of one endset (E3); (ii) the *type* — the relationship's kind, carried
-  by `e₃`'s address, which has no destination to be followed to (E5); and (iii) the
-  *link as a unit* — an owned, `N`-ary object with a home document `home(a)` and
-  every endset laid out together, rather than a one-way arrow. Traversal collapses
-  this structure to the single span it happens to reach; the read preserves it.
+- **(E8) WholeObjectExposure.** From `READENDSETS(Σ, a)` the reader obtains, in one
+  read: (i) the *discontiguity* of each end — that a connection touches several
+  non-adjacent spans as siblings of one endset (E3); (ii) the *type* — the
+  relationship's kind, carried by `e₃`'s address, which the read returns
+  undereferenced (E5); and (iii) the *link as a unit* — an owned, `N`-ary object
+  with a home document `home(a)` and every endset laid out together. E8 is the
+  conjunction of E3, E5, and the structural fact that all `N` slots return together;
+  it asserts only what the read establishes and adds no claim about any other
+  operation.
+
+*Non-normative motivation.* It is natural to contrast this whole-object read with
+*following* a link to one of its endpoints (a FOLLOWLINK-style traversal). Such a
+traversal lands at a single span and would not, by itself, surface the sibling spans
+of a discontiguous end, the type address (which need not have any content stored at
+it to "arrive" at), or the `N`-ary object as a whole. We state this only as
+motivation: link traversal is out of scope for this ASN and is nowhere specified
+here, so it grounds no claim. The normative content of this section is E8 above —
+what the *read* exposes.
 
 ## The resolution layer, and where attrition lives
 
@@ -221,6 +272,30 @@ only place where partiality enters. We define it, and bound it.
   nothing). The bound is one-directional: resolution can only *shrink* relative to
   the named identity as arrangements lose positions; it can never manufacture an
   address outside `coverage(e)`.
+
+This is the layer where a non-trivial weakest precondition lives. Fix the link `a`
+and a slot `i`, write `e = Σ.L(a).eᵢ`, and let `res` denote the resolution step
+applied to the read endset. We ask: under what condition on `Σ` does a *non-empty*
+stored endset resolve to *nothing* — the ghost-link condition? We derive it by
+unfolding `resolved`:
+
+  `wp(READENDSETS(Σ, a) then res, "resolved(Σ, e) = ∅")`
+  `≡` `a ∈ dom(Σ.L) ∧ resolved(Σ, e) = ∅`            {READENDSETS is state-preserving; its precondition is `a ∈ dom(Σ.L)`}
+  `≡` `a ∈ dom(Σ.L) ∧ coverage(e) ∩ (∪ d : d ∈ dom(Σ.M) : ran(Σ.M(d))) = ∅`   {definition of `resolved`}
+  `≡` `a ∈ dom(Σ.L) ∧ (A (s, ℓ) ∈ e, t : t ∈ ⟦(s, ℓ)⟧ : (A d : d ∈ dom(Σ.M) : t ∉ ran(Σ.M(d))))`   {coverage is the union of span denotations; intersection-empty unfolds pointwise}.
+
+The middle line is the operative form: an endset resolves to nothing exactly when
+*no* arrangement in the entire state places *any* address the endset names. The
+condition is *non-trivial* — it constrains the arrangement family `Σ.M`, which the
+read itself never touches — and it is *attainable with `coverage(e) ≠ ∅`*: take any
+`e` whose named content was deleted from every version, or never arranged at all.
+The reader who supplied a non-empty endset and received `resolved(Σ, e) = ∅` has
+thereby witnessed exactly this precondition holding of the current `Σ.M`. This is
+the discriminating case singled out in the final Open Question: the empty resolution
+is consistent both with "the endset names content that is currently nowhere placed"
+and with the (here excluded, by `coverage(e) ≠ ∅`) reading "the endset names
+nothing," and the wp shows the read alone cannot separate them, because it ranges
+over `Σ.M` and the read consults only `Σ.L`.
 
 So over-reporting is excluded at *both* layers. At the identity layer the stored
 endsets are immutable and faithfully returned (E1, E6); at the resolution layer the
@@ -254,9 +329,9 @@ The four questions resolve into one structural fact and its consequences. The fa
 `Σ.L(a)` is the link, and READENDSETS returns it. From this, *what is returned* is
 the full `N`-ary endset structure (E2, E3); *what the reader learns* is the
 discontiguous shape of each end, the directional roles, the type-as-kind, and the
-identity of every participating document (E3–E5, E7); *what this reveals beyond
-following* is the type with no destination and the link as a whole owned object
-(E8); and *the governing invariants* are faithfulness (E1), read-invariance under
+identity of every participating document (E3–E5, E7); *what the read exposes as a
+whole object* is the discontiguity, the type, and the link as a single owned `N`-ary
+object (E8); and *the governing invariants* are faithfulness (E1), read-invariance under
 immutability (E6), and the attrition bound on any resolution (E9) — all of which any
 faithful implementation must satisfy, and none of which requires more than that the
 link's endsets be stored in exactly one place and read from there.
@@ -274,7 +349,7 @@ link's endsets be stored in exactly one place and read from there.
 | E5 | TypeByAddressReturn — type endset returned; kind by address-identity, undereferenced; coverage may be ghost | introduced |
 | E6 | ReadInvariance — `Σ →* Σ' ⟹ READENDSETS(Σ',a) = READENDSETS(Σ,a)`; independent of edits to `Σ.M` | introduced |
 | E7 | ParticipantDisclosure — read names every participating document via field projection on returned spans; identity disclosed, content not | introduced |
-| E8 | RevelationBeyondTraversal — read exposes discontiguity, type, and link-as-unit, none visible from a single endpoint | introduced |
+| E8 | WholeObjectExposure — one read exposes discontiguity (E3), type (E5), and the link as an `N`-ary unit, all slots returned together | introduced |
 | res / resolved | Derived projection of an endset into the current arrangement family | introduced |
 | E9 | ResolutionAttrition — `resolved(Σ,e) ⊆ coverage(e)`; resolution may be partial/empty (ghost link); never over-reports | introduced |
 | E10 | PureReadNoArrangementPrecondition — modifies nothing, requires no open document; sole precondition `a ∈ dom(Σ.L)` | introduced |
