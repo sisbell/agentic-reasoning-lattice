@@ -1,0 +1,410 @@
+# ASN-0114: FOLLOWLINK — Reading One Endset of a Link by Selector
+
+*2026-06-04*
+
+## The problem
+
+A Xanadu link is a package of connection. Nelson tells us it has at least three
+ends — a from-set, a to-set, a type-set — and that "the from-set may be an
+arbitrary collection of spans, pointing anywhere in the docuverse. Similarly,
+the to-set may be an arbitrary collection of spans pointing anywhere in the
+docuverse. We adopt the same convention for link types" (4/43). The three ends
+are symmetric; each is an *endset*, an arbitrary, possibly discontiguous set of
+spans on the tumbler line.
+
+We are asked a narrow and specific question. Given the address of a link and a
+selector that names *one* of its ends, what must the system hand back? We are
+not asked to read the whole link, not asked to search for links by their
+endset content, not asked to resolve anything into the current arrangement of
+some particular document. We are asked only: name a link, name one of its ends,
+and receive that end. Call this operation FOLLOWLINK.
+
+The temptation is to treat this as trivial — surely we just return what is
+stored. But the discipline of specification forces precise questions. *What
+relationship* must the returned object bear to the stored end? *What* does
+returning one end disclose about the link, and what must it conceal? *Which*
+results are admissible and which are forbidden? And what is the boundary between
+a legitimate answer of "nothing" and an illegitimate request? We shall find that
+each of these questions has a sharp answer, and that the sharp answers are
+exactly the invariants an implementation must satisfy.
+
+## The substrate we build on
+
+We take the link model as given. A link value is a finite sequence of `N ≥ 3`
+endsets, `Σ.L(a) = (e₁, …, e_N)`, with each `eᵢ ∈ Endset` and `Endset =
+𝒫_fin(Span)` a finite set of well-formed spans (ASN-0043, L3; ASN-0034, T12).
+The link store `Σ.L : T ⇀ Link` (ASN-0093) maps a tumbler address to its link
+value; once an address is in `dom(Σ.L)`, its value is permanently fixed
+(ASN-0043, L12 — LinkImmutability). Slot index is a primitive of the model:
+`Σ.L(a).eᵢ` is the i-th endset, with slots distinguished (ASN-0043, L6) and the
+type slot `e₃` mandated non-empty (L3). Within an endset, however, span order
+carries no meaning — an endset is an unordered set (L5).
+
+For each endset we have its *coverage*, the set of addresses it designates:
+
+> `coverage(e) = (∪ (s, ℓ) : (s, ℓ) ∈ e : {t ∈ T : s ≤ t < s ⊕ ℓ})`
+
+(ASN-0098/ASN-0043). Coverage is a purely combinatorial function of the
+endset's spans; it consults no other component of state. A *span-set* (ASN-0053)
+is a finite sequence of spans denoting the union of its spans' position sets,
+`⟦Σ⟧`, with two span-sets equivalent when they denote the same set. We will
+write the result of FOLLOWLINK as a span-set and measure it by its coverage.
+
+These are the only ingredients. Everything below is derived from them together
+with the consultation evidence.
+
+## The selector and its domain
+
+The first thing FOLLOWLINK needs is a way to name *which* end. Gregory's
+implementation fixes the selector as a literal integer index — `1`, `2`, `3` for
+from, to, type — used directly as a coordinate that addresses one of three
+stored positions, and rejects every other value at the input boundary by a
+strict whitelist (`get1.c:71`, `== 1 || == 2 || == 3`). We abstract from the
+particular numbering: a selector is an index into the slot structure, and the
+admissible selectors for a link `a` are exactly `{1, …, |Σ.L(a)|}`. Nelson's
+n-set generality (4/79) means we do not freeze the upper bound at 3; we freeze
+only that the selector must name an *existing* slot.
+
+This gives the operation's domain. We seek the weakest precondition under which
+FOLLOWLINK can deliver "the endset named by the selector." The postcondition we
+want is `R is a span-set ∧ coverage(R) = coverage(Σ.L(a).eᵢ)`. For the
+right-hand `coverage(Σ.L(a).eᵢ)` to be well-defined, two things must hold:
+`Σ.L(a)` must exist, which requires `a ∈ dom(Σ.L)`; and the slot `eᵢ` must
+exist, which requires `1 ≤ i ≤ |Σ.L(a)|`. Nothing else is needed — the
+right-hand side is a function of the link value alone. Hence
+
+> `wp(followlink(a, i), R is a span-set ∧ coverage(R) = coverage(Σ.L(a).eᵢ))`
+> `≡ a ∈ dom(Σ.L) ∧ 1 ≤ i ≤ |Σ.L(a)|`.
+
+We name this the *selector-validity* condition and adopt it as the operation's
+precondition. We define:
+
+> **F0 (FollowLink).** `followlink(Σ, a, i)` is *defined* (returns a span-set)
+> exactly when `a ∈ dom(Σ.L) ∧ 1 ≤ i ≤ |Σ.L(a)|`; otherwise it returns the
+> distinguished error value `⊥`. When defined, the returned span-set `R`
+> satisfies `coverage(R) = coverage(Σ.L(a).eᵢ)`.
+
+We must justify each of the three clauses of this definition — the coverage
+relationship, the frame, the error case — and extract their consequences. We do
+so in turn.
+
+## What the result must be: exact coverage, no more and no less
+
+The crux is the relationship between the returned span-set and the endset the
+link records. Nelson is emphatic that an endset is "not a point and not
+necessarily a single span" — it is the *whole* span-set, and naming one end must
+yield that whole thing "faithfully" (Q1). He grounds this in the span-set
+construct itself: "if you want to designate a separated series of items exactly,
+including nothing else, you do this by a span-set" (4/25). The operative phrase
+is *including nothing else*. The returned object must denote the recorded end
+**exactly** — over-coverage and under-coverage are both forbidden (Q2, Q9).
+
+We state this as the central postcondition of FOLLOWLINK and call it exactness:
+
+> **F1 (CoverageExactness).** For `a ∈ dom(Σ.L)` and `1 ≤ i ≤ |Σ.L(a)|`, with
+> `R = followlink(Σ, a, i)`:
+> `coverage(R) = coverage(Σ.L(a).eᵢ)`.
+
+The two inclusions of this set equality are the two failure modes Nelson rules
+out. `coverage(R) ⊇ coverage(Σ.L(a).eᵢ)` forbids under-coverage: every address
+the link records at that end is reported. `coverage(R) ⊆ coverage(Σ.L(a).eᵢ)`
+forbids over-coverage: no address the link does not record may appear. Because
+the endset *is* the connection — the from-set is precisely what the link is
+"from" — there is no wider or narrower region for a faithful answer to report
+(Q9). The endset is definitional, not a summary of some other region, so
+exactness is forced, not merely desirable.
+
+A consequence worth isolating concerns discontiguity. Nelson insists the result
+must not be "flattened to a single span" when the end touches "a broken,
+discontiguous set of bytes" (Q1, 4/42). We observe this is not an independent
+requirement — it follows from F1. Suppose `coverage(Σ.L(a).eᵢ)` is
+*disconnected*: there exist `p < q < r` in `T` with `p, r ∈ coverage(eᵢ)` but
+`q ∉ coverage(eᵢ)`. A single span `σ` is order-convex — `⟦σ⟧` contains every
+position between any two of its members (ASN-0053, S0). So if `R` were the
+singleton `⟨σ⟩` with `⟦σ⟧ ⊇ {p, r}`, then `q ∈ ⟦σ⟧ = coverage(R)`, yet
+`q ∉ coverage(eᵢ)` — contradicting F1. Hence a faithful `R` over a disconnected
+end must comprise two or more spans. We record:
+
+> **F2 (DiscontiguityFaithfulness).** If `coverage(Σ.L(a).eᵢ)` is disconnected,
+> then any `R` satisfying F1 has `|R| ≥ 2`. The discontiguous structure of the
+> recorded end survives into the result; coverage exactness alone enforces it.
+
+Gregory's evidence corroborates this at the mechanical level: when an endset
+spans several non-contiguous regions, the implementation preserves them as
+several distinct spans, with span consolidation explicitly disabled
+(`orglinks.c:412–413`). It does not merge them into an enclosing range. The
+implementation thereby satisfies F1, and F2 with it.
+
+## Representation is free; coverage is bound
+
+F1 constrains the result at the level of *coverage* — the set of positions —
+not at the level of *span representation*. This is deliberate, and the
+implementation evidence shows why it must be. Gregory's tracing (Q13) reveals
+that an endset stored as raw address spans is returned by a pure copy chain,
+exponent and all preserved exactly, whereas an endset stored relative to a
+document's arrangement is *recomputed* by tumbler subtraction, producing a
+result that denotes the same positions through a structurally different tumbler.
+A span may even be presented "as a pair of tumblers" or "as address + difference
+tumbler" (Q7). Two requests, or two implementations, may legitimately return
+span-sets that are denotationally equal but representationally distinct.
+
+We therefore bind the contract at coverage and leave representation free:
+
+> **F3 (RepresentationInvariance).** Any two span-sets `R, R'` each satisfying
+> F1 for the same `(Σ, a, i)` are denotationally equal: `coverage(R) =
+> coverage(R')`. The operation's guarantee is a property of the position set,
+> not of the span decomposition or the ordering of spans within the result.
+
+This is consonant with the substrate. Endsets are unordered sets (L5), and type
+identity itself is defined on coverage, not on span-set identity — "two type
+endsets with different span decompositions but identical address coverage denote
+the same type" (ASN-0043, L8). Coverage is the semantically load-bearing
+projection throughout the link model; it is the correct level at which to pin
+FOLLOWLINK. The order in which Gregory's implementation happens to emit spans
+(sorted by stored position, Q16) is below the abstraction: it is a determinate
+artifact of one implementation, not a guarantee the contract makes.
+
+## The pure-read frame
+
+Nelson treats reading as something the system performs without disturbing what
+it reads — "the network will not, may not monitor what is read" (2/59) — a
+principle that only makes sense if requesting is non-mutating by nature (Q10).
+FOLLOWLINK reads; it must therefore leave the world as it found it. Gregory
+confirms the operation is phrased purely to "return" data and alters nothing it
+touches (Q10, Q19); it does not even require the link's home document, or any
+referenced document, to be open (Q19).
+
+We capture this as a frame condition, the part of the specification that says
+what does *not* change:
+
+> **F4 (PureRead).** `followlink` induces no state transition. For the state
+> `Σ` against which it is evaluated, the post-state equals `Σ`: the content
+> store `Σ.C`, the link store `Σ.L`, every arrangement `Σ.M(d)`, and every other
+> endset of the queried link are identical before and after. In particular,
+> requesting end `i` of link `a` changes neither `Σ.L(a)` itself, nor any
+> `Σ.L(a).eⱼ` for `j ≠ i`, nor any document the selected end points into.
+
+The frame is as much a part of the specification as the effect. An
+implementation that satisfied F1 but, say, advanced an arrangement or perturbed
+a referenced document as a side effect would not have implemented FOLLOWLINK. We
+note for completeness that Nelson's accounting machinery (cash-register
+increment, royalty accrual on delivery) sits outside the abstract state `Σ`
+modeled here; F4 is a statement about `Σ`, and monotone bookkeeping counters, to
+the extent they exist, lie below this abstraction and never alter the link or
+the referenced material (Q10).
+
+## Determinism over time
+
+From immutability and the pure-read frame, a permanence property follows without
+further assumption. The result of FOLLOWLINK depends only on `Σ.L(a).eᵢ`
+(through F1) and, by L12, that value never changes once `a ∈ dom(Σ.L)`. Two
+requests for the same end of the same link, separated by any sequence of
+intervening operations on the system, must therefore denote the same positions.
+
+> **F5 (TemporalDeterminism).** Let `Σ →* Σ'` be any reachable transition
+> sequence with `a ∈ dom(Σ.L)`. Then `a ∈ dom(Σ'.L)` and `coverage(followlink(
+> Σ', a, i)) = coverage(followlink(Σ, a, i))` for every valid selector `i`.
+
+*Derivation.* Link addresses persist and link values are fixed under every
+transition (L12), so `Σ'.L(a) = Σ.L(a)`, hence `Σ'.L(a).eᵢ = Σ.L(a).eᵢ` and
+their coverages are equal. F1 applied at each state then equates the coverages
+of the two results. ∎
+
+This composes two distinct facts, and it is worth seeing that both are
+load-bearing. *Link immutability* (L12) fixes which addresses the end records.
+That the recorded addresses are themselves addresses of permanent content
+identity — not mutable positions — is what makes "the same addresses" mean "the
+same material" even after the surrounding documents are edited (Q3, Q7, Q8).
+Nelson's strap-between-bytes image (4/42) and the survivability annotation
+(4/43) are precisely the guarantee that editing reshuffles where the targeted
+material sits without changing which material the end names. Remove either
+fact — make link values mutable, or bind ends to positions rather than to
+content identity — and F5 fails. The result's identity is permanently tied to
+the same link and the same selector.
+
+We note the one careful qualification Nelson and Gregory both flag. "Same
+material" means same *content identity*, not same *coordinates in some document's
+current view*. The recorded end is invariant; its rendering into the live
+arrangement of a particular document is a separate matter, addressed below.
+
+## Confinement: one end tells nothing of the others
+
+The question asks what reading one end exposes about the link "without naming or
+returning the other endsets." Here Nelson issues a useful correction (Q5): the
+Xanadu design makes *no promise of secrecy* about a link's other ends — on the
+contrary, bidirectional discoverability is the whole point, and the other ends
+are reachable through other operations. So the property we want is not
+confidentiality. It is *operational confinement*: this particular operation,
+given selector `i`, reads and returns slot `i` and nothing else. The other ends
+are not withheld by policy; they are simply not what this request computes.
+
+Gregory's evidence makes the confinement structural rather than incidental. The
+selector is turned into a width-one query positioned at exactly the requested
+slot; the retrieval traverses only that slot's stored region and never visits
+the others (Q12, Q18). The from-, to-, and type-ends are physically co-resident
+in one link object, yet "requesting endset N cannot expose the content of
+endsets at N ± k" because the query is bounded to slot N alone (Q18). We lift
+this to an abstract independence claim:
+
+> **F6 (SlotConfinement).** `followlink(Σ, a, i)` is a function of the single
+> endset `Σ.L(a).eᵢ` (up to coverage). Formally, for links `a, a'` with
+> `coverage(Σ.L(a).eᵢ) = coverage(Σ.L(a').eᵢ)` and arbitrary contents at all
+> slots `j ≠ i`, the results satisfy `coverage(followlink(Σ, a, i)) =
+> coverage(followlink(Σ, a', i))`. The result neither depends on nor returns any
+> `eⱼ` with `j ≠ i`.
+
+What, then, *does* the result expose? Exactly `coverage(Σ.L(a).eᵢ)` — the set of
+addresses the selected end targets — and, derivable from it, two further facts.
+First, by the hierarchical structure of tumbler addresses (ASN-0034, T4), every
+covered address structurally contains its node, user, and document fields; so
+the home documents the selected end points into are readable directly off the
+result, with no separate disclosure step (Q4). Revealing the region *is*
+revealing the documents it lands in — the two are one disclosure, not a choice.
+Second, the mere success of the request at selector `i` exposes that the link
+has at least `i` slots, `|Σ.L(a)| ≥ i`. Beyond these, the result discloses
+nothing: not the from-set when the to-set was asked, not the type, not the arity
+beyond the lower bound `i`. Confinement is the dual of exactness — exactness says
+the answer covers the whole of the selected end, confinement says it covers no
+part of any other.
+
+## The empty end versus the invalid selector
+
+A subtle but decisive distinction remains. Slots `1` and `2` (and any slot
+beyond `3`) may legitimately be empty — a link may record no spans at a given
+end. The empty endset's coverage is the empty set, and by F1 the faithful result
+is the empty span-set. Nelson is firm that this is a *successful* answer, not a
+failure: emptiness is "a first-class, valid state," the correct answer to a
+valid question, and "a span that contains nothing today may at a later time
+contain a million documents" (Q6, 4/25). An invalid selector — one naming no
+existing slot — is a categorically different thing: it is not a value at all but
+a domain violation, "there was no valid question to answer" (Q6).
+
+The design demands these two outcomes be *distinguishable*. If an invalid
+selector returned the empty span-set, a caller could not tell "this end
+legitimately holds nothing (and may hold something tomorrow)" from "this request
+was ill-formed (and never meant anything)." That confusion would destroy the
+very guarantee that emptiness is a real, evolving state of a valid address. We
+make the distinction an invariant:
+
+> **F7 (EmptyVersusInvalid).** The empty span-set `⟨⟩` (a success, denoting
+> `∅`) and the error value `⊥` (a domain violation) are distinct return
+> categories, `⟨⟩ ≠ ⊥`. For a valid selector `1 ≤ i ≤ |Σ.L(a)|` over a link
+> `a ∈ dom(Σ.L)` whose end `eᵢ` is empty, `followlink(Σ, a, i) = ⟨⟩`. For an
+> invalid selector — `i < 1`, or `i > |Σ.L(a)|`, or `a ∉ dom(Σ.L)` —
+> `followlink(Σ, a, i) = ⊥`. An implementation that collapses these two cases is
+> incorrect.
+
+This claim is sharpened by an instructive divergence in the implementation
+evidence. Gregory finds that the implementation's FOLLOWLINK path, when the
+requested end holds no content, takes a NULL return from its retrieval step and
+propagates *failure* — it emits a protocol-level error rather than an empty
+result (Q17, `sporgl.c:93` → `putrequestfailed`). This conflates the empty end
+with the invalid request, exactly the collapse F7 forbids. Gregory also shows
+that a sibling operation over the same store distinguishes them correctly,
+returning empty on success (Q17). The lesson for the abstract specification is
+clear: F7 is a genuine obligation that one real implementation fails to meet.
+An alternative implementation must separate "valid end, presently empty" from
+"no such end" — must return `⟨⟩` for the former and `⊥` for the latter — to
+honor Nelson's design intent. The whitelist that rejects out-of-range selectors
+at the boundary (Q12) is the correct mechanism for producing `⊥`; the error must
+not also be produced for the empty-but-valid case.
+
+We record the wp form of the valid/invalid boundary, which is simply the
+negation structure of the precondition F0:
+
+> `wp(followlink(a, i), result ≠ ⊥) ≡ a ∈ dom(Σ.L) ∧ 1 ≤ i ≤ |Σ.L(a)|`,
+> and the complementary `wp(followlink(a, i), result = ⊥)` is the negation of
+> that condition.
+
+## Independence from content existence
+
+One further property is forced by the same evidence. The selected end is defined
+by *address*, and FOLLOWLINK returns address regions, not content. Whether
+content or links actually exist at the covered addresses is irrelevant to the
+operation. Nelson makes this explicit for the type end especially: "there is no
+need for the presence of elements at the addresses specified. Link types may be
+ghost elements" (4/45), and the system "does not actually look at what is stored
+under the 'type' ... it merely considers the type's address" (4/44–4/45).
+Gregory confirms the operation succeeds for an *orphaned* link whose endpoint
+content is undiscoverable, reading the link's recorded endset directly without
+consulting any document's arrangement (Q19).
+
+> **F8 (ContentIndependence).** `followlink(Σ, a, i)` is defined and satisfies
+> F1 whenever `a ∈ dom(Σ.L)` and `1 ≤ i ≤ |Σ.L(a)|`, irrespective of whether any
+> address in `coverage(Σ.L(a).eᵢ)` currently holds content or a link in `Σ`. The
+> result reports the recorded region; the existence of material at that region
+> is a separate question the operation does not ask.
+
+This places the precondition at its true minimum. FOLLOWLINK needs the link to
+exist and the slot to exist — and nothing more. It does not need an open
+document, a populated endpoint, or a reachable target.
+
+## A boundary we must respect: the recorded end versus its resolution
+
+The implementation evidence repeatedly describes FOLLOWLINK as returning
+*V-positions* in a queried document, obtained by converting the recorded
+addresses through that document's arrangement and silently dropping any address
+the document does not currently reference (Q11, Q15, Q20). We must be precise
+about what belongs to *this* operation and what does not.
+
+The abstract operation specified here — "read one endset of a link by selector"
+— yields the endset *the link records*: a span-set over tumbler space, exact by
+F1, content-independent by F8, permanent by F5. The implementation's additional
+step — projecting that recorded endset into the live arrangement of a particular
+document, and filtering out addresses absent from that document's current
+view — is a *separable concern*. It is the resolution of an endset against a
+chosen document, and it is explicitly outside the scope of this note. We observe
+that bundling the two has an observable cost the abstract specification helps us
+name: the filtering means a resolved result can shrink relative to the recorded
+end (Q15), and the same recorded end can resolve differently against different
+documents (Q11). These are properties of *resolution*, not of FOLLOWLINK.
+FOLLOWLINK's contract is with the recorded end; F1's exactness is exactness *to
+what the link records*, which by F5 is invariant. The shrinkage Nelson allows in
+Q3 — an end "shrinking" when its bytes are deleted — is likewise a property of
+how the end renders into a current arrangement, not a change to the recorded
+end, which persists by L12. Keeping this boundary sharp is what lets F1 and F5
+state unconditional guarantees: they hold of the recorded end precisely because
+they do not entangle the operation with the mutable arrangement of any document.
+
+## Synthesis
+
+FOLLOWLINK is, abstractly, a projection. Given a link address and a slot
+selector, it returns that slot's endset, measured by coverage, under five tight
+constraints. It returns *exactly* the recorded end — no more, no less (F1) —
+preserving its discontiguous shape as a corollary (F2), with representation free
+but coverage bound (F3). It changes nothing (F4) and therefore answers the same
+question the same way for all time (F5). It reads one end and discloses only that
+end — the addresses it targets, the documents those addresses structurally name,
+and the fact that the link has at least that many slots — while neither depending
+on nor revealing the other ends (F6). It distinguishes a valid-but-empty end from
+an invalid selector (F7), and it succeeds regardless of whether anything is
+stored at the addresses the end names (F8). Each of these is a property any
+faithful implementation must satisfy; the one implementation we have evidence for
+satisfies F1–F6 and F8 and *fails* F7, which is exactly the kind of obligation an
+abstract specification exists to make visible.
+
+## Claims Introduced
+
+| Label | Statement | Status |
+|-------|-----------|--------|
+| F0 | `followlink(Σ, a, i)` is defined iff `a ∈ dom(Σ.L) ∧ 1 ≤ i ≤ \|Σ.L(a)\|`; else returns `⊥`. When defined it returns a span-set `R` with `coverage(R) = coverage(Σ.L(a).eᵢ)` | introduced |
+| F1 | CoverageExactness: `coverage(followlink(Σ, a, i)) = coverage(Σ.L(a).eᵢ)` — neither over- nor under-coverage | introduced |
+| F2 | DiscontiguityFaithfulness: if `coverage(Σ.L(a).eᵢ)` is disconnected, any F1-result has `≥ 2` spans (corollary of F1 and span convexity) | introduced |
+| F3 | RepresentationInvariance: any two F1-results for the same `(Σ, a, i)` are denotationally equal; the contract binds coverage, not span decomposition or order | introduced |
+| F4 | PureRead frame: `followlink` induces no state transition; `Σ.C`, `Σ.L`, every `Σ.M(d)`, and every slot `j ≠ i` are unchanged | introduced |
+| F5 | TemporalDeterminism: for `Σ →* Σ'` with `a ∈ dom(Σ.L)`, results at the two states are coverage-equal (from L12 immutability + content-identity addressing) | introduced |
+| F6 | SlotConfinement: the result is a function of `Σ.L(a).eᵢ` alone (up to coverage); independent of and non-disclosing of all `eⱼ`, `j ≠ i` | introduced |
+| F7 | EmptyVersusInvalid: `⟨⟩ ≠ ⊥`; a valid selector over an empty end returns `⟨⟩` (success); an invalid selector returns `⊥` (error); collapsing them is incorrect | introduced |
+| F8 | ContentIndependence: defined and exact whenever the link and slot exist, regardless of whether covered addresses currently hold content or links | introduced |
+
+## Open Questions
+
+What normal form, if any, must the returned span-set satisfy, given that coverage alone underdetermines the span decomposition?
+
+Under what conditions may resolving the returned endset against a particular document's arrangement legitimately report fewer positions than the recorded end covers?
+
+What invariant must distinguish, to a caller, a valid empty endset from an absent link, when both yield no positions?
+
+Must a selector naming a non-existent higher slot be observationally distinct from one naming an existing but empty slot, beyond both being errors versus successes?
+
+What must the operation guarantee about the spec-set when the selected end's coverage includes addresses in more than one document — is reporting them as one set, with document identity recoverable only by parsing each address, sufficient?
