@@ -10,8 +10,6 @@ When new content is inserted at a position in a document's Vstream, what is the 
 - *What shifts* — which existing V→I mappings change position, and by how much?
 - *What invariants must hold after completion* — and atomically, with no observable intermediate state in which a *per-state* invariant is violated?
 
-The word "atomically" raises a sub-question: *in what sense* is the post-state reached without observable intermediate violation? We defer the answer to the Atomicity section, which states and discharges the precise guarantee.
-
 The answer must be sharp enough that an implementation can be measured against it, and abstract enough that two implementations meeting the spec are externally indistinguishable.
 
 ## Background: The Two-Stream Asymmetry
@@ -116,7 +114,7 @@ We state INSERT as a composite `Σ →* Σ'`.
 - `p` is a valid insertion position: either `ValidInsertionPosition(d, p)` (ASN-0036) for non-empty `V_{s_C}(d)` — equivalently `p ∈ {shift(min(V_{s_C}(d)), j) : 0 ≤ j ≤ |V_{s_C}(d)|}` (with `shift(t, 0) = t`) — or `ValidFirstInsertionPosition(d, p, m)` (ASN-0036) for empty `V_{s_C}(d)`, equivalently `p = [s_C, 1, …, 1]` of depth `m`
 - `n ≥ 1`
 - `v_k ∈ Val` for each `0 ≤ k < n`
-- *Composite-boundary premise.* The pre-state Σ is a composite boundary in the sense of ValidComposite★ (ASN-0047) — it satisfies not only the per-state invariants but also the composite-boundary properties P4★, P4a, P7a of ExtendedReachableStateInvariants. These hold only at composite boundaries, not at arbitrary elementary-reachable states. INSERT realises Σ →* Σ' as one composite, so Σ' is again a composite boundary.
+- *Composite-boundary premise.* The pre-state Σ is a composite boundary (ASN-0047), so the composite-boundary properties P4★, P4a, P7a of ExtendedReachableStateInvariants are available.
 
 **Effect — Content Store:**
 Let `a_0, a_1, …, a_{n−1}` denote the `n` successive emissions of `A_C(d)` produced by the K.α firings of step 1. Then:
@@ -560,8 +558,6 @@ The defining structural difference is captured by INS.identity: INSERT's allocat
 The identity-by-allocation property has an explicit cross-document consequence.
 
 *Corollary (cross-document allocation independence).* If two distinct documents `d_1 ≠ d_2` each invoke INSERT with the same value sequence `⟨v_0, …, v_{n−1}⟩` at any positions, they produce two disjoint sequences of fresh I-addresses `⟨a_0^{(1)}, …, a_{n−1}^{(1)}⟩` and `⟨a_0^{(2)}, …, a_{n−1}^{(2)}⟩` with `origin(a_k^{(1)}) = d_1 ≠ d_2 = origin(a_k^{(2)})`. The two address sets are disjoint by SubAllocatorBundle (ASN-0047): `dom(A_C(d_1)) ∩ dom(A_C(d_2)) = ∅` for `d_1 ≠ d_2`. Value coincidence at `Σ.C(a_k^{(1)}) = Σ.C(a_k^{(2)})` is observable but does not produce identity — the system observes it as two unrelated allocations.
-
-The same value-vs-address distinction settles a link-survivability question without further derivation: a tight endset cannot silently expand to capture freshly inserted content, since INS.proj's tight-endset case (`N_{ℓ,i} = ∅`) already establishes that a fresh `a_new` lies outside the endset's coverage — coverage is a set of I-addresses, not of values, so value coincidence is irrelevant.
 
 ## Bounding the Scope
 
