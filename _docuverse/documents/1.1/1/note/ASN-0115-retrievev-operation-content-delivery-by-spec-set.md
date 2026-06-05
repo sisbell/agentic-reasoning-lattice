@@ -64,8 +64,20 @@ OriginBasedIdentity; S7 StructuralAttribution).
 
 A *V-spec* is a pair `ρ = (d, σ)` naming an **allocated** document `d` — a
 tumbler with `zeros(d) = 2` (ASN-0045) that is present in the arrangement family,
-`d ∈ dom(Σ.M)` — and a well-formed level-uniform span `σ` whose start is a
-V-position of `d`. The allocation precondition `d ∈ dom(Σ.M)` is what makes the
+`d ∈ dom(Σ.M)` — and a well-formed, level-uniform, **ordinal-level** span
+`σ = (s, ℓ)` whose start is a V-position of `d`. Ordinal-level means the width
+acts at the deepest component, `actionPoint(ℓ) = #ℓ` (ASN-0082, OrdinalLevel).
+Combined with level-uniformity (`#ℓ = #s`) and the V-position depth `#s ≥ 2`
+(ASN-0036, S8a), this forces `actionPoint(ℓ) ≥ 2`, so `s ⊕ ℓ` agrees with `s` on
+position 1 and the span's interval cannot cross the subspace boundary. This is
+the deepest-action-point discipline R10 relies on; without it, a merely
+level-uniform well-formed span may have `actionPoint(ℓ) = 1` and straddle from
+the content subspace into the link subspace (e.g. `s = [1,5]`, `ℓ = [2,0]`:
+`s ⊕ ℓ = [3,0]`, and `[2,3] ∈ ⟦σ⟧` has `subspace = s_L`). A single
+boundary-crossing span is therefore outside this ASN, deferred to the Open
+Questions; designating both subspaces together is achieved by *composing*
+per-subspace ordinal spans into the spec-set, not by one straddling span. The
+allocation precondition `d ∈ dom(Σ.M)` is what makes the
 arrangement `Σ.M(d)` — and hence `act`, `item`, `deliver₁`, and `deliver` below —
 well-defined; it is the same precondition the substrate's `project` carries
 ("defined when `d ∈ dom(Σ.M)`", ASN-0098). It is a precondition on the *existence*
@@ -276,10 +288,17 @@ delivered material be identical?
 The proof is short and exposes which input is the variable one. `deliver` is a
 function of two things: the consulted arrangement restrictions, and the stores
 the resolved values are drawn from. The restrictions are equal by hypothesis, so
-`act` and the resolved addresses agree position-for-position. The stores can only
-*grow* and never alter an existing entry (S0 for content, L12 for links), so for
-every resolved address the delivered value or reference is the same at both
-states. Hence the two deliveries are identical. The only mutable input to a
+`act` and the resolved addresses agree position-for-position. Fix any resolved
+address `a`. Because the consulted restriction binds `a` at both states, S3★
+places `a` in the appropriate store at each: `a ∈ dom(Σ.C) ∩ dom(Σ'.C)` for a
+content position, `a ∈ dom(Σ.L) ∩ dom(Σ'.L)` for a link position. The states of a
+single docuverse are totally ordered (ASN-0047, SequentialTransitionAxiom), so
+without loss of generality `Σ` precedes `Σ'`; over the intervening transitions
+content immutability (S0) and link immutability (L12) hold the stored entry fixed,
+giving `Σ.C(a) = Σ'.C(a)` (resp. `Σ.L(a) = Σ'.L(a)`). The choice of direction is
+immaterial — value-equality is symmetric — so the symmetric hypothesis is
+discharged. Hence for every resolved address the delivered value or reference is
+the same at both states, and the two deliveries are identical. The only mutable input to a
 content delivery is the arrangement; this is exactly why repeatability is
 conditioned on "unchanged arrangements" and on nothing else. Editing produces a
 *new* version (a new document tumbler with its own arrangement) rather than
@@ -380,9 +399,10 @@ The last revelation. A document's arrangement maps positions in two subspaces:
 content (`s_C`) and links (`s_L`). A spec-set with specs in both subspaces
 gathers positions of both kinds. (Whether a *single* span's denotation can itself
 straddle the boundary — and what delivery must then guarantee — we leave to the
-Open Questions; for the ordinal, deepest-action-point spans this ASN works with,
-a text-rooted span cannot reach link positions, since `s ⊕ ℓ` agrees with `s` on
-position 1 = `s_C`, so every `t < s ⊕ ℓ` has first component `s_C`.)
+Open Questions; the V-spec definition restricts `σ` to ordinal-level spans, for
+which `actionPoint(ℓ) ≥ 2`, so a text-rooted span cannot reach link positions:
+`s ⊕ ℓ` agrees with `s` on position 1 = `s_C`, hence every `t < s ⊕ ℓ` has first
+component `s_C`.)
 
 > **R10 (SubspaceCrossingObservability).** When an active position lies in the
 > link subspace (`subspace(v) = s_L`), it resolves (by S3★) to a link address
