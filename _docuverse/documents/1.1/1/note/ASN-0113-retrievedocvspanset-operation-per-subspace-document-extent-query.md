@@ -358,10 +358,13 @@ the composite valid. Equivalently, one may invoke ASN-0047's J4 (ForkComposite),
 bundles the K.δ/K.μ⁺/K.ρ steps into a single valid composite; we spell out the per-position
 composite here because the construction varies one subspace at a time. Performing `c` such
 composites adds the dense run `{[s_C,1,…,1,j] : 1 ≤ j ≤ c}` by D-SEQ★ and drives
-`n_{s_C}(d) = c`; performing `k` link-subspace extensions K.μ⁺_L — each mapping a new
-link V-position to a link address allocated by the document's link sub-allocator (a
-link-subspace extension carries no content-provenance obligation, since J1★/J1'★ are scoped
-to the content subspace, so K.μ⁺_L stands as its own valid step) — adds
+`n_{s_C}(d) = c`; each link position is a *coupled K.λ + K.μ⁺_L composite* — a K.λ step
+allocating a fresh link address `ℓ` on the document's link sub-allocator `A_L(d)` (so that
+`ℓ ∈ dom(L)` with `origin(ℓ) = d`, discharging K.μ⁺_L's elementary precondition
+`ℓ ∈ dom(L) ∧ origin(ℓ) = d ∧ ℓ ∉ ran(M(d))`, ASN-0047), followed by a K.μ⁺_L step mapping a
+fresh link V-position to that `ℓ` (the coupling obligations J0/J1★/J1'★ are vacuous across
+this composite — no content is allocated and no content-subspace range is extended, and
+J1★/J1'★ are scoped to the content subspace). Performing `k` such composites adds
 `{[s_L,1,…,1,j] : 1 ≤ j ≤ k}` by D-SEQ★ and drives `n_{s_L}(d) = k`. The content-restricted
 K.μ⁺ confines its new V-positions to `subspace(v) = s_C` and K.μ⁺_L to `subspace(v) = s_L`,
 so the two counts are set by independent transition streams (this is the mechanism behind
@@ -412,11 +415,15 @@ flags as not obviously safe (Open Question 2).
 population of the other. We record **W15** (Independence): `n_{s_C}(d)` is a function of
 `V_{s_C}(d)` alone, and `n_{s_L}(d)` of `V_{s_L}(d)` alone; consequently an edit confined to
 one subspace leaves the other subspace's reported extent unchanged. This follows because
-`V_S(d) = {v ∈ O(d) : v₁ = S}` is computed by a predicate on the first component, and
-subspace isolation under the docuverse's editing operations (the foundation's subspace
-discipline) keeps a content edit from touching link positions and vice versa. The link count
-can grow without altering the character count, and text can be inserted or deleted without
-altering the link count — the two members move independently.
+`V_S(d) = {v ∈ O(d) : v₁ = S}` is computed by a predicate on the first component, and the
+ASN-0047 editing transitions are each scoped to a single subspace: the amended K.μ⁺ confines
+its new V-positions to `subspace(v) = s_C` (content-subspace restriction), K.μ⁺_L confines
+its new V-positions to `subspace(v) = s_L` (link-subspace restriction), and K.μ⁻ contracts
+under a per-subspace retention count, removing positions only from the subspace it targets.
+Because every transition that adds or removes a V-position acts within one subspace, a
+content edit cannot alter `V_{s_L}(d)` and a link edit cannot alter `V_{s_C}(d)`. The link
+count can grow without altering the character count, and text can be inserted or deleted
+without altering the link count — the two members move independently.
 
 **Partition of the counted content.** The members do not merely fail to overlap; together
 they account for exactly the counted V-positions. We record **W16** (Partition):
