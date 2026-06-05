@@ -201,13 +201,26 @@ implicit in the boundary, and made explicit only because the subspace is contigu
 **Exactness is contingent on contiguity.** We pause to record what makes W4 hold, because an
 alternative implementation must not lose it. The single covering span is exact *only because*
 `V_S(d)` is a contiguous run (D-CTG★). We state the dependence as a biconditional and prove
-both halves. We record **W5** (ExactnessRequiresContiguity): *there exists* a single
+both halves. We record **W5** (ExactnessRequiresContiguity), *under the hypothesis*
+`V_S(d) ≠ ∅`: *there exists* a single
 level-uniform span `σ` of subspace `S` at depth `m` satisfying
 `⟦σ⟧ ∩ VSlice(S, m) = V_S(d)` *if and only if* `V_S(d)` is contiguous in `VSlice(S, m)` —
 i.e. `V_S(d)` contains every V-slice tumbler lying (under T1) between its own minimum and
 maximum. The existential is essential: the forward direction asserts that contiguity
 *permits* an exact span (a poorly chosen `σ` may overshoot even when `V_S(d)` is
 contiguous), while the converse asserts that non-contiguity *defeats every* `σ`.
+
+The non-emptiness hypothesis is load-bearing and cannot be dropped. For empty `V_S(d)`
+the biconditional fails outright: its right-hand side is ill-defined (an empty run has no
+minimum or maximum, so "contiguous between its own extremes" has no referent), while its
+left-hand side is *false* — any level-uniform span `σ` of subspace `S` at depth `m`
+contains its own start `start(σ)`, a depth-`m` zero-free subspace-`S` tumbler, so
+`start(σ) ∈ ⟦σ⟧ ∩ VSlice(S, m)`, making the intersection non-empty and therefore unequal to
+`∅ = V_S(d)`; equivalently, no span denotes `∅` (S2, ASN-0053), so no `σ` can witness the
+existential. The empty subspace is thus *not* a degenerate instance of W5 but a case W5
+explicitly excludes: it is handled separately by W0, where an allocated document empty in a
+counted subspace simply contributes *no member* for that subspace (and `⟨⟩` overall when both
+are empty), the absent member standing for the vacuous extent that no span could represent.
 
 The *forward* direction (contiguous ⟹ a single exact span exists) holds for *any* contiguous
 `V_S(d)`, not only the canonical run D-CTG★/D-MIN★ produce — and so it cannot simply cite W4,
@@ -304,6 +317,38 @@ s_L} = V_{s_C}(d) ∪ V_{s_L}(d)`. The union is disjoint because `s_C ≠ s_L` (
 `v` can satisfy both predicates. There is therefore *no third subspace* in which document
 content could reside, hence no third member can ever arise in the span-set — the report is
 intrinsically two-kinded, grounded in the foundation rather than in implementation behavior.
+
+**The result-cardinality, characterized as a weakest precondition.** The operation writes
+nothing (W8), so the only non-trivial postcondition a caller can assert about it concerns the
+*value* it returns — and the value's shape is genuinely state-dependent: the result has zero,
+one, or two members according to which subspaces are occupied. We make this dependence exact.
+Since `RETRIEVEDOCVSPANSET` is a pure query whose result is `⟨ ext(d, S) : S ∈ occupied(d) ⟩`
+(W7), its cardinality is `|occupied(d)|`, and `occupied(d)` is fixed by which of `V_{s_C}(d)`,
+`V_{s_L}(d)` is non-empty (W6). Computing the weakest precondition for each result-shape
+postcondition — and conjoining W-pre, since outside `dom(M)` the result is undefined rather
+than `⟨⟩` — we record **W20** (ResultCardinalityWP). The empty result:
+
+> `wp(RETRIEVEDOCVSPANSET(d), "result = ⟨⟩") ≡ d ∈ dom(M) ∧ V_{s_C}(d) = ∅ ∧ V_{s_L}(d) = ∅`.
+
+The two-member result:
+
+> `wp(RETRIEVEDOCVSPANSET(d), "|result| = 2") ≡ d ∈ dom(M) ∧ V_{s_C}(d) ≠ ∅ ∧ V_{s_L}(d) ≠ ∅`.
+
+And the one-member result, characterized as an exclusive-or:
+
+> `wp(RETRIEVEDOCVSPANSET(d), "|result| = 1") ≡ d ∈ dom(M) ∧ (V_{s_C}(d) = ∅ ⊻ V_{s_L}(d) = ∅)`.
+
+Each equivalence is forced. The right-to-left direction reads off W6/W7: the named occupancy
+pattern fixes `occupied(d)` and hence `|occupied(d)| = |result|`; for the empty case,
+`occupied(d) = ∅` gives `result = ⟨⟩` directly. The left-to-right direction is the
+*weakest*-precondition obligation — no strictly weaker state predicate implies the
+postcondition, because `occupied(d)` is *determined* by the two emptiness bits (W6) and the
+result is a total function of `occupied(d)` (W7), so any state satisfying the postcondition
+*must* exhibit the named occupancy pattern. The three preconditions partition the allocated
+states (`d ∈ dom(M)`) by the pair of emptiness bits — `(∅, ∅)`, exactly one empty, neither
+empty — exhausting the result's three possible cardinalities. This is the informative wp for a
+pure query: the postcondition lives on the returned value, and its weakest precondition is the
+exact state-characterization of when that value arises.
 
 ---
 
@@ -662,7 +707,7 @@ of the arrangement it views; the operation adds none of its own and needs none.
 | W2 | `ext(d, S) = ([S,1,…,1], δ(n_S, m_S))` is the extent span encoding `n_S` | introduced |
 | W3 | `ext(d, S)` is a well-formed, level-uniform T12 span with `reach = [S,1,…,1,1+n_S]` | introduced |
 | W4 | ExactCoverage — `⟦ext(d, S)⟧ ∩ VSlice(S, m_S) = V_S(d)` (complete and exclusive) | introduced |
-| W5 | ExactnessRequiresContiguity — a single level-uniform span exactly covers `V_S(d)` iff `V_S(d)` is contiguous in `VSlice(S, m)`; forward by constructing the span at the run's *actual* minimum (T0(a)+S8-fin pin a shared prefix, T5 confines the interior), converse by order-convexity (counterexample `{[S,1],[S,3]}`) | introduced |
+| W5 | ExactnessRequiresContiguity — *for `V_S(d) ≠ ∅`*, a single level-uniform span exactly covers `V_S(d)` iff `V_S(d)` is contiguous in `VSlice(S, m)`; forward by constructing the span at the run's *actual* minimum (T0(a)+S8-fin pin a shared prefix, T5 confines the interior), converse by order-convexity (counterexample `{[S,1],[S,3]}`); the empty case is excluded (no span denotes `∅`, S2) and handled by W0 | introduced |
 | W6 | `occupied(d) = {S ∈ {s_C, s_L} : V_S(d) ≠ ∅}` | introduced |
 | W7 | OneSpanPerOccupiedSubspace — result has exactly `|occupied(d)|` members, one per kind, not per fragment or item | introduced |
 | W8 | PureQuery — `Σ' = Σ`; the operation reads and writes nothing | introduced |
@@ -677,6 +722,7 @@ of the arrangement it views; the operation adds none of its own and needs none.
 | W17 | ExtentDeterminesPopulation — active positions of `S` are exactly the V-slice tumblers within `ext(d, S)`, each carrying content | introduced |
 | W18 | DerivedReport — the result is a pure function of current state `Σ` | introduced |
 | W19 | StateStability — against an unchanged state the report is permanent; it changes only if `M(d)` changes; the link extent counts home links only | introduced |
+| W20 | ResultCardinalityWP — `wp(·, "result = ⟨⟩") ≡ d ∈ dom(M) ∧ V_{s_C}(d) = ∅ ∧ V_{s_L}(d) = ∅`; `wp(·, "|result| = 2") ≡ d ∈ dom(M) ∧ V_{s_C}(d) ≠ ∅ ∧ V_{s_L}(d) ≠ ∅`; `wp(·, "|result| = 1") ≡ d ∈ dom(M) ∧ (V_{s_C}(d) = ∅ ⊻ V_{s_L}(d) = ∅)` | introduced |
 
 ---
 
