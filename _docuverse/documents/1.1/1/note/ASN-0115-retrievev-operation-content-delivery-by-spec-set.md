@@ -334,13 +334,20 @@ transclusion: the same content, included by reference in two places, carrying on
 permanent I-address wherever it appears (ASN-0036, S5 UnrestrictedSharing).
 
 > **R8 (TransclusionRevelation).** If two active positions `v, v'` (within one
-> spec or across specs) satisfy `Σ.M(d)(v) = Σ.M(d')(v') = a`, then (i) the two
-> delivered items carry the identical value `Σ.C(a)`, by R2; (ii) both items are
-> resolved *through* the one shared address `a` — identity-preserving
-> co-resolution — never fabricating two independent origins, so `origin` of both
-> is one and the same (S4, S7); and (iii) the operation performs no deduplication:
-> each position yields its own item, so the shared content appears once per
-> V-position.
+> spec or across specs) satisfy `Σ.M(d)(v) = Σ.M(d')(v') = a`, then the two
+> positions share a single subspace: by S3★ the shared address `a` lies in
+> `dom(Σ.C)` or in `dom(Σ.L)` but, by store disjointness (SD), not both, and that
+> store membership fixes `subspace(v) = subspace(v')`. In the **content sub-case**
+> (`subspace(v) = s_C`, `a ∈ dom(Σ.C)`): (i) the two delivered items carry the
+> identical value `Σ.C(a)`, by R2; (ii) both items are resolved *through* the one
+> shared address `a` — identity-preserving co-resolution — never fabricating two
+> independent origins, so `origin(a)` of both is one and the same (S4, S7); and
+> (iii) the operation performs no deduplication: each position yields its own item,
+> so the shared content appears once per V-position. In the **link sub-case**
+> (`subspace(v) = s_L`, `a ∈ dom(Σ.L)`): the two delivered items are the identical
+> reference `⟨ref, a⟩` (R10), again resolved through the one shared address, with
+> common provenance `home(a)` (ASN-0043, L1a); no deduplication, by the same
+> exactness argument as (iii).
 
 Three points deserve emphasis. First, *identity is structural, not incidental*.
 Content identity in Xanadu is by creation, not by value: two independently
@@ -386,9 +393,13 @@ documents. What must delivery guarantee about presenting that material?
 > **R9 (CoherentMultiOriginAssembly).** A spec-set drawing on multiple origins is
 > delivered as one ordered sequence (R5), assembled by resolving each spec
 > against its own document's arrangement independently (R4). The *resolution* is
-> origin-traceable: each active position `v` resolves to `a = Σ.M(d)(v)`, and that
-> address determines `origin(a)`, the home document of the content (S7), so no
-> fragment's provenance is collapsed by co-assembly. Whether that origin travels
+> provenance-traceable: each active position `v` resolves to `a = Σ.M(d)(v)`, and
+> that address determines a home document — for a content position
+> (`subspace(v) = s_C`, `a ∈ dom(Σ.C)`) the document-level prefix `origin(a)` (S7);
+> for a link position (`subspace(v) = s_L`, `a ∈ dom(Σ.L)`) the link's home
+> `home(a)` (ASN-0043, L1a), which coincides with `origin` on link addresses
+> (ASN-0086, HomeOriginCoincidence) — so no fragment's provenance is collapsed by
+> co-assembly. Whether that origin travels
 > *inside* the delivered material or is recoverable only through the resolution
 > mapping is a separate question (the delivered content item carries `Σ.C(a)`, not
 > `a`, by R1); R9 asserts traceability of the resolution, not inline provenance of
@@ -401,8 +412,10 @@ physically originate ("the virtual byte stream of a document may include bytes
 from any other document," 4/10; non-native bytes have "an ordinal position …
 just as if they were native," 4/11). And the *resolution* must remain
 *traceable* — co-assembly must not collapse distinct origins into an anonymous
-blob, because each active position resolves to a definite address whose `origin`
-is determinate (S7), so the home document of every assembled fragment is
+blob, because each active position resolves to a definite address whose home
+document is determinate — `origin(a)` for a content address (S7), `home(a)` for a
+link address (ASN-0043, L1a; coinciding with origin by ASN-0086,
+HomeOriginCoincidence) — so the home document of every assembled fragment is
 recoverable from the resolution mapping. Losing the first gives disconnected
 fragments; losing the second gives an unattributable assembly. RETRIEVEV must
 give one coherent delivery *and* a resolution whose origins stay determinate.
@@ -514,7 +527,7 @@ absent consolidation step realizing the no-deduplication corollary of R3 and R8.
 | R6 | SilentGapFiltering: a named position unbound in the consulted arrangement contributes nothing and causes no failure; the gap is signalled by absence | introduced |
 | R7 | Repeatability: equal consulted arrangement restrictions ⟹ identical delivery; the arrangement is the sole mutable input | introduced |
 | R8 | TransclusionRevelation: positions sharing a resolved address deliver identical material via identity-preserving co-resolution through the one shared address, with no deduplication (one item per V-position) | introduced |
-| R9 | CoherentMultiOriginAssembly: multi-origin spec-sets deliver as one ordered stream, resolved per document; the resolution is origin-traceable (each active position's `Σ.M(d)(v)` has determinate `origin`), not asserting inline provenance in the delivered material | introduced |
+| R9 | CoherentMultiOriginAssembly: multi-origin spec-sets deliver as one ordered stream, resolved per document; the resolution is provenance-traceable (each active position's `Σ.M(d)(v)` has determinate home document — `origin(a)` for content (S7), `home(a)` for links (L1a, HomeOriginCoincidence)), not asserting inline provenance in the delivered material | introduced |
 | R10 | SubspaceCrossingObservability: link-subspace positions resolve (S3★) to link addresses and deliver as references — kind-distinct from content items — making the subspace crossing observable | introduced |
 | R11 | PermanentSourcing: content is sourced from the immutable store by I-address; an address ever in `dom(Σ.C)` remains deliverable whenever any arrangement binds a position to it, including orphaned-but-referenced content | introduced |
 
