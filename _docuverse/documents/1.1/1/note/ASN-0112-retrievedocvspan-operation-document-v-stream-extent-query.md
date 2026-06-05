@@ -41,10 +41,12 @@ foundation facts:
 - **S8a** (well-formedness): every `v ∈ O(d)` is zero-free, of depth `≥ 2`, all
   components positive; `subspace(v) = v₁`.
 - **S8-depth**: within one subspace all occupied V-positions share a common depth.
-- **D-CTG / D-MIN / D-SEQ** (content-subspace shape): the content positions
-  `V_{s_C}(d) = {v ∈ O(d) : subspace(v) = s_C}` are contiguous, their minimum is the
-  canonical `[s_C,1,…,1]`, and they form the dense run
-  `{[s_C,1,…,1,k] : 1 ≤ k ≤ n}` for some `n ≥ 1` when non-empty.
+- **D-CTG★ / D-MIN★ / D-SEQ★** (per-subspace shape, ASN-0047): for *each* non-empty
+  subspace `S ∈ {s_C, s_L}`, the positions `V_S(d) = {v ∈ O(d) : subspace(v) = S}` are
+  contiguous, their minimum is the canonical `[S,1,…,1]`, and they form the dense run
+  `{[S,1,…,1,k] : 1 ≤ k ≤ n_S}` for some `n_S ≥ 1`. We write the content instance
+  `D-MIN`/`D-SEQ` for `S = s_C` and the link instance for `S = s_L`; both inherit the same
+  dense-run shape.
 - **S0 / P0** (content immutability and permanence): once `a ∈ dom(C)`, `a` stays in
   `dom(C)` forever and `C(a)` never changes.
 
@@ -113,10 +115,12 @@ character position, not a padded `1.0` (Q15).
 span regardless of whether its endpoints share a depth. Since `reach_d = shift(max O(d), 1) >
 max O(d) ≥ origin_d` (TS4, ShiftStrictIncrease), we have `origin_d < reach_d`. The first
 position at which `origin_d` and `reach_d` diverge, `k = divergence(origin_d, reach_d)`,
-satisfies `k ≤ #origin_d` in every case: in the single-subspace case the two tumblers share
-the canonical prefix `[s_C,1,…,1]` and differ only at the last component, so `k = #origin_d`;
-in the cross-subspace case they differ already at position 1 (`s_C` vs `s_L`), so `k = 1 ≤
-#origin_d`. By D0 (DisplacementWellDefined, ASN-0034) — applicable because `origin_d <
+satisfies `k ≤ #origin_d` in every case: in the single-subspace case both tumblers lie in one
+subspace `s` (content or link), so by S8-depth they share the common depth of that subspace —
+`#origin_d = #max O(d) = #reach_d` (OrdinalShift preserves depth) — and the first divergence of
+two equal-length tumblers cannot exceed their shared length, giving `k ≤ min(#origin_d, #reach_d)
+= #origin_d`; in the cross-subspace case they differ already at position 1 (`s_C` vs `s_L`), so
+`k = 1 ≤ #origin_d`. By D0 (DisplacementWellDefined, ASN-0034) — applicable because `origin_d <
 reach_d` and `divergence(origin_d, reach_d) ≤ #origin_d` — the displacement `extent_d =
 reach_d ⊖ origin_d` is a positive tumbler with `actionPoint(extent_d) = k ≤ #origin_d`. Hence
 `(origin_d, extent_d)` satisfies T12 and is a well-formed span. *We do not assume
@@ -208,15 +212,22 @@ occupied content or merely encloses it. The answer depends on how many subspaces
 arrangement occupies, and the divergence is not an implementation artifact — it is forced
 by the demand for *one* origin-and-extent pair.
 
-**Single subspace: exact cover.** Suppose `O(d)` lies entirely in the content subspace.
-By D-SEQ the occupied positions are `{[s_C,1,…,1,k] : 1 ≤ k ≤ n}`, a dense run with no
-internal gaps. Then `origin_d = [s_C,1,…,1]` (D-MIN), `max O(d) = [s_C,1,…,1,n]`,
-`reach_d = [s_C,1,…,1,n+1]`, and `⟦σ_d⟧` restricted to depth-`m` content positions is
-exactly that run. We record **V5** (exact cover): when all occupied positions share one
-subspace, `⟦σ_d⟧` contains no occupied-depth position outside `O(d)` — the span is a faithful
-trace, "dense and contiguous," with the document forming "an unbroken sequence" (4/11). The
-golden case confirms it: eleven characters of text report `1.1 for 0.11`, the half-open
-interval `[1.1, 1.12)` covering exactly positions `1.1 … 1.11` (consultation Q15).
+**Single subspace: exact cover.** Suppose `O(d)` lies entirely in one subspace `s` — either
+content (`s = s_C`) or, in the link-only case (content empty, one or more links arranged,
+reachable by `CREATENEWDOCUMENT` then `K.λ` + `K.μ⁺_L` with endsets referencing content
+elsewhere per L4/L9), the link subspace (`s = s_L`). By D-SEQ★ (the per-subspace dense-run
+shape, ASN-0047, instantiated at `S = s`) the occupied positions are
+`{[s,1,…,1,k] : 1 ≤ k ≤ n_s}`, a dense run with no internal gaps. Then `origin_d = [s,1,…,1]`
+(D-MIN★), `max O(d) = [s,1,…,1,n_s]`, `reach_d = [s,1,…,1,n_s+1]`, and `⟦σ_d⟧` restricted to
+depth-`m_s` positions of subspace `s` is exactly that run — D-CTG★ rules out any occupied-depth
+position of `s` lying between `origin_d` and `reach_d` but outside the run. We record **V5**
+(exact cover): when all occupied positions share one subspace, `⟦σ_d⟧` contains no
+occupied-depth position outside `O(d)` — the span is a faithful trace, "dense and contiguous,"
+with the document forming "an unbroken sequence" (4/11). The density is supplied by the
+per-subspace D-SEQ★, so the claim holds for a link-only document exactly as for a content-only
+one. The golden case confirms the content instance: eleven characters of text report
+`1.1 for 0.11`, the half-open interval `[1.1, 1.12)` covering exactly positions
+`1.1 … 1.11` (consultation Q15).
 
 **Two subspaces: a bridging bounding box.** Now suppose `O(d)` holds both content
 (`subspace = s_C`) and link (`subspace = s_L`) positions. Then `origin_d` is the content
