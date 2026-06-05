@@ -74,7 +74,7 @@ The form of the effect makes explicit a structural fact that is easy to miss: DE
 
 The ASN-0034 algebra fixes the shift mechanism precisely. The D0 effect already fixes the structural form of the inverse — `σ_d(v) = [S, 1, ..., 1, k − n]` for each `v = [S, 1, ..., 1, k] ∈ Π` — by its existence argument. What that derivation does not record is the gap-closing consequence at the boundary. When `Π ≠ ∅` (equivalently, `p + n ≤ n_S`), its smallest element is `r = [S, 1, ..., 1, p + n]`, and `σ_d(r) = [S, 1, ..., 1, p] = s` — the first shifted position lands exactly where the deletion began, closing the gap precisely. When `Π = ∅` (deletion at the end, `p + n = n_S + 1`), no shift occurs and `r ∉ V_S(d)`, so `σ_d(r)` is not invoked.
 
-That the operation actually closes the gap, rather than leaving it open with placeholders, is Nelson's explicit design choice. We extract it from the dense-sequence convention: the V-stream is defined to be a contiguous ordering with no notion of "empty positions" between consecutive members. There is nothing in the abstract specification of the V-stream to denote — and nothing for a reader to observe — at a vacated position. The closure of the gap follows from the choice of representation, not from a separate gap-closing pass.
+The post-state V-stream has no vacated-position denotation, so closure is intrinsic to the representation.
 
 We record the basic structural consequence of the shift:
 
@@ -197,7 +197,7 @@ We should be careful what D7 does *not* claim. It does not claim that the delete
 - *Link-subspace ownership (CL-OWN):* every link-subspace V-position maps to a link with `origin = d`.
 - *Link-subspace position uniqueness (CL-UNIQ):* the link-subspace restriction is injective.
 
-*Groups (ii)–(iii): invariants discharged by D0's frame.* Every invariant in these two groups predicates only over the frame-fixed components `C`, `L`, `E`, `R`, `dom(M)` (with per-link and per-content values held fixed by D2 and D3), each of which D0's frame leaves pointwise unchanged (`C' = C`, `L' = L`, `E' = E`, `R' = R`, `dom(M') = dom(M)`). A predicate over frame-fixed components — whether a per-state predicate ranging over a single state or a transition predicate comparing `Σ` and `Σ'` — propagates from `Σ` to `Σ'` unchanged; no member requires an individualized argument. The membership of the two groups:
+*Groups (ii)–(iii): invariants discharged by D0's frame.* D0's frame fixes `C`, `L`, `E`, `R`, `dom(M)` pointwise (`C' = C`, `L' = L`, `E' = E`, `R' = R`, `dom(M') = dom(M)`, with per-link and per-content values held fixed by D2 and D3), so every Group (ii)/(iii) invariant predicating only over these is preserved. The membership of the two groups:
 
 - *Group (ii) — allocation and store invariants.* Store and allocation invariants (ASN-0036, ASN-0093): M0, S4, S7a, S7b, S7d, C1, C1b, C1c, C2, L0, L1, L1a, L1b, L1c, L3, L12, SD, L-fin, C-fin. Entity-set invariants (ASN-0047): NodeLineage, ActivatedEmission.
 - *Group (iii) — transition and per-state invariants.* M1 (arrangement monotonicity, ASN-0093), C0 (content immutability, ASN-0093), P0, P1, P2, P3 (permanence and arrangement-mutability-only), P6, P7 (existence and grounding), P8 (entity hierarchy), and L12a, L12b (link-store monotonicity and home persistence).
@@ -338,7 +338,7 @@ So `σ_d([1, 1, 4]) = [1, 1, 2]` and `Q = {[1, 1, 2]}`.
 - `v = [1, 1, 3]` → `M(d)(v) = a_3`: in coverage ✓
 - `v = [1, 1, 4]` → `M(d)(v) = a_4`: in coverage ✓
 
-(Any link-subspace positions of `d` map to I-addresses with `subspace_I = s_L = 2` (by S3★'s `dom(L)` clause and L0), which fall outside the content-subspace coverage anchored at `a_1` with `subspace_I(a_1) = s_C = 1` (T1 trichotomy gives every t with `t_2 = 2` strictly greater than every t' with `t'_2 = 1` extending the same document prefix), and so do not enter the projection. If `V_2(d) = ∅` the consideration is vacuous; the projection result depends on neither possibility.) So `project(L(ℓ_0).e_1, d, Σ) = V_1(d) = {[1, 1, 1], [1, 1, 2], [1, 1, 3], [1, 1, 4]}`.
+So `project(L(ℓ_0).e_1, d, Σ) = V_1(d) = {[1, 1, 1], [1, 1, 2], [1, 1, 3], [1, 1, 4]}`.
 
 *Post-state projection.* By D3, `L'(ℓ_0).e_1 = L(ℓ_0).e_1`, so `coverage(L'(ℓ_0).e_1) = coverage(L(ℓ_0).e_1)`. Then `project(L'(ℓ_0).e_1, d, Σ') = {v ∈ dom(M'(d)) : M'(d)(v) ∈ coverage(L(ℓ_0).e_1)}`. Element by element over the post-state domain restricted to subspace 1:
 - `v = [1, 1, 1]` → `M'(d)(v) = a_1`: in coverage ✓
@@ -360,7 +360,7 @@ LHS = RHS = `{[1, 1, 1], [1, 1, 2]}` ✓. The verification exercises both contri
 
 *Verification of D10 (discoverability and cardinality wps)* — D10 (stated in *Weakest precondition for discoverability preservation* above) gives the weakest preconditions for post-DELETE discoverability and projection-cardinality. The deleted region in this example is `X = {[1, 1, 2], [1, 1, 3]}`. We evaluate each of D10's three wps against the concrete pre-state. DEL is applicable at this pre-state — `σ = ([1, 1, 2], δ(2, 3))` is a well-formed span over the contiguous text arrangement of `d` — so `enabled(DEL[d, σ]) = true`, discharging the enabledness conjunct that each D10 wp carries; the residual equivalences exhibited below are therefore the pullback factor only.
 
-- *Discoverability wp from `d`.* `wp(DEL[d, σ], Q_disc(ℓ_0, d)) ≡ enabled(DEL[d, σ]) ∧ (E i : project(L(ℓ_0).eᵢ, d, Σ) ⊄ X)`; the pullback factor is `(E i : project(L(ℓ_0).eᵢ, d, Σ) ⊄ X)`. At slot `i = 1`: `project(L(ℓ_0).e_1, d, Σ) = {[1, 1, 1], [1, 1, 2], [1, 1, 3], [1, 1, 4]}`; intersecting with `X` gives `{[1, 1, 2], [1, 1, 3]} ⊊ project`, witnessed by `[1, 1, 1] ∈ project ∖ X` (or equivalently `[1, 1, 4] ∈ project ∖ X`). So `project ⊄ X` at slot 1, and the existential is satisfied. The wp evaluates to `true` — predicting that `ℓ_0` remains discoverable from `d` post-DELETE. Cross-check against the post-state: `project(L'(ℓ_0).e_1, d, Σ') = {[1, 1, 1], [1, 1, 2]} ≠ ∅`, so `discoverable_from(ℓ_0, d, Σ') = true`. ✓
+- *Discoverability wp from `d`.* `wp(DEL[d, σ], Q_disc(ℓ_0, d)) ≡ enabled(DEL[d, σ]) ∧ (E i : project(L(ℓ_0).eᵢ, d, Σ) ⊄ X)`; the pullback factor is `(E i : project(L(ℓ_0).eᵢ, d, Σ) ⊄ X)`. At slot `i = 1`: `project(L(ℓ_0).e_1, d, Σ) = {[1, 1, 1], [1, 1, 2], [1, 1, 3], [1, 1, 4]}`; intersecting with `X` gives `{[1, 1, 2], [1, 1, 3]} ⊊ project`, witnessed by `[1, 1, 1] ∈ project ∖ X`. So `project ⊄ X` at slot 1, and the existential is satisfied. The wp evaluates to `true` — predicting that `ℓ_0` remains discoverable from `d` post-DELETE. Cross-check against the post-state: `project(L'(ℓ_0).e_1, d, Σ') = {[1, 1, 1], [1, 1, 2]} ≠ ∅`, so `discoverable_from(ℓ_0, d, Σ') = true`. ✓
 
 - *Cardinality wp.* `wp(DEL[d, σ], Q_card(ℓ_0, 1, d, k)) ≡ enabled(DEL[d, σ]) ∧ |project(L(ℓ_0).e_1, d, Σ)| − |project(L(ℓ_0).e_1, d, Σ) ∩ X| = k`; the pullback factor is `|project(L(ℓ_0).e_1, d, Σ)| − |project(L(ℓ_0).e_1, d, Σ) ∩ X| = k`. Computing: `|project| = 4` and `|project ∩ X| = |{[1, 1, 2], [1, 1, 3]}| = 2`, so the wp predicts the post-state cardinality `k = 4 − 2 = 2`. Cross-check against the post-state: `|project(L'(ℓ_0).e_1, d, Σ')| = |{[1, 1, 1], [1, 1, 2]}| = 2`. ✓
 
