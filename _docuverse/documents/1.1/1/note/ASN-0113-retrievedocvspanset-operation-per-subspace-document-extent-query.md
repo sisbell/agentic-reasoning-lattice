@@ -32,12 +32,35 @@ value, and what must hold of it?*
 We take the strand model of state as given. A document `d` — a T4-valid tumbler with
 `zeros(d) = 2` (a document-level address) — carries an *arrangement* `M(d) : T ⇀ T`, a
 partial function from V-positions in the document's current virtual stream to I-addresses,
-the permanent keys of a content store `C : T ⇀ Val`, and a link store `L : T ⇀ Link`. We
-write
+the permanent keys of a content store `C : T ⇀ Val`, and a link store `L : T ⇀ Link`.
+
+**The operation's precondition.** The entire apparatus below presupposes that `M(d)` is
+*defined* — that `d` is an *allocated* document. We record this as the operation's
+precondition (**W-pre**):
+
+> `RETRIEVEDOCVSPANSET(d)` requires `d ∈ dom(M)` (equivalently, by M0/M1 of ASN-0093,
+> `Document(d) ∧ d ∈ dom(M)`: a T4-valid document-level tumbler that some K.δ event has
+> placed into `dom(M)`).
+
+This is necessary because only `Document(e)` events extend `dom(M)` (ASN-0047, K.δ): for
+`d ∉ dom(M)`, `M(d)` is undefined, so `O(d)`, `V_S(d)`, `occupied(d)`, and every derived
+quantity below are *undefined* — not empty. The distinction is sharp and must not be
+collapsed. An *allocated empty* document (`d ∈ dom(M)`, `M(d) = ∅`) legitimately yields the
+empty span-set `⟨⟩` (a defined result; see W0). An *unallocated* identity (`d ∉ dom(M)`) is
+*outside the operation's domain*: it has no defined result, and a faithful implementation
+signals failure rather than fabricating `⟨⟩`. Gregory's back end confirms the separation
+operationally — an existing-but-empty document returns `NULL` (the empty span-set) with
+success, whereas a never-allocated identity fails the open-document check (`findorgl` returns
+FALSE because `checkforopen` finds no registry entry) and the dispatcher emits the FEBE
+failure marker `?`, not an empty result (consultation, code trace `fns.c:140`,
+`do1.c:327`, `granf1.c`). All postconditions below are stated under W-pre; we make no claim
+about unallocated `d`.
+
+We write
 
 > `O(d) = dom(M(d))`
 
-for the set of *occupied V-positions* of `d`. Unlike the whole-document query, which bounds
+for the set of *occupied V-positions* of `d` (well-defined under W-pre). Unlike the whole-document query, which bounds
 `O(d)` as one undifferentiated set, this query must partition `O(d)` by *kind*. Each
 V-position carries a subspace identifier in its first component, `subspace(v) = v₁`
 (ASN-0036), and the docuverse fixes two of them: content positions carry `subspace = s_C`
@@ -97,11 +120,14 @@ the covering span. The number is read off the boundary, not stored as a tally.
 
 We therefore take the result to be a *normalized span-set* `Σ_d` of at most two members —
 one per occupied subspace — and the *empty span-set* `⟨⟩` when the document holds nothing in
-either counted subspace. We record this as **W0** (span-set-valued result):
-`RETRIEVEDOCVSPANSET(d)` returns a normalized span-set, never a content sequence and never a
-cardinality; for a document empty in both counted subspaces it returns `⟨⟩`, the
-distinguished value denoting `∅` (which is not a T12 span, since every well-formed span is
-non-empty — S2, ASN-0053). The caller reads each member to learn the extent of one kind of
+either counted subspace. We record this as **W0** (span-set-valued result): for an
+*allocated* document `d` (W-pre), `RETRIEVEDOCVSPANSET(d)` returns a normalized span-set,
+never a content sequence and never a cardinality; for an allocated document that is *empty in
+both counted subspaces* (`d ∈ dom(M)` with `V_{s_C}(d) = V_{s_L}(d) = ∅`) it returns `⟨⟩`,
+the distinguished value denoting `∅` (which is not a T12 span, since every well-formed span
+is non-empty — S2, ASN-0053). This `⟨⟩` is the report of an *allocated but empty* document; it
+is *not* the behavior on an unallocated identity, which W-pre places outside the operation's
+domain (and which the implementation answers with the failure marker, not `⟨⟩`). The caller reads each member to learn the extent of one kind of
 content; the content itself, and the identity of individual links, are the business of other
 operations.
 
@@ -266,9 +292,13 @@ two member spans are disjoint — **W11** (Disjointness):
 
 > `⟦ext(d, s_C)⟧ ∩ ⟦ext(d, s_L)⟧ = ∅`.
 
-For any `t` in the intersection we would need `t₁ = s_C` and `t₁ = s_L` at once, impossible
-since `s_C ≠ s_L` (SC-NEQ, the `1 ≠ 2` of the convention; equivalently T7,
-SubspaceDisjointness). The text region and the link region therefore *cannot* be the
+For any `t` in the intersection we would need `t₁ = s_C` and `t₁ = s_L` at once (W10),
+impossible since `s_C ≠ s_L` (SC-NEQ, the `1 ≠ 2` of the convention). The SC-NEQ contradiction
+on the first component, under T1, suffices on its own. (We do *not* invoke T7,
+SubspaceDisjointness: T7 requires element-level I-addresses with `zeros = 3` and distinguishes
+by the *element-field* component `E₁`, whereas the tumblers here are V-positions and their
+subtrees — `zeros = 0`, distinguished by `t₁ = subspace(v)` — so T7's preconditions are not
+met and it does not apply.) The text region and the link region therefore *cannot* be the
 denotation of a single span: a span is a contiguous interval (T12), and `⟦ext(d, s_C)⟧` and
 `⟦ext(d, s_L)⟧` are separated by every address between them — in particular the whole gap
 from `[s_C,1,…,1,1+n_{s_C}]` up to `[s_L,1,…,1]`. To "designate the separated series exactly,
@@ -309,19 +339,29 @@ states realizing distinct values of the other —
 and symmetrically with the roles of the subspaces exchanged.
 
 The existential is a reachability claim: for arbitrary `(c, k) ∈ ℕ × ℕ` a document realizing
-profile `(c, k)` must be constructible. We discharge it by exhibiting a transition sequence
+profile `(c, k)` must be constructible by a sequence of *valid composites* (ASN-0047,
+ValidComposite★), each satisfying the full coupling discipline J0 ∧ J1★ ∧ J1'★ between its
+initial and final state — not J0 alone. We discharge the claim by exhibiting such a sequence
 over the ASN-0047 vocabulary that drives `(n_{s_C}, n_{s_L})` to any target. Starting from a
 state in which `d ∈ E_doc` (allocated by K.δ, NodeBaptism then the document sub-allocator),
 the two subspaces are populated by *disjoint* coupled transition kinds. A text position
 cannot be added by K.μ⁺ alone: K.μ⁺ requires that each new mapping `M'(d)(v) = a` reference
-an already-allocated `a ∈ dom(C)`, and a valid composite must satisfy the J0 coupling
-(every freshly allocated I-address appears in some arrangement). So each text position is a
-*coupled K.α + K.μ⁺ pair* — a K.α step allocating a fresh content address `a ∈ dom(C)` (its
-existence guaranteed by T0(a)/T0(b), content being unboundedly allocatable) followed by a
-content-restricted K.μ⁺ step mapping a new text V-position to that `a`, the pair satisfying
-J0. Performing `c` such pairs adds the dense run `{[s_C,1,…,1,j] : 1 ≤ j ≤ c}` by D-SEQ★ and
-drives `n_{s_C}(d) = c`; performing `k` link-subspace extensions K.μ⁺_L — each mapping a new
-link V-position to a link address allocated by the document's link sub-allocator — adds
+an already-allocated `a ∈ dom(C)`, and a valid composite must satisfy J0 (every freshly
+allocated I-address appears in some arrangement) *and* J1★ (every I-address newly entering the
+content-subspace range of `M'(d)` is recorded in provenance, `(a, d) ∈ R'`) *and* J1'★ (every
+new provenance entry corresponds to such a range-new I-address). So each text position is a
+*coupled K.α + K.μ⁺ + K.ρ composite* — a K.α step allocating a fresh content address
+`a ∈ dom(C)` (its existence guaranteed by T0(a)/T0(b), content being unboundedly
+allocatable), a content-restricted K.μ⁺ step mapping a new text V-position to that `a`
+(discharging J0), and a K.ρ step recording `(a, d) ∈ R'` (discharging J1★ and J1'★) — leaving
+the composite valid. Equivalently, one may invoke ASN-0047's J4 (ForkComposite), which already
+bundles the K.δ/K.μ⁺/K.ρ steps into a single valid composite; we spell out the per-position
+composite here because the construction varies one subspace at a time. Performing `c` such
+composites adds the dense run `{[s_C,1,…,1,j] : 1 ≤ j ≤ c}` by D-SEQ★ and drives
+`n_{s_C}(d) = c`; performing `k` link-subspace extensions K.μ⁺_L — each mapping a new
+link V-position to a link address allocated by the document's link sub-allocator (a
+link-subspace extension carries no content-provenance obligation, since J1★/J1'★ are scoped
+to the content subspace, so K.μ⁺_L stands as its own valid step) — adds
 `{[s_L,1,…,1,j] : 1 ≤ j ≤ k}` by D-SEQ★ and drives `n_{s_L}(d) = k`. The content-restricted
 K.μ⁺ confines its new V-positions to `subspace(v) = s_C` and K.μ⁺_L to `subspace(v) = s_L`,
 so the two counts are set by independent transition streams (this is the mechanism behind
@@ -356,9 +396,17 @@ sequence is in normal form.)
 
 This uniformity is exactly what makes two documents' reports *comparable*: one compares like
 with like, text-extent to text-extent and link-extent to link-extent. We record **W14**
-(Comparability): for any two documents `d₁, d₂`, the per-kind comparison `n_S(d₁)` versus
-`n_S(d₂)` is well-defined for each `S ∈ {s_C, s_L}`, because each report exposes the same two
-kinds. An empty subspace participates as the value zero — the comparison is total.
+(Comparability): for any two allocated documents `d₁, d₂`, the per-kind comparison `n_S(d₁)`
+versus `n_S(d₂)` is well-defined for each `S ∈ {s_C, s_L}`. The reason is *not* that each
+report exposes both kinds — it does not: W7 emits exactly `|occupied(d)|` members, *omitting*
+any empty subspace, so a text-only document returns a single member. Rather, the comparison is
+total because `n_S(d) = |V_S(d)|` is a *total function* (W1), defined for every allocated `d`
+and every `S ∈ {s_C, s_L}` independently of whether the operation emits a member for that
+subspace; an empty subspace has `n_S(d) = 0` as a fact about `V_S(d)`, regardless of the
+report's membership. This well-definedness of `n_S` is a property of the state, separate from
+how a *consumer* recovers `n_S = 0` from a span-set whose empty member is absent — that
+absent-equals-zero reading is a consumer-side convention this note does not rely on here and
+flags as not obviously safe (Open Question 2).
 
 **Cross-kind independence.** The extent reported for one kind does not depend on the
 population of the other. We record **W15** (Independence): `n_{s_C}(d)` is a function of
@@ -494,7 +542,7 @@ of the arrangement it views; the operation adds none of its own and needs none.
 | W11 | Disjointness — `⟦ext(d, s_C)⟧ ∩ ⟦ext(d, s_L)⟧ = ∅` | introduced |
 | W12 | ProfileIrreducibility — the pair `(n_{s_C}, n_{s_L})` is determined by neither coordinate alone | introduced |
 | W13 | UniformShape — result is normalized, members drawn from the fixed ordered kind-list `(s_C, s_L)` | introduced |
-| W14 | Comparability — per-kind comparison `n_S(d₁)` vs `n_S(d₂)` is total, with absent subspace counting as zero | introduced |
+| W14 | Comparability — per-kind comparison `n_S(d₁)` vs `n_S(d₂)` is total because `n_S = |V_S(d)|` is a total function (W1), independent of which members the report emits | introduced |
 | W15 | Independence — `n_{s_C}` depends only on `V_{s_C}(d)`, `n_{s_L}` only on `V_{s_L}(d)`; subspace edits do not cross | introduced |
 | W16 | Partition — the members disjointly cover exactly the counted active V-positions; no orphan, no phantom | introduced |
 | W17 | ExtentDeterminesPopulation — active positions of `S` are exactly the V-slice tumblers within `ext(d, S)`, each carrying content | introduced |
