@@ -285,10 +285,16 @@ one extent — Nelson's design choice, which our formalism makes forced rather t
 
 The two subspaces are not merely labelled differently; they are *disjoint subtrees of the
 address space*, and no single contiguous span can cover both. Consider the denotation of
-each extent span. Every `t ∈ ⟦ext(d, S)⟧` shares the prefix `[S,1,…,1]` (the derivation of
-W4 established this via T5), so its first component is `S`. We record **W10**
-(SubspaceConfinement): `(A t : t ∈ ⟦ext(d, S)⟧ : t₁ = S)`. It follows immediately that the
-two member spans are disjoint — **W11** (Disjointness):
+each extent span. We record **W10** (SubspaceConfinement): `(A t : t ∈ ⟦ext(d, S)⟧ : t₁ =
+S)`. Unlike W4, this quantifies over *every* `t` in the denotation — tumblers of arbitrary
+depth, including the whole subtree hanging below each V-position — so it needs its own
+argument, not W4's depth-`m_S`-restricted reasoning. The argument is two lines on the first
+component. The bounds are `start_S = [S,1,…,1]` and `reach = [S,1,…,1,1+n_S]`, both with
+first component `S`. Take any `t ∈ ⟦ext(d, S)⟧`, so `start_S ≤ t < reach`. If `t₁ < S`, then
+by T1 the first divergence is at position `1` and `t < start_S` — contradicting `start_S ≤
+t`. If `t₁ > S`, then by T1 `t > reach` — contradicting `t < reach`. Hence `t₁ = S`, for
+`t` of any depth. It follows immediately that the two member spans are disjoint — **W11**
+(Disjointness):
 
 > `⟦ext(d, s_C)⟧ ∩ ⟦ext(d, s_L)⟧ = ∅`.
 
@@ -296,9 +302,12 @@ For any `t` in the intersection we would need `t₁ = s_C` and `t₁ = s_L` at o
 impossible since `s_C ≠ s_L` (SC-NEQ, the `1 ≠ 2` of the convention). The SC-NEQ contradiction
 on the first component, under T1, suffices on its own. (We do *not* invoke T7,
 SubspaceDisjointness: T7 requires element-level I-addresses with `zeros = 3` and distinguishes
-by the *element-field* component `E₁`, whereas the tumblers here are V-positions and their
-subtrees — `zeros = 0`, distinguished by `t₁ = subspace(v)` — so T7's preconditions are not
-met and it does not apply.) The text region and the link region therefore *cannot* be the
+by the *element-field* component `E₁`. The disjointness here rests only on `t₁ = S` holding
+for every `t` in each denotation, W10, combined with SC-NEQ — no claim about the zero-count
+of denotation tumblers is needed or made. Indeed those tumblers need not be zero-free: the
+denotation is the T1-interval `{t : start_S ≤ t < reach}`, which contains tumblers carrying
+zeros, e.g. `[S,1,0,1] ∈ ⟦ext(d, S)⟧` for `m_S = 2`, `n_S ≥ 1`, with `zeros = 1`. T7's
+preconditions are thus neither met nor needed.) The text region and the link region therefore *cannot* be the
 denotation of a single span: a span is a contiguous interval (T12), and `⟦ext(d, s_C)⟧` and
 `⟦ext(d, s_L)⟧` are separated by every address between them — in particular the whole gap
 from `[s_C,1,…,1,1+n_{s_C}]` up to `[s_L,1,…,1]`. To "designate the separated series exactly,
