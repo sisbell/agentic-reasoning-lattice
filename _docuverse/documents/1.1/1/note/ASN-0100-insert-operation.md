@@ -68,7 +68,7 @@ The identity iterates because `inc(·, 0)` preserves T4 (TA5a; ASN-0034) and pre
 
 Consequently the Insertion region `{(shift(p, k), a_k) : 0 ≤ k < n}` coincides with `{(shift(p, k), shift(a_0, k)) : 0 ≤ k < n}`, which is exactly the denotation `⟦(p, a_0, n)⟧` of the mapping block `(p, a_0, n)` under OrdinalShiftBase (ASN-0058) — there the run's I-address `a_0 + k` reads as `shift(a_0, k)`.
 
-The post-state content store is stated formally by the content-store effect in §The Operation: Formal Contract (INS.C): the store grows by the fresh addresses `a_0, …, a_{n−1}` carrying the new values `v_0, …, v_{n−1}`, while every pre-existing binding is preserved unchanged.
+The post-state content store grows by the fresh addresses `a_0, …, a_{n−1}` carrying the new values `v_0, …, v_{n−1}`, while every pre-existing binding is preserved unchanged (claim INS.C).
 
 The pre-existing content is *not touched*: its values are preserved bit-for-bit, and its addresses persist in the post-state. This is the foundational permanence guarantee S0.
 
@@ -82,7 +82,7 @@ By OrdAddHom clause (b) (ASN-0082) applied to `w = δ(k, m_C)`, every `shift(p, 
 
 ### Effect Three: Shift
 
-Every existing V-position `v ∈ V_{s_C}(d)` with `v ≥ p` must remap. The content there does not change — it keeps its I-address — but its V-position advances by `n`. This is the *Shifted right* clause of the arrangement effect in §The Operation: Formal Contract, the specified effect of INSERT's step-3 K.μ⁺, which by construction adds exactly the mappings `shift(v, n) ↦ M(d)(v)` for each `v ∈ V_{s_C}(d)` with `v ≥ p`. The right region is the source of the shift; the shifted-right region is its image. The two are related by the order-preserving (TS1, ShiftOrderPreservation; ASN-0034) and injective (TS2, ShiftInjectivity; ASN-0034) shift map. The image of the shift map is exactly `{[s_C, 1, …, 1, k + n] : p_m ≤ k ≤ N}` when we write `p = [s_C, 1, …, 1, p_m]` with `p_m ∈ {1, …, N+1}`. The Insertion positions `shift(p, k)` for `0 ≤ k < n` are disjoint from these shift-images (by the pairwise-disjointness argument below for S2).
+Every existing V-position `v ∈ V_{s_C}(d)` with `v ≥ p` must remap. The content there does not change — it keeps its I-address — but its V-position advances by `n`. This is the *Shifted right* effect of INSERT's step-3 K.μ⁺ (claim INS.M-shift), which by construction adds exactly the mappings `shift(v, n) ↦ M(d)(v)` for each `v ∈ V_{s_C}(d)` with `v ≥ p`. The right region is the source of the shift; the shifted-right region is its image. The two are related by the order-preserving (TS1, ShiftOrderPreservation; ASN-0034) and injective (TS2, ShiftInjectivity; ASN-0034) shift map. The image of the shift map is exactly `{[s_C, 1, …, 1, k + n] : p_m ≤ k ≤ N}` when we write `p = [s_C, 1, …, 1, p_m]` with `p_m ∈ {1, …, N+1}`. The Insertion positions `shift(p, k)` for `0 ≤ k < n` are disjoint from these shift-images (by the pairwise-disjointness argument below for S2).
 
 For positions `v ∈ V_{s_C}(d)` with `v < p` (the left region), the arrangement is unchanged (I3-L, PostInsertionLeftFrame; ASN-0082).
 
@@ -579,13 +579,13 @@ The "no positional constraint" intent (Q6) is borne out: the operation is unifor
 
 ## INSERT vs. COPY: Identity Through Allocation
 
-Nelson (Q8) distinguishes INSERT from COPY — two operations that may produce visually identical Vstream effects but completely different Istream consequences. We address the distinction only to fix the identity character of INSERT; COPY's full operation specification is out of scope for this ASN.
+Nelson (Q8) distinguishes INSERT from COPY — two operations that may produce visually identical Vstream effects but completely different Istream consequences. We address the distinction only to fix the identity character of INSERT.
 
 INSERT allocates *fresh* I-addresses for new content. The defining clause of the content-store effect — `dom(C') = dom(C) ∪ {a_0, …, a_{n−1}}` with each `a_k` fresh — is the structural guarantee that the new content is new. Each `a_k` has `origin(a_k) = d`: attribution accrues to `d`'s owner, royalties (if priced) flow to `d`'s account.
 
 Two independent users who INSERT the word "the" into their respective documents produce two distinct addresses, two distinct origins; neither is a copy or transclusion of the other. The system tracks identity by allocation event, not by value. If their bytes happen to coincide — both authors wrote "the" — the system observes this as two unrelated allocations, not one shared content.
 
-By contrast, COPY (out of scope here) creates V→I mappings to *existing* I-addresses without allocating new content — the defining structural difference being that INSERT allocates fresh I-addresses while COPY does not.
+By contrast, COPY creates V→I mappings to *existing* I-addresses without allocating new content — the defining structural difference being that INSERT allocates fresh I-addresses while COPY does not.
 
 ### Derived corollaries of INS.identity
 
