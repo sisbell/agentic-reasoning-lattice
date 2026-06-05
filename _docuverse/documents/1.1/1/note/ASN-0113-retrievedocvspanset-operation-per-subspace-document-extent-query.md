@@ -209,8 +209,32 @@ maximum. The existential is essential: the forward direction asserts that contig
 *permits* an exact span (a poorly chosen `σ` may overshoot even when `V_S(d)` is
 contiguous), while the converse asserts that non-contiguity *defeats every* `σ`.
 
-The *forward* direction (contiguous ⟹ a single exact span exists) is W4 itself: under D-CTG★
-the run is contiguous, and `ext(d, S)` exactly covers it.
+The *forward* direction (contiguous ⟹ a single exact span exists) holds for *any* contiguous
+`V_S(d)`, not only the canonical run D-CTG★/D-MIN★ produce — and so it cannot simply cite W4,
+whose covering span `ext(d, S)` is anchored at `[S,1,…,1]` and is exact only when D-MIN★ pins
+the run's minimum there. (For a contiguous run not anchored at the canonical minimum — say
+`V_S(d) = {[S,5,3],[S,5,4]}` at depth `m = 3` — `ext(d, S) = ([S,1,1], δ(2,3))` reaches only
+`[S,1,3]` and covers `{[S,1,1],[S,1,2]} ≠ V_S(d)`; the exact span is anchored at the *actual*
+minimum `[S,5,3]`.) We therefore build the covering span from the run's own minimum. Let
+`V_S(d)` be contiguous and non-empty, and put `a = min(V_S(d))`, `b = max(V_S(d))` under T1
+(both well-defined: `V_S(d)` is finite by S8-fin and totally ordered by T1). Every element
+lies in `VSlice(S, m)`, so all share depth `m`, first component `S`, and are zero-free; write
+`a = [S, a_2, …, a_m]`. We claim the whole run shares the prefix `[S, a_2, …, a_{m−1}]` and
+varies only in the last component. Suppose two elements diverged at some interior position
+`i < m`. Then between them under T1 lie *all* V-slice tumblers obtained by raising the last
+component without bound — infinitely many, since component values are unbounded (T0(a)) —
+each of which contiguity would force into `V_S(d)`, contradicting finiteness (S8-fin). So the
+run is confined to one prefix and its last components form a contiguous block of naturals;
+with `n_S = |V_S(d)|`, that block is `a_m, a_m+1, …, a_m + n_S − 1`, and
+`b = [S, a_2, …, a_{m−1}, a_m + n_S − 1]`. Now define `σ = (a, δ(n_S, m))` — level-uniform and
+T12-well-formed (`δ(n_S, m)` positive since `n_S ≥ 1`, action point `m = #a`), with
+`reach(σ) = shift(a, n_S) = [S, a_2, …, a_{m−1}, a_m + n_S]`. By T5 on the prefix
+`[S, a_2, …, a_{m−1}]` (length `m − 1`) shared by `a` and `reach(σ)`, every interior tumbler
+extends that prefix, and the half-open bounds pin its last component to
+`a_m ≤ t_m ≤ a_m + n_S − 1` — exactly the run. Hence `⟦σ⟧ ∩ VSlice(S, m) = V_S(d)`, an exact
+single span. This `σ` coincides with `ext(d, S)` precisely when `a = [S,1,…,1]`, i.e. under
+D-MIN★; in the docuverse that always holds and the W4 span serves directly, but the existence
+claim itself needs only the run's own minimum, not the canonical anchor.
 
 The *converse* (non-contiguous ⟹ no single span is exact) we establish by the structure of
 the argument, then exhibit concretely. Suppose `V_S(d)` is *not* contiguous: there exist
@@ -638,7 +662,7 @@ of the arrangement it views; the operation adds none of its own and needs none.
 | W2 | `ext(d, S) = ([S,1,…,1], δ(n_S, m_S))` is the extent span encoding `n_S` | introduced |
 | W3 | `ext(d, S)` is a well-formed, level-uniform T12 span with `reach = [S,1,…,1,1+n_S]` | introduced |
 | W4 | ExactCoverage — `⟦ext(d, S)⟧ ∩ VSlice(S, m_S) = V_S(d)` (complete and exclusive) | introduced |
-| W5 | ExactnessRequiresContiguity — a single level-uniform span exactly covers `V_S(d)` iff `V_S(d)` is contiguous in `VSlice(S, m)`; both directions proved, the converse by order-convexity (counterexample `{[S,1],[S,3]}`) | introduced |
+| W5 | ExactnessRequiresContiguity — a single level-uniform span exactly covers `V_S(d)` iff `V_S(d)` is contiguous in `VSlice(S, m)`; forward by constructing the span at the run's *actual* minimum (T0(a)+S8-fin pin a shared prefix, T5 confines the interior), converse by order-convexity (counterexample `{[S,1],[S,3]}`) | introduced |
 | W6 | `occupied(d) = {S ∈ {s_C, s_L} : V_S(d) ≠ ∅}` | introduced |
 | W7 | OneSpanPerOccupiedSubspace — result has exactly `|occupied(d)|` members, one per kind, not per fragment or item | introduced |
 | W8 | PureQuery — `Σ' = Σ`; the operation reads and writes nothing | introduced |
