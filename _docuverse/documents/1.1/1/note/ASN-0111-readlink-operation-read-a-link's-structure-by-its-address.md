@@ -64,6 +64,28 @@ precisely membership:
 
 > `wp(readlink request at a, result = Σ.L(a)) ≡ a ∈ dom(Σ.L)`.
 
+This wp is deliberately the same as the precondition, and we should say plainly why rather than
+present a tautology as analysis. `readlink` is a *pure, stateless* read: it neither changes state
+nor depends on any component of `Σ` other than `Σ.L(a)`. Every same-state postcondition we will
+prove of it — completeness (RL1), non-empty type (RL-ARITY, via L3), role preservation (RL2) — is
+a property the stored value `Σ.L(a)` already has by the foundation invariants the moment `a` is in
+the domain. So each such postcondition pulls back to the identical precondition `a ∈ dom(Σ.L)`;
+there is no weaker condition to discover. For a read against a *single* state, then, RL0's
+membership condition is the complete wp picture, and that is a fact worth stating, not a gap.
+
+The non-trivial wp appears only when we admit *time* — a read after a transition. For the
+composite "advance the system by any reachable sequence, then read," the postcondition that the
+later read is both defined and returns a particular recorded value pulls back to a pre-state
+condition:
+
+> `wp(Σ →* Σ' ; readlink at a, result = Σ.L(a)) ≡ a ∈ dom(Σ.L)`,
+
+evaluated at the *initial* `Σ`. That this pre-state membership suffices — that nothing about the
+intervening transitions can falsify the postcondition — is exactly the content of RL7, discharged
+by LP13's closure of domain-and-value persistence over `→*`. The single-state wp is trivial
+because the read is stateless; the composite wp is the substantive one, and it is RL7 read as a
+weakest precondition.
+
 A reader holding a candidate tumbler can test the *necessary* structural conditions from the
 address alone — `zeros(a) = 3 ∧ subspace_I(a) = s_L` — by T4 parsing and the subspace projection
 (ASN-0034). These conditions are necessary but not sufficient: an address may have link-shaped
@@ -170,12 +192,20 @@ relation on address sets, decided without dereferencing a single one. The read t
 a fully interpretable type even when the type address holds nothing at all: ghost types are
 permitted (L9, ASN-0043), and the read of a ghost-typed link is no less complete than any other.
 
-This is a genuine asymmetry within the returned structure, and an honest specification must state
-it. The from- and to-endsets name regions whose addresses, when present, reference real stored
-entities; the type-endset names addresses that serve as *labels by location*. The invariant that
-endset spans correspond to existing content is a property of the connective (from/to) endsets, not
-of the categorising (type) endset. The read returns all three faithfully; only for from/to does
-the reader have any expectation that the named addresses host content.
+We must be careful not to overstate this into an asymmetry that does not hold. It is *not* the
+case that from- and to-endsets name only addresses where content exists while the type-endset
+alone may name empty addresses. By endset generality (L4, ASN-0043) *every* endset — connective
+and categorising alike — may reference addresses at which no content currently exists; ghost
+references are permitted generally (L9), and an orphaned link (RL8) is precisely one whose from/to
+endpoints are unwitnessed. So all three slots are equally unconstrained as to whether the addresses
+they name host any entity; the read returns whatever each recorded, faithfully, regardless.
+
+The genuine asymmetries between the type slot and the connective slots are exactly two, and the
+read reflects both. First, the type slot is mandatorily non-empty (L3, ASN-0043) while a from- or
+to-endset may legitimately be `∅`. Second, the type is interpreted by *coverage-identity without
+dereference* (L8): two links share a type when their type endsets cover the same address set,
+decided without reading anything stored there. These are the only respects in which type differs
+from from/to — not any claim about which slots correspond to existing content.
 
 ## Faithful disclosure of nesting
 
@@ -200,10 +230,20 @@ its values are frozen: once allocated, a link's address persists and its value n
 (L12, L12a of ASN-0043). The read inherits this stability.
 
 **RL7 (Determinacy).** `readlink` is a pure function of `(a, Σ.L)`: two reads of the same address
-in the same link store return identical values. Moreover, because the value is immutable across
-every reachable transition, the read is stable across the whole future:
+in the same link store return identical values. Moreover, the read is stable across the whole
+future:
 
 > `(A Σ, Σ' : Σ →* Σ' ∧ a ∈ dom(Σ.L) : readlink(a, Σ') = readlink(a, Σ))`.
+
+We are careful about the quantifier here. L12 (ASN-0043) is a *single-step* guarantee: for one
+transition `Σ → Σ'`, an allocated link persists in the domain and keeps its value. The claim above
+quantifies over the reflexive-transitive closure `Σ →* Σ'`, so it needs the multi-step lift, not
+L12 alone. That lift is already available: LP13 (UnconditionalLinkPersistence, ASN-0098) discharges
+both halves across the closure — `a ∈ dom(Σ.L) ⟹ a ∈ dom(Σ'.L)` (so `readlink(a, Σ')` is defined)
+and `Σ'.L(a) = Σ.L(a)` (so the read value is preserved) — for every reachable `Σ →* Σ'`. (LP13 is
+itself the closure of L12 under the schema that lifts single-step persistence to `→*` by induction
+on the transition sequence; the same multi-step result RL8 invokes.) With definedness and value
+preservation both carried across the closure, `readlink(a, Σ') = Σ'.L(a) = Σ.L(a) = readlink(a, Σ)`.
 
 A reader who has once read a link may rely on that reading permanently. This is the counterpart, at
 the read interface, of the design commitment that to record a *different* relationship one must
@@ -269,6 +309,58 @@ coverage record the same relationship and are interchangeable for every coverage
 type relation of L8; projection independence, LP21 of ASN-0098). A reader interpreting the result
 should read it as a triple of address-sets-with-roles; the exact spans are one representation of
 those sets.
+
+## A worked read
+
+The claims above are abstract; we check them against one concrete link. Fix the subspace
+convention `s_C = 1`, `s_L = 2` (ASN-0093). Take two documents
+
+> `d₁ = [1.0.1.0.1]`,  `d₂ = [1.0.1.0.2]`  (each `zeros = 2`, T4-valid),
+
+and a link homed in `d₁` at address
+
+> `a = [1.0.1.0.1.0.2.1]`   (`zeros(a) = 3`; element field `E(a) = [2, 1]`, so
+> `subspace_I(a) = E(a)₁ = s_L`, `#E(a) = 2` — the first emission of `d₁`'s link sub-allocator).
+
+Let the stored value `Σ.L(a) = (F, G, Θ)` be the standard triple
+
+- **from-set** `F = {([1.0.1.0.1.0.1.1], δ(2, 8)), ([1.0.1.0.2.0.1.1], δ(1, 8))}` — two spans
+  scattered across *two* documents. The first, of width-2, covers the content addresses
+  `[1.0.1.0.1.0.1.1]` and `[1.0.1.0.1.0.1.2]` under `d₁`; the second, of width-1, covers
+  `[1.0.1.0.2.0.1.1]` under `d₂`. So `coverage(F)` is three I-addresses lying in two documents.
+- **to-set** `G = ∅` — a legitimately empty connective slot.
+- **type-set** `Θ = {([1.0.1.0.9.0.1.1], δ(1, 8))}` — a single span whose address sits under a
+  document `[1.0.1.0.9]` that hosts no content: a *ghost* type, a label by location.
+
+A direct read returns the whole triple, grouped by slot:
+
+> `readlink(a, Σ) = (F, ∅, Θ)`,
+> with `readlink(a, Σ).e₁ = F`, `readlink(a, Σ).e₂ = ∅`, `readlink(a, Σ).e₃ = Θ`.
+
+We can now check the load-bearing postconditions against this instance.
+
+- *RL1 (completeness).* The read returns *both* from-spans, the empty to-set, and the type-span —
+  every recorded span and nothing more. Contrast a *search* given the content region under `d₁`:
+  it would return `a` as a witness because *one* from-span meets the region, but it would not
+  deliver `F` entire, would say nothing about the empty `G`, and would not surface the ghost `Θ`.
+  The read delivers the structure; the search confirms relevance.
+- *RL2 (role preservation).* The three endsets come back under slots 1/2/3, not pooled. Were the
+  read to return the bag `F ∪ Θ`, the reader could no longer tell that `[1.0.1.0.9.0.1.1]`
+  classifies the link while the others are its source — a different relationship (L6).
+- *RL5 (ghost-type completeness).* `Θ`'s address holds nothing, yet the read returns it intact;
+  the type is interpreted as `coverage(Θ) = {[1.0.1.0.9.0.1.1]}` (L8), no dereference attempted.
+  The read of this ghost-typed link is no less complete than any other.
+- *RL-ARITY.* Arity is 3 and `Θ ≠ ∅`, while the connective slot `G = ∅` is permitted — exactly
+  the mandatory-type / permissive-direction split.
+
+*An orphaned instance (RL8).* Suppose that at state `Σ` no document arrangement maps any
+V-position to the three I-addresses in `coverage(F)` — the connected content is arranged nowhere,
+so the link is orphaned and `discoverable_from(a, d, Σ)` is false for every `d` (cf. the
+ghost-projection situation, ASN-0098). A *follow* of `F` against any arrangement would resolve to
+the empty set, and a *search* would find nothing to match. The direct read is unaffected: it
+consults only `Σ.L`, so `readlink(a, Σ) = (F, ∅, Θ)` still returns the complete structure. The
+read thus distinguishes *the relationship is unwitnessed* (true here) from *the relationship is
+gone* (false — `a ∈ dom(Σ.L)` and its value is fixed by L12 / LP13).
 
 ## Claims Introduced
 
