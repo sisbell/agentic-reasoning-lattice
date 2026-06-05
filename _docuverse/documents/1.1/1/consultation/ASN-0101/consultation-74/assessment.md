@@ -1,12 +1,12 @@
 # Channel Assignment — ASN-0101 review-74
 
-**Date:** 2026-06-04 16:03
+**Date:** 2026-06-05 03:03
 
 ## Issue 1: P4a discharge in the D11 boundary derivation relies on a single-step argument at a multi-step composite boundary
-Reason: Internal fix — the correction is a proof-rigor adjustment using J1'★ (already cited from ASN-0047) to show new provenance pairs in a DEL-terminated composite have a surviving content-subspace witness at `B_{j+1}`. No design intent or implementation evidence is needed; the materials are entirely present in the ASN and ASN-0047.
+Reason: The fix is derivable from the ASN's own content — J1'★ (already cited in D11's vacuity argument and ASN-0047) guarantees every new `(a, d) ∈ R' \ R` has a surviving content-subspace witness at the endpoint boundary, which is exactly the witnessing condition P4a requires. No design intent or implementation evidence is needed; the argument is a structural extension of material already present.
 
 ## Issue 2: Wrong claim reference in the worked-example verification of D10
-Reason: Internal fix — a one-word reference correction ("D11 wp" → "D10 wp") fully specified by the review and the ASN's own claim structure.
+Reason: A pure textual correction ("D11 wp" → "D10 wp") fully specified by the review and confirmable against the ASN's own labeling — D11 is the ValidComposite★ extension and introduces no wp, while the wps belong to D10. No channel needed.
 
 ## Issue 3 (anti-bloat): Defensive vocabulary-provenance prose in D11
-Reason: Internal fix — a pure deletion of a redundant scoping sentence; no external input required.
+Reason: A pure deletion of an accreted sentence whose content is already carried by the vocabulary list itself. Internal editorial change requiring no external input.
