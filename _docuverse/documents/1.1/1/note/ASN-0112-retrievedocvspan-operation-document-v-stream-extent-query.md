@@ -71,11 +71,17 @@ does not designate the number of bytes contained. It does not designate a number
 anything" (4/24). The result is a *boundary description* — two tumblers, a start and a
 width, whose meaning is "from here, this far," with everything between implicit (4/25).
 
-We therefore take the result to be a single span `σ_d = (origin_d, extent_d)`. We record
-this as **V0** (span-valued result): `RETRIEVEDOCVSPAN(d)` returns one well-formed span,
-never a content sequence and never a cardinality. The caller reads `origin_d` to learn
+We therefore take the result to be a single span `σ_d = (origin_d, extent_d)` whenever the
+document carries content, and a *distinguished empty value* when it does not. We record this
+as **V0** (span-valued result): for a non-empty document `RETRIEVEDOCVSPAN(d)` returns one
+well-formed span — never a content sequence and never a cardinality — and for an empty
+document (`O(d) = ∅`) it returns the *empty span-set* `⟨⟩` (ASN-0053), the distinguished
+value denoting `∅`, which is *not* a T12 span. We treat `⟨⟩` as a separate inhabitant of
+the result type rather than forcing a degenerate span, because no T12 span can denote `∅`
+(S2, ASN-0053: every well-formed span is non-empty). The caller reads `origin_d` to learn
 where the V-stream begins and `extent_d` to learn how far it reaches; the content itself,
-and any per-piece count, are the business of other operations.
+and any per-piece count, are the business of other operations. The empty case is taken up in
+full below (V11).
 
 ---
 
@@ -103,24 +109,72 @@ of any content in the document (consultation Q12, Q15, Q20) — "the grasp is al
 occupied" (Q20). The start it reports for a text-bearing document is `1.1`, the first
 character position, not a padded `1.0` (Q15).
 
-**The span covers every occupied position.** We record **V2** (covering):
-`O(d) ⊆ ⟦σ_d⟧`. For any `v ∈ O(d)` we have `origin_d = min O(d) ≤ v` and
-`v ≤ max O(d) < shift(max O(d), 1) = reach_d` (TS4, ShiftStrictIncrease), so
-`origin_d ≤ v < reach_d`, i.e. `v ∈ ⟦σ_d⟧`. The extent is well-defined: `reach_d > max O(d)
-≥ origin_d` gives `reach_d > origin_d`, so `extent_d = reach_d ⊖ origin_d` is a positive
-tumbler (TumblerSub), and the span `(origin_d, extent_d)` is well-formed with reach
-`reach_d` (WF, ASN-0053, in the level-uniform case where `#origin_d = #reach_d`).
+**The extent is a well-formed displacement.** We first establish that `σ_d` is a legal T12
+span regardless of whether its endpoints share a depth. Since `reach_d = shift(max O(d), 1) >
+max O(d) ≥ origin_d` (TS4, ShiftStrictIncrease), we have `origin_d < reach_d`. The first
+position at which `origin_d` and `reach_d` diverge, `k = divergence(origin_d, reach_d)`,
+satisfies `k ≤ #origin_d` in every case: in the single-subspace case the two tumblers share
+the canonical prefix `[s_C,1,…,1]` and differ only at the last component, so `k = #origin_d`;
+in the cross-subspace case they differ already at position 1 (`s_C` vs `s_L`), so `k = 1 ≤
+#origin_d`. By D0 (DisplacementWellDefined, ASN-0034) — applicable because `origin_d <
+reach_d` and `divergence(origin_d, reach_d) ≤ #origin_d` — the displacement `extent_d =
+reach_d ⊖ origin_d` is a positive tumbler with `actionPoint(extent_d) = k ≤ #origin_d`. Hence
+`(origin_d, extent_d)` satisfies T12 and is a well-formed span. *We do not assume
+level-uniformity here.*
 
-**The span is the tightest covering bound.** We record **V3** (bounding):
-`origin_d` is the greatest lower bound and `reach_d` the least admissible upper bound of the
-occupied set under the document's ordinal convention. Any span `σ'` with `O(d) ⊆ ⟦σ'⟧`
-satisfies `start(σ') ≤ origin_d` (because `start(σ') ≤ min O(d)`) and
-`reach(σ') > max O(d)` (because the half-open interval must contain `max O(d)`), hence
-`reach(σ') ≥ reach_d` under the convention that ordinal positions advance one step at a
-time. So `σ_d` sits inside every covering span: it is the bounding span of `O(d)`. This is
-the formal core of Nelson's claim that origin and extent "describe the document as a whole"
-*implicitly* — "there is no choice as to what lies between; this is implicit in the choice
-of first and last point" (4/25). Fix the two boundaries and the whole is determined.
+**The span covers every occupied position.** We record **V2** (covering): `O(d) ⊆ ⟦σ_d⟧`.
+The denotation is `⟦σ_d⟧ = {t : origin_d ≤ t < origin_d ⊕ extent_d}`, so we must locate the
+*actual* reach `r⋆ = origin_d ⊕ extent_d` and show `max O(d) < r⋆`. Two cases on the relative
+depths:
+
+- *`#origin_d ≤ #reach_d`* (in particular the level-uniform case `#origin_d = #reach_d`). By
+  D1 (DisplacementRoundTrip, ASN-0034) the round-trip closes exactly: `r⋆ = origin_d ⊕
+  (reach_d ⊖ origin_d) = reach_d`. Then for any `v ∈ O(d)`, `origin_d ≤ v ≤ max O(d) <
+  reach_d = r⋆`, so `v ∈ ⟦σ_d⟧`.
+- *`#origin_d > #reach_d`* (content deeper than the maximal link position). By D0 the
+  round-trip *fails* — `r⋆ ≠ reach_d` — so we compute `r⋆` directly. With `k = 1`, TumblerAdd
+  gives `r⋆` agreeing with `reach_d` (zero-padded to length `#origin_d`) on every position
+  `1 ≤ i ≤ #reach_d` and carrying trailing zeros beyond, so `reach_d` is a proper prefix of
+  `r⋆` and `reach_d < r⋆` (T1 case (ii)). Hence `max O(d) < reach_d < r⋆`, and again every
+  `v ∈ O(d)` lies in `⟦σ_d⟧`.
+
+In both cases `r⋆ ≥ reach_d > max O(d)`, so coverage holds *unconditionally* — it does not
+route through level-uniformity or through WF. What level-uniformity buys is only that the
+span's reach *equals* `reach_d` exactly: `reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d`, which
+holds whenever the occupied subspaces share a common depth (the case the implementation
+always realizes — see V6).
+
+**The span is the tightest covering bound among same-depth reaches.** We record **V3**
+(bounding): `origin_d` is the greatest lower bound of `O(d)`, and `reach_d` is the *least*
+admissible upper bound *among tumblers of the same depth as* `max O(d)`. We are deliberately
+careful about the qualifier, because without it the claim is false. The lower bound is
+unconditional: any span `σ'` with `O(d) ⊆ ⟦σ'⟧` satisfies `start(σ') ≤ min O(d) = origin_d`.
+The upper bound requires an argument, not an appeal to a "one step at a time" convention —
+the tumbler line has no such convention. In fact `max O(d)` has a *strictly smaller* T1
+upper bound than `reach_d`: its true immediate successor is the zero-extension
+`max O(d).0`, with `max O(d) < max O(d).0 < shift(max O(d), 1) = reach_d`. The first
+inequality holds because `max O(d)` is a proper prefix of `max O(d).0` (T1 case (ii)); the
+second because, writing `w = max O(d) = [w_1,…,w_m]`, the tumblers `max O(d).0 =
+[w_1,…,w_m,0]` and `reach_d = [w_1,…,w_{m-1},w_m+1]` agree on positions `1…m-1` and diverge at
+position `m` with `w_m < w_m+1` (T1 case (i)). A span with reach `max O(d).0` would already
+cover `O(d)`, since `w < max O(d).0`. So `reach_d` is *not* the least admissible reach over
+all of `T`.
+
+What is true — and what V3 now claims — is that `reach_d` is the least reach among same-depth
+tumblers, i.e. those that keep the bounding span level-uniform with the occupied positions.
+Let `m = #max O(d)` and let `r` be any tumbler with `#r = m` and `r > max O(d)`; we show
+`r ≥ reach_d`. Write `w = max O(d) = [w_1,…,w_m]`, so `reach_d = [w_1,…,w_{m-1}, w_m + 1]`
+(OrdinalShift advances the last component). Since `#r = #w`, `r > w` means they first diverge
+at some position `j ≤ m` with `r_j > w_j` and `r_i = w_i` for `i < j`. If `j = m`, then
+`r_m ≥ w_m + 1` while `r` agrees with `w` (hence with `reach_d`) on `1…m-1`, so `r ≥ reach_d`.
+If `j < m`, then `reach_d` agrees with `w` on `1…m-1` so `reach_d_j = w_j < r_j` while both
+agree with `w` on `1…j-1`, giving `reach_d < r` (T1 case (i)). Either way `reach_d ≤ r`. So
+`reach_d` is the least same-depth strict upper bound of `max O(d)`, and the deeper successor
+`max O(d).0` is excluded precisely because it lifts the span out of level-uniformity. So
+`σ_d` is the tightest *level-uniform* covering span of `O(d)`. This is the formal core of
+Nelson's claim that origin and extent "describe the document as a whole" *implicitly* —
+"there is no choice as to what lies between; this is implicit in the choice of first and last
+point" (4/25). Fix the two boundaries and the whole is determined.
 
 ---
 
@@ -175,6 +229,25 @@ and includes inter-subspace positions that carry no content. The golden case is 
 characters plus one link report `1.1 for 1.2`, whose reach `[1,1] ⊕ [1,2] = [2,2]` bridges
 from the text start straight across the gap into link space (consultation Q11, Q19).
 
+A subtlety of depth must be settled here, because S8-depth permits distinct subspaces to
+carry distinct depths (`m_C` for content, `m_L` for links). In the cross-subspace case
+`origin_d` is a depth-`m_C` content position while `reach_d = shift(max O(d), 1)` is a
+depth-`m_L` link position (OrdinalShift preserves depth), so when `m_C ≠ m_L` the span is
+*not* level-uniform. The covering argument (V2) was proved without level-uniformity and so
+still holds; what changes is only the *reach*: by the V2 case analysis, `reach(σ_d) = reach_d`
+exactly when `#origin_d ≤ #reach_d` (i.e. `m_C ≤ m_L`), while when `m_C > m_L` the actual
+reach `r⋆` strictly exceeds `reach_d` (it is `reach_d` zero-padded to depth `m_C`). In all
+cases `r⋆ ≥ reach_d > max O(d)`, so the bounding-box reading of V6 stands. The implementation
+evidence settles which case actually arises: content and link V-positions are *always* placed
+at the same depth — both depth 2 — distinguished only by the first-component value `s_C = 1`
+vs `s_L = 2`, never by depth (consultation Q2: `findvsatoappend`, `findnextlinkvsa`, and
+`setlinkvsas` all emit depth-2 V-addresses). So `m_C = m_L` in every realized state, the
+cross-subspace span is level-uniform, and `reach(σ_d) = reach_d` exactly. We treat the
+`m_C ≠ m_L` divergence as an abstract possibility S8-depth admits but the implementation
+never exercises; the well-formedness (V2, V17) and covering (V2) claims hold either way, and
+only the V3 tightness claim is stated for the level-uniform reach that the uniform-depth
+discipline guarantees.
+
 This is not a defect peculiar to one engine. It is a *theorem about single spans*. A span
 is by construction one contiguous region (ASN-0053 S0, convexity): "if you want to designate
 a separated series of items exactly, including nothing else, you do this by a span-set, which
@@ -212,13 +285,23 @@ positions remain the dense set `{[s,1,…,1,k]}` by D-SEQ; only the values `M(d)
 permuted. Since `σ_d` is a function of `O(d)` alone, the reported span is *identical* before
 and after: reorder the document and its origin and extent do not move. This matches Nelson's
 classification of rearrangement as a "Pure Vstream operation" that leaves the measured extent
-fixed. Insertion and deletion, by contrast, change `O(d)`: inserting `n` positions extends
-the dense run, growing `max O(d)` by `n` ordinal steps and hence the extent by `n`, while
-leaving `origin_d` untouched (insertion never falls below the canonical minimum). We record
-**V10** (insertion monotonicity): an insertion of `n` content positions increases the extent
-by exactly `n` and leaves the origin fixed. Gregory confirms both halves directly — the
-arrangement-tree width grows by exactly the inserted count while the reported start is
-unchanged across single and repeated insertions (consultation Q16).
+fixed. Insertion and deletion, by contrast, change `O(d)` — but the effect on the extent
+depends on *which subspace owns the maximum*, since the reach is anchored at `max O(d)`.
+Consider inserting `n` content positions. When the content subspace is the maximal occupied
+subspace — in particular when the link subspace is empty — the inserted positions extend the
+dense content run, growing `max O(d)` by `n` ordinal steps and hence the extent by `n`, while
+leaving `origin_d` untouched (insertion never falls below the canonical minimum). When the
+link subspace is occupied, however, `max O(d)` is a *link* position `[s_L, …]` (since
+`s_C < s_L`), and inserting content positions `[s_C, …]` — all strictly below every link
+position — does not move `max O(d)` at all; `reach_d` and `extent_d` are therefore unchanged
+by the content insertion. We record **V10** (insertion monotonicity, content-maximal case):
+*when the content subspace is the maximal occupied subspace* (equivalently, the link subspace
+is empty), an insertion of `n` content positions increases the extent by exactly `n` and
+leaves the origin fixed; *when links occupy the maximum*, content insertion leaves both reach
+and extent invariant (the new positions fall inside the existing bounding box). Gregory
+confirms the content-maximal half directly — the arrangement-tree width grows by exactly the
+inserted count while the reported start is unchanged across single and repeated insertions
+(consultation Q16).
 
 ---
 
@@ -228,18 +311,27 @@ Nelson asks whether some documents have undefined origin and extent. The answer 
 the empty document is the case that tests it. `CREATENEWDOCUMENT` "creates an empty document"
 (4/65); a freshly created or fully emptied document has `O(d) = ∅`.
 
-We record **V11** (total answerability with zero-extent degenerate case): `RETRIEVEDOCVSPAN`
-is defined for every allocated document. When `O(d) = ∅`, the result is the *zero-extent
-span* — an origin with `extent_d = 0` (the zero tumbler) — a degenerate but perfectly
-well-defined span. Nelson's span model admits exactly this: "a span that contains nothing
-today may at a later time contain a million documents" (4/25). Emptiness is a *valid state of
-the address space*, not an undefined result. A document address with nothing stored against
-it — a "ghost element" (4/23) — answers identically: origin defined by position, extent
-zero. Gregory's implementation returns zeros for both displacement and width when the
-arrangement tree holds no content, independent of any residual tree structure left by prior
-deletions (consultation Q13). So the only sense in which the origin can fail to coincide with
-occupied content is the empty case, where there is no content to coincide with — and that
-case is answered, not refused.
+We record **V11** (total answerability via a distinguished empty result): `RETRIEVEDOCVSPAN`
+is defined for every allocated document. When `O(d) = ∅`, the result is the *empty span-set*
+`⟨⟩` (ASN-0053), the distinguished value denoting the empty set `∅`. We are careful here:
+this is *not* the "zero-extent span." A T12 span `(s, ℓ)` requires `Pos(ℓ)` (Span/T12,
+ASN-0034), and the zero tumbler fails `Pos`; worse, by TA6 (ZeroTumblers, ASN-0034) the zero
+tumbler is excluded from valid addresses entirely. So a pair `(origin_d, 0)` is not a
+well-formed span at all, and it cannot be returned as one without contradicting V0. The empty
+span-set carries no origin and no extent: `origin_d = min O(d)` is *undefined* when `O(d) = ∅`
+(the minimum of the empty set does not exist), and there is no extent tumbler. This is the
+honest content of the empty case — there is no first occupied position, hence no origin to
+report. Nelson's span model admits exactly this absence: "a span that contains nothing today
+may at a later time contain a million documents" (4/25). Emptiness is a *valid state of the
+address space*, not an undefined result; a document address with nothing stored against it —
+a "ghost element" (4/23) — answers identically, with the empty span-set. Gregory's
+implementation realizes the distinguished value by returning zeros for both displacement and
+width when the arrangement tree holds no content, independent of any residual tree structure
+left by prior deletions (consultation Q13). We read those zeros as a *sentinel* — an encoding
+of "no origin, no extent" — and not as a legal tumbler: the zero tumbler is precisely the
+value TA6 forbids as an address. So the only sense in which the origin can fail to coincide
+with occupied content is the empty case, where there is no content to coincide with and no
+origin at all — and that case is answered with `⟨⟩`, not refused.
 
 ---
 
@@ -310,8 +402,13 @@ tumbler can never have "negative magnitude": `reach_d > origin_d` always (V2), s
 sign-reversed value. Gregory confirms this is structurally guaranteed: even when prior
 deletions drive intermediate arrangement entries to negative displacements, the root width is
 recomputed as a maximum-minus-minimum reach and remains non-negative — the reported extent is
-never negative (consultation Q18). The extent reaches zero only in the empty case (V11), never
-through editing artifacts.
+never negative (consultation Q18). For every non-empty document the extent is strictly
+positive; there is no editing artifact that drives it to zero. The only way to obtain "no
+extent" is the empty document, which returns the distinguished empty span-set `⟨⟩` (V11) and
+carries no extent tumbler at all — emptiness is reported by the absence of a span, not by a
+zero-width one. We note V17's `Pos` and `actionPoint` claims hold *without* assuming
+level-uniformity (established in the V2 well-formedness paragraph via D0); level-uniformity is
+needed only for `reach(σ_d) = reach_d` exactly, not for T12 legality.
 
 ---
 
@@ -344,6 +441,26 @@ unchanged), `max = [1,3]`, `reach = [1,4]`, `extent = [1,4] ⊖ [1,1] = [0,3]`, 
 origin fixed exactly where it was (V8). Reordering these three positions — permuting which
 I-address sits at each — leaves `O'(d)` unchanged and so returns the identical span (V9).
 
+**A non-level-uniform variant.** To exercise the abstract case S8-depth permits but the
+implementation never realizes (V6), let content sit at depth `m_C = 3` and the single link at
+depth `m_L = 2`:
+
+> `M(d) = { [1,1,1] ↦ a, [1,1,2] ↦ b, [2,1] ↦ ℓ }`,  `O(d) = {[1,1,1], [1,1,2], [2,1]}`.
+
+Then `origin_d = [1,1,1]` (depth 3) and `max O(d) = [2,1]`, so `reach_d = shift([2,1], 1) =
+[2,2]` (depth 2). Here `#origin_d = 3 > 2 = #reach_d`, so the span is *not* level-uniform.
+The extent is `[2,2] ⊖ [1,1,1]`: zero-padding `reach_d` to `[2,2,0]` and diverging at
+position 1 (`2 ≠ 1`), `extent_d = [2-1, 2, 0] = [1,2,0]` — a positive tumbler with
+`actionPoint = 1 ≤ 3 = #origin_d`, so V17/WF still hold. The *actual* reach is
+`r⋆ = origin_d ⊕ extent_d = [1+1, 2, 0] = [2,2,0]`, which by D0 is *not* `reach_d`: indeed
+`reach_d = [2,2]` is a proper prefix of `r⋆ = [2,2,0]`, so `reach_d < r⋆` (T1 case (ii)).
+Coverage nonetheless holds: `⟦σ_d⟧ = {t : [1,1,1] ≤ t < [2,2,0]}` contains `[1,1,1]`,
+`[1,1,2]`, and `[2,1]` (each strictly below `[2,2,0]`). So even with `m_C ≠ m_L`, **V2** is
+satisfied — the span covers `O(d)` — while the reach overshoots `reach_d` and the **V3**
+tightness claim (least *same-depth* reach) no longer applies, exactly as the restricted
+statements anticipate. This confirms that coverage and T12 legality survive depth divergence;
+only exact reach and tightness depend on the uniform-depth discipline.
+
 ---
 
 ## Preconditions and well-definedness
@@ -360,8 +477,9 @@ For the report to be defined we require:
 
 Under precondition 1 the result is total: by S8-fin the occupied set is finite, so its
 minimum and maximum (when non-empty) exist and the span is computed by V1–V2; when empty the
-result is the zero-extent span (V11). No further argument is needed — the operation consumes
-no caller-supplied position, so there is no range to validate.
+result is the distinguished empty span-set `⟨⟩` (V11), carrying no origin and no extent. No
+further argument is needed — the operation consumes no caller-supplied position, so there is
+no range to validate.
 
 ---
 
@@ -369,18 +487,18 @@ no caller-supplied position, so there is no range to validate.
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| V0 | `RETRIEVEDOCVSPAN(d)` returns one well-formed span `σ_d = (origin_d, extent_d)` — never a content sequence, never a count | introduced |
+| V0 | `RETRIEVEDOCVSPAN(d)` returns one well-formed span `σ_d = (origin_d, extent_d)` for a non-empty document, or the distinguished empty span-set `⟨⟩` (denoting `∅`, not a T12 span) when `O(d) = ∅` — never a content sequence, never a count | introduced |
 | V1 | When `O(d) ≠ ∅`, `origin_d = min O(d)` under T1 and `origin_d ∈ O(d)` (the origin is an occupied position) | introduced |
-| V2 | `O(d) ⊆ ⟦σ_d⟧` with `reach_d = shift(max O(d), 1) > max O(d)` (the span covers every occupied position) | introduced |
-| V3 | `σ_d` sits inside every span covering `O(d)` — it is the tightest bounding span (origin = greatest lower bound, reach = least admissible upper bound) | introduced |
+| V2 | `O(d) ⊆ ⟦σ_d⟧` (coverage), proved unconditionally via D0/D1 without assuming level-uniformity; the actual reach `r⋆ = origin_d ⊕ extent_d ≥ reach_d = shift(max O(d), 1) > max O(d)`, with equality `r⋆ = reach_d` iff `#origin_d ≤ #reach_d`; the span `(origin_d, extent_d)` is always a well-formed T12 span | introduced |
+| V3 | `origin_d` is the greatest lower bound of `O(d)`; `reach_d` is the least strict upper bound of `max O(d)` *among same-depth tumblers* (the deeper zero-extension `max O(d).0` is a smaller upper bound but breaks level-uniformity) — so `σ_d` is the tightest *level-uniform* covering span | introduced |
 | V4 | `extent_d` is computed from `O(d) = dom(M(d))` alone; content in `dom(C)` but absent from the arrangement (deleted, or native elsewhere) contributes nothing (Vstream-bounded, not Istream) | introduced |
 | V5 | When all occupied positions share one subspace, `⟦σ_d⟧` contains no occupied-depth position outside `O(d)` (exact cover of a contiguous run) | introduced |
-| V6 | When occupied positions span more than one subspace, `O(d) ⊊ ⟦σ_d⟧` — the span bridges the inter-subspace void (bounding box, not exact cover) | introduced |
+| V6 | When occupied positions span more than one subspace, `O(d) ⊊ ⟦σ_d⟧` — the span bridges the inter-subspace void (bounding box, not exact cover); the span is level-uniform whenever the subspaces share a depth (`m_C = m_L`, the case the implementation always realizes per consultation Q2), and coverage holds even when `m_C ≠ m_L` | introduced |
 | V7 | The result is always one convex region; fragmentation is unrepresentable in a single span, so multi-subspace documents are reported by enclosure (single-span contiguity) | introduced |
 | V8 | While the content subspace is non-empty, `origin_d = [s_C,1,…,1]`, invariant under all editing that leaves content present (origin permanence) | introduced |
 | V9 | `σ_d` is a function of `O(d)` alone; pure rearrangement preserves `O(d)` and returns the identical span (extent tracks composition, not arrangement) | introduced |
-| V10 | Inserting `n` content positions increases the extent by exactly `n` and leaves the origin fixed (insertion monotonicity) | introduced |
-| V11 | The operation is total over allocated documents; `O(d) = ∅` yields the zero-extent span (empty document answers, with defined origin and zero extent) | introduced |
+| V10 | When the content subspace is maximal (link subspace empty), inserting `n` content positions increases the extent by exactly `n` and leaves the origin fixed; when links occupy the maximum, content insertion leaves reach and extent invariant (insertion monotonicity, content-maximal case) | introduced |
+| V11 | The operation is total over allocated documents; `O(d) = ∅` yields the distinguished empty span-set `⟨⟩` (not a T12 span), with `origin_d` undefined and no extent — the implementation's zeros are a sentinel, not a legal address (TA6) | introduced |
 | V12 | The span discloses the live origin (addressing anchor) and current extent (present bounds) — neither derivable from `d`'s identity (information gain) | introduced |
 | V13 | `σ_d` depends only on `O(d)`; two documents sharing content report independent spans; transcluded positions count toward the borrowing document's extent (independence) | introduced |
 | V14 | Every position the span covers maps through `M(d)` to a permanent, immutable I-address (S3, S0, P0); sharing preserves what the span denotes (permanence) | introduced |
