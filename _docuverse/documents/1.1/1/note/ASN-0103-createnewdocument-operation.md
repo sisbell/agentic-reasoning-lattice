@@ -47,12 +47,12 @@ We split on whether `A` already has documents. Here we must be careful: not ever
 
   `D_A = {e ∈ E : Document(e) ∧ parent(e) = A ∧ #e = #A + 2}`,
 
-which is exactly the set of `A_doc(A)` emissions present in `E`. Then the allocated address is
+which collects exactly the entities of `E` carrying the document chain's structural signature beneath `A`. Every `A_doc(A)` emission present in `E` has this signature, so `E ∩ S(A, 2) ⊆ D_A`. Then the allocated address is
 
   `d = inc(A, 2)` if `D_A = ∅`,
   `d = inc(d_prev, 0)` otherwise, where `d_prev = max(D_A)`.
 
-In both cases `d` is the next emission of `A_doc(A)`. We must verify three structural facts and one separation fact.
+The maximum is well-defined: `E` is finite at every reachable state — `Σ₀.E = {n₀}` is a singleton (ASN-0047) and each transition adjoins at most one entity (`K.δ`: `E' = E ∪ {e}`) — so its subset `D_A` is finite and, when non-empty, has a T1-maximum. We claim only what the load-bearing facts below require: in both cases `d` lies on `A_doc(A) = S(A, 2)` and strictly exceeds every member of `D_A`. For `D_A = ∅`, `d = inc(A, 2)` is the stream's first element; otherwise `d = inc(max(D_A), 0)` is the sibling step immediately past the current frontier `max(D_A)`. We do not assert that `D_A` is a contiguous initial prefix of the stream — that would make `d` *the* next unallocated emission, a stronger claim than freshness, monotonicity, and uniqueness need. We must verify three structural facts and one separation fact.
 
 *Document level.* For the first case, `inc(A, 2)` is a depth-2 descent: by the increment law (TA5, ASN-0034) it appends two components, and by the field-advancement law `zeros(inc(A, 2)) = zeros(A) + 1 = 2` (B5, ASN-0040), so `Document(d)` holds. For the subsequent case, `inc(d_prev, 0)` is a sibling step: it preserves length and zero-count (TA5(c), B5a; ASN-0040), so `zeros(d) = zeros(d_prev) = 2` and `parent(d) = parent(d_prev) = A` (K.δ-ID.parent-0, ASN-0047). Either way `Document(d) ∧ parent(d) = A`.
 
