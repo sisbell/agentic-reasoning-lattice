@@ -541,6 +541,43 @@ report, yet `n_{s_L}(d') = 0` remains a fact about `V_{s_L}(d') = ∅` (W1), wel
 independently of whether the report emits a link member. The report omits the empty subspace
 while the count of that subspace is still a defined zero — the very separation W14 records.
 
+**A depth-`3` instance: prefix-confinement is non-vacuous.** Both instances above fix
+`m_S = 2`, where the canonical prefix `[S,1,…,1]` collapses to length `m_S − 1 = 1`. There the
+only same-depth V-slice tumblers in play are `[S,j]` (excluded when `j > n_S` by the
+last-component bound) and `[S',·]` with `S' ≠ S` (excluded by the first component). The step
+that W4 and W10 actually turn on — T5's confinement of every interior tumbler to the prefix
+`[S,1,…,1]`, which rules out tumblers diverging at an *interior* position while still carrying
+an admissible last component — is vacuous at `m_S = 2`. We exercise it at `m_S = 3`, where the
+prefix `[S,1]` has length `m_S − 1 = 2` and an interior position genuinely exists between the
+subspace identifier and the last component.
+
+Let `V_S(d)` have depth `m_S = 3` with `n_S = 2`, so by D-SEQ★
+
+> `V_S(d) = {[S,1,1], [S,1,2]}`,  `start_S = [S,1,1]`,
+
+and the extent span (W2) is
+
+> `ext(d, S) = ([S,1,1], δ(2,3)) = ([S,1,1], [0,0,2])`,  `reach(ext(d, S)) = [S,1,1] ⊕ [0,0,2] = [S,1,3]`.
+
+The half-open denotation is `⟦ext(d, S)⟧ = {t : [S,1,1] ≤ t < [S,1,3]}`. Now take the V-slice
+tumbler `[S,2,1] ∈ VSlice(S, 3)` — a depth-`3`, zero-free tumbler of subspace `S` that agrees
+with the active positions on the first component but *diverges at the interior position `2`*,
+and whose last component `1` nonetheless lies in the admissible range `1..n_S`. This is exactly
+the candidate that the last-component bound alone would *not* reject. By T1 the first
+disagreement decides the order: comparing `[S,2,1]` against `reach = [S,1,3]` at position `2`
+gives `2 > 1`, so `[S,2,1] > [S,1,3]`, placing it past the upper bound. It is therefore *not*
+in `⟦ext(d, S)⟧`. Equivalently, T5 applied to the common prefix `[S,1]` (length `m_S − 1 = 2`)
+shared by `start_S` and `reach` confines every interior tumbler to that prefix, and `[S,2,1]`
+fails to extend `[S,1]` — so it cannot slip in despite its admissible last component. The
+remaining V-slice tumblers within the half-open bounds are exactly `[S,1,1]` and `[S,1,2]`,
+their last components pinned to `1..2`, giving
+
+> `⟦ext(d, S)⟧ ∩ VSlice(S, 3) = {[S,1,1], [S,1,2]} = V_S(d)`,
+
+which confirms W4 in the regime where prefix-confinement does the actual work. The
+`m_S = 2` instances above check W4 only where the prefix is trivial; this instance checks it
+where an off-prefix, admissible-last-component tumbler must be — and is — excluded.
+
 ---
 
 ## Permanence of the report
