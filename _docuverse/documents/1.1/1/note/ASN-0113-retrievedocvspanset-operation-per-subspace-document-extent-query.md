@@ -172,18 +172,38 @@ implicit in the boundary, and made explicit only because the subspace is contigu
 
 **Exactness is contingent on contiguity.** We pause to record what makes W4 hold, because an
 alternative implementation must not lose it. The single covering span is exact *only because*
-`V_S(d)` is a contiguous run (D-CTG★). Were the active positions of a subspace fragmented —
-two clusters with a gap of inactive V-slice positions between them — a single span from
-minimum to maximum would *overshoot*, including inactive positions in the gap, and exact
-coverage by one span would be impossible; faithful reporting would then require a *span-set*
-within the single subspace, one member per cluster. We record **W5**
-(ExactnessRequiresContiguity): W4 holds for each subspace precisely when that subspace's
-active positions are contiguous; absent contiguity a single per-subspace span can only
-*bound*, not exactly cover. The docuverse maintains contiguity as an invariant (D-CTG★),
-so under well-formed editing the one-span-per-subspace report is exact — but the dependence
-is real, and Gregory's implementation exhibits exactly the bounding-box behavior when fed
-non-contiguous content (consultation Q11, Q13): the reported span runs minimum-to-maximum
-and silently absorbs interior gaps.
+`V_S(d)` is a contiguous run (D-CTG★). We state the dependence as a biconditional and prove
+both halves. We record **W5** (ExactnessRequiresContiguity): a single level-uniform span `σ`
+of subspace `S` at depth `m` satisfies `⟦σ⟧ ∩ VSlice(S, m) = V_S(d)` *if and only if*
+`V_S(d)` is contiguous in `VSlice(S, m)` — i.e. `V_S(d)` contains every V-slice tumbler lying
+(under T1) between its own minimum and maximum.
+
+The *forward* direction (contiguous ⟹ a single exact span exists) is W4 itself: under D-CTG★
+the run is contiguous, and `ext(d, S)` exactly covers it.
+
+The *converse* (non-contiguous ⟹ no single span is exact) we establish by the structure of
+the argument, then exhibit concretely. Suppose `V_S(d)` is *not* contiguous: there exist
+`p, q ∈ V_S(d)` and `r ∈ VSlice(S, m)` with `p < r < q` and `r ∉ V_S(d)`. Let `σ` be any
+level-uniform span with `⟦σ⟧ ∩ VSlice(S, m) ⊇ V_S(d)`. Then `p, q ∈ ⟦σ⟧`, and since a span's
+denotation is order-convex (T12; S0 of ASN-0053), `p < r < q` forces `r ∈ ⟦σ⟧`. As
+`r ∈ VSlice(S, m)`, we get `r ∈ ⟦σ⟧ ∩ VSlice(S, m)` while `r ∉ V_S(d)`, so the intersection
+strictly exceeds `V_S(d)` — `σ` overshoots and cannot be exact. No single span escapes this:
+any span covering both extremes drags in the gap point. Faithful reporting then requires a
+*span-set* within the single subspace, one member per contiguous cluster.
+
+Concretely, take `S` at depth `m = 2` with `V_S(d) = {[S,1], [S,3]}` and `[S,2]` inactive
+(`[S,2] ∈ VSlice(S, 2)` but `[S,2] ∉ V_S(d)`). The unique minimum-to-maximum level-uniform
+span is `σ* = ([S,1], δ(3,2))` with `reach(σ*) = [S,4]`, the smallest span containing both
+`[S,1]` and `[S,3]`. Its V-slice intersection is `⟦σ*⟧ ∩ VSlice(S, 2) = {[S,1], [S,2], [S,3]}`,
+which strictly contains `V_S(d)` precisely because `[S,2]` is admitted. So
+`⟦σ*⟧ ∩ VSlice(S, 2) ⊋ V_S(d)`: even the tightest single span is inexact, confirming the
+converse.
+
+The docuverse maintains contiguity as an invariant (D-CTG★), so under well-formed editing the
+one-span-per-subspace report is exact — but the dependence is real, and Gregory's
+implementation exhibits exactly the bounding-box behavior when fed non-contiguous content
+(consultation Q11, Q13): the reported span runs minimum-to-maximum and silently absorbs
+interior gaps.
 
 ---
 
@@ -214,11 +234,21 @@ alone.
 **Only the two counted subspaces appear.** A link is internally a three-ended structure,
 and its endpoint sub-addresses inhabit a *third* region of the address tree (a type/endpoint
 subspace, `s = 3`). That region is not a kind of *document content* — it is internal to a
-link's own storage — and so it is never a member of the span-set. We record **W9**
-(TwoKindsOnly): `occupied(d) ⊆ {s_C, s_L}`, and the result reports the text subspace and the
-link subspace only. Gregory's implementation confirms the architectural impossibility of a
-third member: the span-set builder emits at most one text span and one link span, and the
-endpoint region is never surfaced (consultation Q19).
+link's own storage — and so it is never a V-position of `d`. The substantive guarantee is not
+the definitional inclusion `occupied(d) ⊆ {s_C, s_L}` (which holds by construction of `W6`,
+since the candidate set is the literal `{s_C, s_L}`) but the fact that `O(d)` *exhausts* into
+exactly these two subspaces, leaving no occupied position in a third. This is precisely
+S3★-aux (SubspaceExhaustiveness, ASN-0047): `(A d, v : v ∈ dom(M(d)) : subspace(v) = s_C ∨
+subspace(v) = s_L)`. We record **W9** (TwoKindsOnly):
+
+> `O(d) = V_{s_C}(d) ⊔ V_{s_L}(d)`.
+
+The derivation: by S8a every `v ∈ O(d)` has a well-formed first component, and S3★-aux
+restricts that component to `{s_C, s_L}`, so `O(d) = {v ∈ O(d) : v₁ = s_C} ∪ {v ∈ O(d) : v₁ =
+s_L} = V_{s_C}(d) ∪ V_{s_L}(d)`. The union is disjoint because `s_C ≠ s_L` (SC-NEQ), so no
+`v` can satisfy both predicates. There is therefore *no third subspace* in which document
+content could reside, hence no third member can ever arise in the span-set — the report is
+intrinsically two-kinded, grounded in the foundation rather than in implementation behavior.
 
 ---
 
@@ -274,11 +304,29 @@ map `d ↦ (n_{s_C}(d), n_{s_L}(d))` is determined by neither coordinate alone. 
 neither projection is injective on the profile: for any value of one coordinate there exist
 states realizing distinct values of the other —
 
-> `(A c, k₁, k₂ : k₁ ≠ k₂ : (E d₁, d₂ : n_{s_C}(d₁) = n_{s_C}(d₂) = c : n_{s_L}(d₁) = k₁ ∧ n_{s_L}(d₂) = k₂))`
+> `(A c, k₁, k₂ ∈ ℕ : k₁ ≠ k₂ : (E d₁, d₂ : n_{s_C}(d₁) = n_{s_C}(d₂) = c : n_{s_L}(d₁) = k₁ ∧ n_{s_L}(d₂) = k₂))`
 
-and symmetrically with the roles of the subspaces exchanged. The construction is immediate:
-the two subspaces are independently populated (W14, below), so a document with `c` characters
-admits any link count, and conversely. This is why the profile distinguishes documents that
+and symmetrically with the roles of the subspaces exchanged.
+
+The existential is a reachability claim: for arbitrary `(c, k) ∈ ℕ × ℕ` a document realizing
+profile `(c, k)` must be constructible. We discharge it by exhibiting a transition sequence
+over the ASN-0047 vocabulary that drives `(n_{s_C}, n_{s_L})` to any target. Starting from a
+state in which `d ∈ E_doc` (allocated by K.δ, NodeBaptism then the document sub-allocator),
+the two subspaces are populated by *disjoint* transition kinds: `c` applications of the
+content-restricted arrangement extension K.μ⁺ — each adding one text V-position, with the new
+positions forming the dense run `{[s_C,1,…,1,j] : 1 ≤ j ≤ c}` by D-SEQ★ — drive
+`n_{s_C}(d) = c`; and `k` applications of the link-subspace extension K.μ⁺_L — each adding one
+link V-position, forming `{[s_L,1,…,1,j] : 1 ≤ j ≤ k}` by D-SEQ★ — drive `n_{s_L}(d) = k`.
+The amended K.μ⁺ confines its new V-positions to `subspace(v) = s_C` and K.μ⁺_L to
+`subspace(v) = s_L`, so the two counts are set by independent transition streams (this is the
+mechanism behind W15, Independence, below); neither stream constrains the other, so every
+`(c, k) ∈ ℕ × ℕ` is reachable (the empty subspace, count `0`, by performing zero extensions
+of that kind). To witness W12, fix `c, k₁, k₂ ∈ ℕ` with `k₁ ≠ k₂`: build `d₁` with profile
+`(c, k₁)` and `d₂` with profile `(c, k₂)` by the construction above; both share text extent
+`c` yet differ in link extent, so `n_{s_C}` does not determine `n_{s_L}`. The symmetric
+witness (fix the link extent, vary the text extent) is identical with the roles exchanged.
+
+This is why the profile distinguishes documents that
 one axis cannot tell apart: high text with near-zero links is original prose; near-zero text
 with high link count is a purely connective document — a link-set, an annotation layer; both
 substantial is a compound collage. The span-set is the report that returns *both* halves of
@@ -342,6 +390,56 @@ where the extent designates a region but the region's population differs from it
 
 ---
 
+## A worked instance
+
+We instantiate the operation on a concrete document to check the key postconditions against
+specific tumblers. Let `d` hold five characters of text and two home links, both subspaces at
+the minimal working depth `m_{s_C} = m_{s_L} = 2` — the degenerate case in which the canonical
+`[S,1,…,1]` form collapses to `[S,1]`, because the inner `1,…,1` segment has length
+`m_S − 2 = 0`. By D-SEQ★ the active positions are
+
+> `V_{s_C}(d) = {[1,1], [1,2], [1,3], [1,4], [1,5]}`,  `n_{s_C} = 5`,
+> `V_{s_L}(d) = {[2,1], [2,2]}`,  `n_{s_L} = 2`
+
+(recall `s_C = 1`, `s_L = 2`). The extent spans (W2) are
+
+> `ext(d, s_C) = ([1,1], δ(5,2)) = ([1,1], [0,5])`,
+> `ext(d, s_L) = ([2,1], δ(2,2)) = ([2,1], [0,2])`,
+
+so the operation returns the normalized span-set
+
+> `RETRIEVEDOCVSPANSET(d) = ⟨ ([1,1], δ(5,2)), ([2,1], δ(2,2)) ⟩`.
+
+**W3 (well-formed).** For `ext(d, s_C)`: the width `δ(5,2) = [0,5]` is positive (`Pos`), its
+action point is its last position `2`, and `#start = #[1,1] = 2`, so `actionPoint ≤ #start`;
+level-uniform since `#[0,5] = 2 = #[1,1]`. Its reach is `[1,1] ⊕ [0,5] = shift([1,1], 5) =
+[1,6] = [s_C,1,1+n_{s_C}]`. Identically `ext(d, s_L)` has reach `[2,3] = [s_L,1,1+n_{s_L}]`.
+Both satisfy T12.
+
+**W4 (exact coverage).** `⟦ext(d, s_C)⟧ = {t : [1,1] ≤ t < [1,6]}`. Intersecting with
+`VSlice(s_C, 2) = {[1,j] : j ≥ 1}` pins the depth-2, prefix-`[1,·]` tumblers with last
+component in `1..5`, i.e. `{[1,1],…,[1,5]} = V_{s_C}(d)`. Likewise `⟦ext(d, s_L)⟧ ∩
+VSlice(s_L, 2) = {[2,1],[2,2]} = V_{s_L}(d)`. Neither span omits an active position nor admits
+an inactive V-slice tumbler.
+
+**W11 (disjointness).** Every `t ∈ ⟦ext(d, s_C)⟧` has `t₁ = 1`; every `t ∈ ⟦ext(d, s_L)⟧` has
+`t₁ = 2` (W10). Since `1 ≠ 2`, `⟦ext(d, s_C)⟧ ∩ ⟦ext(d, s_L)⟧ = ∅`.
+
+**W13 (uniform shape).** The members are listed in increasing `S`, text (`s_C = 1`) before
+link (`s_L = 2`). They are separated: `reach(ext(d, s_C)) = [1,6] < [2,1] = start_{s_L}` by
+T1 (first component `1 < 2`), so no merge is possible and the sequence is already normalized.
+
+**W16 (partition).** The disjoint union of the two V-slice intersections is `{[1,1],…,[1,5]} ⊔
+{[2,1],[2,2]}`, which is exactly `{v ∈ O(d) : v₁ ∈ {s_C, s_L}} = V_{s_C}(d) ⊔ V_{s_L}(d) =
+O(d)` (the last equality by W9). No counted position is orphaned and no member claims an
+inactive position.
+
+The degenerate `m_S = 2` instance shows the canonical machinery surviving the collapse: with
+no interior `1`'s, `start_S = [S,1]` and the count `n_S` lives entirely in the last component
+of the width.
+
+---
+
 ## Permanence of the report
 
 A last question: may a later query of the same document identity contradict an earlier one,
@@ -378,11 +476,11 @@ of the arrangement it views; the operation adds none of its own and needs none.
 | W2 | `ext(d, S) = ([S,1,…,1], δ(n_S, m_S))` is the extent span encoding `n_S` | introduced |
 | W3 | `ext(d, S)` is a well-formed, level-uniform T12 span with `reach = [S,1,…,1,1+n_S]` | introduced |
 | W4 | ExactCoverage — `⟦ext(d, S)⟧ ∩ VSlice(S, m_S) = V_S(d)` (complete and exclusive) | introduced |
-| W5 | ExactnessRequiresContiguity — W4 holds per subspace iff that subspace's active positions are contiguous; else a single span only bounds | introduced |
+| W5 | ExactnessRequiresContiguity — a single level-uniform span exactly covers `V_S(d)` iff `V_S(d)` is contiguous in `VSlice(S, m)`; both directions proved, the converse by order-convexity (counterexample `{[S,1],[S,3]}`) | introduced |
 | W6 | `occupied(d) = {S ∈ {s_C, s_L} : V_S(d) ≠ ∅}` | introduced |
 | W7 | OneSpanPerOccupiedSubspace — result has exactly `|occupied(d)|` members, one per kind, not per fragment or item | introduced |
 | W8 | PureQuery — `Σ' = Σ`; the operation reads and writes nothing | introduced |
-| W9 | TwoKindsOnly — `occupied(d) ⊆ {s_C, s_L}`; the link-internal endpoint region is never a member | introduced |
+| W9 | TwoKindsOnly — `O(d) = V_{s_C}(d) ⊔ V_{s_L}(d)` (derived from S3★-aux); no third subspace holds content, so no third member can arise | introduced |
 | W10 | SubspaceConfinement — `(A t : t ∈ ⟦ext(d, S)⟧ : t₁ = S)` | introduced |
 | W11 | Disjointness — `⟦ext(d, s_C)⟧ ∩ ⟦ext(d, s_L)⟧ = ∅` | introduced |
 | W12 | ProfileIrreducibility — the pair `(n_{s_C}, n_{s_L})` is determined by neither coordinate alone | introduced |
