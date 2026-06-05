@@ -118,7 +118,9 @@ Each intermediate state in this sequence satisfies the per-state invariants (Cla
 **State Preconditions** (evaluated against the operation's pre-state Σ):
 - `d ∈ dom(M)`
 - `subspace(p) = s_C`
-- `#p = m_C` (the common depth of `V_{s_C}(d)` if non-empty per S8-depth, ASN-0036; if empty, `m_C := #p` with `#p ≥ 2`, binding the third argument of `ValidFirstInsertionPosition`)
+- depth of `p`, split by case:
+  - *Non-empty `V_{s_C}(d)`:* `#p = m_C`, where `m_C` is the common depth of `V_{s_C}(d)` fixed by S8-depth (ASN-0036) — the caller cannot choose otherwise.
+  - *Empty `V_{s_C}(d)`:* `#p ≥ 2` is the genuine constraint (there is no pre-existing depth to match); the operation then sets `m_C := #p`, binding the third argument of `ValidFirstInsertionPosition`.
 - `p` is a valid insertion position: either `ValidInsertionPosition(d, p)` (ASN-0036) for non-empty `V_{s_C}(d)` — equivalently `p ∈ {shift(min(V_{s_C}(d)), j) : 0 ≤ j ≤ |V_{s_C}(d)|}` (with `shift(t, 0) = t`) — or `ValidFirstInsertionPosition(d, p, m)` (ASN-0036) for empty `V_{s_C}(d)`, equivalently `p = [s_C, 1, …, 1]` of depth `m`
 - `n ≥ 1`
 - `v_k ∈ Val` for each `0 ≤ k < n`
@@ -232,7 +234,7 @@ The consequence Nelson emphasises (Q5): a reader holding any pre-state I-address
 
 The frame `(A d' : d' ≠ d : M'(d') = M(d'))` directly enforces independence: no document other than `d` has its arrangement altered. Coupled with `L' = L` and content-store preservation, this means that any document `d'` that transcludes content from `d` continues to map the same V-positions to the same I-addresses, and those I-addresses continue to resolve to the same values.
 
-Cross-document independence extends to link projection: for any link `ℓ ∈ dom(L)` and any document `d' ≠ d`, every elementary step of the decomposition carries the cross-document frame `M'(d'') = M(d'')` for `d'' ≠ d`, so `M(d')` is never modified and the projection from `d'` is unchanged, `project(ℓ, i, d', Σ') = project(ℓ, i, d', Σ)` (LP4, ArrangementSpecificity, composed stepwise; ASN-0098).
+Cross-document independence extends to link projection: for any link `ℓ ∈ dom(L)` and any document `d' ≠ d`, the projection from `d'` is unchanged, `project(ℓ, i, d', Σ') = project(ℓ, i, d', Σ)`. The stepwise derivation — chaining LP4 (ArrangementSpecificity; ASN-0098) across each elementary step's cross-document frame — is given once, in the `d' ≠ d` case of INS.proj (§Coverage and link discoverability).
 
 ### Arrangement functionality (S2)
 
@@ -464,13 +466,7 @@ The decomposition is admissible under ValidComposite★ because (i) every elemen
 
 This also discharges P3 (ExtendedTransitionInvariants; ASN-0047), the sole *composite-transition* obligation, which ASN-0047 states as the synthesis `P0 ∧ P1 ∧ P2 ∧ L12`. Each conjunct holds between the initial state Σ and the final state Σ': P0 (ContentPermanence — `dom(C) ⊆ dom(C')` with value preservation) follows from step 1's K.α firings extending `dom(C)` by fresh addresses while the K.μ⁻/K.μ⁺/K.ρ frames leave existing entries untouched; P1 (EntityPermanence — `E ⊆ E'`) follows from INS.frame.E (`E' = E`, no K.δ); P2 (ProvenancePermanence — `R ⊆ R'`) follows from step 4's K.ρ firings being purely additive on R; and L12 (LinkImmutability — `dom(L) ⊆ dom(L')` with value preservation) follows from INSERT firing no K.λ, so `L' = L`. Their conjunction is exactly P3, so the composite transition `Σ →* Σ'` satisfies ExtendedTransitionInvariants.
 
-The composite is *not* admissible in alternative decompositions that would break a per-state invariant at an intermediate:
-
-- *K.μ⁺ before K.α* (place `a_k` before allocating it). K.μ⁺'s precondition requires `a ∈ dom(C)` for every new mapping. The intermediate before K.α has `a_k ∉ dom(C)`, so K.μ⁺ cannot fire — the decomposition is ill-typed.
-
-- *K.μ⁺ without prior K.μ⁻ in an interior insertion.* K.μ⁺ extends `dom(M(d))`; it preserves existing mappings. To map both `[s_C, 1, …, 1, p_m]` to `M(d)([s_C, 1, …, 1, p_m])` (the original content) and to `a_0` (the new content) would violate S2 — per-state functionality. So shift via K.μ⁻ + K.μ⁺ is *required*, not an implementation choice.
-
-- *K.μ⁻ retaining strictly less than the Left prefix.* Both retention parameters of K.μ⁻ are admissible across `{0, 1, …, n_S}` per K.μ⁻'s precondition. A decomposition with `n'_{s_C} = 0` (full content-subspace shrinkage) is well-typed: the intermediate has `V_{s_C}(d_intermediate) = ∅` and satisfies D-CTG★, D-MIN★, D-SEQ★ vacuously. The subsequent K.μ⁺ may re-add the full sequential run `{[s_C, 1, …, 1, k] : 1 ≤ k ≤ N + n}` starting from the minimum, mapping each position to the appropriate I-address. The K.μ⁺ precondition requires only that the resulting M'(d) satisfies D-CTG★ and D-MIN★ — it does not require new positions to be added only at the high end. Such alternative decompositions are admissible and reach the same Σ'.
+The inter-step ordering constraints that *do* bind the decomposition — K.α before the K.μ⁺ that places its address, and (when K.μ⁻ fires) K.μ⁻ before K.μ⁺ — are enumerated once, below, under *forced orderings*; we do not restate them here as inadmissible alternatives.
 
 The post-state Σ' is *uniquely determined* by the operation contract; the substrate decomposition that realises it is not. We verify uniqueness component by component.
 
@@ -482,7 +478,7 @@ The post-state Σ' is *uniquely determined* by the operation contract; the subst
 
   *Other components.* `L' = L`, `E' = E`, `dom(M') = dom(M)` by the frame of every elementary step in the composite (no K.λ, no K.δ fires); `R' = R ∪ {(a_k, d) : 0 ≤ k < n}` because step 4 adds exactly these `n` pairs in some order — set union being order-independent, R' is identical across decompositions.
 
-Two representative comparisons confirm: a decomposition with `n'_{s_C} = p_m − 1` (the canonical choice) and one with `n'_{s_C} = 0` (full shrinkage) reach different intermediate states (the latter has empty V_{s_C} at the intermediate, the former retains the Left prefix), but both arrive at the same Σ'. K.μ⁻ retention parameters may range over `{0, 1, …, p_m − 1}` for the content subspace, K.μ⁺ may be split across multiple firings, and K.α + K.ρ firings may be reordered to a degree (described below), provided each intermediate satisfies the per-state invariants.
+Two representative comparisons confirm: a decomposition with `n'_{s_C} = p_m − 1` (the canonical choice) and one with `n'_{s_C} = 0` (full shrinkage) reach different intermediate states (the latter has empty V_{s_C} at the intermediate, the former retains the Left prefix), but both arrive at the same Σ'. Both are well-typed: the full-shrinkage intermediate has `V_{s_C}(d_intermediate) = ∅` and satisfies D-CTG★, D-MIN★, D-SEQ★ vacuously, and its subsequent K.μ⁺ re-adds the entire sequential run `{[s_C, 1, …, 1, k] : 1 ≤ k ≤ N + n}` from the minimum — admissible because the K.μ⁺ precondition requires only that the resulting M'(d) satisfy D-CTG★ and D-MIN★, not that new positions be added only at the high end. K.μ⁻ retention parameters may range over `{0, 1, …, p_m − 1}` for the content subspace, K.μ⁺ may be split across multiple firings, and K.α + K.ρ firings may be reordered to a degree (described below), provided each intermediate satisfies the per-state invariants.
 
 Among the elementary firings, three forced orderings arise from K.α firings and a fourth arises from K.μ⁻'s relationship to K.μ⁺ when K.μ⁻ fires. Every remaining pair commutes at the per-state level.
 
