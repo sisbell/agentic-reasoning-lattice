@@ -301,10 +301,11 @@ what can be delivered, signal the gap by absence, and never fail the whole.
 > positions the arrangement can bind — the unbound portion is always a *terminal
 > overrun* of the subspace's contiguous active range — the named positions past
 > the bound frontier — never an interior hole within that range. Named positions
-> of `⟦σⱼ⟧` deeper than `m_S` are unbound too, but they fall T1-interior to the
-> active range and are harmlessly filtered out of `act`; the no-interior-hole
-> guarantee is a claim about the bindable slice, not about every named tumbler in
-> the interval.
+> of `⟦σⱼ⟧` deeper than `m_S` are unbound too, but for a simpler reason: by
+> S8-depth every active subspace-`S` position has depth exactly `m_S`, so any
+> named position of depth `> m_S` is absent from `dom(Σ.M(dⱼ))` outright and is
+> harmlessly filtered out of `act`; the no-interior-hole guarantee is a claim
+> about the bindable slice, not about every named tumbler in the interval.
 
 This is forced by the model: `act(ρ, Σ)` is an intersection, so an unbound
 position is simply not enumerated.
@@ -323,12 +324,13 @@ active positions of `d` in subspace `S` are the contiguous prefix
 We confine the gap analysis to the *bindable slice* of `⟦σ⟧`: its depth-`m_S`,
 subspace-`S` members. These are the only named positions `dom(Σ.M(d))` can
 contain, since every active position has depth `m_S` (S8-depth) and subspace `S`.
-Named positions of `⟦σ⟧` deeper than `m_S` are necessarily unbound, and they fall
-T1-*interior* to the active range — a depth-`m_S` member `[S, 1, …, 1, k]` is
-bracketed below and above by its own proper extensions, which lie in `⟦σ⟧` yet
-never reach `dom(Σ.M(d))` — so they are simply dropped from `act`. The
-no-interior-hole property is therefore a statement about the bindable slice, not
-about every tumbler of the interval.
+Named positions of `⟦σ⟧` deeper than `m_S` are necessarily unbound, and the
+reason is immediate: S8-depth fixes the depth of every active subspace-`S`
+position at exactly `m_S`, so a named position of depth `> m_S` is simply absent
+from `dom(Σ.M(d))` and dropped from `act` — no claim about its T1-position
+relative to the active range is needed or made. The no-interior-hole property is
+therefore a statement about the bindable slice, not about every tumbler of the
+interval.
 
 We pin the shape of that slice by ContiguousSubtrees (ASN-0034, T5), *not* by
 D-SEQ★: D-SEQ★ governs the *bound* set `V_S(d)`, not the arbitrary named positions
