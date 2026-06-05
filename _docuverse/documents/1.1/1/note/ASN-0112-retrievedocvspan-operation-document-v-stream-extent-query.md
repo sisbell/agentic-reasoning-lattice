@@ -337,16 +337,28 @@ fixed. Insertion and deletion, by contrast, change `O(d)` — but the effect on 
 depends on *which subspace owns the maximum*, since the reach is anchored at `max O(d)`.
 Consider inserting `n` content positions. When the content subspace is the maximal occupied
 subspace — in particular when the link subspace is empty — the inserted positions extend the
-dense content run, growing `max O(d)` by `n` ordinal steps and hence the extent by `n`, while
-leaving `origin_d` untouched (insertion never falls below the canonical minimum). When the
-link subspace is occupied, however, `max O(d)` is a *link* position `[s_L, …]` (since
-`s_C < s_L`), and inserting content positions `[s_C, …]` — all strictly below every link
-position — does not move `max O(d)` at all; `reach_d` and `extent_d` are therefore unchanged
-by the content insertion. We record **V10** (insertion monotonicity, content-maximal case):
-*when the content subspace is the maximal occupied subspace* (equivalently, the link subspace
-is empty), an insertion of `n` content positions increases the extent by exactly `n` and
-leaves the origin fixed; *when links occupy the maximum*, content insertion leaves both reach
-and extent invariant (the new positions fall inside the existing bounding box). Gregory
+dense content run, advancing `max O(d)` by `n` ordinal steps; the reach and extent advance by
+the same shift, `reach_after = shift(reach_before, n)` and `extent_after = shift(extent_before,
+n)`, while `origin_d` is left untouched (insertion never falls below the canonical minimum).
+This is a *displacement* statement, not a count: the reach moves `n` ordinal steps along the
+tumbler line. A numeric coincidence does attend the dense single-subspace case — there
+`extent_d = [0,…,0,n_s]`, whose final component equals `|O(d)| = n_s` exactly, *because* the run
+is dense (D-SEQ★) and pinned at uniform depth from `[s,1,…,1]` (D-MIN★, S8-depth), so each
+ordinal step of the reach lines up one-for-one with one occupied position. But this coincidence
+is confined to that regime: the "not a number of anything" caveat (4/24) governs the
+cross-subspace and cross-population case, where positions between the endpoints — the
+inter-subspace void of V6, or unenumerated descendants of intermediate positions — are not
+recoverable from the span, and the final component counts ordinal steps, not contents. When the
+link subspace is occupied, `max O(d)` is a *link* position `[s_L, …]` (since `s_C < s_L`), and
+inserting content positions `[s_C, …]` — all strictly below every link position — does not move
+`max O(d)` at all; `reach_d` and `extent_d` are therefore unchanged by the content insertion.
+We record **V10** (insertion monotonicity, content-maximal case): *when the content subspace is
+the maximal occupied subspace* (equivalently, the link subspace is empty), an insertion of `n`
+content positions advances reach and extent by `n` ordinal steps —
+`extent_after = shift(extent_before, n)` — and leaves the origin fixed, with the count-coincidence
+(extent's final component `= |O(d)|`) holding only in the dense, depth-uniform single-subspace
+regime; *when links occupy the maximum*, content insertion leaves both reach and extent invariant
+(the new positions fall inside the existing bounding box). Gregory
 confirms the content-maximal half directly — the arrangement-tree width grows by exactly the
 inserted count while the reported start is unchanged across single and repeated insertions
 (consultation Q16).
@@ -550,6 +562,30 @@ result is the distinguished empty span-set `⟨⟩` (V11), carrying no origin an
 further argument is needed — the operation consumes no caller-supplied position, so there is
 no range to validate.
 
+The precondition for *legality* is trivial, but a caller wanting to know *what kind* of answer
+it will get — a faithful trace or a mere bounding box — is asking a non-trivial weakest-
+precondition question, and we can answer it. Take the distinguished result property
+`Exact ≡ "⟦σ_d⟧ contains no occupied-depth position outside O(d)"`. Reasoning backward from
+`Exact`, we ask which states `Σ` guarantee it. We claim
+
+> `wp(RETRIEVEDOCVSPAN(d), Exact) = (O(d) occupies at most one subspace)`.
+
+The derivation runs through V5, V6, V7. If `O(d)` lies in a single subspace `s` (or is empty,
+vacuously), V5 gives `Exact` directly: the dense run `{[s,1,…,1,k]}` is covered with no
+occupied-depth position left over (D-CTG★ closing the gaps). Conversely, if `O(d)` occupies
+*both* subspaces, V6 gives `O(d) ⊊ ⟦σ_d⟧` strictly — the reach crosses the inter-subspace void,
+admitting unoccupied positions inside the denotation — so `¬Exact`. The two directions exhaust
+the cases (an arrangement occupies zero, one, or two subspaces), so the single-subspace
+condition is both necessary and sufficient, hence the *weakest* precondition. V7 explains why
+this dichotomy is forced rather than incidental: a single span is one convex region, so exact
+tracing of a separated series is structurally impossible. The companion reach property factors
+the same way along the orthogonal endpoint axis:
+`wp(RETRIEVEDOCVSPAN(d), "reach(σ_d) = reach_d") = (#origin_d ≤ #reach_d)` (D1 closes the
+round-trip, D0 makes it fail otherwise) — a condition the uniform-depth discipline (`m_C = m_L`)
+always satisfies. A caller can thus decide *before* querying whether the answer will be exact
+(check single-subspace occupancy) and whether its reach is the tight `reach_d` (check the
+endpoint depths), without inspecting the returned span.
+
 ---
 
 ## Claims Introduced
@@ -566,7 +602,7 @@ no range to validate.
 | V7 | The result is always one convex region; fragmentation is unrepresentable in a single span, so multi-subspace documents are reported by enclosure (single-span contiguity) | introduced |
 | V8 | While the content subspace is non-empty, `origin_d = [s_C,1,…,1]`, invariant under all editing that leaves content present (origin permanence) | introduced |
 | V9 | `σ_d` is a function of `O(d)` alone; pure rearrangement preserves `O(d)` and returns the identical span (extent tracks composition, not arrangement) | introduced |
-| V10 | When the content subspace is maximal (link subspace empty), inserting `n` content positions increases the extent by exactly `n` and leaves the origin fixed; when links occupy the maximum, content insertion leaves reach and extent invariant (insertion monotonicity, content-maximal case) | introduced |
+| V10 | When the content subspace is maximal (link subspace empty), inserting `n` content positions advances reach and extent by `n` ordinal steps (`extent_after = shift(extent_before, n)`) and leaves the origin fixed — the count-coincidence (extent's final component `= |O(d)|`) holds only in the dense, depth-uniform single-subspace regime; when links occupy the maximum, content insertion leaves reach and extent invariant (insertion monotonicity, content-maximal case) | introduced |
 | V11 | The operation is total over allocated documents; `O(d) = ∅` yields the distinguished empty span-set `⟨⟩` (not a T12 span), with `origin_d` undefined and no extent — the implementation's zeros are a sentinel, not a legal address (TA6) | introduced |
 | V12 | The span discloses the live origin (addressing anchor) and current extent (present bounds) — neither derivable from `d`'s identity (information gain) | introduced |
 | V13 | `σ_d` depends only on `O(d)`; two documents sharing content report independent spans; transcluded positions count toward the borrowing document's extent (independence) | introduced |
@@ -579,7 +615,7 @@ no range to validate.
 
 What must a span-valued report guarantee so that the per-subspace extents of a multi-subspace document are recoverable exactly, given that a single span can only enclose disjoint subspaces rather than trace them?
 
-What invariant must relate the reported extent to the count of occupied positions, given that a span designates boundaries and explicitly not a cardinality?
+In the *multi-subspace* case — where the inter-subspace void places unoccupied positions between the endpoints — what invariant, if any, can relate the reported extent to the count of occupied positions, given that the dense single-subspace coincidence (final component `= |O(d)|`, settled by V5/V10) fails there and a span designates boundaries, not a cardinality?
 
 Under what conditions must the reported origin be the document's permanent tumbler identity rather than the minimum occupied V-position, and when do these coincide?
 
