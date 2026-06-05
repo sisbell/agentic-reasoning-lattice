@@ -20,7 +20,7 @@ We must say when a link *satisfies* a request. Nelson's rule is exact (LM 4/58):
 
 > `sat(a, Q, Σ)  ≡  (A i : 1 ≤ i ≤ 3 : coverage(Σ.L(a).eᵢ) ∩ Qᵢ ≠ ∅)`
 
-The structure is conjunctive across slots, disjunctive within: *every* part must be hit, but a part is hit by *any* overlapping span of the corresponding endset ("all or any part of <from set>", LM 4/69). An unconstrained part `Qᵢ = T` is satisfied by any link with a non-empty `i`-th endset; an empty part `Qᵢ = ∅` is satisfied by no link, since `coverage(e) ∩ ∅ = ∅`. We require at least one constrained part, so that the request denotes a genuine query rather than the entire store.
+The structure is conjunctive across slots, disjunctive within: *every* part must be hit, but a part is hit by *any* overlapping span of the corresponding endset ("all or any part of <from set>", LM 4/69). An unconstrained part `Qᵢ = T` is satisfied by any link with a non-empty `i`-th endset; an empty part `Qᵢ = ∅` is satisfied by no link, since `coverage(e) ∩ ∅ = ∅`. We impose no well-formedness constraint requiring any part to be constrained. The fully-unconstrained request `Q = (T, T, T)` is a legitimate — if maximally broad — query: it counts every stored link, since every link carries three non-empty endsets (L3). This matches Nelson's design, where "any" is expressed not by *omitting* a part but by *widening* it to the universal span — a single "1" digit "may be used to designate ... the entire docuverse" (LM 4/38) — and the architecture is built to *serve* such breadth, not reject it ("the quantity of links not satisfying a request does not in principle impede search on others", LM 4/60). No part need be constrained for `num` to be defined.
 
 The **matching set** and the **count** follow:
 
@@ -80,7 +80,12 @@ This is the count a caller obtains who knows only arranged positions, not perman
 
 > **D1 (PresentTenseResolution).** `Qᵢ(Σ)` is a live reading of `d_q`'s arrangement. Editing `d_q` moves content into or out of the queried V-region without any link being created or retracted, so the resolved request — and hence `num_disc` — can change while `dom(Σ.L)` is fixed.
 
-> **D2 (DiscoveryNonMonotonicity).** `num_disc` is not monotone across `Σ →* Σ'`. Extending `d_q`'s arrangement can only enlarge each `Qᵢ(Σ)` (the image grows, LP9, ASN-0098), contracting it can only shrink each `Qᵢ(Σ)` (LP10), and reordering `d_q` preserves the image as a set (LP11 gives `ran(Σ'.M(d_q)) = ran(Σ.M(d_q))`) and hence preserves the count. Because the resolved request itself rises and falls, the composite count rises and falls.
+> **D2 (DiscoveryNonMonotonicity).** `num_disc` is not monotone across `Σ →* Σ'`, because the resolved request `Qᵢ(Σ)` — the *forward image* of the **fixed** V-region `Wᵢ` under `d_q`'s arrangement — moves with the arrangement. We reason about `Qᵢ` directly: it is a forward image of a query region, not the preimage `project(e, d, Σ)` of an endset's coverage that ASN-0098's LP9–LP11 govern, so those lemmas about `project` do not transfer to it.
+> - *Extension (K.μ⁺).* The extended arrangement agrees with the prior one on `dom(Σ.M(d_q))` and adds positions. So for every `v ∈ Wᵢ ∩ dom(Σ.M(d_q))` the image `Σ'.M(d_q)(v) = Σ.M(d_q)(v)` survives, and new positions falling in `Wᵢ` may add images. Hence `Qᵢ(Σ) ⊆ Qᵢ(Σ')` — the resolved request can only grow. (The two facts used — strict domain extension and prior-domain agreement — are the structural premises of LP9, applied here to the forward image rather than the preimage.)
+> - *Contraction (K.μ⁻).* The contracted arrangement agrees with the prior one on its retained, smaller domain. So `Qᵢ(Σ') ⊆ Qᵢ(Σ)` — the resolved request can only shrink.
+> - *Reordering (K.μ~).* The witnessing bijection `π` carries `Σ'.M(d_q)(v) = Σ.M(d_q)(π⁻¹(v))`, so `Qᵢ(Σ') = {Σ.M(d_q)(u) : u ∈ π⁻¹(Wᵢ) ∩ dom(Σ.M(d_q))}`. This need **not** equal `Qᵢ(Σ)`. Although LP11 preserves the *total* range (`ran(Σ'.M(d_q)) = ran(Σ.M(d_q))`), the forward image of a *fixed sub-region* `Wᵢ` is preserved only when `π` fixes `Wᵢ` setwise — `π⁻¹(Wᵢ) ∩ dom = Wᵢ ∩ dom`, as holds when `Wᵢ` is an entire subspace. A reordering that moves content across the `Wᵢ` boundary changes `Qᵢ(Σ)`, so for a positionally-anchored query `num_disc` can rise or fall under K.μ~ with no link created or retracted.
+>
+> Because the resolved request itself rises and falls, the composite count rises and falls.
 
 The two anchorings reconcile Nelson's design with the implementation evidence. Nelson speaks of the count of links *currently addressable* (deleted links are "not currently addressable", LM 4/9) — a present-tense reading that is the discovery count. The existence count is the same cardinality taken against permanent addresses, where the link store's own monotonicity shows through. An implementation that resolves the query through a document's mapping realises D1–D2; one that queries fixed addresses realises E1–E4. They agree exactly when the queried content has not been edited between readings.
 
@@ -106,13 +111,13 @@ A2 is the precise reconciliation of "a link to one version is a link to all vers
 
 ## How the Count Changes: Links Retracted
 
-To withdraw a link, in this model, is to remove it from the counted view — by arrangement contraction that severs its endpoints from every consulted document (the abstract analogue of "not currently addressable", LM 4/9), or by an explicit nullification that excludes it from the active population. In neither case does `dom(Σ.L)` itself shrink; the existence count (E2) cannot fall. It is the discovery count that retraction moves, and the governing law distinguishes sharply between retracting *a link* and deleting *content*.
+To withdraw a link from the count, in this model, is to remove it from the *view*, never from the store. The substrate provides no link-removal transition (L12), and udanax-green confirms the design literally: there is no DELETELINK in the FEBE protocol, no nullify or retract operation, and the `typelink` record carries no status field — "once created, a link exists forever." So `num` is *blind* to any notion of link nullification or retraction: no such notion has a count-visible mechanism, because nothing ever leaves `dom(Σ.L)`, and the existence count (E2) therefore cannot fall. Only the discovery count moves under withdrawal, and it moves through one mechanism alone: arrangement contraction that severs a link's endpoints from every consulted document — the abstract analogue of a link becoming "not currently addressable" (LM 4/9). The governing laws distinguish sharply between severing the reach of *one* link and deleting *content* that many links share.
 
-> **R1 (OneLinkOneDecrement).** Withdrawing a single link `a` removes exactly the element `a` from the counted set. The count decreases by one if `a` was counted, and by zero otherwise: `Δnum ∈ {−1, 0}`. A link is a single unit at a single address; its endset breadth does not multiply its identity (P1); and withdrawal does not cascade — a link whose endset *references* `a` (a link-to-link reference is by coverage, ASN-0043 L4(c)) is a distinct object that is not itself withdrawn, so no single retraction can subtract more than its own one unit.
+> **R1 (MinimalDecrementNoStoreRetraction).** No transition removes a link from `dom(Σ.L)`, so `num` registers no "retraction" or "nullification" as such — the existence count never falls, and the discovery count falls only through arrangement contraction of consulted content. In the minimal case — contracting away a single consulted entry whose resolved I-address is reached, in the relevant slot, by exactly one matching link — the discovery count drops by exactly one: `Δnum_disc = −1`. A link is a single unit at a single address; its endset breadth does not multiply its identity (P1); and severing it does not cascade — a distinct link whose endset merely *references* `a` by coverage (a link-to-link reference, ASN-0043 L4(c)) is a separate object, untouched. The decrement of one is the *floor* on a contraction's effect, the `k = 1` case of R2 below — not the action of a per-link delete operation, which does not exist.
 
-Content deletion is the opposite — it is precisely where the decrement can exceed one, because one endpoint may be shared by many links.
+R1 is the minimal case; the general case is where the decrement *exceeds* one, because the contracted endpoint may be shared by many links.
 
-> **R2 (ContentDeletionUnbounded).** Contracting an arrangement so as to remove an endpoint that `k` distinct links reach can drop up to `k` links from the discovery count in one operation: `Δnum ∈ {−k, …, 0}`. The per-operation bound is *not* one; it is the number of links whose only consulted reach ran through the deleted entry. The "one link, one decrement" law of R1 is a law about retracting links, never about deleting content.
+> **R2 (ContentDeletionUnbounded).** Contracting an arrangement so as to remove an endpoint that `k` distinct links reach can drop up to `k` links from the discovery count in one operation: `Δnum ∈ {−k, …, 0}`. The per-operation bound is *not* one; it is the number of links whose only consulted reach ran through the deleted entry. R1's `Δnum_disc = −1` is the `k = 1` instance: the same contraction mechanism, specialised to an endpoint reached by a single matching link. There is no separate per-link retraction operation that subtracts exactly one independently of sharing — the decrement is always governed by how many links reached the deleted content.
 
 A link survives partial damage to its endpoints, and is counted as long as *any* of its reach remains.
 
@@ -124,7 +129,45 @@ Supersession — replacing a document with a newer version — must not be mista
 
 These per-operation laws assemble into a conservation statement — but a conditional one, and the condition is exactly the anchoring.
 
-> **R5 (ConservationConditional).** For the existence count against a fixed permanent request, `num(Q, Σ₂) − num(Q, Σ₁) = (matching links created) − (matching links retracted)` holds exactly between any two states `Σ₁ →* Σ₂`, where "retracted" denotes nullification (the store itself never loses an address, L12). For the discovery count the identity fails: by D1, arrangement edits move membership into or out of the resolved request without any link being created or retracted, so the net change need not equal created-minus-retracted. The conservation law is faithful when the count is over currently-resident links against permanent addresses; it breaks the moment the request is pinned to a mutable arrangement.
+> **R5 (ConservationConditional).** For the existence count against a fixed permanent request, `num(Q, Σ₂) − num(Q, Σ₁) = (matching links created on the path)` holds exactly between any two states `Σ₁ →* Σ₂`. There is *no subtractive term*: the store never loses an address (L12) and no nullification is visible to `num`, so the identity is exactly E4. For the discovery count the identity fails: by D1, arrangement edits move membership into or out of the resolved request without any link being created, so the net change need not equal the number of matching creations. The conservation law is faithful when the count is over currently-resident links against permanent addresses; it breaks the moment the request is pinned to a mutable arrangement.
+
+## A Worked Instance
+
+To exercise the load-bearing claims against something concrete, fix a single document `d = 1.0.1.0.1` (a document-level tumbler, `zeros = 2`). Under it sit content addresses in the text subspace (`s_C = 1`) and link addresses in the link subspace (`s_L = 2`):
+
+- content: `a₁ = 1.0.1.0.1.0.1.1` and `a₂ = 1.0.1.0.1.0.1.2`, both in `dom(Σ.C)`;
+- links: `ℓ₁ = 1.0.1.0.1.0.2.1`, `ℓ₂ = …0.2.2`, `ℓ₃ = …0.2.3`, all in `dom(Σ.L)`;
+- a type address `τ` (any tumbler the type endsets name).
+
+Each endset below is a set of unit-depth spans; by PrefixSpanCoverage (ASN-0098) the coverage of a unit span at `a` contains `a`, which is all the intersection tests need. The three link values:
+
+| link | from `e₁` | to `e₂` | type `e₃` |
+|------|-----------|---------|-----------|
+| `ℓ₁` | `{a₁}` | `{a₂}` | `{τ}` |
+| `ℓ₂` | `{a₁}` | `{a₂}` | `{τ}` |
+| `ℓ₃` | `{a₁, a₂}` (two spans) | `{a₂}` | `{τ}` |
+
+`ℓ₁` and `ℓ₂` are value-identical at distinct addresses (permitted by L11b); `ℓ₃`'s from-endset carries two spans.
+
+**The request and the count.** Take the permanent request `Q = (Q₁, Q₂, Q₃)` with `Q₁ = {a₁, a₂}`, `Q₂ = {a₂}`, `Q₃ = {τ}`. Evaluate `sat`:
+
+- `ℓ₁`: `{a₁} ∩ Q₁ = {a₁} ≠ ∅`, `{a₂} ∩ Q₂ = {a₂} ≠ ∅`, `{τ} ∩ Q₃ ≠ ∅` — matches.
+- `ℓ₂`: identical to `ℓ₁` — matches.
+- `ℓ₃`: `{a₁, a₂} ∩ Q₁ = {a₁, a₂} ≠ ∅` (the from-endset meets `Q₁` in *two* places), `{a₂} ∩ Q₂ ≠ ∅`, `{τ} ∩ Q₃ ≠ ∅` — matches.
+
+So `match(Q, Σ) = {ℓ₁, ℓ₂, ℓ₃}` and `num(Q, Σ) = 3`.
+
+**P1 (set, not multiset).** `ℓ₃`'s from-endset passes `Q₁` through both of its spans, yet `ℓ₃` contributes `[sat] = 1`, not `2`. A backend that materialised the match list by appending `ℓ₃` once per matching span would report `4` and violate P1; the abstract count is of the *set* `{ℓ₁, ℓ₂, ℓ₃}`.
+
+**P2 (identity, not description).** `ℓ₁` and `ℓ₂` are value-identical but reside at distinct addresses, so they contribute `2`, not `1`. Collapsing them would erase one author's owned object.
+
+**E4 / E2 (creation conservation).** Apply two `K.λ` steps: create `ℓ₄ = …0.2.4` with value `({a₁}, {a₂}, {τ})` (matching), then `ℓ₅ = …0.2.5` with from-endset `{b}` for some `b ∉ Q₁` (non-matching). After `ℓ₄`: `num = 4`. After `ℓ₅`: `num = 4` (the non-matcher adds nothing). Across the two-step path the existence count rose by `1` — exactly the number of *matching* creations (E4) — and never fell (E2). No term subtracts: there is no link-removal step.
+
+**Discovery change under contraction and extension.** Returning to the original three-link store, read `Q` through `d`'s own arrangement. Let `M(d)` map content V-positions `v₁ ↦ a₁`, `v₂ ↦ a₂` and a type position `v_τ ↦ τ`, with query regions `W₁ = {v₁, v₂}`, `W₂ = {v₂}`, `W₃ = {v_τ}`. These resolve to exactly the `Q` above, so `num_disc(d, W, Σ) = 3`.
+
+Contract `M(d)` by `K.μ⁻`, removing `v₁ ↦ a₁`. The resolved from-part becomes `Q₁' = {a₂}`. Re-evaluate: `ℓ₁` and `ℓ₂` now fail (`{a₁} ∩ {a₂} = ∅`), while `ℓ₃` survives (`{a₁, a₂} ∩ {a₂} = {a₂} ≠ ∅`). So `num_disc` drops `3 → 1`. No link was created and none left `dom(Σ.L)`: the two-unit drop is R2 with `k = 2` — the I-address `a₁` was reached in the from-slot by exactly `ℓ₁` and `ℓ₂` (each only through `a₁`), while `ℓ₃` clung to the surviving `a₂` (R3). Now re-extend by `K.μ⁺`, reinstating `v₁ ↦ a₁`: `Q₁` returns to `{a₁, a₂}` and `num_disc` rises `1 → 3` (D2, extension). Throughout, the existence count stayed at `3` (E3): arrangement edits never touch `dom(Σ.L)`.
+
+**Reordering is not count-preserving for a positional sub-region.** Sharpen the query to `W₁ = {v₁}` alone, so `Q₁(Σ) = {a₁}`; all of `ℓ₁, ℓ₂, ℓ₃` (whose from-coverage meets `{a₁}`) match on slot 1. Reorder `M(d)` by `K.μ~`, swapping the images of `v₁` and `v₂` (`π` exchanges the two positions). Now `M'(d)(v₁) = a₂`, so `Q₁(Σ') = {a₂}`: the links whose from-coverage is exactly `{a₁}` — `ℓ₁` and `ℓ₂` — drop on slot 1, with no link created or retracted and the total range `ran(M(d)) = {a₁, a₂, τ}` unchanged. This is the corrected D2: `K.μ~` preserves `num_disc` only when `π` fixes the query region setwise — here `W₁ = {v₁}` is not fixed, so the count moves.
 
 ## What the Count Does Not Say
 
@@ -134,7 +177,7 @@ A count is an abstraction in the strict sense: a number standing in for a set, s
 
 The corollary is that equal counts carry no promise of equal answers, and a steady count carries no promise of a steady population.
 
-> **W2 (NonReconstructibility).** Equality of counts does not entail equality of matching sets: the same numeral may denote wholly different sets at two states or under two requests. Between two states, a retraction paired with a matching creation can hold the count fixed while every member of the matching set changes. The count sizes the answer; it never names it, and it cannot be inverted to the set it summarises.
+> **W2 (NonReconstructibility).** Equality of counts does not entail equality of matching sets: the same numeral may denote wholly different sets at two states or under two requests. Between two states, an arrangement withdrawal (which removes a link from the discovery view) paired with a matching creation can hold the discovery count fixed while every member of the matching set changes. The count sizes the answer; it never names it, and it cannot be inverted to the set it summarises.
 
 W1 and W2 are the disciplined statement of why the count is *useful* despite being lossy: it lets a caller size a result — gauge the cost of the richer query, decide whether to ask for the links at all — before paying to enumerate them. The loss of identity is the price and the point. A count that revealed identity would not be a count.
 
@@ -154,15 +197,15 @@ W1 and W2 are the disciplined statement of why the count is *useful* despite bei
 | E3 | The existence count is invariant under all non-link-creating transitions | introduced |
 | E4 | Existence-count change equals the number of matching link creations on the path | introduced |
 | D1 | A request resolved through an arrangement is present-tense; edits move the count with no link created or retracted | introduced |
-| D2 | The discovery count is non-monotone: extension raises, contraction lowers, reordering preserves | introduced |
+| D2 | The discovery count is non-monotone: extension raises `Qᵢ`, contraction lowers it, reordering preserves it only when `π` fixes the query region `Wᵢ` setwise | introduced |
 | D3 | `num = 0` asserts absence in the present view, not in the historical archive | introduced |
 | A1 | Fresh content addition is count-neutral for a request anchored to unchanged content | introduced |
 | A2 | Transclusion raises the discovery count (query-side reachability), not the existence count (store) | introduced |
-| R1 | Retracting one link changes the count by exactly `−1` or `0`; no cascade | introduced |
+| R1 | No store-level link retraction exists, so `num` is blind to nullification; contracting away an entry reached by exactly one matching link drops the discovery count by one (the `k=1` floor of R2); no cascade | introduced |
 | R2 | Deleting an endpoint shared by `k` links can drop up to `k` from the discovery count in one operation | introduced |
 | R3 | A link survives partial endpoint loss while any covered address remains in the resolved request | introduced |
 | R4 | Supersession does not decrement the count of links to the superseded content | introduced |
-| R5 | The conservation identity holds for the existence count, conditionally; it fails for the discovery count | introduced |
+| R5 | The existence-count change equals matching creations with no subtractive term (= E4); the conservation identity fails for the discovery count | introduced |
 | W1 | The count reveals only cardinality — no address, owner, endset, type, or arrival order | introduced |
 | W2 | Equal counts need not denote equal matching sets; the count cannot be inverted | introduced |
 
