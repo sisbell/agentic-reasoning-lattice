@@ -323,6 +323,66 @@ address, and the link store answers it directly. An open-document precondition w
 attach only to a *subsequent* act — resolving (E9) into a particular arrangement, or
 fetching content — not to the read of the endsets themselves.
 
+## A worked instance
+
+We check the load-bearing claims against one concrete link. Fix two documents
+`d₁ = [1, 0, 1, 0, 1]` and `d₂ = [1, 0, 1, 0, 2]` (each `zeros = 2`,
+document-level). Let the link reside at
+
+  `a = [1, 0, 1, 0, 1, 0, 2, 1]`,
+
+an element-level tumbler with `zeros(a) = 3`, element field `E(a) = [2, 1]` so
+`subspace_I(a) = s_L = 2` (a link address, L0), `#E(a) = 2 ≥ 2` (L1b), and
+`home(a) = N.0.U.0.D = [1, 0, 1, 0, 1] = d₁`. Its stored value is the standard
+triple `Σ.L(a) = (F, G, Θ)`:
+
+- `F = { (s₁, ℓ₁), (s₂, ℓ₂) }` with
+  `s₁ = [1, 0, 1, 0, 1, 0, 1, 5]` (in `d₁`, `subspace_I = s_C = 1`, T4-valid),
+  `ℓ₁ = [0, 0, 0, 0, 0, 0, 0, 3]` (positive, action point `8 ≤ #s₁ = 8`, so T12-well-formed),
+  and `s₂ = [1, 0, 1, 0, 2, 0, 1, 3]` (in `d₂`, T4-valid),
+  `ℓ₂ = [0, 0, 0, 0, 0, 0, 0, 2]` (action point `8 ≤ #s₂ = 8`). The two spans are
+  *discontiguous and cross-document*: `home(s₁) = d₁`, `home(s₂) = d₂`.
+- `G = ∅` — a one-sided link (`Endset` admits `∅`).
+- `Θ = { (g, ℓ_Θ) }` with `g = [2, 0, 0, 1]` and `ℓ_Θ = [0, 0, 0, 1]` (positive,
+  action point `4 ≤ #g = 4`, T12-well-formed). The start `g` has *adjacent zeros*
+  (positions 2 and 3), so `g` is **not** T4-valid; it is a *ghost* type address —
+  `g ∉ dom(Σ.C) ∪ dom(Σ.L)`. `Θ ≠ ∅`, discharging the non-empty type slot (E2/L3).
+
+Now walk the read.
+
+- **E1 (Faithfulness).** `READENDSETS(Σ, a) = Σ.L(a) = (F, G, Θ)`, slot for slot:
+  slot 1 is exactly `F`, slot 2 exactly `G`, slot 3 exactly `Θ`. No span is added or
+  dropped in any slot.
+- **E3 (SpanSetGranularity).** Slot 1 returns *both* members of `F` —
+  `(s₁, ℓ₁)` and `(s₂, ℓ₂)` — not a representative. The end is discontiguous
+  (`|F| = 2`) with its two spans resident in distinct documents `d₁, d₂`; the read
+  hands back the whole set.
+- **E4 (DirectionalRoles).** Slot 2 returns `G = ∅` as an empty directional slot.
+  The read reports the absent to-side as empty rather than inventing a counterpart;
+  the one-sided framing is preserved.
+- **E5 (TypeByAddressReturn).** Slot 3 returns `Θ` with `g ∈ coverage(Θ)`. The read
+  does *not* dereference `g`, and imposes no requirement that content sit at it —
+  which is fortunate, since `g` is a ghost (`g ∉ dom(Σ.C) ∪ dom(Σ.L)`). The
+  relationship's kind is legible from `g`'s identity alone.
+- **E7 (ParticipantDisclosure).** `participants(a) = { home(s) : (s, ℓ) ∈
+  Σ.L(a).eᵢ, T4-valid(s) ∧ zeros(s) ≥ 2 }`. The two `F` starts qualify:
+  `home(s₁) = [1, 0, 1, 0, 1] = d₁` and `home(s₂) = [1, 0, 1, 0, 2] = d₂`. The type
+  start `g` is excluded — `¬T4-valid(g)`, so the guard fails and `home(g)` is not
+  even invoked. Hence `participants(a) = { d₁, d₂ }`: the read names both
+  participating documents, and only those, with no appeal to a broadened `home`.
+- **E9 (ResolutionAttrition).** Suppose in `Σ` document `d₁`'s arrangement places the
+  content of `s₁` — some `v ∈ dom(Σ.M(d₁))` with `Σ.M(d₁)(v) ∈ ⟦(s₁, ℓ₁)⟧` — but the
+  content named by `s₂` has been deleted from *every* arrangement: no `d ∈ dom(Σ.M)`
+  has any `Σ.M(d)(v) ∈ ⟦(s₂, ℓ₂)⟧`. Then
+  `resolved(Σ, F) = coverage(F) ∩ (∪ d : ran(Σ.M(d)))` retains only the `s₁` portion
+  and drops the `s₂` portion entirely. The resolution is *partial* — strictly smaller
+  than `coverage(F)` — yet the read of `F` is unchanged: `Σ.L(a).e₁ = F` still
+  returns both spans (E1, E6). Attrition lives in the projection, never in the stored
+  endset.
+
+The instance exercises each claim against fixed values; nothing in it depends on the
+particular tumblers chosen beyond the structural conditions each claim names.
+
 ## Coda
 
 The four questions resolve into one structural fact and its consequences. The fact:
