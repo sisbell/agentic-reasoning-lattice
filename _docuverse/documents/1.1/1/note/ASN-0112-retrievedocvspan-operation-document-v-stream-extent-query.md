@@ -80,17 +80,29 @@ does not designate the number of bytes contained. It does not designate a number
 anything" (4/24). The result is a *boundary description* — two tumblers, a start and a
 width, whose meaning is "from here, this far," with everything between implicit (4/25).
 
-We therefore take the result to be a single span `σ_d = (origin_d, extent_d)` whenever the
-document carries content, and a *distinguished empty value* when it does not. We record this
-as **V0** (span-valued result): for a non-empty document `RETRIEVEDOCVSPAN(d)` returns one
-well-formed span — never a content sequence and never a cardinality — and for an empty
-document (`O(d) = ∅`) it returns the *empty span-set* `⟨⟩` (ASN-0053), the distinguished
-value denoting `∅`, which is *not* a T12 span. We treat `⟨⟩` as a separate inhabitant of
-the result type rather than forcing a degenerate span, because no T12 span can denote `∅`
-(S2, ASN-0053: every well-formed span is non-empty). The caller reads `origin_d` to learn
-where the V-stream begins and `extent_d` to learn how far it reaches; the content itself,
-and any per-piece count, are the business of other operations. The empty case is taken up in
-full below (V11).
+We therefore fix the result type *once and explicitly* as the tagged union
+
+> `RETRIEVEDOCVSPAN : dom(M) → Span + {⟨⟩}`,
+
+where `Span` is the type of T12 spans (a pair `(s, ℓ)`) and `⟨⟩` is the empty span-set of
+ASN-0053, the distinguished value denoting `∅`. We record this as **V0** (span-or-empty
+result): for a non-empty document `RETRIEVEDOCVSPAN(d)` returns one well-formed span
+`σ_d = (origin_d, extent_d)` — never a content sequence and never a cardinality — and for an
+empty document (`O(d) = ∅`) it returns the empty span-set `⟨⟩`, which is *not* a T12 span. The
+two summands are genuinely distinct: `⟨⟩` cannot be a degenerate span, because no T12 span can
+denote `∅` (S2, ASN-0053: every well-formed span is non-empty).
+
+We *considered* the alternative of typing the result uniformly as a span-set throughout —
+wrapping the non-empty answer as the singleton `⟨σ_d⟩` so that the empty case `⟨⟩` becomes one
+inhabitant of a single type. We reject it because Nelson fixes the result as "*a span* …
+the origin and extent of the V-stream" (4/68): the non-empty answer is exactly one span, and a
+singleton-span-set wrapper would obscure that primitive shape while adding no expressive power
+(a span-set result is the proper type of a different, per-subspace operation, out of scope
+here — see V7). The tagged union keeps the dominant case literally a span, as the design
+intends, while still giving emptiness a first-class value rather than an undefined result. The
+caller reads `origin_d` to learn where the V-stream begins and `extent_d` to learn how far it
+reaches; the content itself, and any per-piece count, are the business of other operations. The
+empty case is taken up in full below (V11).
 
 ---
 
@@ -392,9 +404,14 @@ byte stream just as if it were native" (4/11) and counts toward *that* document'
 spans even over identical content — "no arrangement … is a priori better than other
 arrangements" (2/19), and each document answers for its own bounds on its own terms.
 
-**Permanence of the underlying content.** We record **V14** (permanence): every position the
-span covers maps, through `M(d)`, to a permanent I-address in `dom(C)` (S3), and that content
-is immutable and never destroyed (S0, P0). The arrangement (Vstream) is fluid; the content
+**Permanence of the underlying content.** We record **V14** (permanence): every *occupied*
+position in `O(d)` — every position the span covers that actually carries content — maps,
+through `M(d)`, to a permanent I-address in `dom(C)` (S3), and that content is immutable and
+never destroyed (S0, P0). The restriction to `O(d)` is essential: in the cross-subspace case
+V6 establishes `O(d) ⊊ ⟦σ_d⟧` strictly, so the span also covers inter-subspace and unoccupied
+positions (e.g. `[1,4]` in the worked example) on which `M(d)` is simply undefined; for those
+covered-but-unoccupied positions there is no image through `M(d)`, and the permanence claim
+makes no assertion about them. The arrangement (Vstream) is fluid; the content
 identities it references are eternal. So even when the originating owner "deletes" content
 from this document's current version, "those bytes remain in all other documents where they
 have been included" (4/11) — sharing strengthens rather than threatens the permanence of what
@@ -498,11 +515,16 @@ For the report to be defined we require:
 
 1. `d ∈ dom(M)` — the document is allocated (M0, M1). An unallocated identity names no
    arrangement and has nothing to report.
-2. The caller may read `d`. Gregory's implementation gates the operation on the document
-   being open in the caller's session (a BERT check), failing the request otherwise rather
-   than returning a span (consultation Q17). Abstractly this is an *access* precondition: the
-   operation reports only on a document the caller is entitled to observe. It does not change
-   the value reported, only whether the report is produced.
+
+This single precondition is all the *value semantics* require. The abstract state
+`Σ = (C, L, E, M, R)` carries no session, caller identity, or read-entitlement component, so
+"the caller may read `d`" references machinery the model cannot express. Gregory's
+implementation does gate the operation on the document being open in the caller's session (a
+BERT check), failing the request otherwise rather than returning a span (consultation Q17) —
+but that is a *deployment-level access gate*, a concern distinct from the query's
+well-definedness and orthogonal to the value reported. We note it as an observation and leave
+authorization to a separate treatment; it forms no part of the precondition for the value this
+ASN specifies.
 
 Under precondition 1 the result is total: by S8-fin the occupied set is finite, so its
 minimum and maximum (when non-empty) exist and the span is computed by V1–V2; when empty the
@@ -516,7 +538,7 @@ no range to validate.
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| V0 | `RETRIEVEDOCVSPAN(d)` returns one well-formed span `σ_d = (origin_d, extent_d)` for a non-empty document, or the distinguished empty span-set `⟨⟩` (denoting `∅`, not a T12 span) when `O(d) = ∅` — never a content sequence, never a count | introduced |
+| V0 | `RETRIEVEDOCVSPAN : dom(M) → Span + {⟨⟩}` (tagged union): one well-formed span `σ_d = (origin_d, extent_d)` for a non-empty document, or the distinguished empty span-set `⟨⟩` (denoting `∅`, not a T12 span) when `O(d) = ∅` — never a content sequence, never a count; uniform singleton-span-set typing rejected to keep the non-empty result literally a span per Nelson 4/68 | introduced |
 | V1 | When `O(d) ≠ ∅`, `origin_d = min O(d)` under T1 and `origin_d ∈ O(d)` (the origin is an occupied position) | introduced |
 | V2 | `O(d) ⊆ ⟦σ_d⟧` (coverage), proved unconditionally via D0/D1 without assuming level-uniformity; the actual reach `r⋆ = origin_d ⊕ extent_d ≥ reach_d = shift(max O(d), 1) > max O(d)`, with equality `r⋆ = reach_d` iff `#origin_d ≤ #reach_d`; the span `(origin_d, extent_d)` is always a well-formed T12 span | introduced |
 | V3 | `origin_d` is the greatest lower bound of `O(d)`; `reach_d` is the least strict upper bound of `max O(d)` *among same-depth tumblers* (the deeper zero-extension `max O(d).0` is a smaller upper bound but breaks level-uniformity) — so `σ_d` is the tightest *level-uniform* covering span | introduced |
@@ -530,7 +552,7 @@ no range to validate.
 | V11 | The operation is total over allocated documents; `O(d) = ∅` yields the distinguished empty span-set `⟨⟩` (not a T12 span), with `origin_d` undefined and no extent — the implementation's zeros are a sentinel, not a legal address (TA6) | introduced |
 | V12 | The span discloses the live origin (addressing anchor) and current extent (present bounds) — neither derivable from `d`'s identity (information gain) | introduced |
 | V13 | `σ_d` depends only on `O(d)`; two documents sharing content report independent spans; transcluded positions count toward the borrowing document's extent (independence) | introduced |
-| V14 | Every position the span covers maps through `M(d)` to a permanent, immutable I-address (S3, S0, P0); sharing preserves what the span denotes (permanence) | introduced |
+| V14 | Every *occupied* position in `O(d)` (every covered position carrying content) maps through `M(d)` to a permanent, immutable I-address (S3, S0, P0); covered-but-unoccupied positions in the cross-subspace case (V6) carry no `M(d)` image; sharing preserves what the span denotes (permanence) | introduced |
 | V15 | A returned span keeps its meaning under later edits to `d` or to home documents supplying its content; a fresh report is a new query, not a mutation (snapshot stability) | introduced |
 | V16 | `σ_d` is a pure function of `O(d)`; equal arrangements return identical spans, independent of how the arrangement was built (determinism) | introduced |
 | V17 | For non-empty `d`, `extent_d` is a positive tumbler with `actionPoint(extent_d) ≤ #origin_d` (well-formed T12 span); `reach_d > origin_d` always, so the extent is never negative | introduced |
