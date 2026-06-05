@@ -319,7 +319,10 @@ itself is fixed across the editing in question. It is: the content depth `m_C` i
 "at any value `≥ 2`" only on full subspace clearance — when `V_{s_C}(d) = ∅`, the next
 insertion re-pins `m_C` from scratch (S8a). Editing "that leaves content present" never
 empties `V_{s_C}(d)`, so the re-pinning trigger never fires and `m_C` — hence the depth of
-`[s_C,1,…,1]` — stays fixed throughout. Editing
+`[s_C,1,…,1]` — stays fixed throughout. The complementary boundary — what the origin becomes
+when deletion clears the content subspace while links survive — is the one editing transition
+that does move the origin; we derive it as V18 below (the origin migrates to the link minimum
+`[s_L,1,…,1]`). Editing
 relocates I-addresses and shuffles V-positions, but it never moves the start of the stream:
 "the front-end application is unaware" of where bytes natively live (4/11), and the V-origin
 holds steady at the canonical first position. The origin is the stable anchor against which
@@ -362,6 +365,41 @@ regime; *when links occupy the maximum*, content insertion leaves both reach and
 confirms the content-maximal half directly — the arrangement-tree width grows by exactly the
 inserted count while the reported start is unchanged across single and repeated insertions
 (consultation Q16).
+
+Deletion is the mirror of insertion, but with one consequence insertion has no analogue for:
+deletion can *empty a subspace*, and emptying the content subspace moves the origin. We treat
+the three cases the reach-anchoring argument forces. **(i) Content-maximal retreat.** When the
+content subspace owns the maximum (in particular the link subspace is empty), deleting `n`
+content positions shrinks the dense content run from `n_C` to `n_C − n` occupied positions —
+D-SEQ★ keeps the survivors a contiguous prefix `{[s_C,1,…,1,k] : 1 ≤ k ≤ n_C − n}`, so
+`max O(d)` retreats by `n` ordinal steps to `[s_C,1,…,1,n_C − n]`, and the reach and extent
+retreat with it: `reach_after = shift(max O'(d), 1)` and `extent_after = reach_after ⊖ origin_d`,
+shorter than `extent_before` by exactly `n` ordinal steps. The origin is untouched so long as
+`n < n_C` (the run stays non-empty, so D-MIN★ still pins `[s_C,1,…,1]`). This is the exact
+inverse of V10's content-maximal advance. **(ii) Link-maximal invariance.** When a link occupies
+the maximum (`V_{s_L}(d) ≠ ∅`), every content position lies strictly below every link position
+(`s_C < s_L`), so deleting content positions leaves `max O(d)` — a link position — fixed, and
+`reach_d` and `extent_d` are invariant. This mirrors V10's link-maximal half exactly. The
+implementation realizes the invariance through a subspace guard: a text-width deletion (at the
+content exponent) cannot subtract from a link displacement (at the link exponent), so the
+links stay pinned at `[s_L, …]` throughout the content deletion (deletion consultation).
+**(iii) Full content clearance with surviving links — the origin migrates.** When deletion
+empties the content subspace (`V_{s_C}(d) = ∅`) while one or more links survive
+(`V_{s_L}(d) ≠ ∅`), the document is *not* empty, so V11 does not fire; but V8's hypothesis
+(content present) fails, and its conclusion lapses with it. The minimum occupied position is now
+`min V_{s_L}(d) = [s_L,1,…,1]` (D-MIN★ instantiated at `S = s_L`), so `origin_d` jumps from the
+content anchor `[s_C,1,…,1]` up into link space, and `reach_d = shift(max V_{s_L}(d), 1)` is
+now a link reach. This is precisely the boundary V8 excludes: origin permanence is asserted
+*while content is present*, never across the transition that clears it. We record **V18**
+(deletion symmetry and origin migration): deletion of `n` content positions retreats reach and
+extent by `n` ordinal steps when the content subspace is maximal (the inverse of V10) and leaves
+both invariant when links occupy the maximum; and when deletion clears the content subspace while
+links survive, `origin_d` migrates from `[s_C,1,…,1]` to the link minimum `[s_L,1,…,1]` — the
+sole editing transition that moves the origin, and exactly the boundary V8 excludes. Gregory
+confirms the migration: deleting all text while links remain is a permitted, non-empty state in
+which the arrangement-tree root V-displacement (maintained as the minimum occupied address)
+retreats to the link minimum, so `RETRIEVEDOCVSPAN` reports the link span — `2.1 for 0.1` in the
+golden link-only configuration — rather than the empty result (deletion consultation).
 
 ---
 
@@ -610,6 +648,7 @@ endpoint depths), without inspecting the returned span.
 | V15 | A returned span keeps its meaning under later edits to `d` or to home documents supplying its content; a fresh report is a new query, not a mutation (snapshot stability) | introduced |
 | V16 | `σ_d` is a pure function of `O(d)`; equal arrangements return identical spans, independent of how the arrangement was built (determinism) | introduced |
 | V17 | For non-empty `d`, `extent_d` is a positive tumbler with `actionPoint(extent_d) ≤ #origin_d` (well-formed T12 span); `reach_d > origin_d` always, so the extent is never negative | introduced |
+| V18 | Deletion of `n` content positions retreats reach and extent by `n` ordinal steps when the content subspace is maximal (inverse of V10) and leaves both invariant when links occupy the maximum; clearing the content subspace while links survive migrates `origin_d` from `[s_C,1,…,1]` to the link minimum `[s_L,1,…,1]` — the sole editing transition that moves the origin, and exactly the boundary V8 excludes (deletion symmetry and origin migration) | introduced |
 
 ## Open Questions
 
