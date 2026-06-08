@@ -48,7 +48,7 @@ The point that an implementation is most likely to miss is that this is a *set* 
 
 > **P1 (LinkAtomicity).** For each `a ∈ dom(Σ.L)`, the contribution of `a` to `num(Q, Σ)` is `[sat(a, Q, Σ)] ∈ {0, 1}`. The breadth of an endset — the number of spans, endpoints, or documents its coverage touches — enlarges `coverage(Σ.L(a).eᵢ)` and so can only make the intersection test *easier to pass*; it never multiplies the contribution. A link with a multi-span endset that meets the request in several places is counted once.
 
-P1 is the abstract content of the set-versus-multiset decision. Nelson's satisfaction rule collapses an endset of arbitrary breadth into a single boolean per link, and `num` sizes the set of links that pass. The search-scaling guarantee (LM 4/60, "the quantity of links not satisfying a request does not in principle impede search on others") is the dual observation that non-satisfying links contribute `0`; the count is insensitive to them.
+P1 is the abstract content of the set-versus-multiset decision. Nelson's satisfaction rule collapses an endset of arbitrary breadth into a single boolean per link, and `num` sizes the set of links that pass.
 
 Identity, not description, individuates the links being counted. Two links authored separately are two objects at two addresses, even if their from, to, and type endsets are value-identical.
 
@@ -95,9 +95,7 @@ The two counts agree exactly when the queried content has not been edited betwee
 
 This also fixes the tense of the empty answer.
 
-> **D3 (ZeroIsPresentNotHistorical).** `num(Q, Σ) = 0` asserts that no link in `dom(Σ.L)` satisfies `Q` *at `Σ`*. It does not assert that no such link ever existed, nor that none is discoverable from another document or another arrangement. Absence from the present count is non-existence *in the view*, not non-existence *in the archive*.
-
-A deleted link, in this model, is not removed from `dom(Σ.L)` — the substrate has no such operation (L12) — but ceases to be reachable through the arrangement the request consults, so it falls out of the discovery count while remaining a permanent member of the store. The archive (the store) and the view (the resolved, discoverable population) diverge exactly here.
+> **D3 (ZeroIsPresentNotHistorical).** `num(Q, Σ) = 0` asserts that no link in `dom(Σ.L)` satisfies `Q` *at `Σ`*. It does not assert that no such link ever existed, nor that none is discoverable from another document or another arrangement. A withdrawn link is never removed from `dom(Σ.L)` — the substrate provides no removal operation (L12) — but ceases to be reachable through the consulted arrangement, so it leaves the discovery count while remaining a permanent member of the store. Absence from the present count is non-existence *in the view*, not non-existence *in the archive*.
 
 ## How the Count Changes: Content Added
 
@@ -117,7 +115,7 @@ Copying content adds no entry to the link store. The link population does not gr
 
 ## How the Count Changes: Links Retracted
 
-To withdraw a link from the count, in this model, is to remove it from the *view*, never from the store. The substrate provides no link-removal transition (L12), and udanax-green confirms the design literally: there is no DELETELINK in the FEBE protocol, no nullify or retract operation, and the `typelink` record carries no status field — "once created, a link exists forever." So `num` is *blind* to any notion of link nullification or retraction: no such notion has a count-visible mechanism, because nothing ever leaves `dom(Σ.L)`, and the existence count (E2) therefore cannot fall. Only the discovery count moves under withdrawal, and it moves through one mechanism alone: arrangement contraction that severs a link's endpoints from every consulted document — the abstract analogue of a link becoming "not currently addressable" (LM 4/9). The governing laws distinguish sharply between severing the reach of *one* link and deleting *content* that many links share.
+To withdraw a link from the count, in this model, is to remove it from the *view*, never from the store. The substrate provides no link-removal transition (L12), and udanax-green confirms the design literally: there is no DELETELINK in the FEBE protocol, no nullify or retract operation, and the `typelink` record carries no status field — "once created, a link exists forever." So `num` is *blind* to any notion of link nullification or retraction: the existence count cannot fall (E2). Only the discovery count moves under withdrawal, and it moves through one mechanism alone: arrangement contraction that severs a link's endpoints from every consulted document — the abstract analogue of a link becoming "not currently addressable" (LM 4/9). The governing laws distinguish sharply between severing the reach of *one* link and deleting *content* that many links share.
 
 > **R1 (MinimalDecrementNoStoreRetraction).** Consider the *minimal contraction*: a `K.μ⁻` step removing a single consulted entry `v ↦ a`, under these preconditions:
 >
@@ -147,7 +145,7 @@ Supersession — replacing a document with a newer version — must not be mista
 
 These per-operation laws assemble into a conservation statement — but a conditional one, and the condition is exactly the anchoring.
 
-> **R5 (ConservationConditional).** Conservation holds against permanent addresses but fails under discovery anchoring. Against a fixed permanent `Q`, the existence count's change between `Σ₁ →* Σ₂` equals the number of matching links created on the path, with no subtractive term (E4). Under discovery anchoring this breaks: by D1 arrangement edits move membership into or out of the resolved request with no link created or retracted, so the net change need not equal the number of matching creations. Conservation is therefore conditional on the anchoring — faithful against permanent addresses, broken the moment the request is pinned to a mutable arrangement.
+> **R5 (ConservationConditional).** Conservation of the count is anchoring-conditional: against a fixed permanent `Q` it holds (E4), and under discovery anchoring it fails (D2).
 
 The R-laws above give *sufficient* conditions for the discovery count to fall. We now sharpen one of them into a *weakest* precondition, so that the boundary between "still counted" and "dropped" is characterised exactly rather than by a one-sided implication. The non-trivial postcondition we anchor to is the survival of a single counted link across an arrangement contraction — the per-link event whose aggregate over `match` *is* `Δnum_disc`.
 
@@ -199,8 +197,6 @@ Contract `M(d)` by `K.μ⁻`, retaining the content-subspace prefix `{[1,1], [1,
 **Reordering is not count-preserving for a positional sub-region.** Sharpen the from-region to `W₁ = {v₁}` while retaining `W₂ = {v₂}` and `W₃ = {v_τ}`. Pre-swap the regions resolve to `Q₁(Σ) = {a₁}`, `Q₂(Σ) = {a₂}`, `Q₃(Σ) = {τ}`, and all of `ℓ₁, ℓ₂, ℓ₃` match (each meets `{a₁}` on from, `{a₂}` on to, `{τ}` on type), so `num_disc = 3`. Reorder `M(d)` by `K.μ~`, swapping the images of `v₁` and `v₂` (`π` transposes the two content positions `v₁` and `v₂` and fixes every other position, so `v_τ` is untouched; it is length-preserving, subspace-preserving, and — with no link-subspace position in play — link-subspace-fixing vacuously). Now `M'(d)(v₁) = a₂` and `M'(d)(v₂) = a₁`, so `Q₁(Σ') = {a₂}`, `Q₂(Σ') = {a₁}`, `Q₃(Σ') = {τ}`. Re-evaluate all three slots: `ℓ₁` and `ℓ₂` fail on slot 1 (`{a₁} ∩ {a₂} = ∅`); `ℓ₃` passes slot 1 (`{a₁, a₂} ∩ {a₂} = {a₂} ≠ ∅`) but now fails slot 2 (`{a₂} ∩ {a₁} = ∅`). All three drop, so `num_disc` moves `3 → 0` — with no link created or retracted and the total range `ran(M(d)) = {a₁, a₂, τ}` unchanged. This exhibits D2's reordering clause: `π` carries the *distinctly-imaged* positions `v₁ ↦ a₁` and `v₂ ↦ a₂` across the `W₁` and `W₂` boundaries, so the image sets disagree (`Q₁` moves `{a₁} → {a₂}`, `Q₂` moves `{a₂} → {a₁}`) and the count moves.
 
 ## What the Count Does Not Say
-
-A count is an abstraction in the strict sense: a number standing in for a set, stripped of everything that distinguishes the set's members. The caller who reads `num(Q, Σ) = 47` learns the size of the answer and nothing of its content.
 
 > **W1 (CardinalAbstraction).** `num(Q, Σ)` is determined by `match(Q, Σ)` only through its cardinality. It identifies no link's address, owner, endsets, type, or order of arrival. Any two states whose matching sets are equinumerous are indistinguishable by the count. Identity and permanence of the individual links live in their tumbler addresses; the count lives one level above them and is silent about both. Recovering *which* links matched requires a different operation — one that returns the links — and that operation is out of scope here precisely because it answers a different question.
 
