@@ -397,18 +397,10 @@ Q14).
 
 ## Implementation evidence: the extent stays non-negative
 
-The non-degeneracy of the reported extent is settled by V2 alone — `σ_d`'s T12 legality
-(`Pos(extent_d)`, `actionPoint(extent_d) ≤ #origin_d`, regardless of endpoint depths) — and the
-only "no extent" outcome is the empty document's distinguished `⟨⟩` (V11). What this section adds
-is implementation evidence for that positivity, nothing more.
-
-*Implementation remark (evidence for V2).* Gregory's structure delivers V2's positivity even
-under adverse editing. Prior deletions can drive *intermediate* arrangement-tree entries to
-negative displacements, but the root width is recomputed as a maximum-minus-minimum reach and
-remains non-negative, so no editing transient surfaces a zero-or-below extent (consultation Q18).
-This confirms V2 in the concrete implementation; it introduces no further guarantee, since an
-alternative implementation need reproduce neither the negative intermediate entries nor the
-max-minus-min recomputation — only V2's positive extent.
+*Implementation remark (evidence for V2).* Prior deletions can drive *intermediate*
+arrangement-tree entries to negative displacements, but the root width is recomputed as a
+maximum-minus-minimum reach and remains non-negative, so no editing transient surfaces a
+zero-or-below extent (consultation Q18) — concrete evidence for V2's positivity.
 
 ---
 
@@ -444,8 +436,10 @@ I-address sits at each — leaves `O'(d)` unchanged and so returns the identical
 **An endpoint-depth-divergent variant (one line).** When `m_C = 3 > m_L = 2`:
 `M(d) = { [1,1,1] ↦ a, [1,1,2] ↦ b, [2,1] ↦ ℓ }` gives `origin_d = [1,1,1]`, `reach_d = [2,2]`,
 `extent_d = [1,2,0]` of depth 3, and the actual reach `r⋆ = [2,2,0]` overshoots `reach_d` exactly
-as V2's second covering case predicts (coverage and T12 legality survive; only the V3 same-depth
-tightness lapses).
+as V2's second covering case predicts (coverage and T12 legality survive; what lapses is the V2
+reach biconditional `reach(σ_d) = reach_d`, i.e. `ReachTight` — V3's same-depth tightness of
+`reach_d` relative to `max O(d)` is intact, since `reach_d = [2,2]` remains the least strict
+same-depth upper bound of `max O(d) = [2,1]`).
 
 ---
 
