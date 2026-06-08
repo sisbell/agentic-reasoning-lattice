@@ -211,17 +211,9 @@ maximum. The existential is essential: the forward direction asserts that contig
 *permits* an exact span (a poorly chosen `σ` may overshoot even when `V_S(d)` is
 contiguous), while the converse asserts that non-contiguity *defeats every* `σ`.
 
-The non-emptiness hypothesis is load-bearing and cannot be dropped. For empty `V_S(d)`
-the biconditional fails outright: its right-hand side is ill-defined (an empty run has no
-minimum or maximum, so "contiguous between its own extremes" has no referent), while its
-left-hand side is *false* — any level-uniform span `σ` of subspace `S` at depth `m`
-contains its own start `start(σ)`, a depth-`m` zero-free subspace-`S` tumbler, so
-`start(σ) ∈ ⟦σ⟧ ∩ VSlice(S, m)`, making the intersection non-empty and therefore unequal to
-`∅ = V_S(d)`; equivalently, no span denotes `∅` (S2, ASN-0053), so no `σ` can witness the
-existential. The empty subspace is thus *not* a degenerate instance of W5 but a case W5
-explicitly excludes: it is handled separately by W0, where an allocated document empty in a
-counted subspace simply contributes *no member* for that subspace (and `⟨⟩` overall when both
-are empty), the absent member standing for the vacuous extent that no span could represent.
+The non-emptiness hypothesis excludes empty `V_S(d)`, which W5 does not cover and W0 handles
+separately — an allocated document empty in a counted subspace contributes *no member* for
+that subspace (and `⟨⟩` overall when both are empty).
 
 The *forward* direction (contiguous ⟹ a single exact span exists) holds for *any* contiguous
 `V_S(d)`, not only the canonical run D-CTG★/D-MIN★ produce — and so it cannot simply cite W4,
@@ -376,30 +368,13 @@ t`. If `t₁ > S`, then by T1 `t > reach` — contradicting `t < reach`. Hence `
 
 For any `t` in the intersection we would need `t₁ = s_C` and `t₁ = s_L` at once (W10),
 impossible since `s_C ≠ s_L` (SC-NEQ, the `1 ≠ 2` of the convention). The SC-NEQ contradiction
-on the first component, under T1, suffices on its own. (We do *not* invoke T7,
-SubspaceDisjointness: T7 requires element-level I-addresses with `zeros = 3` and distinguishes
-by the *element-field* component `E₁`. The disjointness here rests only on `t₁ = S` holding
-for every `t` in each denotation, W10, combined with SC-NEQ — no claim about the zero-count
-of denotation tumblers is needed or made. Indeed those tumblers need not be zero-free: the
-denotation is the T1-interval `{t : start_S ≤ t < reach}`, which contains tumblers carrying
-zeros, e.g. `[S,1,0,1] ∈ ⟦ext(d, S)⟧` for `m_S = 2`, `n_S ≥ 1`, with `zeros = 1`. T7's
-preconditions are thus neither met nor needed.) The text region and the link region therefore *cannot* be the
+on the first component, under T1, suffices on its own. The text region and the link region therefore *cannot* be the
 denotation of a single span: a span is a contiguous interval (T12), and `⟦ext(d, s_C)⟧` and
 `⟦ext(d, s_L)⟧` are separated by every address between them — in particular the whole gap
 from `[s_C,1,…,1,1+n_{s_C}]` up to `[s_L,1,…,1]`. To "designate the separated series exactly,
 including nothing else" (4/25), one is *forced* into a span-set of two members. This is not a
 representational convenience but a structural necessity: the honest report of two
 separated regions is two spans.
-
-There is a second, independent reason the kinds resist a single extent, which our model
-records but does not depend on the address geometry for. The two subspaces count under
-*different disciplines*. Text positions are rearrangeable: editing permutes them, and the
-text run's order is the *current arrangement order*. Link positions, by contrast, accrue in
-*permanent order of arrival* and each link occupies exactly one position (CL-UNIQ); the link
-run is a creation-ordered count. A combined extent would conflate a count under one
-discipline with a count under another. The span-set keeps them apart so each is measured by
-its own rule — Nelson: links "are in their permanent order of arrival" (4/31), while the
-byte stream "may be continually altered by editorial operations" (4/30).
 
 ---
 
