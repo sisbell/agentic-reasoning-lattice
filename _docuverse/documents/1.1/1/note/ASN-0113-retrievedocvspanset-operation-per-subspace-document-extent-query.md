@@ -98,10 +98,10 @@ as a span-set, one member per kind.
 
 ## What the caller must be handed
 
-Before specifying the operation we fix the *type* of its result; the intro carries the
-Nelson framing. The result is a *normalized span-set* `Σ_d` of at most two members — one per
-occupied subspace — never a content read (that would return records, not spans) and never a
-pair of bare integers. We record this as **W0** (span-set-valued result): for an *allocated*
+We fix the *type* of the operation's result. It is a *normalized span-set* `Σ_d` of at most
+two members — one per occupied subspace — not a content sequence (which would return records,
+not spans) and not a pair of bare integers (the magnitudes are read off span boundaries, never
+designated directly). We record this as **W0** (span-set-valued result): for an *allocated*
 document `d` (W-pre), `RETRIEVEDOCVSPANSET(d)` returns a normalized span-set; for an
 allocated document that is *empty in both counted subspaces* (`d ∈ dom(M)` with
 `V_{s_C}(d) = V_{s_L}(d) = ∅`) it returns `⟨⟩`, the distinguished value denoting `∅` (which
@@ -317,14 +317,6 @@ sorted and separated, ASN-0053 — follows from W11: the two members are disjoin
 `s_C < s_L`, with `reach(ext(d, s_C)) < start_{s_L}` by T1, so no merging is possible and the
 sequence is in normal form.)
 
-This uniformity is exactly what makes two documents' reports *comparable*: one compares like
-with like, text-extent to text-extent and link-extent to link-extent. We record **W14**
-(Comparability): for any two allocated documents `d₁, d₂`, the per-kind comparison `n_S(d₁)`
-versus `n_S(d₂)` is well-defined for each `S ∈ {s_C, s_L}`. The comparison is total because
-`n_S(d) = |V_S(d)|` counts `V_S(d)` directly (W1): it is a total function, defined for every
-allocated `d` and every `S ∈ {s_C, s_L}` independently of whether the operation emits a member
-for that subspace. An empty subspace has `n_S(d) = 0` as a fact about `V_S(d) = ∅`.
-
 **Cross-kind independence.** The extent reported for one kind does not depend on the
 population of the other. We record **W15** (Independence): `n_{s_C}(d)` is a function of
 `V_{s_C}(d)` alone, and `n_{s_L}(d)` of `V_{s_L}(d)` alone; consequently an edit confined to
@@ -366,6 +358,25 @@ content side carries the analogous guarantee through different premises: each co
 V-position carries exactly one I-address (S2) drawn from `dom(C)` (S3★), so
 `n_{s_C}(d) = |V_{s_C}(d)|` is the number of content positions — faithful by functionality and
 referential integrity.
+
+---
+
+## Comparing reports across documents
+
+The uniform shape of a single report (W13) has a cross-document consequence: a consumer can
+reconstruct the *full per-kind count vector* `(n_{s_C}(d), n_{s_L}(d))` from a report that may
+omit members. We record **W14** (Comparability). Because the kind-list `(s_C, s_L)` is fixed
+(W13), a consumer recovers each `n_S(d)` from the report by position — an *emitted* member of
+kind `S` contributes its boundary-count `n_S(d)`, the gap between the last components of its
+reach and start (W3), while an *omitted* kind `S` is read as `n_S(d) = 0`. This
+absent-reads-as-zero reconstruction is sound rather than a guess: by W6/W7 the operation omits
+kind `S` exactly when `V_S(d) = ∅`, which is exactly when `n_S(d) = |V_S(d)| = 0` (W1), so a
+missing member can only ever signify an empty subspace. Hence for any two allocated documents
+`d₁, d₂` the per-kind comparison `n_S(d₁)` versus `n_S(d₂)` is well-defined over the *entire*
+fixed kind-list — comparing like with like, text-extent to text-extent and link-extent to
+link-extent — *provided both reports range over the same kind-list*. What a consumer must do
+when that provision fails — reports of differing vintages whose kind-lists may themselves
+differ — is the subject of an open question below.
 
 ---
 
@@ -504,7 +515,7 @@ where an off-prefix, admissible-last-component tumbler must be — and is — ex
 | W10 | SubspaceConfinement — `(A t : t ∈ ⟦ext(d, S)⟧ : t₁ = S)` | introduced |
 | W11 | Disjointness — `⟦ext(d, s_C)⟧ ∩ ⟦ext(d, s_L)⟧ = ∅` | introduced |
 | W13 | UniformShape — result is normalized, members drawn from the fixed ordered kind-list `(s_C, s_L)` | introduced |
-| W14 | Comparability — per-kind comparison `n_S(d₁)` vs `n_S(d₂)` is total because `n_S = |V_S(d)|` is a total function (W1), independent of which members the report emits | introduced |
+| W14 | Comparability — over the fixed kind-list `(s_C, s_L)` a consumer recovers each `n_S(d)` from the report (emitted ⇒ boundary-count; omitted ⇒ `n_S = 0`, sound by W6/W7), so per-kind comparison `n_S(d₁)` vs `n_S(d₂)` is well-defined across documents sharing a kind-list | introduced |
 | W15 | Independence — `n_{s_C}` depends only on `V_{s_C}(d)`, `n_{s_L}` only on `V_{s_L}(d)`; subspace edits do not cross | introduced |
 | W16 | Partition — the members disjointly cover exactly the counted active V-positions; no orphan, no phantom | introduced |
 | W17 | ExtentDeterminesPopulation — each V-slice position within `ext(d, S)` carries content (`M(d)(v) ∈ dom(C)`/`dom(L)`, S3★); one step beyond W4's coverage equality | introduced |
