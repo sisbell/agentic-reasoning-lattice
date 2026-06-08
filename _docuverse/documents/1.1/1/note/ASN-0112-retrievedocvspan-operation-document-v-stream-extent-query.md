@@ -39,6 +39,10 @@ foundation facts:
 - **S3★** (generalized referential integrity, ASN-0047): each occupied V-position maps
   into the store appropriate to its subspace —
   `(A v : v ∈ O(d) : subspace(v) = s_C ⟹ M(d)(v) ∈ dom(C)) ∧ (A v : v ∈ O(d) : subspace(v) = s_L ⟹ M(d)(v) ∈ dom(L))`.
+- **S3★-aux** (subspace exhaustiveness, ASN-0047): every occupied V-position carries one
+  of exactly two subspaces — `(A v : v ∈ O(d) : subspace(v) = s_C ∨ subspace(v) = s_L)`.
+  There is no third subspace, so an arrangement occupies the content subspace, the link
+  subspace, both, or neither.
 - **S8-fin** (finiteness): `O(d)` is finite.
 - **S8a** (well-formedness): every `v ∈ O(d)` is zero-free, of depth `≥ 2`, all
   components positive; `subspace(v) = v₁`.
@@ -215,7 +219,10 @@ subspace, this correspondence is *exact*.
 The decisive structural question is whether the single returned span exactly traces the
 occupied content or merely encloses it. The answer depends on how many subspaces the
 arrangement occupies, and the divergence is not an implementation artifact — it is forced
-by the demand for *one* origin-and-extent pair.
+by the demand for *one* origin-and-extent pair. The dichotomy is genuinely binary: by
+S3★-aux every occupied position carries `subspace = s_C` or `s_L` and nothing else, so a
+non-empty `O(d)` occupies exactly one subspace or exactly both — the two cases below are
+jointly exhaustive.
 
 **Single subspace: exact cover.** Suppose `O(d)` lies entirely in one subspace `s` — either
 content (`s = s_C`) or, in the link-only case (content empty, one or more links arranged,
@@ -241,7 +248,13 @@ reach crosses from subspace `s_C` into subspace `s_L`, so `⟦σ_d⟧` contains 
 between them — including the unoccupied void separating the two subspaces, where nothing is
 arranged. We record **V6** (cross-subspace bounding box): when occupied positions span more
 than one subspace, `O(d) ⊊ ⟦σ_d⟧` strictly — the span is a bounding box, not an exact cover,
-and includes inter-subspace positions that carry no content. The golden case is stark: ten
+and includes inter-subspace positions that carry no content. The enclosure is forced rather
+than incidental: a span denotes one convex region (`⟦σ_d⟧` is order-convex under T1, ASN-0053
+S0), and a document occupying two disjoint subspaces is a *separated series* — "if you want to
+designate a separated series of items exactly, including nothing else, you do this by a
+span-set, which is a series of spans" (4/25). Fragmentation is unrepresentable in a single
+span, so a multi-subspace document can only be reported by enclosure, never by exact
+decomposition. The golden case is stark: ten
 characters plus one link report `1.1 for 1.2`, whose reach `[1,1] ⊕ [1,2] = [2,2]` bridges
 from the text start straight across the gap into link space (consultation Q11, Q19).
 
@@ -251,14 +264,6 @@ depth 2 — distinguished only by the first-component value `s_C = 1` vs `s_L = 
 (consultation Q2: `findvsatoappend`, `findnextlinkvsa`, and `setlinkvsas` all emit depth-2
 V-addresses), so the cross-subspace endpoints are level-compatible and `reach(σ_d) = reach_d`
 exactly.
-
-A span is by construction one contiguous region (ASN-0053 S0, convexity): "if you want to
-designate a separated series of items exactly, including nothing else, you do this by a
-span-set, which is a series of spans" (4/25). A document occupying two disjoint subspaces is a
-*separated series*. We record the structural reason behind V6 as **V7** (single-span
-contiguity): the result is always one convex region; fragmentation is unrepresentable in a
-single span, so a multi-subspace document is reported by enclosure rather than by exact
-decomposition.
 
 ---
 
@@ -402,21 +407,19 @@ Q14).
 
 ## The extent is a well-formed, non-negative displacement
 
-Finally, the invariants that constrain the span the operation may return. V2 already
-established `σ_d`'s T12 legality — `Pos(extent_d)` and `actionPoint(extent_d) ≤ #origin_d`,
-holding regardless of endpoint depths. We record **V17** (well-formed positive extent) for the
-content V2's legality does not stress: the *non-degeneracy* of the extent and its grounding in
-the implementation. The span is non-empty, containing at least `origin_d` (TA-strict), and the
-width tumbler can never have "negative magnitude": `reach_d > origin_d` always (V2), so
-`extent_d = reach_d ⊖ origin_d` is a genuine *strictly positive* displacement, never a
-degenerate, zero-width, or sign-reversed value. Gregory confirms this is structurally guaranteed: even when prior
-deletions drive intermediate arrangement entries to negative displacements, the root width is
-recomputed as a maximum-minus-minimum reach and remains non-negative — the reported extent is
-never negative (consultation Q18). For every non-empty document the extent is strictly
-positive; there is no editing artifact that drives it to zero. The only way to obtain "no
-extent" is the empty document, which returns the distinguished empty span-set `⟨⟩` (V11) and
-carries no extent tumbler at all — emptiness is reported by the absence of a span, not by a
-zero-width one.
+Finally, the invariant that grounds the span the operation may return in the implementation.
+V2 already established `σ_d`'s T12 legality — `Pos(extent_d)` and
+`actionPoint(extent_d) ≤ #origin_d`, holding regardless of endpoint depths — so the abstract
+non-degeneracy of the extent is settled. What remains is that the implementation actually
+delivers this positive width: editing can drive *intermediate* arrangement entries negative,
+and we must show those transients never surface in the reported extent. We record **V17**
+(implementation non-negativity). Gregory confirms it is structurally guaranteed: even when
+prior deletions drive intermediate arrangement-tree entries to negative displacements, the
+root width is recomputed as a maximum-minus-minimum reach and remains non-negative — the
+reported extent is never negative (consultation Q18). So there is no editing artifact that
+drives the extent to zero or below. The only way to obtain "no extent" is the empty document,
+which returns the distinguished empty span-set `⟨⟩` (V11) and carries no extent tumbler at
+all — emptiness is reported by the absence of a span, not by a zero-width one.
 
 ---
 
@@ -483,16 +486,18 @@ backward from `Exact`, we ask which states `Σ` guarantee it. We claim
 
 > `wp(RETRIEVEDOCVSPAN(d), Exact) = (O(d) occupies at most one subspace)`.
 
-The derivation runs through V5, V6, V7. If `O(d)` is empty the result is `⟨⟩` and `Exact` holds
+The derivation runs through V5 and V6. If `O(d)` is empty the result is `⟨⟩` and `Exact` holds
 vacuously by definition; if `O(d)` lies in a single subspace `s`, V5 gives `Exact` directly: the
 dense run `{[s,1,…,1,k]}` is covered with no
 occupied-depth position left over (D-CTG★ closing the gaps). Conversely, if `O(d)` occupies
 *both* subspaces, V6 gives `O(d) ⊊ ⟦σ_d⟧` strictly — the reach crosses the inter-subspace void,
 admitting unoccupied positions inside the denotation — so `¬Exact`. The two directions exhaust
-the cases (an arrangement occupies zero, one, or two subspaces), so the single-subspace
-condition is both necessary and sufficient, hence the *weakest* precondition. V7 explains why
-this dichotomy is forced rather than incidental: a single span is one convex region, so exact
-tracing of a separated series is structurally impossible. The companion reach property factors
+the cases because S3★-aux confines every occupied V-position to one of exactly two subspaces:
+an arrangement occupies zero, one, or two subspaces and never a third. So the single-subspace
+condition is both necessary and sufficient, hence the *weakest* precondition. V6's convexity
+justification explains why this dichotomy is forced rather than incidental: a single span is
+one convex region (ASN-0053 S0), so exact tracing of a separated series is structurally
+impossible. The companion reach property factors
 the same way along the orthogonal endpoint axis. We give it the same empty-case handling as
 `Exact` — take `ReachTight ≡ "no span is returned, or reach(σ_d) = reach_d"`, vacuous on the
 empty result `⟨⟩` (where `reach(σ_d)` and `#origin_d` are undefined, so the bare equality would
@@ -513,8 +518,7 @@ endpoint depths), without inspecting the returned span.
 | V3 | `origin_d` is the greatest lower bound of `O(d)`; `reach_d` is the least strict upper bound of `max O(d)` *among tumblers at the depth of `max O(d)`* (`= #reach_d`; the deeper zero-extension `max O(d).0` is a smaller upper bound but lies at greater depth) — so `σ_d` is the tightest covering span whose reach is at the depth of `max O(d)` | introduced |
 | V4 | `extent_d` is computed from `O(d) = dom(M(d))` alone; content in `dom(C)` but absent from the arrangement (deleted, or native elsewhere) contributes nothing (Vstream-bounded, not Istream) | introduced |
 | V5 | When all occupied positions share one subspace, `⟦σ_d⟧` contains no occupied-depth position outside `O(d)` (exact cover of a contiguous run) | introduced |
-| V6 | When occupied positions span more than one subspace, `O(d) ⊊ ⟦σ_d⟧` — the span bridges the inter-subspace void (bounding box, not exact cover) | introduced |
-| V7 | The result is always one convex region; fragmentation is unrepresentable in a single span, so multi-subspace documents are reported by enclosure (single-span contiguity) | introduced |
+| V6 | When occupied positions span more than one subspace, `O(d) ⊊ ⟦σ_d⟧` — the span bridges the inter-subspace void (bounding box, not exact cover); forced because a span denotes one convex region (ASN-0053 S0) and cannot trace a separated series | introduced |
 | V8 | While the content subspace is non-empty, `origin_d = [s_C,1,…,1]`, invariant under all editing that leaves content present (origin permanence) | introduced |
 | V9 | A pure rearrangement preserves `O(d) = dom(M(d))`; since `origin_d` and `extent_d` depend on `O(d)` alone (not on the values `M(d)(v)`), the reported span is identical before and after (extent tracks composition, not arrangement) | introduced |
 | V11 | The operation is total over allocated documents; `O(d) = ∅` yields the distinguished empty span-set `⟨⟩` (V0), with `origin_d` undefined and no extent — the implementation's zeros are a sentinel, not a legal address (TA6) | introduced |
@@ -523,7 +527,7 @@ endpoint depths), without inspecting the returned span.
 | V14 | Every *occupied* position in `O(d)` maps through `M(d)` to a permanent, immutable image, by subspace (S3★): content positions to `dom(C)` (S0, P0), link positions to `dom(L)` (L12); covered-but-unoccupied positions in the cross-subspace case (V6) carry no `M(d)` image; sharing preserves what the span denotes (permanence) | introduced |
 | V15 | A returned span keeps its meaning under later edits to `d` or to home documents supplying its content; a fresh report is a new query, not a mutation (snapshot stability) | introduced |
 | V16 | `σ_d` is a pure function of `O(d)`; equal arrangements return identical spans, independent of how the arrangement was built (determinism) | introduced |
-| V17 | For non-empty `d`, the extent is *strictly positive* and the span non-empty (TA-strict) — `reach_d > origin_d` always, so the extent is never zero, negative, or degenerate (T12 legality is V2's, cited not re-derived) | introduced |
+| V17 | The reported extent is never negative in the implementation: prior deletions may drive intermediate arrangement-tree entries negative, but the root width is recomputed as a max-minus-min reach (Q18), so no editing artifact surfaces a zero-or-below extent (abstract positivity is V2's) | introduced |
 | V18 | Origin permanence (V8) holds exactly while content is present; the origin moves only at the two transitions that toggle content occupancy — content-clearing migrates `origin_d` up to the link minimum `[s_L,1,…,1]`, first-content insertion into a link-only document migrates it down to the content anchor `[s_C,1,…,1]` (origin migration bounds V8) | introduced |
 
 ## Open Questions
