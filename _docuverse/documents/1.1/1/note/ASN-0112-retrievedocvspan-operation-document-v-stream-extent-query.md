@@ -272,13 +272,10 @@ We can make this precise. While the content subspace is occupied, D-MIN pins
 `min V_{s_C}(d) = [s_C,1,…,1]`, and since `s_C` is the least subspace identifier, this is
 also `min O(d) = origin_d` whenever content is present. We record **V8** (origin
 permanence): for every document state in which the content subspace is non-empty,
-`origin_d = [s_C,1,…,1]`, invariant under all editing that leaves content present. The
-invariance is over the *value* `[s_C,1,…,1]`, a tumbler of depth `m_C`, so it presumes `m_C`
-itself is fixed across the editing in question. It is: the content depth `m_C` is re-pinnable
-"at any value `≥ 2`" only on full subspace clearance — when `V_{s_C}(d) = ∅`, the next
-insertion re-pins `m_C` from scratch (S8a). Editing "that leaves content present" never
-empties `V_{s_C}(d)`, so the re-pinning trigger never fires and `m_C` — hence the depth of
-`[s_C,1,…,1]` — stays fixed throughout. Editing
+`origin_d = [s_C,1,…,1]`, invariant under all editing that leaves content present. (The depth
+`m_C` of this canonical value is itself fixed throughout — re-pinning is confined to full
+subspace clearance, which V18 accounts for; under V8's "content present" hypothesis no
+clearance occurs.) Editing
 relocates I-addresses and shuffles V-positions, but it never moves the start of the stream:
 "the front-end application is unaware" of where bytes natively live (4/11), and the V-origin
 holds steady at the canonical first position. The origin is the stable anchor against which
@@ -289,8 +286,9 @@ The extent behaves oppositely. Nelson distinguishes *arrangement* (order) from *
 there is → extent changes." We record **V9** (extent tracks composition, not arrangement).
 A pure rearrangement permutes `M(d)` while preserving `O(d) = dom(M(d))` — the occupied
 positions remain the dense set `{[s,1,…,1,k]}` by D-SEQ; only the values `M(d)(v)` are
-permuted. Since `σ_d` is a function of `O(d)` alone (V16), the reported span is *identical*
-before and after: reorder the document and its origin and extent do not move. This matches
+permuted. Since `origin_d = min O(d)` and `extent_d = shift(max O(d), 1) ⊖ origin_d` depend
+on `O(d)` alone — never on the values `M(d)(v)` — the reported span is *identical* before and
+after: reorder the document and its origin and extent do not move. This matches
 Nelson's classification of rearrangement as a "Pure Vstream operation" that leaves the measured
 extent fixed.
 
@@ -498,8 +496,11 @@ the cases (an arrangement occupies zero, one, or two subspaces), so the single-s
 condition is both necessary and sufficient, hence the *weakest* precondition. V7 explains why
 this dichotomy is forced rather than incidental: a single span is one convex region, so exact
 tracing of a separated series is structurally impossible. The companion reach property factors
-the same way along the orthogonal endpoint axis: by the V2 reach biconditional,
-`wp(RETRIEVEDOCVSPAN(d), "reach(σ_d) = reach_d") = (#origin_d ≤ #reach_d)`. A caller can thus decide *before* querying whether the answer will be exact
+the same way along the orthogonal endpoint axis. We give it the same empty-case handling as
+`Exact` — take `ReachTight ≡ "no span is returned, or reach(σ_d) = reach_d"`, vacuous on the
+empty result `⟨⟩` (where `reach(σ_d)` and `#origin_d` are undefined, so the bare equality would
+be ill-typed) and hence well-typed over the whole `Span + {⟨⟩}` codomain. By the V2 reach
+biconditional, `wp(RETRIEVEDOCVSPAN(d), ReachTight) = (O(d) = ∅ ∨ #origin_d ≤ #reach_d)`. A caller can thus decide *before* querying whether the answer will be exact
 (check single-subspace occupancy) and whether its reach is the tight `reach_d` (check the
 endpoint depths), without inspecting the returned span.
 
@@ -518,7 +519,7 @@ endpoint depths), without inspecting the returned span.
 | V6 | When occupied positions span more than one subspace, `O(d) ⊊ ⟦σ_d⟧` — the span bridges the inter-subspace void (bounding box, not exact cover) | introduced |
 | V7 | The result is always one convex region; fragmentation is unrepresentable in a single span, so multi-subspace documents are reported by enclosure (single-span contiguity) | introduced |
 | V8 | While the content subspace is non-empty, `origin_d = [s_C,1,…,1]`, invariant under all editing that leaves content present (origin permanence) | introduced |
-| V9 | Corollary of V16: a pure rearrangement preserves `O(d) = dom(M(d))`, so the reported span is identical before and after (extent tracks composition, not arrangement) | introduced |
+| V9 | A pure rearrangement preserves `O(d) = dom(M(d))`; since `origin_d` and `extent_d` depend on `O(d)` alone (not on the values `M(d)(v)`), the reported span is identical before and after (extent tracks composition, not arrangement) | introduced |
 | V11 | The operation is total over allocated documents; `O(d) = ∅` yields the distinguished empty span-set `⟨⟩` (not a T12 span), with `origin_d` undefined and no extent — the implementation's zeros are a sentinel, not a legal address (TA6) | introduced |
 | V12 | The span discloses the live origin (addressing anchor) and current extent (present bounds) — neither derivable from `d`'s identity (information gain) | introduced |
 | V13 | `σ_d` depends only on `O(d)`; two documents sharing content report independent spans; transcluded positions count toward the borrowing document's extent (independence) | introduced |
