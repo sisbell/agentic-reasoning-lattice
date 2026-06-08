@@ -291,7 +291,7 @@ F14 (ScopeFilter):
 
 Natural choices for `S`: "all links in document `d`" (`{a : home(a) = d}`), "all links by user `u`", or any access-control narrowing.
 
-Determinism, survivability, and monotonicity transfer to both the filtered and scoped forms by a single argument: their membership predicates consult only `Σ.L` and query-data (so ComprehensionInvariantUnderΣL applies), and they are closed under intersection with the query-supplied `S` (so the scoped form inherits whatever equality or inclusion the base findlinks enjoys):
+Determinism, survivability, and monotonicity transfer to both the filtered and scoped forms, proved per clause below.
 
 ```
 F15 (FilteredScopedTransfer):
@@ -328,7 +328,7 @@ LP13 (UnconditionalLinkPersistence, ASN-0098) supplies the multi-step per-link g
 
 F11 is an *I-side* persistence claim against a fixed query I-set. The corresponding V-side claim — fixing `(R, d)` and quantifying across edits — is a theorem of neither F11's persistence nor F19's monotonicity below, and could not be: K.μ⁻ can shrink `ran(Σ.M(d))`, so a V-position discoverable at `Σ` may be contracted out of the arrangement at `Σ'`. The right framing for V-side discoverability under a contracting edit is therefore not a persistence theorem but a *weakest precondition*: which pre-states `Σ` guarantee that a fixed link `a` is still V-side discoverable from `d` after the edit? We answer this by composing `image` with ASN-0098's LP12a.
 
-Fix `a ∈ dom(Σ.L)` and a document `d ∈ dom(Σ.M)`. Let `K.μ⁻[d, ℛ]` denote the contraction of `d`'s arrangement that retains exactly the V-position subset `ℛ ⊆ dom(Σ.M(d))` (ASN-0047's K.μ⁻; we write the retained domain as `ℛ` to free the symbol `R` for the query region). The post-state `Σ'` satisfies `dom(Σ'.M(d)) = ℛ` with `Σ'.M(d)(v) = Σ.M(d)(v)` for every `v ∈ ℛ`, and `Σ'.L = Σ.L` by A1a. Recall ASN-0098's `project(a, i, d, Σ) = {v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ coverage(Σ.L(a).eᵢ)}`.
+Fix `a ∈ dom(Σ.L)` and a document `d ∈ dom(Σ.M)`. Let `K.μ⁻[d, ℛ]` denote the contraction of `d`'s arrangement that retains the V-position set `ℛ` (ASN-0047's K.μ⁻; we write the retained domain as `ℛ` to free the symbol `R` for the query region). `ℛ` is *not* an arbitrary subset of `dom(Σ.M(d))`: ASN-0047's K.μ⁻ retains only a per-subspace canonical initial segment `ℛ = ⋃ {[S, 1, …, 1, k] : 1 ≤ k ≤ n'_S}` (the retention-count parameterization of LP12a, ASN-0098), required to preserve D-CTG★/D-MIN★. For any `ℛ` that is not such a per-subspace initial segment, `enabled(K.μ⁻[d, ℛ])` is false and no post-state exists. Throughout F21, `ℛ` ranges only over these canonical (enabled) retention domains. The post-state `Σ'` satisfies `dom(Σ'.M(d)) = ℛ` with `Σ'.M(d)(v) = Σ.M(d)(v)` for every `v ∈ ℛ`, and `Σ'.L = Σ.L` by A1a. Recall ASN-0098's `project(a, i, d, Σ) = {v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ coverage(Σ.L(a).eᵢ)}`.
 
 ```
 F21 (VSideContractionWP):
