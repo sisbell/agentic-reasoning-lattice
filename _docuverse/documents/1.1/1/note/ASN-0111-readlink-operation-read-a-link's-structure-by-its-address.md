@@ -35,8 +35,9 @@ possibly discontiguously — anywhere in the docuverse. The address-set a span-s
 
 Every link address is, by the substrate invariants, an element-level, T4-valid tumbler in the
 link subspace: `zeros(a) = 3`, `subspace_I(a) = s_L`, `#E(a) ≥ 2` (L0, L1, L1b, L0b of ASN-0043).
-These facts are what make a link nameable in the same address space as content, and they are
-what `readlink` will exploit.
+These facts are what make a link nameable in the same address space as content; the `readlink`
+lookup itself reads none of them, but a reader holding a candidate tumbler can test them as a
+structural screen before invoking the read (RL0).
 
 ## Deriving the read
 
@@ -91,7 +92,9 @@ An endset may scatter spans across many documents and across discontiguous regio
 the read returns every piece, because completeness is over the recorded structure, not over any
 region a caller happened to name. Because the read copies the recorded spans unmodified, it
 inherits their L4-generality (ASN-0043) without adding any confinement: a returned span may point
-across documents, within the home document, or into the link subspace at other links.
+across documents, within the home document, or into the link subspace at other links. The link's
+home document `home(a) = N(a).0.U(a).0.D(a)` is no part of this returned value; it is read off the
+*key* `a` by T4 field projection (L2, ASN-0043), recoverable by any caller who already holds `a`.
 
 Because `readlink(a, Σ) = Σ.L(a)` verbatim, every link-store invariant transfers to the output in
 one line. In particular the returned value satisfies, as corollaries of RL1: **L3** — arity at
@@ -118,13 +121,6 @@ In the arity-3 case slot 1 is *from*, slot 2 is *to*, and slot 3 is *type*; for 
 ASN-0043) the higher slots are returned under their own indices. The read keeps every endset
 aligned with its slot — this is exactly the alignment that any role-respecting use of the link
 depends upon.
-
-## Ownership lives in the read key
-
-A link's home document `home(a) = N(a).0.U(a).0.D(a)` is read off the *key* `a` by T4 field
-projection (L2, ASN-0043), not from the returned value — a caller already holds `a` to invoke the
-read, so ownership is recoverable without performing it. This is a property of the address, not a
-guarantee `readlink` adds.
 
 ## Type is interpreted by address, not by content
 
@@ -224,8 +220,7 @@ We can now check the load-bearing postconditions against this instance.
   so by PrefixSpanCoverage (ASN-0043) `coverage(Θ) = {t : [1.0.1.0.9.0.1.1] ≼ t}` — the *subtree*
   beneath that address, an infinite tumbler set, not the single point `[1.0.1.0.9.0.1.1]`. As with
   the from-set above, the type is interpreted as this coverage *address-set* (L8) and matched against
-  another type's coverage without dereferencing anything stored there. The read of this ghost-typed
-  link is no less complete than any other.
+  another type's coverage without dereferencing anything stored there.
 - *Structural corollary (arity/type).* Arity is 3 and `Θ ≠ ∅` (L3), while the connective slot
   `G = ∅` is permitted — exactly the mandatory-type / permissive-direction split.
 
