@@ -33,7 +33,7 @@ CREATENEWDOCUMENT takes one argument: an **account** `A` under which the documen
 
 We take the account as given. The provisioning of nodes and accounts is a separate concern (out of scope); here the account already exists in `E`, and our task is to baptise exactly one new document beneath it. We rely on one guarantee that out-of-scope account provisioning owes us, and record it as a standing assumption:
 
-  **(CND.A-act)** `A ∈ E ∧ Account(A) ⟹ Activated(A_doc(A))` — an account, the instant it exists, carries an *activated* document sub-allocator; there is no separate activation step between the account's existence and the availability of its document chain.
+  **(CND.A-act)** `A ∈ E ∧ Account(A) ⟹ Activated(A_doc(A))` — an activated document sub-allocator exists whenever the account does.
 
 There is no content argument. This is not an omission — it is the defining shape of the operation. Content enters a document only through later operations (INSERT, COPY, MAKELINK), each of which deposits bytes or links. Creation deposits nothing.
 
@@ -104,7 +104,7 @@ These frames exhaust the state components `(C, L, E, M, R)`. The only net change
 
 ### A Note on Sub-Allocator Activation
 
-The entity-allocation event that places `d` into `E_doc` *activates* two element-level sub-allocators scoped to `d`: the content sub-allocator `A_C(d)` with anchor `[d.0.s_C]` and the link sub-allocator `A_L(d)` with anchor `[d.0.s_L]` (SubAllocatorBundle, ASN-0047). Activation is not population: at the post-state both chains have emitted nothing, so the anchors are not yet in `dom(C') ∪ dom(L')`. They stand ready — lazily materialised, never pre-filled.
+The entity-allocation event that places `d` into `E_doc` *activates* two element-level sub-allocators scoped to `d`: the content sub-allocator `A_C(d)` with anchor `[d.0.s_C]` and the link sub-allocator `A_L(d)` with anchor `[d.0.s_L]` (SubAllocatorBundle, ASN-0047). Activation is not population: at the post-state both chains have emitted nothing, so the anchors are not yet in `dom(C') ∪ dom(L')`.
 
 ### A Worked Example
 
@@ -132,7 +132,7 @@ Empty versus inherited. That is the whole distinction, and it is visible in our 
 
 Two guarantees attach to the new address the instant it exists.
 
-**Ownership is structural.** The document is bound to the account that created it not by metadata but by its address. The creating principal `π` was authorised because it owns the account: `pfx(π) ≼ A` (CND.pre) — a pure prefix predicate `owns(π, A) ≡ pfx(π) ≼ A` (O1, PrefixDetermination; ASN-0042), evaluable over this state. The allocation forks `d` beneath `A`: `parent(d) = A`, and every `A_doc(A)` emission has the form `[A, 0, j]` (Effect One), so `A ≼ d`. By transitivity of the prefix order, `pfx(π) ≼ A ≼ d`, hence `owns(π, d) ≡ pfx(π) ≼ d` (O1; ASN-0042): the new address lies in the creating principal's ownership domain `odom(π)`. This is fixed by the post-state `(C, L, E, M, R)` alone, and it is the ownership guarantee CREATENEWDOCUMENT delivers. The stronger *effective-owner* statement `ω_{Σ'}(d) = ω_Σ(A)` and the subdivision-authority grounding O5 both quantify over ASN-0042's baptismal registry `B`, absent from this state.
+**Ownership is structural.** The document is bound to the account that created it not by metadata but by its address. The creating principal `π` was authorised because it owns the account: `pfx(π) ≼ A` (CND.pre) — a pure prefix predicate `owns(π, A) ≡ pfx(π) ≼ A` (O1, PrefixDetermination; ASN-0042), evaluable over this state. The allocation forks `d` beneath `A`: `parent(d) = A`, and every `A_doc(A)` emission has the form `[A, 0, j]` (Effect One), so `A ≼ d`. By transitivity of the prefix order, `pfx(π) ≼ A ≼ d`, hence `owns(π, d) ≡ pfx(π) ≼ d` (O1; ASN-0042): the new address lies in the creating principal's ownership domain `odom(π)`. This is fixed by the post-state `(C, L, E, M, R)` alone, and it is the ownership guarantee CREATENEWDOCUMENT delivers (effective ownership is left open — see Open Questions).
 
 Creating a document is, in Nelson's terms, a baptismal act — "Whoever owns a specific node, account, document or version may in turn designate (respectively) new nodes, accounts, documents and versions, by forking their integers. We often call this the 'baptism' of new numbers" (4/17) — so the owned-number tree *is* the record of ownership, not a side table maintained alongside it.
 
