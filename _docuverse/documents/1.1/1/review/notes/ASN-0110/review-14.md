@@ -1,0 +1,19 @@
+# Review of ASN-0110
+
+## REVISE
+
+### Issue 1: The "equivalent" tuple-length presentation contradicts RE-arity and RE-zero
+
+**ASN-0110, "What is returned" (paragraph immediately after RE-arity)**: "Whether the length is read from the store's maximum arity or, equivalently, taken as the total function `i ↦ Eᵢ` truncated at its last non-empty index is a presentational choice with no semantic content: the two agree because `Eᵢ = ∅` for `i > N_max(Σ)`."
+
+**Problem**: The two presentations are *not* equivalent, and the stated justification is insufficient. "`Eᵢ = ∅` for `i > N_max(Σ)`" only rules out non-empty slots *beyond* `N_max`; it says nothing about empty slots *at or below* `N_max`. Two concrete counterexamples, both reachable:
+
+- **Trailing empties below `N_max`.** Let the store hold an arity-7 link whose slots `4..7` do not touch `I` (or which does not touch `I` at all), while only arity-3 links touch. Then `N_max(Σ) = 7`, so RE-arity mandates length 7 with `E₄=E₅=E₆=E₇=∅` reported in position. But "truncate at last non-empty index" gives length ≤ 3. The two disagree, and the truncated length is region-dependent — directly contradicting RE-arity's own load-bearing claim that the length "is stable under which region is queried."
+
+- **`I = ∅` (RE-zero).** RE-zero mandates `⟨∅, …, ∅⟩` of length `N_max(Σ)`. Here *every* `Eᵢ = ∅`, so the "last non-empty index" does not exist and the truncation presentation yields the empty tuple `⟨⟩`, flatly contradicting RE-zero whenever `N_max(Σ) ≥ 1`.
+
+So the truncation presentation produces a generally shorter, region-dependent tuple that conflicts with the definitive definition (RE-arity) and with RE-zero. The sentence asserting equivalence with "no semantic content" is false.
+
+**Required**: Either (a) delete the "equivalently … truncated at its last non-empty index" alternative and the equivalence justification, keeping `N_max(Σ)` as the sole length definition; or (b) correct the alternative characterization to one that is actually equal to `N_max(Σ)` — e.g., the last index `i` for which *some link in the store* has a slot `i` (`i ↦ (E a ∈ dom(Σ.L) : |Σ.L(a)| ≥ i)`), which is keyed on store arities, not on the result family `i ↦ Eᵢ` — and adjust the justification accordingly.
+
+VERDICT: REVISE
