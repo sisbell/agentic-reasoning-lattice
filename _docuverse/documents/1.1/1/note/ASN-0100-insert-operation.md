@@ -50,7 +50,7 @@ INSERT splices `n` new content units into `d`'s arrangement at V-position `p`. T
 
 ### Effect One: Allocation
 
-The new content units do not exist in `dom(C)` before the operation. INSERT creates *new* content with *fresh* I-addresses: the operation does not reuse, alias, or identify with any pre-existing I-address. This is a design requirement, not an implementation choice. Xanadu storage is append-only and content identity is based on creation, not value — created bytes are laid down at new, never-reused locations, so two units carrying identical bytes but created independently receive *different* I-addresses. COPY (transclusion) is the only operation that aliases existing I-addresses; INSERT, being content creation, never does.
+The new content units do not exist in `dom(C)` before the operation. INSERT creates *new* content with *fresh* I-addresses: the operation does not reuse, alias, or identify with any pre-existing I-address. This is a design requirement, not an implementation choice. Xanadu storage is append-only and content identity is based on creation, not value — created bytes are laid down at new, never-reused locations, so two units carrying identical bytes but created independently receive *different* I-addresses.
 
 The freshness comes from `d`'s content sub-allocator `A_C(d)`, by the substrate's allocation discipline (ASN-0093). We require `n` addresses, produced by `n` successive K.α firings under the substrate's transition vocabulary:
 
@@ -495,7 +495,7 @@ The fourth, conditional on K.μ⁻ firing:
 
 These forced orderings determine INSERT's boundary obligations; every other interleaving of the elementary steps reaches the same Σ'. No per-state invariant is sensitive to the relative order of the remaining steps, and the coupling constraints J0, J1★, J1'★ are obligations on INSERT's own boundary `(Σ, Σ')` — discharged there, where every `a_k` is both placed by K.μ⁺ and recorded by K.ρ, regardless of internal order — so the canonical placement of the K.ρ firings at the end of steps 1–4 is expository, not mandatory.
 
-This is what Nelson calls "all changes, once made, leave the file remaining in canonical order, which was an internal mandate of the system." The abstract specification commits to none of the admissible interleavings; each intermediate is itself a reachable state satisfying the per-state invariants, and the boundary couplings J0, J1★, J1'★ discharge at the composite boundary `(Σ, Σ')`.
+The abstract specification commits to none of the admissible interleavings; each intermediate is itself a reachable state satisfying the per-state invariants, and the boundary couplings J0, J1★, J1'★ discharge at the composite boundary `(Σ, Σ')`.
 
 ## Weakest-Precondition Analysis
 
@@ -533,7 +533,7 @@ This wp captures both the substrate's effect on R and the structural determinism
 
 ## Identity Through Allocation
 
-INSERT confers fresh content identity (claim INS.identity): its allocation is fresh (INS.C, INS.alloc), each `a_k` a new emission of `A_C(d)` with `origin(a_k) = d`. The system tracks identity by allocation event, not by value — if two allocations carry coinciding bytes, that coincidence is observable but produces no shared identity. (COPY introduces V→I references without allocating, so it carries a distinct identity character; that operation is the subject of a future ASN.)
+INSERT confers fresh content identity (claim INS.identity): its allocation is fresh (INS.C, INS.alloc), each `a_k` a new emission of `A_C(d)` with `origin(a_k) = d`. The system tracks identity by allocation event, not by value — if two allocations carry coinciding bytes, that coincidence is observable but produces no shared identity.
 
 The identity-by-allocation property has an explicit cross-document consequence.
 
