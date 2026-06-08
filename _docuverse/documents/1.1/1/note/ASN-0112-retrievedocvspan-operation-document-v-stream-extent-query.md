@@ -67,9 +67,7 @@ We borrow the span machinery wholesale. A span `σ = (s, ℓ)` denotes the half-
 `⟦σ⟧ = {t ∈ T : s ≤ t < s ⊕ ℓ}` (T12), with `reach(σ) = s ⊕ ℓ` (ASN-0053). A span is
 *well-formed* when `Pos(ℓ)` and `actionPoint(ℓ) ≤ #s`; it is *level-uniform* when
 `#s = #ℓ` (S6, ASN-0053). The ordinal shift `shift(t, n) = t ⊕ δ(n, #t)` advances `t`'s last
-component by `n` (ASN-0034). We measure the whole document as one span; per-subspace reporting,
-content delivery, and region reads are out of scope, as is the reach-arithmetic of how each
-edit moves `max O(d)` — that belongs to INSERT and DELETE, not this query.
+component by `n` (ASN-0034).
 
 ---
 
@@ -82,17 +80,18 @@ does not designate the number of bytes contained. It does not designate a number
 anything" (4/24). The result is a *boundary description* — two tumblers, a start and a
 width, whose meaning is "from here, this far," with everything between implicit (4/25).
 
-We therefore fix the result type *once and explicitly* as the tagged union
+We therefore fix the result type *once and explicitly*: the operation returns either one
+well-formed span or a distinguished empty value — never a content sequence, never a
+cardinality. We record this as **V0** (span-or-empty result), the tagged union
 
 > `RETRIEVEDOCVSPAN : dom(M) → Span + {⟨⟩}`,
 
 where `Span` is the type of T12 spans (a pair `(s, ℓ)`) and `⟨⟩` is the empty span-set of
-ASN-0053, the distinguished value denoting `∅`. We record this as **V0** (span-or-empty
-result): for a non-empty document `RETRIEVEDOCVSPAN(d)` returns one well-formed span
-`σ_d = (origin_d, extent_d)` — never a content sequence and never a cardinality — and for an
-empty document (`O(d) = ∅`) it returns the empty span-set `⟨⟩`, which is *not* a T12 span. The
-two summands are genuinely distinct: `⟨⟩` cannot be a degenerate span, because no T12 span can
-denote `∅` (S2, ASN-0053: every well-formed span is non-empty).
+ASN-0053, the distinguished value denoting `∅`. For a non-empty document `RETRIEVEDOCVSPAN(d)`
+returns one well-formed span `σ_d = (origin_d, extent_d)`; for an empty document
+(`O(d) = ∅`) it returns `⟨⟩`. The two summands are genuinely distinct: `⟨⟩` cannot be a
+degenerate span, because no T12 span can denote `∅` (S2, ASN-0053: every well-formed span is
+non-empty).
 
 The caller reads `origin_d` to learn where the V-stream begins and `extent_d` to learn how far it
 reaches; the content itself, and any per-piece count, are the business of other operations.
@@ -196,8 +195,7 @@ document's current Vstream. We record **V4** (Vstream-bounded): `extent_d` is co
 `O(d)` alone, so content present in `dom(C)` but absent from `dom(M(d))` — deleted-but-stored
 content, or content native elsewhere and not arranged here — contributes nothing to the
 reported span. The extent measures *what the arrangement currently contains*, not *what the
-store has ever held*: it accounts only for the content presently belonging to the document,
-not for all content it ever held.
+store has ever held*.
 
 The relationship the extent must bear to the arrangement is therefore one of *current
 correspondence*: by V2 the span covers every occupied position, and by V4 it draws its
@@ -468,11 +466,12 @@ no range to validate.
 
 The precondition for *legality* is trivial, but a caller wanting to know *what kind* of answer
 it will get — a faithful trace or a mere bounding box — is asking a non-trivial weakest-
-precondition question, and we can answer it. Take the distinguished result property
-`Exact ≡ "no span is returned, or ⟦σ_d⟧ contains no occupied-depth position outside O(d)"` — so
-`Exact` holds vacuously on the empty result `⟨⟩`, where there is no `σ_d` and `⟦σ_d⟧` would be
-ill-typed, and the predicate is well-typed over the whole `Span + {⟨⟩}` codomain. Reasoning
-backward from `Exact`, we ask which states `Σ` guarantee it. We claim
+precondition question, and we can answer it. Both result properties below lead with a
+"no span is returned, or …" clause: on the empty result `⟨⟩` there is no `σ_d`, so the
+span-dependent half would be ill-typed, and the clause makes each predicate hold vacuously
+there and be well-typed over the whole `Span + {⟨⟩}` codomain. Take the distinguished result
+property `Exact ≡ "no span is returned, or ⟦σ_d⟧ contains no occupied-depth position outside
+O(d)"`. Reasoning backward from `Exact`, we ask which states `Σ` guarantee it. We claim
 
 > `wp(RETRIEVEDOCVSPAN(d), Exact) = (O(d) occupies at most one subspace)`.
 
@@ -484,10 +483,8 @@ occupied-depth position left over (D-CTG★ closing the gaps). Conversely, if `O
 admitting unoccupied positions inside the denotation — so `¬Exact`. The two directions exhaust
 the cases by S3★-aux. So the single-subspace condition is both necessary and sufficient, hence
 the *weakest* precondition; V6 records why the dichotomy is forced rather than incidental. The companion reach property factors
-the same way along the orthogonal endpoint axis. We give it the same empty-case handling as
-`Exact` — take `ReachTight ≡ "no span is returned, or reach(σ_d) = reach_d"`, vacuous on the
-empty result `⟨⟩` (where `reach(σ_d)` and `#origin_d` are undefined, so the bare equality would
-be ill-typed) and hence well-typed over the whole `Span + {⟨⟩}` codomain. By the V2 reach
+the same way along the orthogonal endpoint axis: take `ReachTight ≡ "no span is returned, or
+reach(σ_d) = reach_d"`, following the same vacuity convention. By the V2 reach
 biconditional, `wp(RETRIEVEDOCVSPAN(d), ReachTight) = (O(d) = ∅ ∨ #origin_d ≤ #reach_d)`. A caller can thus decide *before* querying whether the answer will be exact
 (check single-subspace occupancy) and whether its reach is the tight `reach_d` (check the
 endpoint depths), without inspecting the returned span.
