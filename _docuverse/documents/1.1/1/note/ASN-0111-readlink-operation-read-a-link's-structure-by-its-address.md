@@ -125,16 +125,24 @@ same span in the to-set or the type-set. So the read carries an obligation beyon
 bag of spans.
 
 **RL2 (Role preservation).** The read delivers each endset under its slot index, preserving the
-three-way grouping:
+slot grouping:
 
 > `(A i : 1 ≤ i ≤ |Σ.L(a)| : readlink(a, Σ).eᵢ = Σ.L(a).eᵢ)`.
 
-The from / to / type distinction is a primitive of the returned value, not a label a reader must
-reconstruct. By the slot-distinction property (L6, ASN-0043), the positional accessor `eᵢ` is a
-model primitive and link equality is componentwise; a read that collapsed the three endsets into
-one pool, or that swapped two differing slots, would return a *different* relationship. The read
-must keep the directional from/to pair and the separate type endset aligned with their roles —
-this is exactly the alignment that any role-respecting use of the link depends upon.
+The quantifier ranges over *all* `|Σ.L(a)|` slots, not a fixed three. The standard link is the
+from/to/type triple — Nelson treats this set as complete and symmetrical (the type "is symmetrical
+with the other endsets," LM 4/44), and udanax-green caps every link at exactly three endsets — so
+in the dominant case slot 1 is *from*, slot 2 is *to*, and slot 3 is *type*, and that grouping is a
+primitive of the returned value, not a label a reader must reconstruct. The model nonetheless admits
+`N > 3` (L3, ASN-0043, requires only `N ≥ 3`): when a link carries more than three endsets, slots
+1–3 still bear the standard from/to/type roles and the read returns the remaining slots 4…N
+faithfully under their own indices, each as an additional endset returned in its own position with
+no privileged role assigned by this operation. By the slot-distinction property (L6, ASN-0043), the
+positional accessor `eᵢ` is a model primitive and link equality is componentwise; a read that
+collapsed the endsets into one pool, or that swapped two differing slots, would return a *different*
+relationship. The read must keep every endset aligned with its slot — the directional from/to pair,
+the separate type endset, and any further slots alike — this is exactly the alignment that any
+role-respecting use of the link depends upon.
 
 Within a single endset, however, no further order is owed.
 
@@ -325,9 +333,15 @@ and a link homed in `d₁` at address
 Let the stored value `Σ.L(a) = (F, G, Θ)` be the standard triple
 
 - **from-set** `F = {([1.0.1.0.1.0.1.1], δ(2, 8)), ([1.0.1.0.2.0.1.1], δ(1, 8))}` — two spans
-  scattered across *two* documents. The first, of width-2, covers the content addresses
-  `[1.0.1.0.1.0.1.1]` and `[1.0.1.0.1.0.1.2]` under `d₁`; the second, of width-1, covers
-  `[1.0.1.0.2.0.1.1]` under `d₂`. So `coverage(F)` is three I-addresses lying in two documents.
+  scattered across *two* documents. `coverage(F)` is a *union of two half-open intervals*, not a
+  finite list of points. The first span runs from `[1.0.1.0.1.0.1.1]` up to but not including
+  `[1.0.1.0.1.0.1.1] ⊕ δ(2, 8) = [1.0.1.0.1.0.1.3]`; by T1 case (ii) that interval contains the
+  entire subtrees beneath `…1.1` and `…1.2` (e.g. `[1.0.1.0.1.0.1.1.0]`, `[1.0.1.0.1.0.1.2.5]`),
+  an infinite tumbler set, *not* the two addresses `…1.1` and `…1.2` alone. The second span is the
+  interval `[ [1.0.1.0.2.0.1.1], [1.0.1.0.2.0.1.2] )` under `d₂`. The element-level content
+  addresses *arranged within* this coverage are `[1.0.1.0.1.0.1.1]` and `[1.0.1.0.1.0.1.2]` under
+  `d₁` and `[1.0.1.0.2.0.1.1]` under `d₂` — three I-addresses that host content and lie *inside*
+  `coverage(F)`, to be distinguished from the coverage intervals themselves.
 - **to-set** `G = ∅` — a legitimately empty connective slot.
 - **type-set** `Θ = {([1.0.1.0.9.0.1.1], δ(1, 8))}` — a single span whose address sits under a
   document `[1.0.1.0.9]` that hosts no content: a *ghost* type, a label by location.
@@ -346,7 +360,12 @@ We can now check the load-bearing postconditions against this instance.
   The read delivers the structure; the search confirms relevance.
 - *RL2 (role preservation).* The three endsets come back under slots 1/2/3, not pooled. Were the
   read to return the bag `F ∪ Θ`, the reader could no longer tell that `[1.0.1.0.9.0.1.1]`
-  classifies the link while the others are its source — a different relationship (L6).
+  classifies the link while the others are its source — a different relationship (L6). The
+  argument is not special to arity 3: had this link instead stored a fourth endset `e₄` (a value
+  `(F, ∅, Θ, e₄)` with `N = 4`, admissible under L3's `N ≥ 3`), the read would return `e₄` under
+  slot 4 unchanged by the same componentwise equality — slots 1–3 keeping from/to/type and `e₄`
+  surfaced faithfully in its own position — so RL1 and RL2 are verified for an `N > 3` instance as
+  well, not only the dominant triple.
 - *RL5 (ghost-type completeness).* `Θ`'s address holds nothing, yet the read returns it intact;
   the type is interpreted as `coverage(Θ) = {[1.0.1.0.9.0.1.1]}` (L8), no dereference attempted.
   The read of this ghost-typed link is no less complete than any other.
@@ -354,7 +373,8 @@ We can now check the load-bearing postconditions against this instance.
   the mandatory-type / permissive-direction split.
 
 *An orphaned instance (RL8).* Suppose that at state `Σ` no document arrangement maps any
-V-position to the three I-addresses in `coverage(F)` — the connected content is arranged nowhere,
+V-position to the three content I-addresses lying within `coverage(F)` — the connected content is
+arranged nowhere,
 so the link is orphaned and `discoverable_from(a, d, Σ)` is false for every `d` (cf. the
 ghost-projection situation, ASN-0098). A *follow* of `F` against any arrangement would resolve to
 the empty set, and a *search* would find nothing to match. The direct read is unaffected: it
