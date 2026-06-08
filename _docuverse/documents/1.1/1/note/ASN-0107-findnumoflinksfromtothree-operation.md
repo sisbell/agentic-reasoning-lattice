@@ -34,7 +34,7 @@ The **matching set** and the **count** follow:
 
 **Request representation invariance.** `sat` reads each request part `Qᵢ` and each `coverage(Σ.L(a).eᵢ)` only as address *sets* — through the intersection `coverage(Σ.L(a).eᵢ) ∩ Qᵢ`. So a request re-expressed with the same coverage but a different span decomposition is the same request to the count.
 
-> **P0a (RequestRepresentationInvariance).** If `Q` and `Q'` have `Qᵢ = Q'ᵢ` as address sets for every `i` — in particular if their parts are re-decomposed into different spans of the same coverage (LP21, ASN-0098) — then `match(Q, Σ) = match(Q', Σ)` and `num(Q, Σ) = num(Q', Σ)`. Equal-coverage requests yield equal counts; this is immediate from `sat`, which consults `Qᵢ` only set-wise.
+> **P0a (RequestRepresentationInvariance).** If `Q` and `Q'` have `Qᵢ = Q'ᵢ` as address sets for every `i` — in particular if their parts are presented as spans and re-decomposed into different spans of the same coverage (equal by the `coverage` definition, ASN-0043; PrefixSpanCoverage, ASN-0043) — then `match(Q, Σ) = match(Q', Σ)` and `num(Q, Σ) = num(Q', Σ)`. Equal-coverage requests yield equal counts; this is immediate from `sat`, which consults `Qᵢ` only set-wise.
 
 ## What Is Counted
 
@@ -113,7 +113,7 @@ Transclusion is the case where content addition genuinely *increases* a count �
 
 > **A2 (TransclusionDiscoverability).** Transcluding existing content into a new document `d_new` — installing arrangement entries in `d_new` that map V-positions to the *same* shared I-addresses — makes every link whose coverage includes those I-addresses *discoverable* from `d_new` (LP16, ASN-0098). Discoverability and counting must not be conflated here: `discoverable_from` is an *existential* over slots, so a single transcluded slot suffices to make a link reachable, whereas `sat` — and hence the count — is *conjunctive* across all three slots. The discovery count of a query against `d_new` thus rises by exactly those shared links that satisfy all three slots — a number bounded above by the from-discoverable shared links and below by `0`, with the gap determined by how many of them fail their to/type slots. To count the broadest such population, take `W₂` and `W₃` to be the maximal query V-regions over `d_new`'s own positions — every V-position in `dom(Σ.M(d_new))` — so that `Q₂(Σ) = Q₃(Σ) = ran(Σ.M(d_new))`, the full set of I-addresses `d_new` currently arranges. A from-discoverable shared link is then counted exactly when its to- and type-coverage also meet those two resolved sets — i.e. when `d_new` likewise references its other endpoints. The existence count is unchanged regardless: those links already resided in the store and already satisfied a permanent-address request; transclusion shares I-addresses rather than minting them.
 
-A2 is the precise reconciliation of "a link to one version is a link to all versions" (Nelson, LM 2/26) with the fact that copying content adds no entry to the link store. The link population does not grow; what grows is the set of documents from which the unchanged population is reachable. The increase lives in `Σ.M`, not `Σ.L`.
+Copying content adds no entry to the link store. The link population does not grow; what grows is the set of documents from which the unchanged population is reachable. The increase lives in `Σ.M`, not `Σ.L` — realising Nelson's "a link to one version is a link to all versions" (LM 2/26).
 
 ## How the Count Changes: Links Retracted
 
@@ -139,7 +139,7 @@ R1 is the minimal case; the general case is where the decrement *exceeds* one, b
 
 A link survives partial damage to its endpoints, and is counted as long as *any* of its reach remains.
 
-> **R3 (PartialSurvival).** A link with a partially-deleted endpoint remains counted while at least one address of the relevant endset's coverage still lies in the resolved request part: `coverage(Σ.L(a).eᵢ) ∩ Qᵢ(Σ) ≠ ∅` persists if any covered address survives in the region. The link drops from the count only when *all* of its slot-`i` coverage has left every consulted arrangement — the empty-intersection boundary. Survivability is a guarantee that endset breadth is a reserve: a link clings to whatever bytes remain.
+> **R3 (PartialSurvival).** A link with a partially-deleted endpoint remains counted while at least one address of the relevant endset's coverage still lies in the resolved request part: `coverage(Σ.L(a).eᵢ) ∩ Qᵢ(Σ) ≠ ∅` persists if any covered address survives in the region. The link drops from the count only when *all* of its slot-`i` coverage has left every consulted arrangement — the empty-intersection boundary.
 
 Supersession — replacing a document with a newer version — must not be mistaken for deletion.
 
@@ -208,8 +208,6 @@ The corollary is that equal counts carry no promise of equal answers, and a stea
 
 > **W2 (NonReconstructibility).** Equality of counts does not entail equality of matching sets: the same numeral may denote wholly different sets at two states or under two requests. Between two states, an arrangement withdrawal (which removes a link from the discovery view) paired with a matching creation can hold the discovery count fixed while every member of the matching set changes. The count sizes the answer; it never names it, and it cannot be inverted to the set it summarises.
 
-W1 and W2 are the disciplined statement of why the count is *useful* despite being lossy: it lets a caller size a result — gauge the cost of the richer query, decide whether to ask for the links at all — before paying to enumerate them. The loss of identity is the price and the point. A count that revealed identity would not be a count.
-
 ## Claims Introduced
 
 | Label | Statement | Status |
@@ -218,7 +216,7 @@ W1 and W2 are the disciplined statement of why the count is *useful* despite bei
 | `match` | `match(Q, Σ) = {a ∈ dom(Σ.L) : sat(a, Q, Σ)}` — the matching set | introduced |
 | `num` | `num(Q, Σ) = |match(Q, Σ)|` — the count; total and finite (L-fin) | introduced |
 | P0 | The counted unit is the distinct link address; `num` is set cardinality | introduced |
-| P0a | Equal-coverage requests yield equal counts; `num` reads request parts only set-wise (LP21) | introduced |
+| P0a | Equal-coverage requests yield equal counts; `num` reads request parts only set-wise | introduced |
 | P1 | A link contributes `[sat(a,Q,Σ)] ∈ {0,1}`; endset breadth never multiplies the count (set, not multiset) | introduced |
 | P2 | Distinct addresses with equal values count separately; the count individuates by identity, not description | introduced |
 | P3 | `match(Q, Σ) ⊆ dom(Σ.L)` — only resident links are eligible | introduced |
