@@ -382,12 +382,23 @@ We can now check the load-bearing postconditions against this instance.
   The read delivers the structure; the search confirms relevance.
 - *RL2 (role preservation).* The three endsets come back under slots 1/2/3, not pooled. Were the
   read to return the bag `F ∪ Θ`, the reader could no longer tell that `[1.0.1.0.9.0.1.1]`
-  classifies the link while the others are its source — a different relationship (L6). The
-  argument is not special to arity 3: had this link instead stored a fourth endset `e₄` (a value
-  `(F, ∅, Θ, e₄)` with `N = 4`, admissible under L3's `N ≥ 3`), the read would return `e₄` under
-  slot 4 unchanged by the same componentwise equality — slots 1–3 keeping from/to/type and `e₄`
-  surfaced faithfully in its own position — so RL1 and RL2 are verified for an `N > 3` instance as
-  well, not only the dominant triple.
+  classifies the link while the others are its source — a different relationship (L6). This arity-3
+  instance is meant to *stand in for* the general `N ≥ 3` case, and the extension to `N > 3` is
+  immediate rather than a separate obligation. Link equality is *componentwise* (L6), so the read
+  fixes each slot `eᵢ` independently of every other: the mechanism that returns slot `i` faithfully —
+  copy the stored `Σ.L(a).eᵢ` into `readlink(a, Σ).eᵢ` — is identical for every index and refers to
+  no other slot. Verifying it on slots 1–3 therefore establishes it for an arbitrary slot count;
+  there is no slot-count-dependent step to recheck. Concretely, an arity-4 value `(F, ∅, Θ, e₄)`
+  would return `e₄` under slot 4 by exactly the same per-slot copy, slots 1–3 keeping from/to/type,
+  giving `|readlink(a, Σ)| = 4` and per-slot equality at every index. We deliberately do not exhibit
+  such an instance over a populated `Σ`: the abstract model admits `N > 3` (L3 requires only
+  `N ≥ 3`), but udanax-green caps every link at exactly three endsets — creation (`docreatelink`
+  passes three specsets), the spanfilade index (`LINKFROMSPAN`/`LINKTOSPAN`/`LINKTHREESPAN`), the
+  V-subspace assignment (`setlinkvsas`), and retrieval (the three-slot `RETRIEVEENDSETS`, the
+  `whichend ∈ {1,2,3}` guard) each enforce the cap independently — so no reachable state realizes an
+  `N = 4` link. The arity-4 read is *sound under componentwise equality yet structurally unreachable*,
+  which is precisely why the arity-3 instance must carry the general claim rather than be supplemented
+  by a concrete arity-4 one.
 - *RL5 (ghost-type completeness).* `Θ`'s address holds nothing, yet the read returns it intact.
   Its single span `([1.0.1.0.9.0.1.1], δ(1, 8))` is the canonical unit-depth span (`#s = 8 = #δ(1, 8)`),
   so by PrefixSpanCoverage (ASN-0043) `coverage(Θ) = {t : [1.0.1.0.9.0.1.1] ≼ t}` — the *subtree*
@@ -472,10 +483,6 @@ gone* (false — `a ∈ dom(Σ.L)` and its value is fixed by L12 / LP13).
 ## Open Questions
 
 What must the system guarantee a reader can conclude about a relationship's continued validity from a direct read alone, given that the read does not consult any arrangement?
-
-What invariant relates the completeness of a directly-read structure to the completeness any future read of the same link must yield, across unbounded system evolution?
-
-Under what conditions, if any, may the address-set a read discloses for an endset differ in denotation from the address-set recorded at the link's creation?
 
 What must a read guarantee about the distinguishability of a connective endset that is legitimately empty from one whose spans reference only currently-unwitnessed content?
 
