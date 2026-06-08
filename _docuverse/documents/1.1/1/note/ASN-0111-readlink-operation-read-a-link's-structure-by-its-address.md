@@ -139,8 +139,7 @@ permitted (L9, ASN-0043), and the read of a ghost-typed link is no less complete
 
 Because links live in the same address space as content, an endset may name another link. The
 to-set of a link can carry a span of width one over a link's own address (the canonical reflexive
-span of L13, ASN-0043), making the link's target itself a link. Compound and faceted structures
-are built this way.
+span of L13, ASN-0043), making the link's target itself a link.
 
 **RL6 (Nesting fidelity).** If `a' ∈ dom(Σ.L)` and `a' ∈ coverage(readlink(a, Σ).eᵢ)`, the read
 discloses `a'` as the tumbler address it is — it does not flatten the reference into the content,
@@ -237,10 +236,8 @@ Let the stored value `Σ.L(a) = (F, G, Θ)` be the standard triple
   entire subtrees beneath `…1.1` and `…1.2` (e.g. `[1.0.1.0.1.0.1.1.0]`, `[1.0.1.0.1.0.1.2.5]`),
   an infinite tumbler set, *not* the two addresses `…1.1` and `…1.2` alone. The second span is the
   interval `[ [1.0.1.0.2.0.1.1], [1.0.1.0.2.0.1.2] )` under `d₂`. The element-level content
-  I-addresses *lying within* `coverage(F)` — the `dom(C)` members inside the coverage intervals,
-  reserving "arranged" for the `Σ.M` sense used in RL8 — are `[1.0.1.0.1.0.1.1]` and
-  `[1.0.1.0.1.0.1.2]` under `d₁` and `[1.0.1.0.2.0.1.1]` under `d₂` — three I-addresses that host
-  content and lie *inside* `coverage(F)`, to be distinguished from the coverage intervals themselves.
+  I-addresses lying within `coverage(F)` are `[1.0.1.0.1.0.1.1]` and `[1.0.1.0.1.0.1.2]` under `d₁`
+  and `[1.0.1.0.2.0.1.1]` under `d₂` — three `dom(C)` members that host content and are unarranged.
 - **to-set** `G = ∅` — a legitimately empty connective slot.
 - **type-set** `Θ = {([1.0.1.0.9.0.1.1], δ(1, 8))}` — a single span whose address sits under a
   document `[1.0.1.0.9]` that hosts no content: a *ghost* type, a label by location.
@@ -285,30 +282,13 @@ read discloses `a'` *as the tumbler address it is* — unflattened, not resolved
 itself records. This verifies RL6 against a concrete link→link target — the construction underlying
 compound and faceted structures.
 
-*An orphaned instance (RL8).* Suppose that at state `Σ` no document arrangement maps any
-V-position to the three content I-addresses lying within `coverage(F)` — the connected content is
-arranged nowhere. Discoverability quantifies over slots (LP12, ASN-0098:
-`discoverable_from(a, d, Σ) ⟺ (E i : coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅)`), so we dispatch all
-three. We do not re-derive here which substrate addresses each coverage interval contains: every
-span of `F` and of `Θ` is a *canonical* span whose start lies in the substrate-emittable set, so
-LP-Fin Corollary (CanonicalIntervalCharacterisation, ASN-0098) fixes `coverage ∩ (dom(Σ.C) ∪
-dom(Σ.L))` to the span's own sub-allocator chain — every such member carries the start's subspace
-identifier and origin. Each start here sits under subspace `s_C`, while every `dom(Σ.L)` member
-carries `s_L` (L0, ASN-0093); the two are disjoint, so the link store meets neither coverage:
-`coverage(F) ∩ dom(Σ.L) = coverage(Θ) ∩ dom(Σ.L) = ∅`. *Slot 1 (from):* by the same corollary,
-`coverage(F) ∩ dom(Σ.C)` is exactly the three named chain-member I-addresses, unarranged by
-hypothesis; with `coverage(F) ∩ dom(Σ.L) = ∅` (above) and every arrangement range confined to `dom(Σ.C) ∪ dom(Σ.L)`
-(LP20 RangeConfinement, ASN-0098, via S3★ of ASN-0047), `coverage(F) ∩ ran(Σ.M(d)) = ∅` for every
-`d`. *Slot 2 (to):* `G = ∅`, so `coverage(∅) = ∅` and the slot is trivially unwitnessed. *Slot 3
-(type):* the ghost document `[1.0.1.0.9]` hosts no content, so `coverage(Θ) ∩ dom(Σ.C) = ∅`; with
-the link store also disjoint (above), `coverage(Θ) ∩ ran(Σ.M(d)) = ∅` for every `d`, independent of
-whether `[1.0.1.0.9]` hosts anything. With all three slots unwitnessed, `discoverable_from(a, d, Σ)`
-is false for every `d`, and the link is orphaned — exactly the ghost-projection situation (LP17,
-ASN-0098). A *follow* of `F` against any arrangement would resolve to the empty set, and a *search*
-would find nothing to match. The direct read is unaffected: it consults only `Σ.L`, so
-`readlink(a, Σ) = (F, ∅, Θ)` still returns the complete structure. The read thus distinguishes *the
-relationship is unwitnessed* (true here) from *the relationship is gone* (false — `a ∈ dom(Σ.L)` and
-its value is fixed by L12 / LP13).
+*An orphaned instance (RL8).* Suppose `a` is orphaned at `Σ` — no document arrangement maps any
+V-position into the coverage of any of its endsets, so a *follow* of `F` against any arrangement
+would resolve to the empty set and a *search* would find nothing to match (the ghost-projection
+situation, LP17, ASN-0098). The READLINK obligation is unaffected by this hypothesis: the read
+consults only `Σ.L`, never an arrangement (RL8), so `readlink(a, Σ) = (F, ∅, Θ)` still returns the
+complete structure. The read thus distinguishes *the relationship is unwitnessed* (true here) from
+*the relationship is gone* (false — `a ∈ dom(Σ.L)` and its value is fixed by L12 / LP13).
 
 ## Claims Introduced
 
