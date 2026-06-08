@@ -371,7 +371,7 @@ F22 (ReorderingDiscoverabilityInvariance):
          ≡ enabled(K.μ~[d]) ∧ a ∈ findlinks_V(T, d, Σ).
 ```
 
-Derivation. K.μ~ is the named `K.μ⁻ + K.μ⁺` composite that restores the same range. It is nondeterministic in its witnessing bijection — ASN-0047 admits any length- and subspace-preserving `π` meeting its admissibility clauses — but LP11 (ReorderingBijection, ASN-0098) gives `ran(Σ'.M(d)) = ran(Σ.M(d))` for *every* such `π`, so range invariance is independent of which `π` is chosen. Equivalently J3/K.μ~-RANGE (ASN-0047) supplies the same range equality, and A1a gives `Σ'.L = Σ.L`. For `R = T`, `image(T, d, Σ) = ran(Σ.M(d))`, so write `J := ran(Σ.M(d)) = ran(Σ'.M(d))` for the single image set shared by both states. Evaluating the postcondition at `Σ'`:
+Derivation. K.μ~ is the named `K.μ⁻ + K.μ⁺` composite that restores the same range. It is nondeterministic in its witnessing bijection — ASN-0047 admits any length- and subspace-preserving `π` meeting its admissibility clauses — but LP11 (ReorderingBijection, ASN-0098) gives `ran(Σ'.M(d)) = ran(Σ.M(d))` for *every* such `π`, so range invariance is independent of which `π` is chosen. A1a gives `Σ'.L = Σ.L`. For `R = T`, `image(T, d, Σ) = ran(Σ.M(d))`, so write `J := ran(Σ.M(d)) = ran(Σ'.M(d))` for the single image set shared by both states. Evaluating the postcondition at `Σ'`:
 
 ```
 a ∈ findlinks_V(T, d, Σ')
@@ -476,7 +476,6 @@ Transitivity yields `Σ.L = Σ_5.L`. F8 forces `findlinks(I, Σ) = findlinks(I, 
 |-------|-----------|--------|
 | `image(R, d, Σ)` | I-image of a V-region with silent projection | definition |
 | `findlinks(I, Σ)` | Discovery operation comprehension | definition |
-| `findlinks_V(R, d, Σ)` | Two-phase composite `findlinks(image(R, d, Σ), Σ)` (operation, defined by F12) | definition |
 | `findlinks_filtered(C, Σ)` | Filtered form with slot constraints | definition |
 | `findlinks_scoped(I, S, Σ)` | Scoped form: `findlinks(I, Σ) ∩ S` | definition |
 | ComprehensionInvariantUnderΣL | Meta-lemma: comprehensions over `dom(Σ.L)` with `Σ.L`-only predicates are invariant under `Σ.L = Σ'.L` | introduced (meta-lemma) |
