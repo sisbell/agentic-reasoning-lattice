@@ -2,13 +2,9 @@
 
 *2026-06-04*
 
-We are trying to understand a question that looks like the bounding query of its sibling
-but is not: *given only your name, how much of each kind of thing do you hold?* A document
-is handed over by identity alone — no range, no position, no selection — and is expected to
-report back the extent of *each* of its content kinds separately: how much text, and how
-many links. Where the whole-document query answers "from here, this far" with one span,
-this query must answer with *several* spans, one per kind, and the difference between one
-span and several is the whole subject of this note.
+We are trying to understand the per-subspace extent query: a document is handed over by
+identity alone — no range, no position, no selection — and is expected to report the extent
+of *each* of its content kinds separately, how much text and how many links.
 
 Nelson fixes the shape exactly. RETRIEVEDOCVSPANSET "returns a span-set indicating both
 the number of characters of text and the number of links in document `<doc id>`" (4/68).
@@ -188,8 +184,8 @@ be the *occupied subspaces* (W6). The operation returns the extent span of each,
 the empty span-set `⟨⟩` when `occupied(d) = ∅`. We record this as **W7**
 (OneSpanPerOccupiedSubspace): the result has exactly `|occupied(d)|` members — one per
 occupied subspace, *never one per contiguous fragment and never one per individual item*.
-The report is at the granularity of *kind*, not of position: a document with a thousand
-characters and three links yields two members, not a thousand-and-three. This matches both
+A document with a thousand characters and three links yields two members, not a
+thousand-and-three. This matches both
 Nelson's "span-set indicating both the number of characters and the number of links" (4/68)
 and Gregory's implementation, which emits at most one VSpec per subspace regardless of how
 many crums populate it (consultation Q11, Q14, Q19).
@@ -313,9 +309,7 @@ member designates — the active positions of `S` are exactly those lying within
 one increment here is that each such position *carries content*. We record **W17**
 (ExtentDeterminesPopulation), one S3★ step beyond W4: for each occupied `S` and each
 `v ∈ ⟦ext(d, S)⟧ ∩ VSlice(S, m_S)`, `M(d)(v) ∈ dom(C)` for `S = s_C` and `M(d)(v) ∈ dom(L)` for
-`S = s_L` (S3★). The reader who later asks for the region the member bounds finds neither more
-nor fewer items than the extent claims; what must never happen is a mismatch where the extent
-designates a region but the region's population differs from it.
+`S = s_L` (S3★).
 
 **The count is faithful.** The link member's whole purpose (W0, after Nelson 4/68) is to
 *indicate the number of links*, so we must bridge `n_{s_L}(d) = |V_{s_L}(d)|` to that number.
