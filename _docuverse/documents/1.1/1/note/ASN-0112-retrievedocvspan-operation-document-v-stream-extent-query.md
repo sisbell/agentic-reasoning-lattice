@@ -176,9 +176,16 @@ satisfying `w < w.0 < inc(w, 0) = reach_d`; and `inc(w, 0)` is *the smallest sam
 tumbler strictly greater than `w`* — the next peer at the same depth. The first fact shows
 `reach_d` is *not* the least admissible reach over all of `T` (a span with reach `w.0` already
 covers `O(d)`, since `w < w.0`); the second is exactly V3's claim that `reach_d` is the least
-strict upper bound of `max O(d)` *among same-depth tumblers*. The deeper `w.0` is excluded
-precisely because it lifts the span out of level-uniformity. So `σ_d` is the tightest
-*level-uniform* covering span of `O(d)`. This is the formal core of
+strict upper bound of `max O(d)` *among tumblers at the depth of `max O(d)`* (`= #reach_d`).
+The deeper `w.0` is excluded precisely because it sits at a greater depth than `max O(d)`,
+outside that same-depth comparison class. This is the most the reach argument proves: it fixes
+`reach_d` against `max O(d)` alone and says nothing about `#origin_d`. Whether `σ_d` is itself
+*level-uniform* (`#origin_d = #extent_d`) is a *separate* condition — since
+`#extent_d = max(#origin_d, #reach_d)` (TA2), the span is level-uniform iff
+`#origin_d ≥ #reach_d` (i.e. `m_C ≥ m_L`), which holds for every single-subspace document but
+can fail across subspaces; endpoint-level-compatibility (`#origin_d = #reach_d`, i.e.
+`m_C = m_L`) is stricter still. So `σ_d` is the tightest covering span whose reach lies at the
+depth of `max O(d)`. This is the formal core of
 Nelson's claim that origin and extent "describe the document as a whole" *implicitly* —
 "there is no choice as to what lies between; this is implicit in the choice of first and last
 point" (4/25). Fix the two boundaries and the whole is determined.
@@ -259,14 +266,12 @@ distinguished only by the first-component value `s_C = 1` vs `s_L = 2`, never by
 V-addresses), so the cross-subspace endpoints are level-compatible and `reach(σ_d) = reach_d`
 exactly.
 
-This is not a defect peculiar to one engine. It is a *theorem about single spans*. A span
-is by construction one contiguous region (ASN-0053 S0, convexity): "if you want to designate
-a separated series of items exactly, including nothing else, you do this by a span-set, which
-is a series of spans" (4/25). A document occupying two disjoint subspaces is a *separated
-series*; no single span can trace it exactly. Any implementation that answers with one
-origin-and-extent pair must, of necessity, bridge the gap. Recovering the per-subspace
-extents exactly requires a span-*set* — a different operation, out of scope here. We record
-the structural fact as **V7** (single-span contiguity): the result is always one convex
+A span is by construction one contiguous region (ASN-0053 S0, convexity): "if you want to
+designate a separated series of items exactly, including nothing else, you do this by a
+span-set, which is a series of spans" (4/25). A document occupying two disjoint subspaces is a
+*separated series*, so no single span can trace it exactly; recovering the per-subspace extents
+exactly requires a span-*set* — a different operation, out of scope here. We record the
+structural reason behind V6 as **V7** (single-span contiguity): the result is always one convex
 region; fragmentation is unrepresentable in a single span, so a multi-subspace document is
 reported by enclosure rather than by exact decomposition.
 
@@ -569,10 +574,10 @@ endpoint depths), without inspecting the returned span.
 | V0 | `RETRIEVEDOCVSPAN : dom(M) → Span + {⟨⟩}` (tagged union): one well-formed span `σ_d = (origin_d, extent_d)` for a non-empty document, or the distinguished empty span-set `⟨⟩` (denoting `∅`, not a T12 span) when `O(d) = ∅` — never a content sequence, never a count | introduced |
 | V1 | When `O(d) ≠ ∅`, `origin_d = min O(d)` under T1 and `origin_d ∈ O(d)` (the origin is an occupied position) | introduced |
 | V2 | `O(d) ⊆ ⟦σ_d⟧` (coverage), proved unconditionally via D0/D1 without assuming level-uniformity; the actual reach `r⋆ = origin_d ⊕ extent_d ≥ reach_d = shift(max O(d), 1) > max O(d)`, with equality `r⋆ = reach_d` iff `#origin_d ≤ #reach_d`; the span `(origin_d, extent_d)` is always a well-formed T12 span | introduced |
-| V3 | `origin_d` is the greatest lower bound of `O(d)`; `reach_d` is the least strict upper bound of `max O(d)` *among same-depth tumblers* (the deeper zero-extension `max O(d).0` is a smaller upper bound but breaks level-uniformity) — so `σ_d` is the tightest *level-uniform* covering span | introduced |
+| V3 | `origin_d` is the greatest lower bound of `O(d)`; `reach_d` is the least strict upper bound of `max O(d)` *among tumblers at the depth of `max O(d)`* (`= #reach_d`; the deeper zero-extension `max O(d).0` is a smaller upper bound but lies at greater depth) — so `σ_d` is the tightest covering span whose reach is at the depth of `max O(d)`; `σ_d` is itself *level-uniform* iff `#origin_d ≥ #reach_d` (`m_C ≥ m_L`), a separate condition the reach argument does not establish | introduced |
 | V4 | `extent_d` is computed from `O(d) = dom(M(d))` alone; content in `dom(C)` but absent from the arrangement (deleted, or native elsewhere) contributes nothing (Vstream-bounded, not Istream) | introduced |
 | V5 | When all occupied positions share one subspace, `⟦σ_d⟧` contains no occupied-depth position outside `O(d)` (exact cover of a contiguous run) | introduced |
-| V6 | When occupied positions span more than one subspace, `O(d) ⊊ ⟦σ_d⟧` — the span bridges the inter-subspace void (bounding box, not exact cover); the endpoints are level-compatible and the span level-uniform whenever the subspaces share a depth (`m_C = m_L`, the case the implementation always realizes per consultation Q2), and coverage holds even when `m_C ≠ m_L` | introduced |
+| V6 | When occupied positions span more than one subspace, `O(d) ⊊ ⟦σ_d⟧` — the span bridges the inter-subspace void (bounding box, not exact cover); the endpoints are level-compatible iff the subspaces share a depth (`m_C = m_L`, the case the implementation always realizes per consultation Q2), while the span is level-uniform under the weaker `m_C ≥ m_L`; coverage holds in all cases (even `m_C ≠ m_L`) | introduced |
 | V7 | The result is always one convex region; fragmentation is unrepresentable in a single span, so multi-subspace documents are reported by enclosure (single-span contiguity) | introduced |
 | V8 | While the content subspace is non-empty, `origin_d = [s_C,1,…,1]`, invariant under all editing that leaves content present (origin permanence) | introduced |
 | V9 | `σ_d` is a function of `O(d)` alone; pure rearrangement preserves `O(d)` and returns the identical span (extent tracks composition, not arrangement) | introduced |
