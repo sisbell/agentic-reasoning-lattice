@@ -45,8 +45,17 @@ what `readlink` will exploit.
 
 ## Deriving the read
 
+A standing precondition governs everything below. We specify `readlink` over states `Σ` that
+satisfy the foundation and state-local invariants — equivalently, states `→*`-reachable from the
+initial state `Σ₀` (ASN-0047, ASN-0093). This is not a convenience: the substrate facts we lean on —
+L0, L1, L1b, L0b, L3, L8, L12 (ASN-0043) — are *theorems about reachable states*, not properties of
+every conceivable store. A hand-built `Σ` carrying an arity-2 link, or a non-T4-valid link key, would
+satisfy none of them, and the guarantees RL-WF, RL-ARITY, RL-GEN, RL-REP, RL4, and RL5 below would
+have no ground to stand on. Every such guarantee is therefore claimed *only* under this standing
+precondition; where we write "for a state `Σ`," read "for a reachable, invariant-satisfying `Σ`."
+
 We are looking for an operation that, given an address, returns the relationship recorded there.
-The minimal honest specification is a lookup in the link store. For a state `Σ` and address `a`:
+The minimal honest specification is a lookup in the link store. For such a state `Σ` and address `a`:
 
 > `readlink(a, Σ)`
 >   *defined when*  `a ∈ dom(Σ.L)`
@@ -208,12 +217,18 @@ references are permitted generally (L9), and an orphaned link (RL8) is precisely
 endpoints are unwitnessed. So all three slots are equally unconstrained as to whether the addresses
 they name host any entity; the read returns whatever each recorded, faithfully, regardless.
 
-The genuine asymmetries between the type slot and the connective slots are exactly two, and the
+Two asymmetries between the type slot and the connective slots bear directly on the read, and the
 read reflects both. First, the type slot is mandatorily non-empty (L3, ASN-0043) while a from- or
 to-endset may legitimately be `∅`. Second, the type is interpreted by *coverage-identity without
 dereference* (L8): two links share a type when their type endsets cover the same address set,
-decided without reading anything stored there. These are the only respects in which type differs
-from from/to — not any claim about which slots correspond to existing content.
+decided without reading anything stored there — the relation that partitions the store into
+type-equivalence classes. We do not claim these exhaust every structural distinction between the
+slots: the directional significance of the from/to pair (L7, ASN-0043) has no type-slot analogue,
+and the implementation segregates the type endset into its own V-subspace and search dimension.
+But those distinctions either lie outside the link value the read returns (L7's directionality is a
+matter of interpretation, not stored structure) or are implementation detail; the two named above
+are the ones that govern what the read must surface about the type — and neither is a claim about
+which slots correspond to existing content.
 
 ## Faithful disclosure of nesting
 
@@ -286,9 +301,11 @@ there, complete, and the read returns it.
 ## Invariants governing the returned structure
 
 Finally we collect the invariants that constrain *what* a well-formed read may return — the
-guarantees a reader may assume of any value `readlink` produces. These are not new obligations but
+guarantees a reader may assume of any value `readlink` produces, *under the standing precondition
+that `Σ` is reachable and invariant-satisfying* (established above). These are not new obligations but
 the foundation invariants viewed through the read interface; an alternative implementation's read
-must honour them because the stored values do.
+must honour them because the stored values of any reachable state do. They are claims about the
+reachable class of states, not about arbitrary stores.
 
 **RL-WF (Well-formedness).** Each returned endset is a finite set of T12-well-formed spans
 (`Endset = 𝒫_fin(Span)`). Every span `(s, ℓ)` in the result satisfies `Pos(ℓ) ∧ actionPoint(ℓ) ≤ #s`,
