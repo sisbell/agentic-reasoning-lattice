@@ -360,9 +360,10 @@ Let the stored value `Σ.L(a) = (F, G, Θ)` be the standard triple
   entire subtrees beneath `…1.1` and `…1.2` (e.g. `[1.0.1.0.1.0.1.1.0]`, `[1.0.1.0.1.0.1.2.5]`),
   an infinite tumbler set, *not* the two addresses `…1.1` and `…1.2` alone. The second span is the
   interval `[ [1.0.1.0.2.0.1.1], [1.0.1.0.2.0.1.2] )` under `d₂`. The element-level content
-  addresses *arranged within* this coverage are `[1.0.1.0.1.0.1.1]` and `[1.0.1.0.1.0.1.2]` under
-  `d₁` and `[1.0.1.0.2.0.1.1]` under `d₂` — three I-addresses that host content and lie *inside*
-  `coverage(F)`, to be distinguished from the coverage intervals themselves.
+  I-addresses *lying within* `coverage(F)` — the `dom(C)` members inside the coverage intervals,
+  reserving "arranged" for the `Σ.M` sense used in RL8 — are `[1.0.1.0.1.0.1.1]` and
+  `[1.0.1.0.1.0.1.2]` under `d₁` and `[1.0.1.0.2.0.1.1]` under `d₂` — three I-addresses that host
+  content and lie *inside* `coverage(F)`, to be distinguished from the coverage intervals themselves.
 - **to-set** `G = ∅` — a legitimately empty connective slot.
 - **type-set** `Θ = {([1.0.1.0.9.0.1.1], δ(1, 8))}` — a single span whose address sits under a
   document `[1.0.1.0.9]` that hosts no content: a *ghost* type, a label by location.
@@ -416,8 +417,16 @@ link→link target — the construction underlying compound and faceted structur
 
 *An orphaned instance (RL8).* Suppose that at state `Σ` no document arrangement maps any
 V-position to the three content I-addresses lying within `coverage(F)` — the connected content is
-arranged nowhere,
-so the link is orphaned and `discoverable_from(a, d, Σ)` is false for every `d` (cf. the
+arranged nowhere. To conclude `discoverable_from(a, d, Σ)` is false for *every* `d`, we must
+dispatch all three slots, since discoverability quantifies over slots (LP12, ASN-0098:
+`⟺ (E i : coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅)`). *Slot 1 (from):* by the supposition, no
+arrangement range reaches any I-address in `coverage(F)`, so `coverage(F) ∩ ran(Σ.M(d)) = ∅` for
+every `d`. *Slot 2 (to):* `G = ∅`, so `coverage(∅) = ∅` and the slot is trivially unwitnessed.
+*Slot 3 (type):* `coverage(Θ) = {t : [1.0.1.0.9.0.1.1] ≼ t}` is a non-empty (indeed infinite)
+address set, but the ghost document `[1.0.1.0.9]` hosts no content, so `coverage(Θ) ∩ dom(Σ.C) = ∅`;
+by S3★ (ASN-0047) every arrangement range lies in `dom(Σ.C) ∪ dom(Σ.L)`, and `coverage(Θ)` meets
+neither store here, so `coverage(Θ) ∩ ran(Σ.M(d)) = ∅` for every `d`. With all three slots
+unwitnessed, `discoverable_from(a, d, Σ)` is false for every `d`, and the link is orphaned (cf. the
 ghost-projection situation, ASN-0098). A *follow* of `F` against any arrangement would resolve to
 the empty set, and a *search* would find nothing to match. The direct read is unaffected: it
 consults only `Σ.L`, so `readlink(a, Σ) = (F, ∅, Θ)` still returns the complete structure. The
