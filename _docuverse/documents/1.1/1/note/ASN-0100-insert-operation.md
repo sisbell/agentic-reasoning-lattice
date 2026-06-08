@@ -240,7 +240,7 @@ The consequence: a reader holding any pre-state I-address `a ∈ dom(C)` retriev
 
 The frame `(A d' : d' ≠ d : M'(d') = M(d'))` directly enforces independence: no document other than `d` has its arrangement altered. Coupled with `L' = L` and content-store preservation, this means that any document `d'` that transcludes content from `d` continues to map the same V-positions to the same I-addresses, and those I-addresses continue to resolve to the same values.
 
-Cross-document independence extends to link projection: for any link `ℓ ∈ dom(L)` and any document `d' ≠ d`, every elementary step of the decomposition frames `M(d')` (`M'(d') = M(d')`), so LP4 (ArrangementSpecificity; ASN-0098) applied at each step and composed across the sequence gives `project(ℓ, i, d', Σ') = project(ℓ, i, d', Σ)` — the `d' ≠ d` case of INS.proj.
+Cross-document independence extends to link projection: for any link `ℓ ∈ dom(L)` and any document `d' ≠ d`, the cross-document frame `M'(d') = M(d')` established above gives `project(ℓ, i, d', Σ') = project(ℓ, i, d', Σ)` by INS.proj's `d' ≠ d` case (proved below).
 
 ### Arrangement functionality (S2)
 
