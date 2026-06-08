@@ -160,12 +160,12 @@ common depth.
 
 **The span is the tightest covering bound among same-depth reaches.** We record **V3**
 (bounding): `origin_d` is the greatest lower bound of `O(d)`, and `reach_d` is the *least*
-admissible upper bound *among tumblers of the same depth as* `max O(d)`. We are deliberately
-careful about the qualifier, because without it the claim is false. The lower bound is
+admissible upper bound *among tumblers of the same depth as* `max O(d)`. The same-depth
+qualifier is load-bearing: dropped, the claim is false, since the deeper `max O(d).0` is a
+smaller upper bound. The lower bound is
 unconditional: any span `σ'` with `O(d) ⊆ ⟦σ'⟧` satisfies `start(σ') ≤ min O(d) = origin_d`.
 The upper bound requires an argument, not an appeal to a "one step at a time" convention —
-the tumbler line has no such convention. We do not redevelop the arithmetic; the foundation
-supplies it. Write `w = max O(d)`. Because every V-position is zero-free with all components
+the tumbler line has no such convention. Write `w = max O(d)`. Because every V-position is zero-free with all components
 positive (S8a), the rightmost nonzero component of `w` is its last, so `sig(w) = #w`
 (TA5-SIG, ASN-0034); hence `reach_d = shift(w, 1) = w ⊕ δ(1, #w)` coincides with `inc(w, 0)`,
 since OrdinalShift (ASN-0034) advances the same last component that `inc(·, 0)` modifies at
@@ -178,8 +178,7 @@ tumbler strictly greater than `w`* — the next peer at the same depth. The firs
 covers `O(d)`, since `w < w.0`); the second is exactly V3's claim that `reach_d` is the least
 strict upper bound of `max O(d)` *among tumblers at the depth of `max O(d)`* (`= #reach_d`).
 The deeper `w.0` is excluded precisely because it sits at a greater depth than `max O(d)`,
-outside that same-depth comparison class. This is the most the reach argument proves: it fixes
-`reach_d` against `max O(d)` alone and says nothing about `#origin_d`. Whether `σ_d` is itself
+outside that same-depth comparison class. Whether `σ_d` is itself
 *level-uniform* (`#origin_d = #extent_d`) is a *separate* condition — since
 `#extent_d = max(#origin_d, #reach_d)` (TA2), the span is level-uniform iff
 `#origin_d ≥ #reach_d` (i.e. `m_C ≥ m_L`), which holds for every single-subspace document but
@@ -251,15 +250,11 @@ characters plus one link report `1.1 for 1.2`, whose reach `[1,1] ⊕ [1,2] = [2
 from the text start straight across the gap into link space (consultation Q11, Q19).
 
 A subtlety of depth must be settled here, because S8-depth permits distinct subspaces to
-carry distinct depths (`m_C` for content, `m_L` for links). In the cross-subspace case
-`origin_d` is a depth-`m_C` content position while `reach_d = shift(max O(d), 1)` is a
-depth-`m_L` link position (OrdinalShift preserves depth), so when `m_C ≠ m_L` the endpoints
-are *not* level-compatible (`#origin_d ≠ #reach_d`). The covering argument (V2) was proved
-without any endpoint depth relation and so still holds; what changes is only the *reach*, and
-the V2 reach biconditional settles it directly: `reach(σ_d) = reach_d` exactly when
-`#origin_d ≤ #reach_d` (i.e. `m_C ≤ m_L`), while when `m_C > m_L` the actual reach `r⋆`
-strictly exceeds `reach_d` (it is `reach_d` zero-padded to depth `m_C`). In all
-cases `r⋆ ≥ reach_d > max O(d)`, so the bounding-box reading of V6 stands. The realized case is
+carry distinct depths (`m_C` for content, `m_L` for links), so in the cross-subspace case the
+endpoints need not be level-compatible (`#origin_d ≠ #reach_d` when `m_C ≠ m_L`). The V2 reach
+biconditional already disposes of this: coverage was proved without any endpoint depth relation
+and so holds regardless, and `r⋆ ≥ reach_d > max O(d)` in every case, so the bounding-box reading
+of V6 stands at any depth relation. The one fact V6 adds is that the implementation realizes only
 `m_C = m_L`: content and link V-positions are placed at the same depth — both depth 2 —
 distinguished only by the first-component value `s_C = 1` vs `s_L = 2`, never by depth
 (consultation Q2: `findvsatoappend`, `findnextlinkvsa`, and `setlinkvsas` all emit depth-2
@@ -577,7 +572,7 @@ endpoint depths), without inspecting the returned span.
 | V3 | `origin_d` is the greatest lower bound of `O(d)`; `reach_d` is the least strict upper bound of `max O(d)` *among tumblers at the depth of `max O(d)`* (`= #reach_d`; the deeper zero-extension `max O(d).0` is a smaller upper bound but lies at greater depth) — so `σ_d` is the tightest covering span whose reach is at the depth of `max O(d)`; `σ_d` is itself *level-uniform* iff `#origin_d ≥ #reach_d` (`m_C ≥ m_L`), a separate condition the reach argument does not establish | introduced |
 | V4 | `extent_d` is computed from `O(d) = dom(M(d))` alone; content in `dom(C)` but absent from the arrangement (deleted, or native elsewhere) contributes nothing (Vstream-bounded, not Istream) | introduced |
 | V5 | When all occupied positions share one subspace, `⟦σ_d⟧` contains no occupied-depth position outside `O(d)` (exact cover of a contiguous run) | introduced |
-| V6 | When occupied positions span more than one subspace, `O(d) ⊊ ⟦σ_d⟧` — the span bridges the inter-subspace void (bounding box, not exact cover); the endpoints are level-compatible iff the subspaces share a depth (`m_C = m_L`, the case the implementation always realizes per consultation Q2), while the span is level-uniform under the weaker `m_C ≥ m_L`; coverage holds in all cases (even `m_C ≠ m_L`) | introduced |
+| V6 | When occupied positions span more than one subspace, `O(d) ⊊ ⟦σ_d⟧` — the span bridges the inter-subspace void (bounding box, not exact cover) | introduced |
 | V7 | The result is always one convex region; fragmentation is unrepresentable in a single span, so multi-subspace documents are reported by enclosure (single-span contiguity) | introduced |
 | V8 | While the content subspace is non-empty, `origin_d = [s_C,1,…,1]`, invariant under all editing that leaves content present (origin permanence) | introduced |
 | V9 | `σ_d` is a function of `O(d)` alone; pure rearrangement preserves `O(d)` and returns the identical span (extent tracks composition, not arrangement) | introduced |
