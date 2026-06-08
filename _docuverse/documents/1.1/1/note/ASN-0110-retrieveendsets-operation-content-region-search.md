@@ -516,6 +516,15 @@ be the set of I-addresses that `d` currently maps `R` to, and define
 > `retrieveendsets_V(R, d, Σ) = retrieveendsets(image(R, d, Σ), Σ)`. For `d ∉ dom(Σ.M)` the
 > operation is undefined — there is no silent fallback.
 
+The reduction feeds `image(R, d, Σ)` into the I-side operation, which requires a *finite*
+explicit I-set to satisfy RE-decide. This finiteness holds for an *arbitrary* — even infinite —
+V-region `R`, and it comes not from `R` but from the arrangement: by definition
+`image(R, d, Σ) = {Σ.M(d)(v) : v ∈ R ∩ dom(Σ.M(d))} ⊆ ran(Σ.M(d))`, and `dom(Σ.M(d))` is finite
+(S8-fin, ASN-0036; cf. S8-fin/C-fin, ASN-0093), whence `ran(Σ.M(d))` is finite and so is the
+subset `image(R, d, Σ)`. Thus `image(R, d, Σ) ∈ 𝒫_fin(T)` unconditionally, and the I-side
+precondition of RE-decide is met regardless of `R`'s cardinality. The finite I-set the V-side
+hands to the I-side query is exactly this image.
+
 Two behaviours follow from the structure of `image`, and both are forced rather than chosen.
 First, the conversion is *silently partial*: V-positions of `R` that are not in
 `dom(Σ.M(d))` — content the document never arranged, or arranged and since deleted —
@@ -573,7 +582,7 @@ it among the open questions.
 | RE-wp | `wp(K.λ, e ∈ Eⱼ(I, Σ')) = pre ∧ (e ∈ Eⱼ(I, Σ) ∨ (j ≤ N ∧ eⱼ = e ∧ touches(e, I)))`; growth gated on allocated value alone | introduced |
 | RE-empty | empty result permitted, not permanent; recoverable by `K.λ` when `I ≠ ∅`, `dom(Σ.M) ≠ ∅` | introduced |
 | RE-add | `Eᵢ(I₁ ∪ I₂, Σ) = Eᵢ(I₁, Σ) ∪ Eᵢ(I₂, Σ)` | introduced |
-| RE-Vside | `retrieveendsets_V(R, d, Σ) = retrieveendsets(image(R, d, Σ), Σ)`; silently partial under unmapped V-positions | introduced |
+| RE-Vside | `retrieveendsets_V(R, d, Σ) = retrieveendsets(image(R, d, Σ), Σ)`; `image(R, d, Σ) ⊆ ran(Σ.M(d))` finite for arbitrary `R` (S8-fin), meeting RE-decide; silently partial under unmapped V-positions | introduced |
 | RE-translucent | transclusion-shared endsets discovered from any document arranging the shared I-address | introduced |
 
 ## Open Questions
