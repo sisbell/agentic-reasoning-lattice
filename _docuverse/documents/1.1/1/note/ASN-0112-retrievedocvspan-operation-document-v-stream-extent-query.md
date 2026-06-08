@@ -323,21 +323,9 @@ origin at all — and that case is answered with `⟨⟩`, not refused.
 
 ## What the caller learns beyond the name
 
-The point of the operation is that it discloses something the identity alone does not.
-A document's identity is its tumbler `N.0.U.0.D`: a pure locator. It tells you *where* the
-document sits and *who* owns it — "you always know where you are" (2/40) — but "tumblers …
-impose no categorization and no structure on the contents of a document" (4/17–4/18). The
-identity says the document exists and names its place; it says nothing about how much is
-currently in it.
-
-We record **V12** (information gain): from `σ_d` the caller learns two facts not derivable
-from `d`'s identity — the *live origin* (the addressing anchor for every subsequent V-address
-operation on the document) and the *current extent* (the present bounds of the arrangement,
-i.e. how far the live V-stream reaches *now*). Because the V-stream "may be continually
-altered by editorial operations" (4/30) while the address `d` stays permanent, the span
-reflects the document's *current shape* — the operational bounds a caller needs before
-issuing any positioned request. Identity is static and structural; the span is dynamic and
-quantitative.
+We record **V12** (information gain): `σ_d` discloses the *live origin* (the addressing anchor
+of V1/V8) and the *current extent* (the present bounds of V2) — the current shape of an
+arrangement the permanent identity `d` does not report.
 
 ---
 
@@ -491,7 +479,7 @@ endpoint depths), without inspecting the returned span.
 | V0 | `RETRIEVEDOCVSPAN : dom(M) → Span + {⟨⟩}` (tagged union): one well-formed span `σ_d = (origin_d, extent_d)` for a non-empty document, or the distinguished empty span-set `⟨⟩` (denoting `∅`, not a T12 span) when `O(d) = ∅` — never a content sequence, never a count | introduced |
 | V1 | When `O(d) ≠ ∅`, `origin_d = min O(d)` under T1 and `origin_d ∈ O(d)` (the origin is an occupied position) | introduced |
 | V2 | `O(d) ⊆ ⟦σ_d⟧` (coverage), proved unconditionally via D0/D1 without assuming level-uniformity; the actual reach `r⋆ = origin_d ⊕ extent_d ≥ reach_d = shift(max O(d), 1) > max O(d)`, with equality `r⋆ = reach_d` iff `#origin_d ≤ #reach_d`; the span `(origin_d, extent_d)` is always a well-formed T12 span | introduced |
-| V3 | `origin_d` is the greatest lower bound of `O(d)`; `reach_d` is the least strict upper bound of `max O(d)` *among tumblers at the depth of `max O(d)`* (`= #reach_d`; the deeper zero-extension `max O(d).0` is a smaller upper bound but lies at greater depth) — so the constructed endpoint `reach_d` is the tightest same-depth strict bound on `max O(d)`. Whether `σ_d`'s own denotational reach `r⋆` attains `reach_d` is the separate question governed by the V2 reach biconditional (`reach(σ_d) = reach_d` iff `#origin_d ≤ #reach_d`); in the `#origin_d > #reach_d` case `r⋆ = reach_d` fails | introduced |
+| V3 | `origin_d` is the greatest lower bound of `O(d)`; `reach_d` is the least strict upper bound of `max O(d)` *among tumblers at the depth of `max O(d)`* (`= #reach_d`; the deeper zero-extension `max O(d).0` is a smaller upper bound but lies at greater depth) — so the constructed endpoint `reach_d` is the tightest same-depth strict bound on `max O(d)`. Whether `σ_d`'s own denotational reach `r⋆` attains `reach_d` is the separate V2 question | introduced |
 | V4 | `extent_d` is computed from `O(d) = dom(M(d))` alone; content in `dom(C)` but absent from the arrangement (deleted, or native elsewhere) contributes nothing (Vstream-bounded, not Istream) | introduced |
 | V5 | When all occupied positions share one subspace, `⟦σ_d⟧` contains no occupied-depth position outside `O(d)` (exact cover of a contiguous run) | introduced |
 | V6 | When occupied positions span more than one subspace, `O(d) ⊊ ⟦σ_d⟧` — the span bridges the inter-subspace void (bounding box, not exact cover); forced because a span denotes one convex region (ASN-0053 S0) and cannot trace a separated series | introduced |
