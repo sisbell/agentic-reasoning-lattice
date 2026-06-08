@@ -198,8 +198,7 @@ between the last component of `reach` and that of `start_S`. This is how a span-
 implicit in the boundary, and made explicit only because the subspace is contiguous.
 
 **Exactness is contingent on contiguity.** The single covering span is exact *only because*
-`V_S(d)` is a contiguous run (D-CTG★). We state the dependence as a biconditional and prove
-both halves. We record **W5** (ExactnessRequiresContiguity), *under the hypothesis*
+`V_S(d)` is a contiguous run (D-CTG★). We record **W5** (ExactnessRequiresContiguity), *under the hypothesis*
 `V_S(d) ≠ ∅`: *there exists* a single
 level-uniform span `σ` of subspace `S` at depth `m` satisfying
 `⟦σ⟧ ∩ VSlice(S, m) = V_S(d)` *if and only if* `V_S(d)` is contiguous in `VSlice(S, m)` —
