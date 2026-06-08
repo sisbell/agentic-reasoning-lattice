@@ -131,7 +131,7 @@ The displacement clause moves existing content forward to make room; it must los
 
 **X8 (RunFragmentation).** The copied region is *constructed* as `B_copy = {(v + c_j, a_j, n_j) : 1 ≤ j ≤ k}` — `k` blocks, one per maximal contiguous I-run of `resolve_Σ(R)`, laid at consecutive V-starts (`c_{j+1} = c_j + n_j`). This constructed count `k` tracks the I-space fragmentation of the source, not the width `W`: copying heavily-edited (fragmented) source costs more blocks than copying pristine source of the same width. The *canonical* (maximally-merged, M12) count of the copied region need not equal `k`, however, and we must not conflate the two. Two cases separate:
 
-- *Within a single reference*, consecutive runs never coalesce. First, the reference span `⟦σ⟧` is contiguous and fully populated: content-reference well-formedness places every depth-`m` position of the span's range in `dom(M(d_s))`, and C0a confines those positions to a shared prefix, so the restriction `f = M(d_s)|⟦σ⟧` has a V-contiguous domain. On a V-contiguous domain, the maximal runs of `f` (C1a, M12) are V-adjacent: the run after run `j` begins at `v_{j+1} = v_j + n_j` (there is no V-gap for it to skip). Second, with V-adjacency in hand, maximality of run `j` — it cannot be right-extended, so `f(v_j + n_j) ≠ a_j + n_j` — now bears directly on the next run's I-start: `f(v_{j+1}) = a_{j+1}` and `v_{j+1} = v_j + n_j`, hence `a_{j+1} ≠ a_j + n_j`. That is non-I-adjacency, so M7's merge condition `a_{j+1} = a_j + n_j` fails and the two runs do not coalesce.
+- *Within a single reference*, consecutive blocks never coalesce *by construction*: `resolve(d_s, σ)` already returns the maximally-merged decomposition (ASN-0058, C1a/M12), so its blocks are pairwise non-I-adjacent, and on the V-contiguous restriction domain — content-reference well-formedness places every depth-`m` span position in `dom(M(d_s))`, C0a confines them to a shared prefix — they are V-adjacent. No within-reference boundary is a merge candidate; the new content is the inter-reference boundary below.
 - *Across an inter-reference boundary*, the last block of `r_i` and the first of `r_{i+1}` are V-adjacent by construction and may also be I-adjacent — precisely when they share an origin and abut in I-space (`a' = a + n`, M16/M16a). Such a boundary satisfies the merge condition M7 and coalesces in the canonical form.
 
 Hence the canonical block count is `≤ k`, with equality exactly when no inter-reference boundary is I-adjacent (in particular whenever consecutive references draw from distinct origins, X11). The abstract state commits only to the *arrangement* — the V→I mapping `Σ'.M(d)` — and not to any particular block count: the constructed `k`-block form and the canonical `≤ k` form denote the *same* arrangement, differing only as representations of it. An alternative implementation is free to store either. (Gregory's POOM is observed to coalesce a same-origin, I-abutting boundary in place, realising the canonical count, while the spanfilade containment index keeps one entry per reference; this divergence is a property of which concrete index one inspects, not a guarantee the abstract specification imposes — Q8.)
@@ -290,6 +290,35 @@ Fix `s_C = 1`, `m = 2`, `n_S = 3`, so `V_{s_C}(d) = {[1,1], [1,2], [1,3]}` with 
 
 - **X16 (density)** — the displaced range is empty (`p = 4 > n_S = 3`), so the tiling is unmoved `[1, p) = [1, 4)` followed by copied `[p, p+W) = [4, 6)`, with no displaced tail. Post-state `V_{s_C}(d) = {[1,c] : 1 ≤ c ≤ 5}`, contiguous, `n_S + W = 5`, minimum `[1,1]` (unmoved).
 - **X12 (trailing boundary absent)** — the leading boundary is present (`p = 4 ≥ 2`): the unmoved predecessor at `[1,3]` holds `x_3`, absorbing block 1 iff `x_3`'s I-reach is `a_1` (i.e. `x_3 = a_1 - 1` with `origin(x_3) = d_1`). The trailing boundary is *absent*: the condition `p ≤ n_S` fails (`4 ≤ 3` is false), there is no first displaced block, so no trailing merge candidate exists.
+
+### A coalescing copy (`canonical < k`, leading boundary fires)
+
+Every scenario above lands on the *non*-merging side of X8 and X12: distinct origins, or single runs, with each boundary failing I-adjacency. We now construct the discriminating case — a same-origin source whose two references abut in I-space (so the inter-reference boundary *coalesces*, `canonical = k − 1`), placed against a predecessor it I-abuts (so the *leading* boundary *absorbs*). One instance exercises the non-trivial half of both claims.
+
+Fix `s_C = 1`, `m = 2`. Let `d` have content-subspace population `n_S = 2`, with pre-state bindings `Σ.M(d)([1,1]) = a_1 − 2` and `Σ.M(d)([1,2]) = a_1 − 1`, both of origin `d_1` and I-abutting (`(a_1−2)+1 = a_1−1`), so they form a single pre-state run of width 2 whose I-reach is `a_1`. We append at `v = [1,3]`, so `p = 3 = n_S + 1` — no content is displaced, so the trailing boundary is absent and only the leading boundary is in play.
+
+The source is a two-reference sequence, *both references drawn from `d_1`*, resolving to two width-2 runs that abut in I-space:
+
+`resolve_Σ(R) = ⟨(a_1, 2), (a_1 + 2, 2)⟩`,  with `origin(a_1) = origin(a_1+2) = d_1` and `a_1, …, a_1+3 ∈ dom(Σ.C)`.
+
+So `k = 2`, `c_1 = 0`, `c_2 = 2`, `W = 4`, and `B_copy = {([1,3], a_1, 2), ([1,5], a_1+2, 2)}`.
+
+| `c` | post-state position | image | class |
+|----|----|----|----|
+| 1 | `[1,1]` | `a_1−2` | unmoved |
+| 2 | `[1,2]` | `a_1−1` | unmoved |
+| 3 | `[1,3]` | `a_1` | copied (blk 1) |
+| 4 | `[1,4]` | `a_1+1` | copied (blk 1) |
+| 5 | `[1,5]` | `a_1+2` | copied (blk 2) |
+| 6 | `[1,6]` | `a_1+3` | copied (blk 2) |
+
+Now the merge predicates *fire*:
+
+- **X8 (inter-reference coalescence, `canonical < k`)** — the two copied blocks are V-adjacent (`[1,5] = [1,3] + 2`, since `c_2 = n_1 = 2`) and I-adjacent (`a_1+2 = a_1 + n_1` with `n_1 = 2`, M7), and they share origin `d_1` (so M16 does not block them). The merge condition holds, and the copied region's canonical count is `k − 1 = 1`: the single block `([1,3], a_1, 4)`. This is the `canonical < k` half of X8, witnessed against a concrete instance rather than only argued in prose.
+- **X12 (leading boundary absorbs)** — the leading boundary is present (`p = 3 ≥ 2`). The unmoved predecessor run `([1,1], a_1−2, 2)` ends with I-reach `(a_1−2) + 2 = a_1`, which equals the first copied I-start `a_1`; V-adjacency holds (`[1,3] = [1,1] + 2`) and origins agree (`d_1`). The predecessor *absorbs* the copied region — the firing case of X12, the half the append example left failing.
+- **Whole-arrangement canonical form** — composing both merges, the entire post-state content subspace collapses to the single canonical block `([1,1], a_1−2, 6)`: six V-positions, one maximal I-run of width `n_S + W = 6`, all origin `d_1`. The constructed `k = 2`-block copied region (plus the unmoved run) and this one-block canonical form denote the *same* arrangement `Σ'.M(d)`, differing only as representations (X8) — no I-coordinate or V-order is altered by the choice between them.
+
+This is the configuration the merge machinery exists for: same-origin, I-abutting copied content laid against same-origin, I-abutting incumbent content collapses to one canonical run, whereas the cross-origin first example holds at `canonical = k = 2` and the append example's leading boundary fails to fire. The discriminating predicates of X8 and X12 are now exhibited firing, not merely failing.
 
 ---
 
