@@ -391,14 +391,19 @@ We can now check the load-bearing postconditions against this instance.
   there is no slot-count-dependent step to recheck. Concretely, an arity-4 value `(F, ∅, Θ, e₄)`
   would return `e₄` under slot 4 by exactly the same per-slot copy, slots 1–3 keeping from/to/type,
   giving `|readlink(a, Σ)| = 4` and per-slot equality at every index. We deliberately do not exhibit
-  such an instance over a populated `Σ`: the abstract model admits `N > 3` (L3 requires only
-  `N ≥ 3`), but udanax-green caps every link at exactly three endsets — creation (`docreatelink`
+  such an instance, but the reason is presentational, not a matter of reachability. An `N = 4` link
+  *is* `→*`-reachable in exactly the sense our standing precondition fixes for "reachable": ASN-0093's
+  K.λ precondition requires only `N ≥ 3`, so the abstract transition vocabulary admits arity-4
+  allocation, and an arity-4 state is as legitimate a member of the reachable class as any arity-3 one.
+  What caps arity at three is not the abstract model but udanax-green — creation (`docreatelink`
   passes three specsets), the spanfilade index (`LINKFROMSPAN`/`LINKTOSPAN`/`LINKTHREESPAN`), the
   V-subspace assignment (`setlinkvsas`), and retrieval (the three-slot `RETRIEVEENDSETS`, the
-  `whichend ∈ {1,2,3}` guard) each enforce the cap independently — so no reachable state realizes an
-  `N = 4` link. The arity-4 read is *sound under componentwise equality yet structurally unreachable*,
-  which is precisely why the arity-3 instance must carry the general claim rather than be supplemented
-  by a concrete arity-4 one.
+  `whichend ∈ {1,2,3}` guard) each enforce it independently. So the two senses of "reachable" diverge
+  here: an `N = 4` link is abstractly `→*`-reachable yet not udanax-green-realizable. Declining to
+  exhibit a concrete `N = 4` instance is therefore a presentational choice justified by the uniform
+  per-slot argument — the arity-3 read already establishes the general claim, since the per-slot copy
+  is identical at every index — and not a claim that arity-4 links are structurally unreachable in the
+  class over which our guarantees are stated.
 - *RL5 (ghost-type completeness).* `Θ`'s address holds nothing, yet the read returns it intact.
   Its single span `([1.0.1.0.9.0.1.1], δ(1, 8))` is the canonical unit-depth span (`#s = 8 = #δ(1, 8)`),
   so by PrefixSpanCoverage (ASN-0043) `coverage(Θ) = {t : [1.0.1.0.9.0.1.1] ≼ t}` — the *subtree*
@@ -438,21 +443,30 @@ every content address has element-field depth exactly two — each sub-allocator
 `#E = 2` (ChainDiscipline / FirstEmission, ASN-0093) — so no `dom(Σ.C)` member lies *deeper* in the
 subtrees beneath `…1.1`, `…1.2` under `d₁` or `…1.1` under `d₂`; the only content addresses inside
 the coverage intervals are the three named, and `coverage(F) ∩ dom(Σ.C)` is exactly that triple,
-unarranged by hypothesis. For the link store: every `t ∈ coverage(F)` carries `subspace_I(t) = s_C`
-(each span's start element field begins with `1 = s_C`, and every member of the interval preserves
-that first element-field component), while every `dom(Σ.L)` address carries `s_L` (L0), so by T7
-(SubspaceDisjointness, ASN-0034) `coverage(F) ∩ dom(Σ.L) = ∅`. Since `ran(Σ.M(d)) ⊆ dom(Σ.C) ∪
+unarranged by hypothesis. For the link store we restrict to the members that actually meet T7's
+precondition: suppose `t ∈ coverage(F) ∩ dom(Σ.L)`. By L1, `zeros(t) = 3`, so `t` is element-level
+and T4-valid and `subspace_I(t)` is defined (`subspace_I` is undefined on the deeper, non-T4-valid
+extensions in `coverage(F)`, which is why the universal must be taken over this intersection, not over
+all of `coverage(F)`). Being an element-level tumbler inside one of `F`'s coverage intervals, `t`
+extends a span start whose element field begins with `1 = s_C`, so `subspace_I(t) = s_C`; but L0 gives
+`subspace_I(t) = s_L` for every `dom(Σ.L)` member. With `zeros(t) = 3` on both readings and
+`s_C ≠ s_L`, T7 (SubspaceDisjointness, ASN-0034) makes the two incompatible, so no such `t` exists and
+`coverage(F) ∩ dom(Σ.L) = ∅`. Since `ran(Σ.M(d)) ⊆ dom(Σ.C) ∪
 dom(Σ.L)` (S3★, ASN-0047), the unarranged content triple and the empty link intersection together
 give `coverage(F) ∩ ran(Σ.M(d)) = ∅` for every `d`. *Slot 2 (to):* `G = ∅`, so `coverage(∅) = ∅`
 and the slot is trivially unwitnessed.
 *Slot 3 (type):* `coverage(Θ) = {t : [1.0.1.0.9.0.1.1] ≼ t}` is a non-empty (indeed infinite)
 address set, and we must show it meets *neither* store. For the content store: the ghost document
 `[1.0.1.0.9]` hosts no content, so `coverage(Θ) ∩ dom(Σ.C) = ∅`. For the link store the argument is
-by subspace, not by absence of content: every `t ∈ coverage(Θ)` carries `subspace_I(t) = s_C` — the
-start `[1.0.1.0.9.0.1.1]` has element field beginning with `1 = s_C`, and every extension preserves
-that first element-field component — while every `dom(Σ.L)` address carries `s_L` (L0), so by T7
-(SubspaceDisjointness, ASN-0034) `coverage(Θ) ∩ dom(Σ.L) = ∅`, independent of whether `[1.0.1.0.9]`
-hosts anything. With `coverage(Θ)` meeting neither store, and every arrangement range lying in
+by subspace, not by absence of content, and again restricts to the members meeting T7's precondition:
+suppose `t ∈ coverage(Θ) ∩ dom(Σ.L)`. By L1, `zeros(t) = 3`, so `subspace_I(t)` is defined (the
+deeper extensions in `coverage(Θ)` with `zeros > 3` are not T4-valid and carry no `subspace_I`, so the
+intersection — not the whole subtree — is the right quantifier domain). Being element-level and inside
+the subtree beneath the start `[1.0.1.0.9.0.1.1]`, whose element field begins with `1 = s_C`, `t` has
+`subspace_I(t) = s_C`, while L0 gives `subspace_I(t) = s_L` for every `dom(Σ.L)` member. With
+`zeros(t) = 3` on both readings and `s_C ≠ s_L`, T7 (SubspaceDisjointness, ASN-0034) makes the two
+incompatible, so no such `t` exists and `coverage(Θ) ∩ dom(Σ.L) = ∅`, independent of whether
+`[1.0.1.0.9]` hosts anything. With `coverage(Θ)` meeting neither store, and every arrangement range lying in
 `dom(Σ.C) ∪ dom(Σ.L)` (S3★, ASN-0047), `coverage(Θ) ∩ ran(Σ.M(d)) = ∅` for every `d`. With all three slots
 unwitnessed, `discoverable_from(a, d, Σ)` is false for every `d`, and the link is orphaned (cf. the
 ghost-projection situation, ASN-0098). A *follow* of `F` against any arrangement would resolve to
