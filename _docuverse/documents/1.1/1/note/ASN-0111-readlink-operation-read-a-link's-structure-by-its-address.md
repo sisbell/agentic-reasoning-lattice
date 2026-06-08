@@ -45,14 +45,9 @@ what `readlink` will exploit.
 
 ## Deriving the read
 
-A standing precondition governs everything below. We specify `readlink` over states `Σ` that
-satisfy the foundation and state-local invariants — equivalently, states `→*`-reachable from the
-initial state `Σ₀` (ASN-0047, ASN-0093). This is not a convenience: the substrate facts we lean on —
-L0, L1, L1b, L0b, L3, L8, L12 (ASN-0043) — are *theorems about reachable states*, not properties of
-every conceivable store. A hand-built `Σ` carrying an arity-2 link, or a non-T4-valid link key, would
-satisfy none of them, and the guarantees RL-WF, RL-ARITY, RL-GEN, RL-REP, RL4, and RL5 below would
-have no ground to stand on. Every such guarantee is therefore claimed *only* under this standing
-precondition; where we write "for a state `Σ`," read "for a reachable, invariant-satisfying `Σ`."
+A standing precondition governs everything below: `readlink` is specified over `→*`-reachable,
+invariant-satisfying states `Σ` (ASN-0047, ASN-0093). Where we write "for a state `Σ`," read "for a
+reachable, invariant-satisfying `Σ`."
 
 We are looking for an operation that, given an address, returns the relationship recorded there.
 The minimal honest specification is a lookup in the link store. For such a state `Σ` and address `a`:
@@ -213,26 +208,13 @@ relation on address sets, decided without dereferencing a single one. The read t
 a fully interpretable type even when the type address holds nothing at all: ghost types are
 permitted (L9, ASN-0043), and the read of a ghost-typed link is no less complete than any other.
 
-We must be careful not to overstate this into an asymmetry that does not hold. It is *not* the
-case that from- and to-endsets name only addresses where content exists while the type-endset
-alone may name empty addresses. By endset generality (L4, ASN-0043) *every* endset — connective
-and categorising alike — may reference addresses at which no content currently exists; ghost
-references are permitted generally (L9), and an orphaned link (RL8) is precisely one whose from/to
-endpoints are unwitnessed. So all three slots are equally unconstrained as to whether the addresses
-they name host any entity; the read returns whatever each recorded, faithfully, regardless.
-
-Two asymmetries between the type slot and the connective slots bear directly on the read, and the
-read reflects both. First, the type slot is mandatorily non-empty (L3, ASN-0043) while a from- or
-to-endset may legitimately be `∅`. Second, the type is interpreted by *coverage-identity without
-dereference* (L8): two links share a type when their type endsets cover the same address set,
+Two facts about the type slot bear directly on what the read surfaces. First, the type slot is
+mandatorily non-empty (L3, ASN-0043) while a from- or to-endset may legitimately be `∅`; the read
+therefore always returns a usable type endset. Second, the type is interpreted by *coverage-identity
+without dereference* (L8): two links share a type when their type endsets cover the same address set,
 decided without reading anything stored there — the relation that partitions the store into
-type-equivalence classes. We do not claim these exhaust every structural distinction between the
-slots: the directional significance of the from/to pair (L7, ASN-0043) has no type-slot analogue,
-and the implementation segregates the type endset into its own V-subspace and search dimension.
-But those distinctions either lie outside the link value the read returns (L7's directionality is a
-matter of interpretation, not stored structure) or are implementation detail; the two named above
-are the ones that govern what the read must surface about the type — and neither is a claim about
-which slots correspond to existing content.
+type-equivalence classes. Together these make the read of a ghost-typed link no less complete than
+any other: the read delivers a fully interpretable type even when the type address holds nothing.
 
 ## Faithful disclosure of nesting
 
@@ -290,15 +272,12 @@ stand.
 document arrangement. Consequently the read succeeds and returns the complete structure even for an
 *orphaned* link — one whose endpoint content is currently arranged in no document, so that resolving
 its endsets would yield nothing (cf. the ghost-projection situation, ASN-0098). The link's structure
-persists unconditionally (L12; LP13 of ASN-0098), and the read surfaces it unconditionally. The
-relationship the link records is therefore the more durable object: it outlives the arrangement of
-its endpoints, and the direct read is the only operation that exposes it without first passing
-through an arrangement that may no longer reach the connected content.
+persists unconditionally (L12; LP13 of ASN-0098), and the read surfaces it unconditionally.
 
-This is precisely what direct read reveals that following or searching cannot. A follow that found
-no current position, or a search whose spec-set the orphaned content no longer occupies, would
-report emptiness — not because the relationship has ceased to exist, but because no arrangement
-currently witnesses it. The read distinguishes *the relationship is gone* from *the relationship is
+This is what direct read reveals that following or searching cannot. A follow that found no current
+position, or a search whose spec-set the orphaned content no longer occupies, would report
+emptiness — not because the relationship has ceased to exist, but because no arrangement currently
+witnesses it. The read distinguishes *the relationship is gone* from *the relationship is
 unwitnessed*, and answers, for an allocated link, always the latter at worst: the structure is
 there, complete, and the read returns it.
 
@@ -382,28 +361,11 @@ We can now check the load-bearing postconditions against this instance.
   The read delivers the structure; the search confirms relevance.
 - *RL2 (role preservation).* The three endsets come back under slots 1/2/3, not pooled. Were the
   read to return the bag `F ∪ Θ`, the reader could no longer tell that `[1.0.1.0.9.0.1.1]`
-  classifies the link while the others are its source — a different relationship (L6). This arity-3
-  instance is meant to *stand in for* the general `N ≥ 3` case, and the extension to `N > 3` is
-  immediate rather than a separate obligation. Link equality is *componentwise* (L6), so the read
-  fixes each slot `eᵢ` independently of every other: the mechanism that returns slot `i` faithfully —
-  copy the stored `Σ.L(a).eᵢ` into `readlink(a, Σ).eᵢ` — is identical for every index and refers to
-  no other slot. Verifying it on slots 1–3 therefore establishes it for an arbitrary slot count;
-  there is no slot-count-dependent step to recheck. Concretely, an arity-4 value `(F, ∅, Θ, e₄)`
-  would return `e₄` under slot 4 by exactly the same per-slot copy, slots 1–3 keeping from/to/type,
-  giving `|readlink(a, Σ)| = 4` and per-slot equality at every index. We deliberately do not exhibit
-  such an instance, but the reason is presentational, not a matter of reachability. An `N = 4` link
-  *is* `→*`-reachable in exactly the sense our standing precondition fixes for "reachable": ASN-0093's
-  K.λ precondition requires only `N ≥ 3`, so the abstract transition vocabulary admits arity-4
-  allocation, and an arity-4 state is as legitimate a member of the reachable class as any arity-3 one.
-  What caps arity at three is not the abstract model but udanax-green — creation (`docreatelink`
-  passes three specsets), the spanfilade index (`LINKFROMSPAN`/`LINKTOSPAN`/`LINKTHREESPAN`), the
-  V-subspace assignment (`setlinkvsas`), and retrieval (the three-slot `RETRIEVEENDSETS`, the
-  `whichend ∈ {1,2,3}` guard) each enforce it independently. So the two senses of "reachable" diverge
-  here: an `N = 4` link is abstractly `→*`-reachable yet not udanax-green-realizable. Declining to
-  exhibit a concrete `N = 4` instance is therefore a presentational choice justified by the uniform
-  per-slot argument — the arity-3 read already establishes the general claim, since the per-slot copy
-  is identical at every index — and not a claim that arity-4 links are structurally unreachable in the
-  class over which our guarantees are stated.
+  classifies the link while the others are its source — a different relationship (L6). The read
+  copies the stored `Σ.L(a).eᵢ` into `readlink(a, Σ).eᵢ` by a per-index rule that names no other
+  slot (link equality is componentwise, L6), so verifying slots 1–3 establishes the claim for every
+  `N ≥ 3`: an arity-4 value `(F, ∅, Θ, e₄)` returns `e₄` under slot 4 by exactly the same copy, with
+  no slot-count-dependent step to recheck.
 - *RL5 (ghost-type completeness).* `Θ`'s address holds nothing, yet the read returns it intact.
   Its single span `([1.0.1.0.9.0.1.1], δ(1, 8))` is the canonical unit-depth span (`#s = 8 = #δ(1, 8)`),
   so by PrefixSpanCoverage (ASN-0043) `coverage(Θ) = {t : [1.0.1.0.9.0.1.1] ≼ t}` — the *subtree*
