@@ -14,8 +14,6 @@ COPY does not name bytes; it names *positions* that already hold bytes. Its sour
 
 `resolve_Σ(R) = ⟨(a₁, n₁), …, (a_k, n_k)⟩`,    `W = w(resolve_Σ(R)) = (+ j : 1 ≤ j ≤ k : n_j)`.
 
-Resolution supplies two facts from ASN-0058. First, *every resolved address already exists*: by C1, `(A j : 1 ≤ j ≤ k : (A i : 0 ≤ i < n_j : a_j + i ∈ dom(Σ.C)))`. Second, *the run count `k` is the total number of runs of the concatenated resolution* — the sum over references `k = (+ i : 1 ≤ i ≤ q : k_i)`, where each `k_i` is the maximal-run count of reference `r_i` taken in isolation (C1a, M12 applied per reference): each `k_i` counts the blocks of `r_i` that are maximal under M7's joint V- and I-adjacency merge condition *within that reference*.
-
 ### Precondition
 
 We collect the complete precondition under which `COPY(R, d, v)` is defined at `Σ`.
@@ -73,7 +71,7 @@ We claim the operation cannot create content, and from that, that what it places
 
 **X1 (ContentStoreInvariance).** `dom(Σ'.C) = dom(Σ.C) ∧ (A a ∈ dom(Σ.C) : Σ'.C(a) = Σ.C(a))`. This is immediate from the definition `Σ'.C = Σ.C` [LM 2/36]. Gregory's trace confirms the abstract claim concretely: `docopy` calls `insertpm` (which writes the document's POOM, the arrangement) and `insertspanf` (which writes the containment index), but never `inserttextingranf`, the sole content-creating primitive. The I-address high-water mark queried before allocation is therefore unchanged by COPY (Q16). We record this as a corollary.
 
-**X2 (NoFreshAllocation).** *A corollary of X1.* COPY consumes no previously-unallocated address. K.α's address selection (ASN-0093) is determined by the per-document content set `D_d = {a' ∈ dom(Σ.C) : origin(a') = d}`; X1 leaves `dom(Σ.C)` unchanged and X6 alters no origin, so `D_d` is identical at `Σ'` and `Σ`, and any subsequent K.α behaves identically — whichever case it selects.
+**X2 (NoFreshAllocation).** *A corollary of X1.* COPY consumes no previously-unallocated address: by X1, `dom(Σ'.C) = dom(Σ.C)`, so no address absent from `dom(Σ.C)` becomes present.
 
 Now the decisive step. In the extended state the governing invariant is the *generalised* referential integrity S3★ (ASN-0047): every V-position is routed to the store its subspace names — `subspace(v) = s_C ⟹ Σ'.M(d)(v) ∈ dom(Σ'.C)` and `subspace(v) = s_L ⟹ Σ'.M(d)(v) ∈ dom(Σ'.L)`. We must establish S3★ at the post-state, so we compute the weakest precondition over *all* post-state mappings of `d`, which the definition partitions into three classes:
 
@@ -324,7 +322,7 @@ Now the merge predicates *fire*:
 |-------|-----------|--------|
 | COPY | `COPY(R, d, v)` (single elementary transition; precond. PC1–PC4, target subspace `S = s_C`): `Σ'.C = Σ.C`; `Σ'.L = Σ.L`; `Σ'.E = Σ.E`; `Σ'.M(d') = Σ.M(d')` for `d' ≠ d`; content subspace displaced forward by `W` and gap `[v, v+W)` bound to `resolve_Σ(R)` in order; `Σ'.R = Σ.R ∪ {(a_j+i, d)}` | introduced |
 | X1 | ContentStoreInvariance — `dom(Σ'.C) = dom(Σ.C) ∧ (A a ∈ dom(Σ.C) : Σ'.C(a) = Σ.C(a))` | introduced |
-| X2 | NoFreshAllocation — COPY consumes no previously-unallocated address; next content-allocation frontier of `d` unchanged | introduced |
+| X2 | NoFreshAllocation — COPY consumes no previously-unallocated address (corollary of X1) | introduced |
 | X3 | SharedReference — `ran(Σ'.M(d)) ∖ ran(Σ.M(d)) ⊆ dom(Σ.C)`; placed addresses pre-exist (forced by X1 ∧ S3★) | introduced |
 | X4 | IdentityOfInstance — every appearance of a copied address resolves to the single value `Σ.C(a)` | introduced |
 | X5 | TransitiveIdentity — the placed address is the content's original I-address through arbitrary copy chains | introduced |
