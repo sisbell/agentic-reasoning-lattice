@@ -35,17 +35,17 @@ We take the account as given. The provisioning of nodes and accounts is a separa
 
   **(CND.A-act)** `A ∈ E ∧ Account(A) ⟹ Activated(A_doc(A))` — an activated document sub-allocator exists whenever the account does.
 
-There is no content argument. This is not an omission — it is the defining shape of the operation. Content enters a document only through later operations (INSERT, COPY, MAKELINK), each of which deposits bytes or links. Creation deposits nothing.
+There is no content argument. Content enters a document only through later operations (INSERT, COPY, MAKELINK), each of which deposits bytes or links. Creation deposits nothing.
 
 ## Discovering the Effects
 
-We reason from Nelson's intent backward to the formal post-state. Three effects must obtain together.
+Three effects must obtain together.
 
 ### Effect One: One Address Is Baptised
 
 The new document must occupy a fresh, permanent, unique position beneath the account. In the foundation's allocator vocabulary this is the account's **document sub-allocator** `A_doc(A)` (AllocatorHierarchy, ASN-0047): its first emission is `inc(A, 2)`, a document-level address with `zeros = 2` and `parent(·) = A`; successive emissions advance by `inc(·, 0)`.
 
-We split on whether `A` already has documents. Here we must be careful: not every document-level entity whose parent is `A` belongs to `A_doc(A)`. A **version** is forked off a *document* (`inc(d_src, 1)`, ASN-0047); by `K.δ-ID.zeros-0/1` and `K.δ-ID.parent-0/1` it preserves both zero-count and parent, so a version `v` satisfies `Document(v) ∧ parent(v) = A` just as a true document does — yet it lives in the *version* chain `A_v(d_src) = S(d_src, 1)`, not in `A_doc(A)`. Selecting the frontier by parent alone would let a version masquerade as a document and collide a future allocation with a future fork. Length separates the two cleanly. `A_doc(A)` is the SiblingStream `S(A, 2)` (ASN-0040), whose postcondition gives every emission the canonical form `cₙ = [A, 0, n]` with length `#cₙ = #A + 2` and `sig(cₙ) = #A + 2` (SiblingStream, ASN-0040) — we need not re-derive these from the increment laws. Versions, forked one level deeper, carry length `≥ #A + 3`. We therefore restrict the document frontier by length:
+We split on whether `A` already has documents. Not every document-level entity whose parent is `A` belongs to `A_doc(A)`. A **version** is forked off a *document* (`inc(d_src, 1)`, ASN-0047); by `K.δ-ID.zeros-0/1` and `K.δ-ID.parent-0/1` it preserves both zero-count and parent, so a version `v` satisfies `Document(v) ∧ parent(v) = A` just as a true document does — yet it lives in the *version* chain `A_v(d_src) = S(d_src, 1)`, not in `A_doc(A)`. Selecting the frontier by parent alone would let a version masquerade as a document and collide a future allocation with a future fork. Length separates the two cleanly. `A_doc(A)` is the SiblingStream `S(A, 2)` (ASN-0040), whose postcondition gives every emission the canonical form `cₙ = [A, 0, n]` with length `#cₙ = #A + 2` and `sig(cₙ) = #A + 2` (SiblingStream, ASN-0040). Versions, forked one level deeper, carry length `≥ #A + 3`. We therefore restrict the document frontier by length:
 
   `D_A = {e ∈ E : Document(e) ∧ parent(e) = A ∧ #e = #A + 2}`,
 
