@@ -56,10 +56,14 @@ It is a pure read: its frame condition is that it changes nothing, `Σ' = Σ`.
 The first commitment is on the domain. The read is defined exactly on allocated link addresses.
 
 **RL0 (Definedness).** `readlink(a, Σ)` is defined iff `a ∈ dom(Σ.L)`. Reasoning backward from
-the postcondition "the result is the recorded relationship at `a`," the weakest precondition is
-precisely membership:
+the postcondition "the result is the recorded relationship at `a`" — a postcondition that does not
+dereference `Σ.L` off its domain — the weakest precondition is precisely membership:
 
-> `wp(readlink request at a, result = Σ.L(a)) ≡ a ∈ dom(Σ.L)`.
+> `wp(readlink request at a, result is the recorded relationship at a) ≡ a ∈ dom(Σ.L)`.
+
+The postcondition is well-formed on every state: it asserts that a recorded relationship exists at
+`a` and that the result is it, which is satisfiable exactly when `a ∈ dom(Σ.L)` and fails (rather
+than becoming ill-defined) when `a ∉ dom(Σ.L)`.
 
 A reader holding a candidate tumbler can test the *necessary* structural conditions from the
 address alone — `zeros(a) = 3 ∧ subspace_I(a) = s_L` — by T4 parsing and the subspace projection
@@ -73,12 +77,14 @@ link lives at `a`. There is no partial-success middle state at the level of *whe
 A direct read answers no query, so there is no satisfying fragment at which it could stop. It
 must return the endsets *entire*.
 
-**RL1 (Completeness).** For each slot `i` and each span, the read omits nothing:
+**RL1 (Completeness).** For each slot `i`, the returned endset equals the recorded one exactly —
+omitting nothing and introducing nothing:
 
-> `(A i, (s, ℓ) : 1 ≤ i ≤ |Σ.L(a)| ∧ (s, ℓ) ∈ Σ.L(a).eᵢ : (s, ℓ) ∈ readlink(a, Σ).eᵢ)`,
+> `(A i : 1 ≤ i ≤ |Σ.L(a)| : readlink(a, Σ).eᵢ = Σ.L(a).eᵢ)`.
 
-and conversely the read introduces no span not recorded. The justification is immediate from the
-definition: `readlink(a, Σ) = Σ.L(a)` componentwise.
+The set equality captures both directions at once: every recorded span `(s, ℓ) ∈ Σ.L(a).eᵢ` is
+returned, and no span outside `Σ.L(a).eᵢ` appears in the result. The justification is immediate from
+the definition: `readlink(a, Σ) = Σ.L(a)` componentwise.
 
 This is why the read recovers the arbitrary, broken collections that endsets are permitted to be.
 An endset may scatter spans across many documents and across discontiguous regions within one;
@@ -202,15 +208,9 @@ endset — so the read may legitimately return an empty connective slot while ne
 type slot. This is the read-side image of the structural rule that a link's type is mandatory and
 its directional reach is permissive.
 
-**RL-REP (Representation independence of meaning).** This is guidance for the *reader* of the
-result, not a relaxation of what the read returns: by RL1 the read delivers the exact recorded
-span decomposition, verbatim — it never reduces an endset to its coverage. What RL-REP adds is how
-to *interpret* that decomposition. Every downstream coverage-based use of an endset — projection,
-type-matching — depends only on its `coverage`, not on the particular spans that decompose it: two
-endsets with equal coverage are interchangeable under all such uses (LP21 of ASN-0098). A reader
-should therefore treat the returned value as a triple of address-sets-with-roles, with the returned
-spans understood as one representation of those sets; the reduction is exercised by those downstream
-operations, never by this read.
+**RL-REP (Pointer).** Downstream coverage-based uses of an endset (specified elsewhere) consume the
+returned spans only via `coverage`, under which equal-coverage endsets are interchangeable (LP21 of
+ASN-0098).
 
 ## A worked read
 
@@ -303,7 +303,7 @@ complete structure. The read thus distinguishes *the relationship is unwitnessed
 | RL8 | Recorded, not resolved — the read depends only on `Σ.L`, succeeds for orphaned links, and returns the complete structure independent of any arrangement | introduced |
 | RL-WF | Each returned endset is a finite set of T12-well-formed spans | introduced |
 | RL-ARITY | The returned value has arity ≥ 3 with non-empty type slot; connective slots may be empty | introduced |
-| RL-REP | Reader-side interpretation guidance (does not weaken RL1's verbatim return): equal-coverage endsets are interchangeable under all downstream coverage-based uses (LP21) | introduced |
+| RL-REP | Pointer — downstream coverage-based uses (specified elsewhere) consume returned spans only via `coverage`; equal-coverage endsets are interchangeable there (LP21) | introduced |
 
 ## Open Questions
 
