@@ -53,8 +53,8 @@ We write
 
 > `O(d) = dom(M(d))`
 
-for the set of *occupied V-positions* of `d` (well-defined under W-pre). Unlike the whole-document query, which bounds
-`O(d)` as one undifferentiated set, this query must partition `O(d)` by *kind*. Each
+for the set of *occupied V-positions* of `d` (well-defined under W-pre). We partition
+`O(d)` by *kind*. Each
 V-position carries a subspace identifier in its first component, `subspace(v) = v₁`
 (ASN-0036), and the docuverse fixes two of them: content positions carry `subspace = s_C`
 and link positions carry `subspace = s_L`, with the convention `s_C = 1`, `s_L = 2`
@@ -343,23 +343,16 @@ functionality and referential integrity.
 
 ## Comparing reports across documents
 
-The uniform shape of a single report (W13) has a cross-document consequence: a consumer can
-reconstruct the *full per-kind count vector* `(n_{s_C}(d), n_{s_L}(d))` from a report that may
-omit members. We record **W14** (Comparability). The recovery is *by subspace identifier*, not
-by list position: because the operation emits only occupied subspaces (W7), the result is a
-*subsequence* of the kind-list, so a member's index in the sequence no longer aligns with its
-kind — a one-member report could be either a text-only or a link-only document, both "at
-position 1." The kind is read instead from the member's own subspace identifier `start₁ = S`
-(W2/W10). Concretely, a consumer iterates the fixed kind-list `(s_C, s_L)` (W13) and, for each
-kind `S`, checks whether a member with `start₁ = S` is *present* — in which case it contributes
-its boundary-count `n_S(d)`, the gap between the last components of its reach and start (W3) —
-or *absent*, in which case `n_S(d)` is read as `0`. This
-absent-reads-as-zero reconstruction is sound rather than a guess: by W6/W7 the operation omits
-kind `S` exactly when `V_S(d) = ∅`, which is exactly when `n_S(d) = |V_S(d)| = 0` (W1), so a
-missing member can only ever signify an empty subspace. Hence for any two allocated documents
-`d₁, d₂` the per-kind comparison `n_S(d₁)` versus `n_S(d₂)` is well-defined over the *entire*
-fixed kind-list — comparing like with like, text-extent to text-extent and link-extent to
-link-extent — *provided both reports range over the same kind-list*.
+The uniform shape of a single report (W13) has a cross-document consequence: the *full
+per-kind count vector* `(n_{s_C}(d), n_{s_L}(d))` is recoverable from a report that may omit
+members. We record **W14** (Comparability). Because the operation emits only occupied
+subspaces (W7), the result is a *subsequence* of the kind-list, so kind must be read from each
+member's own subspace identifier `start₁ = S` (W2/W10), not from its list position. An absent
+member is sound to read as `n_S(d) = 0`: by W6/W7 the operation omits kind `S` exactly when
+`V_S(d) = ∅`, which is exactly when `n_S(d) = |V_S(d)| = 0` (W1). Hence for any two allocated
+documents `d₁, d₂` the per-kind comparison `n_S(d₁)` versus `n_S(d₂)` is well-defined over the
+*entire* fixed kind-list — text-extent to text-extent and link-extent to link-extent —
+*provided both reports range over the same kind-list*.
 
 ---
 
