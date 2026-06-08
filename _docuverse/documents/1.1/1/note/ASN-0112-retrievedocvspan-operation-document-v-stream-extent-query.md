@@ -91,9 +91,7 @@ We therefore fix the result type *once and explicitly*: the operation returns a 
 where `SpanSet` is ASN-0053's type of finite span sequences. For a non-empty document
 `RETRIEVEDOCVSPAN(d)` returns the singleton span-set `⟨σ_d⟩` carrying one well-formed span
 `σ_d = (origin_d, extent_d)`; for an empty document (`O(d) = ∅`) it returns the empty span-set
-`⟨⟩`. Returning a span-set uniformly puts both results in one ASN-0053 type — we choose this
-over a heterogeneous `Span ⊎ SpanSet` union precisely so the empty and non-empty cases inhabit
-the same codomain. The two are still distinguishable by denotation: `⟨⟩` denotes `∅`, while
+`⟨⟩`. The two are distinguishable by denotation: `⟨⟩` denotes `∅`, while
 `⟨σ_d⟩` denotes the non-empty `⟦σ_d⟧` (S2, ASN-0053: every well-formed span is non-empty), so
 no populated result can be confused with the empty one.
 
@@ -161,10 +159,10 @@ depths:
   `v ∈ O(d)` lies in `⟦σ_d⟧`.
 
 In both cases `r⋆ ≥ reach_d > max O(d)`, so coverage holds. What the endpoint relation governs is
-only the *reach*: the **reach biconditional** `reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d`
-(D1 closes the round-trip when `#origin_d ≤ #reach_d`; D0 makes it fail when
-`#origin_d > #reach_d`). The reach equals `reach_d` whenever the occupied subspaces share a
-common depth.
+only the *reach*. We record **V-ReachTight** (reach tightness):
+`reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d` — D1 closes the round-trip when
+`#origin_d ≤ #reach_d`, and D0 makes it fail when `#origin_d > #reach_d`. The reach equals
+`reach_d` whenever the occupied subspaces share a common depth.
 
 **The span is the tightest covering bound among same-depth reaches.** We record **V3**
 (bounding): `origin_d` is the greatest lower bound of `O(d)`, and `reach_d` is the *least*
@@ -181,8 +179,8 @@ same-length tumbler strictly greater than `w`, while the true T1-immediate succe
 the deeper zero-extension `w.0` (by the prefix convention, T1 case (ii)), satisfying
 `w < w.0 < inc(w, 0) = reach_d`. So `reach_d` is *not* the least admissible reach over all of
 `T` (a span with reach `w.0` already covers `O(d)`), but it is the least strict upper bound of
-`w` at `w`'s depth — V3's claim. Whether `σ_d`'s own reach attains `reach_d` is governed by the
-V2 reach biconditional.
+`w` at `w`'s depth — V3's claim. Whether `σ_d`'s own reach attains `reach_d` is governed by
+V-ReachTight.
 
 ---
 
@@ -239,7 +237,12 @@ reach crosses from subspace `s_C` into subspace `s_L`, so `⟦σ_d⟧` contains 
 between them — including the unoccupied void separating the two subspaces, where nothing is
 arranged. We record **V6** (cross-subspace bounding box): when occupied positions span more
 than one subspace, `O(d) ⊊ ⟦σ_d⟧` strictly — the span is a bounding box, not an exact cover,
-and includes inter-subspace positions that carry no content. The enclosure is forced rather
+and includes inter-subspace positions that carry no content. The strictness is witnessed
+generally by `w⋆ = [s_C,1,…,1,n_C+1]` (depth `m_C`, where `n_C = |V_{s_C}(d)|`): it is a
+content position, hence below every `s_L` reach by T1, so `origin_d ≤ w⋆ < reach_d`; yet its
+final component `n_C+1` places it just past the dense content run
+`{[s_C,1,…,1,k] : k ≤ n_C}` (D-SEQ★), so `w⋆ ∉ O(d)` — covered but unoccupied, discharging the
+strict inclusion for every two-subspace `O(d)`. The enclosure is forced rather
 than incidental: a span denotes one convex region (`⟦σ_d⟧` is order-convex under T1, ASN-0053
 S0), and a document occupying two disjoint subspaces is a *separated series* — "if you want to
 designate a separated series of items exactly, including nothing else, you do this by a
@@ -327,9 +330,12 @@ origin at all — and that case is answered with `⟨⟩`, not refused.
 
 ## What the caller learns beyond the name
 
-We record **V12** (information gain): `σ_d` discloses the *live origin* (the addressing anchor
-of V1/V8) and the *current extent* (the present bounds of V2) — the current shape of an
-arrangement the permanent identity `d` does not report.
+We record **V12** (information gain): `σ_d` determines time-varying facts about the arrangement
+that the permanent identity `d` cannot, because `d` is fixed for the life of the document
+(V8) while `σ_d` is recomputed against the present state. Concretely, `σ_d` decides emptiness
+(`σ_d = ⟨⟩ ⟺ O(d) = ∅`, V11) and, in the single-subspace regime, fixes the occupied count
+exactly: `|O(d)| = n_s` is the final component of `max O(d)`, recoverable from `reach_d`
+(V5, D-SEQ★). The identity `d` — invariant under every edit — reports none of these.
 
 ---
 
@@ -384,12 +390,12 @@ arrangement-tree entries to negative displacements, but the root width is recomp
 maximum-minus-minimum reach and remains non-negative, so no editing transient surfaces a
 zero-or-below extent (consultation Q18) — concrete evidence for V2's positivity.
 
-*Implementation remark (reach tightness, evidence for the V2 reach biconditional).* The
+*Implementation remark (reach tightness, evidence for V-ReachTight).* The
 implementation in fact realizes only `m_C = m_L`: content and link V-positions are placed at
 the same depth — both depth 2 — distinguished only by the first-component value `s_C = 1` vs
 `s_L = 2`, never by depth (consultation Q2: `findvsatoappend`, `findnextlinkvsa`, and
 `setlinkvsas` all emit depth-2 V-addresses). The cross-subspace endpoints are therefore
-level-compatible (`#origin_d = #reach_d`), so the V2 reach biconditional fires affirmatively
+level-compatible (`#origin_d = #reach_d`), so V-ReachTight fires affirmatively
 and `reach(σ_d) = reach_d` exactly.
 
 ---
@@ -426,8 +432,8 @@ I-address sits at each — leaves `O'(d)` unchanged and so returns the identical
 **An endpoint-depth-divergent variant (one line).** When `m_C = 3 > m_L = 2`:
 `M(d) = { [1,1,1] ↦ a, [1,1,2] ↦ b, [2,1] ↦ ℓ }` gives `origin_d = [1,1,1]`, `reach_d = [2,2]`,
 `extent_d = [1,2,0]` of depth 3, and the actual reach `r⋆ = [2,2,0]` overshoots `reach_d` exactly
-as V2's second covering case predicts (coverage and T12 legality survive; what lapses is the V2
-reach biconditional `reach(σ_d) = reach_d`, i.e. `ReachTight` — V3's same-depth tightness of
+as V2's second covering case predicts (coverage and T12 legality survive; what lapses is
+V-ReachTight `reach(σ_d) = reach_d` — V3's same-depth tightness of
 `reach_d` relative to `max O(d)` is intact, since `reach_d = [2,2]` remains the least strict
 same-depth upper bound of `max O(d) = [2,1]`).
 
@@ -466,9 +472,8 @@ occupied-depth position left over (D-CTG★ closing the gaps). Conversely, if `O
 admitting unoccupied positions inside the denotation — so `¬Exact`. The two directions exhaust
 the cases by S3★-aux. So the single-subspace condition is both necessary and sufficient, hence
 the *weakest* precondition. The companion reach property factors
-the same way along the orthogonal endpoint axis: take `ReachTight ≡ "reach(σ_d) = reach_d"`
-(vacuously true on the `⟨⟩` result). By the V2 reach
-biconditional, `wp(RETRIEVEDOCVSPAN(d), ReachTight) = (O(d) = ∅ ∨ #origin_d ≤ #reach_d)`. A caller can thus decide *before* querying whether the answer will be exact
+the same way along the orthogonal endpoint axis, via V-ReachTight (vacuously true on the `⟨⟩`
+result): `wp(RETRIEVEDOCVSPAN(d), V-ReachTight) = (O(d) = ∅ ∨ #origin_d ≤ #reach_d)`. A caller can thus decide *before* querying whether the answer will be exact
 (check single-subspace occupancy) and whether its reach is the tight `reach_d` (check the
 endpoint depths), without inspecting the returned span.
 
@@ -482,14 +487,15 @@ endpoint depths), without inspecting the returned span.
 | V0 | `RETRIEVEDOCVSPAN : dom(M) → SpanSet` (uniform ASN-0053 span-set codomain): the singleton span-set `⟨σ_d⟩` carrying one well-formed span `σ_d = (origin_d, extent_d)` for a non-empty document, or the empty span-set `⟨⟩` (denoting `∅`) when `O(d) = ∅` — never a content sequence, never a count | introduced |
 | V1 | When `O(d) ≠ ∅`, `origin_d = min O(d)` under T1 and `origin_d ∈ O(d)` (the origin is an occupied position) | introduced |
 | V2 | `O(d) ⊆ ⟦σ_d⟧` (coverage), proved unconditionally via D0/D1 without assuming level-uniformity; the actual reach `r⋆ = origin_d ⊕ extent_d ≥ reach_d = shift(max O(d), 1) > max O(d)`, with equality `r⋆ = reach_d` iff `#origin_d ≤ #reach_d`; the span `(origin_d, extent_d)` is always a well-formed T12 span | introduced |
-| V3 | `origin_d` is the greatest lower bound of `O(d)`; `reach_d` is the least strict upper bound of `max O(d)` *among tumblers at the depth of `max O(d)`* (`= #reach_d`; the deeper zero-extension `max O(d).0` is a smaller upper bound but lies at greater depth) — so the constructed endpoint `reach_d` is the tightest same-depth strict bound on `max O(d)`. Whether `σ_d`'s own denotational reach `r⋆` attains `reach_d` is the separate V2 question | introduced |
+| V3 | `origin_d` is the greatest lower bound of `O(d)`; `reach_d` is the least strict upper bound of `max O(d)` *among tumblers at the depth of `max O(d)`* (`= #reach_d`; the deeper zero-extension `max O(d).0` is a smaller upper bound but lies at greater depth) — so the constructed endpoint `reach_d` is the tightest same-depth strict bound on `max O(d)`. Whether `σ_d`'s own denotational reach `r⋆` attains `reach_d` is the separate V-ReachTight question | introduced |
+| V-ReachTight | `reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d` — the denotational reach attains the constructed endpoint `reach_d` exactly when origin depth does not exceed reach depth (D1 closes the round-trip; D0 makes it fail otherwise); equivalently the reach is tight whenever the occupied subspaces share a common depth | introduced |
 | V4 | `extent_d` is computed from `O(d) = dom(M(d))` alone; content in `dom(C)` but absent from the arrangement (deleted, or native elsewhere) contributes nothing (Vstream-bounded, not Istream) | introduced |
 | V5 | When all occupied positions share one subspace, `⟦σ_d⟧` contains no occupied-depth position outside `O(d)` (exact cover of a contiguous run) | introduced |
 | V6 | When occupied positions span more than one subspace, `O(d) ⊊ ⟦σ_d⟧` — the span bridges the inter-subspace void (bounding box, not exact cover); forced because a span denotes one convex region (ASN-0053 S0) and cannot trace a separated series | introduced |
 | V8 | While the content subspace is non-empty, `origin_d = [s_C,1,…,1]`, invariant under all editing that leaves content present (origin permanence) | introduced |
 | V9 | A pure rearrangement preserves `O(d) = dom(M(d))`; since `origin_d` and `extent_d` depend on `O(d)` alone (not on the values `M(d)(v)`), the reported span is identical before and after (extent tracks composition, not arrangement) | introduced |
 | V11 | The operation is total over allocated documents; `O(d) = ∅` yields the distinguished empty span-set `⟨⟩` (V0), with `origin_d` undefined and no extent — the implementation's zeros are a sentinel, not a legal address (TA6) | introduced |
-| V12 | The span discloses the live origin (addressing anchor) and current extent (present bounds) — neither derivable from `d`'s identity (information gain) | introduced |
+| V12 | `σ_d` determines time-varying arrangement facts that the permanent identity `d` cannot: emptiness (`σ_d = ⟨⟩ ⟺ O(d) = ∅`) and, in the single-subspace regime, the exact occupied count `|O(d)| = n_s` (final component of `max O(d)`, recoverable from `reach_d`); `d` is invariant under every edit and reports none of these (information gain) | introduced |
 | V13 | `σ_d` depends only on `O(d)`; two documents sharing content report independent spans; transcluded positions count toward the borrowing document's extent (independence) | introduced |
 | V14 | Every *occupied* position in `O(d)` maps through `M(d)` to a permanent, immutable image, by subspace (S3★): content positions to `dom(C)` (S0, P0), link positions to `dom(L)` (L12); covered-but-unoccupied positions in the cross-subspace case (V6) carry no `M(d)` image; sharing preserves what the span denotes (permanence) | introduced |
 | V15 | A returned span keeps its meaning under later edits to `d` or to home documents supplying its content; a fresh report is a new query, not a mutation (snapshot stability) | introduced |
