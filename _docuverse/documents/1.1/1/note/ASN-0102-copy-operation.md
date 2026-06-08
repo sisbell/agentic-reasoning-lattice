@@ -10,7 +10,7 @@ We work over the standing state. A system state `Σ` carries a content store `Σ
 
 ## The source designation and its resolution
 
-COPY does not name bytes; it names *positions* that already hold bytes. Its source argument is a content reference sequence `R = ⟨r₁, …, r_q⟩` (ASN-0058), each `rᵢ = (d_i, σ_i)` a well-formed content reference into some source document's arrangement. Resolution flattens these into an I-address sequence. Because the source may include the target itself (`d_s = d`), the evaluation point matters, and we settle it here once for the whole operation: **resolution is pinned to the pre-state `Σ`** — the state at which the operation's precondition is read — so `resolve_Σ(R)` consults `Σ.M(d)` at the pre-state. We write the result with that state pinned:
+COPY does not name bytes; it names *positions* that already hold bytes. Its source argument is a content reference sequence `R = ⟨r₁, …, r_q⟩` (ASN-0058), each `rᵢ = (d_i, σ_i)` a well-formed content reference into some source document's arrangement. Resolution flattens these into an I-address sequence. Because the source may include the target itself (`d_s = d`), **resolution is pinned to the pre-state `Σ`** — the state at which the operation's precondition is read — so `resolve_Σ(R)` consults `Σ.M(d)` at the pre-state. We write the result with that state pinned:
 
 `resolve_Σ(R) = ⟨(a₁, n₁), …, (a_k, n_k)⟩`,    `W = w(resolve_Σ(R)) = (+ j : 1 ≤ j ≤ k : n_j)`.
 
@@ -157,7 +157,7 @@ Write the copied address set `A = {a_j + i : 1 ≤ j ≤ k, 0 ≤ i < n_j}`. Eve
 
 **X17 (InvariantPreservation).** COPY maintains every invariant `ValidComposite★` (ASN-0047) binds at its post-state: the per-state `ExtendedReachableStateInvariants` conjunction (including P7), the composite-boundary properties P4★/P4a/P7a, and the transition theorem P3. We discharge them below, routing the provenance couplings (J1★/J1'★) through the unconditional write recorded by X14's (SL).
 
-COPY's provenance write is *unconditional*: it records `(a, d)` for every `a ∈ A`, whether or not `a` was already content-subspace-range-resident in `d`. To discharge the boundary obligations that consume this write without re-deriving the same split three times, we factor the routing once.
+COPY's provenance write is *unconditional*: it records `(a, d)` for every `a ∈ A`, whether or not `a` was already content-subspace-range-resident in `d`.
 
 **Range routing (RR).** Read the standalone COPY as a composite with initial boundary `Σ_0 = Σ` and final boundary `Σ'` (as at X15). The post-state content-subspace range partitions as
 
