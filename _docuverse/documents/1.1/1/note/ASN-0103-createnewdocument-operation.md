@@ -25,7 +25,7 @@ What is returned is an *id* — a tumbler address — not stored bytes. The deep
 
 > "While servers, accounts and documents logically occupy positions on the developing tumbler line, no specific element need be stored in tumbler-space to correspond to them. Hence we may call them ghost elements." (4/23)
 
-So the entire effect of CREATENEWDOCUMENT divides cleanly along the place/content seam: it modifies the *entity set* (one new document position) and leaves the *content store* untouched. Gregory's implementation confirms the seam exactly — document creation writes a new entry into the document index but never advances the content I-address high-water mark; in his words, "content granfilade unchanged, document granfilade modified." We shall see that every claim about the operation flows from this single asymmetry: **an address is allocated; no content is.**
+So the entire effect of CREATENEWDOCUMENT divides cleanly along the place/content seam: it modifies the *entity set* (one new document position) and leaves the *content store* untouched. Gregory's implementation confirms the seam exactly — document creation writes a new entry into the document index but never advances the content I-address high-water mark; in his words, "content granfilade unchanged, document granfilade modified."
 
 ## The Operation's Input
 
@@ -39,7 +39,7 @@ There is no content argument. This is not an omission — it is the defining sha
 
 ## Discovering the Effects
 
-We reason from Nelson's intent backward to the formal post-state. Three effects must obtain together; the third is the largest, because it is a frame.
+We reason from Nelson's intent backward to the formal post-state. Three effects must obtain together.
 
 ### Effect One: One Address Is Baptised
 
@@ -54,7 +54,7 @@ which collects exactly the entities of `E` carrying the document chain's structu
   `d = inc(A, 2)` if `D_A = ∅`,
   `d = inc(d_prev, 0)` otherwise, where `d_prev = max(D_A)`.
 
-The maximum is well-defined: `E` is finite at every reachable state — `Σ₀.E = {n₀}` is a singleton (ASN-0047) and each transition adjoins at most one entity (`K.δ`: `E' = E ∪ {e}`) — so its subset `D_A` is finite and, when non-empty, has a T1-maximum. In both cases `d` lies on `A_doc(A) = S(A, 2)` and strictly exceeds every member of `D_A`. For `D_A = ∅`, `d = inc(A, 2)` is the stream's first element; otherwise `d = inc(max(D_A), 0)` is the sibling step immediately past the current frontier `max(D_A)`. We do not assert that `D_A` is a contiguous initial prefix of the stream — that would make `d` *the* next unallocated emission, a stronger claim than freshness, monotonicity, and uniqueness need. We must verify three structural facts and one separation fact.
+The maximum is well-defined: `E` is finite at every reachable state — `Σ₀.E = {n₀}` is a singleton (ASN-0047) and each transition adjoins at most one entity (`K.δ`: `E' = E ∪ {e}`) — so its subset `D_A` is finite and, when non-empty, has a T1-maximum. In both cases `d` lies on `A_doc(A) = S(A, 2)` and strictly exceeds every member of `D_A`. For `D_A = ∅`, `d = inc(A, 2)` is the stream's first element; otherwise `d = inc(max(D_A), 0)` is the sibling step immediately past the current frontier `max(D_A)`. We must verify three structural facts and one separation fact.
 
 *Document level.* For the first case, `inc(A, 2)` is a depth-2 descent: by the increment law (TA5, ASN-0034) it appends two components, and by the field-advancement law `zeros(inc(A, 2)) = zeros(A) + 1 = 2` (B5, ASN-0040), so `Document(d)` holds. For the subsequent case, `inc(d_prev, 0)` is a sibling step: it preserves length and zero-count (TA5(c), B5a; ASN-0040), so `zeros(d) = zeros(d_prev) = 2` and `parent(d) = parent(d_prev) = A` (K.δ-ID.parent-0, ASN-0047). Either way `Document(d) ∧ parent(d) = A`.
 
@@ -80,7 +80,7 @@ We note one consequence immediately, to be discharged as an invariant below: wit
 
 ### Effect Three: Nothing Else Changes
 
-This is the largest effect and the heart of the user's guarantee. Creating `d` must leave the identities and content of every existing document wholly untouched. We enumerate the frame.
+Creating `d` must leave the identities and content of every existing document wholly untouched. We enumerate the frame.
 
 *The content store is untouched.* `C' = C`. No byte is added, no value altered, no address removed:
 
@@ -122,7 +122,7 @@ The user asked what separates a freshly authored document from one born by versi
 
 A freshly created document shares *nothing* by default. Its arrangement is empty: `ran(M'(d)) = ∅`. There is no I-address in common with any other document — not because the bytes differ, but because there are no bytes. And the sharing cannot arise by accident later, either: any content subsequently inserted into `d` is drawn from `A_C(d)` and carries `origin(·) = d`. By origin-based identity (S4, ASN-0036), two content units produced by distinct allocation events are distinct addresses *regardless of their values*. So even if `d` comes to hold byte-for-byte the same text as some other document, the two hold it at *different* I-addresses. A fresh document has no automatic correspondence to anything.
 
-Contrast a document born by forking (CREATENEWVERSION — formalised elsewhere, out of scope here). Such a document begins as a complete inclusion of its source: its arrangement is *populated* at creation, mapping V-positions onto the *same* I-addresses the source references. That shared Istream origin is exactly what makes refractive link-following and version intercomparison possible — and it is exactly what a fresh document lacks. The two creation paths are also structurally distinct in the allocator: a fresh document is a depth-2 descent off an *account* (`zeros` increases by one, `parent = A`), whereas a version is a sibling-class step off a *document* (`zeros` unchanged, `parent` inherited from the source). We do not formalise the forking path; we only fix the contrast at the one place it matters:
+Contrast a document born by forking (CREATENEWVERSION — formalised elsewhere, out of scope here): a forked document begins with a *populated* arrangement, a created one with `ran(M'(d)) = ∅`. We do not formalise the forking path; we only fix the contrast at the one place it matters:
 
 > "CREATENEWDOCUMENT ... creates an empty document"; "CREATENEWVERSION ... creates a new document with the contents of document `<doc id>`." (4/65–66)
 
@@ -228,7 +228,7 @@ Every conjunct of `ExtendedReachableStateInvariants` and the transition invarian
 | CND.own | Ownership is structural (derivable over (C,L,E,M,R)): parent(d)=A and A ≼ d (every A_doc(A) emission has form [A,0,j]), so with pfx(π) ≼ A (CND.pre) and prefix transitivity, owns(π,d) ≡ pfx(π) ≼ d (O1; ASN-0042) — d ∈ odom(π) | introduced |
 | CND.refer | d is immediately, permanently, and unambiguously referable: a link may target d at Σ' before any content exists; uniqueness is decentralised (B8, ASN-0040) and identity is immutable for the life of the system | introduced |
 | CND.atomicity | The single-K.δ decomposition is atomic by the sequential-transition axiom (ASN-0093); no observable intermediate state exists, so all invariants hold throughout. Coupling constraints J0, J1★, J1'★ hold vacuously | introduced |
-| CND.inv | Σ' satisfies the full ExtendedReachableStateInvariants (ASN-0047) and the transition invariant P3: P0, P1, M0, S2, S3★, P6, P8, S7d, ActivatedEmission (for d: witness A_doc(A), with d ∈ S(A,2) from Effect One and Activated(A_doc(A)) from the standing assumption CND.A-act), and address permanence (T8, ASN-0034) with distinctness (B7 for cross-namespace, S0 for same-chain injectivity over S(A,2); ASN-0040) verified directly; the empty-arrangement family (S3★-aux, S8a, S8-fin, S8-depth, S8★, D-CTG★, D-MIN★, D-SEQ★, CL-OWN, CL-UNIQ) vacuous for d via dom(M'(d))=∅; the content/link/provenance families (S4, S7a, S7b, C1b, C1c, C-fin, P7, P7a, P4★, P4a, L0, L1, L1a, L1b, L1c, L3, L14, L-fin, NodeLineage) frame-inherited; P3 holds since only M gains the empty entry M'(d)=∅ | introduced |
+| CND.inv | Σ' satisfies ExtendedReachableStateInvariants (ASN-0047) and the transition invariant P3; verified directly for {P0, P1, M0, S2, S3★, P6, P8, S7d, ActivatedEmission, T8}, vacuous on dom(M'(d))=∅ for the arrangement family, frame-inherited otherwise | introduced |
 
 ## Open Questions
 
