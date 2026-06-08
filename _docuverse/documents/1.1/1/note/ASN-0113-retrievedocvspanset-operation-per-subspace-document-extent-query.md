@@ -195,33 +195,17 @@ maximum.
 
 The *forward* direction (contiguous ⟹ a single exact span exists) is immediate from W4:
 D-MIN★ holds at every reachable state, so the run `V_S(d)` is always canonically anchored at
-`[S,1,…,1]`, and its covering span is exactly `ext(d, S)`, which W4 proves exact. (The
-strictly stronger claim — that an *arbitrarily*-anchored contiguous run also admits some
-single exact span — is not exercised by the operation, since D-MIN★ excludes a non-canonical
-anchor; it bears only on the D-CTG★-relaxation open question below.)
+`[S,1,…,1]`, and its covering span is exactly `ext(d, S)`, which W4 proves exact.
 
-The *converse* (non-contiguous ⟹ no single span is exact) we establish by the structure of
-the argument, then exhibit concretely. Suppose `V_S(d)` is *not* contiguous: there exist
-`p, q ∈ V_S(d)` and `r ∈ VSlice(S, m)` with `p < r < q` and `r ∉ V_S(d)`. Let `σ` be any
-level-uniform span with `⟦σ⟧ ∩ VSlice(S, m) ⊇ V_S(d)`. Then `p, q ∈ ⟦σ⟧`, and since a span's
-denotation is order-convex (T12; S0 of ASN-0053), `p < r < q` forces `r ∈ ⟦σ⟧`. As
-`r ∈ VSlice(S, m)`, we get `r ∈ ⟦σ⟧ ∩ VSlice(S, m)` while `r ∉ V_S(d)`, so the intersection
-strictly exceeds `V_S(d)` — `σ` overshoots and cannot be exact. No single span escapes this:
-any span covering both extremes drags in the gap point. Faithful reporting then requires a
-*span-set* within the single subspace, one member per contiguous cluster.
-
-Concretely, take `S` at depth `m = 2` with `V_S(d) = {[S,1], [S,3]}` and `[S,2]` inactive
-(`[S,2] ∈ VSlice(S, 2)` but `[S,2] ∉ V_S(d)`). The unique minimum-to-maximum level-uniform
-span is `σ* = ([S,1], δ(3,2))` with `reach(σ*) = [S,4]`, the smallest span containing both
-`[S,1]` and `[S,3]`. Its V-slice intersection is `⟦σ*⟧ ∩ VSlice(S, 2) = {[S,1], [S,2], [S,3]}`,
-which strictly contains `V_S(d)` precisely because `[S,2]` is admitted. So
-`⟦σ*⟧ ∩ VSlice(S, 2) ⊋ V_S(d)`: even the tightest single span is inexact, confirming the
-converse.
-
-The converse just established is the dependency claim: exactness genuinely *rests* on D-CTG★
-rather than holding unconditionally. The docuverse maintains D-CTG★ as an invariant, so under
-well-formed editing the one-span-per-subspace report is exact. Whether relaxing that invariant
-would oblige the operation to fragment is taken up in the open questions below.
+The *converse* (non-contiguous ⟹ no single span is exact) follows from order-convexity.
+Suppose `V_S(d)` is *not* contiguous: there exist `p, q ∈ V_S(d)` and `r ∈ VSlice(S, m)`
+with `p < r < q` and `r ∉ V_S(d)` (for instance `{[S,1], [S,3]}` with `[S,2]` inactive). Let
+`σ` be any level-uniform span with `⟦σ⟧ ∩ VSlice(S, m) ⊇ V_S(d)`. Then `p, q ∈ ⟦σ⟧`, and
+since a span's denotation is order-convex (T12; S0 of ASN-0053), `p < r < q` forces
+`r ∈ ⟦σ⟧`. As `r ∈ VSlice(S, m)`, we get `r ∈ ⟦σ⟧ ∩ VSlice(S, m)` while `r ∉ V_S(d)`, so the
+intersection strictly exceeds `V_S(d)` — `σ` overshoots and cannot be exact. No single span
+escapes this: any span covering both extremes drags in the gap point. Faithful reporting then
+requires a *span-set* within the single subspace, one member per contiguous cluster.
 
 ---
 
@@ -403,10 +387,7 @@ they account for exactly the counted V-positions. We record **W16** (Partition):
 a *disjoint* union (W11 gives disjointness; W4 gives that each part is exactly `V_S(d)`; and
 `O(d)` restricted to the counted subspaces is `V_{s_C}(d) ⊔ V_{s_L}(d)` by definition). No
 counted position is orphaned — left outside every member — and no member claims a position
-that is not active. A violation of W16 would be a corruption of the index: orphaned content
-(a position active but covered by no member) or phantom extent (a member covering a position
-that carries nothing). The agreement of the members with the active set is the observable
-signature that the arrangement is intact.
+that is not active.
 
 **The extent-content relationship.** Finally, the relationship each member bears to what a
 reader would *find* on retrieving that subspace. W4 already fixes *which* V-slice tumblers the
@@ -417,6 +398,19 @@ one increment here is that each such position *carries content*. We record **W17
 `S = s_L` (S3★). The reader who later asks for the region the member bounds finds neither more
 nor fewer items than the extent claims; what must never happen is a mismatch where the extent
 designates a region but the region's population differs from it.
+
+**The count is faithful.** The link member's whole purpose (W0, after Nelson 4/68) is to
+*indicate the number of links*, so we must bridge `n_{s_L}(d) = |V_{s_L}(d)|` to that number.
+We record **W20** (FaithfulCount). Two foundation facts close the link gap. CL-OWN restricts
+`V_{s_L}(d)` to the document's *own* (home) links — a third party linking *into* `d`, owning
+its link at another address, contributes nothing to `V_{s_L}(d)` and cannot perturb the
+reported link extent. CL-UNIQ makes `M(d)` restricted to `V_{s_L}(d)` injective — each home
+link occupies *exactly one* link-subspace V-position — so the correspondence between `d`'s
+home links and `V_{s_L}(d)` is a bijection and `|V_{s_L}(d)|` counts home links exactly. The
+content side carries the analogous guarantee through different premises: each content
+V-position carries exactly one I-address (S2) drawn from `dom(C)` (S3★), so
+`n_{s_C}(d) = |V_{s_C}(d)|` is the number of content positions — faithful by functionality and
+referential integrity.
 
 ---
 
@@ -554,21 +548,8 @@ state, not from any property the operation contributes. We record **W18** (Deriv
 `RETRIEVEDOCVSPANSET(d)` is a pure function of the current state `Σ` (by W8), so any two
 queries against the *same* `Σ` return identical span-sets; the report changes only when
 `M(d)` changes — a later report contradicts an earlier one only if some transition reshaped
-`M(d)` in between.
-
-**The link extent counts links.** The link member's whole purpose (W0, after Nelson 4/68) is
-to *indicate the number of links*, so we must bridge `n_{s_L}(d) = |V_{s_L}(d)|` to that
-number. Two foundation facts close the gap. CL-OWN restricts `V_{s_L}(d)` to the document's
-*own* (home) links — a third party linking *into* `d`, owning its link at another address,
-contributes nothing to `V_{s_L}(d)` and cannot perturb the reported link extent. CL-UNIQ makes
-`M(d)` restricted to `V_{s_L}(d)` injective — each home link occupies *exactly one*
-link-subspace V-position — so the correspondence between `d`'s home links and `V_{s_L}(d)` is a
-bijection and `|V_{s_L}(d)|` counts home links exactly. The content side carries the analogous guarantee through different premises:
-each content V-position carries exactly one I-address (S2) drawn from `dom(C)` (S3★), so
-`n_{s_C}(d) = |V_{s_C}(d)|` is the number of content positions — faithful by functionality and
-referential integrity, while the link side rests on CL-OWN and CL-UNIQ. The stability the report
-enjoys is exactly the stability of the arrangement it views; the operation adds none of its own
-and needs none.
+`M(d)` in between. The stability the report enjoys is exactly the stability of the arrangement
+it views; the operation adds none of its own and needs none.
 
 ---
 
@@ -594,8 +575,9 @@ and needs none.
 | W15 | Independence — `n_{s_C}` depends only on `V_{s_C}(d)`, `n_{s_L}` only on `V_{s_L}(d)`; subspace edits do not cross | introduced |
 | W16 | Partition — the members disjointly cover exactly the counted active V-positions; no orphan, no phantom | introduced |
 | W17 | ExtentDeterminesPopulation — each V-slice position within `ext(d, S)` carries content (`M(d)(v) ∈ dom(C)`/`dom(L)`, S3★); one step beyond W4's coverage equality | introduced |
-| W18 | DerivedReport — the result is a pure function of current state `Σ`; it changes only when `M(d)` changes; `n_{s_L} = |V_{s_L}(d)|` counts home links exactly (CL-OWN restricts to own links, CL-UNIQ gives the bijection), `n_{s_C}` counts content positions by functionality alone (S2/S3★) | introduced |
+| W18 | DerivedReport — the result is a pure function of current state `Σ`; it changes only when `M(d)` changes | introduced |
 | W19 | ResultCardinalityWP — `wp(·, "result = ⟨⟩") ≡ d ∈ dom(M) ∧ V_{s_C}(d) = ∅ ∧ V_{s_L}(d) = ∅`; `wp(·, "|result| = 2") ≡ d ∈ dom(M) ∧ V_{s_C}(d) ≠ ∅ ∧ V_{s_L}(d) ≠ ∅`; `wp(·, "|result| = 1") ≡ d ∈ dom(M) ∧ (V_{s_C}(d) = ∅ ⊻ V_{s_L}(d) = ∅)` | introduced |
+| W20 | FaithfulCount — `n_{s_L} = |V_{s_L}(d)|` counts home links exactly (CL-OWN restricts to own links, CL-UNIQ gives the bijection); `n_{s_C} = |V_{s_C}(d)|` counts content positions by functionality and referential integrity (S2/S3★) | introduced |
 
 ---
 
