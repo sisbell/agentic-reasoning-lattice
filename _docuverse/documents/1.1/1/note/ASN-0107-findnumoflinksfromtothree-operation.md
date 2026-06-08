@@ -58,13 +58,13 @@ Finally, only links *present* in the store at the queried state are eligible:
 
 ## Two Anchorings, and the Tense of the Count
 
-Everything so far is parametric in the request `Q`. The crux of the operation's meaning is *how the three address sets are obtained*, because that choice fixes whether the count is a stable property of the permanent store or a live reading of the current arrangement. Two anchorings present themselves, and the consultation evidence is emphatic that they differ precisely in monotonicity.
+Everything so far is parametric in the request `Q`. The crux of the operation's meaning is *how the three address sets are obtained*, because that choice fixes whether the count is a stable property of the permanent store or a live reading of the current arrangement. Two anchorings present themselves, and E2 and D2 below establish that they differ precisely in monotonicity.
 
 **Existence anchoring.** The request is given directly as fixed address sets `Q` in the permanent address space. A link's eligibility then turns only on `coverage(Σ.L(a).eᵢ) ∩ Qᵢ`, and coverage is invariant across all transitions (LP3★, ASN-0098): once a link is written, what its endsets denote never changes. Hence `sat(a, Q, ·)` for a fixed `Q` is a function of `a ∈ dom(Σ.L)` alone — independent of the content store `Σ.C` and the arrangements `Σ.M`.
 
 > **E1 (CoveragePermanence).** For fixed `Q` and any `Σ →* Σ'`, every `a ∈ dom(Σ.L)` satisfies `sat(a, Q, Σ') ⟺ sat(a, Q, Σ)`. Satisfaction against permanent address sets is decided by the link's stored value, which is itself permanent (L12).
 
-> **E2 (ExistenceMonotonicity).** For fixed `Q`, `Σ →* Σ' ⟹ num(Q, Σ) ≤ num(Q, Σ')`. The store grows (L12a), coverage is invariant (E1), so `match(Q, Σ) ⊆ match(Q, Σ')`: the matching set only gains members. The existence count never falls.
+> **E2 (ExistenceMonotonicity).** For fixed `Q`, `Σ →* Σ' ⟹ num(Q, Σ) ≤ num(Q, Σ')`. The store grows across the transitive closure (Store Monotonicity★, ASN-0098), coverage is invariant (E1), so `match(Q, Σ) ⊆ match(Q, Σ')`: the matching set only gains members. The existence count never falls.
 
 > **E3 (ContentInvariance).** For fixed `Q`, the transitions that allocate content (K.α), extend, contract, or reorder an arrangement (K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~), register a document (K.σ/K.δ), or record provenance (K.ρ) all leave `num(Q, Σ)` unchanged. By E1, `sat` depends on neither `Σ.C` nor `Σ.M`; only a link-creation transition (K.λ) touches `dom(Σ.L)`.
 
@@ -124,7 +124,7 @@ To withdraw a link from the count, in this model, is to remove it from the *view
 > - `coverage(Σ.L(ℓ).eᵢ) ∩ Qᵢ(Σ) = {a}` (the sole matching link's slot-`i` reach is exactly `{a}` — no alternate reach into the region) ⟹ `Δnum_disc = −1`;
 > - otherwise `ℓ` still meets `Qᵢ(Σ')` at some surviving `a' ≠ a` (precisely the R3 situation) ⟹ `Δnum_disc = 0`.
 >
-> So the minimal contraction gives `Δnum_disc ∈ {−1, 0}` — the `k = 1` specialisation of R2's `Δ ∈ {−k, …, 0}`, with `−1` attained exactly when the sole matching link's slot-`i` reach is `{a}`. A link is a single unit at a single address; its endset breadth does not multiply its identity (P1), and severing it does not cascade — a distinct link whose endset merely *references* `a` by coverage (a link-to-link reference, ASN-0043 L4(c)) is a separate object, untouched. The `−1` is the minimal *non-trivial single-link* effect, not a floor on contraction effects in general: a contraction may equally leave the count unchanged (`Δ = 0`, the partial-survival situation of R3) or, when the deleted endpoint is shared, drop it by more than one (`Δ = −k`, R2).
+> So the minimal contraction gives `Δnum_disc ∈ {−1, 0}` — the `k = 1` specialisation of R2's `Δ ∈ {−k, …, 0}`, with `−1` attained exactly when the sole matching link's slot-`i` reach is `{a}`. Severing one link does not cascade: a distinct link whose endset merely *references* `a` by coverage (a link-to-link reference, ASN-0043 L4(c)) is a separate object, untouched.
 
 R1 is the minimal case; the general case is where the decrement *exceeds* one, because the contracted endpoint may be shared by many links.
 
@@ -239,7 +239,5 @@ What invariants must the count guarantee when the three request parts are indepe
 Under what conditions must the discovery count coincide with the existence count — that is, when is every resident matching link also currently discoverable?
 
 What guarantee, if any, must hold between the count at a state and the cardinality of the set the corresponding retrieval operation would return at the same state, and under what staleness may the two diverge?
-
-Must a conformant implementation guarantee set-semantics by deduplicating multi-span matches before sizing, or may idempotence of counting be left as a discipline on the query layer?
 
 What must the count guarantee about its own stability under a request that is logically equivalent but syntactically re-expressed — for instance, a request whose parts are re-decomposed into different spans of the same coverage?
