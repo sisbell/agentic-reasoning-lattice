@@ -455,10 +455,13 @@ This is the source of survivability, and it lets us separate cleanly the two sen
 Because the I-side touching test reads only `Σ.L` and the supplied region `I`, the result is
 invariant under every edit that leaves the link store alone:
 
-> **RE-surv (lemma).** Let `Σ → Σ'` be any arrangement edit — a K.μ-family transition
-> (`K.μ⁺`, `K.μ⁻`, `K.μ⁺_L`, or the composite `K.μ~`), each of which frames `L' = L` (A1a,
-> ASN-0099). Then `retrieveendsets(I, Σ') = retrieveendsets(I, Σ)`. Insertion, deletion, and
-> rearrangement of a document's V-positions do not change which endsets touch a given I-region.
+> **RE-surv (lemma).** Let the arrangement edit be either a single-step atomic K.μ-family
+> transition `Σ → Σ'` (`K.μ⁺`, `K.μ⁻`, or `K.μ⁺_L`) or the two-step composite `Σ →* Σ'` for
+> `K.μ~` (the named `K.μ⁻ + K.μ⁺` composite), each of which frames `L' = L` — single-step for
+> the atomic operations, by composition of `L' = L` across the two constituents for `K.μ~`
+> (A1a, ASN-0099). Then `retrieveendsets(I, Σ') = retrieveendsets(I, Σ)`. Insertion, deletion,
+> and rearrangement of a document's V-positions do not change which endsets touch a given
+> I-region.
 
 This is precisely Nelson's survivability ("links between bytes can survive deletions,
 insertions and rearrangements", LM 4/43), now stated as an invariance: the endsets follow the
@@ -649,6 +652,6 @@ What invariant relates the endsets returned for a region to those returned for i
 
 Under what conditions is the per-link from/to/type pairing reconstructible from a role-separated result, and when is that reconstruction provably impossible?
 
-What must the system guarantee about the relationship between the endsets a region-search returns and the count of distinct links anchored to that region?
+Beyond RE-anon's sound lower bound `max_i |Eᵢ(I, Σ)|` on the distinct contributing links, under what additional structural conditions on a state — e.g. constraints on endset-value sharing across links — is a tighter bound, or the exact distinct-link count, recoverable from the result alone?
 
 What must hold for two regions with equal current arrangements but distinct deletion histories to be guaranteed indistinguishable to a V-side region search?
