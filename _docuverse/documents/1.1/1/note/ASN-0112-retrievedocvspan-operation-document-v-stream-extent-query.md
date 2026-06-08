@@ -65,14 +65,10 @@ content position before every link position.
 We borrow the span machinery wholesale. A span `σ = (s, ℓ)` denotes the half-open interval
 `⟦σ⟧ = {t ∈ T : s ≤ t < s ⊕ ℓ}` (T12), with `reach(σ) = s ⊕ ℓ` (ASN-0053). A span is
 *well-formed* when `Pos(ℓ)` and `actionPoint(ℓ) ≤ #s`; it is *level-uniform* when
-`#s = #ℓ` (S6, ASN-0053). We must keep this notion sharply distinct from a condition on a
-span's two *endpoints*: following S6's `level_compat`, we call `start(σ)` and `reach(σ)`
-*endpoint-level-compatible* when `#start(σ) = #reach(σ)`. The two are genuinely different. For
-the bounding span `σ_d = (origin_d, extent_d)` built below, `extent_d = reach_d ⊖ origin_d` has
-depth `#extent_d = max(#origin_d, #reach_d)` (TA2), so `σ_d` is *level-uniform*
-(`#origin_d = #extent_d`) iff `#origin_d ≥ #reach_d`, whereas its endpoints are
-*level-compatible* iff `#origin_d = #reach_d` — the two inequalities point opposite ways and
-coincide only at equality. The ordinal shift `shift(t, n) = t ⊕ δ(n, #t)` advances `t`'s last
+`#s = #ℓ` (S6, ASN-0053). Following S6's `level_compat`, we call its two *endpoints*
+`start(σ)` and `reach(σ)` *endpoint-level-compatible* when `#start(σ) = #reach(σ)`. These two
+conditions are genuinely different, and the difference is load-bearing in the reach analysis
+below (V2). The ordinal shift `shift(t, n) = t ⊕ δ(n, #t)` advances `t`'s last
 component by `n` (ASN-0034). We measure the whole document as one span; per-subspace reporting,
 content delivery, and region reads are out of scope.
 
@@ -162,11 +158,14 @@ depths:
 
 In both cases `r⋆ ≥ reach_d > max O(d)`, so coverage holds *unconditionally* — it does not
 route through any endpoint depth relation or through WF. What the endpoint relation governs is
-only whether the span's reach *equals* `reach_d` exactly: `reach(σ_d) = reach_d ⟺ #origin_d ≤
-#reach_d` (D1 closes the round-trip when `#origin_d ≤ #reach_d`; D0 makes it fail when
-`#origin_d > #reach_d`). This is an endpoint condition, distinct from span level-uniformity
-(the substrate section fixes the two apart); it holds whenever the occupied subspaces share a
-common depth.
+only whether the span's reach *equals* `reach_d` exactly. We establish the **reach biconditional**
+once, here, where D0/D1 live: `reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d` (D1 closes the
+round-trip when `#origin_d ≤ #reach_d`; D0 makes it fail when `#origin_d > #reach_d`). This is an
+endpoint condition, genuinely distinct from span level-uniformity, and the two point opposite
+ways: since `extent_d = reach_d ⊖ origin_d` has depth `#extent_d = max(#origin_d, #reach_d)`
+(TA2), `σ_d` is *level-uniform* (`#origin_d = #extent_d`) iff `#origin_d ≥ #reach_d`, whereas its
+endpoints are *level-compatible* iff `#origin_d = #reach_d` — coinciding only at equality. The
+reach equals `reach_d` whenever the occupied subspaces share a common depth.
 
 **The span is the tightest covering bound among same-depth reaches.** We record **V3**
 (bounding): `origin_d` is the greatest lower bound of `O(d)`, and `reach_d` is the *least*
@@ -258,20 +257,18 @@ carry distinct depths (`m_C` for content, `m_L` for links). In the cross-subspac
 `origin_d` is a depth-`m_C` content position while `reach_d = shift(max O(d), 1)` is a
 depth-`m_L` link position (OrdinalShift preserves depth), so when `m_C ≠ m_L` the endpoints
 are *not* level-compatible (`#origin_d ≠ #reach_d`). The covering argument (V2) was proved
-without any endpoint depth relation and so still holds; what changes is only the *reach*: by
-the V2 case analysis, `reach(σ_d) = reach_d`
-exactly when `#origin_d ≤ #reach_d` (i.e. `m_C ≤ m_L`), while when `m_C > m_L` the actual
-reach `r⋆` strictly exceeds `reach_d` (it is `reach_d` zero-padded to depth `m_C`). In all
-cases `r⋆ ≥ reach_d > max O(d)`, so the bounding-box reading of V6 stands. The implementation
-evidence settles which case actually arises: content and link V-positions are *always* placed
-at the same depth — both depth 2 — distinguished only by the first-component value `s_C = 1`
-vs `s_L = 2`, never by depth (consultation Q2: `findvsatoappend`, `findnextlinkvsa`, and
-`setlinkvsas` all emit depth-2 V-addresses). So `m_C = m_L` in every realized state, the
-cross-subspace endpoints are level-compatible (and `σ_d` is level-uniform), and
-`reach(σ_d) = reach_d` exactly. The `m_C ≠ m_L` divergence is an abstract possibility S8-depth
-admits but the implementation never exercises; the well-formedness (V2, V17) and covering (V2)
-claims hold either way, and only the V3 tightness claim is restricted to the same-depth reach
-the uniform-depth discipline guarantees.
+without any endpoint depth relation and so still holds; what changes is only the *reach*, and
+the V2 reach biconditional settles it directly: `reach(σ_d) = reach_d` exactly when
+`#origin_d ≤ #reach_d` (i.e. `m_C ≤ m_L`), while when `m_C > m_L` the actual reach `r⋆`
+strictly exceeds `reach_d` (it is `reach_d` zero-padded to depth `m_C`). In all
+cases `r⋆ ≥ reach_d > max O(d)`, so the bounding-box reading of V6 stands. The realized case is
+`m_C = m_L`: content and link V-positions are placed at the same depth — both depth 2 —
+distinguished only by the first-component value `s_C = 1` vs `s_L = 2`, never by depth
+(consultation Q2: `findvsatoappend`, `findnextlinkvsa`, and `setlinkvsas` all emit depth-2
+V-addresses), so the cross-subspace endpoints are level-compatible and `reach(σ_d) = reach_d`
+exactly. The well-formedness (V2, V17) and covering (V2) claims hold for `m_C ≠ m_L` as well;
+only the V3 tightness claim is restricted to the same-depth reach the uniform-depth discipline
+guarantees.
 
 This is not a defect peculiar to one engine. It is a *theorem about single spans*. A span
 is by construction one contiguous region (ASN-0053 S0, convexity): "if you want to designate
@@ -302,10 +299,7 @@ itself is fixed across the editing in question. It is: the content depth `m_C` i
 "at any value `≥ 2`" only on full subspace clearance — when `V_{s_C}(d) = ∅`, the next
 insertion re-pins `m_C` from scratch (S8a). Editing "that leaves content present" never
 empties `V_{s_C}(d)`, so the re-pinning trigger never fires and `m_C` — hence the depth of
-`[s_C,1,…,1]` — stays fixed throughout. The complementary boundary — what the origin becomes
-when deletion clears the content subspace while links survive — is the one editing transition
-that does move the origin; we derive it as V18 below (the origin migrates to the link minimum
-`[s_L,1,…,1]`). Editing
+`[s_C,1,…,1]` — stays fixed throughout. Editing
 relocates I-addresses and shuffles V-positions, but it never moves the start of the stream:
 "the front-end application is unaware" of where bytes natively live (4/11), and the V-origin
 holds steady at the canonical first position. The origin is the stable anchor against which
@@ -374,13 +368,13 @@ empties the content subspace (`V_{s_C}(d) = ∅`) while one or more links surviv
 (content present) fails, and its conclusion lapses with it. The minimum occupied position is now
 `min V_{s_L}(d) = [s_L,1,…,1]` (D-MIN★ instantiated at `S = s_L`), so `origin_d` jumps from the
 content anchor `[s_C,1,…,1]` up into link space, and `reach_d = shift(max V_{s_L}(d), 1)` is
-now a link reach. This is precisely the boundary V8 excludes: origin permanence is asserted
-*while content is present*, never across the transition that clears it. We record **V18**
+now a link reach. Origin permanence (V8) is asserted *while content is present*, so this
+clearance transition lies outside its hypothesis. We record **V18**
 (deletion symmetry and origin migration): deletion of `n` content positions retreats reach and
 extent by `n` ordinal steps when the content subspace is maximal (the inverse of V10) and leaves
 both invariant when links occupy the maximum; and when deletion clears the content subspace while
 links survive, `origin_d` migrates from `[s_C,1,…,1]` to the link minimum `[s_L,1,…,1]` — the
-sole editing transition that moves the origin, and exactly the boundary V8 excludes. Gregory
+sole editing transition that moves the origin. Gregory
 confirms the migration: deleting all text while links remain is a permitted, non-empty state in
 which the arrangement-tree root V-displacement (maintained as the minimum occupied address)
 retreats to the link minimum, so `RETRIEVEDOCVSPAN` reports the link span — `2.1 for 0.1` in the
@@ -396,11 +390,8 @@ the empty document is the case that tests it. `CREATENEWDOCUMENT` "creates an em
 
 We record **V11** (total answerability via a distinguished empty result): `RETRIEVEDOCVSPAN`
 is defined for every allocated document. When `O(d) = ∅`, the result is the *empty span-set*
-`⟨⟩` (ASN-0053), the distinguished value denoting the empty set `∅`. We are careful here:
-this is *not* the "zero-extent span." A T12 span `(s, ℓ)` requires `Pos(ℓ)` (Span/T12,
-ASN-0034), and the zero tumbler fails `Pos`; worse, by TA6 (ZeroTumblers, ASN-0034) the zero
-tumbler is excluded from valid addresses entirely. So a pair `(origin_d, 0)` is not a
-well-formed span at all, and it cannot be returned as one without contradicting V0. The empty
+`⟨⟩` (ASN-0053), the distinguished value denoting the empty set `∅` — the summand V0 already
+fixed apart from any T12 span. The empty
 span-set carries no origin and no extent: `origin_d = min O(d)` is *undefined* when `O(d) = ∅`
 (the minimum of the empty set does not exist), and there is no extent tumbler. This is the
 honest content of the empty case — there is no first occupied position, hence no origin to
@@ -500,7 +491,7 @@ positive; there is no editing artifact that drives it to zero. The only way to o
 extent" is the empty document, which returns the distinguished empty span-set `⟨⟩` (V11) and
 carries no extent tumbler at all — emptiness is reported by the absence of a span, not by a
 zero-width one. V17's `Pos` and `actionPoint` claims hold without any endpoint depth relation
-(established in the V2 well-formedness paragraph via D0); per the substrate distinction, the
+(established in the V2 well-formedness paragraph via D0); by the V2 reach biconditional, the
 endpoint condition `#origin_d ≤ #reach_d` governs only `reach(σ_d) = reach_d`, not T12 legality.
 
 ---
@@ -534,28 +525,12 @@ unchanged), `max = [1,3]`, `reach = [1,4]`, `extent = [1,4] ⊖ [1,1] = [0,3]`, 
 origin fixed exactly where it was (V8). Reordering these three positions — permuting which
 I-address sits at each — leaves `O'(d)` unchanged and so returns the identical span (V9).
 
-**An endpoint-depth-divergent variant.** To exercise the abstract `m_C ≠ m_L` case (V6), let
-content sit at depth `m_C = 3` and the single link at depth `m_L = 2`:
-
-> `M(d) = { [1,1,1] ↦ a, [1,1,2] ↦ b, [2,1] ↦ ℓ }`,  `O(d) = {[1,1,1], [1,1,2], [2,1]}`.
-
-Then `origin_d = [1,1,1]` (depth 3) and `max O(d) = [2,1]`, so `reach_d = shift([2,1], 1) =
-[2,2]` (depth 2). Here `#origin_d = 3 > 2 = #reach_d`, so the *endpoints* are not
-level-compatible. The extent is `[2,2] ⊖ [1,1,1]`: zero-padding `reach_d` to `[2,2,0]` and
-diverging at position 1 (`2 ≠ 1`), `extent_d = [2-1, 2, 0] = [1,2,0]`, of depth
-`#extent_d = max(3,2) = 3 = #origin_d`. So by S6 the span `([1,1,1], [1,2,0])` *is*
-level-uniform (`#s = #ℓ`) even though its endpoints diverge in depth — the substrate distinction
-made concrete. The extent is a
-positive tumbler with `actionPoint = 1 ≤ 3 = #origin_d`, so V17/WF still hold. The *actual*
-reach is `r⋆ = origin_d ⊕ extent_d = [1+1, 2, 0] = [2,2,0]`, which by D0 is *not* `reach_d`:
-indeed `reach_d = [2,2]` is a proper prefix of `r⋆ = [2,2,0]`, so `reach_d < r⋆` (T1 case
-(ii)). Coverage nonetheless holds: `⟦σ_d⟧ = {t : [1,1,1] ≤ t < [2,2,0]}` contains `[1,1,1]`,
-`[1,1,2]`, and `[2,1]` (each strictly below `[2,2,0]`). So even with `m_C ≠ m_L`, **V2** is
-satisfied — the span covers `O(d)` — while the reach overshoots `reach_d` (so
-`reach(σ_d) ≠ reach_d`) and the **V3** tightness claim (least *same-depth* reach) no longer
-applies, exactly as the restricted statements anticipate. This confirms that coverage and T12
-legality survive endpoint-depth divergence; only exact reach and tightness depend on the
-uniform-depth discipline.
+**An endpoint-depth-divergent variant (one line).** The level-uniform-vs-endpoint distinction
+of V2 concretizes when `m_C = 3 > m_L = 2`: `M(d) = { [1,1,1] ↦ a, [1,1,2] ↦ b, [2,1] ↦ ℓ }`
+gives `origin_d = [1,1,1]`, `reach_d = [2,2]`, `extent_d = [1,2,0]` of depth 3 — so `σ_d` is
+*level-uniform* (`#origin_d = #extent_d`) while its *endpoints* diverge (`#origin_d > #reach_d`),
+and the actual reach `r⋆ = [2,2,0]` overshoots `reach_d` exactly as V2's second covering case
+predicts (coverage and T12 legality survive; only the V3 same-depth tightness lapses).
 
 ---
 
@@ -602,9 +577,8 @@ the cases (an arrangement occupies zero, one, or two subspaces), so the single-s
 condition is both necessary and sufficient, hence the *weakest* precondition. V7 explains why
 this dichotomy is forced rather than incidental: a single span is one convex region, so exact
 tracing of a separated series is structurally impossible. The companion reach property factors
-the same way along the orthogonal endpoint axis:
-`wp(RETRIEVEDOCVSPAN(d), "reach(σ_d) = reach_d") = (#origin_d ≤ #reach_d)` (D1 closes the
-round-trip, D0 makes it fail otherwise). A caller can thus decide *before* querying whether the answer will be exact
+the same way along the orthogonal endpoint axis: by the V2 reach biconditional,
+`wp(RETRIEVEDOCVSPAN(d), "reach(σ_d) = reach_d") = (#origin_d ≤ #reach_d)`. A caller can thus decide *before* querying whether the answer will be exact
 (check single-subspace occupancy) and whether its reach is the tight `reach_d` (check the
 endpoint depths), without inspecting the returned span.
 
@@ -632,7 +606,7 @@ endpoint depths), without inspecting the returned span.
 | V15 | A returned span keeps its meaning under later edits to `d` or to home documents supplying its content; a fresh report is a new query, not a mutation (snapshot stability) | introduced |
 | V16 | `σ_d` is a pure function of `O(d)`; equal arrangements return identical spans, independent of how the arrangement was built (determinism) | introduced |
 | V17 | For non-empty `d`, `extent_d` is a positive tumbler with `actionPoint(extent_d) ≤ #origin_d` (well-formed T12 span); `reach_d > origin_d` always, so the extent is never negative | introduced |
-| V18 | Deletion of `n` content positions retreats reach and extent by `n` ordinal steps when the content subspace is maximal (inverse of V10) and leaves both invariant when links occupy the maximum; clearing the content subspace while links survive migrates `origin_d` from `[s_C,1,…,1]` to the link minimum `[s_L,1,…,1]` — the sole editing transition that moves the origin, and exactly the boundary V8 excludes (deletion symmetry and origin migration) | introduced |
+| V18 | Deletion of `n` content positions retreats reach and extent by `n` ordinal steps when the content subspace is maximal (inverse of V10) and leaves both invariant when links occupy the maximum; clearing the content subspace while links survive migrates `origin_d` from `[s_C,1,…,1]` to the link minimum `[s_L,1,…,1]` — the sole editing transition that moves the origin (deletion symmetry and origin migration) | introduced |
 
 ## Open Questions
 
