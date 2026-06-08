@@ -157,13 +157,13 @@ PerLinkInvarianceUnderValuePreservation — sub-lemma:
 
 ## Link-Store-Inert Preservation
 
-This ASN inhabits ASN-0047's *extended* state `Σ = (C, L, E, M, R)`. ASN-0047's ValidComposite★ fixes the *atomic* vocabulary as exactly the seven operations `V_atomic = {K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.ρ}`; document registration is performed by K.δ (Document case). The named reordering K.μ~ is *not* atomic — ASN-0047 states it "is not atomic; it may appear in the sequence as shorthand for its K.μ⁻ + K.μ⁺ decomposition." For this ASN's preservation reasoning we range over a *working set of this ASN*
+This ASN inhabits ASN-0047's *extended* state `Σ = (C, L, E, M, R)`. ASN-0047's ValidComposite★ fixes the *atomic* vocabulary as exactly the seven operations `V_atomic = {K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.ρ}`; document registration is performed by K.δ (Document case). The named reordering K.μ~ is the K.μ⁻ + K.μ⁺ composite, so A1a applies to it by transitivity. For this ASN's preservation reasoning we range over
 
 ```
 V ≡ V_atomic ∪ {K.μ~}
 ```
 
-that adjoins the composite K.μ~ to ValidComposite★'s atomic vocabulary. `V` is local notation for this note, deliberately distinguished from ValidComposite★'s atomic vocabulary `V_atomic`: a transition produced by a `V_atomic` operation is single-step (`Σ → Σ'`), whereas a transition produced by K.μ~ is the two-step composite `Σ →* Σ'` (its K.μ⁻ + K.μ⁺ decomposition). Throughout this ASN we call an operation *link-store-inert* when it does not modify the link store `Σ.L` — that is, any operation in `V ∖ {K.λ}` (every atomic operation but K.λ, together with the composite K.μ~). We package the preservation lemma:
+that adjoins the composite K.μ~ to ValidComposite★'s atomic vocabulary. Throughout this ASN we call an operation *link-store-inert* when it does not modify the link store `Σ.L` — that is, any operation in `V ∖ {K.λ}` (every atomic operation but K.λ, together with the composite K.μ~). We package the preservation lemma:
 
 ```
 A1a (PublishedFramePreservation):
