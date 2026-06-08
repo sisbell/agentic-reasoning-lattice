@@ -43,7 +43,7 @@ precondition (**W-pre**):
 > placed into `dom(M)`).
 
 An *allocated empty* document (`d ∈ dom(M)`, `M(d) = ∅`) legitimately yields the defined
-empty span-set `⟨⟩` (see W0), whereas an *unallocated* identity (`d ∉ dom(M)`) lies outside
+empty span-set `⟨⟩`, whereas an *unallocated* identity (`d ∉ dom(M)`) lies outside
 the operation's domain and signals failure rather than fabricating `⟨⟩`. Gregory's back end
 confirms the separation operationally — an existing-but-empty document returns the empty
 span-set with success, whereas a never-allocated identity fails and the back end signals
@@ -220,7 +220,10 @@ many crums populate it (consultation Q11, Q14, Q19).
 **The result is a read-only observation.** We record **W8** (PureQuery): `Σ' = Σ`. The
 operation reads `C`, `L`, `M`, and the document identity, and writes nothing — no
 allocation, no arrangement change, no provenance. It is a function of the present state
-alone.
+alone — indeed of `M(d)` alone, since the members are computed from `V_{s_C}(d)` and
+`V_{s_L}(d)`. Two queries against the same `Σ` therefore return identical span-sets, and a
+later report can differ from an earlier one only if some transition reshaped `M(d)` in
+between.
 
 **Only the two counted subspaces appear.** Every occupied V-position of `d` lies in one of
 the two counted subspaces, leaving none in a third. This is precisely S3★-aux
@@ -296,43 +299,6 @@ from `[s_C,1,…,1,1+n_{s_C}]` up to `[s_L,1,…,1]`. To "designate the separate
 including nothing else" (4/25), one is *forced* into a span-set of two members. This is not a
 representational convenience but a structural necessity: the honest report of two
 separated regions is two spans.
-
----
-
-## What the pair reveals that neither member alone could
-
-The whole point of returning *both* extents — Nelson's "both the number of characters of
-text and the number of links" (4/68) — is that the pair carries information no single
-extent holds. We make this precise.
-
-A single extent gives a *size*; the pair `(n_{s_C}, n_{s_L})` gives a *proportion* — the
-document's *profile*, its ratio of original matter to connective structure, which neither
-coordinate alone determines. We record **W12** (ProfileIrreducibility): the
-map `d ↦ (n_{s_C}(d), n_{s_L}(d))` is determined by neither coordinate alone. Formally,
-neither projection is injective on the profile: for any value of one coordinate there exist
-states realizing distinct values of the other —
-
-> `(A c, k₁, k₂ ∈ ℕ : k₁ ≠ k₂ : (E d₁, d₂ : n_{s_C}(d₁) = n_{s_C}(d₂) = c : n_{s_L}(d₁) = k₁ ∧ n_{s_L}(d₂) = k₂))`
-
-and symmetrically with the roles of the subspaces exchanged.
-
-The existential is a reachability claim: for arbitrary `(c, k) ∈ ℕ × ℕ` a document realizing
-profile `(c, k)` must be constructible by a sequence of *valid composites* (ASN-0047,
-ValidComposite★). We discharge it with a witness sequence over the ASN-0047 vocabulary.
-Starting from a state in which `d ∈ E_doc` (allocated by K.δ), each text position is added by a
-coupled `K.α + K.μ⁺ + K.ρ` composite and each link position by a coupled `K.λ + K.μ⁺_L`
-composite; each is a valid composite, its coupling obligations J0 ∧ J1★ ∧ J1'★ discharged by
-ValidComposite★. Performing `c` content composites adds the dense run
-`{[s_C,1,…,1,j] : 1 ≤ j ≤ c}` (D-SEQ★) and drives `n_{s_C}(d) = c`; performing `k` link
-composites adds `{[s_L,1,…,1,j] : 1 ≤ j ≤ k}` (D-SEQ★) and drives `n_{s_L}(d) = k`. The content
-composites confine their new V-positions to `s_C` and the link composites to `s_L`, so the two
-counts are set by independent streams; neither constrains the other, so every `(c, k) ∈ ℕ × ℕ`
-is reachable (count `0` by performing zero extensions of that kind). To witness W12, fix
-`c, k₁, k₂ ∈ ℕ` with `k₁ ≠ k₂`: build `d₁` with profile `(c, k₁)` and `d₂` with profile
-`(c, k₂)` by the construction above; both share text extent `c` yet differ in link extent, so
-`n_{s_C}` does not determine `n_{s_L}`. The symmetric proposition — fix the link extent at `k`
-and vary the text extent — is witnessed by the *same two recipes* with only the varying axis
-changed.
 
 ---
 
@@ -521,17 +487,6 @@ where an off-prefix, admissible-last-component tumbler must be — and is — ex
 
 ---
 
-## Permanence of the report
-
-The span-set is a *derived view* of the current arrangement: its members are computed from
-`V_{s_C}(d)` and `V_{s_L}(d)`, which editorial operations reshape. We record **W18**
-(DerivedReport), the one increment over W8: `RETRIEVEDOCVSPANSET(d)` is a pure function of
-the current state `Σ` (by W8), so any two queries against the *same* `Σ` return identical
-span-sets, and the report changes iff a transition reshapes `M(d)` — a later report
-contradicts an earlier one only if some transition reshaped `M(d)` in between.
-
----
-
 ## Claims Introduced
 
 | Label | Statement | Status |
@@ -544,17 +499,15 @@ contradicts an earlier one only if some transition reshaped `M(d)` in between.
 | W5 | ExactnessRequiresContiguity — *for `V_S(d) ≠ ∅`*, a single level-uniform span exactly covers `V_S(d)` iff `V_S(d)` is contiguous in `VSlice(S, m)` | introduced |
 | W6 | `occupied(d) = {S ∈ {s_C, s_L} : V_S(d) ≠ ∅}` | introduced |
 | W7 | OneSpanPerOccupiedSubspace — result has exactly `|occupied(d)|` members, one per kind, not per fragment or item | introduced |
-| W8 | PureQuery — `Σ' = Σ`; the operation reads and writes nothing | introduced |
+| W8 | PureQuery — `Σ' = Σ`; the operation reads and writes nothing, and its result depends on `M(d)` alone, so it changes only when `M(d)` changes | introduced |
 | W9 | TwoKindsOnly — `O(d) = V_{s_C}(d) ⊔ V_{s_L}(d)` (derived from S3★-aux); no third subspace holds content, so no third member can arise | introduced |
 | W10 | SubspaceConfinement — `(A t : t ∈ ⟦ext(d, S)⟧ : t₁ = S)` | introduced |
 | W11 | Disjointness — `⟦ext(d, s_C)⟧ ∩ ⟦ext(d, s_L)⟧ = ∅` | introduced |
-| W12 | ProfileIrreducibility — the pair `(n_{s_C}, n_{s_L})` is determined by neither coordinate alone | introduced |
 | W13 | UniformShape — result is normalized, members drawn from the fixed ordered kind-list `(s_C, s_L)` | introduced |
 | W14 | Comparability — per-kind comparison `n_S(d₁)` vs `n_S(d₂)` is total because `n_S = |V_S(d)|` is a total function (W1), independent of which members the report emits | introduced |
 | W15 | Independence — `n_{s_C}` depends only on `V_{s_C}(d)`, `n_{s_L}` only on `V_{s_L}(d)`; subspace edits do not cross | introduced |
 | W16 | Partition — the members disjointly cover exactly the counted active V-positions; no orphan, no phantom | introduced |
 | W17 | ExtentDeterminesPopulation — each V-slice position within `ext(d, S)` carries content (`M(d)(v) ∈ dom(C)`/`dom(L)`, S3★); one step beyond W4's coverage equality | introduced |
-| W18 | DerivedReport — the result is a pure function of current state `Σ`; it changes only when `M(d)` changes | introduced |
 | W19 | ResultCardinalityWP — `wp(·, "result = ⟨⟩") ≡ d ∈ dom(M) ∧ V_{s_C}(d) = ∅ ∧ V_{s_L}(d) = ∅`; `wp(·, "|result| = 2") ≡ d ∈ dom(M) ∧ V_{s_C}(d) ≠ ∅ ∧ V_{s_L}(d) ≠ ∅`; `wp(·, "|result| = 1") ≡ d ∈ dom(M) ∧ (V_{s_C}(d) = ∅ ⊻ V_{s_L}(d) = ∅)` | introduced |
 | W20 | FaithfulCount — `n_{s_L} = |V_{s_L}(d)|` counts home links exactly (CL-OWN restricts to own links, CL-UNIQ gives the bijection); `n_{s_C} = |V_{s_C}(d)|` counts content positions by functionality and referential integrity (S2/S3★) | introduced |
 
