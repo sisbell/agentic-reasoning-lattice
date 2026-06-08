@@ -17,7 +17,12 @@ present arrangement, what the caller gains over what the identity already disclo
 what invariants constrain the span the operation may legally return.
 
 We write the operation as a pure query, `RETRIEVEDOCVSPAN(d)`, that observes the state and
-returns a value, changing nothing. The entire content of this note is: *what is that
+returns a value, changing nothing. We record this no-mutation guarantee as **V-frame**:
+the post-state equals the observed state, `Σ' = Σ`, so every component — content store `C`,
+link store `L`, entity set `E`, arrangement family `M`, provenance relation `R` — is left
+intact. This is the operation's defining frame: an alternative implementation of "boundary
+query, not a content read" must satisfy it, distinguishing the query from any transition that
+edits the arrangement it measures. The entire content of this note is: *what is that
 value, and what must hold of it?*
 
 ---
@@ -351,11 +356,9 @@ permanent and immutable by content permanence (S0, P0); a *link* position
 (`subspace(v) = s_L`) maps to a link address in `dom(L)`, permanent and immutable by link
 permanence (L12). The split is forced: S0/P0 constrain the content store only, so they say
 nothing about a link image, while L12 supplies exactly the matching guarantee on the link
-store. The restriction to `O(d)` is essential: in the cross-subspace case
-V6 establishes `O(d) ⊊ ⟦σ_d⟧` strictly, so the span also covers inter-subspace and unoccupied
-positions (e.g. `[1,4]` in the worked example) on which `M(d)` is simply undefined; for those
-covered-but-unoccupied positions there is no image through `M(d)`, and the permanence claim
-makes no assertion about them. The arrangement (Vstream) is fluid; the content
+store. The restriction to `O(d)` is essential: covered-but-unoccupied
+positions, which exist by V6, carry no `M(d)` image, and the permanence claim makes no
+assertion about them. The arrangement (Vstream) is fluid; the content
 identities it references are eternal. So even when the originating owner "deletes" content
 from this document's current version, "those bytes remain in all other documents where they
 have been included" (4/11) — sharing strengthens rather than threatens the permanence of what
@@ -476,6 +479,7 @@ endpoint depths), without inspecting the returned span.
 
 | Label | Statement | Status |
 |-------|-----------|--------|
+| V-frame | `Σ' = Σ` — the query mutates no state component (`C, L, E, M, R` all unchanged); the no-mutation guarantee that distinguishes a boundary query from an editing transition (purity of the transition, distinct from V16's purity of the returned value) | introduced |
 | V0 | `RETRIEVEDOCVSPAN : dom(M) → Span + {⟨⟩}` (tagged union): one well-formed span `σ_d = (origin_d, extent_d)` for a non-empty document, or the distinguished empty span-set `⟨⟩` (denoting `∅`, not a T12 span) when `O(d) = ∅` — never a content sequence, never a count | introduced |
 | V1 | When `O(d) ≠ ∅`, `origin_d = min O(d)` under T1 and `origin_d ∈ O(d)` (the origin is an occupied position) | introduced |
 | V2 | `O(d) ⊆ ⟦σ_d⟧` (coverage), proved unconditionally via D0/D1 without assuming level-uniformity; the actual reach `r⋆ = origin_d ⊕ extent_d ≥ reach_d = shift(max O(d), 1) > max O(d)`, with equality `r⋆ = reach_d` iff `#origin_d ≤ #reach_d`; the span `(origin_d, extent_d)` is always a well-formed T12 span | introduced |
