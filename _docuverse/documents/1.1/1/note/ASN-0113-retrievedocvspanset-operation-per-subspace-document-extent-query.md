@@ -365,10 +365,15 @@ referential integrity.
 
 The uniform shape of a single report (W13) has a cross-document consequence: a consumer can
 reconstruct the *full per-kind count vector* `(n_{s_C}(d), n_{s_L}(d))` from a report that may
-omit members. We record **W14** (Comparability). Because the kind-list `(s_C, s_L)` is fixed
-(W13), a consumer recovers each `n_S(d)` from the report by position — an *emitted* member of
-kind `S` contributes its boundary-count `n_S(d)`, the gap between the last components of its
-reach and start (W3), while an *omitted* kind `S` is read as `n_S(d) = 0`. This
+omit members. We record **W14** (Comparability). The recovery is *by subspace identifier*, not
+by list position: because the operation emits only occupied subspaces (W7), the result is a
+*subsequence* of the kind-list, so a member's index in the sequence no longer aligns with its
+kind — a one-member report could be either a text-only or a link-only document, both "at
+position 1." The kind is read instead from the member's own subspace identifier `start₁ = S`
+(W2/W10). Concretely, a consumer iterates the fixed kind-list `(s_C, s_L)` (W13) and, for each
+kind `S`, checks whether a member with `start₁ = S` is *present* — in which case it contributes
+its boundary-count `n_S(d)`, the gap between the last components of its reach and start (W3) —
+or *absent*, in which case `n_S(d)` is read as `0`. This
 absent-reads-as-zero reconstruction is sound rather than a guess: by W6/W7 the operation omits
 kind `S` exactly when `V_S(d) = ∅`, which is exactly when `n_S(d) = |V_S(d)| = 0` (W1), so a
 missing member can only ever signify an empty subspace. Hence for any two allocated documents
@@ -457,7 +462,12 @@ separated, so no merge is possible.
 
 **W14 (absent member, zero count).** The empty link subspace contributes *no* member to the
 report, yet `n_{s_L}(d') = |V_{s_L}(d')| = 0` (W1) — a defined zero count alongside an emitted
-member count of one.
+member count of one. A consumer recovers the counts *by subspace identifier*, not by list
+position: the sole member is `ext(d', s_C)` with `start₁ = 1 = s_C`, so iterating the
+kind-list `(s_C, s_L)` finds `s_C` present (count `3`) and `s_L` absent (count `0`). Note the
+report is the singleton `⟨([1,1], δ(3,2))⟩` "at position 1" — but were `d'` link-only instead,
+the singleton would be `⟨ext(d', s_L)⟩`, also "at position 1," distinguishable only by its
+member's `start₁ = 2 = s_L`. List position is therefore not a reliable index of kind.
 
 **A depth-`3` instance: prefix-confinement is non-vacuous.** Both instances above fix
 `m_S = 2`, where the canonical prefix `[S,1,…,1]` collapses to length `m_S − 1 = 1`. There the
@@ -515,7 +525,7 @@ where an off-prefix, admissible-last-component tumbler must be — and is — ex
 | W10 | SubspaceConfinement — `(A t : t ∈ ⟦ext(d, S)⟧ : t₁ = S)` | introduced |
 | W11 | Disjointness — `⟦ext(d, s_C)⟧ ∩ ⟦ext(d, s_L)⟧ = ∅` | introduced |
 | W13 | UniformShape — result is normalized, members drawn from the fixed ordered kind-list `(s_C, s_L)` | introduced |
-| W14 | Comparability — over the fixed kind-list `(s_C, s_L)` a consumer recovers each `n_S(d)` from the report (emitted ⇒ boundary-count; omitted ⇒ `n_S = 0`, sound by W6/W7), so per-kind comparison `n_S(d₁)` vs `n_S(d₂)` is well-defined across documents sharing a kind-list | introduced |
+| W14 | Comparability — iterating the fixed kind-list `(s_C, s_L)`, a consumer recovers each `n_S(d)` *by subspace identifier* `start₁ = S` (not list position, since W7 makes the result a subsequence): member present ⇒ boundary-count; absent ⇒ `n_S = 0`, sound by W6/W7; so per-kind comparison `n_S(d₁)` vs `n_S(d₂)` is well-defined across documents sharing a kind-list | introduced |
 | W15 | Independence — `n_{s_C}` depends only on `V_{s_C}(d)`, `n_{s_L}` only on `V_{s_L}(d)`; subspace edits do not cross | introduced |
 | W16 | Partition — the members disjointly cover exactly the counted active V-positions; no orphan, no phantom | introduced |
 | W17 | ExtentDeterminesPopulation — each V-slice position within `ext(d, S)` carries content (`M(d)(v) ∈ dom(C)`/`dom(L)`, S3★); one step beyond W4's coverage equality | introduced |
