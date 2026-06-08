@@ -76,7 +76,7 @@ Every existing V-position `v ∈ V_{s_C}(d)` with `v ≥ p` must remap. The cont
 
   `(A v : v ∈ Left ∪ Shifted-right :: v ∈ dom(M'(d)) ∧ M'(d)(v) = M_{I3}(v))`,
 
-so the arrangement-only lemmas I3 establishes of that arrangement hold of `M'(d)` restricted to those two regions, cited at point of use in the sections that need them.
+so the arrangement-only lemmas I3 establishes of that arrangement hold of `M'(d)` restricted to those two regions.
 
 ## The Operation: Formal Contract
 
@@ -323,7 +323,7 @@ S8★ (PerSubspaceSpanDecomposition; ASN-0047) requires that each per-subspace a
 
 Instantiating INS.C1a-app at `f = M'(d)|_{V_{s_C}(d')}` (S2 from §Arrangement functionality, in its extended S3★/S2 form; S8-fin from §Post-state V-position well-formedness; S8-depth from above, with `S = s_C` and `m_S = m_C ≥ 2`) yields the (unique maximally merged) block decomposition for `M'(d)|_{V_{s_C}(d')}`, discharging existence. The link-subspace branch S8★ requires for `M'(d)|_{V_{s_L}(d')}` is discharged by the trivial length-1 decomposition (per ASN-0047), inherited unchanged from the pre-state by the cross-subspace frame `V_{s_L}(d') = V_{s_L}(d)`.
 
-The single C1a object discharges all of S8★'s conditions on the content subspace. Because C1a's decomposition is *maximally merged*, M12b (ASN-0058) makes every one of its blocks a maximal run of `M'(d)|_{V_{s_C}(d')}`. A maximal run `(v, a, n)` satisfies condition (a) — lockstep displacement, `M'(d)(shift(v, k)) = shift(a, k)` for `0 ≤ k < n` — by the definition of a correspondence run, and condition (b) — label well-definedness — because each block is a well-formed mapping block whose I-addresses lie in `dom(C')` (S2 for functionality, S3★ for referential integrity). Condition (c) — uniqueness of the maximal-run decomposition, which S8★ requires only on the content subspace — is exactly C1a's uniqueness assertion: C1a lifts M12 to the restriction, factoring through M12a (maximal runs partition the domain) and M12b (every block of a maximally merged decomposition is a maximal run). (Condition (c) is not required on the link subspace, where S8★ asks only for the trivial length-1 decomposition.)
+The single C1a object discharges all of S8★'s conditions on the content subspace. Because C1a's decomposition is *maximally merged*, M12b (ASN-0058) makes every one of its blocks a maximal run of `M'(d)|_{V_{s_C}(d')}`. A maximal run `(v, a, n)` satisfies condition (a) — lockstep displacement, `M'(d)(shift(v, k)) = shift(a, k)` for `0 ≤ k < n` — by the definition of a correspondence run, and condition (b) — label well-definedness — because each block is a well-formed mapping block whose I-addresses lie in `dom(C')` (S2 for functionality, S3★ for referential integrity). Condition (c) — uniqueness of the maximal-run decomposition, which S8★ requires only on the content subspace — is exactly C1a's uniqueness assertion: C1a lifts M12 to the restriction, factoring through M12a (maximal runs partition the domain) and M12b (every block of a maximally merged decomposition is a maximal run).
 
 S8★ is preserved.
 
