@@ -584,7 +584,7 @@ What the specification *does* cover is the precise per-state effect of one INSER
 | INS.frame.E | E' = E: entity set unchanged (no K.δ in the decomposition); specialises to dom(M') = dom(M) for documents (no new documents registered) | introduced |
 | INS.inv.immut | Content immutability S0 (ASN-0036) / P0 (ASN-0047) preserved: dom(C) ⊆ dom(C'), pointwise values preserved, and origin(a) unchanged for every a ∈ dom(C) | introduced |
 | INS.inv.func | M'(d) is a function (S2 preserved): Left, Insertion, Shifted-right regions are pairwise disjoint | introduced |
-| INS.inv.refint | Referential integrity S3★ (ASN-0047) preserved: ran(M'(d)) ⊆ dom(C') ∪ dom(L') per-subspace; Left and Shifted-right regions inherit from I3-S3 (ASN-0082), Insertion region from INS.C | introduced |
+| INS.inv.refint | Referential integrity S3★ (ASN-0047) preserved: ran(M'(d)) ⊆ dom(C') ∪ dom(L') per-subspace; Left and Shifted-right regions re-derived from pre-state S3★ + the monotone step dom(C) ⊆ dom(C') (P0) — not inherited from I3-S3, whose proof premise rests on the content frame I3-C that INSERT violates — Insertion region from INS.C | introduced |
 | INS.inv.seq | D-CTG★, D-MIN★, D-SEQ★ (ASN-0047) preserved in text subspace: V_{s_C}(d') is sequential with cardinality \|V_{s_C}(d)\| + n | introduced |
 | INS.inv.depth | S8-depth (ASN-0036) preserved: non-empty case leaves m_C unchanged; empty case fixes m_C = m on first insertion | introduced |
 | INS.C1a-app | For any single-subspace restriction f = M(d)\|_{V_S(d)}, C1a's (ASN-0058) three preconditions are discharged uniformly from S2, S8-fin, S8-depth, yielding a unique maximally-merged decomposition | introduced |
