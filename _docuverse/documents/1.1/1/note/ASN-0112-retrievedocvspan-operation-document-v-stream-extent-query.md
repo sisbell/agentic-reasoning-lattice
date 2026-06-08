@@ -158,9 +158,10 @@ depths:
 
 In both cases `r⋆ ≥ reach_d > max O(d)`, so coverage holds *unconditionally* — it does not
 route through any endpoint depth relation or through WF. What the endpoint relation governs is
-only whether the span's reach *equals* `reach_d` exactly. We establish the **reach biconditional**
-once, here, where D0/D1 live: `reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d` (D1 closes the
-round-trip when `#origin_d ≤ #reach_d`; D0 makes it fail when `#origin_d > #reach_d`). This is an
+only whether the span's reach *equals* `reach_d` exactly. The **reach biconditional** is that the
+reach equals `reach_d` exactly when `#origin_d ≤ #reach_d`: `reach(σ_d) = reach_d ⟺ #origin_d ≤
+#reach_d` (D1 closes the round-trip when `#origin_d ≤ #reach_d`; D0 makes it fail when
+`#origin_d > #reach_d`). This is an
 endpoint condition, genuinely distinct from span level-uniformity, and the two point opposite
 ways: since `extent_d = reach_d ⊖ origin_d` has depth `#extent_d = max(#origin_d, #reach_d)`
 (TA2), `σ_d` is *level-uniform* (`#origin_d = #extent_d`) iff `#origin_d ≥ #reach_d`, whereas its
@@ -266,9 +267,7 @@ cases `r⋆ ≥ reach_d > max O(d)`, so the bounding-box reading of V6 stands. T
 distinguished only by the first-component value `s_C = 1` vs `s_L = 2`, never by depth
 (consultation Q2: `findvsatoappend`, `findnextlinkvsa`, and `setlinkvsas` all emit depth-2
 V-addresses), so the cross-subspace endpoints are level-compatible and `reach(σ_d) = reach_d`
-exactly. The well-formedness (V2, V17) and covering (V2) claims hold for `m_C ≠ m_L` as well;
-only the V3 tightness claim is restricted to the same-depth reach the uniform-depth discipline
-guarantees.
+exactly.
 
 This is not a defect peculiar to one engine. It is a *theorem about single spans*. A span
 is by construction one contiguous region (ASN-0053 S0, convexity): "if you want to designate
@@ -335,10 +334,9 @@ inserting content positions `[s_C, …]` — all strictly below every link posit
 We record **V10** (insertion monotonicity, content-maximal case): *when the content subspace is
 the maximal occupied subspace* (equivalently, the link subspace is empty), an insertion of `n`
 content positions advances reach and extent by `n` ordinal steps —
-`extent_after = shift(extent_before, n)` — and leaves the origin fixed. Throughout this case the
-content subspace is the sole occupied subspace, hence dense (D-SEQ★) and depth-uniform
-(S8-depth), so the count-coincidence (extent's final component `= |O(d)|`) holds in every
-instance of V10; it fails only in the cross-subspace regime (V6). *When links occupy the
+`extent_after = shift(extent_before, n)` — and leaves the origin fixed. The single-subspace
+count-coincidence established in the insertion paragraph above (extent's final component
+`= |O(d)|`) holds throughout this content-maximal case. *When links occupy the
 maximum*, content insertion leaves both reach and extent invariant (the new positions fall
 inside the existing bounding box). Gregory
 confirms the content-maximal half directly — the arrangement-tree width grows by exactly the
@@ -598,7 +596,7 @@ endpoint depths), without inspecting the returned span.
 | V7 | The result is always one convex region; fragmentation is unrepresentable in a single span, so multi-subspace documents are reported by enclosure (single-span contiguity) | introduced |
 | V8 | While the content subspace is non-empty, `origin_d = [s_C,1,…,1]`, invariant under all editing that leaves content present (origin permanence) | introduced |
 | V9 | `σ_d` is a function of `O(d)` alone; pure rearrangement preserves `O(d)` and returns the identical span (extent tracks composition, not arrangement) | introduced |
-| V10 | When the content subspace is maximal (link subspace empty), inserting `n` content positions advances reach and extent by `n` ordinal steps (`extent_after = shift(extent_before, n)`) and leaves the origin fixed — the count-coincidence (extent's final component `= |O(d)|`) holds throughout this content-maximal case and fails only cross-subspace (V6); when links occupy the maximum, content insertion leaves reach and extent invariant (insertion monotonicity, content-maximal case) | introduced |
+| V10 | When the content subspace is maximal (link subspace empty), inserting `n` content positions advances reach and extent by `n` ordinal steps (`extent_after = shift(extent_before, n)`) and leaves the origin fixed (the single-subspace count-coincidence of the insertion paragraph applies); when links occupy the maximum, content insertion leaves reach and extent invariant (insertion monotonicity, content-maximal case) | introduced |
 | V11 | The operation is total over allocated documents; `O(d) = ∅` yields the distinguished empty span-set `⟨⟩` (not a T12 span), with `origin_d` undefined and no extent — the implementation's zeros are a sentinel, not a legal address (TA6) | introduced |
 | V12 | The span discloses the live origin (addressing anchor) and current extent (present bounds) — neither derivable from `d`'s identity (information gain) | introduced |
 | V13 | `σ_d` depends only on `O(d)`; two documents sharing content report independent spans; transcluded positions count toward the borrowing document's extent (independence) | introduced |
