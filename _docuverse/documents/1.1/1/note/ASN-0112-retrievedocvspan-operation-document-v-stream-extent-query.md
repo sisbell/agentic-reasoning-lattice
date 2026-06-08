@@ -172,7 +172,8 @@ satisfies S6 (`#start = #width`, ASN-0053). By TA2 (WellDefinedSubtraction, ASN-
 displacement length is `#extent_d = max(#origin_d, #reach_d)`, so `#origin_d = #extent_d`
 holds exactly when `#origin_d ≥ #reach_d`. We record **V-LevelUniform**: `σ_d` is
 level-uniform `⟺ #origin_d ≥ #reach_d`. In the single-subspace regime the endpoints are
-equidepth (S8-depth), so `#origin_d = #reach_d` and the span is level-uniform; in the
+equidepth (the shared premise established for V-ReachTight above), so `#origin_d = #reach_d`
+and the span is level-uniform; in the
 cross-subspace case it is level-uniform precisely when content is no shallower than the
 maximal link position (`m_C ≥ m_L`), and strictly non-level-uniform when `m_C < m_L`.
 
@@ -323,9 +324,7 @@ span-set carries no origin and no extent: `origin_d = min O(d)` is *undefined* w
 honest content of the empty case — there is no first occupied position, hence no origin to
 report. Nelson's span model admits exactly this absence: "a span that contains nothing today
 may at a later time contain a million documents" (4/25). Emptiness is a *valid state of the
-address space*, not an undefined result; an allocated document with an empty arrangement
-(`d ∈ dom(M)`, `O(d) = ∅`) — whether freshly created or fully emptied — answers identically,
-with the empty span-set. Gregory's
+address space*, not an undefined result. Gregory's
 implementation realizes the distinguished value by returning zeros for both displacement and
 width when the arrangement tree holds no content, independent of any residual tree structure
 left by prior deletions (consultation Q13). We read those zeros as a *sentinel* — an encoding
