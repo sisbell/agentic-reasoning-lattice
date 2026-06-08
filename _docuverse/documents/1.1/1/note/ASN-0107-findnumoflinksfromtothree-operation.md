@@ -44,17 +44,15 @@ We record this as our first claim.
 
 > **P0 (CountIsCardinality).** `num(Q, Σ) = |match(Q, Σ)|`, a natural number whose unit is the link address `a ∈ dom(Σ.L)`. Neither endpoints, nor documents touched, nor the index entries by which a link is found, are the unit of the count.
 
-The point that an implementation is most likely to miss is that this is a *set* cardinality, not a *multiset* tally. The contribution of any single link to the count is the indicator of its satisfaction — a value in `{0, 1}`, never larger:
+The contribution of any single link to the count is the indicator of its satisfaction — a value in `{0, 1}`, never larger:
 
 > **P1 (LinkAtomicity).** For each `a ∈ dom(Σ.L)`, the contribution of `a` to `num(Q, Σ)` is `[sat(a, Q, Σ)] ∈ {0, 1}`. The breadth of an endset — the number of spans, endpoints, or documents its coverage touches — enlarges `coverage(Σ.L(a).eᵢ)` and so can only make the intersection test *easier to pass*; it never multiplies the contribution. A link with a multi-span endset that meets the request in several places is counted once.
-
-P1 is the abstract content of the set-versus-multiset decision. Nelson's satisfaction rule collapses an endset of arbitrary breadth into a single boolean per link, and `num` sizes the set of links that pass.
 
 Identity, not description, individuates the links being counted. Two links authored separately are two objects at two addresses, even if their from, to, and type endsets are value-identical.
 
 > **P2 (IdentityIndividuation).** For distinct addresses `a ≠ a'` with `Σ.L(a) = Σ.L(a')`, both satisfy `Q` or both fail, and if both satisfy they contribute `2` to the count. Distinct allocation events produce distinct link addresses (GlobalUniqueness, ASN-0034; L11a), and the store imposes no value-injectivity (L11b permits equal-valued links at distinct addresses). The count therefore individuates by address; identical descriptions are never merged.
 
-P2 is the converse face of P1. P1 says one link is never counted twice; P2 says two links are never counted once. Together they pin the count to set cardinality over addresses: the bijection between counted units and link identities is exact. If two authors independently assert the same connection, the docuverse holds two links and the count reports two — to collapse them would erase one author's owned object.
+P2 is the converse face of P1: one link is never counted twice, and two links are never counted once. If two authors independently assert the same connection, the docuverse holds two links and the count reports two — to collapse them would erase one author's owned object.
 
 Finally, only links *present* in the store at the queried state are eligible:
 
