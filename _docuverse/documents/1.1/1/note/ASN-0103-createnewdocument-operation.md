@@ -4,20 +4,13 @@
 
 ## The Question
 
-A user, owning some account, asks the system for a new, empty document. What exactly happens? Four sub-questions structure the inquiry:
-
-- *What is allocated* — what new state comes into being in the content store, the entity set, and the document's arrangement?
-- *What is preserved* — what does the operation guarantee about every document that already existed, and about the shared content store?
-- *What distinguishes the result from a document made by forking* — at the level of what the new document shares with prior documents?
-- *What invariants must the completed operation maintain* — and atomically, so that no observable intermediate state violates them?
-
-The answer must be sharp enough to measure an implementation against, and abstract enough that two implementations meeting it are externally indistinguishable.
+A user, owning some account, asks the system for a new, empty document. What exactly happens?
 
 ## Background: A Place Is Not Content
 
 The foundation separates two things that ordinary file systems conflate. The **content store** `C : T ⇀ Val` binds content values to I-addresses; once `a ∈ dom(C)`, the binding is permanently fixed (S0, ASN-0036). The **entity set** `E ⊆ T` records the allocated organisational addresses — nodes, accounts, documents — that are *not* content (ASN-0047). A document is an entity, not a content value: documents inhabit `E`, never `dom(C)`.
 
-This separation is the whole point of the operation we are specifying. Nelson is explicit that creating a document allocates a *place* and adds no *content*:
+Nelson is explicit that creating a document allocates a *place* and adds no *content*:
 
 > "CREATENEWDOCUMENT: This creates an empty document. It returns the id of the new document." (4/65)
 
@@ -86,7 +79,7 @@ Creating `d` must leave the identities and content of every existing document wh
 
   `dom(C') = dom(C) ∧ (A a : a ∈ dom(C) : C'(a) = C(a))`.
 
-This is the abstract statement of "adds a place, not content." The document is, at the instant of creation, a ghost element: a position in `E` with nothing stored beneath it in `C`.
+This is the abstract statement of "adds a place, not content" — `d` is, at the instant of creation, a ghost element (Background).
 
 *The link store is untouched.* `L' = L`. Creation makes no link.
 
@@ -120,7 +113,7 @@ Check the claims. *CND.alloc:* `d = [1,0,1,0,2]` is the second emission of `A_do
 
 The user asked what separates a freshly authored document from one born by versioning. The distinction is sharp and lies entirely in **what is shared with prior documents at the level of I-address identity**.
 
-A freshly created document shares *nothing* by default. Its arrangement is empty: `ran(M'(d)) = ∅`. There is no I-address in common with any other document — not because the bytes differ, but because there are no bytes. And the sharing cannot arise by accident later, either: any content subsequently inserted into `d` is drawn from `A_C(d)` and carries `origin(·) = d`. By origin-based identity (S4, ASN-0036), two content units produced by distinct allocation events are distinct addresses *regardless of their values*. So even if `d` comes to hold byte-for-byte the same text as some other document, the two hold it at *different* I-addresses. A fresh document has no automatic correspondence to anything.
+By Effect Two the new document's arrangement is empty (`ran(M'(d)) = ∅`), so at creation it shares no I-address with any other document. The contribution here is that the sharing cannot arise by accident later, either: any content subsequently inserted into `d` is drawn from `A_C(d)` and carries `origin(·) = d`. By origin-based identity (S4, ASN-0036), two content units produced by distinct allocation events are distinct addresses *regardless of their values*. So even if `d` comes to hold byte-for-byte the same text as some other document, the two hold it at *different* I-addresses. A fresh document has no automatic correspondence to anything.
 
 Contrast a document born by forking (CREATENEWVERSION — formalised elsewhere, out of scope here): a forked document begins with a *populated* arrangement, a created one with `ran(M'(d)) = ∅`. We do not formalise the forking path; we only fix the contrast at the one place it matters:
 
@@ -136,11 +129,7 @@ Two guarantees attach to the new address the instant it exists.
 
 Creating a document is, in Nelson's terms, a baptismal act — "Whoever owns a specific node, account, document or version may in turn designate (respectively) new nodes, accounts, documents and versions, by forking their integers. We often call this the 'baptism' of new numbers" (4/17) — so the owned-number tree *is* the record of ownership, not a side table maintained alongside it.
 
-**Referability is immediate.** The moment `d` exists, it is a permanent, unique, unambiguously referable position. A link may target `d` before a single byte is stored, because referability attaches to the *address*, not the content — the ghost-element principle again:
-
-> "It is possible to link to a node, or an account, even though there is nothing stored in the docuverse corresponding to them." (4/23)
-
-Uniqueness is decentralised: because `d` is baptised under an account `π` already owns, no other owner could mint the same address (B8, ASN-0040), and no central registry is consulted. And the identity is permanent: for as long as the system endures, `d` continues to name this document and no other. The address assigned at creation *is* the document's identity, immutable even as the document's arrangement, content, and storage location later evolve.
+**Referability is immediate.** The moment `d` exists, it is a permanent, unique, unambiguously referable position. A link may target `d` before a single byte is stored, because referability attaches to the *address*, not the content — the ghost-element principle (Background). Uniqueness is decentralised: because `d` is baptised under an account `π` already owns, no other owner could mint the same address (B8, ASN-0040), and no central registry is consulted. And the identity is permanent: for as long as the system endures, `d` continues to name this document and no other. The address assigned at creation *is* the document's identity, immutable even as the document's arrangement, content, and storage location later evolve.
 
 ## The Operation: Formal Contract
 
