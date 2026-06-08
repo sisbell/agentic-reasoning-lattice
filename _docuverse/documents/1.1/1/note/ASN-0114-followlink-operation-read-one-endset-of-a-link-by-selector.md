@@ -283,11 +283,24 @@ this to an abstract independence claim:
 
 What, then, *does* the result expose? Exactly `coverage(Σ.L(a).eᵢ)` — the set of
 addresses the selected end targets — and, derivable from it, two further facts.
-First, by the hierarchical structure of tumbler addresses (ASN-0034, T4), every
-covered address structurally contains its node, user, and document fields; so
-the home documents the selected end points into are readable directly off the
-result, with no separate disclosure step (Q4). Revealing the region *is*
-revealing the documents it lands in — the two are one disclosure, not a choice.
+First, a *partial* disclosure of home documents, and we must state its reach
+precisely. `coverage(Σ.L(a).eᵢ)` is a set of arbitrary tumblers, not a set of
+T4-valid document-bearing addresses: by L4 (EndsetGenerality, ASN-0043) endset
+spans "may reference *any* addresses in the tumbler space," and L9 permits ghost
+targets, so a covered address may sit at node level (`zeros = 0`) or user level
+(`zeros = 1`), carrying no document field; moreover coverage is a union of
+half-open intervals `{t : s ≤ t < s ⊕ ℓ}`, whose *interior* tumblers need not be
+T4-valid at all (e.g. tumblers with adjacent zeros). For exactly those covered
+addresses that *are* T4-valid and document-bearing — `zeros(t) ≥ 2`, on which
+T4b's field projections `N`, `U`, `D` are defined (ASN-0034, T4) — the home
+document is readable directly off the result, with no separate disclosure step
+(Q4): for such an address, revealing the region *is* revealing the document it
+lands in. For any covered address that is non-conforming — node- or user-level,
+or a non-T4-valid interior tumbler — no document field exists to read, so the
+result discloses no document for it. The "region *is* documents" equivalence
+therefore holds only over the document-bearing (`zeros ≥ 2`) slice of the
+coverage; L4 expressly permits ends whose covered addresses name no document at
+all, and over those the disclosure is of address region alone.
 Second, the mere success of the request at selector `i` exposes that the link
 has at least `i` slots, `|Σ.L(a)| ≥ i`. Beyond these, the result discloses
 nothing: not the from-set when the to-set was asked, not the type, not the arity
@@ -488,4 +501,4 @@ What invariant must distinguish, to a caller, a valid empty endset from an absen
 
 Must a selector naming a non-existent higher slot be observationally distinct from one naming an existing but empty slot, beyond both being errors versus successes?
 
-What must the operation guarantee about the spec-set when the selected end's coverage includes addresses in more than one document — is reporting them as one set, with document identity recoverable only by parsing each address, sufficient?
+What must the operation guarantee about the span-set when the selected end's coverage includes addresses in more than one document — is reporting them as one set, with document identity recoverable only by parsing each address, sufficient?
