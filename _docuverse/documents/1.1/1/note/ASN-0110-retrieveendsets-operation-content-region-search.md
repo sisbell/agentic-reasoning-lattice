@@ -169,10 +169,16 @@ object:
 > store — not the maximum among *touching* links, and not the maximum within the region — so it
 > is stable under which region is queried. When `dom(Σ.L) = ∅` the tuple is empty.
 
-Whether the length is read from the store's maximum arity or, equivalently, taken as the
-total function `i ↦ Eᵢ` truncated at its last non-empty index is a presentational choice with
-no semantic content: the two agree because `Eᵢ = ∅` for `i > N_max(Σ)`. What does carry
-content is the treatment of *empty interior slots*. A role-slot `i ≤ N_max(Σ)` whose family
+Whether the length is read as `max{|Σ.L(a)| : a ∈ dom(Σ.L)}` or, equivalently, as the last
+index `i` for which *some link in the store* possesses a slot `i` — `max{i : (E a ∈
+dom(Σ.L) : |Σ.L(a)| ≥ i)}` — is a presentational choice with no semantic content: both are
+keyed on the *store's arities*, and they agree because a link has a slot `i` iff `i ≤
+|Σ.L(a)|`, so the greatest such `i` over all links is exactly `N_max(Σ)`. Note the alternative
+is keyed on store arities, *not* on the result family `i ↦ Eᵢ`: truncating that family at its
+last non-empty index would give a generally shorter, region-dependent length — it drops empty
+interior slots `i ≤ N_max(Σ)` and, when `I = ∅`, collapses to the empty tuple — contradicting
+both RE-arity's region-stability and RE-zero. What does carry content is the treatment of
+*empty interior slots*. A role-slot `i ≤ N_max(Σ)` whose family
 `Eᵢ(I, Σ) = ∅` — say an arity-4 link is present, fixing `N_max(Σ) ≥ 4`, yet no slot-4 endset
 of any link touches `I` — still *occupies* position `i` in the tuple, reported as the empty
 set rather than dropped. The index range is determined by the store's arities; the contents of
