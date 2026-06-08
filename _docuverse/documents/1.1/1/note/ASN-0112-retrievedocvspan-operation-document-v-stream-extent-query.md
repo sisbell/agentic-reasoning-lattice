@@ -469,20 +469,14 @@ occupied-depth position left over (D-CTG★ closing the gaps). Conversely, if `O
 admitting unoccupied positions inside the denotation — so `¬Exact`. The two directions exhaust
 the cases by S3★-aux. So the single-subspace condition is both necessary and sufficient, hence
 the *weakest* precondition. The companion reach property factors the same way along the
-orthogonal endpoint axis, but we must take care which property we put under the wp. V-ReachTight
-is the *universally-valid biconditional* `reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d`, proved to
-hold in *every* state (D1 closes the round-trip when `#origin_d ≤ #reach_d`, D0 makes it fail
-otherwise). A property that holds in all reachable states is, as a postcondition, always
-satisfied, so `wp(RETRIEVEDOCVSPAN(d), V-ReachTight) = true` — the entire pre-state space, which
-tells the caller nothing. The non-trivial question concerns the *contingent* tightness property
-— analogous to `Exact` —
+orthogonal endpoint axis. The contingent tightness property — analogous to `Exact` —
 
 > `Tight ≡ "reach(σ_d) = reach_d"`  (the delivered span's denotational reach attains the
 > constructed endpoint),
 
-which is true in some states and false in others (vacuously true on the `⟨⟩` result, where there
-is no `σ_d`). Reasoning backward from `Tight`, exactly as the `Exact` factoring ran through V5 and
-V6: if `O(d)` is empty the result is `⟨⟩` and `Tight` holds vacuously; if `O(d) ≠ ∅` and
+is true in some states and false in others (vacuously true on the `⟨⟩` result, where there
+is no `σ_d`). Reasoning backward from `Tight` by the same two-direction exhaustive method, here on
+endpoint depth via D1/D0: if `O(d)` is empty the result is `⟨⟩` and `Tight` holds vacuously; if `O(d) ≠ ∅` and
 `#origin_d ≤ #reach_d`, then D1 closes the round-trip and `reach(σ_d) = r⋆ = reach_d`, giving
 `Tight` (forward); conversely if `#origin_d > #reach_d`, then D0 makes the round-trip fail and
 `reach(σ_d) = r⋆ > reach_d`, giving `¬Tight` (converse). The two directions exhaust the cases, so
@@ -503,7 +497,7 @@ endpoint depths), without inspecting the returned span.
 | V-frame | `Σ' = Σ` — the query mutates no state component (`C, L, E, M, R` all unchanged) | introduced |
 | V0 | `RETRIEVEDOCVSPAN : dom(M) → SpanSet` (uniform ASN-0053 span-set codomain): the singleton span-set `⟨σ_d⟩` carrying one well-formed span `σ_d = (origin_d, extent_d)` for a non-empty document, or the empty span-set `⟨⟩` (denoting `∅`) when `O(d) = ∅` — never a content sequence, never a count | introduced |
 | V1 | When `O(d) ≠ ∅`, `origin_d = min O(d)` under T1 and `origin_d ∈ O(d)` (the origin is an occupied position) | introduced |
-| V2 | `O(d) ⊆ ⟦σ_d⟧` (coverage), proved unconditionally via D0/D1 without assuming level-uniformity; the actual reach `r⋆ = origin_d ⊕ extent_d ≥ reach_d = shift(max O(d), 1) > max O(d)`, with equality `r⋆ = reach_d` iff `#origin_d ≤ #reach_d`; the span `(origin_d, extent_d)` is always a well-formed T12 span | introduced |
+| V2 | `O(d) ⊆ ⟦σ_d⟧` (coverage), proved unconditionally via D0/D1 without assuming level-uniformity; the actual reach `r⋆ = origin_d ⊕ extent_d ≥ reach_d = shift(max O(d), 1) > max O(d)` (the reach-equality condition is carried by V-ReachTight); the span `(origin_d, extent_d)` is always a well-formed T12 span | introduced |
 | V3 | `origin_d` is the greatest lower bound of `O(d)`; the *constructed endpoint* `reach_d` is the least strict upper bound of `max O(d)` *among tumblers at the depth of `max O(d)`* (`= #reach_d`; the deeper zero-extension `max O(d).0` is a smaller upper bound but lies at greater depth) — a bound on `reach_d`, not on the delivered span's denotational reach `r⋆` (which attains `reach_d` only under V-ReachTight) | introduced |
 | V-ReachTight | `reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d` — the denotational reach attains the constructed endpoint `reach_d` exactly when origin depth does not exceed reach depth (D1 closes the round-trip; D0 makes it fail otherwise); equivalently the reach is tight whenever the occupied subspaces share a common depth | introduced |
 | V4 | `extent_d` is computed from `O(d) = dom(M(d))` alone; content in `dom(C)` but absent from the arrangement (deleted, or native elsewhere) contributes nothing (Vstream-bounded, not Istream) | introduced |
