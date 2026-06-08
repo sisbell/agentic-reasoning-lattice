@@ -168,8 +168,7 @@ attains the constructed endpoint exactly when the occupied subspaces share a com
 **The constructed endpoint is the tightest same-depth covering bound.** We record **V3**
 (bounding): `origin_d` is the greatest lower bound of `O(d)`, and the *constructed endpoint*
 `reach_d` is the *least* admissible upper bound of `max O(d)` among tumblers of its depth.
-Dropping the same-depth qualifier makes the claim false, since the deeper
-zero-extension `max O(d).0` is a smaller upper bound. The lower bound is unconditional: any span
+The lower bound is unconditional: any span
 `σ'` with `O(d) ⊆ ⟦σ'⟧` satisfies
 `start(σ') ≤ min O(d) = origin_d`. The upper bound requires an argument. Write `w = max O(d)`.
 Because every V-position is zero-free with all components positive (S8a), the rightmost nonzero
@@ -271,9 +270,8 @@ every other V-address is read.
 The extent behaves oppositely. Nelson distinguishes *arrangement* (order) from *composition*
 (quantity): "changing how content is arranged → extent unchanged; changing how much content
 there is → extent changes." We record **V9** (extent tracks composition, not arrangement).
-A pure rearrangement permutes `M(d)` while preserving `O(d) = dom(M(d))` — the occupied
-positions remain the dense set `{[s,1,…,1,k]}` by D-SEQ; only the values `M(d)(v)` are
-permuted. Since `origin_d = min O(d)` and `extent_d = shift(max O(d), 1) ⊖ origin_d` depend
+A pure rearrangement permutes `M(d)` while preserving `O(d) = dom(M(d))`; only the values
+`M(d)(v)` are permuted. Since `origin_d = min O(d)` and `extent_d = shift(max O(d), 1) ⊖ origin_d` depend
 on `O(d)` alone — never on the values `M(d)(v)` — the reported span is *identical* before and
 after: reorder the document and its origin and extent do not move. This matches
 Nelson's classification of rearrangement as a "Pure Vstream operation" that leaves the measured
