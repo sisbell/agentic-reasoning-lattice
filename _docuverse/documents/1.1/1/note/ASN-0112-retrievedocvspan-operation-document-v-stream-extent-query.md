@@ -184,28 +184,21 @@ admissible upper bound *among tumblers of the same depth as* `max O(d)`. We are 
 careful about the qualifier, because without it the claim is false. The lower bound is
 unconditional: any span `σ'` with `O(d) ⊆ ⟦σ'⟧` satisfies `start(σ') ≤ min O(d) = origin_d`.
 The upper bound requires an argument, not an appeal to a "one step at a time" convention —
-the tumbler line has no such convention. In fact `max O(d)` has a *strictly smaller* T1
-upper bound than `reach_d`: its true immediate successor is the zero-extension
-`max O(d).0`, with `max O(d) < max O(d).0 < shift(max O(d), 1) = reach_d`. The first
-inequality holds because `max O(d)` is a proper prefix of `max O(d).0` (T1 case (ii)); the
-second because, writing `w = max O(d) = [w_1,…,w_m]`, the tumblers `max O(d).0 =
-[w_1,…,w_m,0]` and `reach_d = [w_1,…,w_{m-1},w_m+1]` agree on positions `1…m-1` and diverge at
-position `m` with `w_m < w_m+1` (T1 case (i)). A span with reach `max O(d).0` would already
-cover `O(d)`, since `w < max O(d).0`. So `reach_d` is *not* the least admissible reach over
-all of `T`.
-
-What is true — and what V3 now claims — is that `reach_d` is the least reach among same-depth
-tumblers, i.e. those that keep the bounding span level-uniform with the occupied positions.
-Let `m = #max O(d)` and let `r` be any tumbler with `#r = m` and `r > max O(d)`; we show
-`r ≥ reach_d`. Write `w = max O(d) = [w_1,…,w_m]`, so `reach_d = [w_1,…,w_{m-1}, w_m + 1]`
-(OrdinalShift advances the last component). Since `#r = #w`, `r > w` means they first diverge
-at some position `j ≤ m` with `r_j > w_j` and `r_i = w_i` for `i < j`. If `j = m`, then
-`r_m ≥ w_m + 1` while `r` agrees with `w` (hence with `reach_d`) on `1…m-1`, so `r ≥ reach_d`.
-If `j < m`, then `reach_d` agrees with `w` on `1…m-1` so `reach_d_j = w_j < r_j` while both
-agree with `w` on `1…j-1`, giving `reach_d < r` (T1 case (i)). Either way `reach_d ≤ r`. So
-`reach_d` is the least same-depth strict upper bound of `max O(d)`, and the deeper successor
-`max O(d).0` is excluded precisely because it lifts the span out of level-uniformity. So
-`σ_d` is the tightest *level-uniform* covering span of `O(d)`. This is the formal core of
+the tumbler line has no such convention. We do not redevelop the arithmetic; the foundation
+supplies it. Write `w = max O(d)`. Because every V-position is zero-free with all components
+positive (S8a), the rightmost nonzero component of `w` is its last, so `sig(w) = #w`
+(TA5-SIG, ASN-0034); hence `reach_d = shift(w, 1) = w ⊕ δ(1, #w)` coincides with `inc(w, 0)`,
+since OrdinalShift (ASN-0034) advances the same last component that `inc(·, 0)` modifies at
+`sig(w)`. ASN-0034's TA5 (HierarchicalIncrement) then settles the tightness directly. Its
+analysis of `inc(·, 0)` records two facts about `w` with `sig(w) = #w`: the true T1-immediate
+successor of `w` is the deeper zero-extension `w.0` (by the prefix convention, T1 case (ii)),
+satisfying `w < w.0 < inc(w, 0) = reach_d`; and `inc(w, 0)` is *the smallest same-length
+tumbler strictly greater than `w`* — the next peer at the same depth. The first fact shows
+`reach_d` is *not* the least admissible reach over all of `T` (a span with reach `w.0` already
+covers `O(d)`, since `w < w.0`); the second is exactly V3's claim that `reach_d` is the least
+strict upper bound of `max O(d)` *among same-depth tumblers*. The deeper `w.0` is excluded
+precisely because it lifts the span out of level-uniformity. So `σ_d` is the tightest
+*level-uniform* covering span of `O(d)`. This is the formal core of
 Nelson's claim that origin and extent "describe the document as a whole" *implicitly* —
 "there is no choice as to what lies between; this is implicit in the choice of first and last
 point" (4/25). Fix the two boundaries and the whole is determined.
