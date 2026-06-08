@@ -34,7 +34,7 @@ The **matching set** and the **count** follow:
 
 **Request representation invariance.** `sat` reads each request part `Qᵢ` and each `coverage(Σ.L(a).eᵢ)` only as address *sets* — through the intersection `coverage(Σ.L(a).eᵢ) ∩ Qᵢ`. So a request re-expressed with the same coverage but a different span decomposition is the same request to the count.
 
-> **P0a (RequestRepresentationInvariance).** If `Q` and `Q'` have `Qᵢ = Q'ᵢ` as address sets for every `i` — in particular if their parts are presented as spans and re-decomposed into different spans of the same coverage (equal by the `coverage` definition, ASN-0043; PrefixSpanCoverage, ASN-0043) — then `match(Q, Σ) = match(Q', Σ)` and `num(Q, Σ) = num(Q', Σ)`. Equal-coverage requests yield equal counts; this is immediate from `sat`, which consults `Qᵢ` only set-wise.
+> **Q0 (RequestRepresentationInvariance).** If `Q` and `Q'` have `Qᵢ = Q'ᵢ` as address sets for every `i` — in particular if their parts are presented as spans and re-decomposed into different spans of the same coverage (equal by the `coverage` definition, ASN-0043; PrefixSpanCoverage, ASN-0043) — then `match(Q, Σ) = match(Q', Σ)` and `num(Q, Σ) = num(Q', Σ)`. Equal-coverage requests yield equal counts; this is immediate from `sat`, which consults `Qᵢ` only set-wise.
 
 ## What Is Counted
 
@@ -93,7 +93,9 @@ The two counts agree exactly when the queried content has not been edited betwee
 
 This also fixes the tense of the empty answer.
 
-> **D3 (ZeroIsPresentNotHistorical).** `num(Q, Σ) = 0` asserts that no link in `dom(Σ.L)` satisfies `Q` *at `Σ`*. It does not assert that no such link ever existed, nor that none is discoverable from another document or another arrangement. No link is ever removed from `dom(Σ.L)` (R0); a link whose endpoints have left the consulted arrangement merely ceases to be reachable through it, so it leaves the discovery count while remaining a permanent member of the store. Absence from the present count is non-existence *in the view*, not non-existence *in the archive*.
+> **D3 (ZeroIsPresentNotHistorical).** The present-tense disclaimer is a property of the *discovery* count alone. A zero discovery count `num_disc(d_q, W, Σ) = 0` — equivalently `num(Q(Σ), Σ) = 0` against the state-resolved request `Q(Σ)` — asserts that no link in `dom(Σ.L)` is presently discoverable from `d_q`'s arrangement at `Σ`. It does *not* assert that no such link ever existed, nor that none is discoverable from another document or another arrangement: a link whose endpoints have left the consulted arrangement merely ceases to be reachable through it (its resolved reach drops by D2), so it leaves the discovery count while remaining a permanent member of the store (R0, L12). Absence from the discovery count is non-existence *in the view*, not non-existence *in the archive*.
+>
+> The existence count, by contrast, *does* certify historical absence. Against a fixed permanent request `Q`, `num(Q, Σ) = 0` implies `num(Q, Σ₀) ≤ num(Q, Σ) = 0` along every path `Σ₀ →* Σ` — by E1 satisfaction against fixed `Q` is per-link time-invariant, and by E2 the count is monotone non-decreasing — so no link satisfying `Q` was *ever* created. For the existence anchoring a zero certifies absence in the store across all of history, and the "discoverable from another arrangement" disclaimer is meaningless, since existence satisfaction consults no arrangement at all.
 
 ## How the Count Changes: Content Added
 
@@ -213,7 +215,7 @@ The corollary is that equal counts carry no promise of equal answers, and a stea
 | `match` | `match(Q, Σ) = {a ∈ dom(Σ.L) : sat(a, Q, Σ)}` — the matching set | introduced |
 | `num` | `num(Q, Σ) = |match(Q, Σ)|` — the count; total and finite (L-fin) | introduced |
 | P0 | The counted unit is the distinct link address; `num` is set cardinality | introduced |
-| P0a | Equal-coverage requests yield equal counts; `num` reads request parts only set-wise | introduced |
+| Q0 | Equal-coverage requests yield equal counts; `num` reads request parts only set-wise | introduced |
 | P1 | A link contributes `[sat(a,Q,Σ)] ∈ {0,1}`; endset breadth never multiplies the count (set, not multiset) | introduced |
 | P2 | Distinct addresses with equal values count separately; the count individuates by identity, not description | introduced |
 | P3 | `match(Q, Σ) ⊆ dom(Σ.L)` — only resident links are eligible | introduced |
@@ -223,7 +225,7 @@ The corollary is that equal counts carry no promise of equal answers, and a stea
 | E4 | Existence-count change equals the number of matching link creations on the path | introduced |
 | D1 | A request resolved through an arrangement is present-tense; edits move the count with no link created or retracted | introduced |
 | D2 | The discovery count is non-monotone: extension raises `Qᵢ`, contraction lowers it, reordering may move it | introduced |
-| D3 | `num = 0` asserts absence in the present view, not in the historical archive | introduced |
+| D3 | A zero *discovery* count asserts absence in the present view, not the archive; a zero *existence* count, by contrast, certifies historical absence in the store (E1+E2) | introduced |
 | A1a | Fresh content addition is *unconditionally* neutral for the existence count (corollary of E3) | introduced |
 | A1b | Fresh content carrying no incoming links is neutral for the discovery count (conditioned on the no-incoming-links premise) | introduced |
 | A2 | Transclusion makes shared links discoverable from `d_new`; the discovery count rises only by shared links satisfying all three slots, not the existence count | introduced |
