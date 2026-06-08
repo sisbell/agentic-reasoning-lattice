@@ -44,14 +44,20 @@ doors we have refused to open.
 
 ## When does an endset touch a region?
 
-Let the queried region be an I-region `I ⊆ T` — a set of I-addresses. (We treat regions
+Let the queried region be an I-region `I` — a set of I-addresses. (We treat regions
 phrased in a document's V-space later, by reduction to this case.) For the operation to be
 *realizable* the region cannot be an arbitrary, possibly infinite, subset of `T`: it must be
-*finitely presented*, supplied as a finite span-set `Q ∈ 𝒫_fin(Span)` whose denotation is
-`I = coverage(Q)` (RE-decide below). We continue to write the region as the abstract set `I`
-throughout, since the semantics depend only on `I`'s extension and not on which span-set
-presents it (RE-rep), but every realizability and termination claim leans on this finite
-presentation. We say an endset `e` *touches* `I` exactly when its coverage meets the region:
+*finite*, a finite explicit set `I ∈ 𝒫_fin(T)`. This is exactly what the operation works on in
+practice. Udanax-green's RETRIEVEENDSETS receives a vspecset — spans in a document's V-space —
+but resolves it internally to the finite set of I-addresses those spans currently arrange,
+*before* searching the store (SS-RETRIEVE-ENDSETS); the V-side reduction below (RE-Vside)
+produces such a finite I-set through `image`. We must be careful not to conflate this finite
+I-set with the *coverage* of a span-set: `coverage(Q)` of any span-set `Q` is a union of
+half-open subtree intervals `[s, s ⊕ ℓ)`, hence in general an infinite set of addresses, and is
+*not* the kind of region this operation searches against. The region `I` is a finite set of
+actual addresses. We write the region as the set `I` throughout; the semantics depend only on
+`I`'s extension (RE-rep), and every realizability and termination claim leans on its
+finiteness. We say an endset `e` *touches* `I` exactly when its coverage meets the region:
 
 > **RE-touch (definition).** `touches(e, I) ≡ coverage(e) ∩ I ≠ ∅`.
 
@@ -61,38 +67,37 @@ endset to be contained in the region, nor the region in the endset; a single sha
 suffices. Unfolding the coverage union, `touches(e, I)` holds iff *some* span of `e` overlaps
 `I`:
 
-> **RE-overlap (lemma).** `touches(e, I) ⟺ (E (s, ℓ) : (s, ℓ) ∈ e : ⟦(s, ℓ)⟧ ∩ I ≠ ∅)`. When
-> `I` is itself a span denotation `⟦(q, m)⟧ = [q, q ⊕ m)`, a span `(s, ℓ) ∈ e` overlaps it iff
-> `q < s ⊕ ℓ` and `s < q ⊕ m` — the standard half-open interval-intersection predicate (SC,
-> ASN-0053). *Boundary contact is not touching:* if `q ⊕ m = s` (the region ends exactly where
-> the endset's span begins) then `s < q ⊕ m` fails, so adjacency in the sense of SC case (ii)
-> produces no overlap. Only SC cases (iii)–(v) — proper overlap, containment, equality —
-> qualify.
+> **RE-overlap (lemma).** `touches(e, I) ⟺ (E (s, ℓ) : (s, ℓ) ∈ e : ⟦(s, ℓ)⟧ ∩ I ≠ ∅)`. Since
+> `I` is a finite set of addresses, a span `(s, ℓ) ∈ e` meets it iff some address of `I` lies in
+> its half-open denotation, `(E α : α ∈ I : s ≤ α < s ⊕ ℓ)` — each membership test a pair of
+> tumbler comparisons (SC, ASN-0053). *Boundary contact is not touching:* the denotation
+> `[s, s ⊕ ℓ)` is half-open, so an address `α = s ⊕ ℓ` sitting exactly at the span's exclusive
+> upper bound is not covered; only `s ≤ α < s ⊕ ℓ` qualifies.
 
 RE-overlap reduces touching to a per-span overlap test, and that reduction is what makes the
 operation computable rather than merely defined. We make the obligation explicit, since an
 operation stated over an arbitrary `I ⊆ T` is not discharged until its touching test is shown
 decidable and its search shown to terminate.
 
-> **RE-decide (lemma).** *With the region finitely presented as `Q ∈ 𝒫_fin(Span)`, `I =
-> coverage(Q)`, the touching test is decidable and the search over the store terminates.* For a
-> single endset `e` — itself a finite span-set, `Endset = 𝒫_fin(Span)` (ASN-0043) — RE-overlap
-> with the coverage of `Q` unfolds `touches(e, I)` into the finite double disjunction
-> `(E (s, ℓ) ∈ e, (q, m) ∈ Q : ⟦(s, ℓ)⟧ ∩ ⟦(q, m)⟧ ≠ ∅)`. Each per-pair overlap is the
-> half-open interval predicate `q < s ⊕ ℓ ∧ s < q ⊕ m`, whose displaced endpoints `s ⊕ ℓ` and
-> `q ⊕ m` exist by TA0 and exceed their starts by TA-strict, and whose four comparisons are
-> settled by the intrinsic, terminating tumbler order T2 (ASN-0034). The enclosing search ranges
-> over `dom(Σ.L)` — finite by L-fin (ASN-0093) — and within each link over finitely many slots
-> `i ≤ |Σ.L(a)|` and finitely many spans per endset. A finite union of finite, decidable tests
-> terminates, so `W(I, Σ)` and every `Eᵢ(I, Σ)` are computable. This is the region-search
-> counterpart of the decidability arguments the foundations carry for the same `coverage ∩ I`
-> shape (CoverageEqualityDecidable, ASN-0086; F4 remark, ASN-0099).
+> **RE-decide (lemma).** *With the region a finite explicit I-set `I ∈ 𝒫_fin(T)`, the touching
+> test is decidable and the search over the store terminates.* For a single endset `e` — itself
+> a finite span-set, `Endset = 𝒫_fin(Span)` (ASN-0043) — RE-overlap unfolds `touches(e, I)` into
+> the finite double disjunction `(E (s, ℓ) ∈ e, α ∈ I : s ≤ α < s ⊕ ℓ)`. Each per-pair test is
+> the half-open membership predicate `s ≤ α ∧ α < s ⊕ ℓ`, whose displaced endpoint `s ⊕ ℓ`
+> exists by TA0 and exceeds its start by TA-strict, and whose two comparisons are settled by the
+> intrinsic, terminating tumbler order T2 (ASN-0034). The enclosing search ranges over
+> `dom(Σ.L)` — finite by L-fin (ASN-0093) — and within each link over finitely many slots
+> `i ≤ |Σ.L(a)|` and finitely many spans per endset; the innermost test ranges over the finite
+> `I`. A finite union of finite, decidable tests terminates, so `W(I, Σ)` and every `Eᵢ(I, Σ)`
+> are computable. This is the region-search counterpart of the decidability arguments the
+> foundations carry for the same `coverage ∩ I` shape (CoverageEqualityDecidable, ASN-0086; F4
+> remark, ASN-0099).
 
-> **RE-rep (lemma).** The result depends only on the *extension* `I = coverage(Q)`, not on the
-> span-set `Q` presenting it: if `coverage(Q) = coverage(Q')` then `retrieveendsets` agrees on
-> the two presentations, since `touches(e, ·)` is defined through the set `I` alone (cf. LP21,
-> ASN-0098; L8, ASN-0043). Distinct finite span-sets with the same coverage are interchangeable
-> as queries.
+> **RE-rep (lemma).** The result depends only on the region as a *set* `I`, not on how that
+> finite I-set was presented — enumerated directly, resolved from a V-space vspecset at the wire
+> (SS-RETRIEVE-ENDSETS), or produced by the V-side `image` (RE-Vside). Any two inputs denoting
+> the same `I` give the same result, since `touches(e, ·)` is defined through the set `I` alone
+> (cf. LP21, ASN-0098; L8, ASN-0043).
 
 Two structural facts about RE-overlap deserve emphasis because they distinguish this operation
 from its neighbours. First, within an endset the test is a disjunction over spans: *one* span
@@ -235,20 +240,21 @@ c₅ = 1.0.1.0.1.0.1.5     θ  = 1.0.1.0.1.0.1.7
 ```
 
 Each has depth `#cₖ = 8`, so the unit ordinal displacement at that depth is
-`δ(1, 8) = [0,0,0,0,0,0,0,1]`, and a span `(cₖ, δ(1, 8))` covers exactly `{cₖ}` among the
-element-level addresses (its half-open interval `[cₖ, shift(cₖ, 1))` reaches up to but excludes
-the next sibling). We query the **I-region** `I = {c₂, c₃}`.
+`δ(1, 8) = [0,0,0,0,0,0,0,1]`, and a span `(cₖ, δ(1, 8))` has coverage the half-open subtree
+interval `[cₖ, shift(cₖ, 1))` — every extension of `cₖ` up to but excluding the next sibling, an
+infinite set of addresses of which `cₖ` is the only one among our five named element-level
+addresses. We query the **I-region** `I = {c₂, c₃}`, a finite explicit set of two addresses.
 
 The link store holds two arity-3 links, in the link subspace (`s_L = 2`):
 
 ```
 a₁ = 1.0.1.0.1.0.2.1,  Σ.L(a₁) = (F₁, G₁, Θ)
-    F₁ = {(c₂, δ(1,8)), (c₄, δ(1,8))}   coverage {c₂, c₄}
-    G₁ = {(c₅, δ(1,8))}                 coverage {c₅}
-    Θ  = {(θ,  δ(1,8))}                 coverage {θ}
+    F₁ = {(c₂, δ(1,8)), (c₄, δ(1,8))}   coverage [c₂,c₃) ∪ [c₄,c₅)
+    G₁ = {(c₅, δ(1,8))}                 coverage [c₅, shift(c₅,1))
+    Θ  = {(θ,  δ(1,8))}                 coverage [θ, shift(θ,1))
 
 a₂ = 1.0.1.0.1.0.2.2,  Σ.L(a₂) = (F₂, F₁, Θ)
-    F₂ = {(c₃, δ(1,8))}                 coverage {c₃}
+    F₂ = {(c₃, δ(1,8))}                 coverage [c₃,c₄)
     e₂ = F₁  (the *same endset value* {(c₂,δ(1,8)),(c₄,δ(1,8))}, now filed in slot 2)
     e₃ = Θ
 ```
@@ -262,12 +268,12 @@ endset value may be filed under two different roles.
 
 | (link, slot) | endset | coverage | `∩ I` | touches? |
 |---|---|---|---|---|
-| (a₁, 1) | F₁ | {c₂, c₄} | {c₂} | yes |
-| (a₁, 2) | G₁ | {c₅}     | ∅     | no |
-| (a₁, 3) | Θ  | {θ}      | ∅     | no |
-| (a₂, 1) | F₂ | {c₃}     | {c₃} | yes |
-| (a₂, 2) | F₁ | {c₂, c₄} | {c₂} | yes |
-| (a₂, 3) | Θ  | {θ}      | ∅     | no |
+| (a₁, 1) | F₁ | [c₂,c₃) ∪ [c₄,c₅) | {c₂} | yes |
+| (a₁, 2) | G₁ | [c₅, shift(c₅,1)) | ∅     | no |
+| (a₁, 3) | Θ  | [θ, shift(θ,1))   | ∅     | no |
+| (a₂, 1) | F₂ | [c₃,c₄)           | {c₃} | yes |
+| (a₂, 2) | F₁ | [c₂,c₃) ∪ [c₄,c₅) | {c₂} | yes |
+| (a₂, 3) | Θ  | [θ, shift(θ,1))   | ∅     | no |
 
 So the witness set is `W(I, Σ) = {(a₁, 1), (a₂, 1), (a₂, 2)}`.
 
@@ -284,7 +290,7 @@ with `N_max(Σ) = 3` (both links arity 3), so
 set *reported in position*, per RE-arity: no slot-3 endset touches `I`, but the slot is present.
 
 *RE-full check.* The member `F₁ ∈ E₁(I, Σ)` is returned **whole** — it includes the span
-`(c₄, δ(1,8))` whose coverage `{c₄}` misses `I` entirely. The operation does not clip `F₁` to
+`(c₄, δ(1,8))` whose coverage `[c₄,c₅)` misses `I` entirely. The operation does not clip `F₁` to
 `coverage(F₁) ∩ I = {c₂}`; the stored value `{(c₂,δ),(c₄,δ)}` is handed back intact, exactly as
 RE-full requires.
 
@@ -482,8 +488,9 @@ for free:
 
 > **RE-translucent (lemma).** If documents `d₁` and `d₂` both arrange a shared I-address `α`
 > (transclusion), and `v₁ ∈ R₁`, `v₂ ∈ R₂` with `Σ.M(d₁)(v₁) = Σ.M(d₂)(v₂) = α`, then for every
-> role `i`, `Eᵢ(image(R₁, d₁, Σ), Σ)` and `Eᵢ(image(R₂, d₂, Σ), Σ)` both contain every endset
-> whose coverage includes `α`. The touching test sees only `α`'s identity, not which document
+> role `i`, `Eᵢ(image(R₁, d₁, Σ), Σ)` and `Eᵢ(image(R₂, d₂, Σ), Σ)` both contain `Σ.L(a).eᵢ` for
+> every `a ∈ dom(Σ.L)` with `i ≤ |Σ.L(a)|` and `α ∈ coverage(Σ.L(a).eᵢ)`. The touching test sees
+> only `α`'s identity, not which document
 > phrased the query (cf. F6/LP16, ASN-0099). An endset anchored through transclusion is
 > discovered from any document sharing the content.
 
@@ -502,8 +509,8 @@ it among the open questions.
 |-------|-----------|--------|
 | RE-touch | `touches(e, I) ≡ coverage(e) ∩ I ≠ ∅` | introduced |
 | RE-overlap | `touches(e, I)` is non-empty half-open span overlap; one span suffices; boundary contact does not qualify | introduced |
-| RE-decide | with region finitely presented as `Q ∈ 𝒫_fin(Span)`, the touching test is decidable (per-span overlap by T2) and the search terminates (L-fin, finite endsets) | introduced |
-| RE-rep | result depends only on `I = coverage(Q)`, not on the span-set presenting it | introduced |
+| RE-decide | with region a finite explicit I-set `I ∈ 𝒫_fin(T)`, the touching test is decidable (per-address half-open membership by T2) and the search terminates (L-fin, finite endsets) | introduced |
+| RE-rep | result depends only on the set `I`, not on how it was presented (direct, vspecset, or image) | introduced |
 | RE-zero | `I = ∅` yields `⟨∅, …, ∅⟩` of length `N_max(Σ)`, not the empty tuple | introduced |
 | RE-witness | `W(I, Σ) = {(a, i) : a ∈ dom(Σ.L), i ≤ |Σ.L(a)|, touches(Σ.L(a).eᵢ, I)}` | introduced |
 | RE-result | `Eᵢ(I, Σ) = {Σ.L(a).eᵢ : (a, i) ∈ W(I, Σ)}` for each role `i ≥ 1` | introduced |
