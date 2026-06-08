@@ -157,7 +157,7 @@ PerLinkInvarianceUnderValuePreservation — sub-lemma:
 
 ## Link-Store-Inert Preservation
 
-This ASN inhabits ASN-0047's *extended* state `Σ = (C, L, E, M, R)`. ASN-0047's ValidComposite★ fixes the *atomic* vocabulary as exactly the seven operations `V_atomic = {K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.ρ}`; document registration is performed by K.δ (Document case). The named reordering K.μ~ is the K.μ⁻ + K.μ⁺ composite, so A1a applies to it by transitivity. For this ASN's preservation reasoning we range over
+This ASN inhabits ASN-0047's *extended* state `Σ = (C, L, E, M, R)`. ASN-0047's ValidComposite★ fixes the *atomic* vocabulary as exactly the seven operations `V_atomic = {K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.ρ}`; document registration is performed by K.δ (Document case). The named reordering K.μ~ is the K.μ⁻ + K.μ⁺ composite. For this ASN's preservation reasoning we range over
 
 ```
 V ≡ V_atomic ∪ {K.μ~}
@@ -423,7 +423,7 @@ Direct from F11 + the definition of `findlinks`. Monotonicity propagates to the 
 
 For `I = ∅`: every `coverage(e) ∩ ∅ = ∅`, so the slot-existential never witnesses; `findlinks(∅, Σ) = ∅`. Symmetrically `image(∅, d, Σ) = ∅`, and a V-region `R` entirely disjoint from `dom(Σ.M(d))` gives `findlinks_V(R, d, Σ) = ∅`.
 
-When `dom(Σ.L) = ∅` (the initial state, before the first K.λ), every query produces `∅`. F2 and F3 hold vacuously, and so do the ordering (F10), persistence (F11), and monotonicity (F19) claims above.
+When `dom(Σ.L) = ∅` (the initial state, before the first K.λ), every query produces `∅`. F2 (`findlinks(I, Σ) = ∅ ⊆ result(I, Σ)`) holds vacuously; F3 (`result(I, Σ) ⊆ findlinks(I, Σ) = ∅`) is not vacuous — it forces `result(I, Σ) = ∅`, pinning the implementation output. The ordering (F10), persistence (F11), and monotonicity (F19) claims above also hold vacuously.
 
 For `findlinks_filtered`: the empty constraint set `C = ∅` makes the universal vacuously true at every link, so `findlinks_filtered(∅, Σ) = dom(Σ.L)`. The empty constraint target — any `(i, J) ∈ C` with `J = ∅` — makes that per-constraint conjunct false everywhere, so the filtered result is `∅`.
 
