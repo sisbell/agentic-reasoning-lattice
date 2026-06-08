@@ -72,7 +72,7 @@ Everything so far is parametric in the request `Q`. The crux of the operation's 
 
 > **E3 (ContentInvariance).** For fixed `Q`, the transitions that allocate content (K.α), extend, contract, or reorder an arrangement (K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~), register a document (K.σ/K.δ), or record provenance (K.ρ) all leave `num(Q, Σ)` unchanged. By E1, `sat` depends on neither `Σ.C` nor `Σ.M`; only a link-creation transition (K.λ) touches `dom(Σ.L)`.
 
-> **E4 (CreationConservation).** For fixed `Q`, `num(Q, Σ') − num(Q, Σ)` over `Σ →* Σ'` equals the number of links created on that path whose stored value satisfies `Q`. Creation is the sole source of change, and each matching creation adds exactly one (P0, P2); the substrate provides no link-removal transition (L12), so no term subtracts.
+> **E4 (CreationConservation).** For fixed `Q`, `num(Q, Σ') − num(Q, Σ)` over `Σ →* Σ'` equals the number of links created on that path whose stored value satisfies `Q`. Creation is the sole source of change, and each matching creation adds exactly one (P0, P2); no term subtracts, since no link is ever removed (R0).
 
 **Discovery anchoring.** The request is instead resolved through a querying document's current arrangement. Given a querying document `d_q ∈ dom(Σ.M)` and a triple of query V-regions `W = (W₁, W₂, W₃)`, the address parts are the I-images of those regions under `d_q`'s present arrangement:
 
@@ -84,7 +84,7 @@ This is the count a caller obtains who knows only arranged positions, not perman
 
 > **D1 (PresentTenseResolution).** `Qᵢ(Σ)` is a live reading of `d_q`'s arrangement. Editing `d_q` moves content into or out of the queried V-region without any link being created or retracted, so the resolved request — and hence `num_disc` — can change while `dom(Σ.L)` is fixed.
 
-> **D2 (DiscoveryNonMonotonicity).** `num_disc` is not monotone across `Σ →* Σ'`, because the resolved request `Qᵢ(Σ)` — the *forward image* of the **fixed** V-region `Wᵢ` under `d_q`'s arrangement — moves with the arrangement. We reason about `Qᵢ` directly, as the forward image of a query region.
+> **D2 (DiscoveryNonMonotonicity).** `num_disc` is not monotone across `Σ →* Σ'`, because the resolved request `Qᵢ(Σ)` — the *forward image* of the **fixed** V-region `Wᵢ` under `d_q`'s arrangement — moves with the arrangement.
 > - *Extension (K.μ⁺ or K.μ⁺_L).* An extension step strictly extends the prior domain and agrees with it on every prior position — K.μ⁺ adding content-subspace positions, K.μ⁺_L adding link-subspace positions (a query part may resolve to link-subspace addresses, since `Wᵢ` may contain link-subspace V-positions whose images are link addresses; link-to-link references, L4(c); S3★ maps such positions into `dom(Σ.L)`). So for every `v ∈ Wᵢ ∩ dom(Σ.M(d_q))` the image `Σ'.M(d_q)(v) = Σ.M(d_q)(v)` survives, and new positions falling in `Wᵢ` may add images. Hence `Qᵢ(Σ) ⊆ Qᵢ(Σ')` — the resolved request can only grow.
 > - *Contraction (K.μ⁻).* The contracted arrangement agrees with the prior one on its retained, smaller domain. So `Qᵢ(Σ') ⊆ Qᵢ(Σ)` — the resolved request can only shrink.
 > - *Reordering (K.μ~).* The witnessing bijection `π` carries `Σ'.M(d_q)(v) = Σ.M(d_q)(π⁻¹(v))` (the K.μ~ bijection equation, ASN-0047), so `Qᵢ(Σ') = {Σ.M(d_q)(u) : u ∈ π⁻¹(Wᵢ) ∩ dom(Σ.M(d_q))}`. This need **not** equal `Qᵢ(Σ)`: although LP11 preserves the *total* range (`ran(Σ'.M(d_q)) = ran(Σ.M(d_q))`), the forward image of a *fixed sub-region* `Wᵢ` can move. When a reorder moves a position with an otherwise-unshared image across the `Wᵢ` boundary, `Qᵢ(Σ)` changes, so for a positionally-anchored query `num_disc` can rise or fall under K.μ~ with no link created or retracted.
@@ -95,7 +95,7 @@ The two counts agree exactly when the queried content has not been edited betwee
 
 This also fixes the tense of the empty answer.
 
-> **D3 (ZeroIsPresentNotHistorical).** `num(Q, Σ) = 0` asserts that no link in `dom(Σ.L)` satisfies `Q` *at `Σ`*. It does not assert that no such link ever existed, nor that none is discoverable from another document or another arrangement. A link is never removed from `dom(Σ.L)` — the substrate provides no removal operation (L12); a link whose endpoints have left the consulted arrangement merely ceases to be reachable through it, so it leaves the discovery count while remaining a permanent member of the store. Absence from the present count is non-existence *in the view*, not non-existence *in the archive*.
+> **D3 (ZeroIsPresentNotHistorical).** `num(Q, Σ) = 0` asserts that no link in `dom(Σ.L)` satisfies `Q` *at `Σ`*. It does not assert that no such link ever existed, nor that none is discoverable from another document or another arrangement. No link is ever removed from `dom(Σ.L)` (R0); a link whose endpoints have left the consulted arrangement merely ceases to be reachable through it, so it leaves the discovery count while remaining a permanent member of the store. Absence from the present count is non-existence *in the view*, not non-existence *in the archive*.
 
 ## How the Count Changes: Content Added
 
@@ -115,9 +115,13 @@ Copying content adds no entry to the link store. The link population does not gr
 
 ## How the Count Changes: Links Retracted
 
-To withdraw a link from the count, in this model, is to remove it from the *view*, never from the store. The substrate provides no link-removal transition (L12), and udanax-green confirms the design literally: there is no DELETELINK in the FEBE protocol, no nullify or retract operation, and the `typelink` record carries no status field — "once created, a link exists forever." So `num` is *blind* to any notion of link nullification or retraction: the existence count cannot fall (E2). Only the discovery count moves under withdrawal, and it moves through one mechanism alone: arrangement contraction that severs a link's endpoints from every consulted document — the abstract analogue of a link becoming "not currently addressable" (LM 4/9). The governing laws distinguish sharply between severing the reach of *one* link and deleting *content* that many links share.
+To withdraw a link from the count, in this model, is to remove it from the *view*, never from the store. We state this once, as the fact the withdrawal laws below all rest on.
 
-> **R1 (MinimalDecrementNoStoreRetraction).** Consider the *minimal contraction*: a `K.μ⁻` step removing a single consulted entry `v ↦ a`, under these preconditions:
+> **R0 (NoStoreRetraction).** The substrate provides no link-removal transition: once a link enters `dom(Σ.L)` it is never removed and its value never changes (L12). udanax-green confirms the design literally — there is no DELETELINK in the FEBE protocol, no nullify or retract operation, and the `typelink` record carries no status field ("once created, a link exists forever"). Consequently `num`'s existence reading is *blind* to any notion of link nullification or retraction and cannot fall (E2); every "withdrawal" removes a link from the *view*, never from the store.
+
+Only the discovery count moves under withdrawal, and it moves through one mechanism alone: arrangement contraction that severs a link's endpoints from every consulted document — the abstract analogue of a link becoming "not currently addressable" (LM 4/9). The governing laws distinguish sharply between severing the reach of *one* link and deleting *content* that many links share.
+
+> **R1 (MinimalDecrement).** With no store retraction available (R0), the discovery count moves only through arrangement contraction. Consider the *minimal contraction*: a `K.μ⁻` step removing a single consulted entry `v ↦ a`, under these preconditions:
 >
 > - **(P-max)** *Arrangement-maximal removal.* For `K.μ⁻` to drop exactly one entry, its canonical-prefix retention (`R = {[S,1,…,1,k] : 1 ≤ k ≤ n'_S}`, PerSubspaceContractionScope, ASN-0047) forces the removed `v` to be the arrangement-maximal position `[S, n_S]` in its subspace — dropping an interior position while keeping a later one would violate D-MIN★/D-CTG★.
 > - **(P-uniq)** *Unique consulted reach.* `v` is the *only* consulted V-position mapping to its resolved I-address `a` — no other position in `Wᵢ ∩ R` maps to `a` — so removing `v` makes `a` leave `Qᵢ(Σ')`.
@@ -140,11 +144,11 @@ R1 is the minimal case; the general case is where the decrement *exceeds* one, b
 
 A link survives partial damage to its endpoints, and is counted as long as *any* of its reach remains.
 
-> **R3 (PartialSurvival).** Slot `i`'s contribution to satisfaction — the conjunct `coverage(Σ.L(a).eᵢ) ∩ Qᵢ(Σ) ≠ ∅` — survives partial deletion of the endpoint while at least one address of that endset's coverage still lies in the resolved request part. The conjunct fails only when *all* of slot-`i` coverage has left every consulted arrangement — the empty-intersection boundary. Whether the *link* remains counted is a separate question: since `sat` is conjunctive across the three slots, slot-`i` survival keeps `a` counted only if the other two conjuncts also hold, and `a` can drop through a slot `j ≠ i` even while slot `i` stays fully intact.
+> **R3 (PartialSurvival).** Slot `i`'s contribution to satisfaction — the conjunct `coverage(Σ.L(a).eᵢ) ∩ Qᵢ(Σ) ≠ ∅` — survives partial deletion of the endpoint while at least one address of that endset's coverage still lies in the resolved request part. The conjunct fails only at the empty-intersection boundary `coverage(Σ.L(a).eᵢ) ∩ Qᵢ(Σ) = ∅`, i.e. when slot-`i` coverage no longer meets the single resolved part `Qᵢ(Σ)` (the multi-arrangement reading, where the three parts are anchored to different documents, is deferred to the Open Questions). Whether the *link* remains counted is a separate question: since `sat` is conjunctive across the three slots, slot-`i` survival keeps `a` counted only if the other two conjuncts also hold, and `a` can drop through a slot `j ≠ i` even while slot `i` stays fully intact.
 
 Supersession — replacing a document with a newer version — must not be mistaken for deletion.
 
-> **R4 (SupersessionStability).** Publishing a newer version does not decrement the count of links to the superseded content. The old version's I-addresses persist (content is immutable and append-only, S0/P0), coverage is permanent (E1), and an arrangement that re-references those addresses keeps them reachable. Supersession adds arrangement; it removes no link from the count. A link drops only if all of its endpoint addresses leave every consulted arrangement, which supersession by itself does not cause.
+> **R4 (SupersessionStability).** Publishing a newer version does not decrement the count of links to the superseded content. The old version's I-addresses persist (content is immutable and append-only, S0/P0), coverage is permanent (E1), and an arrangement that re-references those addresses keeps them reachable. Supersession adds arrangement; it removes no link from the count. A link drops only if some slot's coverage leaves the resolved request part — `coverage(Σ.L(a).eᵢ) ∩ Qᵢ(Σ) = ∅` for some `i` — which supersession by itself does not cause.
 
 The R-laws above give *sufficient* conditions for the discovery count to fall. We now sharpen one of them into a *weakest* precondition, so that the boundary between "still counted" and "dropped" is characterised exactly rather than by a one-sided implication. The non-trivial postcondition we anchor to is the survival of a single counted link across an arrangement contraction — the per-link event whose aggregate over `match` *is* `Δnum_disc`.
 
@@ -225,7 +229,8 @@ The corollary is that equal counts carry no promise of equal answers, and a stea
 | A1a | Fresh content addition is *unconditionally* neutral for the existence count (corollary of E3) | introduced |
 | A1b | Fresh content carrying no incoming links is neutral for the discovery count (conditioned on the no-incoming-links premise) | introduced |
 | A2 | Transclusion makes shared links discoverable from `d_new`; the discovery count rises only by shared links satisfying all three slots, not the existence count | introduced |
-| R1 | No store-level link retraction exists; under (P-max)/(P-uniq)/(P-slot)/(P-sole), minimal contraction gives `Δnum_disc ∈ {−1,0}` | introduced |
+| R0 | The substrate provides no link-removal transition (L12); a link, once stored, is permanent — every withdrawal is from the view, not the store | introduced |
+| R1 | Under (P-max)/(P-uniq)/(P-slot)/(P-sole), minimal contraction gives `Δnum_disc ∈ {−1,0}` | introduced |
 | R2 | Single-consulted-slot (P-slot₂) canonical-prefix contraction drops a trailing suffix of endpoints; the discovery count can fall by up to `k`, the matching links reaching any removed endpoint in that slot | introduced |
 | R3 | Slot `i`'s satisfaction conjunct survives partial endpoint loss while any covered address remains; whole-link counting still requires the other two slots | introduced |
 | R4 | Supersession does not decrement the count of links to the superseded content | introduced |
