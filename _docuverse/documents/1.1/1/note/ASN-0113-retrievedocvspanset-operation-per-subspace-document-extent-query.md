@@ -42,15 +42,12 @@ precondition (**W-pre**):
 > `Document(d) ∧ d ∈ dom(M)`: a T4-valid document-level tumbler that some K.δ event has
 > placed into `dom(M)`).
 
-This is necessary because only `Document(e)` events extend `dom(M)` (ASN-0047, K.δ): for
-`d ∉ dom(M)`, `M(d)` is undefined, so `O(d)`, `V_S(d)`, `occupied(d)`, and every derived
-quantity below are *undefined* — not empty. An *allocated empty* document (`d ∈ dom(M)`,
-`M(d) = ∅`) legitimately yields the empty span-set `⟨⟩` (a defined result; see W0). An
-*unallocated* identity (`d ∉ dom(M)`) is *outside the operation's domain*: it has no defined
-result, and a faithful implementation signals failure rather than fabricating `⟨⟩`. Gregory's
-back end confirms the separation operationally — an existing-but-empty document returns the
-empty span-set with success, whereas a never-allocated identity fails and the back end
-signals failure rather than an empty result (consultation).
+An *allocated empty* document (`d ∈ dom(M)`, `M(d) = ∅`) legitimately yields the defined
+empty span-set `⟨⟩` (see W0), whereas an *unallocated* identity (`d ∉ dom(M)`) lies outside
+the operation's domain and signals failure rather than fabricating `⟨⟩`. Gregory's back end
+confirms the separation operationally — an existing-but-empty document returns the empty
+span-set with success, whereas a never-allocated identity fails and the back end signals
+failure rather than an empty result (consultation).
 
 We write
 
@@ -355,8 +352,7 @@ t`. If `t₁ > S`, then by T1 `t > reach` — contradicting `t < reach`. Hence `
 > `⟦ext(d, s_C)⟧ ∩ ⟦ext(d, s_L)⟧ = ∅`.
 
 For any `t` in the intersection we would need `t₁ = s_C` and `t₁ = s_L` at once (W10),
-impossible since `s_C ≠ s_L` (SC-NEQ, the `1 ≠ 2` of the convention). The SC-NEQ contradiction
-on the first component, under T1, suffices on its own. The text region and the link region therefore *cannot* be the
+impossible since `s_C ≠ s_L` (SC-NEQ, the `1 ≠ 2` of the convention). The text region and the link region therefore *cannot* be the
 denotation of a single span: a span is a contiguous interval (T12), and `⟦ext(d, s_C)⟧` and
 `⟦ext(d, s_L)⟧` are separated by every address between them — in particular the whole gap
 from `[s_C,1,…,1,1+n_{s_C}]` up to `[s_L,1,…,1]`. To "designate the separated series exactly,
@@ -440,12 +436,7 @@ one subspace leaves the other subspace's reported extent unchanged. This follows
 count is read off a *disjoint* position set: `V_S(d) = {v ∈ O(d) : v₁ = S}` is selected by
 the predicate `v₁ = S`, and `s_C ≠ s_L` (SC-NEQ) makes `V_{s_C}(d)` and `V_{s_L}(d)` disjoint,
 so `n_{s_C} = |V_{s_C}(d)|` and `n_{s_L} = |V_{s_L}(d)|` are computed from non-overlapping data
-(W1). Independence is therefore a property of the *counts* — each read off its own subspace's
-positions — and the single-subspace edit is the conditional it yields: an edit confined to one
-subspace leaves the other's count untouched, since a content edit cannot alter `V_{s_L}(d)` and
-a link edit cannot alter `V_{s_C}(d)`. The link count can grow without altering the character
-count, and text can be inserted or deleted without altering the link count — the two members
-move independently.
+(W1).
 
 **Partition of the counted content.** The members do not merely fail to overlap; together
 they account for exactly the counted V-positions. We record **W16** (Partition):
