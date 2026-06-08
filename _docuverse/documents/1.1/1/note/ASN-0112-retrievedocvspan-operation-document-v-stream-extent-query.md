@@ -66,8 +66,7 @@ content position before every link position.
 We borrow the span machinery wholesale. A span `σ = (s, ℓ)` denotes the half-open interval
 `⟦σ⟧ = {t ∈ T : s ≤ t < s ⊕ ℓ}` (T12), with `reach(σ) = s ⊕ ℓ` (ASN-0053). A span is
 *well-formed* when `Pos(ℓ)` and `actionPoint(ℓ) ≤ #s`; it is *level-uniform* when
-`#s = #ℓ` (S6, ASN-0053). Following S6's `level_compat`, we call its two *endpoints*
-`start(σ)` and `reach(σ)` *endpoint-level-compatible* when `#start(σ) = #reach(σ)`. The ordinal shift `shift(t, n) = t ⊕ δ(n, #t)` advances `t`'s last
+`#s = #ℓ` (S6, ASN-0053). The ordinal shift `shift(t, n) = t ⊕ δ(n, #t)` advances `t`'s last
 component by `n` (ASN-0034). We measure the whole document as one span; per-subspace reporting,
 content delivery, and region reads are out of scope, as is the reach-arithmetic of how each
 edit moves `max O(d)` — that belongs to INSERT and DELETE, not this query.
@@ -145,7 +144,7 @@ The denotation is `⟦σ_d⟧ = {t : origin_d ≤ t < origin_d ⊕ extent_d}`, s
 *actual* reach `r⋆ = origin_d ⊕ extent_d` and show `max O(d) < r⋆`. Two cases on the relative
 depths:
 
-- *`#origin_d ≤ #reach_d`* (in particular the endpoint-level-compatible case `#origin_d = #reach_d`). By
+- *`#origin_d ≤ #reach_d`* (in particular the case `#origin_d = #reach_d`, i.e. `level_compat(origin_d, reach_d)`). By
   D1 (DisplacementRoundTrip, ASN-0034) the round-trip closes exactly: `r⋆ = origin_d ⊕
   (reach_d ⊖ origin_d) = reach_d`. Then for any `v ∈ O(d)`, `origin_d ≤ v ≤ max O(d) <
   reach_d = r⋆`, so `v ∈ ⟦σ_d⟧`.
@@ -166,28 +165,21 @@ common depth.
 
 **The span is the tightest covering bound among same-depth reaches.** We record **V3**
 (bounding): `origin_d` is the greatest lower bound of `O(d)`, and `reach_d` is the *least*
-admissible upper bound *among tumblers of the same depth as* `max O(d)`. The same-depth
-qualifier is load-bearing: dropped, the claim is false, since the deeper `max O(d).0` is a
-smaller upper bound. The lower bound is
-unconditional: any span `σ'` with `O(d) ⊆ ⟦σ'⟧` satisfies `start(σ') ≤ min O(d) = origin_d`.
-The upper bound requires an argument. Write `w = max O(d)`. Because every V-position is zero-free with all components
-positive (S8a), the rightmost nonzero component of `w` is its last, so `sig(w) = #w`
-(TA5-SIG, ASN-0034); hence `reach_d = shift(w, 1) = w ⊕ δ(1, #w)` coincides with `inc(w, 0)`,
-since OrdinalShift (ASN-0034) advances the same last component that `inc(·, 0)` modifies at
-`sig(w)`. ASN-0034's TA5 (HierarchicalIncrement) then settles the tightness directly. Its
-analysis of `inc(·, 0)` records two facts about `w` with `sig(w) = #w`: the true T1-immediate
-successor of `w` is the deeper zero-extension `w.0` (by the prefix convention, T1 case (ii)),
-satisfying `w < w.0 < inc(w, 0) = reach_d`; and `inc(w, 0)` is *the smallest same-length
-tumbler strictly greater than `w`* — the next peer at the same depth. The first fact shows
-`reach_d` is *not* the least admissible reach over all of `T` (a span with reach `w.0` already
-covers `O(d)`, since `w < w.0`); the second is exactly V3's claim that `reach_d` is the least
-strict upper bound of `max O(d)` *among tumblers at the depth of `max O(d)`* (`= #reach_d`).
-`σ_d`'s reach equals `reach_d` iff `#origin_d ≤ #reach_d` (`m_C ≤ m_L`, V2 reach
-biconditional); under that condition `σ_d` is the tightest covering span at the depth of
-`max O(d)`, and fixing the two boundaries determines the whole. When `#origin_d > #reach_d`
-the round-trip fails (D0) and `σ_d`'s actual reach `r⋆` overshoots to depth
-`#origin_d ≠ #reach_d`, so the same-depth tightness statement applies to `reach_d`, not to
-`σ_d` itself.
+admissible upper bound of `max O(d)` among tumblers of its depth — dropping the same-depth
+qualifier makes the claim false, since the deeper zero-extension `max O(d).0` is a smaller
+upper bound. The lower bound is unconditional: any span `σ'` with `O(d) ⊆ ⟦σ'⟧` satisfies
+`start(σ') ≤ min O(d) = origin_d`. The upper bound requires an argument. Write `w = max O(d)`.
+Because every V-position is zero-free with all components positive (S8a), the rightmost nonzero
+component of `w` is its last, so `sig(w) = #w` (TA5-SIG, ASN-0034); hence
+`reach_d = shift(w, 1) = w ⊕ δ(1, #w)` coincides with `inc(w, 0)`, since OrdinalShift
+(ASN-0034) advances the same last component that `inc(·, 0)` modifies at `sig(w)`. ASN-0034's
+TA5 (HierarchicalIncrement) settles the tightness directly: `inc(w, 0)` is the smallest
+same-length tumbler strictly greater than `w`, while the true T1-immediate successor of `w` is
+the deeper zero-extension `w.0` (by the prefix convention, T1 case (ii)), satisfying
+`w < w.0 < inc(w, 0) = reach_d`. So `reach_d` is *not* the least admissible reach over all of
+`T` (a span with reach `w.0` already covers `O(d)`), but it is the least strict upper bound of
+`w` at `w`'s depth — V3's claim. Whether `σ_d`'s own reach attains `reach_d` is governed by the
+V2 reach biconditional.
 
 ---
 
@@ -219,10 +211,8 @@ subspace, this correspondence is *exact*.
 The decisive structural question is whether the single returned span exactly traces the
 occupied content or merely encloses it. The answer depends on how many subspaces the
 arrangement occupies, and the divergence is not an implementation artifact — it is forced
-by the demand for *one* origin-and-extent pair. The dichotomy is genuinely binary: by
-S3★-aux every occupied position carries `subspace = s_C` or `s_L` and nothing else, so a
-non-empty `O(d)` occupies exactly one subspace or exactly both — the two cases below are
-jointly exhaustive.
+by the demand for *one* origin-and-extent pair. By S3★-aux a non-empty `O(d)` occupies
+exactly one subspace or exactly both, so the two cases below are jointly exhaustive.
 
 **Single subspace: exact cover.** Suppose `O(d)` lies entirely in one subspace `s` — either
 content (`s = s_C`) or, in the link-only case (content empty, one or more links arranged,
@@ -492,12 +482,8 @@ dense run `{[s,1,…,1,k]}` is covered with no
 occupied-depth position left over (D-CTG★ closing the gaps). Conversely, if `O(d)` occupies
 *both* subspaces, V6 gives `O(d) ⊊ ⟦σ_d⟧` strictly — the reach crosses the inter-subspace void,
 admitting unoccupied positions inside the denotation — so `¬Exact`. The two directions exhaust
-the cases because S3★-aux confines every occupied V-position to one of exactly two subspaces:
-an arrangement occupies zero, one, or two subspaces and never a third. So the single-subspace
-condition is both necessary and sufficient, hence the *weakest* precondition. V6's convexity
-justification explains why this dichotomy is forced rather than incidental: a single span is
-one convex region (ASN-0053 S0), so exact tracing of a separated series is structurally
-impossible. The companion reach property factors
+the cases by S3★-aux. So the single-subspace condition is both necessary and sufficient, hence
+the *weakest* precondition; V6 records why the dichotomy is forced rather than incidental. The companion reach property factors
 the same way along the orthogonal endpoint axis. We give it the same empty-case handling as
 `Exact` — take `ReachTight ≡ "no span is returned, or reach(σ_d) = reach_d"`, vacuous on the
 empty result `⟨⟩` (where `reach(σ_d)` and `#origin_d` are undefined, so the bare equality would
