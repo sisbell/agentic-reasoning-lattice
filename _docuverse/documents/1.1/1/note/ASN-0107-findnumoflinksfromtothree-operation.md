@@ -201,7 +201,7 @@ Contract `M(d)` by `K.μ⁻`, retaining the content-subspace prefix `{[1,1], [1,
 
 The corollary is that equal counts carry no promise of equal answers, and a steady count carries no promise of a steady population.
 
-> **W2 (NonReconstructibility).** Equality of counts does not entail equality of matching sets: the same numeral may denote wholly different sets at two states or under two requests. Between two states, an arrangement withdrawal (which removes a link from the discovery view) paired with a matching creation can hold the discovery count fixed while every member of the matching set changes. The count sizes the answer; it never names it, and it cannot be inverted to the set it summarises.
+> **W2 (NonReconstructibility).** Equality of counts does not entail equality of matching sets: the same numeral may denote wholly different sets at two states or under two requests. Between two states, with `k = |match|` currently-matching links, a `k`-for-`k` swap — withdraw all `k` from the discovery view (a `K.μ⁻` contraction severing every consulted endpoint that reaches them) and create `k` fresh matching links in the queried region — holds the discovery count fixed at `k` while every member of the matching set changes. (A single withdrawal paired with a single creation, by contrast, swaps exactly one member and so realises "wholly different sets" only when `k = 1`.) The count sizes the answer; it never names it, and it cannot be inverted to the set it summarises.
 
 ## Claims Introduced
 
