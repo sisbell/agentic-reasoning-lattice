@@ -187,14 +187,13 @@ D-MIN★ holds at every reachable state, so the run `V_S(d)` is always canonical
 `[S,1,…,1]`, and its covering span is exactly `ext(d, S)`, which W4 proves exact.
 
 The *converse* (non-contiguous ⟹ no single span is exact) follows from order-convexity.
-Suppose `V_S(d)` is *not* contiguous: there exist `p, q ∈ V_S(d)` and `r ∈ VSlice(S, m)`
-with `p < r < q` and `r ∉ V_S(d)` (for instance `{[S,1], [S,3]}` with `[S,2]` inactive). Let
-`σ` be any level-uniform span with `⟦σ⟧ ∩ VSlice(S, m) ⊇ V_S(d)`. Then `p, q ∈ ⟦σ⟧`, and
-since a span's denotation is order-convex (T12; S0 of ASN-0053), `p < r < q` forces
-`r ∈ ⟦σ⟧`. As `r ∈ VSlice(S, m)`, we get `r ∈ ⟦σ⟧ ∩ VSlice(S, m)` while `r ∉ V_S(d)`, so the
-intersection strictly exceeds `V_S(d)` — `σ` overshoots and cannot be exact. No single span
-escapes this: any span covering both extremes drags in the gap point. Faithful reporting then
-requires a *span-set* within the single subspace, one member per contiguous cluster.
+Were `V_S(d)` *not* contiguous — `p, q ∈ V_S(d)` and `r ∈ VSlice(S, m)` with `p < r < q` and
+`r ∉ V_S(d)` — then for any level-uniform span `σ` with `⟦σ⟧ ∩ VSlice(S, m) ⊇ V_S(d)` we have
+`p, q ∈ ⟦σ⟧`, and since a span's denotation is order-convex (T12; S0 of ASN-0053), `p < r < q`
+forces `r ∈ ⟦σ⟧`; as `r ∈ VSlice(S, m)`, the intersection `⟦σ⟧ ∩ VSlice(S, m)` would strictly
+exceed `V_S(d)`, so `σ` could not be exact. Exactness of a single span therefore rests on the
+standing D-CTG★ run-shape: it is *because* `V_S(d)` is always contiguous at every reachable
+state that `ext(d, S)` covers it exactly.
 
 ---
 
@@ -514,9 +513,9 @@ where an off-prefix, admissible-last-component tumbler must be — and is — ex
 |-------|-----------|--------|
 | W0 | `RETRIEVEDOCVSPANSET(d)` returns a normalized span-set (≤ 2 members), or `⟨⟩` when both counted subspaces are empty; never a content sequence or a cardinality | introduced |
 | W1 | `n_S(d) = |V_S(d)|` is the extent of subspace `S` in `d` | introduced |
-| W2 | `ext(d, S) = ([S,1,…,1], δ(n_S, m_S))` is the extent span encoding `n_S` | introduced |
-| W3 | `ext(d, S)` is a well-formed, level-uniform T12 span with `reach = [S,1,…,1,1+n_S]` | introduced |
-| W4 | ExactCoverage — `⟦ext(d, S)⟧ ∩ VSlice(S, m_S) = V_S(d)` (complete and exclusive) | introduced |
+| W2 | *for `S ∈ occupied(d)` (`V_S(d) ≠ ∅`)*, `ext(d, S) = ([S,1,…,1], δ(n_S, m_S))` is the extent span encoding `n_S` | introduced |
+| W3 | *for `S ∈ occupied(d)`*, `ext(d, S)` is a well-formed, level-uniform T12 span with `reach = [S,1,…,1,1+n_S]` | introduced |
+| W4 | ExactCoverage — *for `S ∈ occupied(d)`*, `⟦ext(d, S)⟧ ∩ VSlice(S, m_S) = V_S(d)` (complete and exclusive) | introduced |
 | W5 | ExactnessRequiresContiguity — *for `V_S(d) ≠ ∅`*, a single level-uniform span exactly covers `V_S(d)` iff `V_S(d)` is contiguous in `VSlice(S, m)` | introduced |
 | W6 | `occupied(d) = {S ∈ {s_C, s_L} : V_S(d) ≠ ∅}` | introduced |
 | W7 | OneSpanPerOccupiedSubspace — result has exactly `|occupied(d)|` members, one per kind, not per fragment or item | introduced |
@@ -525,7 +524,7 @@ where an off-prefix, admissible-last-component tumbler must be — and is — ex
 | W10 | SubspaceConfinement — `(A t : t ∈ ⟦ext(d, S)⟧ : t₁ = S)` | introduced |
 | W11 | Disjointness — `⟦ext(d, s_C)⟧ ∩ ⟦ext(d, s_L)⟧ = ∅` | introduced |
 | W13 | UniformShape — result is normalized, members drawn from the fixed ordered kind-list `(s_C, s_L)` | introduced |
-| W14 | Comparability — iterating the fixed kind-list `(s_C, s_L)`, a consumer recovers each `n_S(d)` *by subspace identifier* `start₁ = S` (not list position, since W7 makes the result a subsequence): member present ⇒ boundary-count; absent ⇒ `n_S = 0`, sound by W6/W7; so per-kind comparison `n_S(d₁)` vs `n_S(d₂)` is well-defined across documents sharing a kind-list | introduced |
+| W14 | Comparability — per-kind comparison `n_S(d₁)` vs `n_S(d₂)` is well-defined across documents sharing a kind-list; an absent member reads as `n_S = 0` | introduced |
 | W15 | Independence — `n_{s_C}` depends only on `V_{s_C}(d)`, `n_{s_L}` only on `V_{s_L}(d)`; subspace edits do not cross | introduced |
 | W16 | Partition — the members disjointly cover exactly the counted active V-positions; no orphan, no phantom | introduced |
 | W17 | ExtentDeterminesPopulation — each V-slice position within `ext(d, S)` carries content (`M(d)(v) ∈ dom(C)`/`dom(L)`, S3★); one step beyond W4's coverage equality | introduced |
