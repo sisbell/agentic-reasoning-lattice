@@ -194,33 +194,29 @@ level-uniform span `σ` of subspace `S` at depth `m` satisfying
 i.e. `V_S(d)` contains every V-slice tumbler lying (under T1) between its own minimum and
 maximum.
 
-The *forward* direction (contiguous ⟹ a single exact span exists) holds for *any* contiguous
-`V_S(d)`, not only the canonical run D-CTG★/D-MIN★ produce — and so it cannot simply cite W4,
-whose covering span `ext(d, S)` is anchored at `[S,1,…,1]` and is exact only when D-MIN★ pins
-the run's minimum there. (For a contiguous run not anchored at the canonical minimum — say
-`V_S(d) = {[S,5,3],[S,5,4]}` at depth `m = 3` — `ext(d, S) = ([S,1,1], δ(2,3))` reaches only
-`[S,1,3]` and covers `{[S,1,1],[S,1,2]} ≠ V_S(d)`; the exact span is anchored at the *actual*
-minimum `[S,5,3]`.) We therefore build the covering span from the run's own minimum. Let
-`V_S(d)` be contiguous and non-empty, and put `a = min(V_S(d))`, `b = max(V_S(d))` under T1
-(both well-defined: `V_S(d)` is finite by S8-fin and totally ordered by T1). Every element
-lies in `VSlice(S, m)`, so all share depth `m`, first component `S`, and are zero-free; write
-`a = [S, a_2, …, a_m]`. We claim the whole run shares the prefix `[S, a_2, …, a_{m−1}]` and
-varies only in the last component. Suppose two elements diverged at some interior position
-`i < m`. Then between them under T1 lie *all* V-slice tumblers obtained by raising the last
-component without bound — infinitely many, since component values are unbounded (T0(a)) —
-each of which contiguity would force into `V_S(d)`, contradicting finiteness (S8-fin). So the
-run is confined to one prefix and its last components form a contiguous block of naturals;
-with `n_S = |V_S(d)|`, that block is `a_m, a_m+1, …, a_m + n_S − 1`, and
-`b = [S, a_2, …, a_{m−1}, a_m + n_S − 1]`. Now define `σ = (a, δ(n_S, m))` — level-uniform and
-T12-well-formed (by OrdinalDisplacement, ASN-0034: `δ(n_S, m)` positive with action point
-`m = #a`), with `reach(σ) = shift(a, n_S) = [S, a_2, …, a_{m−1}, a_m + n_S]` (OrdinalShift,
-ASN-0034). By T5 on the prefix
-`[S, a_2, …, a_{m−1}]` (length `m − 1`) shared by `a` and `reach(σ)`, every interior tumbler
-extends that prefix, and the half-open bounds pin its last component to
-`a_m ≤ t_m ≤ a_m + n_S − 1` — exactly the run. Hence `⟦σ⟧ ∩ VSlice(S, m) = V_S(d)`, an exact
-single span. This `σ` coincides with `ext(d, S)` precisely when `a = [S,1,…,1]`, i.e. under
-D-MIN★; in the docuverse that always holds and the W4 span serves directly, but the existence
-claim itself needs only the run's own minimum, not the canonical anchor.
+The *forward* direction (contiguous ⟹ a single exact span exists), *for the operation as
+specified*, is immediate from W4. D-MIN★ holds at every reachable state, so the run `V_S(d)`
+is always canonically anchored at `[S,1,…,1]`; its covering span is exactly `ext(d, S)`, which
+W4 already proves exact. The canonically-anchored run is the only configuration the in-spec
+operation ever encounters, and W4 disposes of it.
+
+The *general* statement — that *any* contiguous `V_S(d)`, canonically anchored or not, admits
+some single exact span — is strictly stronger than the operation requires; D-MIN★ excludes a
+non-canonical anchor, so this is not a live case for the operation. We record it only to support
+the open question on relaxing D-CTG★ below, and confine it to that hypothetical. The sketch:
+for a contiguous run with arbitrary minimum `a = min(V_S(d))` and maximum `b = max(V_S(d))`
+under T1 (both well-defined — `V_S(d)` finite by S8-fin, totally ordered by T1), every element
+lies in `VSlice(S, m)`, sharing depth `m`, first component `S`, and zero-freeness; write
+`a = [S, a_2, …, a_m]`. The whole run shares the prefix `[S, a_2, …, a_{m−1}]` and varies only
+in the last component: were two elements to diverge at an interior position `i < m`, then
+between them under T1 would lie *all* V-slice tumblers obtained by raising the last component
+without bound — infinitely many, since component values are unbounded (T0(a)) — each forced
+into `V_S(d)` by contiguity, contradicting finiteness (S8-fin). Hence
+`σ = (a, δ(n_S, m))` is level-uniform and T12-well-formed (OrdinalDisplacement, ASN-0034:
+`δ(n_S, m)` positive with action point `m = #a`), and T5 on the shared prefix
+`[S, a_2, …, a_{m−1}]` pins `⟦σ⟧ ∩ VSlice(S, m) = V_S(d)`. This `σ` coincides with `ext(d, S)`
+precisely when `a = [S,1,…,1]` — which D-MIN★ guarantees in the docuverse, so the W4 span
+always serves and the general construction is never exercised in-spec.
 
 The *converse* (non-contiguous ⟹ no single span is exact) we establish by the structure of
 the argument, then exhibit concretely. Suppose `V_S(d)` is *not* contiguous: there exist
@@ -241,10 +237,9 @@ which strictly contains `V_S(d)` precisely because `[S,2]` is admitted. So
 converse.
 
 The docuverse maintains contiguity as an invariant (D-CTG★), so under well-formed editing the
-one-span-per-subspace report is exact — but the dependence is real, and Gregory's
-implementation exhibits exactly the bounding-box behavior when fed non-contiguous content
-(consultation Q11, Q13): the reported span runs minimum-to-maximum and silently absorbs
-interior gaps.
+one-span-per-subspace report is exact; the converse just established records that this exactness
+genuinely *depends* on D-CTG★ rather than holding unconditionally. Whether relaxing that
+invariant would oblige the operation to fragment is taken up in the open questions below.
 
 ---
 
@@ -604,7 +599,7 @@ and needs none.
 | W2 | `ext(d, S) = ([S,1,…,1], δ(n_S, m_S))` is the extent span encoding `n_S` | introduced |
 | W3 | `ext(d, S)` is a well-formed, level-uniform T12 span with `reach = [S,1,…,1,1+n_S]` | introduced |
 | W4 | ExactCoverage — `⟦ext(d, S)⟧ ∩ VSlice(S, m_S) = V_S(d)` (complete and exclusive) | introduced |
-| W5 | ExactnessRequiresContiguity — *for `V_S(d) ≠ ∅`*, a single level-uniform span exactly covers `V_S(d)` iff `V_S(d)` is contiguous in `VSlice(S, m)`; forward by constructing the span at the run's *actual* minimum (T0(a)+S8-fin pin a shared prefix, T5 confines the interior), converse by order-convexity (counterexample `{[S,1],[S,3]}`) | introduced |
+| W5 | ExactnessRequiresContiguity — *for `V_S(d) ≠ ∅`*, a single level-uniform span exactly covers `V_S(d)` iff `V_S(d)` is contiguous in `VSlice(S, m)`; forward direction in-spec is immediate from W4 under D-MIN★ (canonical anchor); the general non-canonical-anchor construction exceeds what the operation requires and is confined to the D-CTG★-relaxation hypothetical; converse by order-convexity (counterexample `{[S,1],[S,3]}`) | introduced |
 | W6 | `occupied(d) = {S ∈ {s_C, s_L} : V_S(d) ≠ ∅}` | introduced |
 | W7 | OneSpanPerOccupiedSubspace — result has exactly `|occupied(d)|` members, one per kind, not per fragment or item | introduced |
 | W8 | PureQuery — `Σ' = Σ`; the operation reads and writes nothing | introduced |
