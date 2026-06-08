@@ -151,8 +151,7 @@ depths:
   `r⋆` and `reach_d < r⋆` (T1 case (ii)). Hence `max O(d) < reach_d < r⋆`, and again every
   `v ∈ O(d)` lies in `⟦σ_d⟧`.
 
-In both cases `r⋆ ≥ reach_d > max O(d)`, so coverage holds *unconditionally* — it does not
-route through any endpoint depth relation or through WF. What the endpoint relation governs is
+In both cases `r⋆ ≥ reach_d > max O(d)`, so coverage holds. What the endpoint relation governs is
 only the *reach*: the **reach biconditional** `reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d`
 (D1 closes the round-trip when `#origin_d ≤ #reach_d`; D0 makes it fail when
 `#origin_d > #reach_d`). The reach equals `reach_d` whenever the occupied subspaces share a
@@ -164,8 +163,7 @@ admissible upper bound *among tumblers of the same depth as* `max O(d)`. The sam
 qualifier is load-bearing: dropped, the claim is false, since the deeper `max O(d).0` is a
 smaller upper bound. The lower bound is
 unconditional: any span `σ'` with `O(d) ⊆ ⟦σ'⟧` satisfies `start(σ') ≤ min O(d) = origin_d`.
-The upper bound requires an argument, not an appeal to a "one step at a time" convention —
-the tumbler line has no such convention. Write `w = max O(d)`. Because every V-position is zero-free with all components
+The upper bound requires an argument. Write `w = max O(d)`. Because every V-position is zero-free with all components
 positive (S8a), the rightmost nonzero component of `w` is its last, so `sig(w) = #w`
 (TA5-SIG, ASN-0034); hence `reach_d = shift(w, 1) = w ⊕ δ(1, #w)` coincides with `inc(w, 0)`,
 since OrdinalShift (ASN-0034) advances the same last component that `inc(·, 0)` modifies at
@@ -264,11 +262,10 @@ exactly.
 A span is by construction one contiguous region (ASN-0053 S0, convexity): "if you want to
 designate a separated series of items exactly, including nothing else, you do this by a
 span-set, which is a series of spans" (4/25). A document occupying two disjoint subspaces is a
-*separated series*, so no single span can trace it exactly; recovering the per-subspace extents
-exactly requires a span-*set* — a different operation, out of scope here. We record the
-structural reason behind V6 as **V7** (single-span contiguity): the result is always one convex
-region; fragmentation is unrepresentable in a single span, so a multi-subspace document is
-reported by enclosure rather than by exact decomposition.
+*separated series*. We record the structural reason behind V6 as **V7** (single-span
+contiguity): the result is always one convex region; fragmentation is unrepresentable in a
+single span, so a multi-subspace document is reported by enclosure rather than by exact
+decomposition.
 
 ---
 
@@ -299,74 +296,35 @@ The extent behaves oppositely. Nelson distinguishes *arrangement* (order) from *
 there is → extent changes." We record **V9** (extent tracks composition, not arrangement).
 A pure rearrangement permutes `M(d)` while preserving `O(d) = dom(M(d))` — the occupied
 positions remain the dense set `{[s,1,…,1,k]}` by D-SEQ; only the values `M(d)(v)` are
-permuted. Since `σ_d` is a function of `O(d)` alone, the reported span is *identical* before
-and after: reorder the document and its origin and extent do not move. This matches Nelson's
-classification of rearrangement as a "Pure Vstream operation" that leaves the measured extent
-fixed. Insertion and deletion, by contrast, change `O(d)` — but the effect on the extent
-depends on *which subspace owns the maximum*, since the reach is anchored at `max O(d)`.
-Consider inserting `n` content positions. When the content subspace is the maximal occupied
-subspace — in particular when the link subspace is empty — the inserted positions extend the
-dense content run, advancing `max O(d)` by `n` ordinal steps; the reach and extent advance by
-the same shift, `reach_after = shift(reach_before, n)` and `extent_after = shift(extent_before,
-n)`, while `origin_d` is left untouched (insertion never falls below the canonical minimum).
-This is a *displacement* statement, not a count: the reach moves `n` ordinal steps along the
-tumbler line. A numeric coincidence does attend the dense single-subspace case — there
-`extent_d = [0,…,0,n_s]`, whose final component equals `|O(d)| = n_s` exactly, *because* the run
-is dense (D-SEQ★) and pinned at uniform depth from `[s,1,…,1]` (D-MIN★, S8-depth), so each
-ordinal step of the reach lines up one-for-one with one occupied position. But this coincidence
-is confined to that regime: the "not a number of anything" caveat (4/24) governs the
-cross-subspace and cross-population case, where positions between the endpoints — the
-inter-subspace void of V6, or unenumerated descendants of intermediate positions — are not
-recoverable from the span, and the final component counts ordinal steps, not contents. When the
-link subspace is occupied, `max O(d)` is a *link* position `[s_L, …]` (since `s_C < s_L`), and
-inserting content positions `[s_C, …]` — all strictly below every link position — does not move
-`max O(d)` at all; `reach_d` and `extent_d` are therefore unchanged by the content insertion.
-We record **V10** (insertion monotonicity, content-maximal case): *when the content subspace is
-the maximal occupied subspace* (equivalently, the link subspace is empty), an insertion of `n`
-content positions advances reach and extent by `n` ordinal steps —
-`extent_after = shift(extent_before, n)` — and leaves the origin fixed. The single-subspace
-count-coincidence established in the insertion paragraph above (extent's final component
-`= |O(d)|`) holds throughout this content-maximal case. *When links occupy the
-maximum*, content insertion leaves both reach and extent invariant (the new positions fall
-inside the existing bounding box). Gregory
-confirms the content-maximal half directly — the arrangement-tree width grows by exactly the
-inserted count while the reported start is unchanged across single and repeated insertions
-(consultation Q16).
+permuted. Since `σ_d` is a function of `O(d)` alone (V16), the reported span is *identical*
+before and after: reorder the document and its origin and extent do not move. This matches
+Nelson's classification of rearrangement as a "Pure Vstream operation" that leaves the measured
+extent fixed.
 
-Deletion is the mirror of insertion, but with one consequence insertion has no analogue for:
-deletion can *empty a subspace*, and emptying the content subspace moves the origin. We treat
-the three cases the reach-anchoring argument forces. **(i) Content-maximal retreat.** When the
-content subspace owns the maximum (in particular the link subspace is empty), deleting `n`
-content positions shrinks the dense content run from `n_C` to `n_C − n` occupied positions —
-D-SEQ★ keeps the survivors a contiguous prefix `{[s_C,1,…,1,k] : 1 ≤ k ≤ n_C − n}`, so
-`max O(d)` retreats by `n` ordinal steps to `[s_C,1,…,1,n_C − n]`, and the reach and extent
-retreat with it: `reach_after = shift(max O'(d), 1)` and `extent_after = reach_after ⊖ origin_d`,
-shorter than `extent_before` by exactly `n` ordinal steps. The origin is untouched so long as
-`n < n_C` (the run stays non-empty, so D-MIN★ still pins `[s_C,1,…,1]`). This is the exact
-inverse of V10's content-maximal advance. **(ii) Link-maximal invariance.** When a link occupies
-the maximum (`V_{s_L}(d) ≠ ∅`), every content position lies strictly below every link position
-(`s_C < s_L`), so deleting content positions leaves `max O(d)` — a link position — fixed, and
-`reach_d` and `extent_d` are invariant. This mirrors V10's link-maximal half exactly. The
-implementation realizes the invariance through a subspace guard: a text-width deletion (at the
-content exponent) cannot subtract from a link displacement (at the link exponent), so the
-links stay pinned at `[s_L, …]` throughout the content deletion (deletion consultation).
-**(iii) Full content clearance with surviving links — the origin migrates.** When deletion
-empties the content subspace (`V_{s_C}(d) = ∅`) while one or more links survive
-(`V_{s_L}(d) ≠ ∅`), the document is *not* empty, so V11 does not fire; but V8's hypothesis
-(content present) fails, and its conclusion lapses with it. The minimum occupied position is now
-`min V_{s_L}(d) = [s_L,1,…,1]` (D-MIN★ instantiated at `S = s_L`), so `origin_d` jumps from the
-content anchor `[s_C,1,…,1]` up into link space, and `reach_d = shift(max V_{s_L}(d), 1)` is
-now a link reach. Origin permanence (V8) is asserted *while content is present*, so this
-clearance transition lies outside its hypothesis. We record **V18**
-(deletion symmetry and origin migration): deletion of `n` content positions retreats reach and
-extent by `n` ordinal steps when the content subspace is maximal (the inverse of V10) and leaves
-both invariant when links occupy the maximum; and when deletion clears the content subspace while
-links survive, `origin_d` migrates from `[s_C,1,…,1]` to the link minimum `[s_L,1,…,1]` — the
-sole editing transition that moves the origin. Gregory
-confirms the migration: deleting all text while links remain is a permitted, non-empty state in
-which the arrangement-tree root V-displacement (maintained as the minimum occupied address)
-retreats to the link minimum, so `RETRIEVEDOCVSPAN` reports the link span — `2.1 for 0.1` in the
-golden link-only configuration — rather than the empty result (deletion consultation).
+This exhausts the query-relevant content of editing. Because `σ_d` is a pure function of `O(d)`
+(V16), *any* edit alters the reported span exactly insofar as it alters `O(d)`: an edit that
+leaves `O(d)` fixed leaves `σ_d` fixed, and one that changes `O(d)` changes `σ_d` accordingly.
+The exact reach-arithmetic of each edit — how an insertion or deletion of `n` positions moves
+`max O(d)` and hence the reach — is a property of INSERT and DELETE, not an invariant of this
+query. We record this as **V10** (edits act on the span only through `O(d)`). To illustrate:
+inserting `n` content positions while the content subspace owns the maximum extends the dense
+content run, advancing `max O(d)` and hence the reach by `n` ordinal steps while the origin (the
+canonical minimum) holds fixed; in that dense single-subspace regime `extent_d = [0,…,0,n_s]`,
+whose final component equals `|O(d)| = n_s` exactly (the run being dense, D-SEQ★, D-MIN★) —
+though the "not a number of anything" caveat (4/24) governs the moment a link occupies the
+maximum or unoccupied positions fall between the endpoints (consultation Q16).
+
+One edit consequence is specific to this query, because it *bounds V8*. Deletion, unlike
+insertion, can empty a subspace, and emptying the content subspace is the one editing transition
+that moves the origin. V8's origin permanence is asserted *while content is present* — that
+hypothesis is exactly the boundary. We record **V18** (origin migration bounds V8): when
+deletion clears the content subspace (`V_{s_C}(d) = ∅`) while one or more links survive
+(`V_{s_L}(d) ≠ ∅`), the document is *not* empty (V11 does not fire), but V8's hypothesis fails
+and `origin_d` migrates from the content anchor `[s_C,1,…,1]` to the link minimum `[s_L,1,…,1]`
+(D-MIN★ at `S = s_L`) — the sole editing transition that moves the origin. Gregory confirms it:
+deleting all text while links remain is a permitted, non-empty state reporting the link span
+(`2.1 for 0.1` in the golden link-only configuration), not the empty result (deletion
+consultation).
 
 ---
 
@@ -576,7 +534,7 @@ endpoint depths), without inspecting the returned span.
 | V7 | The result is always one convex region; fragmentation is unrepresentable in a single span, so multi-subspace documents are reported by enclosure (single-span contiguity) | introduced |
 | V8 | While the content subspace is non-empty, `origin_d = [s_C,1,…,1]`, invariant under all editing that leaves content present (origin permanence) | introduced |
 | V9 | `σ_d` is a function of `O(d)` alone; pure rearrangement preserves `O(d)` and returns the identical span (extent tracks composition, not arrangement) | introduced |
-| V10 | When the content subspace is maximal (link subspace empty), inserting `n` content positions advances reach and extent by `n` ordinal steps (`extent_after = shift(extent_before, n)`) and leaves the origin fixed (the single-subspace count-coincidence of the insertion paragraph applies); when links occupy the maximum, content insertion leaves reach and extent invariant (insertion monotonicity, content-maximal case) | introduced |
+| V10 | Edits act on `σ_d` only through `O(d)` (V16): an edit leaving `O(d)` fixed leaves `σ_d` fixed, one changing `O(d)` changes `σ_d` accordingly; the exact reach-arithmetic of each edit belongs to INSERT/DELETE, not this query (edits act on the span only through `O(d)`) | introduced |
 | V11 | The operation is total over allocated documents; `O(d) = ∅` yields the distinguished empty span-set `⟨⟩` (not a T12 span), with `origin_d` undefined and no extent — the implementation's zeros are a sentinel, not a legal address (TA6) | introduced |
 | V12 | The span discloses the live origin (addressing anchor) and current extent (present bounds) — neither derivable from `d`'s identity (information gain) | introduced |
 | V13 | `σ_d` depends only on `O(d)`; two documents sharing content report independent spans; transcluded positions count toward the borrowing document's extent (independence) | introduced |
@@ -584,11 +542,9 @@ endpoint depths), without inspecting the returned span.
 | V15 | A returned span keeps its meaning under later edits to `d` or to home documents supplying its content; a fresh report is a new query, not a mutation (snapshot stability) | introduced |
 | V16 | `σ_d` is a pure function of `O(d)`; equal arrangements return identical spans, independent of how the arrangement was built (determinism) | introduced |
 | V17 | For non-empty `d`, `extent_d` is a positive tumbler with `actionPoint(extent_d) ≤ #origin_d` (well-formed T12 span); `reach_d > origin_d` always, so the extent is never negative | introduced |
-| V18 | Deletion of `n` content positions retreats reach and extent by `n` ordinal steps when the content subspace is maximal (inverse of V10) and leaves both invariant when links occupy the maximum; clearing the content subspace while links survive migrates `origin_d` from `[s_C,1,…,1]` to the link minimum `[s_L,1,…,1]` — the sole editing transition that moves the origin (deletion symmetry and origin migration) | introduced |
+| V18 | Origin permanence (V8) holds exactly while content is present; clearing the content subspace while links survive migrates `origin_d` from `[s_C,1,…,1]` to the link minimum `[s_L,1,…,1]` — the sole editing transition that moves the origin (origin migration bounds V8) | introduced |
 
 ## Open Questions
-
-What must a span-valued report guarantee so that the per-subspace extents of a multi-subspace document are recoverable exactly, given that a single span can only enclose disjoint subspaces rather than trace them?
 
 In the *multi-subspace* case — where the inter-subspace void places unoccupied positions between the endpoints — what invariant, if any, can relate the reported extent to the count of occupied positions, given that the dense single-subspace coincidence (final component `= |O(d)|`, settled by V5/V10) fails there and a span designates boundaries, not a cardinality?
 
