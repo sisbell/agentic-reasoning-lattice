@@ -1,0 +1,17 @@
+# Review of ASN-0099
+
+## REVISE
+
+### Issue 1: F23 mischaracterizes K.μ⁺ as deterministic and reasons about a single successor
+**ASN-0099, F23 (ContractionExtensionWPWeakening)**: Step 1 reads "For sequential composition of *deterministic* partial operations, `wp(σ, Q) = wp(K.μ⁻[d, ℛ], wp(K.μ⁺[d], Q))`"; Step 2 speaks of "any intermediate state `Σ_m` ... and `Σ_m'` *its* post-extension successor."
+
+**Problem**: K.μ⁺ (ArrangementExtension, ASN-0047) is *nondeterministic* — the precondition constrains but does not uniquely determine the added V→I mappings (`dom(M'(d)) ⊃ dom(M(d))` with the new mappings caller-selected). Contrast K.μ⁻[d, ℛ], which F21 correctly parameterizes by the retention domain ℛ to make it deterministic; K.μ⁺[d] carries no analogous parameter, yet F23 labels it "deterministic" and refers to "its successor" in the singular. A reader cannot tell whether F23 covers *all* admissible extensions or one unspecified extension. The wp sequential-composition law and the `[Q ⟹ wp(K.μ⁺[d], Q)]` step do hold under demonic nondeterminism (LP9 applies to every K.μ⁺ extension, so Q propagates to every successor), so the conclusion survives — but the stated justification contradicts the operation's actual semantics.
+
+**Required**: Either parameterize K.μ⁺ explicitly (as K.μ⁻ is parameterized by ℛ) so the "deterministic" label is accurate and F23's scope is pinned, or drop "deterministic" and state the wp law for nondeterministic (demonic) commands, with Step 2 quantifying universally over successors ("for *every* post-extension successor `Σ_m'`, `Q(Σ_m) ⟹ Q(Σ_m')`"). The same singular-π phrasing in F22 ("via the witnessing bijection π") should be reconciled — there it is harmless because range invariance (LP11) holds for every admissible π, but the text should say so rather than fix one π.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Combined filtered-and-scoped operation
+The note flags `findlinks_filtered_scoped(C, S, Σ)` as unspecified. This is correctly deferred — it is a new composite, not a defect in the present claims.
+
+VERDICT: REVISE
