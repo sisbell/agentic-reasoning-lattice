@@ -282,12 +282,9 @@ operation reads `C`, `L`, `M`, and the document identity, and writes nothing —
 allocation, no arrangement change, no provenance. It is a function of the present state
 alone.
 
-**Only the two counted subspaces appear.** A link is internally a three-ended structure,
-and its endpoint sub-addresses inhabit a *third* region of the address tree (a type/endpoint
-subspace, `s = 3`). That region is not a kind of *document content* — it is internal to a
-link's own storage — and so it is never a V-position of `d`. Every occupied position of `d`
-lies in one of the two counted subspaces, leaving none in a third. This is precisely
-S3★-aux (SubspaceExhaustiveness, ASN-0047): `(A d, v : v ∈ dom(M(d)) : subspace(v) = s_C ∨
+**Only the two counted subspaces appear.** Every occupied V-position of `d` lies in one of
+the two counted subspaces, leaving none in a third. This is precisely S3★-aux
+(SubspaceExhaustiveness, ASN-0047): `(A d, v : v ∈ dom(M(d)) : subspace(v) = s_C ∨
 subspace(v) = s_L)`. We record **W9** (TwoKindsOnly):
 
 > `O(d) = V_{s_C}(d) ⊔ V_{s_L}(d)`.
@@ -368,12 +365,9 @@ The whole point of returning *both* extents — Nelson's "both the number of cha
 text and the number of links" (4/68) — is that the pair carries information no single
 extent holds. We make this precise.
 
-A single extent gives a *size*; the pair gives a *proportion*. Ask for the text extent
-alone and you learn how much matter the document carries, but nothing about how connected it
-is; ask for the link extent alone and you learn how many connections it anchors, but nothing
-about how much content those connections hang on. The pair `(n_{s_C}, n_{s_L})` is the
-document's *profile* — its ratio of original matter to connective structure — and this is
-the one thing neither coordinate determines. We record **W12** (ProfileIrreducibility): the
+A single extent gives a *size*; the pair `(n_{s_C}, n_{s_L})` gives a *proportion* — the
+document's *profile*, its ratio of original matter to connective structure, which neither
+coordinate alone determines. We record **W12** (ProfileIrreducibility): the
 map `d ↦ (n_{s_C}(d), n_{s_L}(d))` is determined by neither coordinate alone. Formally,
 neither projection is injective on the profile: for any value of one coordinate there exist
 states realizing distinct values of the other —
@@ -448,14 +442,14 @@ that carries nothing). The agreement of the members with the active set is the o
 signature that the arrangement is intact.
 
 **The extent-content relationship.** Finally, the relationship each member bears to what a
-reader would *find* on retrieving that subspace. The member is a boundary designation; the
-content it measures is exactly the population of the designated region. We record **W17**
-(ExtentDeterminesPopulation): for each occupied `S`, the active positions of `S` are exactly
-those V-slice tumblers lying within `ext(d, S)` (this is W4 restated as a fidelity claim),
-and each such position carries content — `M(d)(v) ∈ dom(C)` for `S = s_C`, `M(d)(v) ∈ dom(L)`
-for `S = s_L` (S3★). The reader who later asks for the region the member bounds finds
-neither more nor fewer items than the extent claims. What must never happen is a mismatch
-where the extent designates a region but the region's population differs from it.
+reader would *find* on retrieving that subspace. W4 already fixes *which* V-slice tumblers the
+member designates — the active positions of `S` are exactly those lying within `ext(d, S)`. The
+one increment here is that each such position *carries content*. We record **W17**
+(ExtentDeterminesPopulation), one S3★ step beyond W4: for each occupied `S` and each
+`v ∈ ⟦ext(d, S)⟧ ∩ VSlice(S, m_S)`, `M(d)(v) ∈ dom(C)` for `S = s_C` and `M(d)(v) ∈ dom(L)` for
+`S = s_L` (S3★). The reader who later asks for the region the member bounds finds neither more
+nor fewer items than the extent claims; what must never happen is a mismatch where the extent
+designates a region but the region's population differs from it.
 
 ---
 
@@ -593,11 +587,23 @@ state, not from any property the operation contributes. We record **W18** (Deriv
 `RETRIEVEDOCVSPANSET(d)` is a pure function of the current state `Σ` (by W8), so any two
 queries against the *same* `Σ` return identical span-sets; the report changes only when
 `M(d)` changes — a later report contradicts an earlier one only if some transition reshaped
-`M(d)` in between. The link count is
-specifically the count of *home* links — links the document owns (CL-OWN) — so a third party
-linking *into* the document, owning its link at another address, cannot perturb the
-document's reported link extent. The stability the report enjoys is exactly the stability of
-the arrangement it views; the operation adds none of its own and needs none.
+`M(d)` in between.
+
+**The link extent counts links.** The link member's whole purpose (W0, after Nelson 4/68) is
+to *indicate the number of links*, so we must bridge `n_{s_L}(d) = |V_{s_L}(d)|` to that
+number. Two foundation facts close the gap. CL-OWN restricts `V_{s_L}(d)` to the document's
+*own* (home) links — a third party linking *into* `d`, owning its link at another address,
+contributes nothing to `V_{s_L}(d)` and cannot perturb the reported link extent. CL-UNIQ makes
+`M(d)` restricted to `V_{s_L}(d)` injective — each home link occupies *exactly one*
+link-subspace V-position — so the correspondence between `d`'s home links and `V_{s_L}(d)` is a
+bijection and `|V_{s_L}(d)|` counts home links exactly. (Without CL-UNIQ a single link
+occupying two V-positions would double-count, and the member would not indicate the number of
+links at all.) The content side carries the analogous guarantee *more cheaply* and
+asymmetrically: each content V-position carries exactly one I-address (S2) drawn from `dom(C)`
+(S3★), so `n_{s_C}(d) = |V_{s_C}(d)|` is already the number of content positions with no
+ownership or uniqueness premise to discharge — the link side needs CL-OWN and CL-UNIQ where the
+content side needs only functionality. The stability the report enjoys is exactly the stability
+of the arrangement it views; the operation adds none of its own and needs none.
 
 ---
 
@@ -622,8 +628,8 @@ the arrangement it views; the operation adds none of its own and needs none.
 | W14 | Comparability — per-kind comparison `n_S(d₁)` vs `n_S(d₂)` is total because `n_S = |V_S(d)|` is a total function (W1), independent of which members the report emits | introduced |
 | W15 | Independence — `n_{s_C}` depends only on `V_{s_C}(d)`, `n_{s_L}` only on `V_{s_L}(d)`; subspace edits do not cross | introduced |
 | W16 | Partition — the members disjointly cover exactly the counted active V-positions; no orphan, no phantom | introduced |
-| W17 | ExtentDeterminesPopulation — active positions of `S` are exactly the V-slice tumblers within `ext(d, S)`, each carrying content | introduced |
-| W18 | DerivedReport — the result is a pure function of current state `Σ`; it changes only when `M(d)` changes; the link extent counts home links only (CL-OWN) | introduced |
+| W17 | ExtentDeterminesPopulation — each V-slice position within `ext(d, S)` carries content (`M(d)(v) ∈ dom(C)`/`dom(L)`, S3★); one step beyond W4's coverage equality | introduced |
+| W18 | DerivedReport — the result is a pure function of current state `Σ`; it changes only when `M(d)` changes; `n_{s_L} = |V_{s_L}(d)|` counts home links exactly (CL-OWN restricts to own links, CL-UNIQ gives the bijection), `n_{s_C}` counts content positions by functionality alone (S2/S3★) | introduced |
 | W20 | ResultCardinalityWP — `wp(·, "result = ⟨⟩") ≡ d ∈ dom(M) ∧ V_{s_C}(d) = ∅ ∧ V_{s_L}(d) = ∅`; `wp(·, "|result| = 2") ≡ d ∈ dom(M) ∧ V_{s_C}(d) ≠ ∅ ∧ V_{s_L}(d) ≠ ∅`; `wp(·, "|result| = 1") ≡ d ∈ dom(M) ∧ (V_{s_C}(d) = ∅ ⊻ V_{s_L}(d) = ∅)` | introduced |
 
 ---
