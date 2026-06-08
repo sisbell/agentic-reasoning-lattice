@@ -68,15 +68,12 @@ precisely membership:
 
 > `wp(readlink request at a, result = Σ.L(a)) ≡ a ∈ dom(Σ.L)`.
 
-The link-shape of an address is necessary but not sufficient for definedness: an address may parse
-as a well-formed link tumbler yet name no allocated link.
-
 A reader holding a candidate tumbler can test the *necessary* structural conditions from the
 address alone — `zeros(a) = 3 ∧ subspace_I(a) = s_L` — by T4 parsing and the subspace projection
-(ASN-0034). These conditions are necessary but not sufficient: an address may have link-shaped
-structure yet name no allocated link. Definedness is a fact about `dom(Σ.L)`, not about the
-address's syntax, so the read either delivers the whole relationship or reports that no link
-lives at `a`. There is no partial-success middle state at the level of *whether* a link is there.
+(ASN-0034). These conditions are necessary but not sufficient: an address may parse as a
+well-formed link tumbler yet name no allocated link. Definedness is a fact about `dom(Σ.L)`, not
+about the address's syntax, so the read either delivers the whole relationship or reports that no
+link lives at `a`. There is no partial-success middle state at the level of *whether* a link is there.
 
 ## Completeness: the read returns the whole relationship
 
@@ -90,12 +87,8 @@ request to satisfy and therefore no notion of a satisfying fragment. It must ret
 
 > `(A i, (s, ℓ) : 1 ≤ i ≤ |Σ.L(a)| ∧ (s, ℓ) ∈ Σ.L(a).eᵢ : (s, ℓ) ∈ readlink(a, Σ).eᵢ)`,
 
-and conversely the read introduces no span not recorded. Equivalently `readlink(a, Σ) = Σ.L(a)`
-componentwise. The justification is immediate from the definition, but the *content* of the
-claim is the rejection of the satisfaction model: an alternative implementation that returned
-only the spans matching some implicit predicate would not be reading the link — it would be
-searching it. Reading is exhaustive by construction; satisfaction is irrelevant because there is
-no query against which to be satisfied.
+and conversely the read introduces no span not recorded. The justification is immediate from the
+definition: `readlink(a, Σ) = Σ.L(a)` componentwise.
 
 This is why the read recovers the arbitrary, broken collections that endsets are permitted to be.
 An endset may scatter spans across many documents and across discontiguous regions within one;
@@ -109,11 +102,9 @@ meaning lives in its organisation: a span in the from-set asserts something diff
 same span in the to-set or the type-set. So the read carries an obligation beyond returning a
 bag of spans.
 
-**RL2 (Role preservation).** Completeness (RL1) already forces per-slot set equality
-`readlink(a, Σ).eᵢ = Σ.L(a).eᵢ` for every `i`; what RL2 adds is the *structural* status of that
-equality. The read preserves the link's arity and exposes each endset under its slot index as a
-model primitive — slot position is part of the value, not a label a reader reconstructs from an
-unordered pool:
+**RL2 (Role preservation).** The read preserves the link's arity and exposes each endset under its
+slot index as a model primitive (L6, ASN-0043) — slot position is part of the value, not a label a
+reader reconstructs from an unordered pool:
 
 > `|readlink(a, Σ)| = |Σ.L(a)|`,  and for each `1 ≤ i ≤ |Σ.L(a)|` the positional accessor
 > `readlink(a, Σ).eᵢ` is a model primitive (L6, ASN-0043), with link equality componentwise.
@@ -329,9 +320,8 @@ We can now check the load-bearing postconditions against this instance.
   read to return the bag `F ∪ Θ`, the reader could no longer tell that `[1.0.1.0.9.0.1.1]`
   classifies the link while the others are its source — a different relationship (L6). The read
   copies the stored `Σ.L(a).eᵢ` into `readlink(a, Σ).eᵢ` by a per-index rule that names no other
-  slot (link equality is componentwise, L6), so verifying slots 1–3 establishes the claim for every
-  `N ≥ 3`: an arity-4 value `(F, ∅, Θ, e₄)` returns `e₄` under slot 4 by exactly the same copy, with
-  no slot-count-dependent step to recheck.
+  slot (link equality is componentwise, L6): an arity-4 value `(F, ∅, Θ, e₄)` returns `e₄` under
+  slot 4 by exactly the same copy.
 - *RL5 (ghost-type completeness).* `Θ`'s address holds nothing, yet the read returns it intact.
   Its single span `([1.0.1.0.9.0.1.1], δ(1, 8))` is the canonical unit-depth span (`#s = 8 = #δ(1, 8)`),
   so by PrefixSpanCoverage (ASN-0043) `coverage(Θ) = {t : [1.0.1.0.9.0.1.1] ≼ t}` — the *subtree*
