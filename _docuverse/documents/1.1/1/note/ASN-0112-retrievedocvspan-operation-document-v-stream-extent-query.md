@@ -20,10 +20,7 @@ We write the operation as a pure query, `RETRIEVEDOCVSPAN(d)`, that observes the
 returns a value, changing nothing. We record this no-mutation guarantee as **V-frame**:
 the post-state equals the observed state, `Σ' = Σ`, so every component — content store `C`,
 link store `L`, entity set `E`, arrangement family `M`, provenance relation `R` — is left
-intact. This is the operation's defining frame: an alternative implementation of "boundary
-query, not a content read" must satisfy it, distinguishing the query from any transition that
-edits the arrangement it measures. The entire content of this note is: *what is that
-value, and what must hold of it?*
+intact. The entire content of this note is: *what is that value, and what must hold of it?*
 
 ---
 
@@ -85,18 +82,20 @@ does not designate the number of bytes contained. It does not designate a number
 anything" (4/24). The result is a *boundary description* — two tumblers, a start and a
 width, whose meaning is "from here, this far," with everything between implicit (4/25).
 
-We therefore fix the result type *once and explicitly*: the operation returns either one
-well-formed span or a distinguished empty value — never a content sequence, never a
-cardinality. We record this as **V0** (span-or-empty result), the tagged union
+We therefore fix the result type *once and explicitly*: the operation returns a *span-set*
+(ASN-0053) — never a content sequence, never a cardinality. We record this as **V0**
+(span-set result), the uniform codomain
 
-> `RETRIEVEDOCVSPAN : dom(M) → Span + {⟨⟩}`,
+> `RETRIEVEDOCVSPAN : dom(M) → SpanSet`,
 
-where `Span` is the type of T12 spans (a pair `(s, ℓ)`) and `⟨⟩` is the empty span-set of
-ASN-0053, the distinguished value denoting `∅`. For a non-empty document `RETRIEVEDOCVSPAN(d)`
-returns one well-formed span `σ_d = (origin_d, extent_d)`; for an empty document
-(`O(d) = ∅`) it returns `⟨⟩`. The two summands are genuinely distinct: `⟨⟩` cannot be a
-degenerate span, because no T12 span can denote `∅` (S2, ASN-0053: every well-formed span is
-non-empty).
+where `SpanSet` is ASN-0053's type of finite span sequences. For a non-empty document
+`RETRIEVEDOCVSPAN(d)` returns the singleton span-set `⟨σ_d⟩` carrying one well-formed span
+`σ_d = (origin_d, extent_d)`; for an empty document (`O(d) = ∅`) it returns the empty span-set
+`⟨⟩`. Returning a span-set uniformly puts both results in one ASN-0053 type — we choose this
+over a heterogeneous `Span ⊎ SpanSet` union precisely so the empty and non-empty cases inhabit
+the same codomain. The two are still distinguishable by denotation: `⟨⟩` denotes `∅`, while
+`⟨σ_d⟩` denotes the non-empty `⟦σ_d⟧` (S2, ASN-0053: every well-formed span is non-empty), so
+no populated result can be confused with the empty one.
 
 The caller reads `origin_d` to learn where the V-stream begins and `extent_d` to learn how far it
 reaches; the content itself, and any per-piece count, are the business of other operations.
@@ -410,7 +409,7 @@ Compute the span. `origin_d = min O(d) = [1,1]`. `max O(d) = [2,1]`, so
 `reach_d = shift([2,1], 1) = [2,2]`. The extent is `[2,2] ⊖ [1,1]`: the tumblers first differ
 at position 1 (`2 ≠ 1`), so `extent_d = [2-1, 2] = [1,2]`. Thus
 
-> `RETRIEVEDOCVSPAN(d) = ([1,1], [1,2])`,  i.e. "1.1 for 1.2".
+> `RETRIEVEDOCVSPAN(d) = ⟨([1,1], [1,2])⟩`,  i.e. the singleton span-set "1.1 for 1.2".
 
 Verify the claims. **V1**: `origin_d = [1,1] ∈ O(d)`, an occupied content position. ✓
 **V2**: `⟦σ_d⟧ = {t : [1,1] ≤ t < [2,2]}` contains all four occupied positions. ✓
@@ -420,7 +419,7 @@ void, none occupied — the span strictly encloses `O(d)`. ✓ **V2** (T12 legal
 
 Now drop the link, leaving `O'(d) = {[1,1], [1,2], [1,3]}`. Then `origin_d = [1,1]` (V8,
 unchanged), `max = [1,3]`, `reach = [1,4]`, `extent = [1,4] ⊖ [1,1] = [0,3]`, giving
-`([1,1], [0,3])` — "1.1 for 0.3", an exact cover of three contiguous positions (V5), with the
+`⟨([1,1], [0,3])⟩` — "1.1 for 0.3", an exact cover of three contiguous positions (V5), with the
 origin fixed exactly where it was (V8). Reordering these three positions — permuting which
 I-address sits at each — leaves `O'(d)` unchanged and so returns the identical span (V9).
 
@@ -479,8 +478,8 @@ endpoint depths), without inspecting the returned span.
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| V-frame | `Σ' = Σ` — the query mutates no state component (`C, L, E, M, R` all unchanged); the no-mutation guarantee that distinguishes a boundary query from an editing transition (purity of the transition, distinct from V16's purity of the returned value) | introduced |
-| V0 | `RETRIEVEDOCVSPAN : dom(M) → Span + {⟨⟩}` (tagged union): one well-formed span `σ_d = (origin_d, extent_d)` for a non-empty document, or the distinguished empty span-set `⟨⟩` (denoting `∅`, not a T12 span) when `O(d) = ∅` — never a content sequence, never a count | introduced |
+| V-frame | `Σ' = Σ` — the query mutates no state component (`C, L, E, M, R` all unchanged) | introduced |
+| V0 | `RETRIEVEDOCVSPAN : dom(M) → SpanSet` (uniform ASN-0053 span-set codomain): the singleton span-set `⟨σ_d⟩` carrying one well-formed span `σ_d = (origin_d, extent_d)` for a non-empty document, or the empty span-set `⟨⟩` (denoting `∅`) when `O(d) = ∅` — never a content sequence, never a count | introduced |
 | V1 | When `O(d) ≠ ∅`, `origin_d = min O(d)` under T1 and `origin_d ∈ O(d)` (the origin is an occupied position) | introduced |
 | V2 | `O(d) ⊆ ⟦σ_d⟧` (coverage), proved unconditionally via D0/D1 without assuming level-uniformity; the actual reach `r⋆ = origin_d ⊕ extent_d ≥ reach_d = shift(max O(d), 1) > max O(d)`, with equality `r⋆ = reach_d` iff `#origin_d ≤ #reach_d`; the span `(origin_d, extent_d)` is always a well-formed T12 span | introduced |
 | V3 | `origin_d` is the greatest lower bound of `O(d)`; `reach_d` is the least strict upper bound of `max O(d)` *among tumblers at the depth of `max O(d)`* (`= #reach_d`; the deeper zero-extension `max O(d).0` is a smaller upper bound but lies at greater depth) — so the constructed endpoint `reach_d` is the tightest same-depth strict bound on `max O(d)`. Whether `σ_d`'s own denotational reach `r⋆` attains `reach_d` is the separate V2 question | introduced |
