@@ -150,11 +150,12 @@ covers it exactly. Define the **extent span** of subspace `S`:
 We record `n_S = |V_S(d)|` as the **subspace extent** (W1) and `ext(d, S)` as its **span
 encoding** (W2). We must show this span is legal and that it covers exactly the run.
 
-**The extent span is well-formed.** We record **W3**: `ext(d, S)` satisfies T12. The width
-`δ(n_S, m_S)` is positive because `n_S ≥ 1` (the run is non-empty), and its action point is
-its last position `m_S`, which equals `#start_S = m_S`, so `actionPoint(δ(n_S, m_S)) ≤
-#start_S`. T12's two preconditions hold, so the span is well-formed; moreover it is
-level-uniform, `#δ(n_S, m_S) = m_S = #start_S`. Its reach is
+**The extent span is well-formed.** We record **W3**: `ext(d, S)` satisfies T12. By
+OrdinalDisplacement (ASN-0034), with `n_S ≥ 1` (the run is non-empty) and `m_S ≥ 1`, the
+width `δ(n_S, m_S)` is a positive tumbler with `actionPoint(δ(n_S, m_S)) = m_S`; since
+`#start_S = m_S`, the action point satisfies `actionPoint(δ(n_S, m_S)) = m_S ≤ #start_S`.
+T12's two preconditions hold, so the span is well-formed; moreover it is level-uniform,
+`#δ(n_S, m_S) = m_S = #start_S`. Its reach is, by OrdinalShift (ASN-0034),
 
 > `reach(ext(d, S)) = start_S ⊕ δ(n_S, m_S) = shift(start_S, n_S) = [S,1,…,1,1+n_S]`,
 
@@ -240,8 +241,9 @@ each of which contiguity would force into `V_S(d)`, contradicting finiteness (S8
 run is confined to one prefix and its last components form a contiguous block of naturals;
 with `n_S = |V_S(d)|`, that block is `a_m, a_m+1, …, a_m + n_S − 1`, and
 `b = [S, a_2, …, a_{m−1}, a_m + n_S − 1]`. Now define `σ = (a, δ(n_S, m))` — level-uniform and
-T12-well-formed (`δ(n_S, m)` positive since `n_S ≥ 1`, action point `m = #a`), with
-`reach(σ) = shift(a, n_S) = [S, a_2, …, a_{m−1}, a_m + n_S]`. By T5 on the prefix
+T12-well-formed (by OrdinalDisplacement, ASN-0034: `δ(n_S, m)` positive with action point
+`m = #a`), with `reach(σ) = shift(a, n_S) = [S, a_2, …, a_{m−1}, a_m + n_S]` (OrdinalShift,
+ASN-0034). By T5 on the prefix
 `[S, a_2, …, a_{m−1}]` (length `m − 1`) shared by `a` and `reach(σ)`, every interior tumbler
 extends that prefix, and the half-open bounds pin its last component to
 `a_m ≤ t_m ≤ a_m + n_S − 1` — exactly the run. Hence `⟦σ⟧ ∩ VSlice(S, m) = V_S(d)`, an exact
