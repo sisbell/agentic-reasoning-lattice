@@ -294,7 +294,7 @@ restricts that component to `{s_C, s_L}`, so `O(d) = {v ∈ O(d) : v₁ = s_C} �
 s_L} = V_{s_C}(d) ∪ V_{s_L}(d)`. The union is disjoint because `s_C ≠ s_L` (SC-NEQ), so no
 `v` can satisfy both predicates. There is therefore *no third subspace* in which document
 content could reside, hence no third member can ever arise in the span-set — the report is
-intrinsically two-kinded, grounded in the foundation rather than in implementation behavior.
+intrinsically two-kinded.
 
 **The result-cardinality, characterized as a weakest precondition.** The operation writes
 nothing (W8), so the only non-trivial postcondition a caller can assert about it concerns the
@@ -598,12 +598,12 @@ contributes nothing to `V_{s_L}(d)` and cannot perturb the reported link extent.
 link-subspace V-position — so the correspondence between `d`'s home links and `V_{s_L}(d)` is a
 bijection and `|V_{s_L}(d)|` counts home links exactly. (Without CL-UNIQ a single link
 occupying two V-positions would double-count, and the member would not indicate the number of
-links at all.) The content side carries the analogous guarantee *more cheaply* and
-asymmetrically: each content V-position carries exactly one I-address (S2) drawn from `dom(C)`
-(S3★), so `n_{s_C}(d) = |V_{s_C}(d)|` is already the number of content positions with no
-ownership or uniqueness premise to discharge — the link side needs CL-OWN and CL-UNIQ where the
-content side needs only functionality. The stability the report enjoys is exactly the stability
-of the arrangement it views; the operation adds none of its own and needs none.
+links at all.) The content side carries the analogous guarantee through different premises:
+each content V-position carries exactly one I-address (S2) drawn from `dom(C)` (S3★), so
+`n_{s_C}(d) = |V_{s_C}(d)|` is the number of content positions — faithful by functionality and
+referential integrity, while the link side rests on CL-OWN and CL-UNIQ. The stability the report
+enjoys is exactly the stability of the arrangement it views; the operation adds none of its own
+and needs none.
 
 ---
 
