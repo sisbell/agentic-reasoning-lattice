@@ -240,7 +240,7 @@ The consequence: a reader holding any pre-state I-address `a ∈ dom(C)` retriev
 
 The frame `(A d' : d' ≠ d : M'(d') = M(d'))` directly enforces independence: no document other than `d` has its arrangement altered. Coupled with `L' = L` and content-store preservation, this means that any document `d'` that transcludes content from `d` continues to map the same V-positions to the same I-addresses, and those I-addresses continue to resolve to the same values.
 
-Cross-document independence extends to link projection: for any link `ℓ ∈ dom(L)` and any document `d' ≠ d`, projection consults only `M(d')` and `coverage(Σ.L(ℓ).e_i)`. The cross-document frame `M'(d') = M(d')` leaves the former unchanged, and `L' = L` (with INS.inv.coverage / LP3★, ASN-0098) leaves the latter unchanged, so `project(ℓ, i, d', Σ') = project(ℓ, i, d', Σ)` directly.
+Cross-document independence extends to link projection: for any link `ℓ ∈ dom(L)` and any document `d' ≠ d`, `project(ℓ, i, d', Σ') = project(ℓ, i, d', Σ)`. This is the `d' ≠ d` case of the projection-shift correspondence INS.proj, established below.
 
 ### Arrangement functionality (S2)
 
@@ -489,9 +489,7 @@ The fourth, conditional on K.μ⁻ firing:
 
 - *K.μ⁻ before K.μ⁺* (whenever K.μ⁻ fires in the composite — that is, for interior insertions and for `j = 0` insertions, where the Right region is non-empty and `n'_{s_C} < n_{s_C}` is required). K.μ⁺'s extension precondition requires `(A v : v ∈ dom(M(d)) : M'(d)(v) = M(d)(v))` — that is, K.μ⁺ preserves the image of every V-position already in the document's arrangement. Consider firing K.μ⁺ before K.μ⁻ for any interior insertion: at least one position `v ∈ V_{s_C}(d)` with `v ≥ p` is in the pre-K.μ⁺ domain `dom(M(d))` and would need to receive a new image under K.μ⁺. Concretely, whenever the Right region is non-empty (`p_m ≤ N`), the position `p` is in pre-state `dom(M(d))` with `M(d)(p) ≠ a_0`, so a K.μ⁺ firing before K.μ⁻ would violate its image-preserving precondition at `p` by attempting to rebind `p ↦ a_0`. K.μ⁻ must fire first to remove the Right region from `dom(M(d))`, so that K.μ⁺'s subsequent additions extend a domain disjoint from the Right region. The forced ordering is conditional: when K.μ⁻ is omitted (the `j = N` append case and the empty pre-state case), there is no fourth ordering, because K.μ⁺ adds positions only outside the existing domain.
 
-These forced orderings determine INSERT's boundary obligations; every other interleaving of the elementary steps reaches the same Σ'. No per-state invariant is sensitive to the relative order of the remaining steps, and the coupling constraints J0, J1★, J1'★ are obligations on INSERT's own boundary `(Σ, Σ')` — discharged there, where every `a_k` is both placed by K.μ⁺ and recorded by K.ρ, regardless of internal order — so the canonical placement of the K.ρ firings at the end of steps 1–4 is expository, not mandatory.
-
-The abstract specification commits to none of the admissible interleavings; each intermediate is itself a reachable state satisfying the per-state invariants, and the boundary couplings J0, J1★, J1'★ discharge at the composite boundary `(Σ, Σ')`.
+Beyond these forced orderings, every other interleaving of the elementary steps reaches the same Σ': no per-state invariant is sensitive to the relative order of the remaining steps, each intermediate is itself a reachable state satisfying the per-state invariants, and the coupling constraints J0, J1★, J1'★ are obligations on INSERT's own boundary `(Σ, Σ')` — discharged there, where every `a_k` is both placed by K.μ⁺ and recorded by K.ρ. The abstract specification commits to none of the admissible interleavings.
 
 ## Weakest-Precondition Analysis
 
