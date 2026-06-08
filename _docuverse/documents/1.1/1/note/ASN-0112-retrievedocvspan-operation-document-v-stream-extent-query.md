@@ -329,9 +329,7 @@ implementation realizes the distinguished value by returning zeros for both disp
 width when the arrangement tree holds no content, independent of any residual tree structure
 left by prior deletions (consultation Q13). We read those zeros as a *sentinel* — an encoding
 of "no origin, no extent" — and not as a legal tumbler: the zero tumbler is precisely the
-value TA6 forbids as an address. So the only sense in which the origin can fail to coincide
-with occupied content is the empty case, where there is no content to coincide with and no
-origin at all — and that case is answered with `⟨⟩`, not refused.
+value TA6 forbids as an address.
 
 ---
 
@@ -368,21 +366,18 @@ permanent and immutable by content permanence (S0, P0); a *link* position
 (`subspace(v) = s_L`) maps to a link address in `dom(L)`, permanent and immutable by link
 permanence (L12). The arrangement (Vstream) is fluid; the content
 identities it references are eternal. So even when the originating owner "deletes" content
-from this document's current version, "those bytes remain in all other documents where they
-have been included" (4/11) — sharing strengthens rather than threatens the permanence of what
-any reported span ultimately denotes.
+from this document's current version, the underlying bytes persist (the 4/11
+deletion-permanence point cited at V4) — sharing strengthens rather than threatens the
+permanence of what any reported span ultimately denotes.
 
-**Snapshot stability and determinism.** The returned span is a *value*, fixed at the instant
-of the query. We record **V15** (snapshot stability): a span returned at state `Σ` continues
-to denote the bounds it denoted then; a later edit to `d` — or to any document supplying `d`'s
-transcluded content — does not retroactively alter the already-returned value. A subsequent
-report against the edited state is a *fresh* query, not a mutation of the old answer. And the
-report is deterministic: we record **V16** (determinism): `σ_d` is a pure function of `O(d)`,
-so two queries against an unchanged arrangement return identical spans. Gregory grounds both
-— the reported bounds are computed from a width summary that the arrangement tree maintains
-*independent of the physical tree's shape* (enfilade confluence), so the answer depends only
-on the logical arrangement, never on how the structure was built or rebalanced (consultation
-Q14).
+**Determinism.** We record **V16** (determinism): `σ_d` is a pure function of `O(d)`, so two
+queries against an unchanged arrangement return identical spans, and the returned span is a
+*snapshot* — a value fixed at the instant of the query, not a live view — so a later edit to
+`d` (or to any document supplying `d`'s transcluded content) is reported only by a fresh
+query, never by mutation of the already-returned value. Gregory grounds this — the reported
+bounds are computed from a width summary that the arrangement tree maintains *independent of
+the physical tree's shape* (enfilade confluence), so the answer depends only on the logical
+arrangement, never on how the structure was built or rebalanced (consultation Q14).
 
 ---
 
@@ -514,8 +509,7 @@ endpoint depths), without inspecting the returned span.
 | V12 | `σ_d` determines time-varying arrangement facts that the permanent identity `d` cannot: emptiness (`RETRIEVEDOCVSPAN(d) = ⟨⟩ ⟺ O(d) = ∅`) and, in the single-subspace regime, the exact occupied count `|O(d)| = n_s` (final component of `max O(d)`, recoverable from `reach_d`); `d` is invariant under every edit and reports none of these (information gain) | introduced |
 | V13 | `σ_d` depends only on `O(d)`; two documents sharing content report independent spans; transcluded positions count toward the borrowing document's extent (independence) | introduced |
 | V14 | Every *occupied* position in `O(d)` maps through `M(d)` to a permanent, immutable image, by subspace (S3★): content positions to `dom(C)` (S0, P0), link positions to `dom(L)` (L12); covered-but-unoccupied positions in the cross-subspace case (V6) carry no `M(d)` image; sharing preserves what the span denotes (permanence) | introduced |
-| V15 | A returned span keeps its meaning under later edits to `d` or to home documents supplying its content; a fresh report is a new query, not a mutation (snapshot stability) | introduced |
-| V16 | `σ_d` is a pure function of `O(d)`; equal arrangements return identical spans, independent of how the arrangement was built (determinism) | introduced |
+| V16 | `σ_d` is a pure function of `O(d)`; equal arrangements return identical spans, independent of how the arrangement was built; the returned span is a snapshot, not a live view (determinism) | introduced |
 | V18 | Within the non-empty-preserving editing vocabulary `{K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~}` (ASN-0047), V8's origin moves only at the two content-occupancy-toggling transitions: a `K.μ⁻` content-clearing migrates `origin_d` up to the link minimum `[s_L,1,…,1]`, a `K.μ⁺` first-content insertion into a link-only document migrates it down to the content anchor `[s_C,1,…,1]`; `K.μ⁺_L`, `K.μ~`, and occupancy-preserving `K.μ⁺`/`K.μ⁻` fix the origin (origin migration bounds V8) | introduced |
 
 ## Open Questions
