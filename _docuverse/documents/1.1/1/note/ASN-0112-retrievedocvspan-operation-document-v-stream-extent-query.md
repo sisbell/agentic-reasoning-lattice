@@ -164,6 +164,17 @@ two covering cases above — case 1 (`#origin_d ≤ #reach_d`) closes the round-
 `r⋆ = reach_d`, and case 2 (`#origin_d > #reach_d`) computes `reach_d < r⋆` — so the reach
 attains the constructed endpoint exactly when the occupied subspaces share a common depth.
 
+**Whether the returned span is level-uniform.** The same depth axis settles whether `σ_d`
+satisfies S6 (`#start = #width`, ASN-0053). By TA2 (WellDefinedSubtraction, ASN-0034) the
+displacement length is `#extent_d = max(#origin_d, #reach_d)`, so `#origin_d = #extent_d`
+holds exactly when `#origin_d ≥ #reach_d`. We record **V-LevelUniform**: `σ_d` is
+level-uniform `⟺ #origin_d ≥ #reach_d`. In the single-subspace regime the endpoints are
+equidepth (S8-depth), so `#origin_d = #reach_d` and the span is level-uniform; in the
+cross-subspace case it is level-uniform precisely when content is no shallower than the
+maximal link position (`m_C ≥ m_L`), and strictly non-level-uniform in the abstract case
+`m_C < m_L` that V2's first covering case admits. Under the implementation-realized
+discipline `m_C = m_L` (Q2) every returned span is level-uniform.
+
 **The constructed endpoint is the tightest same-depth covering bound.** We record **V3**
 (bounding): `origin_d` is the greatest lower bound of `O(d)`, and the *constructed endpoint*
 `reach_d` is the *least* admissible upper bound of `max O(d)` among tumblers of its depth.
@@ -276,20 +287,24 @@ after: reorder the document and its origin and extent do not move. This matches
 Nelson's classification of rearrangement as a "Pure Vstream operation" that leaves the measured
 extent fixed.
 
-Among editing transitions that keep the document non-empty (so the origin stays defined), the
-origin moves only at the two that toggle content occupancy while the link subspace survives,
-symmetric across the content/link boundary. We record **V18** (origin migration bounds V8).
-*Content-clearing*: deletion empties the content subspace
-(`V_{s_C}(d) = ∅`) while one or more links survive (`V_{s_L}(d) ≠ ∅`); V8's hypothesis fails
+V8's boundary is reached at exactly two points within the editing vocabulary
+`{K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~}` (ASN-0047), symmetric across the content/link divide; everywhere
+else in that vocabulary the origin holds. We record **V18** (origin migration bounds V8),
+scoped to transitions that keep the document non-empty so the origin stays defined.
+*Content-clearing* — a `K.μ⁻` contraction that empties the content subspace
+(`V_{s_C}(d) = ∅`) while one or more links survive (`V_{s_L}(d) ≠ ∅`): V8's hypothesis fails
 and `origin_d` migrates *up* from the content anchor `[s_C,1,…,1]` to the link minimum
 `[s_L,1,…,1]` (D-MIN★ at `S = s_L`).
-*First-content insertion*: into a link-only document (V5), where `origin_d = [s_L,1,…,1]`,
-inserting the first content position occupies `[s_C,1,…,1]`, and since `s_C < s_L` the origin
-migrates *down* to the content anchor `[s_C,1,…,1]`, restoring V8's regime (D-MIN★ at
-`S = s_C`). Every other defined-origin editing transition leaves the content-occupancy status
-unchanged and so fixes the origin. Gregory confirms the content-clearing case: deleting all text while links
-remain is a permitted, non-empty state reporting the link span (`2.1 for 0.1` in the golden
-link-only configuration), not the empty result (deletion consultation).
+*First-content insertion* — a `K.μ⁺` extension into a link-only document (V5), where
+`origin_d = [s_L,1,…,1]`: the first content position occupies `[s_C,1,…,1]`, and since
+`s_C < s_L` the origin migrates *down* to the content anchor, restoring V8's regime (D-MIN★ at
+`S = s_C`). The remaining transitions leave content-occupancy status unchanged and so fix the
+origin: `K.μ⁺_L` (link-subspace extension) never touches `V_{s_C}(d)`, and `K.μ~` (reordering)
+preserves `O(d)` wholesale; a `K.μ⁺` into a content-present document and a `K.μ⁻` retaining at
+least one content position both leave `V_{s_C}(d) ≠ ∅` intact. Gregory confirms the
+content-clearing case: deleting all text while links remain is a permitted, non-empty state
+reporting the link span (`2.1 for 0.1` in the golden link-only configuration), not the empty
+result (deletion consultation).
 
 ---
 
@@ -307,8 +322,9 @@ span-set carries no origin and no extent: `origin_d = min O(d)` is *undefined* w
 honest content of the empty case — there is no first occupied position, hence no origin to
 report. Nelson's span model admits exactly this absence: "a span that contains nothing today
 may at a later time contain a million documents" (4/25). Emptiness is a *valid state of the
-address space*, not an undefined result; a document address with nothing stored against it —
-a "ghost element" (4/23) — answers identically, with the empty span-set. Gregory's
+address space*, not an undefined result; an allocated document with an empty arrangement
+(`d ∈ dom(M)`, `O(d) = ∅`) — whether freshly created or fully emptied — answers identically,
+with the empty span-set. Gregory's
 implementation realizes the distinguished value by returning zeros for both displacement and
 width when the arrangement tree holds no content, independent of any residual tree structure
 left by prior deletions (consultation Q13). We read those zeros as a *sentinel* — an encoding
@@ -488,6 +504,7 @@ endpoint depths), without inspecting the returned span.
 | V2 | `O(d) ⊆ ⟦σ_d⟧` (coverage); the actual reach `r⋆ = origin_d ⊕ extent_d ≥ reach_d = shift(max O(d), 1) > max O(d)`; the span `(origin_d, extent_d)` is always a well-formed T12 span | introduced |
 | V3 | `origin_d` is the greatest lower bound of `O(d)`; the *constructed endpoint* `reach_d` is the least strict upper bound of `max O(d)` among tumblers at the depth of `max O(d)` | introduced |
 | V-ReachTight | `reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d` — the denotational reach attains the constructed endpoint `reach_d` exactly when origin depth does not exceed reach depth; equivalently the reach is tight whenever the occupied subspaces share a common depth | introduced |
+| V-LevelUniform | `σ_d` is level-uniform (S6: `#origin_d = #extent_d`) `⟺ #origin_d ≥ #reach_d`, since `#extent_d = max(#origin_d, #reach_d)` (TA2); always level-uniform in the single-subspace regime and under the realized `m_C = m_L` discipline, strictly non-level-uniform only when `m_C < m_L` | introduced |
 | V4 | `extent_d` is computed from `O(d) = dom(M(d))` alone; content in `dom(C)` but absent from the arrangement (deleted, or native elsewhere) contributes nothing (Vstream-bounded, not Istream) | introduced |
 | V5 | When all occupied positions share one subspace, `⟦σ_d⟧` contains no occupied-depth position outside `O(d)` (exact cover of a contiguous run) | introduced |
 | V6 | When occupied positions span more than one subspace, `O(d) ⊊ ⟦σ_d⟧` — the span bridges the inter-subspace void (bounding box, not exact cover); forced because a span denotes one convex region (ASN-0053 S0) and cannot trace a separated series | introduced |
@@ -499,7 +516,7 @@ endpoint depths), without inspecting the returned span.
 | V14 | Every *occupied* position in `O(d)` maps through `M(d)` to a permanent, immutable image, by subspace (S3★): content positions to `dom(C)` (S0, P0), link positions to `dom(L)` (L12); covered-but-unoccupied positions in the cross-subspace case (V6) carry no `M(d)` image; sharing preserves what the span denotes (permanence) | introduced |
 | V15 | A returned span keeps its meaning under later edits to `d` or to home documents supplying its content; a fresh report is a new query, not a mutation (snapshot stability) | introduced |
 | V16 | `σ_d` is a pure function of `O(d)`; equal arrangements return identical spans, independent of how the arrangement was built (determinism) | introduced |
-| V18 | Origin permanence (V8) holds exactly while content is present; among editing transitions that keep the document non-empty (origin stays defined), the origin moves only at the two that toggle content occupancy while the link subspace survives — content-clearing migrates `origin_d` up to the link minimum `[s_L,1,…,1]`, first-content insertion into a link-only document migrates it down to the content anchor `[s_C,1,…,1]`; the to-empty/from-empty transitions are governed by V11 (origin migration bounds V8) | introduced |
+| V18 | Within the non-empty-preserving editing vocabulary `{K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~}` (ASN-0047), V8's origin moves only at the two content-occupancy-toggling transitions: a `K.μ⁻` content-clearing migrates `origin_d` up to the link minimum `[s_L,1,…,1]`, a `K.μ⁺` first-content insertion into a link-only document migrates it down to the content anchor `[s_C,1,…,1]`; `K.μ⁺_L`, `K.μ~`, and occupancy-preserving `K.μ⁺`/`K.μ⁻` fix the origin (origin migration bounds V8) | introduced |
 
 ## Open Questions
 
