@@ -128,12 +128,11 @@ One fact about a link is recoverable that none of the slot-level claims above de
 lives in the read *key* rather than the returned value: *ownership*. A relationship is a *claim*, and
 a claim has an author. The link's home document records who owns it.
 
-*Remark (home from the key).* The home is not part of what the read returns; it is fixed by the
-*address* `a` the read is keyed on. A caller already holds `a` to invoke the read, and
-`home(a) = N(a).0.U(a).0.D(a)` is derivable from that key by T4 field projection alone, independent
-of the returned endsets (L2, ASN-0043) — without consulting any endset, and indeed without performing
-the read. The home is recoverable even of a link that points nowhere near its home document: it
-indicates *who owns* the link, not *what it points to*.
+*Remark (home from the key).* The home is fixed by the read *key* `a`, not by the returned value. A
+caller already holds `a` to invoke the read, and `home(a) = N(a).0.U(a).0.D(a)` is derivable from
+that key by T4 field projection alone, independent of the returned endsets (L2, ASN-0043). The home
+is recoverable even of a link that points nowhere near its home document: it indicates *who owns*
+the link, not *what it points to*.
 
 ## Type is interpreted by address, not by content
 
@@ -298,12 +297,10 @@ sibling on `d₁`'s link sub-allocator, so `a' ∈ dom(Σ.L)` — and consider a
 > arity-3 link with non-empty type slot).
 
 The read returns `readlink(c, Σ).e₂ = G_c`, the span intact. By PrefixSpanCoverage (ASN-0043) its
-coverage is the subtree `coverage(G_c) = {t : a' ≼ t}`, so `a' ∈ coverage(readlink(c, Σ).e₂)`. The
-read discloses `a'` *as the tumbler address it is*: it does not flatten the reference into whatever
-`a'` — itself a link — records, and it does not silently recurse into a read of `a'`. One read of
-`c` returns one link's structure; the returned address `a'` may be read in turn, but that is a
-separate `readlink(a', Σ)` the caller chooses to issue. This verifies RL6 against a concrete
-link→link target — the construction underlying compound and faceted structures.
+coverage is the subtree `coverage(G_c) = {t : a' ≼ t}`, so `a' ∈ coverage(readlink(c, Σ).e₂)` and the
+read discloses `a'` *as the tumbler address it is* — unflattened, not resolved into whatever `a'`
+itself records. This verifies RL6 against a concrete link→link target — the construction underlying
+compound and faceted structures.
 
 *An orphaned instance (RL8).* Suppose that at state `Σ` no document arrangement maps any
 V-position to the three content I-addresses lying within `coverage(F)` — the connected content is
