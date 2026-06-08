@@ -38,9 +38,9 @@ the permanent keys of a content store `C : T ⇀ Val`, and a link store `L : T �
 *defined* — that `d` is an *allocated* document. We record this as the operation's
 precondition (**W-pre**):
 
-> `RETRIEVEDOCVSPANSET(d)` requires `d ∈ dom(M)` (equivalently, by M0/M1 of ASN-0093,
-> `Document(d) ∧ d ∈ dom(M)`: a T4-valid document-level tumbler that some K.δ event has
-> placed into `dom(M)`).
+> `RETRIEVEDOCVSPANSET(d)` requires `d ∈ dom(M)` (equivalently, by M0 of ASN-0093,
+> `Document(d) ∧ d ∈ dom(M)`: a T4-valid document-level tumbler that some K.σ
+> registration event has placed into `dom(M)`).
 
 An *allocated empty* document (`d ∈ dom(M)`, `M(d) = ∅`) legitimately yields the defined
 empty span-set `⟨⟩`, whereas an *unallocated* identity (`d ∉ dom(M)`) lies outside
@@ -319,16 +319,25 @@ designates a region but the region's population differs from it.
 
 **The count is faithful.** The link member's whole purpose (W0, after Nelson 4/68) is to
 *indicate the number of links*, so we must bridge `n_{s_L}(d) = |V_{s_L}(d)|` to that number.
-We record **W20** (FaithfulCount). Two foundation facts close the link gap. CL-OWN restricts
-`V_{s_L}(d)` to the document's *own* (home) links — a third party linking *into* `d`, owning
-its link at another address, contributes nothing to `V_{s_L}(d)` and cannot perturb the
-reported link extent. CL-UNIQ makes `M(d)` restricted to `V_{s_L}(d)` injective — each home
-link occupies *exactly one* link-subspace V-position — so the correspondence between `d`'s
-home links and `V_{s_L}(d)` is a bijection and `|V_{s_L}(d)|` counts home links exactly. The
-content side carries the analogous guarantee through different premises: each content
-V-position carries exactly one I-address (S2) drawn from `dom(C)` (S3★), so
-`n_{s_C}(d) = |V_{s_C}(d)|` is the number of content positions — faithful by functionality and
-referential integrity.
+We record **W20** (FaithfulCount). Two foundation facts fix what the count measures. CL-OWN
+restricts `V_{s_L}(d)` to links homed at `d` — a third party linking *into* `d`, owning its
+link at another address, contributes nothing to `V_{s_L}(d)` and cannot perturb the reported
+link extent. CL-UNIQ makes `M(d)` restricted to `V_{s_L}(d)` injective — each *arranged* link
+occupies *exactly one* link-subspace V-position. Together they make
+`M(d)|_{V_{s_L}(d)}` a bijection onto `ran(M(d)|_{s_L})`, the links *currently present in `d`'s
+arrangement*, so `|V_{s_L}(d)|` counts exactly those links. We must be precise about the
+counted quantity: it is the links arranged in `d`, which is a *subset* of all links homed at
+`d`. The two coincide at link creation — the back end couples link allocation to
+link-subspace insertion, so every freshly created home link of `d` enters `M(d)` at once
+(consultation) — but the coupling is not a standing invariant: a later contraction of `d`'s
+link subspace can remove a link from `M(d)` while its address and home document survive,
+leaving a home link of `d` that no longer contributes to `V_{s_L}(d)`. No foundation
+invariant forces every home link into `M(d)`, so `n_{s_L}(d)` faithfully counts the *arranged*
+links, which is exactly what a per-subspace extent query of `M(d)` should report. The content
+side carries the analogous guarantee through different premises: each content V-position
+carries exactly one I-address (S2) drawn from `dom(C)` (S3★), so
+`n_{s_C}(d) = |V_{s_C}(d)|` is the number of arranged content positions — faithful by
+functionality and referential integrity.
 
 ---
 
@@ -483,7 +492,7 @@ where an off-prefix, admissible-last-component tumbler must be — and is — ex
 | W1 | `n_S(d) = |V_S(d)|` is the extent of subspace `S` in `d` | introduced |
 | W2 | *for `S ∈ occupied(d)` (`V_S(d) ≠ ∅`)*, `ext(d, S) = ([S,1,…,1], δ(n_S, m_S))` is the extent span encoding `n_S` | introduced |
 | W3 | *for `S ∈ occupied(d)`*, `ext(d, S)` is a well-formed, level-uniform T12 span with `reach = [S,1,…,1,1+n_S]` | introduced |
-| W4 | ExactCoverage — *for `S ∈ occupied(d)`*, `⟦ext(d, S)⟧ ∩ VSlice(S, m_S) = V_S(d)` (complete and exclusive); exactness rests on the standing D-CTG★ contiguity invariant via order-convexity | introduced |
+| W4 | ExactCoverage — *for `S ∈ occupied(d)`*, `⟦ext(d, S)⟧ ∩ VSlice(S, m_S) = V_S(d)` (complete and exclusive) | introduced |
 | W6 | `occupied(d) = {S ∈ {s_C, s_L} : V_S(d) ≠ ∅}` | introduced |
 | W7 | OneSpanPerOccupiedSubspace — result has exactly `|occupied(d)|` members, one per kind, not per fragment or item | introduced |
 | W8 | PureQuery — `Σ' = Σ`; the operation writes nothing and its result is a function of `dom(M(d))` alone (`C`, `L`, and the I-address values `M(d)(v)` are not read), so it changes only when `M(d)` changes | introduced |
@@ -496,13 +505,13 @@ where an off-prefix, admissible-last-component tumbler must be — and is — ex
 | W16 | Partition — the members disjointly cover exactly the counted active V-positions; no orphan, no phantom | introduced |
 | W17 | ExtentDeterminesPopulation — each V-slice position within `ext(d, S)` carries content (`M(d)(v) ∈ dom(C)`/`dom(L)`, S3★); one step beyond W4's coverage equality | introduced |
 | W19 | ResultCardinalityWP — `wp(·, "result = ⟨⟩") ≡ d ∈ dom(M) ∧ V_{s_C}(d) = ∅ ∧ V_{s_L}(d) = ∅`; `wp(·, "|result| = 2") ≡ d ∈ dom(M) ∧ V_{s_C}(d) ≠ ∅ ∧ V_{s_L}(d) ≠ ∅`; `wp(·, "|result| = 1") ≡ d ∈ dom(M) ∧ (V_{s_C}(d) = ∅ ⊻ V_{s_L}(d) = ∅)` | introduced |
-| W20 | FaithfulCount — `n_{s_L} = |V_{s_L}(d)|` counts home links exactly (CL-OWN restricts to own links, CL-UNIQ gives the bijection); `n_{s_C} = |V_{s_C}(d)|` counts content positions by functionality and referential integrity (S2/S3★) | introduced |
+| W20 | FaithfulCount — `n_{s_L} = |V_{s_L}(d)|` counts the links *arranged* in `d` exactly (CL-OWN restricts to home links, CL-UNIQ gives the bijection onto `ran(M(d)|_{s_L})`, a subset of all links homed at `d`); `n_{s_C} = |V_{s_C}(d)|` counts arranged content positions by functionality and referential integrity (S2/S3★) | introduced |
 
 ---
 
 ## Open Questions
 
-W4's single-span exactness rests on the standing D-CTG★ contiguity invariant (see W4); should a foundation extension ever relax D-CTG★, what must the operation guarantee — is it obligated to emit the fragmented span-set, or may it report Gregory's single bounding span and leave faithful interpretation of interior gaps to the caller?
+Should a foundation extension ever relax D-CTG★ (on which W4's single-span exactness rests), what must the operation guarantee — is it obligated to emit the fragmented span-set, or may it report Gregory's single bounding span and leave faithful interpretation of interior gaps to the caller?
 
 What permanence must the per-subspace extent report carry across a version fork that shares content with its ancestor?
 
