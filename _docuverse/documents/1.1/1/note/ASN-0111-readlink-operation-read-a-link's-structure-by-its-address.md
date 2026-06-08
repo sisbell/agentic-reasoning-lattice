@@ -202,13 +202,15 @@ endset — so the read may legitimately return an empty connective slot while ne
 type slot. This is the read-side image of the structural rule that a link's type is mandatory and
 its directional reach is permissive.
 
-**RL-REP (Representation independence of meaning).** The relationship the read conveys is the
-*coverage* of each endset, not the particular span decomposition. Two recorded endsets with equal
-coverage are interchangeable under every coverage-based use, regardless of how their spans are
-decomposed (projection independence, LP21 of ASN-0098); the type-by-address instance of this is
-RL5 above. A reader interpreting the result
-should read it as a triple of address-sets-with-roles; the exact spans are one representation of
-those sets.
+**RL-REP (Representation independence of meaning).** This is guidance for the *reader* of the
+result, not a relaxation of what the read returns: by RL1 the read delivers the exact recorded
+span decomposition, verbatim — it never reduces an endset to its coverage. What RL-REP adds is how
+to *interpret* that decomposition. Every downstream coverage-based use of an endset — projection,
+type-matching — depends only on its `coverage`, not on the particular spans that decompose it: two
+endsets with equal coverage are interchangeable under all such uses (LP21 of ASN-0098). A reader
+should therefore treat the returned value as a triple of address-sets-with-roles, with the returned
+spans understood as one representation of those sets; the reduction is exercised by those downstream
+operations, never by this read.
 
 ## A worked read
 
@@ -301,7 +303,7 @@ complete structure. The read thus distinguishes *the relationship is unwitnessed
 | RL8 | Recorded, not resolved — the read depends only on `Σ.L`, succeeds for orphaned links, and returns the complete structure independent of any arrangement | introduced |
 | RL-WF | Each returned endset is a finite set of T12-well-formed spans | introduced |
 | RL-ARITY | The returned value has arity ≥ 3 with non-empty type slot; connective slots may be empty | introduced |
-| RL-REP | The conveyed relationship is each endset's coverage; equal-coverage endsets are interchangeable in meaning | introduced |
+| RL-REP | Reader-side interpretation guidance (does not weaken RL1's verbatim return): equal-coverage endsets are interchangeable under all downstream coverage-based uses (LP21) | introduced |
 
 ## Open Questions
 
