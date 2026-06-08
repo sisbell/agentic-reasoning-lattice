@@ -383,9 +383,13 @@ We can now check the load-bearing postconditions against this instance.
   slot 4 unchanged by the same componentwise equality — slots 1–3 keeping from/to/type and `e₄`
   surfaced faithfully in its own position — so RL1 and RL2 are verified for an `N > 3` instance as
   well, not only the dominant triple.
-- *RL5 (ghost-type completeness).* `Θ`'s address holds nothing, yet the read returns it intact;
-  the type is interpreted as `coverage(Θ) = {[1.0.1.0.9.0.1.1]}` (L8), no dereference attempted.
-  The read of this ghost-typed link is no less complete than any other.
+- *RL5 (ghost-type completeness).* `Θ`'s address holds nothing, yet the read returns it intact.
+  Its single span `([1.0.1.0.9.0.1.1], δ(1, 8))` is the canonical unit-depth span (`#s = 8 = #δ(1, 8)`),
+  so by PrefixSpanCoverage (ASN-0043) `coverage(Θ) = {t : [1.0.1.0.9.0.1.1] ≼ t}` — the *subtree*
+  beneath that address, an infinite tumbler set, not the single point `[1.0.1.0.9.0.1.1]`. As with
+  the from-set above, the type is interpreted as this coverage *address-set* (L8) and matched against
+  another type's coverage without dereferencing anything stored there. The read of this ghost-typed
+  link is no less complete than any other.
 - *RL-ARITY.* Arity is 3 and `Θ ≠ ∅`, while the connective slot `G = ∅` is permitted — exactly
   the mandatory-type / permissive-direction split.
 
