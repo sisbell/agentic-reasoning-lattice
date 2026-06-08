@@ -208,10 +208,6 @@ endset — so the read may legitimately return an empty connective slot while ne
 type slot. This is the read-side image of the structural rule that a link's type is mandatory and
 its directional reach is permissive.
 
-**RL-REP (Pointer).** Downstream coverage-based uses of an endset (specified elsewhere) consume the
-returned spans only via `coverage`, under which equal-coverage endsets are interchangeable (LP21 of
-ASN-0098).
-
 ## A worked read
 
 The claims above are abstract; we check them against one concrete link. Fix the subspace
@@ -303,7 +299,6 @@ complete structure. The read thus distinguishes *the relationship is unwitnessed
 | RL8 | Recorded, not resolved — the read depends only on `Σ.L`, succeeds for orphaned links, and returns the complete structure independent of any arrangement | introduced |
 | RL-WF | Each returned endset is a finite set of T12-well-formed spans | introduced |
 | RL-ARITY | The returned value has arity ≥ 3 with non-empty type slot; connective slots may be empty | introduced |
-| RL-REP | Pointer — downstream coverage-based uses (specified elsewhere) consume returned spans only via `coverage`; equal-coverage endsets are interchangeable there (LP21) | introduced |
 
 ## Open Questions
 
