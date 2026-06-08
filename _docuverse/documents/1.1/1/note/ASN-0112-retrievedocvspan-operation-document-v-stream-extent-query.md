@@ -278,18 +278,21 @@ Nelson's classification of rearrangement as a "Pure Vstream operation" that leav
 extent fixed.
 
 One edit consequence is specific to this query, because it *bounds V8*. V8's origin permanence
-is asserted *while content is present* — that hypothesis is exactly the boundary, and the origin
-moves precisely at the transitions that change whether the content subspace is occupied. There
-are two such transitions, symmetric across the content/link boundary. We record **V18** (origin
-migration bounds V8). *Content-clearing*: deletion empties the content subspace
+is asserted *while content is present* — that hypothesis is exactly the boundary. We confine
+attention to transitions that leave the document non-empty, so the origin stays *defined* across
+them; the to-empty and from-empty transitions, which move the origin to or from undefined, are
+governed by V11, not here. Among these defined-origin transitions the origin moves precisely at
+the two that toggle content occupancy while the link subspace survives, symmetric across the
+content/link boundary. We record **V18** (origin migration bounds V8). *Content-clearing*:
+deletion empties the content subspace
 (`V_{s_C}(d) = ∅`) while one or more links survive (`V_{s_L}(d) ≠ ∅`); the document is *not*
 empty (V11 does not fire), but V8's hypothesis fails and `origin_d` migrates *up* from the
 content anchor `[s_C,1,…,1]` to the link minimum `[s_L,1,…,1]` (D-MIN★ at `S = s_L`).
 *First-content insertion*: into a link-only document (V5), where `origin_d = [s_L,1,…,1]`,
 inserting the first content position occupies `[s_C,1,…,1]`, and since `s_C < s_L` the origin
 migrates *down* to the content anchor `[s_C,1,…,1]`, restoring V8's regime (D-MIN★ at
-`S = s_C`). Every other editing transition leaves the content-occupancy status unchanged and so
-fixes the origin. Gregory confirms the content-clearing case: deleting all text while links
+`S = s_C`). Every other defined-origin editing transition leaves the content-occupancy status
+unchanged and so fixes the origin. Gregory confirms the content-clearing case: deleting all text while links
 remain is a permitted, non-empty state reporting the link span (`2.1 for 0.1` in the golden
 link-only configuration), not the empty result (deletion consultation).
 
@@ -352,11 +355,7 @@ through `M(d)`, to a permanent, immutable image, the store depending on the posi
 subspace (S3★). A *content* position (`subspace(v) = s_C`) maps to an I-address in `dom(C)`,
 permanent and immutable by content permanence (S0, P0); a *link* position
 (`subspace(v) = s_L`) maps to a link address in `dom(L)`, permanent and immutable by link
-permanence (L12). The split is forced: S0/P0 constrain the content store only, so they say
-nothing about a link image, while L12 supplies exactly the matching guarantee on the link
-store. The restriction to `O(d)` is essential: covered-but-unoccupied
-positions, which exist by V6, carry no `M(d)` image, and the permanence claim makes no
-assertion about them. The arrangement (Vstream) is fluid; the content
+permanence (L12). The arrangement (Vstream) is fluid; the content
 identities it references are eternal. So even when the originating owner "deletes" content
 from this document's current version, "those bytes remain in all other documents where they
 have been included" (4/11) — sharing strengthens rather than threatens the permanence of what
@@ -378,12 +377,10 @@ Q14).
 
 ## Implementation conformance: the extent stays non-negative
 
-*Implementation remark (conformance to V2).* V2's positivity (`Pos(extent_d)`) is a theorem
-of the span algebra, discharged abstractly by D0 — not a fact contingent on implementation
-behavior. The implementation merely *conforms* to it: prior deletions can drive *intermediate*
+*Implementation remark (conformance to V2).* Prior deletions can drive *intermediate*
 arrangement-tree entries to negative displacements, but the root width is recomputed as a
 maximum-minus-minimum reach and remains non-negative, so no editing transient surfaces a
-zero-or-below extent (consultation Q18).
+zero-or-below extent (consultation Q18) — consistent with V2's positivity (`Pos(extent_d)`).
 
 *Implementation remark (reach tightness, evidence for V-ReachTight).* The
 implementation in fact realizes only `m_C = m_L`: content and link V-positions are placed at
@@ -507,7 +504,7 @@ endpoint depths), without inspecting the returned span.
 | V14 | Every *occupied* position in `O(d)` maps through `M(d)` to a permanent, immutable image, by subspace (S3★): content positions to `dom(C)` (S0, P0), link positions to `dom(L)` (L12); covered-but-unoccupied positions in the cross-subspace case (V6) carry no `M(d)` image; sharing preserves what the span denotes (permanence) | introduced |
 | V15 | A returned span keeps its meaning under later edits to `d` or to home documents supplying its content; a fresh report is a new query, not a mutation (snapshot stability) | introduced |
 | V16 | `σ_d` is a pure function of `O(d)`; equal arrangements return identical spans, independent of how the arrangement was built (determinism) | introduced |
-| V18 | Origin permanence (V8) holds exactly while content is present; the origin moves only at the two transitions that toggle content occupancy — content-clearing migrates `origin_d` up to the link minimum `[s_L,1,…,1]`, first-content insertion into a link-only document migrates it down to the content anchor `[s_C,1,…,1]` (origin migration bounds V8) | introduced |
+| V18 | Origin permanence (V8) holds exactly while content is present; among editing transitions that keep the document non-empty (origin stays defined), the origin moves only at the two that toggle content occupancy while the link subspace survives — content-clearing migrates `origin_d` up to the link minimum `[s_L,1,…,1]`, first-content insertion into a link-only document migrates it down to the content anchor `[s_C,1,…,1]`; the to-empty/from-empty transitions are governed by V11 (origin migration bounds V8) | introduced |
 
 ## Open Questions
 
