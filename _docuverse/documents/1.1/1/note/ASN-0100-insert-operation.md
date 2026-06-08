@@ -573,7 +573,7 @@ What the specification *does* cover is the precise per-state effect of one INSER
 | INS.M-left | Text-subspace positions v < p in dom(M(d)) appear unchanged in M'(d) | introduced |
 | INS.M-insert | M'(d)(shift(p, k)) = a_k for 0 ≤ k < n, with shift(p, 0) = p | introduced |
 | INS.M-shift | For v ∈ V_{s_C}(d) with v ≥ p: shift(v, n) ∈ dom(M'(d)) ∧ M'(d)(shift(v, n)) = M(d)(v) — the S = s_C instance of I3 (PostInsertionShift; ASN-0082) | introduced |
-| INS.I3-coincide | M'(d) ↾ (Left ∪ Shifted-right) is pointwise identical to the I3-specified arrangement M_{I3} (S = s_C, shift n, point p): ∀v ∈ Left ∪ Shifted-right, M'(d)(v) = M_{I3}(v); the two differ only on the gap [p, shift(p,n)) (I3 vacates, INSERT fills). Every I3 lemma (ASN-0082) transports verbatim to that restriction | introduced |
+| INS.I3-coincide | M'(d) ↾ (Left ∪ Shifted-right) is pointwise identical to the I3-specified arrangement M_{I3} (S = s_C, shift n, point p): ∀v ∈ Left ∪ Shifted-right, M'(d)(v) = M_{I3}(v); the two differ only on the gap [p, shift(p,n)) (I3 vacates, INSERT fills) | introduced |
 | INS.M-exhaustive | (A v : v ∈ dom(M'(d)) ∧ subspace(v) = s_C :: v ∈ Left ∪ Insertion ∪ Shifted-right); the post-state's text-subspace domain contains no s_C positions beyond the three regions | introduced |
 | INS.R | R' = R ∪ {(a_k, d) : 0 ≤ k < n}; discharges composite-boundary couplings J0, J1★, J1'★ (ASN-0047) | introduced |
 | INS.frame.subspace | Non-content subspaces of d are unchanged (bidirectionally): {v ∈ dom(M'(d)) : subspace(v) ≠ s_C} = {v ∈ dom(M(d)) : subspace(v) ≠ s_C}, and M'(d) agrees with M(d) pointwise on that set. No new non-s_C positions appear; no existing ones are removed | introduced |
