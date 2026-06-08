@@ -419,13 +419,30 @@ link→link target — the construction underlying compound and faceted structur
 V-position to the three content I-addresses lying within `coverage(F)` — the connected content is
 arranged nowhere. To conclude `discoverable_from(a, d, Σ)` is false for *every* `d`, we must
 dispatch all three slots, since discoverability quantifies over slots (LP12, ASN-0098:
-`⟺ (E i : coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅)`). *Slot 1 (from):* by the supposition, no
-arrangement range reaches any I-address in `coverage(F)`, so `coverage(F) ∩ ran(Σ.M(d)) = ∅` for
-every `d`. *Slot 2 (to):* `G = ∅`, so `coverage(∅) = ∅` and the slot is trivially unwitnessed.
+`⟺ (E i : coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅)`). *Slot 1 (from):* the supposition speaks only
+of the three content I-addresses, yet `coverage(F)` is infinite (it contains the whole subtrees
+beneath the span starts), so the step to `coverage(F) ∩ ran(Σ.M(d)) = ∅` needs those three to
+*exhaust* `coverage(F) ∩ (dom(Σ.C) ∪ dom(Σ.L))`. They do, on both stores. For the content store:
+every content address has element-field depth exactly two — each sub-allocator emission satisfies
+`#E = 2` (ChainDiscipline / FirstEmission, ASN-0093) — so no `dom(Σ.C)` member lies *deeper* in the
+subtrees beneath `…1.1`, `…1.2` under `d₁` or `…1.1` under `d₂`; the only content addresses inside
+the coverage intervals are the three named, and `coverage(F) ∩ dom(Σ.C)` is exactly that triple,
+unarranged by hypothesis. For the link store: every `t ∈ coverage(F)` carries `subspace_I(t) = s_C`
+(each span's start element field begins with `1 = s_C`, and every member of the interval preserves
+that first element-field component), while every `dom(Σ.L)` address carries `s_L` (L0), so by T7
+(SubspaceDisjointness, ASN-0034) `coverage(F) ∩ dom(Σ.L) = ∅`. Since `ran(Σ.M(d)) ⊆ dom(Σ.C) ∪
+dom(Σ.L)` (S3★, ASN-0047), the unarranged content triple and the empty link intersection together
+give `coverage(F) ∩ ran(Σ.M(d)) = ∅` for every `d`. *Slot 2 (to):* `G = ∅`, so `coverage(∅) = ∅`
+and the slot is trivially unwitnessed.
 *Slot 3 (type):* `coverage(Θ) = {t : [1.0.1.0.9.0.1.1] ≼ t}` is a non-empty (indeed infinite)
-address set, but the ghost document `[1.0.1.0.9]` hosts no content, so `coverage(Θ) ∩ dom(Σ.C) = ∅`;
-by S3★ (ASN-0047) every arrangement range lies in `dom(Σ.C) ∪ dom(Σ.L)`, and `coverage(Θ)` meets
-neither store here, so `coverage(Θ) ∩ ran(Σ.M(d)) = ∅` for every `d`. With all three slots
+address set, and we must show it meets *neither* store. For the content store: the ghost document
+`[1.0.1.0.9]` hosts no content, so `coverage(Θ) ∩ dom(Σ.C) = ∅`. For the link store the argument is
+by subspace, not by absence of content: every `t ∈ coverage(Θ)` carries `subspace_I(t) = s_C` — the
+start `[1.0.1.0.9.0.1.1]` has element field beginning with `1 = s_C`, and every extension preserves
+that first element-field component — while every `dom(Σ.L)` address carries `s_L` (L0), so by T7
+(SubspaceDisjointness, ASN-0034) `coverage(Θ) ∩ dom(Σ.L) = ∅`, independent of whether `[1.0.1.0.9]`
+hosts anything. With `coverage(Θ)` meeting neither store, and every arrangement range lying in
+`dom(Σ.C) ∪ dom(Σ.L)` (S3★, ASN-0047), `coverage(Θ) ∩ ran(Σ.M(d)) = ∅` for every `d`. With all three slots
 unwitnessed, `discoverable_from(a, d, Σ)` is false for every `d`, and the link is orphaned (cf. the
 ghost-projection situation, ASN-0098). A *follow* of `F` against any arrangement would resolve to
 the empty set, and a *search* would find nothing to match. The direct read is unaffected: it
