@@ -82,8 +82,6 @@ We rely on these foundation facts about the shape of each `V_S(d)`:
 
 - **CL-OWN / CL-UNIQ** (ASN-0047): a document's link-subspace arrangement holds only its
   own links, each at exactly one V-position.
-- **L12 / P0** (link and content permanence): allocated keys persist and their values never
-  change.
 
 We borrow the span machinery wholesale. A span `σ = (s, ℓ)` denotes the half-open interval
 `⟦σ⟧ = {t ∈ T : s ≤ t < s ⊕ ℓ}` (T12), with `reach(σ) = s ⊕ ℓ` (ASN-0053). A span is
@@ -197,10 +195,12 @@ and Gregory's implementation, which emits at most one VSpec per subspace regardl
 many crums populate it (consultation Q11, Q14, Q19).
 
 **The result is a read-only observation.** We record **W8** (PureQuery): `Σ' = Σ`. The
-operation reads `C`, `L`, `M`, and the document identity, and writes nothing — no
-allocation, no arrangement change, no provenance. It is a function of the present state
-alone — indeed of `M(d)` alone, since the members are computed from `V_{s_C}(d)` and
-`V_{s_L}(d)`.
+operation writes nothing — no allocation, no arrangement change, no provenance. Its read-set
+is narrower still: the result is a function of `dom(M(d))` (equivalently `M(d)`) and the
+document identity alone. Each member is computed from `V_{s_C}(d)` and `V_{s_L}(d)`, and these
+sets `V_S(d) = {v ∈ dom(M(d)) : v₁ = S}` are determined by `dom(M(d))` and the subspace
+projection — the I-address *values* `M(d)(v)` are never consulted, and neither `C` nor `L` is
+read to produce the span-set.
 
 **Only the two counted subspaces appear.** Every occupied V-position of `d` lies in one of
 the two counted subspaces, leaving none in a third. This is precisely S3★-aux
@@ -486,7 +486,7 @@ where an off-prefix, admissible-last-component tumbler must be — and is — ex
 | W4 | ExactCoverage — *for `S ∈ occupied(d)`*, `⟦ext(d, S)⟧ ∩ VSlice(S, m_S) = V_S(d)` (complete and exclusive); exactness rests on the standing D-CTG★ contiguity invariant via order-convexity | introduced |
 | W6 | `occupied(d) = {S ∈ {s_C, s_L} : V_S(d) ≠ ∅}` | introduced |
 | W7 | OneSpanPerOccupiedSubspace — result has exactly `|occupied(d)|` members, one per kind, not per fragment or item | introduced |
-| W8 | PureQuery — `Σ' = Σ`; the operation reads and writes nothing, and its result depends on `M(d)` alone, so it changes only when `M(d)` changes | introduced |
+| W8 | PureQuery — `Σ' = Σ`; the operation writes nothing and its result is a function of `dom(M(d))` alone (`C`, `L`, and the I-address values `M(d)(v)` are not read), so it changes only when `M(d)` changes | introduced |
 | W9 | TwoKindsOnly — `O(d) = V_{s_C}(d) ⊔ V_{s_L}(d)` (derived from S3★-aux); no third subspace holds content, so no third member can arise | introduced |
 | W10 | SubspaceConfinement — `(A t : t ∈ ⟦ext(d, S)⟧ : t₁ = S)` | introduced |
 | W11 | Disjointness — `⟦ext(d, s_C)⟧ ∩ ⟦ext(d, s_L)⟧ = ∅` | introduced |
