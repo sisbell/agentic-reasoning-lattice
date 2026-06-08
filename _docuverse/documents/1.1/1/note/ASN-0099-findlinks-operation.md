@@ -156,30 +156,39 @@ PerLinkInvarianceUnderValuePreservation — sub-lemma:
 
 ## Link-Store-Inert Preservation
 
-This ASN inhabits ASN-0047's *extended* state `Σ = (C, L, E, M, R)`, so the operative vocabulary is ASN-0047's extended-state vocabulary (ValidComposite★, `V = {K.α, K.λ, K.δ, K.μ⁺, K.μ⁻, K.μ~, K.μ⁺_L, K.ρ}`), with document registration performed by K.δ (Document case). Throughout this ASN we call an operation *link-store-inert* when it does not modify the link store `Σ.L` — that is, any operation in `V ∖ {K.λ}`. We package the preservation lemma:
+This ASN inhabits ASN-0047's *extended* state `Σ = (C, L, E, M, R)`. ASN-0047's ValidComposite★ fixes the *atomic* vocabulary as exactly the seven operations `V_atomic = {K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.ρ}`; document registration is performed by K.δ (Document case). The named reordering K.μ~ is *not* atomic — ASN-0047 states it "is not atomic; it may appear in the sequence as shorthand for its K.μ⁻ + K.μ⁺ decomposition." For this ASN's preservation reasoning we range over a *working set of this ASN*
+
+```
+V ≡ V_atomic ∪ {K.μ~}
+```
+
+that adjoins the composite K.μ~ to ValidComposite★'s atomic vocabulary. `V` is local notation for this note, deliberately distinguished from ValidComposite★'s atomic vocabulary `V_atomic`: a transition produced by a `V_atomic` operation is single-step (`Σ → Σ'`), whereas a transition produced by K.μ~ is the two-step composite `Σ →* Σ'` (its K.μ⁻ + K.μ⁺ decomposition). Throughout this ASN we call an operation *link-store-inert* when it does not modify the link store `Σ.L` — that is, any operation in `V ∖ {K.λ}` (every atomic operation but K.λ, together with the composite K.μ~). We package the preservation lemma:
 
 ```
 A1a (PublishedFramePreservation):
    Every operation of V ∖ {K.λ} preserves the link store across its
-   transition Σ → Σ':
+   transition — single-step Σ → Σ' for the atomic operations, the
+   two-step composite Σ →* Σ' for K.μ~:
        dom(Σ'.L) = dom(Σ.L) ∧ (A a ∈ dom(Σ.L) :: Σ'.L(a) = Σ.L(a)).
-   The atomic operations — {K.α, K.δ, K.μ⁺, K.μ⁻, K.μ⁺_L, K.ρ} —
-   publish `L' = L` in their operative frame (K.μ⁺ and K.μ⁻ via
-   ASN-0047's amended extended-state versions). The composite K.μ~
-   (the non-atomic K.μ⁻ + K.μ⁺ composite) preserves Σ.L by transitive
-   composition of A1a at its two constituents.
+   The atomic operations — V_atomic ∖ {K.λ} = {K.α, K.δ, K.μ⁺, K.μ⁻,
+   K.μ⁺_L, K.ρ} — publish `L' = L` in their operative frame (K.μ⁺ and
+   K.μ⁻ via ASN-0047's amended extended-state versions). The composite
+   K.μ~ (the non-atomic K.μ⁻ + K.μ⁺ composite) preserves Σ.L by
+   transitive composition of A1a at its two atomic constituents.
 ```
 
 ```
 F9 (LinkStoreInertPreservation):
-   For every transition Σ → Σ' produced by an operation in V ∖ {K.λ}
-   and any I ⊆ T:
+   For every transition produced by an operation in V ∖ {K.λ} —
+   written Σ → Σ' for an atomic operation of V_atomic ∖ {K.λ}, and
+   Σ →* Σ' for the composite K.μ~ — and any I ⊆ T:
        findlinks(I, Σ) = findlinks(I, Σ').
 
-   A1a gives Σ.L = Σ'.L across every V ∖ {K.λ} operation. F8 via
-   ComprehensionInvariantUnderΣL then forces the equality. For a
+   A1a gives Σ.L = Σ'.L across every V ∖ {K.λ} operation (single-step
+   for the atomic operations, the K.μ⁻ + K.μ⁺ composite for K.μ~). F8
+   via ComprehensionInvariantUnderΣL then forces the equality. For a
    reachable sequence Σ →* Σ' whose every atomic step lies in
-   V ∖ {K.λ}, the per-step equalities chain by transitivity.
+   V_atomic ∖ {K.λ}, the per-step equalities chain by transitivity.
 ```
 
 The remaining single-step case — K.λ itself — is the unique operation of V that can change `findlinks(I, ·)` across one step, and the change is fully characterized:
