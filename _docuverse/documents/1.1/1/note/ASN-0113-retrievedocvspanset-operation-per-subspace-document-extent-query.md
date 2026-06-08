@@ -400,9 +400,6 @@ is reachable (count `0` by performing zero extensions of that kind). To witness 
 and vary the text extent — is witnessed by the *same two recipes* with only the varying axis
 changed.
 
-The span-set is the report that returns *both* halves of
-what a document is — its content and its connections — in one observation.
-
 ---
 
 ## Invariants across the members
@@ -426,8 +423,7 @@ with like, text-extent to text-extent and link-extent to link-extent. We record 
 versus `n_S(d₂)` is well-defined for each `S ∈ {s_C, s_L}`. The comparison is total because
 `n_S(d) = |V_S(d)|` counts `V_S(d)` directly (W1): it is a total function, defined for every
 allocated `d` and every `S ∈ {s_C, s_L}` independently of whether the operation emits a member
-for that subspace. An empty subspace has `n_S(d) = 0` as a fact about `V_S(d) = ∅`, regardless
-of the report's membership.
+for that subspace. An empty subspace has `n_S(d) = 0` as a fact about `V_S(d) = ∅`.
 
 **Cross-kind independence.** The extent reported for one kind does not depend on the
 population of the other. We record **W15** (Independence): `n_{s_C}(d)` is a function of
@@ -539,9 +535,8 @@ singleton `⟨ext(d', s_C)⟩`, trivially normalized: a one-member sequence is s
 separated, so no merge is possible.
 
 **W14 (absent member, zero count).** The empty link subspace contributes *no* member to the
-report, yet `n_{s_L}(d') = 0` remains a fact about `V_{s_L}(d') = ∅` (W1), well-defined
-independently of whether the report emits a link member. The report omits the empty subspace
-while the count of that subspace is still a defined zero — the very separation W14 records.
+report, yet `n_{s_L}(d') = |V_{s_L}(d')| = 0` (W1) — a defined zero count alongside an emitted
+member count of one.
 
 **A depth-`3` instance: prefix-confinement is non-vacuous.** Both instances above fix
 `m_S = 2`, where the canonical prefix `[S,1,…,1]` collapses to length `m_S − 1 = 1`. There the
@@ -598,10 +593,7 @@ state, not from any property the operation contributes. We record **W18** (Deriv
 `RETRIEVEDOCVSPANSET(d)` is a pure function of the current state `Σ` (by W8), so any two
 queries against the *same* `Σ` return identical span-sets; the report changes only when
 `M(d)` changes — a later report contradicts an earlier one only if some transition reshaped
-`M(d)` in between. (We make no claim that arrangements are immutable in general: the
-foundation's vocabulary includes in-place arrangement mutations — K.μ⁻ contracts and K.μ~
-reorders an existing `M(d)`, ASN-0047 — so a document's extents *can* change under editing.
-What the report cannot do is change while the state it views stands still.) The link count is
+`M(d)` in between. The link count is
 specifically the count of *home* links — links the document owns (CL-OWN) — so a third party
 linking *into* the document, owning its link at another address, cannot perturb the
 document's reported link extent. The stability the report enjoys is exactly the stability of
