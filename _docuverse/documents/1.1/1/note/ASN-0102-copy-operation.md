@@ -191,8 +191,6 @@ Finally, COPY is a transition, so it must also discharge the separate transition
 
 **X14 (Atomicity).** COPY is a *single* elementary transition (Definition) in all cases — not a composite of K.μ steps — so SequentialTransitionAxiom (ASN-0047/0093) applies to it directly: the precondition is read against `Σ` and the effect committed to `Σ'` in one indivisible step, with no observable intermediate state. This is the operation's atomicity *guarantee*: at no point is `d`'s content subspace observable in a transiently contracted, gapped, or partially-bound condition; the one step carries `Σ` directly to the gap-free post-state `Σ'` (X15).
 
-Elementary status is a deliberate modeling choice, not a reachability necessity: in the displacing case `Σ'` is also reachable by a *contract-then-extend* composite (a K.μ⁻ retaining the content-subspace prefix `n'_{s_C} = p − 1`, followed by the amended K.μ⁺ binding `[p, p+W)` to the copied I-addresses and `[p+W, n_S+W]` to the displaced images), so COPY introduces no new reachable state.
-
 ---
 
 ## A worked example
@@ -334,7 +332,7 @@ Now the merge predicates *fire*:
 | X11 | BoundaryAbsorption — leading boundary (`p ≥ 2`) and trailing boundary (`p ≤ n_S`) are independent merge candidates, each absorbing iff I-adjacent; origin still carried | introduced |
 | X12 | Multiplicity — placed addresses gain reference multiplicity ≥ 2, with no model-imposed bound (S5) | introduced |
 | X13 | ContainmentRecording — `d` recorded as containing each copied address, provenance written to `Σ.R`; step-local recording fact (SL) | introduced |
-| X14 | Atomicity — COPY is a single elementary transition in all cases (SequentialTransitionAxiom), committed in one indivisible step with no observable intermediate state. `Σ'` is also reachable by a contract-then-extend composite, so elementary status suppresses the transient contraction rather than being forced by reachability | introduced |
+| X14 | Atomicity — COPY is a single elementary transition in all cases (SequentialTransitionAxiom), committed in one indivisible step with no observable intermediate state | introduced |
 | X15 | PostStateDensity — post-state `V_{s_C}(d) = {[s_C,1,…,1,c] : 1 ≤ c ≤ n_S + W}`, contiguous (D-SEQ), min `[s_C,1,…,1]` (D-MIN) | introduced |
 | X16 | InvariantPreservation — COPY maintains the per-state `ExtendedReachableStateInvariants` (incl. P7), the composite-boundary properties (P4★, P4a, P7a), and the transition invariant P3; provenance couplings (RR routing, J1★/J1'★) discharged via X13's unconditional write | introduced |
 
