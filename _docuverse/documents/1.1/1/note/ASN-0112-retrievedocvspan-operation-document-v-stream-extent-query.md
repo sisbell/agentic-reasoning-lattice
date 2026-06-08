@@ -75,16 +75,15 @@ component by `n` (ASN-0034).
 
 ## What the caller must be handed
 
-Before specifying the operation we must fix the *type* of its result. Nelson fixes it for
-us: a span, "the origin and extent of the V-stream" (4/68). Not a sequence of records — that
-would be a content read. Not a count: "a tumbler-span is not a conventional number, and it
-does not designate the number of bytes contained. It does not designate a number of
-anything" (4/24). The result is a *boundary description* — two tumblers, a start and a
-width, whose meaning is "from here, this far," with everything between implicit (4/25).
+Nelson fixes the *type* of the result: a span, "the origin and extent of the V-stream"
+(4/68). Not a sequence of records — that would be a content read. Not a count: "a
+tumbler-span is not a conventional number, and it does not designate the number of bytes
+contained. It does not designate a number of anything" (4/24). The result is a *boundary
+description* — two tumblers, a start and a width, whose meaning is "from here, this far,"
+with everything between implicit (4/25).
 
-We therefore fix the result type *once and explicitly*: the operation returns a *span-set*
-(ASN-0053) — never a content sequence, never a cardinality. We record this as **V0**
-(span-set result), the uniform codomain
+The operation therefore returns a *span-set* (ASN-0053) — never a content sequence, never a
+cardinality. We record this as **V0** (span-set result), the uniform codomain
 
 > `RETRIEVEDOCVSPAN : dom(M) → SpanSet`,
 
@@ -277,17 +276,13 @@ after: reorder the document and its origin and extent do not move. This matches
 Nelson's classification of rearrangement as a "Pure Vstream operation" that leaves the measured
 extent fixed.
 
-One edit consequence is specific to this query, because it *bounds V8*. V8's origin permanence
-is asserted *while content is present* — that hypothesis is exactly the boundary. We confine
-attention to transitions that leave the document non-empty, so the origin stays *defined* across
-them; the to-empty and from-empty transitions, which move the origin to or from undefined, are
-governed by V11, not here. Among these defined-origin transitions the origin moves precisely at
-the two that toggle content occupancy while the link subspace survives, symmetric across the
-content/link boundary. We record **V18** (origin migration bounds V8). *Content-clearing*:
-deletion empties the content subspace
-(`V_{s_C}(d) = ∅`) while one or more links survive (`V_{s_L}(d) ≠ ∅`); the document is *not*
-empty (V11 does not fire), but V8's hypothesis fails and `origin_d` migrates *up* from the
-content anchor `[s_C,1,…,1]` to the link minimum `[s_L,1,…,1]` (D-MIN★ at `S = s_L`).
+Among editing transitions that keep the document non-empty (so the origin stays defined), the
+origin moves only at the two that toggle content occupancy while the link subspace survives,
+symmetric across the content/link boundary. We record **V18** (origin migration bounds V8).
+*Content-clearing*: deletion empties the content subspace
+(`V_{s_C}(d) = ∅`) while one or more links survive (`V_{s_L}(d) ≠ ∅`); V8's hypothesis fails
+and `origin_d` migrates *up* from the content anchor `[s_C,1,…,1]` to the link minimum
+`[s_L,1,…,1]` (D-MIN★ at `S = s_L`).
 *First-content insertion*: into a link-only document (V5), where `origin_d = [s_L,1,…,1]`,
 inserting the first content position occupies `[s_C,1,…,1]`, and since `s_C < s_L` the origin
 migrates *down* to the content anchor `[s_C,1,…,1]`, restoring V8's regime (D-MIN★ at
