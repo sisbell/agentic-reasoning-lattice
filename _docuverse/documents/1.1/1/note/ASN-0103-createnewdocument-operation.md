@@ -55,7 +55,7 @@ The maximum is well-defined: `E` is finite at every reachable state — `Σ₀.E
 
 *Freshness and distinctness.* The address is new, and it stays distinct from every other document address, present and future. For freshness, Effect One placed `d` on the stream — `d ∈ S(A, 2)` in both branches (the first emission `inc(A, 2)` is the stream's head; the subsequent emission `inc(d_prev, 0)` lands on it with `d_prev = max(D_A) ∈ S(A, 2)`) — and gave `d > max(D_A)` when `D_A ≠ ∅` (vacuously `d ∉ D_A` when `D_A = ∅`), so in either branch `d ∉ D_A`. Since `D_A = E ∩ S(A, 2)` (proven above), `d ∈ S(A, 2) \ D_A = S(A, 2) \ E`, whence `d ∉ E`.
 
-Distinctness from every *other* document-chain emission, present and future, is same-chain injectivity. `A_doc(A) = S(A, 2)` is a SiblingStream whose enumeration is strictly increasing under T1, hence injective (S0, StreamOrdering; ASN-0040): distinct stream positions name distinct addresses, so no document baptised under `A` — earlier or later — can coincide with `d`. Distinctness from the version chains is namespace disjointness: each `A_v(d_i) = S(d_i, 1)` is a distinct namespace from `S(A, 2)` — the parent–depth pairs `(d_i, 1)` and `(A, 2)` differ, and both are B6-valid (`d_i` a T4-valid document, `zeros(d_i) + (1 − 1) = 2 ≤ 3`; `A` an account, `zeros(A) + (2 − 1) = 2 ≤ 3`) — so `S(A, 2) ∩ S(d_i, 1) = ∅` (B7, ASN-0040), and `d` collides with no version address, present or future. Cross-account collisions are excluded the same way: for any `A' ≠ A`, the pairs `(A, 2)` and `(A', 2)` differ and are both B6-valid (each account T4-valid with `zeros = 1`, so the depth-2 bound `zeros(·) + (2 − 1) = 2 ≤ 3` holds), so `S(A, 2) ∩ S(A', 2) = ∅` (B7, ASN-0040). Every document baptised under a distinct account inhabits a disjoint stream, so `d` collides with none.
+Distinctness from every *other* document address — present or future — splits into a same-chain and a cross-chain case. *Same-chain:* `A_doc(A) = S(A, 2)` is a SiblingStream whose enumeration is strictly increasing under T1, hence injective (S0, StreamOrdering; ASN-0040), so distinct stream positions name distinct addresses and no document baptised under `A` — earlier or later — coincides with `d`. *Cross-chain:* every document-level address (`zeros = 2`) not on `S(A, 2)` is emitted by some other SiblingStream — an account's document chain `S(A'', 2)` for `A'' ≠ A`, or a version chain `S(d_src, 1)` forked off any document-level `d_src` (true documents and versions alike, at any depth). Each such stream has a B6-valid parent–depth pair `(p', d')`: document chains satisfy `zeros(A'') + (2 − 1) = 2 ≤ 3`, version chains `zeros(d_src) + (1 − 1) = 2 ≤ 3`. We discharge all of them with a single B7 instantiation: for *every* B6-valid `(p', d') ≠ (A, 2)`, `S(A, 2) ∩ S(p', d') = ∅` (B7, NamespaceDisjointness; ASN-0040), since `(A, 2)` differs from every other parent–depth pair. This one step subsumes all other accounts' document chains, all version chains, and version-of-version chains at any depth, present and future. As `d ∈ S(A, 2)`, it collides with none.
 
 Existing addresses, meanwhile, remain valid: the allocation only adjoins `d` and reuses nothing (`E ⊆ E'`). This is the abstract content of Nelson's permanence guarantee:
 
@@ -70,6 +70,8 @@ The document is born holding nothing. Its arrangement is the empty partial funct
 There are no V-positions, hence no V→I mappings, hence no I-addresses referenced. This is the formal reading of "creates an empty document" (4/65). Because the Vstream is dense — a contiguous sequence of positions — a document with zero references occupies zero V-addresses; there is no inherent starting state, no default text, no placeholder the user can rely on. Content is added only by subsequent operations.
 
 An empty document cannot dangle: with `ran(M'(d)) = ∅` there is no reference that could point past the content store.
+
+This empty range is also exactly what distinguishes a created document from a forked one: CREATENEWVERSION begins its new document with a *populated* arrangement inherited from the source ("creates a new document with the contents of document `<doc id>`", 4/66 — out of scope here), whereas creation begins with `ran(M'(d)) = ∅`. Empty versus inherited is the whole distinction, and it is visible in the post-state.
 
 ### Effect Three: Nothing Else Changes
 
@@ -108,18 +110,6 @@ Now invoke CREATENEWDOCUMENT(A). The length filter is decisive: `#A + 2 = 5`, so
   `d = inc(d1, 0) = [1, 0, 1, 0, 2]`  (`#d = 5`, `zeros = 2`, `parent(d) = A`).
 
 Check the claims. *CND.alloc:* `d = [1,0,1,0,2]` is the second emission of `A_doc(A) = S(A, 2)` (first `[1,0,1,0,1] = d1`, then `inc(d1,0)`), with `Document(d)`, `zeros(d) = 2`, `parent(d) = A`, `T4-valid(d)`. *CND.empty:* `M'(d) = ∅`. *CND.E:* `E' = E ∪ {[1,0,1,0,2]}` and `[1,0,1,0,2] ∉ E`. *CND.monotone:* `d ∉ E`; `d ≠ d1` (distinct positions on `S(A, 2)`, injective by S0) and `d ≠ v1` (`v1 ∈ S(d1, 1)`, disjoint from `S(A, 2)` by B7) — `d` collides with neither, present or future. Crucially, had we used the *unrestricted* `D_A`, we would have taken `d_prev = max{d1, v1} = v1` (since `d1 ≺ v1`) and emitted `inc(v1, 0) = [1, 0, 1, 0, 1, 2]` — which is exactly the *next version* of `d1`, the second emission of `A_v(d1)`. A subsequent fork of `d1` would then re-baptise `[1, 0, 1, 0, 1, 2]`, a direct collision violating B8. The length filter is precisely what averts this.
-
-## What Distinguishes Creation From Forking
-
-The user asked what separates a freshly authored document from one born by versioning. The distinction is sharp and lies entirely in **what is shared with prior documents at the level of I-address identity**.
-
-By Effect Two the new document's arrangement is empty (`ran(M'(d)) = ∅`), so at creation it shares no I-address with any other document. The contribution here is that the sharing cannot arise by accident later, either: any content subsequently inserted into `d` is drawn from `A_C(d)` and carries `origin(·) = d`. By origin-based identity (S4, ASN-0036), two content units produced by distinct allocation events are distinct addresses *regardless of their values*. So even if `d` comes to hold byte-for-byte the same text as some other document, the two hold it at *different* I-addresses. A fresh document has no automatic correspondence to anything.
-
-Contrast a document born by forking (CREATENEWVERSION — formalised elsewhere, out of scope here): a forked document begins with a *populated* arrangement, a created one with `ran(M'(d)) = ∅`. We do not formalise the forking path; we only fix the contrast at the one place it matters:
-
-> "CREATENEWDOCUMENT ... creates an empty document"; "CREATENEWVERSION ... creates a new document with the contents of document `<doc id>`." (4/65–66)
-
-Empty versus inherited. That is the whole distinction, and it is visible in our post-state as `ran(M'(d)) = ∅`.
 
 ## Ownership and Immediate Referability
 
@@ -186,7 +176,7 @@ We verify that the post-state `Σ'` satisfies the operative invariants. Most are
 
 *Address permanence (T8, ASN-0034) and distinctness (S0, B7, ASN-0040).* Every previously valid address remains valid (`E ⊆ E'`, `dom(C) ⊆ dom(C')`) by T8, and `d` collides with no existing or future address — distinctness as established in Effect One. The document's identity is permanently distinct from every other document, including ones created later.
 
-*The balance of `ExtendedReachableStateInvariants` (ASN-0047).* The binding correctness criterion is the full conjunction of that theorem plus the transition invariant P3; the conjuncts not named above are discharged on the vacuity premise `dom(M'(d)) = ∅` together with the frame `C' = C ∧ L' = L ∧ R' = R ∧ E' = E ∪ {d} ∧ (A d' ≠ d : M'(d') = M(d'))`.
+*The balance of `ExtendedReachableStateInvariants` (ASN-0047).* The binding correctness criterion is the full conjunction of that theorem plus the transition invariant P3; the conjuncts not named above are discharged on the vacuity premise `dom(M'(d)) = ∅` together with the frame fixed by the Formal Contract's Effect.
 
 - *Vacuous for the empty arrangement of `d`, frame-inherited for `d' ≠ d`* (each quantifies over `dom(M'(d))` or `V_S(d)`, empty for `d`): S3★-aux, S8a, S8-fin, S8-depth, S8★, D-CTG★, D-MIN★, D-SEQ★, CL-OWN, CL-UNIQ.
 - *Frame-inherited — no content, link, or provenance change* (each ranges over `dom(C') = dom(C)`, `dom(L') = dom(L)`, or `R' = R`): S4, S7a, S7b, C1b, C1c, C-fin, P7, L0, L1, L1a, L1b, L1c, L3, L14, L-fin, and NodeLineage (no node minted).
@@ -213,7 +203,7 @@ Every conjunct of `ExtendedReachableStateInvariants` and the transition invarian
 | CND.doc-frame | (A d' ∈ E_doc : M'(d') = M(d')): every existing document's arrangement is wholly untouched | introduced |
 | CND.monotone | d is never a reuse and stays distinct from every other document address, present and future: d ∉ E (established uniformly over all of E in Effect One), distinctness from same-chain emissions by S0 (StreamOrdering, ASN-0040 — strictly increasing hence injective over S(A,2)), distinctness from version chains and other accounts by namespace disjointness B7 (ASN-0040); existing addresses remain valid by permanence T8 (ASN-0034) | introduced |
 | CND.subAlloc | Creation activates A_C(d) and A_L(d) (content and link sub-allocators, anchors [d.0.s_C], [d.0.s_L]) without emission; both subspaces are available but empty at Σ' (SubAllocatorBundle, ASN-0047) | introduced |
-| CND.no-sharing | The fresh document shares no I-address with any prior document: ran(M'(d)) = ∅; and future content drawn from A_C(d) has origin = d, so by S4 (ASN-0036) it shares no I-address with any other document regardless of value coincidence | introduced |
+| CND.no-sharing | At creation the fresh document references no I-address at all: ran(M'(d)) = ∅ (CND.empty), so at Σ' it shares no I-address with any document. Later sharing by transclusion/COPY is permitted (S5, ASN-0036) and is out of scope | introduced |
 | CND.own | Ownership is structural (derivable over (C,L,E,M,R)): parent(d)=A and A ≼ d (every A_doc(A) emission has form [A,0,j]), so with pfx(π) ≼ A (CND.pre) and prefix transitivity, owns(π,d) ≡ pfx(π) ≼ d (O1; ASN-0042) — d ∈ odom(π) | introduced |
 | CND.refer | d is immediately, permanently, and unambiguously referable: a link may target d at Σ' before any content exists; uniqueness is decentralised (B8, ASN-0040) and identity is immutable for the life of the system | introduced |
 | CND.atomicity | The single-K.δ decomposition is atomic by the sequential-transition axiom (ASN-0093); no observable intermediate state exists, so all invariants hold throughout. Coupling constraints J0, J1★, J1'★ hold vacuously | introduced |
