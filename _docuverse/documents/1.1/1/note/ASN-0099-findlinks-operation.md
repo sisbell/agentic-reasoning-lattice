@@ -360,7 +360,50 @@ Conjoining the applicability guard `enabled(K.μ⁻[d, ℛ])` (so that `Σ'` exi
 
 Two specializations close the loop. *(i) Full-document query.* For `R = T`, `project(a, i, d, Σ) ⊆ dom(Σ.M(d)) ⊇ ℛ` makes `∩ T` a no-op, so the condition reduces to `(E i : project(a, i, d, Σ) ∩ ℛ ≠ ∅)` — exactly LP12a (ASN-0098), since `a ∈ findlinks_V(T, d, Σ) ⟺ discoverable_from(a, d, Σ)` (image(T, d, Σ) = ran(Σ.M(d)), and LP12 of ASN-0098 equates per-slot coverage-meets-range with `project ≠ ∅`). F21 is thus the V-side lift of LP12a through `image`. *(ii) Boundary `ℛ = ∅`.* Total clearance gives `project(a, i, d, Σ) ∩ R ∩ ∅ = ∅` for every slot, so the wp is `false` — no pre-state leaves `a` discoverable from a fully cleared document, matching LP12a's `R = ∅` boundary.
 
-The contraction-then-extension composite is handled by wp composition, `wp(K.μ⁻ ; K.μ⁺, Q) = wp(K.μ⁻, wp(K.μ⁺, Q))`. For the range-preserving reordering K.μ~ (the `K.μ⁻ + K.μ⁺` composite that restores the same range), J3/K.μ~-RANGE (ASN-0047) gives `ran(Σ'.M(d)) = ran(Σ.M(d))`, so full-document V-side discoverability is *invariant* across K.μ~ and the wp degenerates to `enabled ∧ (a ∈ findlinks_V(T, d, Σ))`. For a general `K.μ⁻[d, ℛ]` followed by an extension `K.μ⁺` that adds I-addresses to `d`'s range, LP9 (ASN-0098) makes the extension's effect on discoverability monotone non-decreasing, so the composite wp is *weaker* than F21's contraction wp: an extension can only restore or create discoverability that the contraction removed, never destroy more of it.
+F21 fixes the single-operation contraction wp. Two further situations — a range-preserving reordering, and a contraction followed by an extension — each yield a labeled consequence with its own derivation.
+
+The range-preserving reordering K.μ~ leaves full-document discoverability untouched.
+
+```
+F22 (ReorderingDiscoverabilityInvariance):
+   For the range-preserving reordering K.μ~ on d and the full-document
+   query R = T,
+       wp(K.μ~[d], a ∈ findlinks_V(T, d, ·))
+         ≡ enabled(K.μ~[d]) ∧ a ∈ findlinks_V(T, d, Σ).
+```
+
+Derivation. K.μ~ is the named `K.μ⁻ + K.μ⁺` composite that restores the same range; LP11 (ReorderingBijection, ASN-0098) — equivalently J3/K.μ~-RANGE (ASN-0047) — gives `ran(Σ'.M(d)) = ran(Σ.M(d))`, and A1a gives `Σ'.L = Σ.L`. For `R = T`, `image(T, d, Σ) = ran(Σ.M(d))`, so write `J := ran(Σ.M(d)) = ran(Σ'.M(d))` for the single image set shared by both states. Evaluating the postcondition at `Σ'`:
+
+```
+a ∈ findlinks_V(T, d, Σ')
+  ⟺ matches(a, J, Σ')          -- F12 unfold; image(T, d, Σ') = ran(Σ'.M(d)) = J
+  ⟺ matches(a, J, Σ)           -- PerLinkInvarianceUnderValuePreservation at a (Σ'.L(a) = Σ.L(a), fixed I-set J)
+  ⟺ a ∈ findlinks_V(T, d, Σ)   -- F12 refold; image(T, d, Σ) = J
+```
+
+The middle step is licensed because `J` is the *same* set on both sides (range invariance), so the match's I-argument is fixed and only its link-side data moves, which PerLinkInvarianceUnderValuePreservation transports unchanged. Conjoining the applicability guard `enabled(K.μ~[d])` yields F22.
+
+The contraction-then-extension composite is no harder to discover from than the contraction alone.
+
+```
+F23 (ContractionExtensionWPWeakening):
+   Let σ = K.μ⁻[d, ℛ] ; K.μ⁺[d] be the composite that first contracts
+   d's arrangement to ℛ and then extends it (K.μ⁺ adding I-addresses to
+   d's range). For the postcondition Q ≡ (a ∈ findlinks_V(R, d, ·)):
+       wp(K.μ⁻[d, ℛ], Q) ∧ enabled(σ)  ⟹  wp(σ, Q).
+   The composite wp is therefore no stronger than F21's contraction wp:
+   on the sub-domain where σ is enabled, every pre-state guaranteeing
+   post-contraction discoverability also guarantees post-composite
+   discoverability.
+```
+
+Derivation, in three steps.
+
+*Step 1 — wp composition.* For sequential composition of deterministic partial operations, `wp(σ, Q) = wp(K.μ⁻[d, ℛ], wp(K.μ⁺[d], Q))`, with the chained applicability folded into `enabled(σ)`.
+
+*Step 2 — extension preserves discoverability.* Let `Σ_m` be any intermediate state (post-contraction) at which `K.μ⁺[d]` is enabled, and `Σ_m'` its post-extension successor. K.μ⁺ satisfies LP9's structural hypotheses (E1) strict domain extension `dom(Σ_m'.M(d)) ⊃ dom(Σ_m.M(d))` and (E2) prior-domain agreement, so LP9 (ExtensionMonotonicity, ASN-0098) gives `project(a, i, d, Σ_m) ⊆ project(a, i, d, Σ_m')` for every slot `i`. Intersecting the fixed region `R` preserves the inclusion: `project(a, i, d, Σ_m) ∩ R ⊆ project(a, i, d, Σ_m') ∩ R`. Unfolding `Q` by the F21 chain (matches over `image(R, d, ·)` equals `(E i : project(a, i, d, ·) ∩ R ≠ ∅)`), a non-empty slot at `Σ_m` is a non-empty slot at `Σ_m'`, so `Q(Σ_m) ⟹ Q(Σ_m')`. Since `Σ_m'` is exactly `K.μ⁺[d]` applied to `Σ_m`, this is `[Q ⟹ wp(K.μ⁺[d], Q)]` on enabled intermediate states.
+
+*Step 3 — wp is monotone in its postcondition.* From `[Q ⟹ wp(K.μ⁺[d], Q)]` and the monotonicity rule `Q₁ ⟹ Q₂  ⊢  wp(S, Q₁) ⟹ wp(S, Q₂)` instantiated at `S = K.μ⁻[d, ℛ]`, `Q₁ = Q`, `Q₂ = wp(K.μ⁺[d], Q)`, we obtain `wp(K.μ⁻[d, ℛ], Q) ⟹ wp(K.μ⁻[d, ℛ], wp(K.μ⁺[d], Q))`. By Step 1 the right side is `wp(σ, Q)`; conjoining `enabled(σ)` discharges the chained guard. This is F23. Intuitively: a contraction can only remove discoverability, an extension can only add it back, so prefixing the contraction's wp with a subsequent extension never tightens the precondition.
 
 ```
 F19 (ResultSetMonotonicity):
@@ -459,6 +502,8 @@ Transitivity yields `Σ.L = Σ_5.L`. F8 forces `findlinks(I, Σ) = findlinks(I, 
 | F20 | Image set-additive | introduced |
 | F20a | V-side additive: `findlinks_V(R₁ ∪ R₂, d, Σ) = findlinks_V(R₁, d, Σ) ∪ findlinks_V(R₂, d, Σ)` | introduced |
 | F21 | VSideContractionWP: weakest precondition for V-side discoverability of a fixed link under K.μ⁻, composing `image` with ASN-0098's LP12a | introduced |
+| F22 | ReorderingDiscoverabilityInvariance: full-document V-side discoverability is invariant across the range-preserving reordering K.μ~ (via range invariance + PerLinkInvariance) | introduced |
+| F23 | ContractionExtensionWPWeakening: the K.μ⁻ ; K.μ⁺ composite wp is implied by F21's contraction wp on the enabled sub-domain (via wp-composition + LP9 + wp postcondition-monotonicity) | introduced |
 
 ## Open Questions
 
