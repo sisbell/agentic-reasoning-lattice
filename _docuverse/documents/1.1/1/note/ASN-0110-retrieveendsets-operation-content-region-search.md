@@ -70,7 +70,8 @@ suffices. Unfolding the coverage union, `touches(e, I)` holds iff *some* span of
 > **RE-overlap (lemma).** `touches(e, I) ⟺ (E (s, ℓ) : (s, ℓ) ∈ e : ⟦(s, ℓ)⟧ ∩ I ≠ ∅)`. Since
 > `I` is a finite set of addresses, a span `(s, ℓ) ∈ e` meets it iff some address of `I` lies in
 > its half-open denotation, `(E α : α ∈ I : s ≤ α < s ⊕ ℓ)` — each membership test a pair of
-> tumbler comparisons (SC, ASN-0053). *Boundary contact is not touching:* the denotation
+> comparisons under the tumbler total order (T1/T2, ASN-0034), matching the predicate RE-decide
+> discharges below. *Boundary contact is not touching:* the denotation
 > `[s, s ⊕ ℓ)` is half-open, so an address `α = s ⊕ ℓ` sitting exactly at the span's exclusive
 > upper bound is not covered; only `s ≤ α < s ⊕ ℓ` qualifies.
 
@@ -153,10 +154,26 @@ content is the treatment of *empty interior slots*. A role-slot `i ≤ N_max(Σ)
 `Eᵢ(I, Σ) = ∅` — say an arity-4 link is present, fixing `N_max(Σ) ≥ 4`, yet no slot-4 endset
 of any link touches `I` — still *occupies* position `i` in the tuple, reported as the empty
 set rather than dropped. The index range is determined by the store's arities; the contents of
-each slot, by the touching test; the two are independent. This matches Gregory's
-implementation, which always emits the three standard slots (from, to, type) and writes a
-count-zero endset for any role with no touching contribution rather than omitting the slot
-(SS-RETRIEVE-ENDSETS, ST-RETRIEVE-ENDSETS).
+each slot, by the touching test; the two are independent. This *empty-slot-in-position*
+discipline matches Gregory's implementation, which always emits the three standard slots (from,
+to, type) and writes a count-zero endset for any role with no touching contribution rather than
+omitting the slot (SS-RETRIEVE-ENDSETS, ST-RETRIEVE-ENDSETS).
+
+The *tuple length*, by contrast, matches Gregory only conditionally, and the distinction is
+worth stating because it is a genuine conformance boundary, not a presentational nicety.
+Gregory's store is architecturally capped at three endsets per link: creation
+(`docreatelink`), spanfilade indexing (three hardwired ORGLRANGE constants
+`LINKFROMSPAN`/`LINKTOSPAN`/`LINKTHREESPAN`), and retrieval are each fixed to the from/to/type
+triple, with no storage key or retrieval path for a fourth slot (ST-CREATE-LINK,
+INT-SPORGL-LINK-INDEX, SS-RETRIEVE-ENDSETS). Such a store always satisfies `N_max(Σ) ≤ 3`, so
+Gregory's fixed three-slot emission is exactly the `N_max(Σ)`-length tuple this operation
+requires. The abstract model, however, admits links of arity `N ≥ 3` (L3, ASN-0093); on a
+store actually holding a higher-arity link, `N_max(Σ) > 3`, and a conforming implementation
+must emit `N_max(Σ)` slots. A three-slot implementation is conformant precisely on the
+sub-class of stores whose links are all arity 3. (Nelson's design agrees: the link primitive
+is the fixed three-endset structure — from, to, type — and higher-arity relations are built by
+*composition*, links to links, not by a single variable-arity link, LM 4/44, 4/51.) We
+reconcile this with RE-complete below.
 
 The empty query region is the boundary that makes this length discipline visible.
 
@@ -199,6 +216,22 @@ state the two halves separately because each is a genuine obligation:
 > **RE-exact (theorem).** `resultᵢ(I, Σ) = Eᵢ(I, Σ)`. Soundness and completeness together pin
 > the result down to exactly the touching endsets, leaving an implementation no latitude in
 > *which* endsets to report.
+
+RE-complete quantifies over *every* role `i ≤ N_max(Σ)`, including slots beyond the standard
+triple, and this is where the arity gap noted under RE-arity becomes a concrete conformance
+obligation.
+
+> **RE-conform (remark).** On a store holding an arity-`N` link with `N > 3` whose slot-`j`
+> endset (`3 < j ≤ N`) touches `I`, we have `Eⱼ(I, Σ) ≠ ∅`, so any implementation emitting only
+> the three standard slots violates RE-complete by dropping slot `j`. A fixed three-slot
+> implementation is therefore a conforming realization of `retrieveendsets` exactly on the
+> sub-class of stores whose links are all arity 3 — where `N_max(Σ) ≤ 3` makes every slot `> 3`
+> uniformly empty (RE-arity) and the empty-slot-in-position discipline supplies any missing
+> standard slot. Gregory's store, capped at three endsets per link (ST-CREATE-LINK,
+> INT-SPORGL-LINK-INDEX), lies wholly inside this sub-class, so its three-slot emission meets
+> the contract for every store it can represent. The abstract operation extends the same
+> contract — soundness, completeness, exactness, role separation — to the higher-arity links L3
+> admits, which Gregory's representation simply cannot construct.
 
 ## The returned endset is whole, not clipped
 
@@ -519,6 +552,7 @@ it among the open questions.
 | RE-sound | `resultᵢ ⊆ Eᵢ` — no returned endset fails to touch `I` | introduced |
 | RE-complete | `Eᵢ ⊆ resultᵢ` — every touching endset returned, none omitted | introduced |
 | RE-exact | `resultᵢ(I, Σ) = Eᵢ(I, Σ)` | introduced |
+| RE-conform | a fixed three-slot implementation (Gregory's) realizes `retrieveendsets` exactly on arity-3 stores; higher-arity slots `> 3` are required by RE-complete on stores L3 admits | introduced |
 | RE-full | the returned endset is the whole stored `Σ.L(a).eᵢ`, not clipped to `I` | introduced |
 | RE-anon | result does not determine the contributing link addresses, nor their count (via L11b) | introduced |
 | RE-reveal | result reveals per-role connectivity but dissolves per-link from/to/type pairing | introduced |
