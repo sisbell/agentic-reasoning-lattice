@@ -129,23 +129,16 @@ at the content the link connects — stand at a from-span and at a to-span and r
 What would still be missing?
 
 Everything that makes the relationship a relationship. The bytes at the two ends announce neither
-why they are connected nor by whom. Four things are recoverable only from the link object, and
-the direct read is what delivers them.
+why they are connected nor by whom. The type, the direction, and the whole-structure-at-once are
+all recoverable only from the link object — but these are precisely the guarantees already
+formalised at their slots (the type by RL5, the from/to asymmetry and the simultaneous grouping by
+RL2 and RL1). One thing more is recoverable that *none* of those slot-level claims delivers, because
+it lives in the read key rather than the returned value: *ownership*.
 
-*The type.* The kind of connection — citation, refutation, comment — is the third endset, not a
-property of either endpoint. Two links whose endpoints are byte-for-byte identical may be a
-citation and a refutation; only `readlink(a, Σ).e₃` tells them apart. Because the read returns the
-type endset alongside from and to (RL2), the reader learns the nature of the connection, not just
-its termini.
-
-*The direction.* Standing at an endpoint, one cannot tell whether one is at the source or the
-target of the assertion. The read encodes the asymmetry: slot 1 is "from," slot 2 is "to."
-
-*The ownership.* A relationship is a *claim*, and a claim has an author. The link's home document
-records who owns it. This is recoverable not from the read's output but from the *address* `a` that
-the read is keyed on: a caller already holds `a` to invoke the read, and `home(a)` is derivable from
-that key by T4 field projection alone, without consulting any endset and indeed without performing
-the read.
+A relationship is a *claim*, and a claim has an author. The link's home document records who owns
+it. This is recoverable not from the read's output but from the *address* `a` that the read is keyed
+on: a caller already holds `a` to invoke the read, and `home(a)` is derivable from that key by T4
+field projection alone, without consulting any endset and indeed without performing the read.
 
 **RL4 (Home disclosure).** `home(a) = N(a).0.U(a).0.D(a)` is determined by the read key `a` alone,
 by T4 field projection, and is independent of the returned endsets (L2, ASN-0043). The read does not
@@ -153,11 +146,6 @@ output the home — `readlink(a, Σ)` returns endsets only. Rather, the key that
 encodes it, so a caller who holds `a` can derive ownership without consulting any endset, even of a
 link that points nowhere near its home document — the home indicates *who owns* the link, not *what
 it points to*.
-
-*The whole at once.* Arriving at an endpoint gives one location. The read gives both ends and the
-type simultaneously, as a single structure. The reader sees the relationship whole, which is what
-permits any judgement about it — whether a supersession claim comes from the original author or a
-third party, for instance — to be made at all.
 
 ## Type is interpreted by address, not by content
 
@@ -377,6 +365,6 @@ its value is fixed by L12 / LP13).
 
 What must the system guarantee a reader can conclude about a relationship's continued validity from a direct read alone, given that the read does not consult any arrangement?
 
-What must a read guarantee about the distinguishability of a connective endset that is legitimately empty from one whose spans reference only currently-unwitnessed content?
+What must FOLLOWLINK guarantee so that an endset legitimately empty at the read level stays distinguishable from one whose spans reference only currently-unwitnessed content, given that resolution against an arrangement collapses both to the empty position set?
 
 What guarantee must hold so that reading two distinct links with identical recorded structure always yields results distinguishable by the reader, given that addresses, not values, carry link identity?
