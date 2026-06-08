@@ -160,9 +160,10 @@ depths:
 
 In both cases `r⋆ ≥ reach_d > max O(d)`, so coverage holds; whether `r⋆` equals or strictly
 exceeds `reach_d` is recorded by **V-ReachTight** (reach tightness):
-`reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d` — D1 closes the round-trip when
-`#origin_d ≤ #reach_d`, and D0 makes it fail when `#origin_d > #reach_d`, so the reach attains
-the constructed endpoint exactly when the occupied subspaces share a common depth.
+`reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d`. Both directions are already discharged by V2's
+two covering cases above — case 1 (`#origin_d ≤ #reach_d`) closes the round-trip to
+`r⋆ = reach_d`, and case 2 (`#origin_d > #reach_d`) computes `reach_d < r⋆` — so the reach
+attains the constructed endpoint exactly when the occupied subspaces share a common depth.
 
 **The constructed endpoint is the tightest same-depth covering bound.** We record **V3**
 (bounding): `origin_d` is the greatest lower bound of `O(d)`, and the *constructed endpoint*
@@ -377,12 +378,14 @@ Q14).
 
 ---
 
-## Implementation evidence: the extent stays non-negative
+## Implementation conformance: the extent stays non-negative
 
-*Implementation remark (evidence for V2).* Prior deletions can drive *intermediate*
+*Implementation remark (conformance to V2).* V2's positivity (`Pos(extent_d)`) is a theorem
+of the span algebra, discharged abstractly by D0 — not a fact contingent on implementation
+behavior. The implementation merely *conforms* to it: prior deletions can drive *intermediate*
 arrangement-tree entries to negative displacements, but the root width is recomputed as a
 maximum-minus-minimum reach and remains non-negative, so no editing transient surfaces a
-zero-or-below extent (consultation Q18) — concrete evidence for V2's positivity.
+zero-or-below extent (consultation Q18).
 
 *Implementation remark (reach tightness, evidence for V-ReachTight).* The
 implementation in fact realizes only `m_C = m_L`: content and link V-positions are placed at
@@ -472,12 +475,10 @@ orthogonal endpoint axis. The contingent tightness property — analogous to `Ex
 > constructed endpoint),
 
 is true in some states and false in others (vacuously true on the `⟨⟩` result, where there
-is no `σ_d`). Reasoning backward from `Tight` by the same two-direction exhaustive method, here on
-endpoint depth via D1/D0: if `O(d)` is empty the result is `⟨⟩` and `Tight` holds vacuously; if `O(d) ≠ ∅` and
-`#origin_d ≤ #reach_d`, then D1 closes the round-trip and `reach(σ_d) = r⋆ = reach_d`, giving
-`Tight` (forward); conversely if `#origin_d > #reach_d`, then D0 makes the round-trip fail and
-`reach(σ_d) = r⋆ > reach_d`, giving `¬Tight` (converse). The two directions exhaust the cases, so
-the condition is both necessary and sufficient, hence the *weakest* precondition:
+is no `σ_d`). The backward reasoning here needs no fresh case analysis: V-ReachTight already
+establishes `reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d` for the non-empty case, and the
+empty case is vacuous. Disjoining the empty-result branch with V-ReachTight's condition gives
+the *weakest* precondition directly:
 
 > `wp(RETRIEVEDOCVSPAN(d), Tight) = (O(d) = ∅ ∨ #origin_d ≤ #reach_d)`.
 
