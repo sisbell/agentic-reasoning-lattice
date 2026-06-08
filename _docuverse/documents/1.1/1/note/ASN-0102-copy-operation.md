@@ -128,7 +128,7 @@ Finally, every post-state `s_C`-position — not only the insertion anchor `v` �
 
 Further obligations bind the post-state.
 
-**X9 (SourceHandling).** The guarantee splits by whether the source is the target, and the two halves are *different properties* — non-alteration in one case, pre-state resolution in the other.
+**X9 (SourceHandling).**
 
 *(a) Non-interference for sources `d_s ≠ d`.* A source document other than the target is left untouched by COPY's frame — instantiating the definition's "other documents" clause at `d' = d_s ≠ d` gives `Σ'.M(d_s) = Σ.M(d_s)`, so its arrangement, its referenced content, and (by X5) the origins of its content are all unchanged.
 
@@ -191,7 +191,7 @@ Finally, COPY is a transition, so it must also discharge the separate transition
 
 **X14 (Atomicity).** COPY is a *single* elementary transition (Definition) in all cases — not a composite of K.μ steps — so SequentialTransitionAxiom (ASN-0047/0093) applies to it directly: the precondition is read against `Σ` and the effect committed to `Σ'` in one indivisible step, with no observable intermediate state. This is the operation's atomicity *guarantee*: at no point is `d`'s content subspace observable in a transiently contracted, gapped, or partially-bound condition; the one step carries `Σ` directly to the gap-free post-state `Σ'` (X15).
 
-Elementary status is a deliberate modeling choice, not a reachability necessity: in the displacing case `Σ'` is also reachable by a *contract-then-extend* composite (a K.μ⁻ retaining the content-subspace prefix `n'_{s_C} = p − 1`, followed by the amended K.μ⁺ binding `[p, p+W)` to the copied I-addresses and `[p+W, n_S+W]` to the displaced images), so COPY introduces no new reachable state. It is defined as elementary so that the transient contraction such a decomposition would exhibit is never observable.
+Elementary status is a deliberate modeling choice, not a reachability necessity: in the displacing case `Σ'` is also reachable by a *contract-then-extend* composite (a K.μ⁻ retaining the content-subspace prefix `n'_{s_C} = p − 1`, followed by the amended K.μ⁺ binding `[p, p+W)` to the copied I-addresses and `[p+W, n_S+W]` to the displaced images), so COPY introduces no new reachable state.
 
 ---
 
