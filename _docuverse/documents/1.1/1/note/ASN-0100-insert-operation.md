@@ -50,7 +50,7 @@ INSERT splices `n` new content units into `d`'s arrangement at V-position `p`. T
 
 ### Effect One: Allocation
 
-The new content units do not exist in `dom(C)` before the operation. INSERT creates *new* content with *fresh* I-addresses: the operation does not reuse, alias, or identify with any pre-existing I-address. This is a design requirement, not an implementation choice. Xanadu storage is append-only and content identity is based on creation, not value — created bytes are laid down at new, never-reused locations, so two units carrying identical bytes but created independently receive *different* I-addresses.
+The new content units do not exist in `dom(C)` before the operation. INSERT creates `n` new content units at *fresh* I-addresses drawn from never-reused locations: Xanadu storage is append-only, so each unit is laid down at a new address rather than reusing any existing one. (The consequence — that identity tracks the allocation event, not the byte value — is developed in §Identity Through Allocation.)
 
 The freshness comes from `d`'s content sub-allocator `A_C(d)`, by the substrate's allocation discipline (ASN-0093). We require `n` addresses, produced by `n` successive K.α firings under the substrate's transition vocabulary:
 
@@ -240,7 +240,7 @@ The consequence: a reader holding any pre-state I-address `a ∈ dom(C)` retriev
 
 The frame `(A d' : d' ≠ d : M'(d') = M(d'))` directly enforces independence: no document other than `d` has its arrangement altered. Coupled with `L' = L` and content-store preservation, this means that any document `d'` that transcludes content from `d` continues to map the same V-positions to the same I-addresses, and those I-addresses continue to resolve to the same values.
 
-Cross-document independence extends to link projection: for any link `ℓ ∈ dom(L)` and any document `d' ≠ d`, the cross-document frame `M'(d') = M(d')` established above gives `project(ℓ, i, d', Σ') = project(ℓ, i, d', Σ)` by INS.proj's `d' ≠ d` case (proved below).
+Cross-document independence extends to link projection: for any link `ℓ ∈ dom(L)` and any document `d' ≠ d`, projection consults only `M(d')` and `coverage(Σ.L(ℓ).e_i)`. The cross-document frame `M'(d') = M(d')` leaves the former unchanged, and `L' = L` (with INS.inv.coverage / LP3★, ASN-0098) leaves the latter unchanged, so `project(ℓ, i, d', Σ') = project(ℓ, i, d', Σ)` directly.
 
 ### Arrangement functionality (S2)
 
@@ -435,10 +435,6 @@ P7 (ProvenanceGrounding; ASN-0047): `(A (a, d') ∈ R' :: a ∈ dom(C'))` — ev
 
 P7a (ProvenanceCoverage; ASN-0047): every `a ∈ dom(C')` has some `d` with `(a, d) ∈ R'`. Pre-state P7a covers `dom(C)`; each new `a_k ∈ dom(C') \ dom(C)` is paired with `d` in step 4.
 
-### What is *not* allocated
-
-INSERT does *not* allocate new documents (`dom(M') = dom(M)`), does *not* allocate new links (`L' = L`), and does *not* allocate I-addresses outside `dom(C)`'s content subspace (every `a_k` has `subspace_I(a_k) = s_C`). The allocation footprint is precisely `n` content-subspace I-addresses scoped to `d`.
-
 ## Atomicity and Canonical Order
 
 Nelson requires that after INSERT, the system is in "canonical order" — every structural invariant holds simultaneously. INSERT is a substrate composite governed by ValidComposite★ (ASN-0047), and its atomicity is the *composite-boundary* form: per-state invariants (Class (a) of ASN-0047 — S2, S3★, S8-depth, S8a, D-CTG★, D-MIN★, D-SEQ★, L0, L12, L14, …) hold at *every* state including each intermediate within the composite; composite-boundary properties (Class (b) — P4★, P4a, P7a) and the coupling constraints (J0, J1★, J1'★) hold at the boundary between Σ and Σ'.
@@ -557,7 +553,7 @@ What the specification *does* cover is the precise per-state effect of one INSER
 |-------|-----------|--------|
 | INS.def | INSERT(d, p, ⟨v_0, …, v_{n−1}⟩) is a substrate composite Σ →* Σ' under ValidComposite★ (ASN-0047), realised as n K.α + (optional K.μ⁻) + K.μ⁺ + n K.ρ | introduced |
 | INS.pre | INSERT preconditions: d ∈ dom(M); p valid in text subspace of d — for non-empty V_{s_C}(d) the binary predicate ValidInsertionPosition admits exactly N+1 positions (N = \|V_{s_C}(d)\|), namely p ∈ {shift(min(V_{s_C}(d)), j) : 0 ≤ j ≤ N}; for empty V_{s_C}(d) the ternary predicate ValidFirstInsertionPosition(d, p, m) with caller-chosen m ≥ 2 admits the single position [s_C, 1, …, 1] of depth m; n ≥ 1; v_k ∈ Val; pre-state Σ is a composite boundary (ASN-0047), making P4★/P4a/P7a available | introduced |
-| INS.alloc | INSERT allocates exactly n fresh I-addresses from d's content sub-allocator A_C(d); each a_k satisfies origin(a_k) = d; each K.α firing satisfies its freshness precondition against its own intermediate state by SubsequentEmissionFreshness and FirstEmissionFreshness (ASN-0093) | introduced |
+| INS.alloc | INSERT's allocation footprint is precisely n fresh I-addresses from d's content sub-allocator A_C(d), each with subspace_I(a_k) = s_C and origin(a_k) = d (no documents, links, or non-content-subspace addresses are allocated); each K.α firing satisfies its freshness precondition against its own intermediate state by SubsequentEmissionFreshness and FirstEmissionFreshness (ASN-0093) | introduced |
 | INS.C | dom(C') = dom(C) ∪ {a_0, …, a_{n−1}}; C'(a_k) = v_k; ∀a ∈ dom(C): C'(a) = C(a) | introduced |
 | INS.M-left | Text-subspace positions v < p in dom(M(d)) appear unchanged in M'(d) | introduced |
 | INS.M-insert | M'(d)(shift(p, k)) = a_k for 0 ≤ k < n, with shift(p, 0) = p | introduced |
