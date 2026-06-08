@@ -64,7 +64,15 @@ finiteness. We say an endset `e` *touches* `I` exactly when its coverage meets t
 The relation asked for in the question — what must hold between a returned endset and the
 region — is precisely non-empty intersection, and nothing stronger. We are not requiring the
 endset to be contained in the region, nor the region in the endset; a single shared address
-suffices. Unfolding the coverage union, `touches(e, I)` holds iff *some* span of `e` overlaps
+suffices. One immediate consequence concerns the *empty endset*. `Endset = 𝒫_fin(Span)` admits
+`∅`, and L3 mandates non-emptiness only for the type slot (slot 3) — slots 1, 2, and any slot
+`> 3` may carry `e = ∅`. Since `coverage(∅) = ∅`, an empty endset satisfies `touches(∅, I) ⟺ ∅
+∩ I ≠ ∅`, which is false for every region `I`. An empty non-type slot therefore never touches
+and contributes nothing to its role-family `Eᵢ`, even when the same link touches `I` through
+another slot. This is distinct from the empty-slot-*in-position* discipline of RE-arity below:
+there the family `Eᵢ` is empty yet still occupies position `i` in the returned tuple; here a
+particular link's empty slot simply fails the touching test and never enters `Eᵢ` in the first
+place. Unfolding the coverage union, `touches(e, I)` holds iff *some* span of `e` overlaps
 `I`:
 
 > **RE-overlap (lemma).** `touches(e, I) ⟺ (E (s, ℓ) : (s, ℓ) ∈ e : ⟦(s, ℓ)⟧ ∩ I ≠ ∅)`. Since
@@ -127,6 +135,20 @@ organized by role, with the link address projected away. For each role index `i 
 
 > **RE-result (definition).** For each role index `i ≥ 1`,
 > `Eᵢ(I, Σ) = {Σ.L(a).eᵢ : (a, i) ∈ W(I, Σ)}`.
+
+`Eᵢ` is a set of endset *values* — span-set representations — and its membership is keyed on
+endset value, i.e. on span-set identity, *not* on coverage. The set comprehension collapses two
+contributions only when they are equal *as span-sets*. The non-obvious consequence is at the
+boundary where the two identity criteria diverge: the touching test is keyed on coverage
+(RE-touch), but the returned set is keyed on value. So if two touching links carry slot-`i`
+endsets `e ≠ e'` that differ as span-sets yet satisfy `coverage(e) = coverage(e')` — distinct
+decompositions of the same address set — then *both* enter `Eᵢ`, giving `Eᵢ ⊇ {e, e'}` with two
+members. There is no coverage-keyed deduplication. This is a deliberate asymmetry: the operation
+*touches by coverage but returns by value*. It stands in pointed contrast to L8's `same_type`
+(ASN-0043), which identifies link types *by coverage* and would collapse `e` and `e'` to a
+single class. `retrieveendsets` makes the opposite choice, for the same reason RE-full returns
+the whole stored endset: the operation hands back stored values verbatim, and the stored value
+is the span-set the author wrote, not a coverage-normalized surrogate the store never held.
 
 The operation returns these families *as a tuple*, and we must pin down its length, since a
 heterogeneous store (links of arity 3, 5, 7) does not fix it by inspection of the standard
@@ -462,20 +484,24 @@ step is about to allocate a link of value `(e₁, …, e_N)`, under what conditi
 does a target endset land in role `j` of the post-state? This is the region-search analogue of
 F9-λ (ASN-0099), and it makes the conditional-idempotence of RE-det precise.
 
-> **RE-wp (lemma).** Let the next transition be a `K.λ` step allocating a fresh link at address
-> `ℓ_new` with value `(e₁, …, e_N)` homed at `d` (the `K.λ` precondition `pre ≡ d ∈ dom(Σ.M) ∧
-> N ≥ 3 ∧ e₃ ≠ ∅ ∧ ℓ_new ∉ dom(Σ.L) ∪ dom(Σ.C)`, ASN-0093). For any endset value `e` and role
-> index `j`,
+> **RE-wp (lemma).** Let the next transition be a `K.λ` step allocating a link homed at `d` with
+> value `(e₁, …, e_N)`. The `K.λ` binding precondition is `pre ≡ d ∈ dom(Σ.M) ∧ (ℓ_new is
+> produced by d's link sub-allocator A_L(d), first or subsequent emission) ∧ N ≥ 3 ∧ (A i : 1 ≤ i
+> ≤ N : eᵢ ∈ Endset) ∧ e₃ ≠ ∅` (ASN-0093). The sub-allocator binding *determines* the allocated
+> address `ℓ_new`; freshness `ℓ_new ∉ dom(Σ.L) ∪ dom(Σ.C)` is not a precondition conjunct but a
+> derived guarantee the proof invokes (FirstEmissionFreshness / SubsequentEmissionFreshness,
+> ASN-0093). For any endset value `e` and role index `j`,
 > ```
 > wp(K.λ, "e ∈ Eⱼ(I, Σ')") = pre ∧ ( e ∈ Eⱼ(I, Σ)  ∨  (j ≤ N ∧ eⱼ = e ∧ touches(e, I)) ).
 > ```
-> *Proof.* `K.λ` sets `Σ'.L = Σ.L ∪ {ℓ_new ↦ (e₁, …, e_N)}` with `ℓ_new` fresh, so
+> *Proof.* `K.λ` sets `Σ'.L = Σ.L ∪ {ℓ_new ↦ (e₁, …, e_N)}`. The sub-allocator binding fixes
+> `ℓ_new`, and the freshness lemma gives `ℓ_new ∉ dom(Σ.L)`, so
 > `dom(Σ'.L) = dom(Σ.L) ⊎ {ℓ_new}`. A witness for `e ∈ Eⱼ(I, Σ')` is a link `a ∈ dom(Σ'.L)` with
 > `j ≤ |Σ'.L(a)|`, `Σ'.L(a).eⱼ = e`, and `touches(e, I)`. Two disjoint cases. If `a ∈ dom(Σ.L)`,
 > value preservation (RE-immut) makes the witness condition identical at `Σ`, i.e. exactly
 > `e ∈ Eⱼ(I, Σ)`. If `a = ℓ_new`, then `|Σ'.L(ℓ_new)| = N` and `Σ'.L(ℓ_new).eⱼ = eⱼ`, so the
 > witness reduces to `j ≤ N ∧ eⱼ = e ∧ touches(e, I)`. The two cases are mutually exclusive by
-> freshness, giving the disjunction. ∎
+> the freshness lemma, giving the disjunction. ∎
 
 The two disjuncts cleanly separate the two phenomena. The first, `e ∈ Eⱼ(I, Σ)`, is
 *unconditional persistence* — it places no constraint at all on the allocated value, and is
@@ -576,7 +602,7 @@ it among the open questions.
 | RE-rep | result depends only on the set `I`, not on how it was presented (direct, vspecset, or image) | introduced |
 | RE-zero | `I = ∅` yields `⟨∅, …, ∅⟩` of length `N_max(Σ)`, not the empty tuple | introduced |
 | RE-witness | `W(I, Σ) = {(a, i) : a ∈ dom(Σ.L), i ≤ |Σ.L(a)|, touches(Σ.L(a).eᵢ, I)}` | introduced |
-| RE-result | `Eᵢ(I, Σ) = {Σ.L(a).eᵢ : (a, i) ∈ W(I, Σ)}` for each role `i ≥ 1` | introduced |
+| RE-result | `Eᵢ(I, Σ) = {Σ.L(a).eᵢ : (a, i) ∈ W(I, Σ)}` for each role `i ≥ 1`; deduplicated by endset *value* (span-set), not coverage, so coverage-equal but representation-distinct endsets are both returned (contrast L8's coverage-keyed `same_type`) | introduced |
 | RE-arity | result is the tuple `⟨E₁, …, E_{N_max(Σ)}⟩`, length `N_max(Σ) = max{|Σ.L(a)| : a ∈ dom(Σ.L)}`; empty interior slots reported in position | introduced |
 | RE-role | endset appears under role `i` iff it is the slot-`i` endset of a touching link; roles independent, no cross-contamination | introduced |
 | RE-sound | `resultᵢ ⊆ Eᵢ` — no returned endset fails to touch `I` | introduced |
