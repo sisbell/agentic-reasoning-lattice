@@ -387,8 +387,13 @@ sets are `{a₁}` and `{a₁, a₂}` — different, and of different cardinality
 
 The corollary is that the *number* of distinct links anchored to the region is not recoverable
 from the result. Two links with coincident endsets are indistinguishable in the output, so the
-result yields at most a lower bound (the number of distinct endset values present), never the
-true count. This is by design and by division of labour: counting how many links touch a
+true count is not determined. Nor does the result yield a lower bound on the total
+contributing-link count: a single link can contribute several distinct endset values (one per
+touching role), while distinct links can share a value, so the count of distinct endset values
+present has no general ordering against the link count. The only sound lower bound is stated
+*per role*: `|Eᵢ(I, Σ)|` lower-bounds the number of distinct links that touch `I` through slot
+`i`, since each link contributes at most one slot-`i` value to `Eᵢ`. This is by design and by
+division of labour: counting how many links touch a
 region is a separate operation (FINDNUMOFLINKS), out of scope here. The guaranteed return
 object per role is fixed as the *set* `Eᵢ(I, Σ)` of touching endset values (RE-result), and
 RE-exact is read as literal set equality. Identical endset values contributed by distinct
@@ -407,9 +412,13 @@ What, then, does the result reveal? It reveals connectivity, anonymously.
 > separation: the operation reports "here are the from-endsets that touch, here are the
 > to-endsets that touch," not "this from goes with that to," and reconstructing the pairing would
 > be tantamount to naming the links, which the operation refuses to do. The dissolution is not
-> categorical, however. In degenerate states the pairing survives — if exactly one link touches
-> `I` (e.g. the worked instance restricted to `a₁` alone), each role-family `Eᵢ` holds at most
-> one endset and the from/to/type triple is trivially reassembled. So the guarantee is that
+> categorical, however. In degenerate states a partial pairing survives — if exactly one link
+> touches `I` (e.g. the worked instance restricted to `a₂ = (F₂, F₁, Θ)` alone, where slots 1 and
+> 2 both touch `I = {c₂, c₃}` while the type slot `Θ` misses it), each role-family `Eᵢ` holds at
+> most one endset, and the touching endsets returned across roles are trivially attributed to the
+> one link. Even then the recovery reaches only the *touching* slots: a slot that does not touch
+> (here `Θ`) contributes nothing to the result and so cannot be reassembled — the full stored
+> from/to/type triple is not recovered, only the endsets the operation actually returns. So the guarantee is that
 > per-link pairing is *not guaranteed recoverable*, not that recovery is impossible at every
 > state; RE-anon establishes only the *existence* of states whose contributing-link structure the
 > result cannot distinguish. The precise boundary — exactly when the pairing is reconstructible
@@ -610,8 +619,8 @@ it among the open questions.
 | RE-exact | `resultᵢ(I, Σ) = Eᵢ(I, Σ)` | introduced |
 | RE-conform | a fixed three-slot implementation (Gregory's) realizes `retrieveendsets` exactly on *non-empty* arity-3 stores (the empty store excepted: spec mandates `⟨⟩`, fixed emission gives `⟨∅,∅,∅⟩`); higher-arity slots `> 3` are required by RE-complete on stores L3 admits | introduced |
 | RE-full | the returned endset is the whole stored `Σ.L(a).eᵢ`, not clipped to `I` | introduced |
-| RE-anon | result does not determine the contributing link addresses, nor their count (via L11b) | introduced |
-| RE-reveal | result reveals per-role connectivity; per-link from/to/type pairing not guaranteed recoverable in general (trivially recoverable in degenerate single-touching-link states; precise boundary deferred to OQ3) | introduced |
+| RE-anon | result does not determine the contributing link addresses, nor their count (via L11b); no lower bound on total link count, but `|Eᵢ|` lower-bounds the distinct links touching via slot `i` | introduced |
+| RE-reveal | result reveals per-role connectivity; per-link from/to/type pairing not guaranteed recoverable in general (in a single-touching-link state only the *touching* slots are attributable to that link, non-touching slots absent; precise boundary deferred to OQ3) | introduced |
 | RE-immut | returned endsets are verbatim, immutable stored values with invariant coverage | introduced |
 | RE-surv | result invariant under K.μ-family arrangement edits (which fix `Σ.L`) | introduced |
 | RE-det | result is a function of `(I, Σ.L)` alone; idempotent under `Σ.L`-fixity, not content-fixity | introduced |
