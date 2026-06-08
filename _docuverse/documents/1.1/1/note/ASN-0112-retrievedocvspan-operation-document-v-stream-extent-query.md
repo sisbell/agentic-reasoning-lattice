@@ -395,14 +395,12 @@ Q14).
 
 ---
 
-## The extent is a well-formed, non-negative displacement
+## Implementation evidence: the extent stays non-negative
 
-The abstract obligation here is V2's alone: V2 established `σ_d`'s T12 legality — `Pos(extent_d)`
-and `actionPoint(extent_d) ≤ #origin_d`, holding regardless of endpoint depths — so the
-non-degeneracy of the reported extent is already settled, and every alternative implementation
-must satisfy it. The only way to obtain "no extent" is the empty document, which returns the
-distinguished empty span-set `⟨⟩` (V11) and carries no extent tumbler at all — emptiness is
-reported by the absence of a span, not by a zero-width one.
+The non-degeneracy of the reported extent is settled by V2 alone — `σ_d`'s T12 legality
+(`Pos(extent_d)`, `actionPoint(extent_d) ≤ #origin_d`, regardless of endpoint depths) — and the
+only "no extent" outcome is the empty document's distinguished `⟨⟩` (V11). What this section adds
+is implementation evidence for that positivity, nothing more.
 
 *Implementation remark (evidence for V2).* Gregory's structure delivers V2's positivity even
 under adverse editing. Prior deletions can drive *intermediate* arrangement-tree entries to
@@ -499,7 +497,7 @@ endpoint depths), without inspecting the returned span.
 | V0 | `RETRIEVEDOCVSPAN : dom(M) → Span + {⟨⟩}` (tagged union): one well-formed span `σ_d = (origin_d, extent_d)` for a non-empty document, or the distinguished empty span-set `⟨⟩` (denoting `∅`, not a T12 span) when `O(d) = ∅` — never a content sequence, never a count | introduced |
 | V1 | When `O(d) ≠ ∅`, `origin_d = min O(d)` under T1 and `origin_d ∈ O(d)` (the origin is an occupied position) | introduced |
 | V2 | `O(d) ⊆ ⟦σ_d⟧` (coverage), proved unconditionally via D0/D1 without assuming level-uniformity; the actual reach `r⋆ = origin_d ⊕ extent_d ≥ reach_d = shift(max O(d), 1) > max O(d)`, with equality `r⋆ = reach_d` iff `#origin_d ≤ #reach_d`; the span `(origin_d, extent_d)` is always a well-formed T12 span | introduced |
-| V3 | `origin_d` is the greatest lower bound of `O(d)`; `reach_d` is the least strict upper bound of `max O(d)` *among tumblers at the depth of `max O(d)`* (`= #reach_d`; the deeper zero-extension `max O(d).0` is a smaller upper bound but lies at greater depth) — so `σ_d` is the tightest covering span whose reach is at the depth of `max O(d)` | introduced |
+| V3 | `origin_d` is the greatest lower bound of `O(d)`; `reach_d` is the least strict upper bound of `max O(d)` *among tumblers at the depth of `max O(d)`* (`= #reach_d`; the deeper zero-extension `max O(d).0` is a smaller upper bound but lies at greater depth) — so the constructed endpoint `reach_d` is the tightest same-depth strict bound on `max O(d)`. Whether `σ_d`'s own denotational reach `r⋆` attains `reach_d` is the separate question governed by the V2 reach biconditional (`reach(σ_d) = reach_d` iff `#origin_d ≤ #reach_d`); in the `#origin_d > #reach_d` case `r⋆ = reach_d` fails | introduced |
 | V4 | `extent_d` is computed from `O(d) = dom(M(d))` alone; content in `dom(C)` but absent from the arrangement (deleted, or native elsewhere) contributes nothing (Vstream-bounded, not Istream) | introduced |
 | V5 | When all occupied positions share one subspace, `⟦σ_d⟧` contains no occupied-depth position outside `O(d)` (exact cover of a contiguous run) | introduced |
 | V6 | When occupied positions span more than one subspace, `O(d) ⊊ ⟦σ_d⟧` — the span bridges the inter-subspace void (bounding box, not exact cover); forced because a span denotes one convex region (ASN-0053 S0) and cannot trace a separated series | introduced |
