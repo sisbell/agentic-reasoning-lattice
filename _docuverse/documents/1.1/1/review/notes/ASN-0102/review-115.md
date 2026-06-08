@@ -1,0 +1,18 @@
+# Review of ASN-0102
+
+## REVISE
+
+### Issue 1: X14's second paragraph is reviser-drift around the atomicity modeling choice
+
+**ASN-0102, X14 (Atomicity)**: "Elementary status is a deliberate modeling choice, not a reachability necessity — the post-state `Σ'` is also reachable by a valid composite. In the displacing case … a *contract-then-extend* decomposition realises it … (The naive *displace-then-fill* and *fill-then-displace* orderings, by contrast, do fail `ValidComposite★` clause (1): the former exposes an intermediate `s_C` V-gap … the latter overwrites a still-occupied displaced binding … — but their failure does not bear on the contract-then-extend route, which succeeds.) COPY is therefore *defined* as elementary so that the transient contraction … is never observable, not because no valid composite reaches `Σ'`."
+
+**Problem**: The first paragraph of X14 already states the atomicity guarantee (single elementary transition, one indivisible step, no observable intermediate state) — that is what the claim asserts. The second paragraph instead explains *why* the elementary status was chosen and imagines decompositions the operation, being elementary (X14), never performs. The parenthetical is the clearest instance: it constructs *displace-then-fill* and *fill-then-displace* orderings purely to show they fail, then dismisses them — cases the operation's own carrier excludes. The "X6 is not breached, since … K.μ⁻ may legitimately drop references" clause is a defensive justification against an objection that only arises if one entertains the excluded decomposition. This is meta-prose: one must skip past it to follow the actual guarantee. (The git history confirms it was recently grafted on: "reframe X14 atomicity as modeling choice, not forced.")
+
+**Required**: Reduce to the load-bearing kernel. If reachability-by-composite genuinely matters, state it in one sentence (`Σ'` is also reachable by a contract-then-extend composite, so COPY introduces no new reachable state). Delete the failing-orderings parenthetical and the X6-not-breached defense entirely — they reason about transitions COPY does not make. The table row already restates this paragraph in compressed form; the long prose adds noise, not argument.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Discoverability/containment of copied content under later displacement
+The Open Questions correctly defer these to future ASNs (interaction of COPY's provenance records with subsequent operations, re-transclusion of copied content, cross-time view divergence). These are new territory, not errors here.
+
+VERDICT: REVISE
