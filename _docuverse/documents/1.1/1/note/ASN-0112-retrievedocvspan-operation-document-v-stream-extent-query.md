@@ -158,18 +158,16 @@ depths:
   `r⋆` and `reach_d < r⋆` (T1 case (ii)). Hence `max O(d) < reach_d < r⋆`, and again every
   `v ∈ O(d)` lies in `⟦σ_d⟧`.
 
-In both cases `r⋆ ≥ reach_d > max O(d)`, so coverage holds; under the first case D1 makes the
-reach equal `reach_d` exactly. We record **V-ReachTight** (reach tightness):
+In both cases `r⋆ ≥ reach_d > max O(d)`, so coverage holds; whether `r⋆` equals or strictly
+exceeds `reach_d` is recorded by **V-ReachTight** (reach tightness):
 `reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d` — D1 closes the round-trip when
 `#origin_d ≤ #reach_d`, and D0 makes it fail when `#origin_d > #reach_d`, so the reach attains
 the constructed endpoint exactly when the occupied subspaces share a common depth.
 
 **The constructed endpoint is the tightest same-depth covering bound.** We record **V3**
 (bounding): `origin_d` is the greatest lower bound of `O(d)`, and the *constructed endpoint*
-`reach_d` is the *least* admissible upper bound of `max O(d)` among tumblers of its depth. This
-bounds `reach_d`, the intermediate endpoint — not the delivered span's denotational reach `r⋆`,
-which equals `reach_d` only under V-ReachTight and strictly exceeds it (`r⋆ > reach_d`) in the
-depth-divergent case. Dropping the same-depth qualifier makes the claim false, since the deeper
+`reach_d` is the *least* admissible upper bound of `max O(d)` among tumblers of its depth.
+Dropping the same-depth qualifier makes the claim false, since the deeper
 zero-extension `max O(d).0` is a smaller upper bound. The lower bound is unconditional: any span
 `σ'` with `O(d) ⊆ ⟦σ'⟧` satisfies
 `start(σ') ≤ min O(d) = origin_d`. The upper bound requires an argument. Write `w = max O(d)`.
@@ -207,8 +205,7 @@ store has ever held*.
 
 The decisive structural question is whether the single returned span exactly traces the
 occupied content or merely encloses it. The answer depends on how many subspaces the
-arrangement occupies, and the divergence is not an implementation artifact — it is forced
-by the demand for *one* origin-and-extent pair. By S3★-aux a non-empty `O(d)` occupies
+arrangement occupies. By S3★-aux a non-empty `O(d)` occupies
 exactly one subspace or exactly both, so the two cases below are jointly exhaustive.
 
 **Single subspace: exact cover.** Suppose `O(d)` lies entirely in one subspace `s` — either
@@ -239,9 +236,9 @@ generally by `w⋆ = [s_C,1,…,1,n_C+1]` (depth `m_C`, where `n_C = |V_{s_C}(d)
 content position, hence below every `s_L` reach by T1, so `origin_d ≤ w⋆ < reach_d`; yet its
 final component `n_C+1` places it just past the dense content run
 `{[s_C,1,…,1,k] : k ≤ n_C}` (D-SEQ★), so `w⋆ ∉ O(d)` — covered but unoccupied, discharging the
-strict inclusion for every two-subspace `O(d)`. The enclosure is forced rather
-than incidental: a span denotes one convex region (`⟦σ_d⟧` is order-convex under T1, ASN-0053
-S0), and a document occupying two disjoint subspaces is a *separated series* — "if you want to
+strict inclusion for every two-subspace `O(d)`. A span denotes one convex region (`⟦σ_d⟧` is
+order-convex under T1, ASN-0053 S0), and a document occupying two disjoint subspaces is a
+*separated series* — "if you want to
 designate a separated series of items exactly, including nothing else, you do this by a
 span-set, which is a series of spans" (4/25). Fragmentation is unrepresentable in a single
 span, so a multi-subspace document can only be reported by enclosure, never by exact
@@ -497,9 +494,9 @@ endpoint depths), without inspecting the returned span.
 | V-frame | `Σ' = Σ` — the query mutates no state component (`C, L, E, M, R` all unchanged) | introduced |
 | V0 | `RETRIEVEDOCVSPAN : dom(M) → SpanSet` (uniform ASN-0053 span-set codomain): the singleton span-set `⟨σ_d⟩` carrying one well-formed span `σ_d = (origin_d, extent_d)` for a non-empty document, or the empty span-set `⟨⟩` (denoting `∅`) when `O(d) = ∅` — never a content sequence, never a count | introduced |
 | V1 | When `O(d) ≠ ∅`, `origin_d = min O(d)` under T1 and `origin_d ∈ O(d)` (the origin is an occupied position) | introduced |
-| V2 | `O(d) ⊆ ⟦σ_d⟧` (coverage), proved unconditionally via D0/D1 without assuming level-uniformity; the actual reach `r⋆ = origin_d ⊕ extent_d ≥ reach_d = shift(max O(d), 1) > max O(d)` (the reach-equality condition is carried by V-ReachTight); the span `(origin_d, extent_d)` is always a well-formed T12 span | introduced |
-| V3 | `origin_d` is the greatest lower bound of `O(d)`; the *constructed endpoint* `reach_d` is the least strict upper bound of `max O(d)` *among tumblers at the depth of `max O(d)`* (`= #reach_d`; the deeper zero-extension `max O(d).0` is a smaller upper bound but lies at greater depth) — a bound on `reach_d`, not on the delivered span's denotational reach `r⋆` (which attains `reach_d` only under V-ReachTight) | introduced |
-| V-ReachTight | `reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d` — the denotational reach attains the constructed endpoint `reach_d` exactly when origin depth does not exceed reach depth (D1 closes the round-trip; D0 makes it fail otherwise); equivalently the reach is tight whenever the occupied subspaces share a common depth | introduced |
+| V2 | `O(d) ⊆ ⟦σ_d⟧` (coverage); the actual reach `r⋆ = origin_d ⊕ extent_d ≥ reach_d = shift(max O(d), 1) > max O(d)`; the span `(origin_d, extent_d)` is always a well-formed T12 span | introduced |
+| V3 | `origin_d` is the greatest lower bound of `O(d)`; the *constructed endpoint* `reach_d` is the least strict upper bound of `max O(d)` among tumblers at the depth of `max O(d)` | introduced |
+| V-ReachTight | `reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d` — the denotational reach attains the constructed endpoint `reach_d` exactly when origin depth does not exceed reach depth; equivalently the reach is tight whenever the occupied subspaces share a common depth | introduced |
 | V4 | `extent_d` is computed from `O(d) = dom(M(d))` alone; content in `dom(C)` but absent from the arrangement (deleted, or native elsewhere) contributes nothing (Vstream-bounded, not Istream) | introduced |
 | V5 | When all occupied positions share one subspace, `⟦σ_d⟧` contains no occupied-depth position outside `O(d)` (exact cover of a contiguous run) | introduced |
 | V6 | When occupied positions span more than one subspace, `O(d) ⊊ ⟦σ_d⟧` — the span bridges the inter-subspace void (bounding box, not exact cover); forced because a span denotes one convex region (ASN-0053 S0) and cannot trace a separated series | introduced |
