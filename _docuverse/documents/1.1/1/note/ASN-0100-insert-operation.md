@@ -60,6 +60,8 @@ The freshness of each `a_k` is established against the state immediately precedi
 
 By the chain discipline (ChainPrefixExtension, ChainEnumerationInjectivity; ASN-0093), every `a_k` has `origin(a_k) = d`, satisfies `b_C(d) ≼ a_k` (extending the content sub-allocator anchor), and is structurally produced by the sub-allocator's `inc(·, 0)` chain. The addresses `a_0, a_1, …, a_{n−1}` form a contiguous initial-segment extension of the chain: `a_{k+1} = inc(a_k, 0)` for `0 ≤ k < n − 1`, and `a_0` is either `[d.0.s_C.1]` (if `d` had no prior content emissions, per K.α's first-emission predicate in ASN-0093) or `inc(a_prev, 0)` where `a_prev = max{a ∈ dom(Σ.C) : origin(a) = d}` (per K.α's subsequent-emission predicate in ASN-0093).
 
+The branch selection keys on the *content store*, not the *arrangement*: K.α's first-emission predicate is `{a' ∈ dom(Σ.C) : origin(a') = d} = ∅`, a condition on `dom(C)`. An empty content subspace `V_{s_C}(d) = ∅` does not entail an empty content store — full content-subspace clearance via K.μ⁻ with `n'_{s_C} = 0` (PerSubspaceContractionScope, ASN-0047) leaves `d`'s prior content addresses in `dom(C)` by S0/P0. When such residual content exists (`{a' ∈ dom(Σ.C) : origin(a') = d} ≠ ∅`) under an empty arrangement, `a_0` is the *subsequent* emission `inc(a_prev, 0)` off the persisted frontier — continuing `A_C(d)`'s chain rather than restarting it — even though `V_{s_C}(d)` is empty. The first-emission form `[d.0.s_C.1]` is reached only when no content has ever been allocated under `d`.
+
 The post-state content store grows by the fresh addresses `a_0, …, a_{n−1}` carrying the new values `v_0, …, v_{n−1}`, while every pre-existing binding is preserved unchanged (claim INS.C).
 
 The pre-existing content is *not touched*: its values are preserved bit-for-bit, and its addresses persist in the post-state. This is the foundational permanence guarantee S0.
@@ -167,6 +169,24 @@ The last-component values in `V_{s_C}(d')` are `{1, 2, 3, 4, 5, 6, 7}` — seque
 
 **Append case (`j = N = 5`).** With the same pre-state, `INSERT(d, [1,6], ⟨v₀⟩)` (where `[1,6] = shift([1,1], 5)` is one past the last position). The Right region is empty; no K.μ⁻ fires (Left = entire `V_{s_C}(d)`). Composite: one K.α + one K.μ⁺ adding `[1,6] ↦ a_{new0}` only + one K.ρ. Post-state `V_{s_C}(d') = {[1,1], …, [1,6]}` with `a₁, …, a₅, a_{new0}` as images.
 
+**Prepend case (`j = 0` on a non-empty document).** The symmetric extreme — insert *before all* existing content — is the uniquely stressful K.μ⁻ scenario, because `Left = ∅` *forces* full content-subspace clearance. With the same pre-state `V_{s_C}(d) = {[1,1], …, [1,5]}` (`m_C = 2`, `N = 5`), invoke `INSERT(d, [1,1], ⟨v₀⟩)` with `n = 1`. The position `p = [1,1] = shift(min(V_{s_C}(d)), 0) = min(V_{s_C}(d))` corresponds to `j = 0`, with `p_m = 1`. The Right region `Right = {v ∈ V_{s_C}(d) : v ≥ p}` is the *entire* `V_{s_C}(d)` (since `p` is the minimum), so `Right ≠ ∅` and K.μ⁻ *fires*. The composite:
+
+1. **One K.α firing.** `A_C(d)` emits `a_{new0}`, fresh.
+2. **K.μ⁻ on `d`** retains the Left prefix with `n'_{s_C} = p_m − 1 = 0` — a *forced* full content-subspace clearance, since `Left = ∅` admits no smaller retention. Post-step the text-subspace is `V_{s_C}(d_intermediate) = ∅`, on which D-CTG★, D-MIN★, D-SEQ★ hold *vacuously*. Link subspace retained at `n'_{s_L} = n_{s_L}`.
+3. **K.μ⁺ on `d`** re-adds the *entire* run from the minimum: `[1,1] ↦ a_{new0}` (Insertion), and `[1,2] ↦ a₁`, `[1,3] ↦ a₂`, `[1,4] ↦ a₃`, `[1,5] ↦ a₄`, `[1,6] ↦ a₅` (Shifted right — `shift([1,k], 1) = [1, k+1]` for each `k ∈ {1, …, 5}`). *Every* pre-state position is shifted; none survives in place.
+4. **One K.ρ firing** records `(a_{new0}, d)`.
+
+The post-state arrangement:
+
+  `M'(d) = {[1,1] ↦ a_{new0}, [1,2] ↦ a₁, [1,3] ↦ a₂, [1,4] ↦ a₃, [1,5] ↦ a₄, [1,6] ↦ a₅}`
+
+with `V_{s_C}(d') = {[1,1], …, [1,6]}`, cardinality `N + n = 6`. Verifying the post-state sequential invariants, with `min = [1,1]` and `max = [1,6]`:
+
+- *D-MIN★:* the minimum under T1 is `[1,1] = [s_C, 1]` of depth 2 — the required form. The re-pin of the minimum survives the full clearance: K.μ⁺'s content-subspace restriction (ASN-0047) requires the re-added `V_{s_C}(d')` to start at `[s_C, 1, …, 1]`, which the Insertion position `shift(p, 0) = [1,1]` supplies.
+- *D-SEQ★ (INS.inv.seq):* the last-component values are `{1, 2, 3, 4, 5, 6}` — sequential, contiguous, starting at 1 — matching `{[1, k] : 1 ≤ k ≤ 6}` with `n_{s_C} = 6`, depth `m_{s_C} = 2`.
+
+This combination — forced full shrinkage (`n'_{s_C} = 0`) plus total shift plus re-pin of the minimum — is the `j = 0` instance of the general decomposition; the `n'_{s_C} = 0` retention is not an optional alternative here but the only admissible value.
+
 **Empty-document first insertion.** Let `d` have `V_{s_C}(d) = ∅` and additionally `V_{s_L}(d) = ∅` (so the document's arrangement is entirely empty), and stipulate further that no content has ever been allocated under `d` — `{a' ∈ dom(Σ.C) : origin(a') = d} = ∅` — so under this stipulation K.α's first-emission branch fires (the branch keys on `dom(C)`, per INS.alloc). Invoke `INSERT(d, [1,1], ⟨v₀, v₁, v₂⟩)` with `n = 3` (so the depth is `m = #p = #[1,1] = 2`). The position `p = [1,1]` is the unique value admitted by `ValidFirstInsertionPosition(d, p, 2)` (ASN-0036). K.μ⁻ is omitted — the empty-content-subspace case of (INS.μ⁻-fires). The composite reduces to:
 
 1. **Three K.α firings.** `A_C(d)` emits `a_{new0} = [d.0.s_C.1]` (first-emission branch, per the setup stipulation), then `a_{new1} = inc(a_{new0}, 0)`, then `a_{new2} = inc(a_{new1}, 0)`. Each freshly satisfies K.α's freshness precondition by SubsequentEmissionFreshness, with FirstEmissionFreshness covering the first-emission boundary `a_{new0}` (ASN-0093).
@@ -182,8 +202,6 @@ with `V_{s_C}(d') = {[1,1], [1,2], [1,3]}` (depth pinned at `m_C = 2` per INS.in
 *Cross-subspace and cross-document frames (empty case).* `V_{s_L}(d) = ∅` is preserved trivially: K.μ⁺'s content-subspace restriction adds no `s_L` positions, so `V_{s_L}(d') = ∅` matches. Other subspaces are vacuous. Other documents `d' ≠ d` have `M'(d') = M(d')` by each elementary step's cross-document frame.
 
 *Discharge of J0, J1★, J1'★ (empty case).* The coupling logic is exactly the interior case (*Provenance discharge* above); only the delta differs. No K.μ⁻ fires, and pre-state `ran(M(d)) = ∅`, so all three Insertion images are range-new — there is no already-arranged Shifted-right image carried in by pre-state P4★. Step 3's three K.ρ firings record `(a_{new0}, d), (a_{new1}, d), (a_{new2}, d)`, one per K.μ⁺ placement at `[1,1], [1,2], [1,3]`.
-
-*Cleared-but-residual subtlety.* The empty-arrangement precondition `V_{s_C}(d) = ∅` does not entail an empty content store: full content-subspace clearance via K.μ⁻ with `n'_{s_C} = 0` (PerSubspaceContractionScope, ASN-0047) leaves `d`'s prior content addresses in `dom(C)` by S0/P0. When such residual content exists (`{a' ∈ dom(C) : origin(a') = d} ≠ ∅`), K.α keys its branch on `dom(C)` (INS.alloc) and fires the *subsequent*-emission branch `a_0 = inc(a_prev, 0)` off the persisted frontier `a_prev = max{a' ∈ dom(C) : origin(a') = d}` — continuing `A_C(d)`'s chain rather than restarting it — instead of the first-emission branch above; everything else matches this example.
 
 **Deep-subspace interior insertion (`m_C = 3`).** The examples above all run at depth `m_C = 2`, where the shared prefix `[s_C, 1, …, 1]` is empty and contiguity reduces to the last component trivially. We now exercise a multi-level content subspace, where the closed-interval reduction's hardest step — excluding off-prefix slice tuples — is actually live. Let `d` have `V_{s_C}(d) = {[1,1,1], [1,1,2], [1,1,3]}` (so `m_C = 3`, `N = 3`), with arrangement:
 
