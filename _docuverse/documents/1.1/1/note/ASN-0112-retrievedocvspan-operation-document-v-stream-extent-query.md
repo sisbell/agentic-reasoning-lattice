@@ -473,9 +473,29 @@ occupied-depth position left over (D-CTG★ closing the gaps). Conversely, if `O
 *both* subspaces, V6 gives `O(d) ⊊ ⟦σ_d⟧` strictly — the reach crosses the inter-subspace void,
 admitting unoccupied positions inside the denotation — so `¬Exact`. The two directions exhaust
 the cases by S3★-aux. So the single-subspace condition is both necessary and sufficient, hence
-the *weakest* precondition. The companion reach property factors
-the same way along the orthogonal endpoint axis, via V-ReachTight (vacuously true on the `⟨⟩`
-result): `wp(RETRIEVEDOCVSPAN(d), V-ReachTight) = (O(d) = ∅ ∨ #origin_d ≤ #reach_d)`. A caller can thus decide *before* querying whether the answer will be exact
+the *weakest* precondition. The companion reach property factors the same way along the
+orthogonal endpoint axis, but we must take care which property we put under the wp. V-ReachTight
+is the *universally-valid biconditional* `reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d`, proved to
+hold in *every* state (D1 closes the round-trip when `#origin_d ≤ #reach_d`, D0 makes it fail
+otherwise). A property that holds in all reachable states is, as a postcondition, always
+satisfied, so `wp(RETRIEVEDOCVSPAN(d), V-ReachTight) = true` — the entire pre-state space, which
+tells the caller nothing. The non-trivial question concerns the *contingent* tightness property
+— analogous to `Exact` —
+
+> `Tight ≡ "reach(σ_d) = reach_d"`  (the delivered span's denotational reach attains the
+> constructed endpoint),
+
+which is true in some states and false in others (vacuously true on the `⟨⟩` result, where there
+is no `σ_d`). Reasoning backward from `Tight`, exactly as the `Exact` factoring ran through V5 and
+V6: if `O(d)` is empty the result is `⟨⟩` and `Tight` holds vacuously; if `O(d) ≠ ∅` and
+`#origin_d ≤ #reach_d`, then D1 closes the round-trip and `reach(σ_d) = r⋆ = reach_d`, giving
+`Tight` (forward); conversely if `#origin_d > #reach_d`, then D0 makes the round-trip fail and
+`reach(σ_d) = r⋆ > reach_d`, giving `¬Tight` (converse). The two directions exhaust the cases, so
+the condition is both necessary and sufficient, hence the *weakest* precondition:
+
+> `wp(RETRIEVEDOCVSPAN(d), Tight) = (O(d) = ∅ ∨ #origin_d ≤ #reach_d)`.
+
+A caller can thus decide *before* querying whether the answer will be exact
 (check single-subspace occupancy) and whether its reach is the tight `reach_d` (check the
 endpoint depths), without inspecting the returned span.
 
