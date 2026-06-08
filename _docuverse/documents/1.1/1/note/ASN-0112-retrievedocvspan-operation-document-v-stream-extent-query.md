@@ -20,7 +20,7 @@ We write the operation as a pure query, `RETRIEVEDOCVSPAN(d)`, that observes the
 returns a value, changing nothing. We record this no-mutation guarantee as **V-frame**:
 the post-state equals the observed state, `Σ' = Σ`, so every component — content store `C`,
 link store `L`, entity set `E`, arrangement family `M`, provenance relation `R` — is left
-intact. The entire content of this note is: *what is that value, and what must hold of it?*
+intact.
 
 ---
 
@@ -158,17 +158,20 @@ depths:
   `r⋆` and `reach_d < r⋆` (T1 case (ii)). Hence `max O(d) < reach_d < r⋆`, and again every
   `v ∈ O(d)` lies in `⟦σ_d⟧`.
 
-In both cases `r⋆ ≥ reach_d > max O(d)`, so coverage holds. What the endpoint relation governs is
-only the *reach*. We record **V-ReachTight** (reach tightness):
+In both cases `r⋆ ≥ reach_d > max O(d)`, so coverage holds; under the first case D1 makes the
+reach equal `reach_d` exactly. We record **V-ReachTight** (reach tightness):
 `reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d` — D1 closes the round-trip when
-`#origin_d ≤ #reach_d`, and D0 makes it fail when `#origin_d > #reach_d`. The reach equals
-`reach_d` whenever the occupied subspaces share a common depth.
+`#origin_d ≤ #reach_d`, and D0 makes it fail when `#origin_d > #reach_d`, so the reach attains
+the constructed endpoint exactly when the occupied subspaces share a common depth.
 
-**The span is the tightest covering bound among same-depth reaches.** We record **V3**
-(bounding): `origin_d` is the greatest lower bound of `O(d)`, and `reach_d` is the *least*
-admissible upper bound of `max O(d)` among tumblers of its depth — dropping the same-depth
-qualifier makes the claim false, since the deeper zero-extension `max O(d).0` is a smaller
-upper bound. The lower bound is unconditional: any span `σ'` with `O(d) ⊆ ⟦σ'⟧` satisfies
+**The constructed endpoint is the tightest same-depth covering bound.** We record **V3**
+(bounding): `origin_d` is the greatest lower bound of `O(d)`, and the *constructed endpoint*
+`reach_d` is the *least* admissible upper bound of `max O(d)` among tumblers of its depth. This
+bounds `reach_d`, the intermediate endpoint — not the delivered span's denotational reach `r⋆`,
+which equals `reach_d` only under V-ReachTight and strictly exceeds it (`r⋆ > reach_d`) in the
+depth-divergent case. Dropping the same-depth qualifier makes the claim false, since the deeper
+zero-extension `max O(d).0` is a smaller upper bound. The lower bound is unconditional: any span
+`σ'` with `O(d) ⊆ ⟦σ'⟧` satisfies
 `start(σ') ≤ min O(d) = origin_d`. The upper bound requires an argument. Write `w = max O(d)`.
 Because every V-position is zero-free with all components positive (S8a), the rightmost nonzero
 component of `w` is its last, so `sig(w) = #w` (TA5-SIG, ASN-0034); hence
@@ -179,8 +182,7 @@ same-length tumbler strictly greater than `w`, while the true T1-immediate succe
 the deeper zero-extension `w.0` (by the prefix convention, T1 case (ii)), satisfying
 `w < w.0 < inc(w, 0) = reach_d`. So `reach_d` is *not* the least admissible reach over all of
 `T` (a span with reach `w.0` already covers `O(d)`), but it is the least strict upper bound of
-`w` at `w`'s depth — V3's claim. Whether `σ_d`'s own reach attains `reach_d` is governed by
-V-ReachTight.
+`w` at `w`'s depth — V3's claim.
 
 ---
 
@@ -487,7 +489,7 @@ endpoint depths), without inspecting the returned span.
 | V0 | `RETRIEVEDOCVSPAN : dom(M) → SpanSet` (uniform ASN-0053 span-set codomain): the singleton span-set `⟨σ_d⟩` carrying one well-formed span `σ_d = (origin_d, extent_d)` for a non-empty document, or the empty span-set `⟨⟩` (denoting `∅`) when `O(d) = ∅` — never a content sequence, never a count | introduced |
 | V1 | When `O(d) ≠ ∅`, `origin_d = min O(d)` under T1 and `origin_d ∈ O(d)` (the origin is an occupied position) | introduced |
 | V2 | `O(d) ⊆ ⟦σ_d⟧` (coverage), proved unconditionally via D0/D1 without assuming level-uniformity; the actual reach `r⋆ = origin_d ⊕ extent_d ≥ reach_d = shift(max O(d), 1) > max O(d)`, with equality `r⋆ = reach_d` iff `#origin_d ≤ #reach_d`; the span `(origin_d, extent_d)` is always a well-formed T12 span | introduced |
-| V3 | `origin_d` is the greatest lower bound of `O(d)`; `reach_d` is the least strict upper bound of `max O(d)` *among tumblers at the depth of `max O(d)`* (`= #reach_d`; the deeper zero-extension `max O(d).0` is a smaller upper bound but lies at greater depth) — so the constructed endpoint `reach_d` is the tightest same-depth strict bound on `max O(d)`. Whether `σ_d`'s own denotational reach `r⋆` attains `reach_d` is the separate V-ReachTight question | introduced |
+| V3 | `origin_d` is the greatest lower bound of `O(d)`; the *constructed endpoint* `reach_d` is the least strict upper bound of `max O(d)` *among tumblers at the depth of `max O(d)`* (`= #reach_d`; the deeper zero-extension `max O(d).0` is a smaller upper bound but lies at greater depth) — a bound on `reach_d`, not on the delivered span's denotational reach `r⋆` (which attains `reach_d` only under V-ReachTight) | introduced |
 | V-ReachTight | `reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d` — the denotational reach attains the constructed endpoint `reach_d` exactly when origin depth does not exceed reach depth (D1 closes the round-trip; D0 makes it fail otherwise); equivalently the reach is tight whenever the occupied subspaces share a common depth | introduced |
 | V4 | `extent_d` is computed from `O(d) = dom(M(d))` alone; content in `dom(C)` but absent from the arrangement (deleted, or native elsewhere) contributes nothing (Vstream-bounded, not Istream) | introduced |
 | V5 | When all occupied positions share one subspace, `⟦σ_d⟧` contains no occupied-depth position outside `O(d)` (exact cover of a contiguous run) | introduced |
