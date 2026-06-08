@@ -133,10 +133,14 @@ meaning lives in its organisation: a span in the from-set asserts something diff
 same span in the to-set or the type-set. So the read carries an obligation beyond returning a
 bag of spans.
 
-**RL2 (Role preservation).** The read delivers each endset under its slot index, preserving the
-slot grouping:
+**RL2 (Role preservation).** Completeness (RL1) already forces per-slot set equality
+`readlink(a, Σ).eᵢ = Σ.L(a).eᵢ` for every `i`; what RL2 adds is the *structural* status of that
+equality. The read preserves the link's arity and exposes each endset under its slot index as a
+returned-value *primitive* — slot position is part of the value, not a label a reader reconstructs
+from an unordered pool:
 
-> `(A i : 1 ≤ i ≤ |Σ.L(a)| : readlink(a, Σ).eᵢ = Σ.L(a).eᵢ)`.
+> `|readlink(a, Σ)| = |Σ.L(a)|`,  and for each `1 ≤ i ≤ |Σ.L(a)|` the positional accessor
+> `readlink(a, Σ).eᵢ` is a model primitive (L6, ASN-0043), with link equality componentwise.
 
 The quantifier ranges over *all* `|Σ.L(a)|` slots, not a fixed three. The standard link is the
 from/to/type triple — Nelson treats this set as complete and symmetrical (the type "is symmetrical
@@ -393,6 +397,23 @@ We can now check the load-bearing postconditions against this instance.
 - *RL-ARITY.* Arity is 3 and `Θ ≠ ∅`, while the connective slot `G = ∅` is permitted — exactly
   the mandatory-type / permissive-direction split.
 
+*A nested instance (RL6).* Links share the address space with content, so an endset may target
+another link. Let `a' = inc(a, 0) = [1.0.1.0.1.0.2.2]` be a second link homed in `d₁` — the next
+sibling on `d₁`'s link sub-allocator, so `a' ∈ dom(Σ.L)` — and consider a third link
+`c = [1.0.1.0.1.0.2.3]`, also homed in `d₁`, whose to-set is the canonical reflexive span over `a'`:
+
+> `Σ.L(c) = (∅, G_c, Θ)`,  `G_c = {([1.0.1.0.1.0.2.2], δ(1, 8))}`   (`#a' = 8 = #δ(1, 8)`, the
+> canonical unit-depth span of L13, ASN-0043; `c` reuses the ghost type `Θ`, so it is a conforming
+> arity-3 link with non-empty type slot).
+
+The read returns `readlink(c, Σ).e₂ = G_c`, the span intact. By PrefixSpanCoverage (ASN-0043) its
+coverage is the subtree `coverage(G_c) = {t : a' ≼ t}`, so `a' ∈ coverage(readlink(c, Σ).e₂)`. The
+read discloses `a'` *as the tumbler address it is*: it does not flatten the reference into whatever
+`a'` — itself a link — records, and it does not silently recurse into a read of `a'`. One read of
+`c` returns one link's structure; the returned address `a'` may be read in turn, but that is a
+separate `readlink(a', Σ)` the caller chooses to issue. This verifies RL6 against a concrete
+link→link target — the construction underlying compound and faceted structures.
+
 *An orphaned instance (RL8).* Suppose that at state `Σ` no document arrangement maps any
 V-position to the three content I-addresses lying within `coverage(F)` — the connected content is
 arranged nowhere,
@@ -410,7 +431,7 @@ gone* (false — `a ∈ dom(Σ.L)` and its value is fixed by L12 / LP13).
 | `readlink` | `readlink(a, Σ) ≡ Σ.L(a)`, defined when `a ∈ dom(Σ.L)`; pure read, frame `Σ' = Σ` | introduced |
 | RL0 | The read is defined iff `a ∈ dom(Σ.L)`; `wp = a ∈ dom(Σ.L)`; link-shape of the address is necessary but not sufficient | introduced |
 | RL1 | Completeness — the read returns every recorded span of every endset and no other; `readlink(a, Σ) = Σ.L(a)` (rejects the satisfaction model) | introduced |
-| RL2 | Role preservation — each endset is returned under its slot index; from/to/type grouping delivered intact and distinguishable | introduced |
+| RL2 | Role preservation — the read preserves arity (`|readlink(a, Σ)| = |Σ.L(a)|`) and exposes slot position as a model primitive (L6); from/to/type grouping delivered as structure, not reconstructed from RL1's per-slot equality | introduced |
 | RL3 | Intra-endset set semantics — spans within a returned endset are unordered; membership, not sequence, is exposed | introduced |
 | RL4 | Home disclosure — `home(a)` is determined by the read key alone, independent of endsets; the read reveals ownership | introduced |
 | RL5 | Type-by-address — the type is interpreted via `coverage(e₃)`, not via content at those addresses; ghost types read completely | introduced |
