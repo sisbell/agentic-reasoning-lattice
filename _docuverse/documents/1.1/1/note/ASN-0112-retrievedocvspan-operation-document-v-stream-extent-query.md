@@ -134,8 +134,7 @@ two equal-length tumblers cannot exceed their shared length, giving `k ≤ min(#
 `k = 1 ≤ #origin_d`. By D0 (DisplacementWellDefined, ASN-0034) — applicable because `origin_d <
 reach_d` and `divergence(origin_d, reach_d) ≤ #origin_d` — the displacement `extent_d =
 reach_d ⊖ origin_d` is a positive tumbler with `actionPoint(extent_d) = k ≤ #origin_d`. Hence
-`(origin_d, extent_d)` satisfies T12 and is a well-formed span. *We do not assume
-level-uniformity here.*
+`(origin_d, extent_d)` satisfies T12 and is a well-formed span.
 
 **The span covers every occupied position.** We record **V2** (covering): `O(d) ⊆ ⟦σ_d⟧`.
 The denotation is `⟦σ_d⟧ = {t : origin_d ≤ t < origin_d ⊕ extent_d}`, so we must locate the
@@ -178,13 +177,20 @@ tumbler strictly greater than `w`* — the next peer at the same depth. The firs
 covers `O(d)`, since `w < w.0`); the second is exactly V3's claim that `reach_d` is the least
 strict upper bound of `max O(d)` *among tumblers at the depth of `max O(d)`* (`= #reach_d`).
 The deeper `w.0` is excluded precisely because it sits at a greater depth than `max O(d)`,
-outside that same-depth comparison class. Whether `σ_d` is itself
-*level-uniform* (`#origin_d = #extent_d`) is a *separate* condition — since
+outside that same-depth comparison class. So far this is a statement about the *witness*
+`reach_d`, not about `σ_d`. The leap to `σ_d` requires `reach(σ_d) = reach_d`, which by the
+V2 reach biconditional holds exactly when `#origin_d ≤ #reach_d` (`m_C ≤ m_L`); under that
+condition `σ_d` is the tightest covering span whose reach lies at the depth of `max O(d)`,
+and fixing the two boundaries determines the whole. When `#origin_d > #reach_d` the round-trip
+fails (D0) and `σ_d`'s actual reach `r⋆` overshoots to depth `#origin_d ≠ #reach_d`, so the
+same-depth tightness statement applies to `reach_d`, not to `σ_d` itself. Whether `σ_d` is itself
+*level-uniform* (`#origin_d = #extent_d`) is a further, *separate* condition — since
 `#extent_d = max(#origin_d, #reach_d)` (TA2), the span is level-uniform iff
 `#origin_d ≥ #reach_d` (i.e. `m_C ≥ m_L`), which holds for every single-subspace document but
 can fail across subspaces; endpoint-level-compatibility (`#origin_d = #reach_d`, i.e.
-`m_C = m_L`) is stricter still. So `σ_d` is the tightest covering span whose reach lies at the
-depth of `max O(d)`: fix the two boundaries and the whole is determined.
+`m_C = m_L`) is stricter still. Note the tightness validity domain `m_C ≤ m_L` is the
+*opposite* inequality to the level-uniformity condition `m_C ≥ m_L`; the two must not be
+conflated.
 
 ---
 
@@ -246,14 +252,11 @@ and includes inter-subspace positions that carry no content. The golden case is 
 characters plus one link report `1.1 for 1.2`, whose reach `[1,1] ⊕ [1,2] = [2,2]` bridges
 from the text start straight across the gap into link space (consultation Q11, Q19).
 
-A subtlety of depth must be settled here, because S8-depth permits distinct subspaces to
-carry distinct depths (`m_C` for content, `m_L` for links), so in the cross-subspace case the
-endpoints need not be level-compatible (`#origin_d ≠ #reach_d` when `m_C ≠ m_L`). The V2 reach
-biconditional already disposes of this: coverage was proved without any endpoint depth relation
-and so holds regardless, and `r⋆ ≥ reach_d > max O(d)` in every case, so the bounding-box reading
-of V6 stands at any depth relation. The one fact V6 adds is that the implementation realizes only
-`m_C = m_L`: content and link V-positions are placed at the same depth — both depth 2 —
-distinguished only by the first-component value `s_C = 1` vs `s_L = 2`, never by depth
+In the cross-subspace case the endpoints need not be level-compatible (`#origin_d ≠ #reach_d`
+when `m_C ≠ m_L`, since S8-depth permits distinct subspace depths), but the bounding-box reading
+of V6 is independent of the depth relation by the V2 reach biconditional. The implementation in
+fact realizes only `m_C = m_L`: content and link V-positions are placed at the same depth — both
+depth 2 — distinguished only by the first-component value `s_C = 1` vs `s_L = 2`, never by depth
 (consultation Q2: `findvsatoappend`, `findnextlinkvsa`, and `setlinkvsas` all emit depth-2
 V-addresses), so the cross-subspace endpoints are level-compatible and `reach(σ_d) = reach_d`
 exactly.
