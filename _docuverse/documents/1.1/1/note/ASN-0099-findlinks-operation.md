@@ -57,8 +57,9 @@ F4 (MatchIndividuation):
    The witnesses below individuate F1's per-endset overlap test: each
    exhibits an (a, I) pair on which an alternative match design —
    coverage-containment in either direction, a cardinality threshold,
-   or an I-independent slot test — disagrees with F1. The witnesses are
-   L3-admissible states.
+   or an I-independent design (match-all, or a slot test that ignores
+   the query) — disagrees with F1. The witnesses are L3-admissible
+   states.
 ```
 
 *Strengthening 1 — Containment from coverage to query (`coverage ⊆ I`).* Witness link `a`: arity 3 with slot 1 `(β, δ(1, #β))`, slot 2 `(γ, δ(1, #γ))`, slot 3 `(α, δ(1, #α))`, where β and γ are same-length siblings of `α` differing at position `#α` (so β ⋠ α, α ⋠ β, γ ⋠ α, α ⋠ γ). Query `I = {α}`. F1 admits via slot 3: `coverage(L(a).e₃) ∩ I = {α} ≠ ∅`. The link-level strengthening predicate is the slot-existential `(E i : coverage(L(a).eᵢ) ⊆ I)`; we check every slot: slot 1's coverage `{t : β ≼ t}` is non-empty (contains β) and disjoint from `{α}` (since β ⋠ α), so `coverage(e₁) ⊄ I`; slot 2 likewise; slot 3's coverage `{t : α ≼ t}` (by PrefixSpanCoverage, ASN-0043) contains `α.0 ∉ I` (any tumbler extending α belongs by T0's allowance of trailing zeros). No slot satisfies `coverage ⊆ I`; strengthening excludes `a`. Non-empty slots 1–2 are load-bearing here, unlike the minimal witnesses of Strengthenings 2/3: the `coverage ⊆ I` direction is satisfied *vacuously* by an empty slot (`coverage(∅) = ∅ ⊆ I`), which would make the strengthened design admit `a` and collapse the disagreement with F1; the sibling spans β, γ give every slot non-empty coverage that genuinely fails `⊆ I`.
@@ -179,14 +180,12 @@ A1a (PublishedFramePreservation):
 
 ```
 F9 (LinkStoreInertPreservation):
-   For every transition produced by an operation in V ∖ {K.λ} —
-   written Σ → Σ' for an atomic operation of V_atomic ∖ {K.λ}, and
-   Σ →* Σ' for the composite K.μ~ — and any I ⊆ T:
+   For every transition produced by an operation in V ∖ {K.λ}, and any
+   I ⊆ T:
        findlinks(I, Σ) = findlinks(I, Σ').
 
-   A1a gives Σ.L = Σ'.L across every V ∖ {K.λ} operation (single-step
-   for the atomic operations, the K.μ⁻ + K.μ⁺ composite for K.μ~). F8
-   via ComprehensionInvariantUnderΣL then forces the equality. For a
+   A1a gives Σ.L = Σ'.L across every V ∖ {K.λ} operation. F8 via
+   ComprehensionInvariantUnderΣL then forces the equality. For a
    reachable sequence Σ →* Σ' whose every atomic step lies in
    V_atomic ∖ {K.λ}, the per-step equalities chain by transitivity.
 ```
@@ -493,7 +492,7 @@ Transitivity yields `Σ.L = Σ_5.L`. F8 forces `findlinks(I, Σ) = findlinks(I, 
 | F1 | MatchPredicate definition | definition |
 | F2 | Completeness: `findlinks(I, Σ) ⊆ result(I, Σ)` | introduced |
 | F3 | Soundness: `result(I, Σ) ⊆ findlinks(I, Σ)` | introduced |
-| F4 | MatchIndividuation: witnesses individuate F1's per-endset overlap test against coverage-containment (either direction), cardinality threshold, and I-independent slot tests | introduced |
+| F4 | MatchIndividuation: witnesses individuate F1's per-endset overlap test against coverage-containment (either direction), cardinality threshold, and I-independent designs (match-all, query-ignoring slot test) | introduced |
 | F5 | Identity, not value: match consults coverage, not content | introduced |
 | F6 | Transclusion transparency | introduced |
 | F8 | Determinism: `findlinks(I, ·)` is a function of `(Σ.L, I)` | introduced |
