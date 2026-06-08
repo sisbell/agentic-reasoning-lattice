@@ -205,9 +205,7 @@ many crums populate it (consultation Q11, Q14, Q19).
 operation reads `C`, `L`, `M`, and the document identity, and writes nothing — no
 allocation, no arrangement change, no provenance. It is a function of the present state
 alone — indeed of `M(d)` alone, since the members are computed from `V_{s_C}(d)` and
-`V_{s_L}(d)`. Two queries against the same `Σ` therefore return identical span-sets, and a
-later report can differ from an earlier one only if some transition reshaped `M(d)` in
-between.
+`V_{s_L}(d)`.
 
 **Only the two counted subspaces appear.** Every occupied V-position of `d` lies in one of
 the two counted subspaces, leaving none in a third. This is precisely S3★-aux
@@ -224,9 +222,7 @@ content could reside, hence no third member can ever arise in the span-set — t
 intrinsically two-kinded.
 
 **The result-cardinality, characterized as a weakest precondition.** The operation writes
-nothing (W8), so the only non-trivial postcondition a caller can assert about it concerns the
-*value* it returns — and the value's shape is genuinely state-dependent: the result has zero,
-one, or two members according to which subspaces are occupied. We make this dependence exact.
+nothing (W8), so any non-trivial postcondition a caller asserts is on the *value* it returns.
 Since `RETRIEVEDOCVSPANSET` is a pure query whose result is `⟨ ext(d, S) : S ∈ occupied(d) ⟩`
 (W7), its cardinality is `|occupied(d)|`, and `occupied(d)` is fixed by which of `V_{s_C}(d)`,
 `V_{s_L}(d)` is non-empty (W6). Computing the weakest precondition for each result-shape
@@ -251,9 +247,7 @@ postcondition, because `occupied(d)` is *determined* by the two emptiness bits (
 result is a total function of `occupied(d)` (W7), so any state satisfying the postcondition
 *must* exhibit the named occupancy pattern. The three preconditions partition the allocated
 states (`d ∈ dom(M)`) by the pair of emptiness bits — `(∅, ∅)`, exactly one empty, neither
-empty — exhausting the result's three possible cardinalities. This is the informative wp for a
-pure query: the postcondition lives on the returned value, and its weakest precondition is the
-exact state-characterization of when that value arises.
+empty — exhausting the result's three possible cardinalities.
 
 ---
 
@@ -446,12 +440,10 @@ separated, so no merge is possible.
 
 **W14 (absent member, zero count).** The empty link subspace contributes *no* member to the
 report, yet `n_{s_L}(d') = |V_{s_L}(d')| = 0` (W1) — a defined zero count alongside an emitted
-member count of one. A consumer recovers the counts *by subspace identifier*, not by list
-position: the sole member is `ext(d', s_C)` with `start₁ = 1 = s_C`, so iterating the
-kind-list `(s_C, s_L)` finds `s_C` present (count `3`) and `s_L` absent (count `0`). Note the
-report is the singleton `⟨([1,1], δ(3,2))⟩` "at position 1" — but were `d'` link-only instead,
-the singleton would be `⟨ext(d', s_L)⟩`, also "at position 1," distinguishable only by its
-member's `start₁ = 2 = s_L`. List position is therefore not a reliable index of kind.
+member count of one. This verifies W14 against `d'`: iterating the fixed kind-list
+`(s_C, s_L)` and reading each member by its subspace identifier `start₁ = S`, the sole member
+`ext(d', s_C)` (with `start₁ = 1 = s_C`) supplies `s_C` present with count `3`, while `s_L` is
+absent and reads as count `0`.
 
 **A depth-`3` instance: prefix-confinement is non-vacuous.** Both instances above fix
 `m_S = 2`, where the canonical prefix `[S,1,…,1]` collapses to length `m_S − 1 = 1`. There the
