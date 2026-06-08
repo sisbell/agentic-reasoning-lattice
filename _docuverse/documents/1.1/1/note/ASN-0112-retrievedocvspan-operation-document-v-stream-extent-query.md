@@ -153,15 +153,10 @@ depths:
 
 In both cases `r⋆ ≥ reach_d > max O(d)`, so coverage holds *unconditionally* — it does not
 route through any endpoint depth relation or through WF. What the endpoint relation governs is
-only whether the span's reach *equals* `reach_d` exactly. The **reach biconditional** is that the
-reach equals `reach_d` exactly when `#origin_d ≤ #reach_d`: `reach(σ_d) = reach_d ⟺ #origin_d ≤
-#reach_d` (D1 closes the round-trip when `#origin_d ≤ #reach_d`; D0 makes it fail when
-`#origin_d > #reach_d`). This is an
-endpoint condition, genuinely distinct from span level-uniformity, and the two point opposite
-ways: since `extent_d = reach_d ⊖ origin_d` has depth `#extent_d = max(#origin_d, #reach_d)`
-(TA2), `σ_d` is *level-uniform* (`#origin_d = #extent_d`) iff `#origin_d ≥ #reach_d`, whereas its
-endpoints are *level-compatible* iff `#origin_d = #reach_d` — coinciding only at equality. The
-reach equals `reach_d` whenever the occupied subspaces share a common depth.
+only the *reach*: the **reach biconditional** `reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d`
+(D1 closes the round-trip when `#origin_d ≤ #reach_d`; D0 makes it fail when
+`#origin_d > #reach_d`). The reach equals `reach_d` whenever the occupied subspaces share a
+common depth.
 
 **The span is the tightest covering bound among same-depth reaches.** We record **V3**
 (bounding): `origin_d` is the greatest lower bound of `O(d)`, and `reach_d` is the *least*
@@ -483,9 +478,7 @@ never negative (consultation Q18). For every non-empty document the extent is st
 positive; there is no editing artifact that drives it to zero. The only way to obtain "no
 extent" is the empty document, which returns the distinguished empty span-set `⟨⟩` (V11) and
 carries no extent tumbler at all — emptiness is reported by the absence of a span, not by a
-zero-width one. V17's `Pos` and `actionPoint` claims hold without any endpoint depth relation
-(established in the V2 well-formedness paragraph via D0); T12 legality is therefore independent
-of the endpoint depth relation the V2 reach biconditional governs.
+zero-width one.
 
 ---
 
@@ -533,15 +526,8 @@ For the report to be defined we require:
 1. `d ∈ dom(M)` — the document is allocated (M0, M1). An unallocated identity names no
    arrangement and has nothing to report.
 
-This single precondition is all the *value semantics* require. The abstract state
-`Σ = (C, L, E, M, R)` carries no session, caller identity, or read-entitlement component, so
-"the caller may read `d`" references machinery the model cannot express. Gregory's
-implementation does gate the operation on the document being open in the caller's session (a
-BERT check), failing the request otherwise rather than returning a span (consultation Q17) —
-but that is a *deployment-level access gate*, a concern distinct from the query's
-well-definedness and orthogonal to the value reported. We note it as an observation and leave
-authorization to a separate treatment; it forms no part of the precondition for the value this
-ASN specifies.
+This single precondition is all the value semantics require; authorization is a
+deployment-level access gate outside the value semantics this ASN specifies.
 
 Under precondition 1 the result is total: by S8-fin the occupied set is finite, so its
 minimum and maximum (when non-empty) exist and the span is computed by V1–V2; when empty the
