@@ -162,7 +162,11 @@ exceeds `reach_d` is recorded by **V-ReachTight** (reach tightness):
 `reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d`. Both directions are already discharged by V2's
 two covering cases above — case 1 (`#origin_d ≤ #reach_d`) closes the round-trip to
 `r⋆ = reach_d`, and case 2 (`#origin_d > #reach_d`) computes `reach_d < r⋆` — so the reach
-attains the constructed endpoint exactly when the occupied subspaces share a common depth.
+attains the constructed endpoint exactly when the origin is no deeper than the reach. This is
+strictly weaker than equal endpoint depths: it holds automatically in the single-subspace
+regime (S8-depth makes the endpoints equidepth) and, in the cross-subspace case, throughout
+`m_C ≤ m_L` — including the abstract `m_C < m_L` case that V2's first covering case admits, not
+only the realized `m_C = m_L`.
 
 **Whether the returned span is level-uniform.** The same depth axis settles whether `σ_d`
 satisfies S6 (`#start = #width`, ASN-0053). By TA2 (WellDefinedSubtraction, ASN-0034) the
@@ -503,7 +507,7 @@ endpoint depths), without inspecting the returned span.
 | V1 | When `O(d) ≠ ∅`, `origin_d = min O(d)` under T1 and `origin_d ∈ O(d)` (the origin is an occupied position) | introduced |
 | V2 | `O(d) ⊆ ⟦σ_d⟧` (coverage); the actual reach `r⋆ = origin_d ⊕ extent_d ≥ reach_d = shift(max O(d), 1) > max O(d)`; the span `(origin_d, extent_d)` is always a well-formed T12 span | introduced |
 | V3 | `origin_d` is the greatest lower bound of `O(d)`; the *constructed endpoint* `reach_d` is the least strict upper bound of `max O(d)` among tumblers at the depth of `max O(d)` | introduced |
-| V-ReachTight | `reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d` — the denotational reach attains the constructed endpoint `reach_d` exactly when origin depth does not exceed reach depth; equivalently the reach is tight whenever the occupied subspaces share a common depth | introduced |
+| V-ReachTight | `reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d` — the denotational reach attains the constructed endpoint `reach_d` exactly when origin depth does not exceed reach depth; strictly weaker than equal endpoint depths — automatic single-subspace, and holding throughout `m_C ≤ m_L` (not only `m_C = m_L`) in the cross-subspace case | introduced |
 | V-LevelUniform | `σ_d` is level-uniform (S6: `#origin_d = #extent_d`) `⟺ #origin_d ≥ #reach_d`, since `#extent_d = max(#origin_d, #reach_d)` (TA2); always level-uniform in the single-subspace regime and under the realized `m_C = m_L` discipline, strictly non-level-uniform only when `m_C < m_L` | introduced |
 | V4 | `extent_d` is computed from `O(d) = dom(M(d))` alone; content in `dom(C)` but absent from the arrangement (deleted, or native elsewhere) contributes nothing (Vstream-bounded, not Istream) | introduced |
 | V5 | When all occupied positions share one subspace, `⟦σ_d⟧` contains no occupied-depth position outside `O(d)` (exact cover of a contiguous run) | introduced |
