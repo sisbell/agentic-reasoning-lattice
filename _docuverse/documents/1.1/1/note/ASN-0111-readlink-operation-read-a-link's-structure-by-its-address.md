@@ -68,27 +68,8 @@ precisely membership:
 
 > `wp(readlink request at a, result = Σ.L(a)) ≡ a ∈ dom(Σ.L)`.
 
-This wp is deliberately the same as the precondition, and we should say plainly why rather than
-present a tautology as analysis. `readlink` is a *pure, stateless* read: it neither changes state
-nor depends on any component of `Σ` other than `Σ.L(a)`. Every same-state postcondition we will
-prove of it — completeness (RL1), non-empty type (RL-ARITY, via L3), role preservation (RL2) — is
-a property the stored value `Σ.L(a)` already has by the foundation invariants the moment `a` is in
-the domain. So each such postcondition pulls back to the identical precondition `a ∈ dom(Σ.L)`;
-there is no weaker condition to discover. For a read against a *single* state, then, RL0's
-membership condition is the complete wp picture, and that is a fact worth stating, not a gap.
-
-The non-trivial wp appears only when we admit *time* — a read after a transition. For the
-composite "advance the system by any reachable sequence, then read," the postcondition that the
-later read is both defined and returns a particular recorded value pulls back to a pre-state
-condition:
-
-> `wp(Σ →* Σ' ; readlink at a, result = Σ.L(a)) ≡ a ∈ dom(Σ.L)`,
-
-evaluated at the *initial* `Σ`. That this pre-state membership suffices — that nothing about the
-intervening transitions can falsify the postcondition — is exactly the content of RL7, discharged
-by LP13's closure of domain-and-value persistence over `→*`. The single-state wp is trivial
-because the read is stateless; the composite wp is the substantive one, and it is RL7 read as a
-weakest precondition.
+The link-shape of an address is necessary but not sufficient for definedness: an address may parse
+as a well-formed link tumbler yet name no allocated link.
 
 A reader holding a candidate tumbler can test the *necessary* structural conditions from the
 address alone — `zeros(a) = 3 ∧ subspace_I(a) = s_L` — by T4 parsing and the subspace projection
@@ -131,26 +112,20 @@ bag of spans.
 **RL2 (Role preservation).** Completeness (RL1) already forces per-slot set equality
 `readlink(a, Σ).eᵢ = Σ.L(a).eᵢ` for every `i`; what RL2 adds is the *structural* status of that
 equality. The read preserves the link's arity and exposes each endset under its slot index as a
-returned-value *primitive* — slot position is part of the value, not a label a reader reconstructs
-from an unordered pool:
+model primitive — slot position is part of the value, not a label a reader reconstructs from an
+unordered pool:
 
 > `|readlink(a, Σ)| = |Σ.L(a)|`,  and for each `1 ≤ i ≤ |Σ.L(a)|` the positional accessor
 > `readlink(a, Σ).eᵢ` is a model primitive (L6, ASN-0043), with link equality componentwise.
 
-The quantifier ranges over *all* `|Σ.L(a)|` slots, not a fixed three. The standard link is the
-from/to/type triple — Nelson treats this set as complete and symmetrical (the type "is symmetrical
-with the other endsets," LM 4/44), and udanax-green caps every link at exactly three endsets — so
-in the dominant case slot 1 is *from*, slot 2 is *to*, and slot 3 is *type*, and that grouping is a
-primitive of the returned value, not a label a reader must reconstruct. The model nonetheless admits
-`N > 3` (L3, ASN-0043, requires only `N ≥ 3`): when a link carries more than three endsets, slots
-1–3 still bear the standard from/to/type roles and the read returns the remaining slots 4…N
-faithfully under their own indices, each as an additional endset returned in its own position with
-no privileged role assigned by this operation. By the slot-distinction property (L6, ASN-0043), the
-positional accessor `eᵢ` is a model primitive and link equality is componentwise; a read that
-collapsed the endsets into one pool, or that swapped two differing slots, would return a *different*
-relationship. The read must keep every endset aligned with its slot — the directional from/to pair,
-the separate type endset, and any further slots alike — this is exactly the alignment that any
-role-respecting use of the link depends upon.
+The quantifier ranges over *all* `|Σ.L(a)|` slots, not a fixed three: in the dominant arity-3 case
+slot 1 is *from*, slot 2 is *to*, and slot 3 is *type*, while the model admits `N > 3` (L3, ASN-0043,
+requires only `N ≥ 3`), with slots 4…N returned faithfully under their own indices and no privileged
+role assigned by this operation. A read that collapsed the endsets into one pool, or that swapped two
+differing slots, would return a *different* relationship (link equality is componentwise, L6). The
+read must keep every endset aligned with its slot — the directional from/to pair, the separate type
+endset, and any further slots alike — this is exactly the alignment that any role-respecting use of
+the link depends upon.
 
 Within a single endset, however, no further order is owed.
 
@@ -208,14 +183,6 @@ relation on address sets, decided without dereferencing a single one. The read t
 a fully interpretable type even when the type address holds nothing at all: ghost types are
 permitted (L9, ASN-0043), and the read of a ghost-typed link is no less complete than any other.
 
-Two facts about the type slot bear directly on what the read surfaces. First, the type slot is
-mandatorily non-empty (L3, ASN-0043) while a from- or to-endset may legitimately be `∅`; the read
-therefore always returns a usable type endset. Second, the type is interpreted by *coverage-identity
-without dereference* (L8): two links share a type when their type endsets cover the same address set,
-decided without reading anything stored there — the relation that partitions the store into
-type-equivalence classes. Together these make the read of a ghost-typed link no less complete than
-any other: the read delivers a fully interpretable type even when the type address holds nothing.
-
 ## Faithful disclosure of nesting
 
 Because links live in the same address space as content, an endset may name another link. The
@@ -249,10 +216,9 @@ transition `Σ → Σ'`, an allocated link persists in the domain and keeps its 
 quantifies over the reflexive-transitive closure `Σ →* Σ'`, so it needs the multi-step lift, not
 L12 alone. That lift is already available: LP13 (UnconditionalLinkPersistence, ASN-0098) discharges
 both halves across the closure — `a ∈ dom(Σ.L) ⟹ a ∈ dom(Σ'.L)` (so `readlink(a, Σ')` is defined)
-and `Σ'.L(a) = Σ.L(a)` (so the read value is preserved) — for every reachable `Σ →* Σ'`. (LP13 is
-itself the closure of L12 under the schema that lifts single-step persistence to `→*` by induction
-on the transition sequence; the same multi-step result RL8 invokes.) With definedness and value
-preservation both carried across the closure, `readlink(a, Σ') = Σ'.L(a) = Σ.L(a) = readlink(a, Σ)`.
+and `Σ'.L(a) = Σ.L(a)` (so the read value is preserved) — for every reachable `Σ →* Σ'`. With
+definedness and value preservation both carried across the closure,
+`readlink(a, Σ') = Σ'.L(a) = Σ.L(a) = readlink(a, Σ)`.
 
 A reader who has once read a link may rely on that reading permanently. This is the counterpart, at
 the read interface, of the design commitment that to record a *different* relationship one must
