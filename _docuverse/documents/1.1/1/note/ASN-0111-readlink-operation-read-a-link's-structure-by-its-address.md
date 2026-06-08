@@ -122,30 +122,18 @@ present the same endset's spans in different incidental orders have returned the
 We can summarise RL1–RL3 in one sentence: the read returns the *complete* relationship,
 *grouped by role*, *unordered within each role*.
 
-## What the read reveals that the endpoints do not
+## Ownership lives in the read key
 
-We now ask the question that motivates direct read at all. Suppose a reader could instead arrive
-at the content the link connects — stand at a from-span and at a to-span and read the bytes there.
-What would still be missing?
+One fact about a link is recoverable that none of the slot-level claims above delivers, because it
+lives in the read *key* rather than the returned value: *ownership*. A relationship is a *claim*, and
+a claim has an author. The link's home document records who owns it.
 
-Everything that makes the relationship a relationship. The bytes at the two ends announce neither
-why they are connected nor by whom. The type, the direction, and the whole-structure-at-once are
-all recoverable only from the link object — but these are precisely the guarantees already
-formalised at their slots (the type by RL5, the from/to asymmetry and the simultaneous grouping by
-RL2 and RL1). One thing more is recoverable that *none* of those slot-level claims delivers, because
-it lives in the read key rather than the returned value: *ownership*.
-
-A relationship is a *claim*, and a claim has an author. The link's home document records who owns
-it. This is recoverable not from the read's output but from the *address* `a` that the read is keyed
-on: a caller already holds `a` to invoke the read, and `home(a)` is derivable from that key by T4
-field projection alone, without consulting any endset and indeed without performing the read.
-
-**RL4 (Home disclosure).** `home(a) = N(a).0.U(a).0.D(a)` is determined by the read key `a` alone,
-by T4 field projection, and is independent of the returned endsets (L2, ASN-0043). The read does not
-output the home — `readlink(a, Σ)` returns endsets only. Rather, the key that names the read already
-encodes it, so a caller who holds `a` can derive ownership without consulting any endset, even of a
-link that points nowhere near its home document — the home indicates *who owns* the link, not *what
-it points to*.
+*Remark (home from the key).* The home is not part of what the read returns; it is fixed by the
+*address* `a` the read is keyed on. A caller already holds `a` to invoke the read, and
+`home(a) = N(a).0.U(a).0.D(a)` is derivable from that key by T4 field projection alone, independent
+of the returned endsets (L2, ASN-0043) — without consulting any endset, and indeed without performing
+the read. The home is recoverable even of a link that points nowhere near its home document: it
+indicates *who owns* the link, not *what it points to*.
 
 ## Type is interpreted by address, not by content
 
@@ -351,7 +339,6 @@ its value is fixed by L12 / LP13).
 | RL1 | Completeness — the read returns every recorded span of every endset and no other; `readlink(a, Σ) = Σ.L(a)` | introduced |
 | RL2 | Role preservation — the read preserves arity (`|readlink(a, Σ)| = |Σ.L(a)|`) and exposes slot position as a model primitive (L6); from/to/type grouping delivered as structure | introduced |
 | RL3 | Intra-endset set semantics — spans within a returned endset are unordered; membership, not sequence, is exposed | introduced |
-| RL4 | Home disclosure — `home(a)` is determined by the read key `a` alone, independent of endsets; the read returns endsets only, so a caller holding the key can derive ownership without performing the read | introduced |
 | RL5 | Type-by-address — the type is interpreted via `coverage(e₃)`, not via content at those addresses; ghost types read completely | introduced |
 | RL6 | Nesting fidelity — link addresses in an endset's coverage are returned as addresses, unflattened and unrecursed | introduced |
 | RL7 | Determinacy — `readlink` is a pure function of `(a, Σ.L)` and stable across all `Σ →* Σ'` by link immutability | introduced |
