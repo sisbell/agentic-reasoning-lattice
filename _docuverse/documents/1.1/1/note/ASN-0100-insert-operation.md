@@ -54,7 +54,7 @@ The freshness comes from `d`'s content sub-allocator `A_C(d)`, by the substrate'
 
 The freshness of each `a_k` is established against the state immediately preceding its K.α firing — not against the operation's pre-state Σ. If Σ_k denotes the substrate state after K.α has fired for `a_0, …, a_{k−1}`, then K.α's precondition requires `a_k ∉ dom(Σ_k.C) ∪ dom(Σ_k.L)`. This conjunction is exactly the conclusion of SubsequentEmissionFreshness (ASN-0093): the subsequent emission `a_k = inc(a_prev, 0)` of `A_C(d)` is fresh against `dom(C) ∪ dom(L)`. The boundary case `m_d = 0`, where `a_0` is `A_C(d)`'s first emission `[d.0.s_C.1]`, is covered by FirstEmissionFreshness (ASN-0093). These two lemmas discharge K.α's freshness precondition at each of the `n` firings.
 
-By the chain discipline (ChainPrefixExtension, ChainEnumerationInjectivity; ASN-0093), every `a_k` has `origin(a_k) = d`, satisfies `b_C(d) ≼ a_k` (extending the content sub-allocator anchor), and is structurally produced by the sub-allocator's `inc(·, 0)` chain. The addresses `a_0, a_1, …, a_{n−1}` form a contiguous initial-segment extension of the chain: `a_{k+1} = inc(a_k, 0)` for `0 ≤ k < n − 1`, and `a_0` is either `[d.0.s_C.1]` (if `d` had no prior content emissions, per K.α's first-emission predicate in ASN-0093) or `inc(a_prev, 0)` where `a_prev = max{a ∈ dom(Σ.C) : origin(a) = d}` (per K.α's subsequent-emission predicate in ASN-0093). The branch keys on `dom(C)`, not the arrangement: residual `origin = d` content persists the frontier `a_prev` even when `V_{s_C}(d) = ∅`, so re-insertion into a cleared subspace continues the chain rather than restarting it.
+By the chain discipline (ChainPrefixExtension, ChainEnumerationInjectivity; ASN-0093), every `a_k` has `origin(a_k) = d`, satisfies `b_C(d) ≼ a_k` (extending the content sub-allocator anchor), and is structurally produced by the sub-allocator's `inc(·, 0)` chain. The addresses `a_0, a_1, …, a_{n−1}` form a contiguous initial-segment extension of the chain: `a_{k+1} = inc(a_k, 0)` for `0 ≤ k < n − 1`, and `a_0` is either `[d.0.s_C.1]` (if `d` had no prior content emissions, per K.α's first-emission predicate in ASN-0093) or `inc(a_prev, 0)` where `a_prev = max{a ∈ dom(Σ.C) : origin(a) = d}` (per K.α's subsequent-emission predicate in ASN-0093). The branch keys on `dom(C)`, not the arrangement.
 
 The post-state content store grows by the fresh addresses `a_0, …, a_{n−1}` carrying the new values `v_0, …, v_{n−1}`, while every pre-existing binding is preserved unchanged (claim INS.C).
 
@@ -76,7 +76,7 @@ Every existing V-position `v ∈ V_{s_C}(d)` with `v ≥ p` must remap. The cont
 
   `(A v : v ∈ Left ∪ Shifted-right :: v ∈ dom(M'(d)) ∧ M'(d)(v) = M_{I3}(v))`,
 
-so the arrangement-only lemmas I3 establishes (I3-S2, I3-VP, I3-VD, I3-fin) hold of `M'(d)` restricted to those two regions; the inheriting sections cite them at point of use.
+so the arrangement-only lemmas I3 establishes of that arrangement hold of `M'(d)` restricted to those two regions, cited at point of use in the sections that need them.
 
 ## The Operation: Formal Contract
 
