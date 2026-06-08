@@ -108,11 +108,9 @@ reader reconstructs from an unordered pool:
 The quantifier ranges over *all* `|Σ.L(a)|` slots, not a fixed three: in the dominant arity-3 case
 slot 1 is *from*, slot 2 is *to*, and slot 3 is *type*, while the model admits `N > 3` (L3, ASN-0043,
 requires only `N ≥ 3`), with slots 4…N returned faithfully under their own indices and no privileged
-role assigned by this operation. A read that collapsed the endsets into one pool, or that swapped two
-differing slots, would return a *different* relationship (link equality is componentwise, L6). The
-read must keep every endset aligned with its slot — the directional from/to pair, the separate type
-endset, and any further slots alike — this is exactly the alignment that any role-respecting use of
-the link depends upon.
+role assigned by this operation. The read keeps every endset aligned with its slot — the directional
+from/to pair, the separate type endset, and any further slots alike — this is exactly the alignment
+that any role-respecting use of the link depends upon.
 
 Within a single endset, however, no further order is owed.
 
@@ -212,20 +210,16 @@ so the structure the read returns today is the structure it will return forever.
 
 ## Recorded relationship versus resolved position
 
-We can now state the deepest distinction the operation embodies, the one that separates `readlink`
-from following or searching. A link records its endsets as spans over the *permanent* address space.
-Resolving those spans against a particular document's arrangement — mapping them to current
-positions — is a separate act, the business of traversal and projection, and it is conditional on
-the arrangement. The direct read performs no such resolution. It returns the recorded spans as they
-stand.
+A link records its endsets as spans over the *permanent* address space. Resolving those spans
+against a particular document's arrangement — mapping them to current positions — is a separate
+act, the business of traversal and projection, conditional on the arrangement. The direct read
+performs no such resolution; it returns the recorded spans as they stand.
 
 **RL8 (Recorded, not resolved).** `readlink(a, Σ)` depends only on `Σ.L`; it is independent of every
 document arrangement. Consequently the read succeeds and returns the complete structure even for an
 *orphaned* link — one whose endpoint content is currently arranged in no document, so that resolving
 its endsets would yield nothing (cf. the ghost-projection situation, ASN-0098). The link's structure
-persists unconditionally (L12; LP13 of ASN-0098), and the read surfaces it unconditionally. The
-worked orphan below demonstrates concretely how this distinguishes *the relationship is gone* from
-*the relationship is unwitnessed*.
+persists unconditionally (L12; LP13 of ASN-0098), and the read surfaces it unconditionally.
 
 ## Invariants governing the returned structure
 
