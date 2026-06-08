@@ -245,13 +245,6 @@ decomposition. The golden case is stark: ten
 characters plus one link report `1.1 for 1.2`, whose reach `[1,1] ⊕ [1,2] = [2,2]` bridges
 from the text start straight across the gap into link space (consultation Q11, Q19).
 
-The bounding-box reading of V6 holds independent of the endpoint depth relation (V2). The
-implementation in fact realizes only `m_C = m_L`: content and link V-positions are placed at the same depth — both
-depth 2 — distinguished only by the first-component value `s_C = 1` vs `s_L = 2`, never by depth
-(consultation Q2: `findvsatoappend`, `findnextlinkvsa`, and `setlinkvsas` all emit depth-2
-V-addresses), so the cross-subspace endpoints are level-compatible and `reach(σ_d) = reach_d`
-exactly.
-
 ---
 
 ## The origin is permanent; the extent tracks quantity, not order
@@ -267,8 +260,7 @@ permanence): for every document state in which the content subspace is non-empty
 `origin_d = [s_C,1,…,1]`, invariant under all editing that leaves content present. (The depth
 `m_C` is fixed throughout any content-present regime by the re-pinning discipline of ASN-0047's
 `m_S(d)`: the content depth is re-pinned only after the content subspace is fully cleared, so it
-holds constant across every state in which content remains present. S8-depth alone is per-state
-and would not supply this cross-state constancy.) Editing
+holds constant across every state in which content remains present.) Editing
 relocates I-addresses and shuffles V-positions, but it never moves the start of the stream:
 "the front-end application is unaware" of where bytes natively live (4/11), and the V-origin
 holds steady at the canonical first position. The origin is the stable anchor against which
@@ -401,6 +393,14 @@ Q14).
 arrangement-tree entries to negative displacements, but the root width is recomputed as a
 maximum-minus-minimum reach and remains non-negative, so no editing transient surfaces a
 zero-or-below extent (consultation Q18) — concrete evidence for V2's positivity.
+
+*Implementation remark (reach tightness, evidence for the V2 reach biconditional).* The
+implementation in fact realizes only `m_C = m_L`: content and link V-positions are placed at
+the same depth — both depth 2 — distinguished only by the first-component value `s_C = 1` vs
+`s_L = 2`, never by depth (consultation Q2: `findvsatoappend`, `findnextlinkvsa`, and
+`setlinkvsas` all emit depth-2 V-addresses). The cross-subspace endpoints are therefore
+level-compatible (`#origin_d = #reach_d`), so the V2 reach biconditional fires affirmatively
+and `reach(σ_d) = reach_d` exactly.
 
 ---
 
