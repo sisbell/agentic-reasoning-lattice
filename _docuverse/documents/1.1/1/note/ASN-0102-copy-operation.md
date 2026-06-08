@@ -29,7 +29,7 @@ We collect the complete precondition under which `COPY(R, d, v)` is defined at `
 
 ## Definition of COPY
 
-COPY's effect *relabels* the content-subspace positions at or after `v` by the forward shift `· + W` (the effect clause below). The standing state has five components, `Σ = (Σ.C, Σ.L, Σ.E, Σ.M, Σ.R)`.
+COPY's effect *relabels* the content-subspace positions at or after `v` by the forward shift `· + W` (the effect clause below), over the standing state `Σ = (Σ.C, Σ.L, Σ.E, Σ.M, Σ.R)`.
 
 **Amendment to `ValidComposite★`.** COPY is added to `ValidComposite★`'s atomic vocabulary (ASN-0047) as a new elementary transition kind, changing two state components — the arrangement `M` and the provenance relation `R`.
 
@@ -67,7 +67,7 @@ a contiguous lay-down of the resolved I-sequence at consecutive target V-positio
 
 We claim the operation cannot create content, and from that, that what it places must already exist.
 
-**X1 (ContentStoreInvariance).** `dom(Σ'.C) = dom(Σ.C) ∧ (A a ∈ dom(Σ.C) : Σ'.C(a) = Σ.C(a))`. This is immediate from the definition `Σ'.C = Σ.C` [LM 2/36]. Gregory's trace confirms the abstract claim concretely: `docopy` calls `insertpm` (which writes the document's POOM, the arrangement) and `insertspanf` (which writes the containment index), but never `inserttextingranf`, the sole content-creating primitive. The I-address high-water mark queried before allocation is therefore unchanged by COPY (Q16).
+**X1 (ContentStoreInvariance).** `dom(Σ'.C) = dom(Σ.C) ∧ (A a ∈ dom(Σ.C) : Σ'.C(a) = Σ.C(a))`. This is immediate from the definition `Σ'.C = Σ.C`. Gregory's trace confirms the abstract claim concretely: `docopy` calls `insertpm` (which writes the document's POOM, the arrangement) and `insertspanf` (which writes the containment index), but never `inserttextingranf`, the sole content-creating primitive. The I-address high-water mark queried before allocation is therefore unchanged by COPY (Q16).
 
 Now the decisive step. In the extended state the governing invariant is the *generalised* referential integrity S3★ (ASN-0047): every V-position is routed to the store its subspace names — `subspace(v) = s_C ⟹ Σ'.M(d)(v) ∈ dom(Σ'.C)` and `subspace(v) = s_L ⟹ Σ'.M(d)(v) ∈ dom(Σ'.L)`. We must establish S3★ at the post-state, so we compute the weakest precondition over *all* post-state mappings of `d`, which the definition partitions into three classes:
 
