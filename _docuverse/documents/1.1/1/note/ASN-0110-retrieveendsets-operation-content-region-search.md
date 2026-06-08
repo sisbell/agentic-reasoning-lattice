@@ -45,8 +45,13 @@ doors we have refused to open.
 ## When does an endset touch a region?
 
 Let the queried region be an I-region `I ⊆ T` — a set of I-addresses. (We treat regions
-phrased in a document's V-space later, by reduction to this case.) We say an endset `e`
-*touches* `I` exactly when its coverage meets the region:
+phrased in a document's V-space later, by reduction to this case.) For the operation to be
+*realizable* the region cannot be an arbitrary, possibly infinite, subset of `T`: it must be
+*finitely presented*, supplied as a finite span-set `Q ∈ 𝒫_fin(Span)` whose denotation is
+`I = coverage(Q)` (RE-decide below). We continue to write the region as the abstract set `I`
+throughout, since the semantics depend only on `I`'s extension and not on which span-set
+presents it (RE-rep), but every realizability and termination claim leans on this finite
+presentation. We say an endset `e` *touches* `I` exactly when its coverage meets the region:
 
 > **RE-touch (definition).** `touches(e, I) ≡ coverage(e) ∩ I ≠ ∅`.
 
@@ -63,6 +68,31 @@ suffices. Unfolding the coverage union, `touches(e, I)` holds iff *some* span of
 > the endset's span begins) then `s < q ⊕ m` fails, so adjacency in the sense of SC case (ii)
 > produces no overlap. Only SC cases (iii)–(v) — proper overlap, containment, equality —
 > qualify.
+
+RE-overlap reduces touching to a per-span overlap test, and that reduction is what makes the
+operation computable rather than merely defined. We make the obligation explicit, since an
+operation stated over an arbitrary `I ⊆ T` is not discharged until its touching test is shown
+decidable and its search shown to terminate.
+
+> **RE-decide (lemma).** *With the region finitely presented as `Q ∈ 𝒫_fin(Span)`, `I =
+> coverage(Q)`, the touching test is decidable and the search over the store terminates.* For a
+> single endset `e` — itself a finite span-set, `Endset = 𝒫_fin(Span)` (ASN-0043) — RE-overlap
+> with the coverage of `Q` unfolds `touches(e, I)` into the finite double disjunction
+> `(E (s, ℓ) ∈ e, (q, m) ∈ Q : ⟦(s, ℓ)⟧ ∩ ⟦(q, m)⟧ ≠ ∅)`. Each per-pair overlap is the
+> half-open interval predicate `q < s ⊕ ℓ ∧ s < q ⊕ m`, whose displaced endpoints `s ⊕ ℓ` and
+> `q ⊕ m` exist by TA0 and exceed their starts by TA-strict, and whose four comparisons are
+> settled by the intrinsic, terminating tumbler order T2 (ASN-0034). The enclosing search ranges
+> over `dom(Σ.L)` — finite by L-fin (ASN-0093) — and within each link over finitely many slots
+> `i ≤ |Σ.L(a)|` and finitely many spans per endset. A finite union of finite, decidable tests
+> terminates, so `W(I, Σ)` and every `Eᵢ(I, Σ)` are computable. This is the region-search
+> counterpart of the decidability arguments the foundations carry for the same `coverage ∩ I`
+> shape (CoverageEqualityDecidable, ASN-0086; F4 remark, ASN-0099).
+
+> **RE-rep (lemma).** The result depends only on the *extension* `I = coverage(Q)`, not on the
+> span-set `Q` presenting it: if `coverage(Q) = coverage(Q')` then `retrieveendsets` agrees on
+> the two presentations, since `touches(e, ·)` is defined through the set `I` alone (cf. LP21,
+> ASN-0098; L8, ASN-0043). Distinct finite span-sets with the same coverage are interchangeable
+> as queries.
 
 Two structural facts about RE-overlap deserve emphasis because they distinguish this operation
 from its neighbours. First, within an endset the test is a disjunction over spans: *one* span
@@ -122,6 +152,19 @@ each slot, by the touching test; the two are independent. This matches Gregory's
 implementation, which always emits the three standard slots (from, to, type) and writes a
 count-zero endset for any role with no touching contribution rather than omitting the slot
 (SS-RETRIEVE-ENDSETS, ST-RETRIEVE-ENDSETS).
+
+The empty query region is the boundary that makes this length discipline visible.
+
+> **RE-zero (lemma).** When `I = ∅`, no endset touches: `coverage(e) ∩ ∅ = ∅`, so
+> `touches(e, ∅)` is false for every `e`, whence `W(∅, Σ) = ∅` and `Eᵢ(∅, Σ) = ∅` for every
+> `i`. The result is therefore `⟨∅, …, ∅⟩` — a tuple of `N_max(Σ)` empty slots, *not* the
+> empty tuple. The length is fixed by the store's arities (RE-arity), independent of the
+> region, so an empty region yields the same shape as a non-empty one with all-empty contents,
+> and the empty tuple arises only in the degenerate `dom(Σ.L) = ∅` case where `N_max(Σ) = 0`.
+
+`I = ∅` is a reachable input, not a pathological one: it is exactly the I-side image of a
+fully-deleted V-region (RE-Vside below), and RE-zero is the explicit I-side referent of the
+V-side "finds nothing" reduction.
 
 For the standard triple `N_max(Σ) = 3` and the tuple is the familiar
 `⟨from-results, to-results, type-results⟩` (Q14). Each `Eᵢ` is a *set of endsets* — a set
@@ -274,10 +317,15 @@ The corollary is that the *number* of distinct links anchored to the region is n
 from the result. Two links with coincident endsets are indistinguishable in the output, so the
 result yields at most a lower bound (the number of distinct endset values present), never the
 true count. This is by design and by division of labour: counting how many links touch a
-region is a separate operation (FINDNUMOFLINKS), out of scope here, and an implementation of
-`retrieveendsets` is free to collapse or preserve multiplicities — so multiplicity is not part
-of the guaranteed semantics. What *is* guaranteed is the *set* of touching endset values per
-role.
+region is a separate operation (FINDNUMOFLINKS), out of scope here. The guaranteed return
+object per role is fixed as the *set* `Eᵢ(I, Σ)` of touching endset values (RE-result), and
+RE-exact is read as literal set equality. Identical endset values contributed by distinct
+links are therefore collapsed to a single member by the set comprehension — the result carries
+no multiplicity information at all, and an implementation has no latitude to report a value
+twice. An implementation that internally accumulates one occurrence per contributing link must
+deduplicate to the underlying set before returning; multiplicity is not merely "not
+guaranteed," it is structurally absent. What is guaranteed, exactly, is the *set* of touching
+endset values per role.
 
 What, then, does the result reveal? It reveals connectivity, anonymously.
 
@@ -423,10 +471,11 @@ Two behaviours follow from the structure of `image`, and both are forced rather 
 First, the conversion is *silently partial*: V-positions of `R` that are not in
 `dom(Σ.M(d))` — content the document never arranged, or arranged and since deleted —
 contribute nothing to `image(R, d, Σ)` and therefore cannot drag in any endset (Q11, Q16). A
-region whose content has been wholly deleted from `d` maps to the empty I-set and finds
-nothing, even though links to that now-departed content persist in the store and remain
-discoverable through *other* documents that still arrange it. The emptiness is again a
-statement about the present arrangement, not about the links.
+region whose content has been wholly deleted from `d` maps to the empty I-set, `image(R, d, Σ)
+= ∅`, and the I-side query `retrieveendsets(∅, Σ)` returns `⟨∅, …, ∅⟩` of length `N_max(Σ)` by
+RE-zero — not the empty tuple — even though links to that now-departed content persist in the
+store and remain discoverable through *other* documents that still arrange it. The emptiness is
+again a statement about the present arrangement, not about the links.
 
 Second, the conversion is *document-agnostic at the touching layer*, which gives transclusion
 for free:
@@ -453,6 +502,9 @@ it among the open questions.
 |-------|-----------|--------|
 | RE-touch | `touches(e, I) ≡ coverage(e) ∩ I ≠ ∅` | introduced |
 | RE-overlap | `touches(e, I)` is non-empty half-open span overlap; one span suffices; boundary contact does not qualify | introduced |
+| RE-decide | with region finitely presented as `Q ∈ 𝒫_fin(Span)`, the touching test is decidable (per-span overlap by T2) and the search terminates (L-fin, finite endsets) | introduced |
+| RE-rep | result depends only on `I = coverage(Q)`, not on the span-set presenting it | introduced |
+| RE-zero | `I = ∅` yields `⟨∅, …, ∅⟩` of length `N_max(Σ)`, not the empty tuple | introduced |
 | RE-witness | `W(I, Σ) = {(a, i) : a ∈ dom(Σ.L), i ≤ |Σ.L(a)|, touches(Σ.L(a).eᵢ, I)}` | introduced |
 | RE-result | `Eᵢ(I, Σ) = {Σ.L(a).eᵢ : (a, i) ∈ W(I, Σ)}` for each role `i ≥ 1` | introduced |
 | RE-arity | result is the tuple `⟨E₁, …, E_{N_max(Σ)}⟩`, length `N_max(Σ) = max{|Σ.L(a)| : a ∈ dom(Σ.L)}`; empty interior slots reported in position | introduced |
