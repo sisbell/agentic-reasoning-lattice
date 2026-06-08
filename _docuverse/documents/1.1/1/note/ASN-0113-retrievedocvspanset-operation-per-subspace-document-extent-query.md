@@ -49,12 +49,10 @@ collapsed. An *allocated empty* document (`d ∈ dom(M)`, `M(d) = ∅`) legitima
 empty span-set `⟨⟩` (a defined result; see W0). An *unallocated* identity (`d ∉ dom(M)`) is
 *outside the operation's domain*: it has no defined result, and a faithful implementation
 signals failure rather than fabricating `⟨⟩`. Gregory's back end confirms the separation
-operationally — an existing-but-empty document returns `NULL` (the empty span-set) with
-success, whereas a never-allocated identity fails the open-document check (`findorgl` returns
-FALSE because `checkforopen` finds no registry entry) and the dispatcher emits the FEBE
-failure marker `?`, not an empty result (consultation, code trace `fns.c:140`,
-`do1.c:327`, `granf1.c`). All postconditions below are stated under W-pre; we make no claim
-about unallocated `d`.
+operationally — an existing-but-empty document returns the empty span-set with success,
+whereas a never-allocated identity fails and the back end signals failure rather than an
+empty result (consultation). All postconditions below are stated under W-pre; we make no
+claim about unallocated `d`.
 
 We write
 
@@ -199,8 +197,7 @@ between the last component of `reach` and that of `start_S`. This is how a span-
 "indicates the number" (4/68) without designating a number directly (4/24): the magnitude is
 implicit in the boundary, and made explicit only because the subspace is contiguous.
 
-**Exactness is contingent on contiguity.** We pause to record what makes W4 hold, because an
-alternative implementation must not lose it. The single covering span is exact *only because*
+**Exactness is contingent on contiguity.** The single covering span is exact *only because*
 `V_S(d)` is a contiguous run (D-CTG★). We state the dependence as a biconditional and prove
 both halves. We record **W5** (ExactnessRequiresContiguity), *under the hypothesis*
 `V_S(d) ≠ ∅`: *there exists* a single
@@ -296,10 +293,8 @@ alone.
 **Only the two counted subspaces appear.** A link is internally a three-ended structure,
 and its endpoint sub-addresses inhabit a *third* region of the address tree (a type/endpoint
 subspace, `s = 3`). That region is not a kind of *document content* — it is internal to a
-link's own storage — and so it is never a V-position of `d`. The substantive guarantee is not
-the definitional inclusion `occupied(d) ⊆ {s_C, s_L}` (which holds by construction of `W6`,
-since the candidate set is the literal `{s_C, s_L}`) but the fact that `O(d)` *exhausts* into
-exactly these two subspaces, leaving no occupied position in a third. This is precisely
+link's own storage — and so it is never a V-position of `d`. Every occupied position of `d`
+lies in one of the two counted subspaces, leaving none in a third. This is precisely
 S3★-aux (SubspaceExhaustiveness, ASN-0047): `(A d, v : v ∈ dom(M(d)) : subspace(v) = s_C ∨
 subspace(v) = s_L)`. We record **W9** (TwoKindsOnly):
 
@@ -354,9 +349,7 @@ one extent — Nelson's design choice, which our formalism makes forced rather t
 The two subspaces are not merely labelled differently; they are *disjoint subtrees of the
 address space*, and no single contiguous span can cover both. Consider the denotation of
 each extent span. We record **W10** (SubspaceConfinement): `(A t : t ∈ ⟦ext(d, S)⟧ : t₁ =
-S)`. Unlike W4, this quantifies over *every* `t` in the denotation — tumblers of arbitrary
-depth, including the whole subtree hanging below each V-position — so it needs its own
-argument, not W4's depth-`m_S`-restricted reasoning. The argument is two lines on the first
+S)`, for `t` of any depth. The argument is two lines on the first
 component. The bounds are `start_S = [S,1,…,1]` and `reach = [S,1,…,1,1+n_S]`, both with
 first component `S`. Take any `t ∈ ⟦ext(d, S)⟧`, so `start_S ≤ t < reach`. If `t₁ < S`, then
 by T1 the first divergence is at position `1` and `t < start_S` — contradicting `start_S ≤
@@ -433,10 +426,7 @@ reachable (the empty subspace, count `0`, by performing zero extensions of that 
 proposition — fix the link extent at `k` and vary the text extent — is witnessed by the
 *same two recipes* with only the varying axis changed: coupled `K.α + K.μ⁺ + K.ρ` content
 composites drive `n_{s_C}` to the two distinct targets `c₁ ≠ c₂` while uncoupled
-`K.λ + K.μ⁺_L` link composites hold `n_{s_L} = k`. The content and link mechanisms are not
-exchanged — text is added only by coupled content composites and links only by uncoupled
-link composites, exactly as in the surrounding paragraph; what changes between the two
-witnesses is solely which count is driven and which is held.
+`K.λ + K.μ⁺_L` link composites hold `n_{s_L} = k`.
 
 This is why the profile distinguishes documents that
 one axis cannot tell apart: high text with near-zero links is original prose; near-zero text
@@ -464,16 +454,14 @@ sequence is in normal form.)
 This uniformity is exactly what makes two documents' reports *comparable*: one compares like
 with like, text-extent to text-extent and link-extent to link-extent. We record **W14**
 (Comparability): for any two allocated documents `d₁, d₂`, the per-kind comparison `n_S(d₁)`
-versus `n_S(d₂)` is well-defined for each `S ∈ {s_C, s_L}`. The reason is *not* that each
-report exposes both kinds — it does not: W7 emits exactly `|occupied(d)|` members, *omitting*
-any empty subspace, so a text-only document returns a single member. Rather, the comparison is
-total because `n_S(d) = |V_S(d)|` is a *total function* (W1), defined for every allocated `d`
-and every `S ∈ {s_C, s_L}` independently of whether the operation emits a member for that
-subspace; an empty subspace has `n_S(d) = 0` as a fact about `V_S(d)`, regardless of the
-report's membership. This well-definedness of `n_S` is a property of the state, separate from
-how a *consumer* recovers `n_S = 0` from a span-set whose empty member is absent — that
-absent-equals-zero reading is a consumer-side convention this note does not rely on here and
-flags as not obviously safe (Open Question 2).
+versus `n_S(d₂)` is well-defined for each `S ∈ {s_C, s_L}`. The comparison is total because
+`n_S(d) = |V_S(d)|` counts `V_S(d)` directly (W1): it is a total function, defined for every
+allocated `d` and every `S ∈ {s_C, s_L}` independently of whether the operation emits a member
+for that subspace. An empty subspace has `n_S(d) = 0` as a fact about `V_S(d) = ∅`, regardless
+of the report's membership. This well-definedness of `n_S` is a property of the state, separate
+from how a *consumer* recovers `n_S = 0` from a span-set whose empty member is absent — that
+absent-equals-zero reading is a consumer-side convention this note does not rely on and flags
+as not obviously safe (see Open Questions).
 
 **Cross-kind independence.** The extent reported for one kind does not depend on the
 population of the other. We record **W15** (Independence): `n_{s_C}(d)` is a function of
