@@ -213,9 +213,8 @@ by the demand for *one* origin-and-extent pair. By S3★-aux a non-empty `O(d)` 
 exactly one subspace or exactly both, so the two cases below are jointly exhaustive.
 
 **Single subspace: exact cover.** Suppose `O(d)` lies entirely in one subspace `s` — either
-content (`s = s_C`) or, in the link-only case (content empty, one or more links arranged,
-reachable by `CREATENEWDOCUMENT` then `K.λ` + `K.μ⁺_L` with endsets referencing content
-elsewhere per L4/L9), the link subspace (`s = s_L`). By D-SEQ★ (the per-subspace dense-run
+content (`s = s_C`) or, in the link-only case (content empty, one or more links arranged — a
+reachable state), the link subspace (`s = s_L`). By D-SEQ★ (the per-subspace dense-run
 shape, ASN-0047, instantiated at `S = s`) the occupied positions are
 `{[s,1,…,1,k] : 1 ≤ k ≤ n_s}`, a dense run with no internal gaps. Then `origin_d = [s,1,…,1]`
 (D-MIN★), `max O(d) = [s,1,…,1,n_s]`, `reach_d = [s,1,…,1,n_s+1]`, and `⟦σ_d⟧` restricted to
@@ -266,7 +265,10 @@ We can make this precise. While the content subspace is occupied, D-MIN pins
 also `min O(d) = origin_d` whenever content is present. We record **V8** (origin
 permanence): for every document state in which the content subspace is non-empty,
 `origin_d = [s_C,1,…,1]`, invariant under all editing that leaves content present. (The depth
-`m_C` is fixed throughout any content-present regime, by S8-depth.) Editing
+`m_C` is fixed throughout any content-present regime by the re-pinning discipline of ASN-0047's
+`m_S(d)`: the content depth is re-pinned only after the content subspace is fully cleared, so it
+holds constant across every state in which content remains present. S8-depth alone is per-state
+and would not supply this cross-state constancy.) Editing
 relocates I-addresses and shuffles V-positions, but it never moves the start of the stream:
 "the front-end application is unaware" of where bytes natively live (4/11), and the V-origin
 holds steady at the canonical first position. The origin is the stable anchor against which
@@ -395,19 +397,20 @@ Q14).
 
 ## The extent is a well-formed, non-negative displacement
 
-Finally, the invariant that grounds the span the operation may return in the implementation.
-V2 already established `σ_d`'s T12 legality — `Pos(extent_d)` and
-`actionPoint(extent_d) ≤ #origin_d`, holding regardless of endpoint depths — so the abstract
-non-degeneracy of the extent is settled. What remains is that the implementation actually
-delivers this positive width: editing can drive *intermediate* arrangement entries negative,
-and we must show those transients never surface in the reported extent. We record **V17**
-(implementation non-negativity). Gregory confirms it is structurally guaranteed: even when
-prior deletions drive intermediate arrangement-tree entries to negative displacements, the
-root width is recomputed as a maximum-minus-minimum reach and remains non-negative — the
-reported extent is never negative (consultation Q18). So there is no editing artifact that
-drives the extent to zero or below. The only way to obtain "no extent" is the empty document,
-which returns the distinguished empty span-set `⟨⟩` (V11) and carries no extent tumbler at
-all — emptiness is reported by the absence of a span, not by a zero-width one.
+The abstract obligation here is V2's alone: V2 established `σ_d`'s T12 legality — `Pos(extent_d)`
+and `actionPoint(extent_d) ≤ #origin_d`, holding regardless of endpoint depths — so the
+non-degeneracy of the reported extent is already settled, and every alternative implementation
+must satisfy it. The only way to obtain "no extent" is the empty document, which returns the
+distinguished empty span-set `⟨⟩` (V11) and carries no extent tumbler at all — emptiness is
+reported by the absence of a span, not by a zero-width one.
+
+*Implementation remark (evidence for V2).* Gregory's structure delivers V2's positivity even
+under adverse editing. Prior deletions can drive *intermediate* arrangement-tree entries to
+negative displacements, but the root width is recomputed as a maximum-minus-minimum reach and
+remains non-negative, so no editing transient surfaces a zero-or-below extent (consultation Q18).
+This confirms V2 in the concrete implementation; it introduces no further guarantee, since an
+alternative implementation need reproduce neither the negative intermediate entries nor the
+max-minus-min recomputation — only V2's positive extent.
 
 ---
 
@@ -431,8 +434,8 @@ at position 1 (`2 ≠ 1`), so `extent_d = [2-1, 2] = [1,2]`. Thus
 Verify the claims. **V1**: `origin_d = [1,1] ∈ O(d)`, an occupied content position. ✓
 **V2**: `⟦σ_d⟧ = {t : [1,1] ≤ t < [2,2]}` contains all four occupied positions. ✓
 **V6**: it *also* contains `[1,4], [1,5], …` and `[1, k]`-extensions in the inter-subspace
-void, none occupied — the span strictly encloses `O(d)`. ✓ **V17**: `extent_d = [1,2]` is
-positive with `actionPoint = 1 ≤ 2 = #origin_d`. ✓
+void, none occupied — the span strictly encloses `O(d)`. ✓ **V2** (T12 legality): `extent_d =
+[1,2]` is positive with `actionPoint = 1 ≤ 2 = #origin_d`. ✓
 
 Now drop the link, leaving `O'(d) = {[1,1], [1,2], [1,3]}`. Then `origin_d = [1,1]` (V8,
 unchanged), `max = [1,3]`, `reach = [1,4]`, `extent = [1,4] ⊖ [1,1] = [0,3]`, giving
@@ -508,7 +511,6 @@ endpoint depths), without inspecting the returned span.
 | V14 | Every *occupied* position in `O(d)` maps through `M(d)` to a permanent, immutable image, by subspace (S3★): content positions to `dom(C)` (S0, P0), link positions to `dom(L)` (L12); covered-but-unoccupied positions in the cross-subspace case (V6) carry no `M(d)` image; sharing preserves what the span denotes (permanence) | introduced |
 | V15 | A returned span keeps its meaning under later edits to `d` or to home documents supplying its content; a fresh report is a new query, not a mutation (snapshot stability) | introduced |
 | V16 | `σ_d` is a pure function of `O(d)`; equal arrangements return identical spans, independent of how the arrangement was built (determinism) | introduced |
-| V17 | The reported extent is never negative in the implementation: prior deletions may drive intermediate arrangement-tree entries negative, but the root width is recomputed as a max-minus-min reach (Q18), so no editing artifact surfaces a zero-or-below extent (abstract positivity is V2's) | introduced |
 | V18 | Origin permanence (V8) holds exactly while content is present; the origin moves only at the two transitions that toggle content occupancy — content-clearing migrates `origin_d` up to the link minimum `[s_L,1,…,1]`, first-content insertion into a link-only document migrates it down to the content anchor `[s_C,1,…,1]` (origin migration bounds V8) | introduced |
 
 ## Open Questions
