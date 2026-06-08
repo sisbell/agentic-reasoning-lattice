@@ -164,15 +164,10 @@ components are pinned to `[S,1,…,1]`. The
 only remaining freedom is in the last component, which the half-open bounds then pin to
 `1 ≤ t_{m_S} ≤ n_S`. These are exactly the elements
 `[S,1,…,1,k]` with `1 ≤ k ≤ n_S` — which is `V_S(d)` by D-SEQ★. So the span omits no active
-position (completeness) and includes no inactive V-slice tumbler (exclusivity). The relation
-the member span bears to its subspace is therefore *definitional, not approximate*: its
-boundaries select a region whose V-slice population coincides with the subspace's active
-positions. The load-bearing invariant here is contiguity: it is *because* D-CTG★ holds at
+position (completeness) and includes no inactive V-slice tumbler (exclusivity). The
+load-bearing invariant here is contiguity: it is *because* D-CTG★ holds at
 every reachable state — `V_S(d)` contains every V-slice tumbler lying (under T1) between its
-own minimum and maximum — that a single half-open span can be exact. A span's denotation is
-order-convex (T12; S0 of ASN-0053), so any single span covering both extremes of `V_S(d)`
-necessarily covers every V-slice tumbler between them; the encoding is exact precisely
-because no such between-tumbler is ever inactive.
+own minimum and maximum — that a single half-open span can be exact.
 
 **The count is read off the boundary.** Because the run is dense, `n_S` is recoverable from
 the span alone: it is the last component of the width `δ(n_S, m_S)`, equivalently the gap
@@ -513,7 +508,7 @@ where an off-prefix, admissible-last-component tumbler must be — and is — ex
 
 W4's single-span exactness rests on the standing D-CTG★ contiguity invariant (a non-contiguous subspace would, by order-convexity, force a single covering span to admit inactive interior tumblers — so faithful coverage would then require a fragmented span-set); should a foundation extension ever relax D-CTG★, what must the operation guarantee — is it obligated to emit the fragmented span-set, or may it report Gregory's single bounding span and leave faithful interpretation of interior gaps to the caller?
 
-Given that the operation omits an empty subspace entirely (W7) and comparison treats an absent subspace as the value zero (W14), how must a *consumer* interpret an omitted member when comparing reports across documents of differing vintages — under what conditions is "subspace absent" safely read as "extent zero" rather than "subspace not yet supported"?
+Given that the operation omits an empty subspace entirely (W7) and comparison treats an absent subspace as the value zero (W14), how must a *consumer* interpret an omitted member when comparing reports across documents of differing vintages — under what conditions is "subspace absent" safely read as "extent zero"? (This is the consumer-side reading; the operation-side counterpart — what the operation must guarantee so the kind-list stays fixed and reports stay comparable when the convention is extended — is the final open question below.)
 
 What permanence must the per-subspace extent report carry across a version fork that shares content with its ancestor?
 
