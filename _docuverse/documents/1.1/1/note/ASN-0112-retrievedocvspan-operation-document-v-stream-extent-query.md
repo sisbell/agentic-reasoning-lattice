@@ -145,9 +145,11 @@ depths:
   D1 (DisplacementRoundTrip, ASN-0034) the round-trip closes exactly: `r⋆ = origin_d ⊕
   (reach_d ⊖ origin_d) = reach_d`. Then for any `v ∈ O(d)`, `origin_d ≤ v ≤ max O(d) <
   reach_d = r⋆`, so `v ∈ ⟦σ_d⟧`.
-- *`#origin_d > #reach_d`* (content deeper than the maximal link position). By D0 the
-  round-trip *fails* — `r⋆ ≠ reach_d` — so we compute `r⋆` directly. With `k = 1`, TumblerAdd
-  gives `r⋆` agreeing with `reach_d` (zero-padded to length `#origin_d`) on every position
+- *`#origin_d > #reach_d`* (content deeper than the maximal link position). Unequal endpoint
+  depths force the cross-subspace case — single-subspace endpoints are equidepth by S8-depth —
+  so `k = divergence(origin_d, reach_d) = 1` (divergence at the subspace component, `s_C` vs
+  `s_L`). By D0 the round-trip *fails* — `r⋆ ≠ reach_d` — so we compute `r⋆` directly. With
+  `k = 1`, TumblerAdd gives `r⋆` agreeing with `reach_d` (zero-padded to length `#origin_d`) on every position
   `1 ≤ i ≤ #reach_d` and carrying trailing zeros beyond, so `reach_d` is a proper prefix of
   `r⋆` and `reach_d < r⋆` (T1 case (ii)). Hence `max O(d) < reach_d < r⋆`, and again every
   `v ∈ O(d)` lies in `⟦σ_d⟧`.
@@ -176,19 +178,12 @@ tumbler strictly greater than `w`* — the next peer at the same depth. The firs
 `reach_d` is *not* the least admissible reach over all of `T` (a span with reach `w.0` already
 covers `O(d)`, since `w < w.0`); the second is exactly V3's claim that `reach_d` is the least
 strict upper bound of `max O(d)` *among tumblers at the depth of `max O(d)`* (`= #reach_d`).
-The deeper `w.0` is excluded precisely because it sits at a greater depth than `max O(d)`,
-outside that same-depth comparison class. So far this is a statement about the *witness*
-`reach_d`, not about `σ_d`. The leap to `σ_d` requires `reach(σ_d) = reach_d`, which by the
-V2 reach biconditional holds exactly when `#origin_d ≤ #reach_d` (`m_C ≤ m_L`); under that
-condition `σ_d` is the tightest covering span whose reach lies at the depth of `max O(d)`,
-and fixing the two boundaries determines the whole. When `#origin_d > #reach_d` the round-trip
-fails (D0) and `σ_d`'s actual reach `r⋆` overshoots to depth `#origin_d ≠ #reach_d`, so the
-same-depth tightness statement applies to `reach_d`, not to `σ_d` itself. Whether `σ_d` is itself
-*level-uniform* (`#origin_d = #extent_d`) is a further, *separate* condition — since
-`#extent_d = max(#origin_d, #reach_d)` (TA2), the span is level-uniform iff
-`#origin_d ≥ #reach_d` (i.e. `m_C ≥ m_L`), which holds for every single-subspace document but
-can fail across subspaces; endpoint-level-compatibility (`#origin_d = #reach_d`, i.e.
-`m_C = m_L`) is stricter still.
+`σ_d`'s reach equals `reach_d` iff `#origin_d ≤ #reach_d` (`m_C ≤ m_L`, V2 reach
+biconditional); under that condition `σ_d` is the tightest covering span at the depth of
+`max O(d)`, and fixing the two boundaries determines the whole. When `#origin_d > #reach_d`
+the round-trip fails (D0) and `σ_d`'s actual reach `r⋆` overshoots to depth
+`#origin_d ≠ #reach_d`, so the same-depth tightness statement applies to `reach_d`, not to
+`σ_d` itself.
 
 ---
 
@@ -412,13 +407,14 @@ Q14).
 
 ## The extent is a well-formed, non-negative displacement
 
-Finally, the invariants that constrain the span the operation may return. We record **V17**
-(well-formed positive extent): for a non-empty document, `extent_d` is a positive tumbler
-(`Pos(extent_d)`) with `actionPoint(extent_d) ≤ #origin_d`, so `σ_d` is a legal T12 span; and
-the span is non-empty, containing at least `origin_d` (TA-strict). In particular the width
-tumbler can never have "negative magnitude": `reach_d > origin_d` always (V2), so
-`extent_d = reach_d ⊖ origin_d` is a genuine positive displacement, never a degenerate or
-sign-reversed value. Gregory confirms this is structurally guaranteed: even when prior
+Finally, the invariants that constrain the span the operation may return. V2 already
+established `σ_d`'s T12 legality — `Pos(extent_d)` and `actionPoint(extent_d) ≤ #origin_d`,
+holding regardless of endpoint depths. We record **V17** (well-formed positive extent) for the
+content V2's legality does not stress: the *non-degeneracy* of the extent and its grounding in
+the implementation. The span is non-empty, containing at least `origin_d` (TA-strict), and the
+width tumbler can never have "negative magnitude": `reach_d > origin_d` always (V2), so
+`extent_d = reach_d ⊖ origin_d` is a genuine *strictly positive* displacement, never a
+degenerate, zero-width, or sign-reversed value. Gregory confirms this is structurally guaranteed: even when prior
 deletions drive intermediate arrangement entries to negative displacements, the root width is
 recomputed as a maximum-minus-minimum reach and remains non-negative — the reported extent is
 never negative (consultation Q18). For every non-empty document the extent is strictly
@@ -516,7 +512,7 @@ endpoint depths), without inspecting the returned span.
 | V0 | `RETRIEVEDOCVSPAN : dom(M) → Span + {⟨⟩}` (tagged union): one well-formed span `σ_d = (origin_d, extent_d)` for a non-empty document, or the distinguished empty span-set `⟨⟩` (denoting `∅`, not a T12 span) when `O(d) = ∅` — never a content sequence, never a count | introduced |
 | V1 | When `O(d) ≠ ∅`, `origin_d = min O(d)` under T1 and `origin_d ∈ O(d)` (the origin is an occupied position) | introduced |
 | V2 | `O(d) ⊆ ⟦σ_d⟧` (coverage), proved unconditionally via D0/D1 without assuming level-uniformity; the actual reach `r⋆ = origin_d ⊕ extent_d ≥ reach_d = shift(max O(d), 1) > max O(d)`, with equality `r⋆ = reach_d` iff `#origin_d ≤ #reach_d`; the span `(origin_d, extent_d)` is always a well-formed T12 span | introduced |
-| V3 | `origin_d` is the greatest lower bound of `O(d)`; `reach_d` is the least strict upper bound of `max O(d)` *among tumblers at the depth of `max O(d)`* (`= #reach_d`; the deeper zero-extension `max O(d).0` is a smaller upper bound but lies at greater depth) — so `σ_d` is the tightest covering span whose reach is at the depth of `max O(d)`; `σ_d` is itself *level-uniform* iff `#origin_d ≥ #reach_d` (`m_C ≥ m_L`), a separate condition the reach argument does not establish | introduced |
+| V3 | `origin_d` is the greatest lower bound of `O(d)`; `reach_d` is the least strict upper bound of `max O(d)` *among tumblers at the depth of `max O(d)`* (`= #reach_d`; the deeper zero-extension `max O(d).0` is a smaller upper bound but lies at greater depth) — so `σ_d` is the tightest covering span whose reach is at the depth of `max O(d)` | introduced |
 | V4 | `extent_d` is computed from `O(d) = dom(M(d))` alone; content in `dom(C)` but absent from the arrangement (deleted, or native elsewhere) contributes nothing (Vstream-bounded, not Istream) | introduced |
 | V5 | When all occupied positions share one subspace, `⟦σ_d⟧` contains no occupied-depth position outside `O(d)` (exact cover of a contiguous run) | introduced |
 | V6 | When occupied positions span more than one subspace, `O(d) ⊊ ⟦σ_d⟧` — the span bridges the inter-subspace void (bounding box, not exact cover) | introduced |
@@ -529,7 +525,7 @@ endpoint depths), without inspecting the returned span.
 | V14 | Every *occupied* position in `O(d)` maps through `M(d)` to a permanent, immutable image, by subspace (S3★): content positions to `dom(C)` (S0, P0), link positions to `dom(L)` (L12); covered-but-unoccupied positions in the cross-subspace case (V6) carry no `M(d)` image; sharing preserves what the span denotes (permanence) | introduced |
 | V15 | A returned span keeps its meaning under later edits to `d` or to home documents supplying its content; a fresh report is a new query, not a mutation (snapshot stability) | introduced |
 | V16 | `σ_d` is a pure function of `O(d)`; equal arrangements return identical spans, independent of how the arrangement was built (determinism) | introduced |
-| V17 | For non-empty `d`, `extent_d` is a positive tumbler with `actionPoint(extent_d) ≤ #origin_d` (well-formed T12 span); `reach_d > origin_d` always, so the extent is never negative | introduced |
+| V17 | For non-empty `d`, the extent is *strictly positive* and the span non-empty (TA-strict) — `reach_d > origin_d` always, so the extent is never zero, negative, or degenerate (T12 legality is V2's, cited not re-derived) | introduced |
 | V18 | Origin permanence (V8) holds exactly while content is present; the origin moves only at the two transitions that toggle content occupancy — content-clearing migrates `origin_d` up to the link minimum `[s_L,1,…,1]`, first-content insertion into a link-only document migrates it down to the content anchor `[s_C,1,…,1]` (origin migration bounds V8) | introduced |
 
 ## Open Questions
