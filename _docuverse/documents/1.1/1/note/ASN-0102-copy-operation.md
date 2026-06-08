@@ -69,9 +69,7 @@ The displacement is the same forward shift that INSERT performs — Nelson treat
 
 We claim the operation cannot create content, and from that, that what it places must already exist.
 
-**X1 (ContentStoreInvariance).** `dom(Σ'.C) = dom(Σ.C) ∧ (A a ∈ dom(Σ.C) : Σ'.C(a) = Σ.C(a))`. This is immediate from the definition `Σ'.C = Σ.C` [LM 2/36]. Gregory's trace confirms the abstract claim concretely: `docopy` calls `insertpm` (which writes the document's POOM, the arrangement) and `insertspanf` (which writes the containment index), but never `inserttextingranf`, the sole content-creating primitive. The I-address high-water mark queried before allocation is therefore unchanged by COPY (Q16). We record this as a corollary.
-
-**X2 (NoFreshAllocation).** *A corollary of X1.* COPY consumes no previously-unallocated address: by X1, `dom(Σ'.C) = dom(Σ.C)`, so no address absent from `dom(Σ.C)` becomes present.
+**X1 (ContentStoreInvariance).** `dom(Σ'.C) = dom(Σ.C) ∧ (A a ∈ dom(Σ.C) : Σ'.C(a) = Σ.C(a))`. This is immediate from the definition `Σ'.C = Σ.C` [LM 2/36]. Gregory's trace confirms the abstract claim concretely: `docopy` calls `insertpm` (which writes the document's POOM, the arrangement) and `insertspanf` (which writes the containment index), but never `inserttextingranf`, the sole content-creating primitive. The I-address high-water mark queried before allocation is therefore unchanged by COPY (Q16). In particular, COPY consumes no previously-unallocated address: since `dom(Σ'.C) = dom(Σ.C)`, no address absent from `dom(Σ.C)` becomes present.
 
 Now the decisive step. In the extended state the governing invariant is the *generalised* referential integrity S3★ (ASN-0047): every V-position is routed to the store its subspace names — `subspace(v) = s_C ⟹ Σ'.M(d)(v) ∈ dom(Σ'.C)` and `subspace(v) = s_L ⟹ Σ'.M(d)(v) ∈ dom(Σ'.L)`. We must establish S3★ at the post-state, so we compute the weakest precondition over *all* post-state mappings of `d`, which the definition partitions into three classes:
 
@@ -153,7 +151,7 @@ Neither boundary is privileged: each may absorb, both may, or neither, and the c
 
 Write the copied address set `A = {a_j + i : 1 ≤ j ≤ k, 0 ≤ i < n_j}`. Every member of `A` is mapped at a fresh copied position `v + c` (COPY effect clause, PC3), so `A ⊆ ran_{s_C}(Σ'.M(d))` at COPY's post-state. This yields COPY's **step-local recording fact (SL)**: COPY records `(a, d)` for every `a ∈ A` (Definition), and each such `a` is content-subspace-range-resident — `a ∈ ran_{s_C}(Σ'.M(d))` — at COPY's post-state `Σ'`; by provenance permanence (P2) every recorded pair persists.
 
-**X17 (InvariantPreservation).** COPY maintains every invariant `ValidComposite★` (ASN-0047) binds at its post-state: the per-state `ExtendedReachableStateInvariants` conjunction (including P7), the composite-boundary properties P4★/P4a/P7a, and the transition theorem P3. We discharge them below, routing the provenance couplings (J1★/J1'★) through the unconditional write recorded by X14's (SL).
+**X17 (InvariantPreservation).** COPY maintains every invariant `ValidComposite★` (ASN-0047) binds at its post-state: the per-state `ExtendedReachableStateInvariants` conjunction (including P7), the composite-boundary properties P4★/P4a/P7a, and the transition theorem P3. We discharge them below.
 
 By (SL), COPY's provenance write is *unconditional* — it records `(a, d)` for every `a ∈ A`, whether or not `a` was already content-subspace-range-resident in `d`. The remaining coupling J0 is vacuous by X1 (COPY allocates nothing), so only J1★/J1'★ require routing.
 
@@ -321,8 +319,7 @@ Now the merge predicates *fire*:
 | Label | Statement | Status |
 |-------|-----------|--------|
 | COPY | `COPY(R, d, v)` (single elementary transition; precond. PC1–PC4, target subspace `S = s_C`): `Σ'.C = Σ.C`; `Σ'.L = Σ.L`; `Σ'.E = Σ.E`; `Σ'.M(d') = Σ.M(d')` for `d' ≠ d`; content subspace displaced forward by `W` and gap `[v, v+W)` bound to `resolve_Σ(R)` in order; `Σ'.R = Σ.R ∪ {(a_j+i, d)}` | introduced |
-| X1 | ContentStoreInvariance — `dom(Σ'.C) = dom(Σ.C) ∧ (A a ∈ dom(Σ.C) : Σ'.C(a) = Σ.C(a))` | introduced |
-| X2 | NoFreshAllocation — COPY consumes no previously-unallocated address (corollary of X1) | introduced |
+| X1 | ContentStoreInvariance — `dom(Σ'.C) = dom(Σ.C) ∧ (A a ∈ dom(Σ.C) : Σ'.C(a) = Σ.C(a))`; in particular COPY consumes no previously-unallocated address | introduced |
 | X3 | SharedReference — `ran(Σ'.M(d)) ∖ ran(Σ.M(d)) ⊆ dom(Σ.C)`; placed addresses pre-exist (forced by X1 ∧ S3★) | introduced |
 | X4 | IdentityOfInstance — every appearance of a copied address resolves to the single value `Σ.C(a)` | introduced |
 | X5 | TransitiveIdentity — the placed address is the content's original I-address through arbitrary copy chains | introduced |
