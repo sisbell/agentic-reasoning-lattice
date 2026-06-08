@@ -370,11 +370,17 @@ What, then, does the result reveal? It reveals connectivity, anonymously.
 
 > **RE-reveal (observation).** From `retrieveendsets(I, Σ)` one recovers, for each role, the
 > set of content regions the queried region is connected through — namely the coverages
-> `{coverage(e) : e ∈ Eᵢ(I, Σ)}`. One *cannot* recover which from-endset pairs with which
-> to-endset, because the per-link tuple grouping is dissolved by role separation: the operation
-> reports "here are the from-endsets that touch, here are the to-endsets that touch," never
-> "this from goes with that to." Reconstructing the pairing would be tantamount to naming the
-> links, which the operation refuses to do.
+> `{coverage(e) : e ∈ Eᵢ(I, Σ)}`. The per-link tuple grouping is *in general* dissolved by role
+> separation: the operation reports "here are the from-endsets that touch, here are the
+> to-endsets that touch," not "this from goes with that to," and reconstructing the pairing would
+> be tantamount to naming the links, which the operation refuses to do. The dissolution is not
+> categorical, however. In degenerate states the pairing survives — if exactly one link touches
+> `I` (e.g. the worked instance restricted to `a₁` alone), each role-family `Eᵢ` holds at most
+> one endset and the from/to/type triple is trivially reassembled. So the guarantee is that
+> per-link pairing is *not guaranteed recoverable*, not that recovery is impossible at every
+> state; RE-anon establishes only the *existence* of states whose contributing-link structure the
+> result cannot distinguish. The precise boundary — exactly when the pairing is reconstructible
+> and when reconstruction is provably impossible — is deferred to Open Question 3.
 
 So the per-link grouping that link-as-unit operations must preserve (so that following a link
 from one end to the other remains possible) is *exactly* the structure `retrieveendsets`
@@ -429,9 +435,13 @@ The direction of any such change is constrained. Endsets, once touching, stay to
 the result only grows:
 
 > **RE-mono (lemma).** For every reachable `Σ →* Σ'`, `Eᵢ(I, Σ) ⊆ Eᵢ(I, Σ')`. *Proof.* For
-> `(a, i) ∈ W(I, Σ)`: link persistence gives `a ∈ dom(Σ'.L)` with `Σ'.L(a).eᵢ = Σ.L(a).eᵢ`
-> (RE-immut), coverage is preserved, so `touches` holds at `Σ'` and the same endset value lies
-> in `Eᵢ(I, Σ')`. ∎ New links allocated by `K.λ` may add further endsets; none are removed.
+> `(a, i) ∈ W(I, Σ)`: *multi-step* link persistence gives `a ∈ dom(Σ'.L)` with
+> `Σ'.L(a).eᵢ = Σ.L(a).eᵢ` directly over the `Σ →* Σ'` sequence — unconditional link
+> persistence LP13 carries the address and value across the whole reachable run, and LP3★ carries
+> the per-slot coverage invariance `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)` (both ASN-0098),
+> rather than resting the single-step RE-immut on a multi-step hypothesis. Coverage is thus
+> preserved, so `touches` holds at `Σ'` and the same endset value lies in `Eᵢ(I, Σ')`. ∎ New
+> links allocated by `K.λ` may add further endsets; none are removed.
 
 RE-mono tells us the result only grows, but not *what it takes* for a particular endset to
 enter under a particular role. The single growth step is `K.λ` — link allocation is the unique
@@ -555,7 +565,7 @@ it among the open questions.
 | RE-conform | a fixed three-slot implementation (Gregory's) realizes `retrieveendsets` exactly on arity-3 stores; higher-arity slots `> 3` are required by RE-complete on stores L3 admits | introduced |
 | RE-full | the returned endset is the whole stored `Σ.L(a).eᵢ`, not clipped to `I` | introduced |
 | RE-anon | result does not determine the contributing link addresses, nor their count (via L11b) | introduced |
-| RE-reveal | result reveals per-role connectivity but dissolves per-link from/to/type pairing | introduced |
+| RE-reveal | result reveals per-role connectivity; per-link from/to/type pairing not guaranteed recoverable in general (trivially recoverable in degenerate single-touching-link states; precise boundary deferred to OQ3) | introduced |
 | RE-immut | returned endsets are verbatim, immutable stored values with invariant coverage | introduced |
 | RE-surv | result invariant under K.μ-family arrangement edits (which fix `Σ.L`) | introduced |
 | RE-det | result is a function of `(I, Σ.L)` alone; idempotent under `Σ.L`-fixity, not content-fixity | introduced |
