@@ -99,8 +99,7 @@ same span in the to-set or the type-set. So the read carries an obligation beyon
 bag of spans.
 
 **RL2 (Role preservation).** The read preserves the link's arity and exposes each endset under its
-slot index as a model primitive (L6, ASN-0043) — slot position is part of the value, not a label a
-reader reconstructs from an unordered pool:
+slot index as a model primitive (L6, ASN-0043) — slot position is part of the value:
 
 > `|readlink(a, Σ)| = |Σ.L(a)|`,  and for each `1 ≤ i ≤ |Σ.L(a)|` the positional accessor
 > `readlink(a, Σ).eᵢ` is a model primitive (L6, ASN-0043), with link equality componentwise.
@@ -342,7 +341,7 @@ identifier and origin. Each start here sits under subspace `s_C`, while every `d
 carries `s_L` (L0, ASN-0093); the two are disjoint, so the link store meets neither coverage:
 `coverage(F) ∩ dom(Σ.L) = coverage(Θ) ∩ dom(Σ.L) = ∅`. *Slot 1 (from):* by the same corollary,
 `coverage(F) ∩ dom(Σ.C)` is exactly the three named chain-member I-addresses, unarranged by
-hypothesis; with the link store empty and every arrangement range confined to `dom(Σ.C) ∪ dom(Σ.L)`
+hypothesis; with `coverage(F) ∩ dom(Σ.L) = ∅` (above) and every arrangement range confined to `dom(Σ.C) ∪ dom(Σ.L)`
 (LP20 RangeConfinement, ASN-0098, via S3★ of ASN-0047), `coverage(F) ∩ ran(Σ.M(d)) = ∅` for every
 `d`. *Slot 2 (to):* `G = ∅`, so `coverage(∅) = ∅` and the slot is trivially unwitnessed. *Slot 3
 (type):* the ghost document `[1.0.1.0.9]` hosts no content, so `coverage(Θ) ∩ dom(Σ.C) = ∅`; with
@@ -361,8 +360,8 @@ its value is fixed by L12 / LP13).
 |-------|-----------|--------|
 | `readlink` | `readlink(a, Σ) ≡ Σ.L(a)`, defined when `a ∈ dom(Σ.L)`; pure read, frame `Σ' = Σ` | introduced |
 | RL0 | The read is defined iff `a ∈ dom(Σ.L)`; `wp = a ∈ dom(Σ.L)`; link-shape of the address is necessary but not sufficient | introduced |
-| RL1 | Completeness — the read returns every recorded span of every endset and no other; `readlink(a, Σ) = Σ.L(a)` (rejects the satisfaction model) | introduced |
-| RL2 | Role preservation — the read preserves arity (`|readlink(a, Σ)| = |Σ.L(a)|`) and exposes slot position as a model primitive (L6); from/to/type grouping delivered as structure, not reconstructed from RL1's per-slot equality | introduced |
+| RL1 | Completeness — the read returns every recorded span of every endset and no other; `readlink(a, Σ) = Σ.L(a)` | introduced |
+| RL2 | Role preservation — the read preserves arity (`|readlink(a, Σ)| = |Σ.L(a)|`) and exposes slot position as a model primitive (L6); from/to/type grouping delivered as structure | introduced |
 | RL3 | Intra-endset set semantics — spans within a returned endset are unordered; membership, not sequence, is exposed | introduced |
 | RL4 | Home disclosure — `home(a)` is determined by the read key `a` alone, independent of endsets; the read returns endsets only, so a caller holding the key can derive ownership without performing the read | introduced |
 | RL5 | Type-by-address — the type is interpreted via `coverage(e₃)`, not via content at those addresses; ghost types read completely | introduced |
