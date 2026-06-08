@@ -167,33 +167,18 @@ only remaining freedom is in the last component, which the half-open bounds then
 position (completeness) and includes no inactive V-slice tumbler (exclusivity). The relation
 the member span bears to its subspace is therefore *definitional, not approximate*: its
 boundaries select a region whose V-slice population coincides with the subspace's active
-positions.
+positions. The load-bearing invariant here is contiguity: it is *because* D-CTG★ holds at
+every reachable state — `V_S(d)` contains every V-slice tumbler lying (under T1) between its
+own minimum and maximum — that a single half-open span can be exact. A span's denotation is
+order-convex (T12; S0 of ASN-0053), so any single span covering both extremes of `V_S(d)`
+necessarily covers every V-slice tumbler between them; the encoding is exact precisely
+because no such between-tumbler is ever inactive.
 
 **The count is read off the boundary.** Because the run is dense, `n_S` is recoverable from
 the span alone: it is the last component of the width `δ(n_S, m_S)`, equivalently the gap
 between the last component of `reach` and that of `start_S`. This is how a span-set
 "indicates the number" (4/68) without designating a number directly (4/24): the magnitude is
 implicit in the boundary, and made explicit only because the subspace is contiguous.
-
-**Exactness is contingent on contiguity.** We record **W5** (ExactnessRequiresContiguity),
-*under the hypothesis* `V_S(d) ≠ ∅`: *there exists* a single
-level-uniform span `σ` of subspace `S` at depth `m` satisfying
-`⟦σ⟧ ∩ VSlice(S, m) = V_S(d)` *if and only if* `V_S(d)` is contiguous in `VSlice(S, m)` —
-i.e. `V_S(d)` contains every V-slice tumbler lying (under T1) between its own minimum and
-maximum.
-
-The *forward* direction (contiguous ⟹ a single exact span exists) is immediate from W4:
-D-MIN★ holds at every reachable state, so the run `V_S(d)` is always canonically anchored at
-`[S,1,…,1]`, and its covering span is exactly `ext(d, S)`, which W4 proves exact.
-
-The *converse* (non-contiguous ⟹ no single span is exact) follows from order-convexity.
-Were `V_S(d)` *not* contiguous — `p, q ∈ V_S(d)` and `r ∈ VSlice(S, m)` with `p < r < q` and
-`r ∉ V_S(d)` — then for any level-uniform span `σ` with `⟦σ⟧ ∩ VSlice(S, m) ⊇ V_S(d)` we have
-`p, q ∈ ⟦σ⟧`, and since a span's denotation is order-convex (T12; S0 of ASN-0053), `p < r < q`
-forces `r ∈ ⟦σ⟧`; as `r ∈ VSlice(S, m)`, the intersection `⟦σ⟧ ∩ VSlice(S, m)` would strictly
-exceed `V_S(d)`, so `σ` could not be exact. Exactness of a single span therefore rests on the
-standing D-CTG★ run-shape: it is *because* `V_S(d)` is always contiguous at every reachable
-state that `ext(d, S)` covers it exactly.
 
 ---
 
@@ -515,8 +500,7 @@ where an off-prefix, admissible-last-component tumbler must be — and is — ex
 | W1 | `n_S(d) = |V_S(d)|` is the extent of subspace `S` in `d` | introduced |
 | W2 | *for `S ∈ occupied(d)` (`V_S(d) ≠ ∅`)*, `ext(d, S) = ([S,1,…,1], δ(n_S, m_S))` is the extent span encoding `n_S` | introduced |
 | W3 | *for `S ∈ occupied(d)`*, `ext(d, S)` is a well-formed, level-uniform T12 span with `reach = [S,1,…,1,1+n_S]` | introduced |
-| W4 | ExactCoverage — *for `S ∈ occupied(d)`*, `⟦ext(d, S)⟧ ∩ VSlice(S, m_S) = V_S(d)` (complete and exclusive) | introduced |
-| W5 | ExactnessRequiresContiguity — *for `V_S(d) ≠ ∅`*, a single level-uniform span exactly covers `V_S(d)` iff `V_S(d)` is contiguous in `VSlice(S, m)` | introduced |
+| W4 | ExactCoverage — *for `S ∈ occupied(d)`*, `⟦ext(d, S)⟧ ∩ VSlice(S, m_S) = V_S(d)` (complete and exclusive); exactness rests on the standing D-CTG★ contiguity invariant via order-convexity | introduced |
 | W6 | `occupied(d) = {S ∈ {s_C, s_L} : V_S(d) ≠ ∅}` | introduced |
 | W7 | OneSpanPerOccupiedSubspace — result has exactly `|occupied(d)|` members, one per kind, not per fragment or item | introduced |
 | W8 | PureQuery — `Σ' = Σ`; the operation reads and writes nothing, and its result depends on `M(d)` alone, so it changes only when `M(d)` changes | introduced |
@@ -535,7 +519,7 @@ where an off-prefix, admissible-last-component tumbler must be — and is — ex
 
 ## Open Questions
 
-W5 settles that faithful coverage of a non-contiguous subspace requires fragmentation, but the docuverse maintains D-CTG★ so the case never arises under well-formed editing; should a foundation extension ever relax D-CTG★, is the operation itself obligated to emit the fragmented span-set, or may it report Gregory's single bounding span and leave faithful interpretation of interior gaps to the caller?
+W4's single-span exactness rests on the standing D-CTG★ contiguity invariant (a non-contiguous subspace would, by order-convexity, force a single covering span to admit inactive interior tumblers — so faithful coverage would then require a fragmented span-set); should a foundation extension ever relax D-CTG★, what must the operation guarantee — is it obligated to emit the fragmented span-set, or may it report Gregory's single bounding span and leave faithful interpretation of interior gaps to the caller?
 
 Given that the operation omits an empty subspace entirely (W7) and comparison treats an absent subspace as the value zero (W14), how must a *consumer* interpret an omitted member when comparing reports across documents of differing vintages — under what conditions is "subspace absent" safely read as "extent zero" rather than "subspace not yet supported"?
 
