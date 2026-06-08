@@ -498,18 +498,18 @@ Transitivity yields `Σ.L = Σ_5.L`. F8 forces `findlinks(I, Σ) = findlinks(I, 
 | F8 | Determinism: `findlinks(I, ·)` is a function of `(Σ.L, I)` | introduced |
 | F9 | LinkStoreInertPreservation: findlinks invariant across every V ∖ {K.λ} transition | introduced |
 | F9-λ | KλInducedIncrement: characterises the K.λ-induced delta to findlinks(I, ·) as disjoint union with a singleton or ∅ depending on whether ℓ_new matches | introduced |
-| F10 | Ordered result: canonical T1-sorted presentation (filtered and scoped forms inherit the same finiteness + total-order argument) | introduced |
+| F10 | Ordered result: canonical T1-sorted presentation | introduced |
 | F11 | PersistentDiscoverabilityI: I-side match against fixed I preserved across reachable sequences | introduced |
 | F12 | TwoPhaseFactoring: `findlinks_V(R, d, Σ) ≡ findlinks(image(R, d, Σ), Σ)` | definition |
 | F13 | Set-additive in the I-input | introduced |
 | F14 | Scope filter is intersection | introduced |
-| F15 | FilteredScopedTransfer: determinism, survivability, and monotonicity transfer to the filtered and scoped forms (predicates consult only `Σ.L`/query-data and are closed under intersection with `S`) | introduced |
-| F19 | Result-set monotonicity across reachable sequences (filtered/scoped instances under F15(c)) | introduced |
+| F15 | FilteredScopedTransfer: determinism, survivability, and monotonicity transfer to the filtered and scoped forms | introduced |
+| F19 | Result-set monotonicity across reachable sequences | introduced |
 | F20 | Image set-additive | introduced |
 | F20a | V-side additive: `findlinks_V(R₁ ∪ R₂, d, Σ) = findlinks_V(R₁, d, Σ) ∪ findlinks_V(R₂, d, Σ)` | introduced |
-| F21 | VSideContractionWP: weakest precondition for V-side discoverability of a fixed link under K.μ⁻, composing `image` with ASN-0098's LP12a | introduced |
-| F22 | ReorderingDiscoverabilityInvariance: full-document V-side discoverability is invariant across the range-preserving reordering K.μ~ (via range invariance + PerLinkInvariance) | introduced |
-| F23 | ContractionExtensionWPWeakening: the K.μ⁻ ; K.μ⁺ composite wp is implied by F21's contraction wp on the enabled sub-domain (via wp-composition + LP9 + wp postcondition-monotonicity) | introduced |
+| F21 | VSideContractionWP: weakest precondition for V-side discoverability of a fixed link under K.μ⁻ | introduced |
+| F22 | ReorderingDiscoverabilityInvariance: full-document V-side discoverability is invariant across the range-preserving reordering K.μ~ | introduced |
+| F23 | ContractionExtensionWPWeakening: the K.μ⁻ ; K.μ⁺ composite wp is implied by F21's contraction wp on the enabled sub-domain | introduced |
 
 ## Open Questions
 
