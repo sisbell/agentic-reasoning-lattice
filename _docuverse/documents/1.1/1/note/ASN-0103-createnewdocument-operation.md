@@ -73,27 +73,19 @@ An empty document cannot dangle: with `ran(M'(d)) = ∅` there is no reference t
 
 ### Effect Three: Nothing Else Changes
 
-Creating `d` must leave the identities and content of every existing document wholly untouched. We enumerate the frame.
+Creating `d` must leave the identities and content of every existing document wholly untouched. We enumerate the frame in prose; the Formal Contract below states it as equations.
 
-*The content store is untouched.* `C' = C`. No byte is added, no value altered, no address removed:
+*The content store is untouched.* No byte is added, no value altered, no address removed. This is the abstract statement of "adds a place, not content" — `d` is, at the instant of creation, a ghost element (Background).
 
-  `dom(C') = dom(C) ∧ (A a : a ∈ dom(C) : C'(a) = C(a))`.
+*The link store is untouched.* Creation makes no link.
 
-This is the abstract statement of "adds a place, not content" — `d` is, at the instant of creation, a ghost element (Background).
+*The provenance relation is untouched.* Provenance records which document referenced which content (ASN-0047); with no content and no reference, there is nothing to record.
 
-*The link store is untouched.* `L' = L`. Creation makes no link.
+*Every existing entity persists*, and the only new member is `d`. In particular every existing document, account, and node keeps its address. Entity permanence (P1, ASN-0047) is preserved, and the document population grows by *exactly one* (CND.E): `|E'_doc| = |E_doc| + 1`.
 
-*The provenance relation is untouched.* `R' = R`. Provenance records which document referenced which content (ASN-0047); with no content and no reference, there is nothing to record.
+*Every existing document's arrangement is untouched.* No other document's Vstream, content, or links shift. This is the cross-document frame: the operation reaches into no subtree but the one it baptises.
 
-*Every existing entity persists.* `E ⊆ E'`, and the only new member is `d`:
-
-  `E' = E ∪ {d}` with `d ∉ E`.
-
-In particular every existing document, account, and node keeps its address. Entity permanence (P1, ASN-0047) is preserved, and the document population grows by *exactly one* (CND.E): `|E'_doc| = |E_doc| + 1`.
-
-*Every existing document's arrangement is untouched.* `(A d' : d' ∈ E_doc : M'(d') = M(d'))`. No other document's Vstream, content, or links shift. This is the cross-document frame: the operation reaches into no subtree but the one it baptises.
-
-These frames exhaust the state components `(C, L, E, M, R)`. The only net change is `E' = E ∪ {d}` together with `M'(d) = ∅`. Everything else is held fixed. The operation is, in Nelson's phrase, strictly additive: it forks one new permanent address beneath the creator's account and disturbs nothing that exists.
+These frames exhaust the state components `(C, L, E, M, R)`. The only net change is the new document position together with its empty arrangement. Everything else is held fixed. The operation is, in Nelson's phrase, strictly additive: it forks one new permanent address beneath the creator's account and disturbs nothing that exists.
 
 ### A Note on Sub-Allocator Activation
 
@@ -134,7 +126,7 @@ where `D_A = {e ∈ E : Document(e) ∧ parent(e) = A ∧ #e = #A + 2}` is the d
 
 **State preconditions** (against pre-state `Σ`):
 
-  - `A ∈ E ∧ Account(A)` — the account exists and is account-level; by the standing assumption CND.A-act this carries `Activated(A_doc(A))`, the account's document sub-allocator being live the instant the account exists;
+  - `A ∈ E ∧ Account(A)` — the account exists and is account-level; this carries `Activated(A_doc(A))` by CND.A-act;
   - the invoking principal `π` satisfies `pfx(π) ≼ A` — it owns the account (O1, PrefixDetermination; ASN-0042).
 
 (The freshness `d ∉ E` is discharged by the allocator discipline, not imposed on the caller.)
@@ -191,9 +183,9 @@ Every conjunct of `ExtendedReachableStateInvariants` and the transition invarian
 |-------|-----------|--------|
 | CND.def | CREATENEWDOCUMENT(A) is a substrate composite Σ →* Σ' under ValidComposite★ (ASN-0047) realised as a single K.δ firing (case (ii): k=2 off A when D_A=∅, else k=0 off max(D_A)) registering d into E_doc with M(d)=∅; it returns d | introduced |
 | CND.pre | Preconditions: A ∈ E ∧ Account(A); the invoking principal π owns the account (pfx(π) ≼ A, O1; ASN-0042). No content argument | introduced |
-| CND.A-act | Standing assumption owed by (out-of-scope) account provisioning: A ∈ E ∧ Account(A) ⟹ Activated(A_doc(A)) — an account carries an activated document sub-allocator the instant it exists, with no separate activation step | introduced |
+| CND.A-act | Standing assumption owed by (out-of-scope) account provisioning: A ∈ E ∧ Account(A) ⟹ Activated(A_doc(A)) | introduced |
 | CND.alloc | Allocates exactly one fresh document address d from A_doc(A)=S(A,2): d = inc(A,2) if D_A=∅ else inc(max(D_A),0), where D_A = {e ∈ E : Document(e) ∧ parent(e)=A ∧ #e=#A+2} is the length-restricted document-chain frontier (versions, length ≥ #A+3, excluded); with Document(d), zeros(d)=2, parent(d)=A, T4-valid(d), d ∉ E | introduced |
-| CND.empty | M'(d) = ∅: dom(M'(d)) = ∅ and ran(M'(d)) = ∅ — the new document holds no V-positions, no V→I mappings, no content | introduced |
+| CND.empty | M'(d) = ∅: dom(M'(d)) = ∅ and ran(M'(d)) = ∅ — the new document holds no V-positions, no V→I mappings, no content; in particular it references no I-address and so shares none with any document at Σ' (later sharing by transclusion/COPY is permitted — S5, ASN-0036 — and out of scope) | introduced |
 | CND.C-frame | C' = C: the content store is entirely unchanged — no byte added, no value altered. Creation adds a place, not content (ghost element) | introduced |
 | CND.L-frame | L' = L: the link store is unchanged | introduced |
 | CND.R-frame | R' = R: the provenance relation is unchanged | introduced |
@@ -201,7 +193,6 @@ Every conjunct of `ExtendedReachableStateInvariants` and the transition invarian
 | CND.doc-frame | (A d' ∈ E_doc : M'(d') = M(d')): every existing document's arrangement is wholly untouched | introduced |
 | CND.monotone | d is never a reuse and stays distinct from every other document address, present and future: d ∉ E (established uniformly over all of E in Effect One), distinctness from same-chain emissions by S0 (StreamOrdering, ASN-0040 — strictly increasing hence injective over S(A,2)), distinctness from version chains and other accounts by namespace disjointness B7 (ASN-0040); existing addresses remain valid by permanence T8 (ASN-0034) | introduced |
 | CND.subAlloc | Creation activates A_C(d) and A_L(d) (content and link sub-allocators, anchors [d.0.s_C], [d.0.s_L]) without emission; both subspaces are available but empty at Σ' (SubAllocatorBundle, ASN-0047) | introduced |
-| CND.no-sharing | At creation the fresh document references no I-address at all: ran(M'(d)) = ∅ (CND.empty), so at Σ' it shares no I-address with any document. Later sharing by transclusion/COPY is permitted (S5, ASN-0036) and is out of scope | introduced |
 | CND.own | Ownership is structural (derivable over (C,L,E,M,R)): parent(d)=A and A ≼ d (every A_doc(A) emission has form [A,0,j]), so with pfx(π) ≼ A (CND.pre) and prefix transitivity, owns(π,d) ≡ pfx(π) ≼ d (O1; ASN-0042) — d ∈ odom(π) | introduced |
 | CND.refer | d is immediately, permanently, and unambiguously referable: a link may target d at Σ' before any content exists; uniqueness is decentralised (B8, ASN-0040) and identity is immutable for the life of the system | introduced |
 | CND.atomicity | The single-K.δ decomposition is atomic by the sequential-transition axiom (ASN-0093); no observable intermediate state exists, so all invariants hold throughout. Coupling constraints J0, J1★, J1'★ hold vacuously | introduced |
