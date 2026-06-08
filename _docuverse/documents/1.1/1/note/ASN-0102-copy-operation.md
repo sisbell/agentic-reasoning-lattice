@@ -14,7 +14,7 @@ COPY does not name bytes; it names *positions* that already hold bytes. Its sour
 
 `resolve_Σ(R) = ⟨(a₁, n₁), …, (a_k, n_k)⟩`,    `W = w(resolve_Σ(R)) = (+ j : 1 ≤ j ≤ k : n_j)`.
 
-Resolution supplies two facts from ASN-0058. First, *every resolved address already exists*: by C1, `(A j : 1 ≤ j ≤ k : (A i : 0 ≤ i < n_j : a_j + i ∈ dom(Σ.C)))`. Second, *the run count `k` is the total number of runs of the concatenated resolution* — the sum over references `k = (+ i : 1 ≤ i ≤ q : k_i)`, where each `k_i` is the maximal-run count of reference `r_i` taken in isolation (C1a, M12 applied per reference): each `k_i` counts the blocks of `r_i` that are maximal under M7's joint V- and I-adjacency merge condition *within that reference*. The concatenated list of `k` blocks is not in general M7-maximal as a whole — an inter-reference boundary may itself satisfy the merge condition, so canonicalising the laid-down region can yield strictly fewer than `k` blocks (X8).
+Resolution supplies two facts from ASN-0058. First, *every resolved address already exists*: by C1, `(A j : 1 ≤ j ≤ k : (A i : 0 ≤ i < n_j : a_j + i ∈ dom(Σ.C)))`. Second, *the run count `k` is the total number of runs of the concatenated resolution* — the sum over references `k = (+ i : 1 ≤ i ≤ q : k_i)`, where each `k_i` is the maximal-run count of reference `r_i` taken in isolation (C1a, M12 applied per reference): each `k_i` counts the blocks of `r_i` that are maximal under M7's joint V- and I-adjacency merge condition *within that reference*.
 
 ### Precondition
 
@@ -146,7 +146,7 @@ Three further obligations bind the post-state.
 
 **X10 (SourceHandling).** The guarantee splits by whether the source is the target, and the two halves are *different properties* — non-alteration in one case, pre-state resolution in the other.
 
-*(a) Non-interference for sources `d' ≠ d`.* No source document *other than the target* is altered: `(A d' : d' ≠ d : Σ'.M(d') = Σ.M(d'))`, and `Σ'.C = Σ.C`. In particular, when a source `d_s ≠ d`, `Σ'.M(d_s) = Σ.M(d_s)` — its arrangement, its referenced content, and (by X6) the origins of its content are all untouched.
+*(a) Non-interference for sources `d_s ≠ d`.* A source document other than the target is left untouched by COPY's frame — instantiating the definition's "other documents" clause at `d' = d_s ≠ d` gives `Σ'.M(d_s) = Σ.M(d_s)`, so its arrangement, its referenced content, and (by X6) the origins of its content are all unchanged.
 
 *(b) Snapshot resolution for `d_s = d`.* When the source *is* the target (self-transclusion), the source document is not unaltered — it is the target, and its content-subspace arrangement is displaced by `· + W`. The guarantee that holds here is not non-alteration but *pre-state resolution*: the copied span is read against `Σ` before the displacement opens the gap. By the atomicity of COPY (X15), the precondition — including the resolution `resolve_Σ(R)` — is evaluated against the pre-state `Σ` in one indivisible step; thus `resolve_Σ(R)` reads `Σ.M(d)` *before* the displacement opens the gap, and `R` resolves against the frozen pre-state image of the copied span even though `d` is simultaneously the target. Gregory's trace exhibits the same ordering concretely (`specset2ispanset` precedes `insertpm`, Q15).
 
