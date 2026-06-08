@@ -152,10 +152,11 @@ target of the assertion. The read encodes the asymmetry: slot 1 is "from," slot 
 records who owns it, and it is derivable from the link's own address without consulting any endset.
 
 **RL4 (Home disclosure).** `home(a) = N(a).0.U(a).0.D(a)` is determined by the read key `a` alone,
-by T4 field projection, and is independent of the returned endsets (L2, ASN-0043). Because the read
-is keyed by the address and the address encodes the home, the read reveals ownership for free, even
-of a link that points nowhere near its home document — the home indicates *who owns* the link, not
-*what it points to*.
+by T4 field projection, and is independent of the returned endsets (L2, ASN-0043). The read does not
+output the home — `readlink(a, Σ)` returns endsets only. Rather, the key that names the read already
+encodes it, so a caller who holds `a` can derive ownership without consulting any endset, even of a
+link that points nowhere near its home document — the home indicates *who owns* the link, not *what
+it points to*.
 
 *The whole at once.* Arriving at an endpoint gives one location. The read gives both ends and the
 type simultaneously, as a single structure. The reader sees the relationship whole, which is what
@@ -202,14 +203,8 @@ future:
 
 > `(A Σ, Σ' : Σ →* Σ' ∧ a ∈ dom(Σ.L) : readlink(a, Σ') = readlink(a, Σ))`.
 
-We are careful about the quantifier here. L12 (ASN-0043) is a *single-step* guarantee: for one
-transition `Σ → Σ'`, an allocated link persists in the domain and keeps its value. The claim above
-quantifies over the reflexive-transitive closure `Σ →* Σ'`, so it needs the multi-step lift, not
-L12 alone. That lift is already available: LP13 (UnconditionalLinkPersistence, ASN-0098) discharges
-both halves across the closure — `a ∈ dom(Σ.L) ⟹ a ∈ dom(Σ'.L)` (so `readlink(a, Σ')` is defined)
-and `Σ'.L(a) = Σ.L(a)` (so the read value is preserved) — for every reachable `Σ →* Σ'`. With
-definedness and value preservation both carried across the closure,
-`readlink(a, Σ') = Σ'.L(a) = Σ.L(a) = readlink(a, Σ)`.
+Stability across `Σ →* Σ'` follows from LP13 (UnconditionalLinkPersistence, ASN-0098), giving
+`a ∈ dom(Σ'.L)` and `Σ'.L(a) = Σ.L(a)`; hence `readlink(a, Σ') = Σ'.L(a) = Σ.L(a) = readlink(a, Σ)`.
 
 A reader who has once read a link may rely on that reading permanently. This is the counterpart, at
 the read interface, of the design commitment that to record a *different* relationship one must
@@ -229,14 +224,9 @@ stand.
 document arrangement. Consequently the read succeeds and returns the complete structure even for an
 *orphaned* link — one whose endpoint content is currently arranged in no document, so that resolving
 its endsets would yield nothing (cf. the ghost-projection situation, ASN-0098). The link's structure
-persists unconditionally (L12; LP13 of ASN-0098), and the read surfaces it unconditionally.
-
-This is what direct read reveals that following or searching cannot. A follow that found no current
-position, or a search whose spec-set the orphaned content no longer occupies, would report
-emptiness — not because the relationship has ceased to exist, but because no arrangement currently
-witnesses it. The read distinguishes *the relationship is gone* from *the relationship is
-unwitnessed*, and answers, for an allocated link, always the latter at worst: the structure is
-there, complete, and the read returns it.
+persists unconditionally (L12; LP13 of ASN-0098), and the read surfaces it unconditionally. The
+worked orphan below demonstrates concretely how this distinguishes *the relationship is gone* from
+*the relationship is unwitnessed*.
 
 ## Invariants governing the returned structure
 
