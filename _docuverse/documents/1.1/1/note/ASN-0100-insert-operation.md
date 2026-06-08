@@ -50,7 +50,7 @@ INSERT splices `n` new content units into `d`'s arrangement at V-position `p`. T
 
 ### Effect One: Allocation
 
-The new content units do not exist in `dom(C)` before the operation. Nelson is unambiguous (Q1, Q5, Q8): INSERT creates *new* content with *fresh* I-addresses. The operation does not reuse, alias, or identify with any pre-existing I-address.
+The new content units do not exist in `dom(C)` before the operation. INSERT creates *new* content with *fresh* I-addresses: the operation does not reuse, alias, or identify with any pre-existing I-address. This is a design requirement, not an implementation choice. Xanadu storage is append-only and content identity is based on creation, not value — created bytes are laid down at new, never-reused locations, so two units carrying identical bytes but created independently receive *different* I-addresses. COPY (transclusion) is the only operation that aliases existing I-addresses; INSERT, being content creation, never does.
 
 The freshness comes from `d`'s content sub-allocator `A_C(d)`, by the substrate's allocation discipline (ASN-0093). We require `n` addresses, produced by `n` successive K.α firings under the substrate's transition vocabulary:
 
@@ -76,13 +76,11 @@ By OrdAddHom clause (b) (ASN-0082) applied to `w = δ(k, m_C)`, every `shift(p, 
 
 Every existing V-position `v ∈ V_{s_C}(d)` with `v ≥ p` must remap. The content there does not change — it keeps its I-address — but its V-position advances by `n`. This is the *Shifted right* effect of INSERT's step-3 K.μ⁺ (claim INS.M-shift), which by construction adds exactly the mappings `shift(v, n) ↦ M(d)(v)` for each `v ∈ V_{s_C}(d)` with `v ≥ p`. The right region is the source of the shift; the shifted-right region is its image. The two are related by the order-preserving (TS1, ShiftOrderPreservation; ASN-0034) and injective (TS2, ShiftInjectivity; ASN-0034) shift map. The image of the shift map is exactly `{[s_C, 1, …, 1, k + n] : p_m ≤ k ≤ N}` when we write `p = [s_C, 1, …, 1, p_m]` with `p_m ∈ {1, …, N+1}`. The Insertion positions `shift(p, k)` for `0 ≤ k < n` are disjoint from these shift-images (by the pairwise-disjointness argument below for S2).
 
-**Identification with the foundation's post-insertion shift (INS.M-shift = I3, S = s_C).** The Shifted-right effect just described is *exactly* ASN-0082's I3 (PostInsertionShift) specialised to the content subspace `S = s_C`: I3 asserts, for every `v ∈ dom(M(d))` with `subspace(v) = S` and `v ≥ p`, that `shift(v, n) ∈ dom(M'(d))` and `M'(d)(shift(v, n)) = M(d)(v)`. The one region I3 does *not* supply is the Insertion placement: I3 *vacates* the gap `[p, shift(p, n))` (I3-V, PostInsertionVacating) without filling it, whereas INSERT fills exactly that gap — `{shift(p, k) : 0 ≤ k < n}` has last components `{p_m, …, p_m + n − 1}`, the vacated interval — with the Insertion positions mapping to the fresh `a_k`. Hence `M'(d)` decomposes as (I3's post-insertion shift arrangement on Left ∪ Shifted-right) together with (the Insertion placement filling I3's vacated gap), and on Left ∪ Shifted-right the post-state arrangement *coincides* with I3's.
+**Identification with the foundation's post-insertion shift (INS.M-shift = I3, S = s_C).** The Shifted-right effect is the `S = s_C` instance of ASN-0082's I3 (PostInsertionShift). The one region I3 does *not* supply is the Insertion placement: I3 *vacates* the gap `[p, shift(p, n))` (I3-V, PostInsertionVacating) without filling it, whereas INSERT fills exactly that gap — `{shift(p, k) : 0 ≤ k < n}` has last components `{p_m, …, p_m + n − 1}`, the vacated interval — with the Insertion positions mapping to the fresh `a_k`. Hence `M'(d)` decomposes as (I3's post-insertion shift arrangement on Left ∪ Shifted-right) together with (the Insertion placement filling I3's vacated gap), and on Left ∪ Shifted-right the post-state arrangement *coincides* with I3's.
 
 ## The Operation: Formal Contract
 
-INSERT is a **substrate composite** in the sense of ValidComposite★ (ASN-0047) — a finite sequence of elementary transitions drawn from the substrate's K-vocabulary, governed at the composite boundary by the coupling constraints J0, J1★, J1'★. It is *not* a new elementary primitive; the substrate transition vocabulary is not amended.
-
-The operative substrate is ValidComposite★ (ASN-0047), whose atomic vocabulary is `{K.α (amended), K.δ, K.λ, K.μ⁺ (amended), K.μ⁺_L, K.μ⁻ (amended), K.ρ}`.
+INSERT is a **substrate composite** in the sense of ValidComposite★ (ASN-0047) — a finite sequence of elementary transitions drawn from the substrate's K-vocabulary, governed at the composite boundary by the coupling constraints J0, J1★, J1'★.
 
 We state INSERT as a composite `Σ →* Σ'`.
 
@@ -187,6 +185,27 @@ with `V_{s_C}(d') = {[1,1], [1,2], [1,3]}` (depth pinned at `m_C = 2` per INS.in
 
 *Cleared-but-residual subtlety.* The empty-arrangement precondition `V_{s_C}(d) = ∅` does not entail an empty content store: full content-subspace clearance via K.μ⁻ with `n'_{s_C} = 0` (PerSubspaceContractionScope, ASN-0047) leaves `d`'s prior content addresses in `dom(C)` by S0/P0. When such residual content exists (`{a' ∈ dom(C) : origin(a') = d} ≠ ∅`), K.α keys its branch on `dom(C)` (INS.alloc) and fires the *subsequent*-emission branch `a_0 = inc(a_prev, 0)` off the persisted frontier `a_prev = max{a' ∈ dom(C) : origin(a') = d}` — continuing `A_C(d)`'s chain rather than restarting it — instead of the first-emission branch above; everything else matches this example.
 
+**Deep-subspace interior insertion (`m_C = 3`).** The examples above all run at depth `m_C = 2`, where the shared prefix `[s_C, 1, …, 1]` is empty and contiguity reduces to the last component trivially. We now exercise a multi-level content subspace, where the closed-interval reduction's hardest step — excluding off-prefix slice tuples — is actually live. Let `d` have `V_{s_C}(d) = {[1,1,1], [1,1,2], [1,1,3]}` (so `m_C = 3`, `N = 3`), with arrangement:
+
+  `M(d) = {[1,1,1] ↦ a₁, [1,1,2] ↦ a₂, [1,1,3] ↦ a₃}`
+
+Invoke `INSERT(d, [1,1,2], ⟨v₀⟩)` with `n = 1`. The position `p = [1,1,2]` corresponds to `j = 1` (since `shift([1,1,1], 1) = [1,1,2]`), interior; `p_m = 2`. The composite fires:
+
+1. **One K.α firing.** `A_C(d)` emits `a_{new0}`, fresh.
+2. **K.μ⁻ on `d`** retains the Left prefix with `n'_{s_C} = p_m − 1 = 1`: post-step the text-subspace is `{[1,1,1]}`. Link subspace retained at `n'_{s_L} = n_{s_L}`.
+3. **K.μ⁺ on `d`** adds three V-positions: `[1,1,2] ↦ a_{new0}` (Insertion), and `[1,1,3] ↦ a₂`, `[1,1,4] ↦ a₃` (Shifted right — `shift([1,1,2], 1) = [1,1,3]` and `shift([1,1,3], 1) = [1,1,4]`, both advancing only the last component by `n = 1`).
+4. **One K.ρ firing** records `(a_{new0}, d)`.
+
+The post-state arrangement:
+
+  `M'(d) = {[1,1,1] ↦ a₁, [1,1,2] ↦ a_{new0}, [1,1,3] ↦ a₂, [1,1,4] ↦ a₃}`
+
+with `V_{s_C}(d') = {[1,1,1], [1,1,2], [1,1,3], [1,1,4]}`. We verify the three sequential invariants on this post-state, with `min = [1,1,1]` and `max = [1,1,4]`:
+
+- *D-MIN★:* the minimum under T1 is `[1,1,1] = [s_C, 1, 1]` of depth 3 — the required form.
+- *D-SEQ★:* the explicit form `{[1,1,k] : 1 ≤ k ≤ 4}` matches D-SEQ★ with `n_{s_C} = 4`, depth `m_{s_C} = 3`.
+- *D-CTG★ (off-prefix exclusion, the live case at `m ≥ 3`).* D-CTG★ quantifies over the *full* depth-3, subspace-`s_C`, all-positive slice — every tuple `[1, z_2, z_3]` with `z_2, z_3 ≥ 1`, not only those sharing the prefix `[1,1,·]`. We must show every such `z` with `min ≤ z ≤ max` lies in `{[1,1,k] : 1 ≤ k ≤ 4}`. Take a candidate off-prefix tuple `z = [1, 2, 1]` (component 2 is off-prefix). Comparing `z` with `max = [1,1,4]` under T1: the first divergence is at position 2, where `z_2 = 2 > 1 = max_2`, so `z > max` by T1 case (i) — hence `z ∉ [min, max]`, excluded from the closed interval. The same argument excludes any tuple whose first off-prefix component exceeds 1. So the only slice tuples inside `[min, max]` are those of the form `[1, 1, z_3]` with `1 ≤ z_3 ≤ 4`, exactly `V_{s_C}(d')`. D-CTG★ holds.
+
 ## Verifying the Invariants
 
 The post-state Σ' must satisfy every system invariant. We verify the principal ones.
@@ -197,9 +216,9 @@ The content-store effect's third clause asserts `(A a : a ∈ dom(C) : a ∈ dom
 
 Each per-step K.α firing preserves S0 by its own frame (its effect adds a new binding without modifying existing ones); K.μ⁻, K.μ⁺, K.ρ have frame `C' = C` and so preserve S0 trivially. The composite preserves S0 by composition.
 
-The consequence Nelson emphasises (Q5): a reader holding any pre-state I-address `a ∈ dom(C)` retrieves the same value `C'(a) = C(a)` from the post-state. The reader needs no knowledge of where in any document's Vstream that content now lies.
+The consequence: a reader holding any pre-state I-address `a ∈ dom(C)` retrieves the same value `C'(a) = C(a)` from the post-state. The reader needs no knowledge of where in any document's Vstream that content now lies.
 
-### Cross-document independence (Q3)
+### Cross-document independence
 
 The frame `(A d' : d' ≠ d : M'(d') = M(d'))` directly enforces independence: no document other than `d` has its arrangement altered. Coupled with `L' = L` and content-store preservation, this means that any document `d'` that transcludes content from `d` continues to map the same V-positions to the same I-addresses, and those I-addresses continue to resolve to the same values.
 
