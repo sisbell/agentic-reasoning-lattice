@@ -219,10 +219,17 @@ intervening operations on the system, must therefore denote the same positions.
 > sequence with `a ∈ dom(Σ.L)`. Then `a ∈ dom(Σ'.L)` and `coverage(followlink(
 > Σ', a, i)) = coverage(followlink(Σ, a, i))` for every valid selector `i`.
 
-*Derivation.* Link addresses persist and link values are fixed under every
-transition (L12), so `Σ'.L(a) = Σ.L(a)`, hence `Σ'.L(a).eᵢ = Σ.L(a).eᵢ` and
-their coverages are equal. F1 applied at each state then equates the coverages
-of the two results. ∎
+*Derivation.* L12 (LinkImmutability) fixes a link's address and value across a
+*single* transition `Σ → Σ'`; F5 quantifies over the reflexive-transitive
+closure `Σ →* Σ'`, so the single-step fact must be composed along the sequence.
+This composition is exactly LP13 (UnconditionalLinkPersistence, ASN-0098) — "for
+every reachable state sequence `Σ →* Σ'` and every `a ∈ dom(Σ.L)`: `a ∈
+dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)`" — which ASN-0098 obtains from L12 via its closure
+schema (★). (Equivalently, one inducts on the length of the sequence: the empty
+sequence is trivial, and each step extends `Σ'.L(a) = Σ.L(a)` by one application
+of L12.) Hence `a ∈ dom(Σ'.L)` and `Σ'.L(a) = Σ.L(a)`, so `Σ'.L(a).eᵢ =
+Σ.L(a).eᵢ` and their coverages are equal. F1 applied at each state then equates
+the coverages of the two results. ∎
 
 F5 as stated is a *coverage*-permanence claim, and exactly one fact carries it:
 *link immutability* (L12). Because `Σ'.L(a) = Σ.L(a)`, the recorded spans — and
@@ -408,12 +415,17 @@ against a specific link. Fix a document-level tumbler `d = 1.0.1.0.5` (`zeros(d)
 
 *Checking F1 and F2 on the from-end.* Each span is canonical. By OrdinalShift
 (ASN-0034), `a₃ ⊕ δ(2, #a₃)` increments the last component by 2, yielding `a₅`,
-so `(a₃, δ(2, #a₃))` denotes the half-open interval `{t : a₃ ≤ t < a₅}` — within
-the emittable addresses, `{a₃, a₄}`. Likewise `(a₇, δ(2, #a₇))` denotes
-`{a₇, a₈}`. Hence `coverage(e₁) = {a₃, a₄, a₇, a₈}`. This set is disconnected:
-take `p = a₃`, `q = a₅`, `r = a₇`; under T1 (same prefix, last components
-`3 < 5 < 7`) we have `p < q < r` with `p, r ∈ coverage(e₁)` but
-`q ∉ coverage(e₁)`. F1 demands `coverage(R) = {a₃, a₄, a₇, a₈}`. Could a single
+so `(a₃, δ(2, #a₃))` denotes the half-open interval `{t ∈ T : a₃ ≤ t < a₅}`.
+This is a region of *all* of `T`, not a four-element set: it also contains, e.g.,
+`a₃.1 = 1.0.1.0.5.0.1.3.1`, which satisfies `a₃ < a₃.1 < a₅` under T1. Restricted
+to the emittable addresses `F` (ASN-0098), however, the interval contributes only
+`{a₃, a₄}` (LP-Fin Corollary). Likewise `(a₇, δ(2, #a₇))` denotes
+`{t ∈ T : a₇ ≤ t < a₉}`, contributing `{a₇, a₈}` within `F`. Hence
+`coverage(e₁) = [a₃, a₅) ∪ [a₇, a₉)`, with `coverage(e₁) ∩ F = {a₃, a₄, a₇, a₈}`.
+This coverage is disconnected: take `p = a₃`, `q = a₅`, `r = a₇`; under T1 (same
+prefix, last components `3 < 5 < 7`) we have `p < q < r` with `p, r ∈ coverage(e₁)`
+but `q ∉ coverage(e₁)` (the interval `[a₃, a₅)` excludes its upper endpoint `a₅`,
+and `a₅ < a₇`). F1 demands `coverage(R) = [a₃, a₅) ∪ [a₇, a₉)`. Could a single
 span suffice — `R = ⟨σ⟩`? It would need `a₃, a₇ ∈ ⟦σ⟧`; by span convexity (S0)
 `⟦σ⟧` would then contain `a₅`, forcing `a₅ ∈ coverage(R)` and breaking the
 equality with `coverage(e₁)`. So `|R| ≥ 2`, which is exactly F2; the witness
