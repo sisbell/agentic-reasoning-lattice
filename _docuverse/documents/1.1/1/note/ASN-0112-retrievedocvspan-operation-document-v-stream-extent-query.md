@@ -39,9 +39,6 @@ foundation facts:
 - **S3★** (generalized referential integrity, ASN-0047): each occupied V-position maps
   into the store appropriate to its subspace —
   `(A v : v ∈ O(d) : subspace(v) = s_C ⟹ M(d)(v) ∈ dom(C)) ∧ (A v : v ∈ O(d) : subspace(v) = s_L ⟹ M(d)(v) ∈ dom(L))`.
-  We use the per-subspace S3★ rather than the content-only S3 (ASN-0036) precisely because
-  this ASN admits link V-positions into `O(d)` (V5 link-only case, V6, the worked example);
-  a link position's image lies in `dom(L)`, not `dom(C)`.
 - **S8-fin** (finiteness): `O(d)` is finite.
 - **S8a** (well-formedness): every `v ∈ O(d)` is zero-free, of depth `≥ 2`, all
   components positive; `subspace(v) = v₁`.
@@ -66,9 +63,7 @@ We borrow the span machinery wholesale. A span `σ = (s, ℓ)` denotes the half-
 `⟦σ⟧ = {t ∈ T : s ≤ t < s ⊕ ℓ}` (T12), with `reach(σ) = s ⊕ ℓ` (ASN-0053). A span is
 *well-formed* when `Pos(ℓ)` and `actionPoint(ℓ) ≤ #s`; it is *level-uniform* when
 `#s = #ℓ` (S6, ASN-0053). Following S6's `level_compat`, we call its two *endpoints*
-`start(σ)` and `reach(σ)` *endpoint-level-compatible* when `#start(σ) = #reach(σ)`. These two
-conditions are genuinely different, and the difference is load-bearing in the reach analysis
-below (V2). The ordinal shift `shift(t, n) = t ⊕ δ(n, #t)` advances `t`'s last
+`start(σ)` and `reach(σ)` *endpoint-level-compatible* when `#start(σ) = #reach(σ)`. The ordinal shift `shift(t, n) = t ⊕ δ(n, #t)` advances `t`'s last
 component by `n` (ASN-0034). We measure the whole document as one span; per-subspace reporting,
 content delivery, and region reads are out of scope.
 
@@ -489,8 +484,8 @@ positive; there is no editing artifact that drives it to zero. The only way to o
 extent" is the empty document, which returns the distinguished empty span-set `⟨⟩` (V11) and
 carries no extent tumbler at all — emptiness is reported by the absence of a span, not by a
 zero-width one. V17's `Pos` and `actionPoint` claims hold without any endpoint depth relation
-(established in the V2 well-formedness paragraph via D0); by the V2 reach biconditional, the
-endpoint condition `#origin_d ≤ #reach_d` governs only `reach(σ_d) = reach_d`, not T12 legality.
+(established in the V2 well-formedness paragraph via D0); T12 legality is therefore independent
+of the endpoint depth relation the V2 reach biconditional governs.
 
 ---
 
@@ -523,12 +518,11 @@ unchanged), `max = [1,3]`, `reach = [1,4]`, `extent = [1,4] ⊖ [1,1] = [0,3]`, 
 origin fixed exactly where it was (V8). Reordering these three positions — permuting which
 I-address sits at each — leaves `O'(d)` unchanged and so returns the identical span (V9).
 
-**An endpoint-depth-divergent variant (one line).** The level-uniform-vs-endpoint distinction
-of V2 concretizes when `m_C = 3 > m_L = 2`: `M(d) = { [1,1,1] ↦ a, [1,1,2] ↦ b, [2,1] ↦ ℓ }`
-gives `origin_d = [1,1,1]`, `reach_d = [2,2]`, `extent_d = [1,2,0]` of depth 3 — so `σ_d` is
-*level-uniform* (`#origin_d = #extent_d`) while its *endpoints* diverge (`#origin_d > #reach_d`),
-and the actual reach `r⋆ = [2,2,0]` overshoots `reach_d` exactly as V2's second covering case
-predicts (coverage and T12 legality survive; only the V3 same-depth tightness lapses).
+**An endpoint-depth-divergent variant (one line).** When `m_C = 3 > m_L = 2`:
+`M(d) = { [1,1,1] ↦ a, [1,1,2] ↦ b, [2,1] ↦ ℓ }` gives `origin_d = [1,1,1]`, `reach_d = [2,2]`,
+`extent_d = [1,2,0]` of depth 3, and the actual reach `r⋆ = [2,2,0]` overshoots `reach_d` exactly
+as V2's second covering case predicts (coverage and T12 legality survive; only the V3 same-depth
+tightness lapses).
 
 ---
 
