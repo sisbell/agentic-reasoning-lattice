@@ -98,27 +98,16 @@ as a span-set, one member per kind.
 
 ## What the caller must be handed
 
-Before specifying the operation we fix the *type* of its result. Nelson fixes it: a
-*span-set* — "a series of spans" (4/25) — whose two members indicate "the number of
-characters of text and the number of links" (4/68). This is not a content read (that would
-return records, not spans) and not a pair of bare integers. A tumbler-span "does not
-designate the number of bytes contained. It does not designate a number of anything"
-(4/24); it designates a *region*, "from here to there," with everything between implicit
-(4/25). Yet Nelson says the span-set *indicates* the two numbers. The reconciliation is
-structural: each member span's *extent* encodes the count of its subspace, because the
-positions in a subspace form a dense run (D-SEQ★) whose cardinality is exactly the width of
-the covering span. The number is read off the boundary, not stored as a tally.
-
-We therefore take the result to be a *normalized span-set* `Σ_d` of at most two members —
-one per occupied subspace — and the *empty span-set* `⟨⟩` when the document holds nothing in
-either counted subspace. We record this as **W0** (span-set-valued result): for an
-*allocated* document `d` (W-pre), `RETRIEVEDOCVSPANSET(d)` returns a normalized span-set,
-never a content sequence and never a cardinality; for an allocated document that is *empty in
-both counted subspaces* (`d ∈ dom(M)` with `V_{s_C}(d) = V_{s_L}(d) = ∅`) it returns `⟨⟩`,
-the distinguished value denoting `∅` (which is not a T12 span, since every well-formed span
-is non-empty — S2, ASN-0053). The caller reads each member to learn the extent of one kind of
-content; the content itself, and the identity of individual links, are the business of other
-operations.
+Before specifying the operation we fix the *type* of its result; the intro carries the
+Nelson framing. The result is a *normalized span-set* `Σ_d` of at most two members — one per
+occupied subspace — never a content read (that would return records, not spans) and never a
+pair of bare integers. We record this as **W0** (span-set-valued result): for an *allocated*
+document `d` (W-pre), `RETRIEVEDOCVSPANSET(d)` returns a normalized span-set; for an
+allocated document that is *empty in both counted subspaces* (`d ∈ dom(M)` with
+`V_{s_C}(d) = V_{s_L}(d) = ∅`) it returns `⟨⟩`, the distinguished value denoting `∅` (which
+is not a T12 span, since every well-formed span is non-empty — S2, ASN-0053). The caller
+reads each member to learn the extent of one kind of content; the content itself, and the
+identity of individual links, are the business of other operations.
 
 ---
 
@@ -534,22 +523,12 @@ where an off-prefix, admissible-last-component tumbler must be — and is — ex
 
 ## Permanence of the report
 
-A last question: may a later query of the same document identity contradict an earlier one,
-the document unchanged? We find that *no primitive permanence attaches to the report itself*
-— and that none is needed.
-
-The span-set is a *derived view* of the current arrangement. Its members are computed from
-`V_{s_C}(d)` and `V_{s_L}(d)`, which editorial operations reshape: an insertion grows the
-text run, a deletion shrinks it, a new link extends the link run. The reported extents are
-properties of the *present* arrangement, not permanent attributes of the identity.
-
-Permanence is therefore *inherited, not primitive* — it descends from the stability of the
-state, not from any property the operation contributes. We record **W18** (DerivedReport):
-`RETRIEVEDOCVSPANSET(d)` is a pure function of the current state `Σ` (by W8), so any two
-queries against the *same* `Σ` return identical span-sets; the report changes only when
-`M(d)` changes — a later report contradicts an earlier one only if some transition reshaped
-`M(d)` in between. The stability the report enjoys is exactly the stability of the arrangement
-it views; the operation adds none of its own and needs none.
+The span-set is a *derived view* of the current arrangement: its members are computed from
+`V_{s_C}(d)` and `V_{s_L}(d)`, which editorial operations reshape. We record **W18**
+(DerivedReport), the one increment over W8: `RETRIEVEDOCVSPANSET(d)` is a pure function of
+the current state `Σ` (by W8), so any two queries against the *same* `Σ` return identical
+span-sets, and the report changes iff a transition reshapes `M(d)` — a later report
+contradicts an earlier one only if some transition reshaped `M(d)` in between.
 
 ---
 
