@@ -269,9 +269,7 @@ impossible since `s_C ≠ s_L` (SC-NEQ, the `1 ≠ 2` of the convention). The te
 denotation of a single span: a span is a contiguous interval (T12), and `⟦ext(d, s_C)⟧` and
 `⟦ext(d, s_L)⟧` are separated by every address between them — in particular the whole gap
 from `[s_C,1,…,1,1+n_{s_C}]` up to `[s_L,1,…,1]`. To "designate the separated series exactly,
-including nothing else" (4/25), one is *forced* into a span-set of two members. This is not a
-representational convenience but a structural necessity: the honest report of two
-separated regions is two spans.
+including nothing else" (4/25), one is therefore forced into a span-set of two members.
 
 ---
 
@@ -504,9 +502,7 @@ where an off-prefix, admissible-last-component tumbler must be — and is — ex
 
 ## Open Questions
 
-W4's single-span exactness rests on the standing D-CTG★ contiguity invariant (a non-contiguous subspace would, by order-convexity, force a single covering span to admit inactive interior tumblers — so faithful coverage would then require a fragmented span-set); should a foundation extension ever relax D-CTG★, what must the operation guarantee — is it obligated to emit the fragmented span-set, or may it report Gregory's single bounding span and leave faithful interpretation of interior gaps to the caller?
-
-Given that the operation omits an empty subspace entirely (W7) and comparison treats an absent subspace as the value zero (W14), how must a *consumer* interpret an omitted member when comparing reports across documents of differing vintages — under what conditions is "subspace absent" safely read as "extent zero"?
+W4's single-span exactness rests on the standing D-CTG★ contiguity invariant (see W4); should a foundation extension ever relax D-CTG★, what must the operation guarantee — is it obligated to emit the fragmented span-set, or may it report Gregory's single bounding span and leave faithful interpretation of interior gaps to the caller?
 
 What permanence must the per-subspace extent report carry across a version fork that shares content with its ancestor?
 
