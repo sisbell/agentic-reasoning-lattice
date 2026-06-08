@@ -90,7 +90,7 @@ We state INSERT as a composite `Σ →* Σ'`.
 
 **Substrate Decomposition.** INSERT realises as the following sequence of elementary transitions, in order:
 
-1. **`n` successive K.α firings** allocating fresh content addresses `a_0, a_1, …, a_{n−1}` from `A_C(d)`. Each K.α firing satisfies its freshness precondition `a_k ∉ dom(C) ∪ dom(L)` against the intermediate state immediately preceding it (justified by SubsequentEmissionFreshness, with FirstEmissionFreshness covering the first-emission boundary; ASN-0093 — see Effect One above).
+1. **`n` successive K.α firings** allocating fresh content addresses `a_0, a_1, …, a_{n−1}` from `A_C(d)`, freshness per INS.alloc.
 2. **One K.μ⁻ on `d`** — fired iff the pre-state content-subspace Right region `Right := {v ∈ V_{s_C}(d) : v ≥ p}` is non-empty — retaining the Left prefix of `V_{s_C}(d)` (with `n'_{s_C} = p_m − 1`) and retaining all of `V_{s_L}(d)` (with `n'_{s_L} = n_{s_L}`). When the Right region is empty, K.μ⁻ is omitted, and step 3's K.μ⁺ alone adds the Insertion region, leaving `V_{s_L}(d)` untouched.
 
    **(INS.μ⁻-fires):** K.μ⁻ fires iff `Right ≠ ∅`; it is omitted in exactly two cases — the append case (`p_m = N + 1`) and the empty-content-subspace case (`V_{s_C}(d) = ∅`) — in both of which `Right = ∅` (the empty case has no V-position at all in `V_{s_C}(d)`; the append case has every `v ∈ V_{s_C}(d)` with last component in `{1, …, N}`, none satisfying `v ≥ p`).
@@ -183,7 +183,7 @@ with `V_{s_C}(d') = {[1,1], [1,2], [1,3]}` (depth pinned at `m_C = 2` per INS.in
 
 *Cross-subspace and cross-document frames (empty case).* `V_{s_L}(d) = ∅` is preserved trivially: K.μ⁺'s content-subspace restriction adds no `s_L` positions, so `V_{s_L}(d') = ∅` matches. Other subspaces are vacuous. Other documents `d' ≠ d` have `M'(d') = M(d')` by each elementary step's cross-document frame.
 
-*Discharge of J0, J1★, J1'★ (empty case).* Step 3's three K.ρ firings add `(a_{new0}, d), (a_{new1}, d), (a_{new2}, d)` to R. Since pre-state `ran(M(d)) = ∅`, all three Insertion images are newly-arranged, placed by step 2's K.μ⁺ at `[1,1], [1,2], [1,3]` respectively.
+*Discharge of J0, J1★, J1'★ (empty case).* The coupling logic is exactly the interior case (*Provenance discharge* above); only the delta differs. No K.μ⁻ fires, and pre-state `ran(M(d)) = ∅`, so all three Insertion images are range-new — there is no already-arranged Shifted-right image carried in by pre-state P4★. Step 3's three K.ρ firings record `(a_{new0}, d), (a_{new1}, d), (a_{new2}, d)`, one per K.μ⁺ placement at `[1,1], [1,2], [1,3]`.
 
 *Cleared-but-residual subtlety.* The empty-arrangement precondition `V_{s_C}(d) = ∅` does not entail an empty content store: full content-subspace clearance via K.μ⁻ with `n'_{s_C} = 0` (PerSubspaceContractionScope, ASN-0047) leaves `d`'s prior content addresses in `dom(C)` by S0/P0. When such residual content exists (`{a' ∈ dom(C) : origin(a') = d} ≠ ∅`), K.α keys its branch on `dom(C)` (INS.alloc) and fires the *subsequent*-emission branch `a_0 = inc(a_prev, 0)` off the persisted frontier `a_prev = max{a' ∈ dom(C) : origin(a') = d}` — continuing `A_C(d)`'s chain rather than restarting it — instead of the first-emission branch above; everything else matches this example.
 
@@ -263,8 +263,6 @@ Post-state `V_{s_C}(d') = {[s_C, 1, …, 1, k] : 1 ≤ k ≤ n}`. We verify each
 - *D-CTG★:* the post-state `V_{s_C}(d') = {[s_C, 1, …, 1, k] : 1 ≤ k ≤ n}` is exactly `Pref(m, n)`, so the closed-interval reduction (instantiated with `K = n`) closes D-CTG★.
 - *D-SEQ★:* the explicit form `V_{s_C}(d') = {[s_C, 1, …, 1, k] : 1 ≤ k ≤ n}` matches D-SEQ★ with `n_{s_C} = n` and depth `m_{s_C} = m`.
 - *S8-depth:* every position in `V_{s_C}(d')` has length `m`, the depth bound to `m_C` at the precondition (§The Operation: Formal Contract); pre-state `V_{s_C}(d) = ∅` imposes no prior depth constraint to conflict with it.
-
-(S8a for the Insertion region — empty and non-empty cases alike — is established once in §Post-state V-position well-formedness.)
 
 The empty case differs from the non-empty case in that no Left or Shifted-right regions appear and no K.μ⁻ fires in the composite (the content-subspace Right region is empty when `V_{s_C}(d) = ∅`), but the post-state invariants are verified by the same predicate checks on the post-state's exhibited form.
 
