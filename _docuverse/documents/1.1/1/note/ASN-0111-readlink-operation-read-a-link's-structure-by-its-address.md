@@ -18,10 +18,6 @@ something beyond the link object — an arrangement, or a query's spec-set. `rea
 nothing beyond the link itself. It is the operation by which the link discloses, in full and
 unconditionally, the relationship it was built to hold.
 
-The reasoning below proceeds by asking, repeatedly, *what must be true for the read to deliver
-the recorded relationship?* — and refining the specification each time the answer forces a new
-commitment.
-
 ## The link as a readable object
 
 We take from the foundations the shape of a stored link. The *link store* `Σ.L : T ⇀ Link`
@@ -149,7 +145,10 @@ its termini.
 target of the assertion. The read encodes the asymmetry: slot 1 is "from," slot 2 is "to."
 
 *The ownership.* A relationship is a *claim*, and a claim has an author. The link's home document
-records who owns it, and it is derivable from the link's own address without consulting any endset.
+records who owns it. This is recoverable not from the read's output but from the *address* `a` that
+the read is keyed on: a caller already holds `a` to invoke the read, and `home(a)` is derivable from
+that key by T4 field projection alone, without consulting any endset and indeed without performing
+the read.
 
 **RL4 (Home disclosure).** `home(a) = N(a).0.U(a).0.D(a)` is determined by the read key `a` alone,
 by T4 field projection, and is independent of the returned endsets (L2, ASN-0043). The read does not
@@ -232,10 +231,8 @@ worked orphan below demonstrates concretely how this distinguishes *the relation
 
 Finally we collect the invariants that constrain *what* a well-formed read may return — the
 guarantees a reader may assume of any value `readlink` produces, *under the standing precondition
-that `Σ` is reachable and invariant-satisfying* (established above). These are not new obligations but
-the foundation invariants viewed through the read interface; an alternative implementation's read
-must honour them because the stored values of any reachable state do. They are claims about the
-reachable class of states, not about arbitrary stores.
+that `Σ` is reachable and invariant-satisfying* (established above) — the foundation invariants
+viewed through the read interface.
 
 **RL-WF (Well-formedness).** Each returned endset is a finite set of T12-well-formed spans
 (`Endset = 𝒫_fin(Span)`). Every span `(s, ℓ)` in the result satisfies `Pos(ℓ) ∧ actionPoint(ℓ) ≤ #s`,
@@ -373,7 +370,7 @@ its value is fixed by L12 / LP13).
 | RL1 | Completeness — the read returns every recorded span of every endset and no other; `readlink(a, Σ) = Σ.L(a)` (rejects the satisfaction model) | introduced |
 | RL2 | Role preservation — the read preserves arity (`|readlink(a, Σ)| = |Σ.L(a)|`) and exposes slot position as a model primitive (L6); from/to/type grouping delivered as structure, not reconstructed from RL1's per-slot equality | introduced |
 | RL3 | Intra-endset set semantics — spans within a returned endset are unordered; membership, not sequence, is exposed | introduced |
-| RL4 | Home disclosure — `home(a)` is determined by the read key alone, independent of endsets; the read reveals ownership | introduced |
+| RL4 | Home disclosure — `home(a)` is determined by the read key `a` alone, independent of endsets; the read returns endsets only, so a caller holding the key can derive ownership without performing the read | introduced |
 | RL5 | Type-by-address — the type is interpreted via `coverage(e₃)`, not via content at those addresses; ghost types read completely | introduced |
 | RL6 | Nesting fidelity — link addresses in an endset's coverage are returned as addresses, unflattened and unrecursed | introduced |
 | RL7 | Determinacy — `readlink` is a pure function of `(a, Σ.L)` and stable across all `Σ →* Σ'` by link immutability | introduced |
