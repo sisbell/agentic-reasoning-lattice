@@ -28,7 +28,7 @@ The **matching set** and the **count** follow:
 >
 > `num(Q, Σ)    =  |match(Q, Σ)|`
 
-`num` is the operation's whole output. The matching set is a mathematical object internal to its definition — the operation that *returns* those links is a different operation, out of scope here. We use the set only to size it.
+`num` is the operation's whole output. The matching set is a mathematical object internal to its definition — we use it only to size it; returning the matched links is out of scope here.
 
 **Well-definedness.** `match(Q, Σ) ⊆ dom(Σ.L)`, and `dom(Σ.L)` is finite (L-fin), so `match(Q, Σ)` is finite and `num(Q, Σ) ∈ ℕ` is total — defined for every request and every reachable state, with no partiality and no error condition. The degenerate requests are clean: if any `Qᵢ = ∅` then `sat` fails universally and `num = 0`; if no stored link overlaps the constrained parts then `match = ∅` and again `num = 0`. A zero is a legitimate answer, not a fault.
 
@@ -44,7 +44,7 @@ The point that an implementation is most likely to miss is that this is a *set* 
 
 > **P1 (LinkAtomicity).** For each `a ∈ dom(Σ.L)`, the contribution of `a` to `num(Q, Σ)` is `[sat(a, Q, Σ)] ∈ {0, 1}`. The breadth of an endset — the number of spans, endpoints, or documents its coverage touches — enlarges `coverage(Σ.L(a).eᵢ)` and so can only make the intersection test *easier to pass*; it never multiplies the contribution. A link with a multi-span endset that meets the request in several places is counted once.
 
-P1 is the abstract content of the set-versus-multiset decision. Nelson's satisfaction rule collapses an endset of arbitrary breadth into a single boolean per link, and `num` sizes the set of links that pass. The search-scaling guarantee (LM 4/60, "the quantity of links not satisfying a request does not in principle impede search on others") is the dual observation that non-satisfying links contribute `0`; the count is insensitive to them. We note as an implementation observation that a backend which materialises the matching set as a list and *walks the list* must deduplicate before counting: if a single multi-span link can be appended to that list more than once — as happens when an endpoint's several spans each independently match — then the walk overcounts, and the returned integer is a multiset tally in violation of P1. The abstract claim is that the count is of the *set*; faithfulness to it is a deduplication obligation, not an optional optimisation.
+P1 is the abstract content of the set-versus-multiset decision. Nelson's satisfaction rule collapses an endset of arbitrary breadth into a single boolean per link, and `num` sizes the set of links that pass. The search-scaling guarantee (LM 4/60, "the quantity of links not satisfying a request does not in principle impede search on others") is the dual observation that non-satisfying links contribute `0`; the count is insensitive to them. The faithfulness obligation is one clause: any enumeration realising `match` must collapse multi-span matches per link, so that the returned integer is the set cardinality and not a multiset tally.
 
 Identity, not description, individuates the links being counted. Two links authored separately are two objects at two addresses, even if their from, to, and type endsets are value-identical.
 
@@ -140,7 +140,7 @@ Supersession — replacing a document with a newer version — must not be mista
 
 These per-operation laws assemble into a conservation statement — but a conditional one, and the condition is exactly the anchoring.
 
-> **R5 (ConservationConditional).** For the existence count against a fixed permanent request, `num(Q, Σ₂) − num(Q, Σ₁) = (matching links created on the path)` holds exactly between any two states `Σ₁ →* Σ₂`. There is *no subtractive term* — the identity is exactly E4 (E2's monotonicity has no downward component). For the discovery count the identity fails: by D1, arrangement edits move membership into or out of the resolved request without any link being created, so the net change need not equal the number of matching creations. The conservation law is faithful when the count is over currently-resident links against permanent addresses; it breaks the moment the request is pinned to a mutable arrangement.
+> **R5 (ConservationConditional).** The affirmative half — that the existence count's change between `Σ₁ →* Σ₂` equals the number of matching links created on the path, with no subtractive term — is exactly E4. The content R5 adds is the negative result: under discovery anchoring conservation *fails*, because by D1 arrangement edits move membership into or out of the resolved request with no link created or retracted, so the net change need not equal the number of matching creations. Conservation is therefore conditional on the anchoring — faithful against permanent addresses (E4), broken the moment the request is pinned to a mutable arrangement.
 
 The R-laws above give *sufficient* conditions for the discovery count to fall. We now sharpen one of them into a *weakest* precondition, so that the boundary between "still counted" and "dropped" is characterised exactly rather than by a one-sided implication. The non-trivial postcondition we anchor to is the survival of a single counted link across an arrangement contraction — the per-link event whose aggregate over `match` *is* `Δnum_disc`.
 
@@ -227,7 +227,7 @@ W1 and W2 are the disciplined statement of why the count is *useful* despite bei
 | R2 | Deleting an endpoint shared by `k` links can drop up to `k` from the discovery count in one operation | introduced |
 | R3 | A link survives partial endpoint loss while any covered address remains in the resolved request | introduced |
 | R4 | Supersession does not decrement the count of links to the superseded content | introduced |
-| R5 | Conservation (= E4) holds for the existence count; the identity fails for the discovery count | introduced |
+| R5 | Existence-count conservation is exactly E4; conservation *fails* under discovery anchoring | introduced |
 | R6 | Weakest precondition for a counted link `ℓ` to survive `K.μ⁻[d_q, R]`: `enabled ∧ (A i : coverage(Σ.L(ℓ).eᵢ) ∩ {Σ.M(d_q)(v) : v ∈ Wᵢ ∩ R} ≠ ∅)`; specialises to R1's split | introduced |
 | W1 | The count reveals only cardinality — no address, owner, endset, type, or arrival order | introduced |
 | W2 | Equal counts need not denote equal matching sets; the count cannot be inverted | introduced |
