@@ -52,9 +52,7 @@ The minimal honest specification is a lookup in the link store. For such a state
 >   *defined when*  `a ∈ dom(Σ.L)`
 >   `≡  Σ.L(a) = (e₁, e₂, ..., eₙ)`.
 
-It is a pure read: its frame condition is that it changes nothing, `Σ' = Σ`. The whole interest
-of the operation lies not in this one line but in what the one line *commits us to* — the
-properties the returned value must have, and what those properties let a reader learn.
+It is a pure read: its frame condition is that it changes nothing, `Σ' = Σ`.
 
 The first commitment is on the domain. The read is defined exactly on allocated link addresses.
 
@@ -73,11 +71,8 @@ link lives at `a`. There is no partial-success middle state at the level of *whe
 
 ## Completeness: the read returns the whole relationship
 
-The defining contrast between reading a link and finding one is *what counts as an answer*.
-A search is satisfied by a witness: a link is returned when *one* span of each endset meets the
-request, so a search confirms relevance without delivering the endset. A direct read has no
-request to satisfy and therefore no notion of a satisfying fragment. It must return the endsets
-*entire*.
+A direct read answers no query, so there is no satisfying fragment at which it could stop. It
+must return the endsets *entire*.
 
 **RL1 (Completeness).** For each slot `i` and each span, the read omits nothing:
 
@@ -104,12 +99,10 @@ slot index as a model primitive (L6, ASN-0043) — slot position is part of the 
 > `|readlink(a, Σ)| = |Σ.L(a)|`,  and for each `1 ≤ i ≤ |Σ.L(a)|` the positional accessor
 > `readlink(a, Σ).eᵢ` is a model primitive (L6, ASN-0043), with link equality componentwise.
 
-The quantifier ranges over *all* `|Σ.L(a)|` slots, not a fixed three: in the dominant arity-3 case
-slot 1 is *from*, slot 2 is *to*, and slot 3 is *type*, while the model admits `N > 3` (L3, ASN-0043,
-requires only `N ≥ 3`), with slots 4…N returned faithfully under their own indices and no privileged
-role assigned by this operation. The read keeps every endset aligned with its slot — the directional
-from/to pair, the separate type endset, and any further slots alike — this is exactly the alignment
-that any role-respecting use of the link depends upon.
+In the arity-3 case slot 1 is *from*, slot 2 is *to*, and slot 3 is *type*; for `N > 3` (L3,
+ASN-0043) the higher slots are returned under their own indices. The read keeps every endset
+aligned with its slot — this is exactly the alignment that any role-respecting use of the link
+depends upon.
 
 Within a single endset, however, no further order is owed.
 
@@ -119,20 +112,18 @@ span" of an endset (L5, ASN-0043). An endset is an arbitrary collection of spans
 denotation is fixed by its own boundaries, independent of any position in a list. Two reads that
 present the same endset's spans in different incidental orders have returned the same endset.
 
-We can summarise RL1–RL3 in one sentence: the read returns the *complete* relationship,
-*grouped by role*, *unordered within each role*.
-
 ## Ownership lives in the read key
 
-One fact about a link is recoverable that none of the slot-level claims above delivers, because it
-lives in the read *key* rather than the returned value: *ownership*. A relationship is a *claim*, and
-a claim has an author. The link's home document records who owns it.
+Ownership is recoverable from the read *key* `a` rather than from the returned value. The address
+layout encodes the home document by design, and Nelson's ownership model depends on this
+recoverability being a guarantee rather than an accident — so we state it as a claim, even though
+the home is not part of what `readlink` returns.
 
-*Remark (home from the key).* The home is fixed by the read *key* `a`, not by the returned value. A
-caller already holds `a` to invoke the read, and `home(a) = N(a).0.U(a).0.D(a)` is derivable from
-that key by T4 field projection alone, independent of the returned endsets (L2, ASN-0043). The home
-is recoverable even of a link that points nowhere near its home document: it indicates *who owns*
-the link, not *what it points to*.
+**RL-HOME (Home determinable from key).** For any `a ∈ dom(Σ.L)`, the home document
+`home(a) = N(a).0.U(a).0.D(a)` is fixed by the address `a` and derivable from it by T4 field
+projection alone, independent of the returned endsets (L2, ASN-0043). A caller already holds `a`
+to invoke the read, so the home is recoverable even of a link that points nowhere near its home
+document: it indicates *who owns* the link, not *what it points to*.
 
 ## Type is interpreted by address, not by content
 
@@ -267,10 +258,7 @@ A direct read returns the whole triple, grouped by slot:
 We can now check the load-bearing postconditions against this instance.
 
 - *RL1 (completeness).* The read returns *both* from-spans, the empty to-set, and the type-span —
-  every recorded span and nothing more. Contrast a *search* given the content region under `d₁`:
-  it would return `a` as a witness because *one* from-span meets the region, but it would not
-  deliver `F` entire, would say nothing about the empty `G`, and would not surface the ghost `Θ`.
-  The read delivers the structure; the search confirms relevance.
+  every recorded span and nothing more.
 - *RL2 (role preservation).* The three endsets come back under slots 1/2/3, not pooled. Were the
   read to return the bag `F ∪ Θ`, the reader could no longer tell that `[1.0.1.0.9.0.1.1]`
   classifies the link while the others are its source — a different relationship (L6). The read
@@ -336,6 +324,7 @@ its value is fixed by L12 / LP13).
 | RL1 | Completeness — the read returns every recorded span of every endset and no other; `readlink(a, Σ) = Σ.L(a)` | introduced |
 | RL2 | Role preservation — the read preserves arity (`|readlink(a, Σ)| = |Σ.L(a)|`) and exposes slot position as a model primitive (L6); from/to/type grouping delivered as structure | introduced |
 | RL3 | Intra-endset set semantics — spans within a returned endset are unordered; membership, not sequence, is exposed | introduced |
+| RL-HOME | Home determinable from key — `home(a) = N(a).0.U(a).0.D(a)` is derivable from the address alone (L2), independent of the returned value | introduced |
 | RL5 | Type-by-address — the type is interpreted via `coverage(e₃)`, not via content at those addresses; ghost types read completely | introduced |
 | RL6 | Nesting fidelity — link addresses in an endset's coverage are returned as addresses, unflattened and unrecursed | introduced |
 | RL7 | Determinacy — `readlink` is a pure function of `(a, Σ.L)` and stable across all `Σ →* Σ'` by link immutability | introduced |
