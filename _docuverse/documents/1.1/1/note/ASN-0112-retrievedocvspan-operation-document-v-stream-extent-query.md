@@ -273,9 +273,7 @@ We can make this precise. While the content subspace is occupied, D-MIN pins
 also `min O(d) = origin_d` whenever content is present. We record **V8** (origin
 permanence): for every document state in which the content subspace is non-empty,
 `origin_d = [s_C,1,…,1]`, invariant under all editing that leaves content present. (The depth
-`m_C` of this canonical value is itself fixed throughout — re-pinning is confined to full
-subspace clearance, which V18 accounts for; under V8's "content present" hypothesis no
-clearance occurs.) Editing
+`m_C` is fixed throughout any content-present regime, by S8-depth.) Editing
 relocates I-addresses and shuffles V-positions, but it never moves the start of the stream:
 "the front-end application is unaware" of where bytes natively live (4/11), and the V-origin
 holds steady at the canonical first position. The origin is the stable anchor against which
@@ -318,8 +316,7 @@ the empty document is the case that tests it. `CREATENEWDOCUMENT` "creates an em
 
 We record **V11** (total answerability via a distinguished empty result): `RETRIEVEDOCVSPAN`
 is defined for every allocated document. When `O(d) = ∅`, the result is the *empty span-set*
-`⟨⟩` (ASN-0053), the distinguished value denoting the empty set `∅` — the summand V0 already
-fixed apart from any T12 span. The empty
+`⟨⟩` (V0). The empty
 span-set carries no origin and no extent: `origin_d = min O(d)` is *undefined* when `O(d) = ∅`
 (the minimum of the empty set does not exist), and there is no extent tumbler. This is the
 honest content of the empty case — there is no first occupied position, hence no origin to
@@ -467,8 +464,8 @@ For the report to be defined we require:
 1. `d ∈ dom(M)` — the document is allocated (M0, M1). An unallocated identity names no
    arrangement and has nothing to report.
 
-This single precondition is all the value semantics require; authorization is a
-deployment-level access gate outside the value semantics this ASN specifies.
+Authorization is a deployment-level access gate outside the value semantics this ASN
+specifies.
 
 Under precondition 1 the result is total: by S8-fin the occupied set is finite, so its
 minimum and maximum (when non-empty) exist and the span is computed by V1–V2; when empty the
@@ -520,7 +517,7 @@ endpoint depths), without inspecting the returned span.
 | V7 | The result is always one convex region; fragmentation is unrepresentable in a single span, so multi-subspace documents are reported by enclosure (single-span contiguity) | introduced |
 | V8 | While the content subspace is non-empty, `origin_d = [s_C,1,…,1]`, invariant under all editing that leaves content present (origin permanence) | introduced |
 | V9 | A pure rearrangement preserves `O(d) = dom(M(d))`; since `origin_d` and `extent_d` depend on `O(d)` alone (not on the values `M(d)(v)`), the reported span is identical before and after (extent tracks composition, not arrangement) | introduced |
-| V11 | The operation is total over allocated documents; `O(d) = ∅` yields the distinguished empty span-set `⟨⟩` (not a T12 span), with `origin_d` undefined and no extent — the implementation's zeros are a sentinel, not a legal address (TA6) | introduced |
+| V11 | The operation is total over allocated documents; `O(d) = ∅` yields the distinguished empty span-set `⟨⟩` (V0), with `origin_d` undefined and no extent — the implementation's zeros are a sentinel, not a legal address (TA6) | introduced |
 | V12 | The span discloses the live origin (addressing anchor) and current extent (present bounds) — neither derivable from `d`'s identity (information gain) | introduced |
 | V13 | `σ_d` depends only on `O(d)`; two documents sharing content report independent spans; transcluded positions count toward the borrowing document's extent (independence) | introduced |
 | V14 | Every *occupied* position in `O(d)` maps through `M(d)` to a permanent, immutable image, by subspace (S3★): content positions to `dom(C)` (S0, P0), link positions to `dom(L)` (L12); covered-but-unoccupied positions in the cross-subspace case (V6) carry no `M(d)` image; sharing preserves what the span denotes (permanence) | introduced |
