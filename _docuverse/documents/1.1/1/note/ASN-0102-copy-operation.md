@@ -227,33 +227,34 @@ Now check the claims:
 - **X16 (density)** — post-state `V_{s_C}(d) = {[1,c] : 1 ≤ c ≤ 9}`, contiguous, `n_S + W = 5 + 4 = 9`, minimum `[1,1]`. No gap.
 - **X12** — leading boundary (`p = 3 ≥ 2`): the unmoved predecessor at `[1,2]` holds `x_2`; it absorbs block 1 iff `x_2`'s I-reach is `a_1`, i.e. `x_2 = a_1 - 1` with `origin(x_2) = d_1`. Trailing boundary (`p = 3 ≤ n_S = 5`): the first displaced block holds `x_3` at `[1,7]`; it absorbs block 2 iff `x_3 = a_2 + 2`. Both are genuine, independent candidates — generically neither fires.
 
-### A self-transclusion scenario (`Old ≠ ∅`)
+### A self-transclusion scenario (`Old ≠ ∅`, source overlaps the displaced region)
 
-The first example was cross-origin with a distinct source, so `Old = A ∩ ran(Σ.M(d))` was empty and the J1'★ branch for already-referenced addresses never fired. We now exercise exactly that branch: a *self-transclusion*, where the target is its own source, so every copied address is already in `d`'s range.
+The first example was cross-origin with a distinct source, so `Old = A ∩ ran(Σ.M(d))` was empty and the J1'★ branch for already-referenced addresses never fired. We now exercise exactly that branch — a *self-transclusion*, where the target is its own source — and we deliberately position the source span *at or after* `v`, so the copied span overlaps the region the displacement will move. This is the configuration in which X10(b)'s snapshot resolution and X15's atomicity are *load-bearing* rather than decorative: reading the source against the post-state would yield a circular, wrong answer.
 
-Fix `s_C = 1`. Let `d` have content subspace of common depth `m = 2` and population `n_S = 3`, so `V_{s_C}(d) = {[1,1], [1,2], [1,3]}` with pre-state bindings `Σ.M(d)([1,1]) = x_1`, `Σ.M(d)([1,2]) = x_1+1`, `Σ.M(d)([1,3]) = x_3`, where `x_1, x_1+1` share an origin and abut in I-space (`origin(x_1+1) = origin(x_1)`, M16a) and `x_1, x_1+1, x_3 ∈ dom(Σ.C)`. The source is the single self-reference `R = ⟨(d, σ)⟩` whose V-span covers `d`'s own first two content positions `[1,1], [1,2]`. Resolved against the *pre-state* `Σ` (X10(b) snapshot resolution, X15 atomicity): `resolve_Σ(R) = ⟨(x_1, 2)⟩` — one run of width `W = 2`, since `[1,1], [1,2]` carry the I-adjacent same-origin pair `x_1, x_1+1`. We copy at `v = [1,3]`, so `p = 3`, `k = 1`, `B_copy = {([1,3], x_1, 2)}`.
+Fix `s_C = 1`. Let `d` have content subspace of common depth `m = 2` and population `n_S = 3`, so `V_{s_C}(d) = {[1,1], [1,2], [1,3]}` with pre-state bindings `Σ.M(d)([1,1]) = x_1`, `Σ.M(d)([1,2]) = x_2`, `Σ.M(d)([1,3]) = x_3`, where `x_1, x_2, x_3 ∈ dom(Σ.C)` are distinct. The source is the single self-reference `R = ⟨(d, σ)⟩` whose V-span covers `d`'s own *third* content position `[1,3]` — and crucially `[1,3] ≥ v` for the `v = [1,2]` we copy at, so the source lies squarely in the region the copy will displace. Resolved against the *pre-state* `Σ`: `resolve_Σ(R) = ⟨(x_3, 1)⟩` — one run of width `W = 1`, since `Σ.M(d)([1,3]) = x_3`. We copy at `v = [1,2]`, so `p = 2`, `k = 1`, `B_copy = {([1,2], x_3, 1)}`. The displaced region is `{u ∈ V_{s_C}(d) : u ≥ [1,2]} = {[1,2], [1,3]}`, which shifts by `W = 1` to `[1,3], [1,4]`.
 
 The post-state arrangement `Σ'.M(d)`:
 
 | `c` | post-state position | image | class |
 |----|----|----|----|
 | 1 | `[1,1]` | `x_1` | unmoved |
-| 2 | `[1,2]` | `x_1+1` | unmoved |
-| 3 | `[1,3]` | `x_1` | copied (blk 1) |
-| 4 | `[1,4]` | `x_1+1` | copied (blk 1) |
-| 5 | `[1,5]` | `x_3` | displaced |
+| 2 | `[1,2]` | `x_3` | copied (blk 1) |
+| 3 | `[1,3]` | `x_2` | displaced (from `[1,2]`) |
+| 4 | `[1,4]` | `x_3` | displaced (from `[1,3]`) |
 
-Now the provenance trace. The copied address set is `A = {x_1, x_1+1}`. The pre-state range is `ran(Σ.M(d)) = {x_1, x_1+1, x_3}`, so:
+**Why X10(b)/X15 are load-bearing here.** The source span names V-position `[1,3]`, which satisfies `[1,3] ≥ v`. Resolution against the pre-state `Σ` reads `Σ.M(d)([1,3]) = x_3` — the correct content — and lays it down at the copied slot `[1,2] ∈ [v, v+W)`, while the original `x_3` shifts to `[1,4] ∈ [v+W, …)`. Had resolution instead read the *post-state* `Σ'`, position `[1,3]` would hold `x_2` — the content the displacement had just shoved up from `[1,2]` — so the copy would transclude `x_2` rather than `x_3`: a *different, circular* result, in which the operation feeds on its own displacement. X15's atomicity (the precondition, including `resolve_Σ(R)`, is read against `Σ` in one indivisible step) is precisely what forecloses this, and X10(b)'s pre-state pinning is the only thing that makes a self-transclusion overlapping the displaced region well-defined. Gregory's ordering (`specset2ispanset` precedes `insertpm`, Q15) exhibits the same discipline: the source is snapshotted *before* the arrangement is rewritten.
 
-- `New = A ∖ ran(Σ.M(d)) = ∅` — every copied address was *already* referenced by `d`;
-- `Old = A ∩ ran(Σ.M(d)) = {x_1, x_1+1} = A`.
+Now the provenance trace. The copied address set is `A = {x_3}`. The pre-state range is `ran(Σ.M(d)) = {x_1, x_2, x_3}`, so:
 
-COPY's effect still writes `Σ'.R = Σ.R ∪ {(x_1, d), (x_1+1, d)}`. With `New = ∅` and `Old = A`, the couplings fire as X14's split dictates:
+- `New = A ∖ ran(Σ.M(d)) = ∅` — the copied address was *already* referenced by `d`;
+- `Old = A ∩ ran(Σ.M(d)) = {x_3} = A`.
+
+COPY's effect still writes `Σ'.R = Σ.R ∪ {(x_3, d)}`. With `New = ∅` and `Old = A`, the couplings fire as X14's split dictates:
 
 - **J1★** is vacuous: `New = ∅`, so there is no genuine range extension to record.
-- **J1'★** is discharged on its `Old`-branch: `(x_1, d), (x_1+1, d) ∈ Contains_C(Σ)`, so by P4★ both are already in `Σ.R`; hence `Σ'.R = Σ.R`, `R' ∖ R = ∅`, and the antecedent is false for every pair.
+- **J1'★** is discharged on its `Old`-branch: `(x_3, d) ∈ Contains_C(Σ)` (x_3 is referenced by `d` at `[1,3]` in the pre-state, content subspace), so by P4★ it is already in `Σ.R`; hence `Σ'.R = Σ.R`, `R' ∖ R = ∅`, and the antecedent is false for every pair.
 
-The reference multiplicity rises (X13): `x_1` is now referenced from `[1,1]` *and* `[1,3]`, `x_1+1` from `[1,2]` *and* `[1,4]` — yet `dom(Σ'.C) = dom(Σ.C)` (X1) and `R' = R`, so neither store grows.
+The reference multiplicity rises (X13): `x_3` is now referenced from `[1,2]` (copied) *and* `[1,4]` (its displaced original) — yet `dom(Σ'.C) = dom(Σ.C)` (X1) and `R' = R`, so neither store grows. And X7 is exercised non-trivially: the displaced bindings `x_2, x_3` survive intact at `[1,3], [1,4]`, the copied region `[1,2]` and the displaced-image range `[1,3], [1,4]` being disjoint (X16), so nothing is overwritten despite the source and the displaced content overlapping.
 
 ### The empty-subspace first insertion (`n_S = 0`, `p = 1`)
 
