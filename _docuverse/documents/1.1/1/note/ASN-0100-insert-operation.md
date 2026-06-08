@@ -50,7 +50,7 @@ INSERT splices `n` new content units into `d`'s arrangement at V-position `p`. T
 
 ### Effect One: Allocation
 
-The new content units do not exist in `dom(C)` before the operation. INSERT creates `n` new content units at *fresh* I-addresses drawn from never-reused locations: Xanadu storage is append-only, so each unit is laid down at a new address rather than reusing any existing one. (The consequence — that identity tracks the allocation event, not the byte value — is developed in §Identity Through Allocation.)
+The new content units do not exist in `dom(C)` before the operation. INSERT creates `n` new content units at *fresh* I-addresses drawn from never-reused locations: Xanadu storage is append-only, so each unit is laid down at a new address rather than reusing any existing one.
 
 The freshness comes from `d`'s content sub-allocator `A_C(d)`, by the substrate's allocation discipline (ASN-0093). We require `n` addresses, produced by `n` successive K.α firings under the substrate's transition vocabulary:
 
@@ -82,7 +82,7 @@ Every existing V-position `v ∈ V_{s_C}(d)` with `v ≥ p` must remap. The cont
 
   `(A v : v ∈ Left ∪ Shifted-right :: v ∈ dom(M'(d)) ∧ M'(d)(v) = M_{I3}(v))`.
 
-This is the named handle the invariant verifications below cite. Because `M'(d) ↾ (Left ∪ Shifted-right)` *is* (pointwise) the I3-specified arrangement on that domain, every I3 lemma about `M_{I3}` — I3-S2 (functionality), I3-S3 (referential integrity), I3-VP / I3-VD (well-formedness and fixed depth), I3-fin (finiteness) — transports verbatim to that restriction; each full-arrangement property then follows by combining the restriction with the separately-handled Insertion region (whose cross-region disjointness from Left ∪ Shifted-right is established under §Arrangement functionality).
+Because `M'(d) ↾ (Left ∪ Shifted-right)` *is* (pointwise) the I3-specified arrangement on that domain, every I3 lemma about `M_{I3}` transports verbatim to that restriction.
 
 ## The Operation: Formal Contract
 
@@ -205,7 +205,26 @@ with `V_{s_C}(d') = {[1,1], [1,2], [1,3]}` (depth pinned at `m_C = 2` per INS.in
 
 *Cross-subspace and cross-document frames (empty case).* `V_{s_L}(d) = ∅` is preserved trivially: K.μ⁺'s content-subspace restriction adds no `s_L` positions, so `V_{s_L}(d') = ∅` matches. Other subspaces are vacuous. Other documents `d' ≠ d` have `M'(d') = M(d')` by each elementary step's cross-document frame.
 
-*Discharge of J0, J1★, J1'★ (empty case).* The general argument is §Provenance; the case-specific delta is that no K.μ⁻ fires and pre-state `ran(M(d)) = ∅`, so all three Insertion images are range-new (no already-arranged Shifted-right image is carried in by pre-state P4★) and step 3's three K.ρ firings record `(a_{new0}, d), (a_{new1}, d), (a_{new2}, d)`.
+*Provenance (empty case).* No K.μ⁻ fires and pre-state `ran(M(d)) = ∅`, so all three Insertion images are range-new — no already-arranged Shifted-right image is carried in by pre-state P4★ — and step 3's three K.ρ firings record `(a_{new0}, d), (a_{new1}, d), (a_{new2}, d)`.
+
+**Re-insertion into a cleared content subspace (subsequent-emission branch).** The empty-document example above stipulated that *no content had ever been allocated* under `d`, so K.α's first-emission branch fired. We now exercise the complementary branch: an empty content subspace whose content store still holds residual addresses. Suppose `d` once held `V_{s_C}(d) = {[1,1], [1,2]}` with `M(d) = {[1,1] ↦ [d.0.s_C.1], [1,2] ↦ [d.0.s_C.2]}`, and a prior full content-subspace clearance (K.μ⁻ with `n'_{s_C} = 0`, PerSubspaceContractionScope, ASN-0047) removed both V-positions. By S0/P0 the addresses `[d.0.s_C.1]` and `[d.0.s_C.2]` persist in `dom(Σ.C)`, so although `V_{s_C}(d) = ∅`, the residual set `{a' ∈ dom(Σ.C) : origin(a') = d} = {[d.0.s_C.1], [d.0.s_C.2]} ≠ ∅` with frontier `a_prev = max{a' ∈ dom(Σ.C) : origin(a') = d} = [d.0.s_C.2]`.
+
+Invoke `INSERT(d, [1,1], ⟨v₀, v₁⟩)` with `n = 2` (depth `m = #p = 2`). Since `V_{s_C}(d) = ∅`, the precondition is `ValidFirstInsertionPosition(d, [1,1], 2)` (ASN-0036) and K.μ⁻ is omitted (empty-content-subspace case of (INS.μ⁻-fires)). The composite:
+
+1. **Two K.α firings.** The branch keys on `dom(C)`, not on the arrangement (INS.alloc): the residual set is non-empty, so the *subsequent-emission* branch fires. `A_C(d)` emits `a_{new0} = inc(a_prev, 0) = inc([d.0.s_C.2], 0) = [d.0.s_C.3]`, continuing the chain off the persisted frontier rather than restarting it, then `a_{new1} = inc(a_{new0}, 0) = [d.0.s_C.4]`. Each is fresh against its emission state by SubsequentEmissionFreshness (ASN-0093).
+2. **One K.μ⁺ on `d`** adding `[1,1] ↦ a_{new0}` and `[1,2] ↦ a_{new1}`, both in subspace `s_C`.
+3. **Two K.ρ firings** recording `(a_{new0}, d)`, `(a_{new1}, d)` in R.
+
+The post-state arrangement:
+
+  `M'(d) = {[1,1] ↦ [d.0.s_C.3], [1,2] ↦ [d.0.s_C.4]}`
+
+with `V_{s_C}(d') = {[1,1], [1,2]}`. The point of this example is the *decoupling* of the V-position index from the I-address chain index: the I-addresses resume the chain at indices 3 and 4 (the chain never restarts), yet the V-positions restart at `[s_C, 1]`. The sequential invariants are stated over `V_{s_C}(d')` alone and so are blind to the chain index:
+
+- *D-MIN★:* the minimum under T1 is `[1,1] = [s_C, 1]` of depth 2 — the required form, independent of whether the images are `[d.0.s_C.1..2]` or `[d.0.s_C.3..4]`.
+- *D-SEQ★:* the explicit form `{[1, k] : 1 ≤ k ≤ 2}` matches D-SEQ★ with `n_{s_C} = 2`, depth `m_{s_C} = 2` — determined by the count and depth of V-positions, not by the I-address chain frontier.
+
+The chain index advances monotonically across the document's whole history (it is never reused, by ChainEnumerationInjectivity, ASN-0093), while the V-position numbering is re-pinned to `[s_C, 1, …, 1]` on every re-insertion into an emptied subspace. The two indices are independent.
 
 **Deep-subspace interior insertion (`m_C = 3`).** The examples above all run at depth `m_C = 2`, where the shared prefix `[s_C, 1, …, 1]` is empty and contiguity reduces to the last component trivially. We now exercise a multi-level content subspace, where the closed-interval reduction's hardest step — excluding off-prefix slice tuples — is actually live. Let `d` have `V_{s_C}(d) = {[1,1,1], [1,1,2], [1,1,3]}` (so `m_C = 3`, `N = 3`), with arrangement:
 
@@ -244,7 +263,7 @@ The consequence: a reader holding any pre-state I-address `a ∈ dom(C)` retriev
 
 The frame `(A d' : d' ≠ d : M'(d') = M(d'))` directly enforces independence: no document other than `d` has its arrangement altered. Coupled with `L' = L` and content-store preservation, this means that any document `d'` that transcludes content from `d` continues to map the same V-positions to the same I-addresses, and those I-addresses continue to resolve to the same values.
 
-Cross-document independence extends to link projection: for any link `ℓ ∈ dom(L)` and any document `d' ≠ d`, `project(ℓ, i, d', Σ') = project(ℓ, i, d', Σ)`. This is the `d' ≠ d` case of the projection-shift correspondence INS.proj, established below.
+Cross-document independence extends to link projection: for any link `ℓ ∈ dom(L)` and any document `d' ≠ d`, `project(ℓ, i, d', Σ') = project(ℓ, i, d', Σ)` — the projection of any link into `d'` depends only on `M(d')` and on `ℓ`'s coverage, both unchanged here.
 
 ### Arrangement functionality (S2)
 
@@ -560,7 +579,7 @@ What the specification *does* cover is the precise per-state effect of one INSER
 | INS.M-left | Text-subspace positions v < p in dom(M(d)) appear unchanged in M'(d) | introduced |
 | INS.M-insert | M'(d)(shift(p, k)) = a_k for 0 ≤ k < n, with shift(p, 0) = p | introduced |
 | INS.M-shift | For v ∈ V_{s_C}(d) with v ≥ p: shift(v, n) ∈ dom(M'(d)) ∧ M'(d)(shift(v, n)) = M(d)(v) — the S = s_C instance of I3 (PostInsertionShift; ASN-0082) | introduced |
-| INS.I3-coincide | M'(d) ↾ (Left ∪ Shifted-right) is pointwise identical to the I3-specified arrangement M_{I3} (S = s_C, shift n, point p): ∀v ∈ Left ∪ Shifted-right, M'(d)(v) = M_{I3}(v); the two differ only on the gap [p, shift(p,n)) (I3 vacates, INSERT fills). Named handle transporting I3-S2/S3/VP/VD/fin (ASN-0082) to that restriction; full-arrangement properties follow by combining with the Insertion region | introduced |
+| INS.I3-coincide | M'(d) ↾ (Left ∪ Shifted-right) is pointwise identical to the I3-specified arrangement M_{I3} (S = s_C, shift n, point p): ∀v ∈ Left ∪ Shifted-right, M'(d)(v) = M_{I3}(v); the two differ only on the gap [p, shift(p,n)) (I3 vacates, INSERT fills). Every I3 lemma (ASN-0082) transports verbatim to that restriction | introduced |
 | INS.M-exhaustive | (A v : v ∈ dom(M'(d)) ∧ subspace(v) = s_C :: v ∈ Left ∪ Insertion ∪ Shifted-right); the post-state's text-subspace domain contains no s_C positions beyond the three regions | introduced |
 | INS.R | R' = R ∪ {(a_k, d) : 0 ≤ k < n}; discharges composite-boundary couplings J0, J1★, J1'★ (ASN-0047) | introduced |
 | INS.frame.subspace | Non-content subspaces of d are unchanged (bidirectionally): {v ∈ dom(M'(d)) : subspace(v) ≠ s_C} = {v ∈ dom(M(d)) : subspace(v) ≠ s_C}, and M'(d) agrees with M(d) pointwise on that set. No new non-s_C positions appear; no existing ones are removed | introduced |
