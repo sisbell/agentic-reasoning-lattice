@@ -201,11 +201,6 @@ content, or content native elsewhere and not arranged here — contributes nothi
 reported span. The extent measures *what the arrangement currently contains*, not *what the
 store has ever held*.
 
-The relationship the extent must bear to the arrangement is therefore one of *current
-correspondence*: by V2 the span covers every occupied position, and by V4 it draws its
-endpoints from no other source. For a document whose occupied positions lie in a single
-subspace, this correspondence is *exact*.
-
 ---
 
 ## Exact cover within a subspace; a bounding box across subspaces
@@ -335,7 +330,7 @@ origin at all — and that case is answered with `⟨⟩`, not refused.
 We record **V12** (information gain): `σ_d` determines time-varying facts about the arrangement
 that the permanent identity `d` cannot, because `d` is fixed for the life of the document
 (V8) while `σ_d` is recomputed against the present state. Concretely, `σ_d` decides emptiness
-(`σ_d = ⟨⟩ ⟺ O(d) = ∅`, V11) and, in the single-subspace regime, fixes the occupied count
+(`RETRIEVEDOCVSPAN(d) = ⟨⟩ ⟺ O(d) = ∅`, V11) and, in the single-subspace regime, fixes the occupied count
 exactly: `|O(d)| = n_s` is the final component of `max O(d)`, recoverable from `reach_d`
 (V5, D-SEQ★). The identity `d` — invariant under every edit — reports none of these.
 
@@ -517,7 +512,7 @@ endpoint depths), without inspecting the returned span.
 | V8 | While the content subspace is non-empty, `origin_d = [s_C,1,…,1]`, invariant under all editing that leaves content present (origin permanence) | introduced |
 | V9 | A pure rearrangement preserves `O(d) = dom(M(d))`; since `origin_d` and `extent_d` depend on `O(d)` alone (not on the values `M(d)(v)`), the reported span is identical before and after (extent tracks composition, not arrangement) | introduced |
 | V11 | The operation is total over allocated documents; `O(d) = ∅` yields the distinguished empty span-set `⟨⟩` (V0), with `origin_d` undefined and no extent — the implementation's zeros are a sentinel, not a legal address (TA6) | introduced |
-| V12 | `σ_d` determines time-varying arrangement facts that the permanent identity `d` cannot: emptiness (`σ_d = ⟨⟩ ⟺ O(d) = ∅`) and, in the single-subspace regime, the exact occupied count `|O(d)| = n_s` (final component of `max O(d)`, recoverable from `reach_d`); `d` is invariant under every edit and reports none of these (information gain) | introduced |
+| V12 | `σ_d` determines time-varying arrangement facts that the permanent identity `d` cannot: emptiness (`RETRIEVEDOCVSPAN(d) = ⟨⟩ ⟺ O(d) = ∅`) and, in the single-subspace regime, the exact occupied count `|O(d)| = n_s` (final component of `max O(d)`, recoverable from `reach_d`); `d` is invariant under every edit and reports none of these (information gain) | introduced |
 | V13 | `σ_d` depends only on `O(d)`; two documents sharing content report independent spans; transcluded positions count toward the borrowing document's extent (independence) | introduced |
 | V14 | Every *occupied* position in `O(d)` maps through `M(d)` to a permanent, immutable image, by subspace (S3★): content positions to `dom(C)` (S0, P0), link positions to `dom(L)` (L12); covered-but-unoccupied positions in the cross-subspace case (V6) carry no `M(d)` image; sharing preserves what the span denotes (permanence) | introduced |
 | V15 | A returned span keeps its meaning under later edits to `d` or to home documents supplying its content; a fresh report is a new query, not a mutation (snapshot stability) | introduced |
