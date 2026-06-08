@@ -147,7 +147,7 @@ Neither boundary is privileged: each may absorb, both may, or neither, and the c
 
 **X14 (ContainmentRecording).** At completion, `d` contains each copied address: `(A j, i : 0 ≤ i < n_j : a_j + i ∈ ran(Σ'.M(d)))`, so `Contains_C(Σ') ⊇ {(a_j + i, d)}`, and COPY's effect has written the corresponding pairs into `Σ.R` (Definition: `Σ'.R = Σ.R ∪ {(a_j + i, d)}`).
 
-Write the copied address set `A = {a_j + i : 1 ≤ j ≤ k, 0 ≤ i < n_j}`. Every member of `A` is mapped at a fresh copied position `v + c` (COPY effect clause, PC3), so `A ⊆ ran_{s_C}(Σ'.M(d))` at COPY's post-state. This yields COPY's **step-local recording fact (SL)**: COPY records `(a, d)` for every `a ∈ A` (Definition), and each such `a` is content-subspace-range-resident — `a ∈ ran_{s_C}(Σ'.M(d))` — at COPY's post-state `Σ'`; by provenance permanence (P2) every recorded pair persists.
+Write the copied address set `A = {a_j + i : 1 ≤ j ≤ k, 0 ≤ i < n_j}`. Every member of `A` is the image of a copied position `v + c` (`0 ≤ c < W`) in `Σ'.M(d)` (COPY effect clause, PC3), so `A ⊆ ran_{s_C}(Σ'.M(d))` at COPY's post-state. This yields COPY's **step-local recording fact (SL)**: COPY records `(a, d)` for every `a ∈ A` (Definition), and each such `a` is content-subspace-range-resident — `a ∈ ran_{s_C}(Σ'.M(d))` — at COPY's post-state `Σ'`; by provenance permanence (P2) every recorded pair persists.
 
 **X17 (InvariantPreservation).** COPY maintains every invariant `ValidComposite★` (ASN-0047) binds at its post-state: the per-state `ExtendedReachableStateInvariants` conjunction (including P7), the composite-boundary properties P4★/P4a/P7a, and the transition theorem P3. We discharge them below.
 
