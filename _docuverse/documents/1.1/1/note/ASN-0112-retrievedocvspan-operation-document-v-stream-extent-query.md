@@ -188,9 +188,7 @@ same-depth tightness statement applies to `reach_d`, not to `σ_d` itself. Wheth
 `#extent_d = max(#origin_d, #reach_d)` (TA2), the span is level-uniform iff
 `#origin_d ≥ #reach_d` (i.e. `m_C ≥ m_L`), which holds for every single-subspace document but
 can fail across subspaces; endpoint-level-compatibility (`#origin_d = #reach_d`, i.e.
-`m_C = m_L`) is stricter still. Note the tightness validity domain `m_C ≤ m_L` is the
-*opposite* inequality to the level-uniformity condition `m_C ≥ m_L`; the two must not be
-conflated.
+`m_C = m_L`) is stricter still.
 
 ---
 
@@ -252,10 +250,8 @@ and includes inter-subspace positions that carry no content. The golden case is 
 characters plus one link report `1.1 for 1.2`, whose reach `[1,1] ⊕ [1,2] = [2,2]` bridges
 from the text start straight across the gap into link space (consultation Q11, Q19).
 
-In the cross-subspace case the endpoints need not be level-compatible (`#origin_d ≠ #reach_d`
-when `m_C ≠ m_L`, since S8-depth permits distinct subspace depths), but the bounding-box reading
-of V6 is independent of the depth relation by the V2 reach biconditional. The implementation in
-fact realizes only `m_C = m_L`: content and link V-positions are placed at the same depth — both
+The bounding-box reading of V6 holds independent of the endpoint depth relation (V2). The
+implementation in fact realizes only `m_C = m_L`: content and link V-positions are placed at the same depth — both
 depth 2 — distinguished only by the first-component value `s_C = 1` vs `s_L = 2`, never by depth
 (consultation Q2: `findvsatoappend`, `findnextlinkvsa`, and `setlinkvsas` all emit depth-2
 V-addresses), so the cross-subspace endpoints are level-compatible and `reach(σ_d) = reach_d`
@@ -526,7 +522,7 @@ endpoint depths), without inspecting the returned span.
 | V6 | When occupied positions span more than one subspace, `O(d) ⊊ ⟦σ_d⟧` — the span bridges the inter-subspace void (bounding box, not exact cover) | introduced |
 | V7 | The result is always one convex region; fragmentation is unrepresentable in a single span, so multi-subspace documents are reported by enclosure (single-span contiguity) | introduced |
 | V8 | While the content subspace is non-empty, `origin_d = [s_C,1,…,1]`, invariant under all editing that leaves content present (origin permanence) | introduced |
-| V9 | `σ_d` is a function of `O(d)` alone; pure rearrangement preserves `O(d)` and returns the identical span (extent tracks composition, not arrangement) | introduced |
+| V9 | Corollary of V16: a pure rearrangement preserves `O(d) = dom(M(d))`, so the reported span is identical before and after (extent tracks composition, not arrangement) | introduced |
 | V11 | The operation is total over allocated documents; `O(d) = ∅` yields the distinguished empty span-set `⟨⟩` (not a T12 span), with `origin_d` undefined and no extent — the implementation's zeros are a sentinel, not a legal address (TA6) | introduced |
 | V12 | The span discloses the live origin (addressing anchor) and current extent (present bounds) — neither derivable from `d`'s identity (information gain) | introduced |
 | V13 | `σ_d` depends only on `O(d)`; two documents sharing content report independent spans; transcluded positions count toward the borrowing document's extent (independence) | introduced |
