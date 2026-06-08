@@ -114,10 +114,8 @@ present the same endset's spans in different incidental orders have returned the
 
 ## Ownership lives in the read key
 
-Ownership is recoverable from the read *key* `a` rather than from the returned value. The address
-layout encodes the home document by design, and Nelson's ownership model depends on this
-recoverability being a guarantee rather than an accident — so we state it as a claim, even though
-the home is not part of what `readlink` returns.
+The home document of a link is recoverable from the read *key* `a` the reader already holds, by T4
+field projection on the address — without consulting the returned value at all.
 
 **RL-HOME (Home determinable from key).** For any `a ∈ dom(Σ.L)`, the home document
 `home(a) = N(a).0.U(a).0.D(a)` is fixed by the address `a` and derivable from it by T4 field
@@ -168,10 +166,7 @@ future:
 Stability across `Σ →* Σ'` follows from LP13 (UnconditionalLinkPersistence, ASN-0098), giving
 `a ∈ dom(Σ'.L)` and `Σ'.L(a) = Σ.L(a)`; hence `readlink(a, Σ') = Σ'.L(a) = Σ.L(a) = readlink(a, Σ)`.
 
-A reader who has once read a link may rely on that reading permanently. This is the counterpart, at
-the read interface, of the design commitment that to record a *different* relationship one must
-make a *different* link: there is no operation that re-types or re-aims an existing link in place,
-so the structure the read returns today is the structure it will return forever.
+A reader who has once read a link may rely on that reading permanently.
 
 ## Recorded relationship versus resolved position
 
@@ -209,15 +204,15 @@ endset — so the read may legitimately return an empty connective slot while ne
 type slot. This is the read-side image of the structural rule that a link's type is mandatory and
 its directional reach is permissive.
 
-**RL-GEN (Endset generality).** The spans the read returns may point anywhere: across documents,
-within the link's own home document, or into the link subspace at other links (L4, ASN-0043). The
-read imposes no confinement on coverage beyond well-formedness; whatever the link recorded, the read
-returns.
+**RL-GEN (Endset generality).** By RL1 the read returns the recorded spans unmodified, and those
+spans are L4-general (ASN-0043) — they may point across documents, within the home document, or into
+the link subspace at other links — so the read inherits that generality without adding any confinement.
 
 **RL-REP (Representation independence of meaning).** The relationship the read conveys is the
 *coverage* of each endset, not the particular span decomposition. Two recorded endsets with equal
-coverage record the same relationship and are interchangeable for every coverage-based use (the
-type relation of L8; projection independence, LP21 of ASN-0098). A reader interpreting the result
+coverage are interchangeable under every coverage-based use, regardless of how their spans are
+decomposed (projection independence, LP21 of ASN-0098); the type-by-address instance of this is
+RL5 above. A reader interpreting the result
 should read it as a triple of address-sets-with-roles; the exact spans are one representation of
 those sets.
 
