@@ -165,12 +165,14 @@ Gregory's store is architecturally capped at three endsets per link: creation
 (`docreatelink`), spanfilade indexing (three hardwired ORGLRANGE constants
 `LINKFROMSPAN`/`LINKTOSPAN`/`LINKTHREESPAN`), and retrieval are each fixed to the from/to/type
 triple, with no storage key or retrieval path for a fourth slot (ST-CREATE-LINK,
-INT-SPORGL-LINK-INDEX, SS-RETRIEVE-ENDSETS). Such a store always satisfies `N_max(Σ) ≤ 3`, so
-Gregory's fixed three-slot emission is exactly the `N_max(Σ)`-length tuple this operation
-requires. The abstract model, however, admits links of arity `N ≥ 3` (L3, ASN-0093); on a
-store actually holding a higher-arity link, `N_max(Σ) > 3`, and a conforming implementation
-must emit `N_max(Σ)` slots. A three-slot implementation is conformant precisely on the
-sub-class of stores whose links are all arity 3. (Nelson's design agrees: the link primitive
+INT-SPORGL-LINK-INDEX, SS-RETRIEVE-ENDSETS). Such a store always satisfies `N_max(Σ) ≤ 3`; on
+the *non-empty* ones L3 pins `N_max(Σ) = 3` exactly, so Gregory's fixed three-slot emission is
+exactly the `N_max(Σ)`-length tuple this operation requires (the empty store, where
+`N_max(Σ) = 0`, is the lone exception, treated in RE-conform). The abstract model, however,
+admits links of arity `N ≥ 3` (L3, ASN-0093); on a store actually holding a higher-arity link,
+`N_max(Σ) > 3`, and a conforming implementation must emit `N_max(Σ)` slots. A three-slot
+implementation is conformant precisely on the *non-empty* sub-class of stores whose links are
+all arity 3 (RE-conform). (Nelson's design agrees: the link primitive
 is the fixed three-endset structure — from, to, type — and higher-arity relations are built by
 *composition*, links to links, not by a single variable-arity link, LM 4/44, 4/51.) We
 reconcile this with RE-complete below.
@@ -225,13 +227,22 @@ obligation.
 > endset (`3 < j ≤ N`) touches `I`, we have `Eⱼ(I, Σ) ≠ ∅`, so any implementation emitting only
 > the three standard slots violates RE-complete by dropping slot `j`. A fixed three-slot
 > implementation is therefore a conforming realization of `retrieveendsets` exactly on the
-> sub-class of stores whose links are all arity 3 — where `N_max(Σ) ≤ 3` makes every slot `> 3`
-> uniformly empty (RE-arity) and the empty-slot-in-position discipline supplies any missing
-> standard slot. Gregory's store, capped at three endsets per link (ST-CREATE-LINK,
-> INT-SPORGL-LINK-INDEX), lies wholly inside this sub-class, so its three-slot emission meets
-> the contract for every store it can represent. The abstract operation extends the same
-> contract — soundness, completeness, exactness, role separation — to the higher-arity links L3
-> admits, which Gregory's representation simply cannot construct.
+> *non-empty* sub-class of stores whose links are all arity 3 — where L3 forces `N_max(Σ) = 3`
+> exactly, so the three emitted slots *are* the `N_max(Σ)`-length tuple RE-arity requires, with
+> any role of count zero reported in position as the empty set. The *empty* store is the one
+> representable state that falls outside even this sub-class. It satisfies "all links arity 3"
+> vacuously and is reachable — indeed it is the initial state `L₀ = ∅` (ASN-0047) — yet there
+> RE-arity and RE-zero fix `N_max(Σ) = 0` and mandate the *empty* tuple `⟨⟩`, whereas a fixed
+> three-slot emission yields `⟨∅, ∅, ∅⟩` of length 3. The two differ, and the
+> empty-slot-in-position discipline does *not* close the gap: that discipline fills only
+> positions *within* `1..N_max(Σ)`, and at `N_max(Σ) = 0` there are no positions to fill, so it
+> supplies nothing. (Because L3 forces `N_max(Σ) ≥ 3` on every non-empty store, the empty store
+> is the precise and sole point of divergence.) Gregory's store, capped at three endsets per
+> link (ST-CREATE-LINK, INT-SPORGL-LINK-INDEX), lies wholly inside the all-arity-3 class, so its
+> three-slot emission meets the contract on every *non-empty* store it can represent; only on the
+> empty initial store does its `⟨∅, ∅, ∅⟩` diverge from the spec's `⟨⟩`. The abstract operation
+> extends the same contract — soundness, completeness, exactness, role separation — to the
+> higher-arity links L3 admits, which Gregory's representation simply cannot construct.
 
 ## The returned endset is whole, not clipped
 
@@ -571,7 +582,7 @@ it among the open questions.
 | RE-sound | `resultᵢ ⊆ Eᵢ` — no returned endset fails to touch `I` | introduced |
 | RE-complete | `Eᵢ ⊆ resultᵢ` — every touching endset returned, none omitted | introduced |
 | RE-exact | `resultᵢ(I, Σ) = Eᵢ(I, Σ)` | introduced |
-| RE-conform | a fixed three-slot implementation (Gregory's) realizes `retrieveendsets` exactly on arity-3 stores; higher-arity slots `> 3` are required by RE-complete on stores L3 admits | introduced |
+| RE-conform | a fixed three-slot implementation (Gregory's) realizes `retrieveendsets` exactly on *non-empty* arity-3 stores (the empty store excepted: spec mandates `⟨⟩`, fixed emission gives `⟨∅,∅,∅⟩`); higher-arity slots `> 3` are required by RE-complete on stores L3 admits | introduced |
 | RE-full | the returned endset is the whole stored `Σ.L(a).eᵢ`, not clipped to `I` | introduced |
 | RE-anon | result does not determine the contributing link addresses, nor their count (via L11b) | introduced |
 | RE-reveal | result reveals per-role connectivity; per-link from/to/type pairing not guaranteed recoverable in general (trivially recoverable in degenerate single-touching-link states; precise boundary deferred to OQ3) | introduced |
