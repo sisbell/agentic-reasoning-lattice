@@ -433,47 +433,28 @@ link→link target — the construction underlying compound and faceted structur
 
 *An orphaned instance (RL8).* Suppose that at state `Σ` no document arrangement maps any
 V-position to the three content I-addresses lying within `coverage(F)` — the connected content is
-arranged nowhere. To conclude `discoverable_from(a, d, Σ)` is false for *every* `d`, we must
-dispatch all three slots, since discoverability quantifies over slots (LP12, ASN-0098:
-`⟺ (E i : coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅)`). *Slot 1 (from):* the supposition speaks only
-of the three content I-addresses, yet `coverage(F)` is infinite (it contains the whole subtrees
-beneath the span starts), so the step to `coverage(F) ∩ ran(Σ.M(d)) = ∅` needs those three to
-*exhaust* `coverage(F) ∩ (dom(Σ.C) ∪ dom(Σ.L))`. They do, on both stores. For the content store:
-every content address has element-field depth exactly two — each sub-allocator emission satisfies
-`#E = 2` (ChainDiscipline / FirstEmission, ASN-0093) — so no `dom(Σ.C)` member lies *deeper* in the
-subtrees beneath `…1.1`, `…1.2` under `d₁` or `…1.1` under `d₂`; the only content addresses inside
-the coverage intervals are the three named, and `coverage(F) ∩ dom(Σ.C)` is exactly that triple,
-unarranged by hypothesis. For the link store we restrict to the members that actually meet T7's
-precondition: suppose `t ∈ coverage(F) ∩ dom(Σ.L)`. By L1, `zeros(t) = 3`, so `t` is element-level
-and T4-valid and `subspace_I(t)` is defined (`subspace_I` is undefined on the deeper, non-T4-valid
-extensions in `coverage(F)`, which is why the universal must be taken over this intersection, not over
-all of `coverage(F)`). Being an element-level tumbler inside one of `F`'s coverage intervals, `t`
-extends a span start whose element field begins with `1 = s_C`, so `subspace_I(t) = s_C`; but L0 gives
-`subspace_I(t) = s_L` for every `dom(Σ.L)` member. With `zeros(t) = 3` on both readings and
-`s_C ≠ s_L`, T7 (SubspaceDisjointness, ASN-0034) makes the two incompatible, so no such `t` exists and
-`coverage(F) ∩ dom(Σ.L) = ∅`. Since `ran(Σ.M(d)) ⊆ dom(Σ.C) ∪
-dom(Σ.L)` (S3★, ASN-0047), the unarranged content triple and the empty link intersection together
-give `coverage(F) ∩ ran(Σ.M(d)) = ∅` for every `d`. *Slot 2 (to):* `G = ∅`, so `coverage(∅) = ∅`
-and the slot is trivially unwitnessed.
-*Slot 3 (type):* `coverage(Θ) = {t : [1.0.1.0.9.0.1.1] ≼ t}` is a non-empty (indeed infinite)
-address set, and we must show it meets *neither* store. For the content store: the ghost document
-`[1.0.1.0.9]` hosts no content, so `coverage(Θ) ∩ dom(Σ.C) = ∅`. For the link store the argument is
-by subspace, not by absence of content, and again restricts to the members meeting T7's precondition:
-suppose `t ∈ coverage(Θ) ∩ dom(Σ.L)`. By L1, `zeros(t) = 3`, so `subspace_I(t)` is defined (the
-deeper extensions in `coverage(Θ)` with `zeros > 3` are not T4-valid and carry no `subspace_I`, so the
-intersection — not the whole subtree — is the right quantifier domain). Being element-level and inside
-the subtree beneath the start `[1.0.1.0.9.0.1.1]`, whose element field begins with `1 = s_C`, `t` has
-`subspace_I(t) = s_C`, while L0 gives `subspace_I(t) = s_L` for every `dom(Σ.L)` member. With
-`zeros(t) = 3` on both readings and `s_C ≠ s_L`, T7 (SubspaceDisjointness, ASN-0034) makes the two
-incompatible, so no such `t` exists and `coverage(Θ) ∩ dom(Σ.L) = ∅`, independent of whether
-`[1.0.1.0.9]` hosts anything. With `coverage(Θ)` meeting neither store, and every arrangement range lying in
-`dom(Σ.C) ∪ dom(Σ.L)` (S3★, ASN-0047), `coverage(Θ) ∩ ran(Σ.M(d)) = ∅` for every `d`. With all three slots
-unwitnessed, `discoverable_from(a, d, Σ)` is false for every `d`, and the link is orphaned (cf. the
-ghost-projection situation, ASN-0098). A *follow* of `F` against any arrangement would resolve to
-the empty set, and a *search* would find nothing to match. The direct read is unaffected: it
-consults only `Σ.L`, so `readlink(a, Σ) = (F, ∅, Θ)` still returns the complete structure. The
-read thus distinguishes *the relationship is unwitnessed* (true here) from *the relationship is
-gone* (false — `a ∈ dom(Σ.L)` and its value is fixed by L12 / LP13).
+arranged nowhere. Discoverability quantifies over slots (LP12, ASN-0098:
+`discoverable_from(a, d, Σ) ⟺ (E i : coverage(Σ.L(a).eᵢ) ∩ ran(Σ.M(d)) ≠ ∅)`), so we dispatch all
+three. We do not re-derive here which substrate addresses each coverage interval contains: every
+span of `F` and of `Θ` is a *canonical* span whose start lies in the substrate-emittable set, so
+LP-Fin Corollary (CanonicalIntervalCharacterisation, ASN-0098) fixes `coverage ∩ (dom(Σ.C) ∪
+dom(Σ.L))` to the span's own sub-allocator chain — every such member carries the start's subspace
+identifier and origin. Each start here sits under subspace `s_C`, while every `dom(Σ.L)` member
+carries `s_L` (L0, ASN-0093); the two are disjoint, so the link store meets neither coverage:
+`coverage(F) ∩ dom(Σ.L) = coverage(Θ) ∩ dom(Σ.L) = ∅`. *Slot 1 (from):* by the same corollary,
+`coverage(F) ∩ dom(Σ.C)` is exactly the three named chain-member I-addresses, unarranged by
+hypothesis; with the link store empty and every arrangement range confined to `dom(Σ.C) ∪ dom(Σ.L)`
+(LP20 RangeConfinement, ASN-0098, via S3★ of ASN-0047), `coverage(F) ∩ ran(Σ.M(d)) = ∅` for every
+`d`. *Slot 2 (to):* `G = ∅`, so `coverage(∅) = ∅` and the slot is trivially unwitnessed. *Slot 3
+(type):* the ghost document `[1.0.1.0.9]` hosts no content, so `coverage(Θ) ∩ dom(Σ.C) = ∅`; with
+the link store also disjoint (above), `coverage(Θ) ∩ ran(Σ.M(d)) = ∅` for every `d`, independent of
+whether `[1.0.1.0.9]` hosts anything. With all three slots unwitnessed, `discoverable_from(a, d, Σ)`
+is false for every `d`, and the link is orphaned — exactly the ghost-projection situation (LP17,
+ASN-0098). A *follow* of `F` against any arrangement would resolve to the empty set, and a *search*
+would find nothing to match. The direct read is unaffected: it consults only `Σ.L`, so
+`readlink(a, Σ) = (F, ∅, Θ)` still returns the complete structure. The read thus distinguishes *the
+relationship is unwitnessed* (true here) from *the relationship is gone* (false — `a ∈ dom(Σ.L)` and
+its value is fixed by L12 / LP13).
 
 ## Claims Introduced
 
