@@ -92,9 +92,7 @@ We borrow the span machinery wholesale. A span `σ = (s, ℓ)` denotes the half-
 canonical pure depth-`m` shift, and `shift(t, n) = t ⊕ δ(n, #t)` advances `t`'s last
 component by `n`. A *span-set* is a finite sequence of spans denoting the union of its
 members; it is *normalized* when sorted and separated (ASN-0053). We measure the document
-as a span-set, one member per kind; content delivery, region reads, the single overall
-bound (RETRIEVEDOCVSPAN), and the counting and discovery of individual links are out of
-scope.
+as a span-set, one member per kind.
 
 ---
 
@@ -173,9 +171,7 @@ The derivation is direct. `⟦ext(d, S)⟧ = {t : start_S ≤ t < [S,1,…,1,1+n
 positive. The bounds `start_S = [S,1,…,1]` and `reach = [S,1,…,1,1+n_S]` share the common
 prefix `[S,1,…,1]` of length `m_S − 1`, so by T5 (ContiguousSubtrees), applied with
 `start_S ≤ t < reach`, every interior `t` extends that prefix — its first `m_S − 1`
-components are pinned to `[S,1,…,1]`. (The lower bound `start_S ≤ t` alone does *not* force
-this: lexicographic order is not componentwise order, e.g. `[S,2,1] ≥ [S,1,1]` despite its
-off-prefix second component; the confinement is the joint effect of both bounds via T5.) The
+components are pinned to `[S,1,…,1]`. The
 only remaining freedom is in the last component, which the half-open bounds then pin to
 `1 ≤ t_{m_S} ≤ n_S`. These are exactly the elements
 `[S,1,…,1,k]` with `1 ≤ k ≤ n_S` — which is `V_S(d)` by D-SEQ★. So the span omits no active
@@ -196,13 +192,7 @@ implicit in the boundary, and made explicit only because the subspace is contigu
 level-uniform span `σ` of subspace `S` at depth `m` satisfying
 `⟦σ⟧ ∩ VSlice(S, m) = V_S(d)` *if and only if* `V_S(d)` is contiguous in `VSlice(S, m)` —
 i.e. `V_S(d)` contains every V-slice tumbler lying (under T1) between its own minimum and
-maximum. The existential is essential: the forward direction asserts that contiguity
-*permits* an exact span (a poorly chosen `σ` may overshoot even when `V_S(d)` is
-contiguous), while the converse asserts that non-contiguity *defeats every* `σ`.
-
-The non-emptiness hypothesis excludes empty `V_S(d)`, which W5 does not cover and W0 handles
-separately — an allocated document empty in a counted subspace contributes *no member* for
-that subspace (and `⟨⟩` overall when both are empty).
+maximum.
 
 The *forward* direction (contiguous ⟹ a single exact span exists) holds for *any* contiguous
 `V_S(d)`, not only the canonical run D-CTG★/D-MIN★ produce — and so it cannot simply cite W4,
@@ -596,9 +586,7 @@ number. Two foundation facts close the gap. CL-OWN restricts `V_{s_L}(d)` to the
 contributes nothing to `V_{s_L}(d)` and cannot perturb the reported link extent. CL-UNIQ makes
 `M(d)` restricted to `V_{s_L}(d)` injective — each home link occupies *exactly one*
 link-subspace V-position — so the correspondence between `d`'s home links and `V_{s_L}(d)` is a
-bijection and `|V_{s_L}(d)|` counts home links exactly. (Without CL-UNIQ a single link
-occupying two V-positions would double-count, and the member would not indicate the number of
-links at all.) The content side carries the analogous guarantee through different premises:
+bijection and `|V_{s_L}(d)|` counts home links exactly. The content side carries the analogous guarantee through different premises:
 each content V-position carries exactly one I-address (S2) drawn from `dom(C)` (S3★), so
 `n_{s_C}(d) = |V_{s_C}(d)|` is the number of content positions — faithful by functionality and
 referential integrity, while the link side rests on CL-OWN and CL-UNIQ. The stability the report
@@ -616,7 +604,7 @@ and needs none.
 | W2 | `ext(d, S) = ([S,1,…,1], δ(n_S, m_S))` is the extent span encoding `n_S` | introduced |
 | W3 | `ext(d, S)` is a well-formed, level-uniform T12 span with `reach = [S,1,…,1,1+n_S]` | introduced |
 | W4 | ExactCoverage — `⟦ext(d, S)⟧ ∩ VSlice(S, m_S) = V_S(d)` (complete and exclusive) | introduced |
-| W5 | ExactnessRequiresContiguity — *for `V_S(d) ≠ ∅`*, a single level-uniform span exactly covers `V_S(d)` iff `V_S(d)` is contiguous in `VSlice(S, m)`; forward by constructing the span at the run's *actual* minimum (T0(a)+S8-fin pin a shared prefix, T5 confines the interior), converse by order-convexity (counterexample `{[S,1],[S,3]}`); the empty case is excluded (no span denotes `∅`, S2) and handled by W0 | introduced |
+| W5 | ExactnessRequiresContiguity — *for `V_S(d) ≠ ∅`*, a single level-uniform span exactly covers `V_S(d)` iff `V_S(d)` is contiguous in `VSlice(S, m)`; forward by constructing the span at the run's *actual* minimum (T0(a)+S8-fin pin a shared prefix, T5 confines the interior), converse by order-convexity (counterexample `{[S,1],[S,3]}`) | introduced |
 | W6 | `occupied(d) = {S ∈ {s_C, s_L} : V_S(d) ≠ ∅}` | introduced |
 | W7 | OneSpanPerOccupiedSubspace — result has exactly `|occupied(d)|` members, one per kind, not per fragment or item | introduced |
 | W8 | PureQuery — `Σ' = Σ`; the operation reads and writes nothing | introduced |
