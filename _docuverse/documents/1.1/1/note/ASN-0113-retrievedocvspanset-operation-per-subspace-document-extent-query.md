@@ -186,37 +186,19 @@ between the last component of `reach` and that of `start_S`. This is how a span-
 "indicates the number" (4/68) without designating a number directly (4/24): the magnitude is
 implicit in the boundary, and made explicit only because the subspace is contiguous.
 
-**Exactness is contingent on contiguity.** The single covering span is exact *only because*
-`V_S(d)` is a contiguous run (D-CTG★). We record **W5** (ExactnessRequiresContiguity), *under the hypothesis*
-`V_S(d) ≠ ∅`: *there exists* a single
+**Exactness is contingent on contiguity.** We record **W5** (ExactnessRequiresContiguity),
+*under the hypothesis* `V_S(d) ≠ ∅`: *there exists* a single
 level-uniform span `σ` of subspace `S` at depth `m` satisfying
 `⟦σ⟧ ∩ VSlice(S, m) = V_S(d)` *if and only if* `V_S(d)` is contiguous in `VSlice(S, m)` —
 i.e. `V_S(d)` contains every V-slice tumbler lying (under T1) between its own minimum and
 maximum.
 
-The *forward* direction (contiguous ⟹ a single exact span exists), *for the operation as
-specified*, is immediate from W4. D-MIN★ holds at every reachable state, so the run `V_S(d)`
-is always canonically anchored at `[S,1,…,1]`; its covering span is exactly `ext(d, S)`, which
-W4 already proves exact. The canonically-anchored run is the only configuration the in-spec
-operation ever encounters, and W4 disposes of it.
-
-The *general* statement — that *any* contiguous `V_S(d)`, canonically anchored or not, admits
-some single exact span — is strictly stronger than the operation requires; D-MIN★ excludes a
-non-canonical anchor, so this is not a live case for the operation. We record it only to support
-the open question on relaxing D-CTG★ below, and confine it to that hypothetical. The sketch:
-for a contiguous run with arbitrary minimum `a = min(V_S(d))` and maximum `b = max(V_S(d))`
-under T1 (both well-defined — `V_S(d)` finite by S8-fin, totally ordered by T1), every element
-lies in `VSlice(S, m)`, sharing depth `m`, first component `S`, and zero-freeness; write
-`a = [S, a_2, …, a_m]`. The whole run shares the prefix `[S, a_2, …, a_{m−1}]` and varies only
-in the last component: were two elements to diverge at an interior position `i < m`, then
-between them under T1 would lie *all* V-slice tumblers obtained by raising the last component
-without bound — infinitely many, since component values are unbounded (T0(a)) — each forced
-into `V_S(d)` by contiguity, contradicting finiteness (S8-fin). Hence
-`σ = (a, δ(n_S, m))` is level-uniform and T12-well-formed (OrdinalDisplacement, ASN-0034:
-`δ(n_S, m)` positive with action point `m = #a`), and T5 on the shared prefix
-`[S, a_2, …, a_{m−1}]` pins `⟦σ⟧ ∩ VSlice(S, m) = V_S(d)`. This `σ` coincides with `ext(d, S)`
-precisely when `a = [S,1,…,1]` — which D-MIN★ guarantees in the docuverse, so the W4 span
-always serves and the general construction is never exercised in-spec.
+The *forward* direction (contiguous ⟹ a single exact span exists) is immediate from W4:
+D-MIN★ holds at every reachable state, so the run `V_S(d)` is always canonically anchored at
+`[S,1,…,1]`, and its covering span is exactly `ext(d, S)`, which W4 proves exact. (The
+strictly stronger claim — that an *arbitrarily*-anchored contiguous run also admits some
+single exact span — is not exercised by the operation, since D-MIN★ excludes a non-canonical
+anchor; it bears only on the D-CTG★-relaxation open question below.)
 
 The *converse* (non-contiguous ⟹ no single span is exact) we establish by the structure of
 the argument, then exhibit concretely. Suppose `V_S(d)` is *not* contiguous: there exist
@@ -236,10 +218,10 @@ which strictly contains `V_S(d)` precisely because `[S,2]` is admitted. So
 `⟦σ*⟧ ∩ VSlice(S, 2) ⊋ V_S(d)`: even the tightest single span is inexact, confirming the
 converse.
 
-The docuverse maintains contiguity as an invariant (D-CTG★), so under well-formed editing the
-one-span-per-subspace report is exact; the converse just established records that this exactness
-genuinely *depends* on D-CTG★ rather than holding unconditionally. Whether relaxing that
-invariant would oblige the operation to fragment is taken up in the open questions below.
+The converse just established is the dependency claim: exactness genuinely *rests* on D-CTG★
+rather than holding unconditionally. The docuverse maintains D-CTG★ as an invariant, so under
+well-formed editing the one-span-per-subspace report is exact. Whether relaxing that invariant
+would oblige the operation to fragment is taken up in the open questions below.
 
 ---
 
@@ -289,7 +271,7 @@ Since `RETRIEVEDOCVSPANSET` is a pure query whose result is `⟨ ext(d, S) : S �
 (W7), its cardinality is `|occupied(d)|`, and `occupied(d)` is fixed by which of `V_{s_C}(d)`,
 `V_{s_L}(d)` is non-empty (W6). Computing the weakest precondition for each result-shape
 postcondition — and conjoining W-pre, since outside `dom(M)` the result is undefined rather
-than `⟨⟩` — we record **W20** (ResultCardinalityWP). The empty result:
+than `⟨⟩` — we record **W19** (ResultCardinalityWP). The empty result:
 
 > `wp(RETRIEVEDOCVSPANSET(d), "result = ⟨⟩") ≡ d ∈ dom(M) ∧ V_{s_C}(d) = ∅ ∧ V_{s_L}(d) = ∅`.
 
@@ -599,7 +581,7 @@ and needs none.
 | W2 | `ext(d, S) = ([S,1,…,1], δ(n_S, m_S))` is the extent span encoding `n_S` | introduced |
 | W3 | `ext(d, S)` is a well-formed, level-uniform T12 span with `reach = [S,1,…,1,1+n_S]` | introduced |
 | W4 | ExactCoverage — `⟦ext(d, S)⟧ ∩ VSlice(S, m_S) = V_S(d)` (complete and exclusive) | introduced |
-| W5 | ExactnessRequiresContiguity — *for `V_S(d) ≠ ∅`*, a single level-uniform span exactly covers `V_S(d)` iff `V_S(d)` is contiguous in `VSlice(S, m)`; forward direction in-spec is immediate from W4 under D-MIN★ (canonical anchor); the general non-canonical-anchor construction exceeds what the operation requires and is confined to the D-CTG★-relaxation hypothetical; converse by order-convexity (counterexample `{[S,1],[S,3]}`) | introduced |
+| W5 | ExactnessRequiresContiguity — *for `V_S(d) ≠ ∅`*, a single level-uniform span exactly covers `V_S(d)` iff `V_S(d)` is contiguous in `VSlice(S, m)` | introduced |
 | W6 | `occupied(d) = {S ∈ {s_C, s_L} : V_S(d) ≠ ∅}` | introduced |
 | W7 | OneSpanPerOccupiedSubspace — result has exactly `|occupied(d)|` members, one per kind, not per fragment or item | introduced |
 | W8 | PureQuery — `Σ' = Σ`; the operation reads and writes nothing | introduced |
@@ -613,7 +595,7 @@ and needs none.
 | W16 | Partition — the members disjointly cover exactly the counted active V-positions; no orphan, no phantom | introduced |
 | W17 | ExtentDeterminesPopulation — each V-slice position within `ext(d, S)` carries content (`M(d)(v) ∈ dom(C)`/`dom(L)`, S3★); one step beyond W4's coverage equality | introduced |
 | W18 | DerivedReport — the result is a pure function of current state `Σ`; it changes only when `M(d)` changes; `n_{s_L} = |V_{s_L}(d)|` counts home links exactly (CL-OWN restricts to own links, CL-UNIQ gives the bijection), `n_{s_C}` counts content positions by functionality alone (S2/S3★) | introduced |
-| W20 | ResultCardinalityWP — `wp(·, "result = ⟨⟩") ≡ d ∈ dom(M) ∧ V_{s_C}(d) = ∅ ∧ V_{s_L}(d) = ∅`; `wp(·, "|result| = 2") ≡ d ∈ dom(M) ∧ V_{s_C}(d) ≠ ∅ ∧ V_{s_L}(d) ≠ ∅`; `wp(·, "|result| = 1") ≡ d ∈ dom(M) ∧ (V_{s_C}(d) = ∅ ⊻ V_{s_L}(d) = ∅)` | introduced |
+| W19 | ResultCardinalityWP — `wp(·, "result = ⟨⟩") ≡ d ∈ dom(M) ∧ V_{s_C}(d) = ∅ ∧ V_{s_L}(d) = ∅`; `wp(·, "|result| = 2") ≡ d ∈ dom(M) ∧ V_{s_C}(d) ≠ ∅ ∧ V_{s_L}(d) ≠ ∅`; `wp(·, "|result| = 1") ≡ d ∈ dom(M) ∧ (V_{s_C}(d) = ∅ ⊻ V_{s_L}(d) = ∅)` | introduced |
 
 ---
 
