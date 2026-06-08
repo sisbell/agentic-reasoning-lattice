@@ -44,15 +44,13 @@ precondition (**W-pre**):
 
 This is necessary because only `Document(e)` events extend `dom(M)` (ASN-0047, K.δ): for
 `d ∉ dom(M)`, `M(d)` is undefined, so `O(d)`, `V_S(d)`, `occupied(d)`, and every derived
-quantity below are *undefined* — not empty. The distinction is sharp and must not be
-collapsed. An *allocated empty* document (`d ∈ dom(M)`, `M(d) = ∅`) legitimately yields the
-empty span-set `⟨⟩` (a defined result; see W0). An *unallocated* identity (`d ∉ dom(M)`) is
-*outside the operation's domain*: it has no defined result, and a faithful implementation
-signals failure rather than fabricating `⟨⟩`. Gregory's back end confirms the separation
-operationally — an existing-but-empty document returns the empty span-set with success,
-whereas a never-allocated identity fails and the back end signals failure rather than an
-empty result (consultation). All postconditions below are stated under W-pre; we make no
-claim about unallocated `d`.
+quantity below are *undefined* — not empty. An *allocated empty* document (`d ∈ dom(M)`,
+`M(d) = ∅`) legitimately yields the empty span-set `⟨⟩` (a defined result; see W0). An
+*unallocated* identity (`d ∉ dom(M)`) is *outside the operation's domain*: it has no defined
+result, and a faithful implementation signals failure rather than fabricating `⟨⟩`. Gregory's
+back end confirms the separation operationally — an existing-but-empty document returns the
+empty span-set with success, whereas a never-allocated identity fails and the back end
+signals failure rather than an empty result (consultation).
 
 We write
 
@@ -406,10 +404,7 @@ is reachable (count `0` by performing zero extensions of that kind). To witness 
 and vary the text extent — is witnessed by the *same two recipes* with only the varying axis
 changed.
 
-This is why the profile distinguishes documents that
-one axis cannot tell apart: high text with near-zero links is original prose; near-zero text
-with high link count is a purely connective document — a link-set, an annotation layer; both
-substantial is a compound collage. The span-set is the report that returns *both* halves of
+The span-set is the report that returns *both* halves of
 what a document is — its content and its connections — in one observation.
 
 ---
@@ -605,25 +600,21 @@ the document unchanged? We find that *no primitive permanence attaches to the re
 The span-set is a *derived view* of the current arrangement. Its members are computed from
 `V_{s_C}(d)` and `V_{s_L}(d)`, which editorial operations reshape: an insertion grows the
 text run, a deletion shrinks it, a new link extends the link run. The reported extents are
-properties of the *present* arrangement, not permanent attributes of the identity. We record
-**W18** (DerivedReport): `RETRIEVEDOCVSPANSET(d)` is a pure function of the current state
-`Σ` (by W8), so any two queries against the *same* `Σ` return identical span-sets, and any
-query against a *changed* `Σ` may legitimately differ.
+properties of the *present* arrangement, not permanent attributes of the identity.
 
 Permanence is therefore *inherited, not primitive* — it descends from the stability of the
-state, not from any property the operation contributes. If no transition occurs between two
-queries, `M(d)` is unchanged, so `V_{s_C}(d)` and `V_{s_L}(d)` are fixed, hence each `n_S` is
-a deterministic function of fixed data, hence the report cannot change. (We make no claim
-that arrangements are immutable in general: the foundation's vocabulary includes in-place
-arrangement mutations — K.μ⁻ contracts and K.μ~ reorders an existing `M(d)`, ASN-0047 — so a
-document's extents *can* change under editing. What the report cannot do is change while the
-state it views stands still.) We record **W19** (StateStability): against an unchanged state
-`Σ`, repeated queries return identical span-sets; a later report contradicts an earlier one
-only if `M(d)` changed in between. The link
-count is specifically the count of *home* links — links the document owns (CL-OWN) — so a
-third party linking *into* the document, owning its link at another address, cannot perturb
-the document's reported link extent. The stability the report enjoys is exactly the stability
-of the arrangement it views; the operation adds none of its own and needs none.
+state, not from any property the operation contributes. We record **W18** (DerivedReport):
+`RETRIEVEDOCVSPANSET(d)` is a pure function of the current state `Σ` (by W8), so any two
+queries against the *same* `Σ` return identical span-sets; the report changes only when
+`M(d)` changes — a later report contradicts an earlier one only if some transition reshaped
+`M(d)` in between. (We make no claim that arrangements are immutable in general: the
+foundation's vocabulary includes in-place arrangement mutations — K.μ⁻ contracts and K.μ~
+reorders an existing `M(d)`, ASN-0047 — so a document's extents *can* change under editing.
+What the report cannot do is change while the state it views stands still.) The link count is
+specifically the count of *home* links — links the document owns (CL-OWN) — so a third party
+linking *into* the document, owning its link at another address, cannot perturb the
+document's reported link extent. The stability the report enjoys is exactly the stability of
+the arrangement it views; the operation adds none of its own and needs none.
 
 ---
 
@@ -649,15 +640,14 @@ of the arrangement it views; the operation adds none of its own and needs none.
 | W15 | Independence — `n_{s_C}` depends only on `V_{s_C}(d)`, `n_{s_L}` only on `V_{s_L}(d)`; subspace edits do not cross | introduced |
 | W16 | Partition — the members disjointly cover exactly the counted active V-positions; no orphan, no phantom | introduced |
 | W17 | ExtentDeterminesPopulation — active positions of `S` are exactly the V-slice tumblers within `ext(d, S)`, each carrying content | introduced |
-| W18 | DerivedReport — the result is a pure function of current state `Σ` | introduced |
-| W19 | StateStability — against an unchanged state the report is permanent; it changes only if `M(d)` changes; the link extent counts home links only | introduced |
+| W18 | DerivedReport — the result is a pure function of current state `Σ`; it changes only when `M(d)` changes; the link extent counts home links only (CL-OWN) | introduced |
 | W20 | ResultCardinalityWP — `wp(·, "result = ⟨⟩") ≡ d ∈ dom(M) ∧ V_{s_C}(d) = ∅ ∧ V_{s_L}(d) = ∅`; `wp(·, "|result| = 2") ≡ d ∈ dom(M) ∧ V_{s_C}(d) ≠ ∅ ∧ V_{s_L}(d) ≠ ∅`; `wp(·, "|result| = 1") ≡ d ∈ dom(M) ∧ (V_{s_C}(d) = ∅ ⊻ V_{s_L}(d) = ∅)` | introduced |
 
 ---
 
 ## Open Questions
 
-When a subspace's active positions are non-contiguous, must the per-subspace report fragment into one span per contiguous cluster, or may it return a single bounding span that overshoots interior gaps?
+W5 settles that faithful coverage of a non-contiguous subspace requires fragmentation, but the docuverse maintains D-CTG★ so the case never arises under well-formed editing; should a foundation extension ever relax D-CTG★, is the operation itself obligated to emit the fragmented span-set, or may it report Gregory's single bounding span and leave faithful interpretation of interior gaps to the caller?
 
 Given that the operation omits an empty subspace entirely (W7) and comparison treats an absent subspace as the value zero (W14), how must a *consumer* interpret an omitted member when comparing reports across documents of differing vintages — under what conditions is "subspace absent" safely read as "extent zero" rather than "subspace not yet supported"?
 
