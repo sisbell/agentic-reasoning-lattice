@@ -151,9 +151,11 @@ Write the copied address set `A = {a_j + i : 1 ≤ j ≤ k, 0 ≤ i < n_j}`. Eve
 
 **X17 (InvariantPreservation).** COPY maintains every invariant `ValidComposite★` (ASN-0047) binds at its post-state: the per-state `ExtendedReachableStateInvariants` conjunction (including P7), the composite-boundary properties P4★/P4a/P7a, and the transition theorem P3. We discharge them below.
 
+*Composite-boundary reading.* Although COPY is a single elementary transition (X15), the singleton sequence consisting of that one transition is a valid composite by `ValidComposite★`'s definition (a finite sequence of atomic transitions). We therefore read COPY's pre-state as the composite's initial boundary `Σ_0 = Σ` and its post-state `Σ'` as the final composite boundary. This is the reading the range routing and the composite-boundary properties below rely on.
+
 By (SL), COPY's provenance write is *unconditional* — it records `(a, d)` for every `a ∈ A`, whether or not `a` was already content-subspace-range-resident in `d`. The remaining coupling J0 is vacuous by X1 (COPY allocates nothing), so only J1★/J1'★ require routing.
 
-**Range routing (RR).** Read the standalone COPY as a composite with initial boundary `Σ_0 = Σ` and final boundary `Σ'` (as at X15). The post-state content-subspace range partitions as
+**Range routing (RR).** Under the composite-boundary reading above, with initial boundary `Σ_0 = Σ` and final boundary `Σ'`, the post-state content-subspace range partitions as
 
 `ran_{s_C}(Σ'.M(d)) = ran_{s_C}(Σ.M(d)) ∪ A`,
 
@@ -179,7 +181,7 @@ COPY writes new pairs into `Σ.R`, so it discharges the per-state invariant **P7
 - *S8-fin.* `dom(Σ'.M(d)) = dom(Σ.M(d)) ∪ {copied positions}` adds exactly `W = (+ j : 1 ≤ j ≤ k : n_j) < ∞` positions to the finite pre-state domain (S8-fin at `Σ`), hence remains finite.
 - *S8★ (PerSubspaceSpanDecomposition).* Re-established for the modified subspace: `Σ'.M(d)|_{V_{s_C}(d)}` is functional (S2, X16), finite-domain (S8-fin), and contiguous at the single common depth `m` (D-CTG★/D-SEQ★, X16) mapping into `dom(Σ'.C)` (S3★) — precisely ASN-0036's S8 hypotheses — so it decomposes, with `B_copy` plus the displaced and unmoved runs as witnessing runs; the link-subspace projection `Σ'.M(d)|_{V_{s_L}(d)}` is unmoved and carries its pre-state length-1 decomposition forward.
 
-Because a standalone COPY is itself a valid composite (read its pre-state as the composite's initial boundary `Σ_0 = Σ`, making the post-state `Σ'` a composite boundary), `ExtendedReachableStateInvariants` further demands the **composite-boundary properties P4★, P4a, P7a** at `Σ'`.
+Under the composite-boundary reading above, `ExtendedReachableStateInvariants` further demands the **composite-boundary properties P4★, P4a, P7a** at the composite boundary `Σ'`.
 
 - *P4★ (`Contains_C(Σ') ⊆ R'`).* Take `(a, d') ∈ Contains_C(Σ')`. If `d' ≠ d`, the frame `Σ'.M(d') = Σ.M(d')` gives `(a, d') ∈ Contains_C(Σ)`, whence pre-state P4★ places it in `R` and P2 (`R ⊆ R'`) in `R'`. If `d' = d`, then `a ∈ ran_{s_C}(Σ'.M(d))`, and RR routes `(a, d)` into `R'` by its carried or recorded route. Either way `(a, d') ∈ R'`.
 - *P7a (`(A a ∈ dom(Σ'.C) :: (E d' :: (a, d') ∈ R'))`).* By X1, `dom(Σ'.C) = dom(Σ.C)`; pre-state P7a furnishes each such `a` a record `(a, d') ∈ R`, carried into `R'` by P2. COPY's new records only enlarge the coverage, so every content address retains at least one provenance entry.
