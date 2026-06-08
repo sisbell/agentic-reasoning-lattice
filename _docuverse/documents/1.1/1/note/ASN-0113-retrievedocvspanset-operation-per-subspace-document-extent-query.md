@@ -352,9 +352,7 @@ kind `S` exactly when `V_S(d) = ∅`, which is exactly when `n_S(d) = |V_S(d)| =
 missing member can only ever signify an empty subspace. Hence for any two allocated documents
 `d₁, d₂` the per-kind comparison `n_S(d₁)` versus `n_S(d₂)` is well-defined over the *entire*
 fixed kind-list — comparing like with like, text-extent to text-extent and link-extent to
-link-extent — *provided both reports range over the same kind-list*. What a consumer must do
-when that provision fails — reports of differing vintages whose kind-lists may themselves
-differ — is the subject of an open question below.
+link-extent — *provided both reports range over the same kind-list*.
 
 ---
 
@@ -508,7 +506,7 @@ where an off-prefix, admissible-last-component tumbler must be — and is — ex
 
 W4's single-span exactness rests on the standing D-CTG★ contiguity invariant (a non-contiguous subspace would, by order-convexity, force a single covering span to admit inactive interior tumblers — so faithful coverage would then require a fragmented span-set); should a foundation extension ever relax D-CTG★, what must the operation guarantee — is it obligated to emit the fragmented span-set, or may it report Gregory's single bounding span and leave faithful interpretation of interior gaps to the caller?
 
-Given that the operation omits an empty subspace entirely (W7) and comparison treats an absent subspace as the value zero (W14), how must a *consumer* interpret an omitted member when comparing reports across documents of differing vintages — under what conditions is "subspace absent" safely read as "extent zero"? (This is the consumer-side reading; the operation-side counterpart — what the operation must guarantee so the kind-list stays fixed and reports stay comparable when the convention is extended — is the final open question below.)
+Given that the operation omits an empty subspace entirely (W7) and comparison treats an absent subspace as the value zero (W14), how must a *consumer* interpret an omitted member when comparing reports across documents of differing vintages — under what conditions is "subspace absent" safely read as "extent zero"?
 
 What permanence must the per-subspace extent report carry across a version fork that shares content with its ancestor?
 
