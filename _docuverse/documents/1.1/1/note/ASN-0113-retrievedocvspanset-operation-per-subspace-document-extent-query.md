@@ -123,9 +123,7 @@ either counted subspace. We record this as **W0** (span-set-valued result): for 
 never a content sequence and never a cardinality; for an allocated document that is *empty in
 both counted subspaces* (`d ∈ dom(M)` with `V_{s_C}(d) = V_{s_L}(d) = ∅`) it returns `⟨⟩`,
 the distinguished value denoting `∅` (which is not a T12 span, since every well-formed span
-is non-empty — S2, ASN-0053). This `⟨⟩` is the report of an *allocated but empty* document; it
-is *not* the behavior on an unallocated identity, which W-pre places outside the operation's
-domain (and which the implementation answers with the failure marker, not `⟨⟩`). The caller reads each member to learn the extent of one kind of
+is non-empty — S2, ASN-0053). The caller reads each member to learn the extent of one kind of
 content; the content itself, and the identity of individual links, are the business of other
 operations.
 
@@ -392,40 +390,21 @@ and symmetrically with the roles of the subspaces exchanged.
 
 The existential is a reachability claim: for arbitrary `(c, k) ∈ ℕ × ℕ` a document realizing
 profile `(c, k)` must be constructible by a sequence of *valid composites* (ASN-0047,
-ValidComposite★), each satisfying the full coupling discipline J0 ∧ J1★ ∧ J1'★ between its
-initial and final state — not J0 alone. We discharge the claim by exhibiting such a sequence
-over the ASN-0047 vocabulary that drives `(n_{s_C}, n_{s_L})` to any target. Starting from a
-state in which `d ∈ E_doc` (allocated by K.δ, NodeBaptism then the document sub-allocator),
-the two subspaces are populated by *disjoint* coupled transition kinds. A text position
-cannot be added by K.μ⁺ alone: K.μ⁺ requires that each new mapping `M'(d)(v) = a` reference
-an already-allocated `a ∈ dom(C)`, and a valid composite must satisfy J0 (every freshly
-allocated I-address appears in some arrangement) *and* J1★ (every I-address newly entering the
-content-subspace range of `M'(d)` is recorded in provenance, `(a, d) ∈ R'`) *and* J1'★ (every
-new provenance entry corresponds to such a range-new I-address). So each text position is a
-*coupled K.α + K.μ⁺ + K.ρ composite* — a K.α step allocating a fresh content address
-`a ∈ dom(C)` (its existence guaranteed by T0(a)/T0(b), content being unboundedly
-allocatable), a content-restricted K.μ⁺ step mapping a new text V-position to that `a`
-(discharging J0), and a K.ρ step recording `(a, d) ∈ R'` (discharging J1★ and J1'★) — leaving
-the composite valid. Performing `c` such
-composites adds the dense run `{[s_C,1,…,1,j] : 1 ≤ j ≤ c}` by D-SEQ★ and drives
-`n_{s_C}(d) = c`; each link position is a *coupled K.λ + K.μ⁺_L composite* — a K.λ step
-allocating a fresh link address `ℓ` on the document's link sub-allocator `A_L(d)` (so that
-`ℓ ∈ dom(L)` with `origin(ℓ) = d`, discharging K.μ⁺_L's elementary precondition
-`ℓ ∈ dom(L) ∧ origin(ℓ) = d ∧ ℓ ∉ ran(M(d))`, ASN-0047), followed by a K.μ⁺_L step mapping a
-fresh link V-position to that `ℓ` (the coupling obligations J0/J1★/J1'★ are vacuous across
-this composite — no content is allocated and no content-subspace range is extended, and
-J1★/J1'★ are scoped to the content subspace). Performing `k` such composites adds
-`{[s_L,1,…,1,j] : 1 ≤ j ≤ k}` by D-SEQ★ and drives `n_{s_L}(d) = k`. The content-restricted
-K.μ⁺ confines its new V-positions to `subspace(v) = s_C` and K.μ⁺_L to `subspace(v) = s_L`,
-so the two counts are set by independent transition streams (this is the mechanism behind
-W15, Independence, below); neither stream constrains the other, so every `(c, k) ∈ ℕ × ℕ` is
-reachable (the empty subspace, count `0`, by performing zero extensions of that kind). To witness W12, fix `c, k₁, k₂ ∈ ℕ` with `k₁ ≠ k₂`: build `d₁` with profile
-`(c, k₁)` and `d₂` with profile `(c, k₂)` by the construction above; both share text extent
-`c` yet differ in link extent, so `n_{s_C}` does not determine `n_{s_L}`. The symmetric
-proposition — fix the link extent at `k` and vary the text extent — is witnessed by the
-*same two recipes* with only the varying axis changed: coupled `K.α + K.μ⁺ + K.ρ` content
-composites drive `n_{s_C}` to the two distinct targets `c₁ ≠ c₂` while uncoupled
-`K.λ + K.μ⁺_L` link composites hold `n_{s_L} = k`.
+ValidComposite★). We discharge it with a witness sequence over the ASN-0047 vocabulary.
+Starting from a state in which `d ∈ E_doc` (allocated by K.δ), each text position is added by a
+coupled `K.α + K.μ⁺ + K.ρ` composite and each link position by a coupled `K.λ + K.μ⁺_L`
+composite; each is a valid composite, its coupling obligations J0 ∧ J1★ ∧ J1'★ discharged by
+ValidComposite★. Performing `c` content composites adds the dense run
+`{[s_C,1,…,1,j] : 1 ≤ j ≤ c}` (D-SEQ★) and drives `n_{s_C}(d) = c`; performing `k` link
+composites adds `{[s_L,1,…,1,j] : 1 ≤ j ≤ k}` (D-SEQ★) and drives `n_{s_L}(d) = k`. The content
+composites confine their new V-positions to `s_C` and the link composites to `s_L`, so the two
+counts are set by independent streams; neither constrains the other, so every `(c, k) ∈ ℕ × ℕ`
+is reachable (count `0` by performing zero extensions of that kind). To witness W12, fix
+`c, k₁, k₂ ∈ ℕ` with `k₁ ≠ k₂`: build `d₁` with profile `(c, k₁)` and `d₂` with profile
+`(c, k₂)` by the construction above; both share text extent `c` yet differ in link extent, so
+`n_{s_C}` does not determine `n_{s_L}`. The symmetric proposition — fix the link extent at `k`
+and vary the text extent — is witnessed by the *same two recipes* with only the varying axis
+changed.
 
 This is why the profile distinguishes documents that
 one axis cannot tell apart: high text with near-zero links is original prose; near-zero text
@@ -457,10 +436,7 @@ versus `n_S(d₂)` is well-defined for each `S ∈ {s_C, s_L}`. The comparison i
 `n_S(d) = |V_S(d)|` counts `V_S(d)` directly (W1): it is a total function, defined for every
 allocated `d` and every `S ∈ {s_C, s_L}` independently of whether the operation emits a member
 for that subspace. An empty subspace has `n_S(d) = 0` as a fact about `V_S(d) = ∅`, regardless
-of the report's membership. This well-definedness of `n_S` is a property of the state, separate
-from how a *consumer* recovers `n_S = 0` from a span-set whose empty member is absent — that
-absent-equals-zero reading is a consumer-side convention this note does not rely on and flags
-as not obviously safe (see Open Questions).
+of the report's membership.
 
 **Cross-kind independence.** The extent reported for one kind does not depend on the
 population of the other. We record **W15** (Independence): `n_{s_C}(d)` is a function of
@@ -469,23 +445,12 @@ one subspace leaves the other subspace's reported extent unchanged. This follows
 count is read off a *disjoint* position set: `V_S(d) = {v ∈ O(d) : v₁ = S}` is selected by
 the predicate `v₁ = S`, and `s_C ≠ s_L` (SC-NEQ) makes `V_{s_C}(d)` and `V_{s_L}(d)` disjoint,
 so `n_{s_C} = |V_{s_C}(d)|` and `n_{s_L} = |V_{s_L}(d)|` are computed from non-overlapping data
-(W1). The independence is therefore a property of the *counts*, not a property of the
-transitions being single-subspace. The extension transitions happen to be single-subspace —
-the amended K.μ⁺ confines its new V-positions to `subspace(v) = s_C` (content-subspace
-restriction) and K.μ⁺_L confines its new V-positions to `subspace(v) = s_L` (link-subspace
-restriction) — but contraction is not. ASN-0047's K.μ⁻ selects a per-subspace retention count
-`n'_S` for *each* `S ∈ {s_C, s_L}` and contracts to `∪_S {[S,1,…,1,k] : 1 ≤ k ≤ n'_S}`,
-subject only to at least one `S` strictly contracting; a single K.μ⁻ may therefore shrink the
-text run and the link run *simultaneously*, so it is false that every V-position transition
-acts within one subspace. Independence survives this anyway: even the both-contracting K.μ⁻
-sets the new `n_{s_C}` by reading the retained text positions and the new `n_{s_L}` by reading
-the retained link positions, each settable without reference to the other, because the two
-counts are read off the disjoint sets `V_{s_C}(d)` and `V_{s_L}(d)`. As a *conditional*, then:
-an edit confined to one subspace leaves the other's count untouched — a content edit cannot
-alter `V_{s_L}(d)` and a link edit cannot alter `V_{s_C}(d)` — and even a joint contraction
-changes each count only through its own subspace's positions, with neither change forcing the
-other. The link count can grow without altering the character count, and text can be inserted
-or deleted without altering the link count — the two members move independently.
+(W1). Independence is therefore a property of the *counts* — each read off its own subspace's
+positions — and the single-subspace edit is the conditional it yields: an edit confined to one
+subspace leaves the other's count untouched, since a content edit cannot alter `V_{s_L}(d)` and
+a link edit cannot alter `V_{s_C}(d)`. The link count can grow without altering the character
+count, and text can be inserted or deleted without altering the link count — the two members
+move independently.
 
 **Partition of the counted content.** The members do not merely fail to overlap; together
 they account for exactly the counted V-positions. We record **W16** (Partition):
