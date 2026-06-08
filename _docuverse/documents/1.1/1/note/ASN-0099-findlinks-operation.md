@@ -50,7 +50,7 @@ For `d ∉ dom(Σ.M)`, `findlinks_V(R, d, Σ)` is *undefined*.
 
 ## The Match Predicate
 
-F1's `matches` is the coverage-form of ASN-0098's `discoverable_from`. The existential ranges uniformly over all slots, including the type-endset and any further slots: L7 (ASN-0043) leaves directional significance to the link type, and the reader's question — *what connects here?* — does not privilege from over to.
+F1's `matches` is the coverage-form of ASN-0098's `discoverable_from`. The existential ranges uniformly over all slots, including the type-endset and any further slots: L7 (ASN-0043) leaves directional significance to the link type, so the match imposes no from/to asymmetry of its own.
 
 ```
 F4 (MatchIndividuation):
@@ -126,9 +126,8 @@ ComprehensionInvariantUnderΣL — meta-lemma:
    Link values (L6) gives |Σ.L(a)| = |Σ'.L(a)| and per-slot endset
    equality Σ.L(a).eᵢ = Σ'.L(a).eᵢ. Coverage is a deterministic
    function of its endset argument, so per-slot coverage agrees.
-   Predicates built from these — F1's existential, the filtered
-   form's universal, scoped intersection — evaluate identically at
-   the two states. Set extensionality closes the equality.
+   Any membership predicate built from these evaluates identically
+   at the two states; set extensionality closes the equality.
 ```
 
 A per-link primitive follows under the weaker hypothesis of per-link value preservation `Σ'.L(a) = Σ.L(a)` at a specific `a ∈ dom(Σ.L)`:
