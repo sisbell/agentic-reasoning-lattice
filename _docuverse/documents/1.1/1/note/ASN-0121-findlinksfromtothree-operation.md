@@ -47,9 +47,19 @@ A request is a four-tuple
 
 where each component is either an *endset* (ASN-0043's `Endset = 𝒫_fin(Span)`) or the
 distinguished *wildcard* `∗` (Nelson's NOSPECS — "no specification"). The home-component
-`H` ranges over the *organizational-prefix* axis: its spans are rooted at node-, account-,
-or document-level addresses, each denoting (PrefixSpanCoverage, ASN-0043) the corresponding
-subtree `{t : p ≼ t}`, which is order-convex under T5 (ASN-0034). The three endset-components
+`H` is, architecturally, a general span-set on the *organizational-prefix* axis: its spans
+are rooted at node-, account-, or document-level addresses. The *canonical* home span is
+the **unit-depth prefix span** `(p, δ(1, #p))`, whose displacement is exactly the
+unit-depth `δ(1, #p)` that PrefixSpanCoverage (ASN-0043) requires; it denotes the full
+subtree `{t : p ≼ t}`, order-convex under T5 (ASN-0034). The grammar does not, however,
+confine `H` to that form — `Endset = 𝒫_fin(Span)` admits a wider span `(p, ℓ)` rooted at
+the same `p`, whose coverage is then the order-convex *range* `{t : p ≤ t < p ⊕ ℓ}` (T12,
+ASN-0034), a proper sub-range of the subtree, not `{t : p ≼ t}`. The PrefixSpanCoverage
+citation discharges the subtree reading *only* for the unit-depth case; for a wider `H`,
+`athome` (below) is still well-defined — it is plain coverage membership — but bounds
+residence to an order-convex sub-range rather than a whole subtree. The traces below, and
+the canonical residence-bounding uses (node/account/document granularity), exercise only
+unit-depth spans, where the subtree reading holds. The three endset-components
 `F, G, Θ` range over the *element-level I-address* axis. (Note `home(a)` itself is always
 document-level — the field projection `N(a).0.U(a).0.D(a)` — but the *request component* `H`
 is not so confined: a node- or account-rooted span tests `home(a)`'s membership in the
@@ -90,10 +100,14 @@ fall in the requested region:
 
   `athome(a, H) ≡ home(a) ∈ coverage(H)`.
 
-Because a prefix-rooted home span denotes the subtree `{t : p ≼ t}` (PrefixSpanCoverage,
-ASN-0043) — which is order-convex/contiguous under T1 (T5, ASN-0034) — `H` may bound
+Because a *unit-depth* prefix-rooted home span `(p, δ(1, #p))` denotes the subtree
+`{t : p ≼ t}` (PrefixSpanCoverage, ASN-0043 — whose precondition is exactly this
+unit-depth displacement) — order-convex/contiguous under T1 (T5, ASN-0034) — `H` may bound
 residence at the granularity of a node, an account, or a single document, and `athome`
-tests membership of `home(a)` against whatever that subtree is.
+tests membership of `home(a)` against that subtree. A wider home span bounds residence to
+an order-convex *sub-range* of a subtree (T12, ASN-0034) rather than the whole of it;
+`athome` is defined uniformly as coverage membership in either case, so nothing below
+depends on `H` being unit-depth — only the subtree *reading* of the residence bound does.
 
 ## The satisfaction rule: the AND of the ORs
 
@@ -667,7 +681,7 @@ document — granularity.
 | FL-RES | Residence–endpoint independence — the home criterion is a function of the link address alone, the endpoint criteria of the link value alone; the four slots are orthogonal constraints | introduced |
 | FL-DIR | Positional directionality — `F` matches `e₁` only and `G` matches `e₂` only; reversing the from/to constraints can change the result, keeping "from X" and "to X" distinct queries | introduced |
 | FL-TYP | Type by address — the type criterion tests `coverage(e₃)` by address overlap, never reads stored content; ghost types are matchable, type may be constrained alone, and prefix-rooted type spans match subtype subtrees | introduced |
-| FL-WILD | Wildcard semantics — a wildcard slot drops from the conjunction (universal), not empties it; all-wildcard returns all addressable links, of every arity `N ≥ 3`, each matched on its first three endsets `e₁, e₂, e₃` (slots `e₄ … eₙ` never enter `sat`) | introduced |
+| FL-WILD | Wildcard semantics — a wildcard slot drops from the conjunction (universal), not empties it; all-wildcard returns all addressable links of every arity `N ≥ 3`, consulting *no* endset (every `lift` is `true` independent of endset content, so no endset enters `sat`); under a *constrained* request a link is matched on its first three endsets `e₁, e₂, e₃` alone (slots `e₄ … eₙ` never enter `sat`) | introduced |
 | FL-EMP | Empty-constraint zero — a constrained slot with empty coverage (`∅`) gives `lift = false` for every link, so any empty constrained component forces `findlinks(q, Σ) = ∅`; empty-spec (zero) is distinct from wildcard/NOSPECS (unit). By the symmetry of `touch`, the same zero applies to a *link's* own empty endset (L3 permits `e₁ = ∅` or `e₂ = ∅`): such a link is excluded from any constrained from-/to-slot and admitted on that axis only under the corresponding wildcard | introduced |
 | FL-CUR | Currency — `a ∈ findlinks(q, Σ) ⟺ a ∈ addressable(Σ) ∧ sat(a, q, Σ)`, the conjunction of FL-SND and FL-CMP against `addressable(Σ)`: current additions in, current retractions out, non-matches irrelevant | introduced |
 | FL-MON | Monotone accumulation absent retraction — an unretracted matching link, once found, stays found as the store grows | introduced |
