@@ -66,7 +66,13 @@ The link-creation transition is the substrate's `K.λ` (LinkAllocation, ASN-0093
 ASN-0047) followed by the link-subspace arrangement extension `K.μ⁺_L` (ASN-0047)
 that seats the new link in its home document's V-stream. MAKELINK is the
 user-level operation those two transitions implement; our task is to say what it
-must guarantee abstractly.
+must guarantee abstractly. As a composite it must satisfy both clauses of
+ASN-0047's ValidComposite★: the elementary preconditions of `K.λ` and `K.μ⁺_L`
+(discharged where each is invoked below) and the coupling constraints J0, J1★,
+J1'★ between initial and final state. The coupling constraints hold *vacuously*:
+MAKELINK allocates no content (`Σ'.C = Σ.C`, ML10), so there is no fresh content
+address (J0 vacuous) and no content-subspace range-new I-address (J1★, J1'★
+vacuous) — the only V-position added is a link-subspace one (via `K.μ⁺_L`).
 
 ## What the endset arguments name, and what resolution recovers
 
@@ -302,6 +308,26 @@ connection. The structural cost of typing is one more I-address endset; the
 semantic gain is the difference between "these are linked" and "these are linked
 *thus*."
 
+We must be explicit about a *restriction* this uniform V-spec resolution imposes.
+Because every argument — type included — is a content-subspace V-spec read through
+an arrangement, ML1 forces `ρ(R_i, Σ) ⊆ dom(Σ.C)` for *all three* endsets. So
+MAKELINK-via-V-specs can produce *only* content-backed endsets: it can create
+neither a *ghost type* (L9, TypeGhostPermission, ASN-0043, which permits type
+endsets referencing addresses outside `dom(Σ.C) ∪ dom(Σ.L)`) nor any *ghost or
+foreign* endset (the full generality L4, EndsetGenerality, ASN-0043 permits). This
+is a deliberate confinement, not an oversight: V-spec resolution is the coordinate
+conversion that *buys* survivability (ML8), and survivability is defined only for
+content the store keeps. Nelson's design treats MAKELINK as the sole link-creation
+primitive and reaches ghost types not through a separate facility but by passing a
+chosen address directly as the type argument — matching is by address, and ghost
+addresses store nothing, so there is nothing to resolve through an arrangement.
+That *direct-address input mode* — supplying an I-address endset that bypasses
+V-span resolution, as Gregory's ISPANID/`SPANFLAG` path does — is a distinct
+operation with a distinct argument shape, and is **out of scope** here. The present
+ASN specifies MAKELINK-via-content-V-specs exclusively; the abstract claims below
+hold for that operation, and ghost/foreign endsets remain reachable only through
+the separate direct-address facility.
+
 ## The invariants MAKELINK preserves
 
 We collect the guarantees, each now a consequence of how the operation records.
@@ -313,18 +339,19 @@ it connects — because editing touches `Σ.M`, and the link lives in `Σ.L`. (W
 a link's *owner* may delete it is a separate operation outside this ASN; MAKELINK
 guarantees that no one *else's* edit can break it.)
 
-**Endset immutability (ML8).** The recorded endset value `Σ'.L(a)` is frozen at the
-creating state `Σ`, with `coverage(e_j) ∩ dom(Σ.C) = ρ(R_j, Σ)` (ML1). No
-subsequent operation rewrites an endset:
-the link store is immutable (L12), and editing a source document changes
-`Σ.M(d_j)` but never the I-addresses already recorded in `Σ.L(a)`. Suppose content
-is later inserted before, deleted from, or rearranged around a referenced region:
-the V-positions move, but the stored I-addresses do not, and by S0 those
-I-addresses still denote their original content. So the endset remains valid as
-long as any of its content survives — which, for published content that S0 keeps
-forever, is always. This is exactly Nelson's survivability, and it is *bought* by
-the V→I conversion of ML1: had MAKELINK stored positions, immutability of the
-record would not yield survival of the reference.
+**Endset survivability (ML8).** ML7 already fixes the recorded value `Σ'.L(a)` for
+all time, and ML1 fixes its content-coverage as `ρ(R_j, Σ)`. What ML8 adds is the
+*consequence* those two buy together: the endset reference *survives editing of the
+content it names*. Editing a source document changes `Σ.M(d_j)` but never the
+I-addresses already recorded in `Σ.L(a)`. Suppose content is later inserted before,
+deleted from, or rearranged around a referenced region: the V-positions move, but
+the stored I-addresses do not, and by S0 those I-addresses still denote their
+original content. So the endset remains valid as long as any of its content
+survives — which, for published content that S0 keeps forever, is always. This is
+exactly Nelson's survivability, and it is *bought* by the V→I conversion of ML1:
+had MAKELINK stored positions, value-fixity of the record (ML7) would not yield
+survival of the *reference*. Survivability is thus not a fresh invariant on the
+store but the payoff of recording at content identity rather than position.
 
 **Residence-independence of discoverability (ML9).** This is the operation's
 sharpest guarantee, and it follows by a short weakest-precondition argument. Take
@@ -475,13 +502,11 @@ reachability are orthogonal.
 | ML5 | OrderedEndsets: the recorded triple is ordered, `(F,G,Θ) ≠ (G,F,Θ)` for `F ≠ G` (L6); the order fixes from/to roles semantically without restricting reachability (discovery is endset-symmetric) | introduced |
 | ML6 | TypedRelation: operation precondition `ρ(R₃,Σ) ≠ ∅` (the operation is undefined on a type spec that resolves empty, since K.λ requires `e₃ ≠ ∅`, L3); the third endset, recorded like from/to but matched by address (L8), distinguishes a typed relation from a bare connection; the type resolves to stored content like any other endset (`ρ(R₃,Σ) ⊆ dom(Σ.C)`) | introduced |
 | ML7 | Permanence: `(A Σ' → Σ'' : a ∈ dom(Σ'.L) : a ∈ dom(Σ''.L) ∧ Σ''.L(a) = Σ'.L(a))` — the made link is not broken by any editing of the content it connects | introduced |
-| ML8 | EndsetImmutability: the recorded value `Σ'.L(a)` is frozen at creation (L12), with `coverage(e_i) ∩ dom(Σ.C) = ρ(R_i,Σ)`; editing source documents changes `Σ.M` but never the recorded I-addresses, so by S0 the endset survives as long as any referenced content persists | introduced |
+| ML8 | EndsetSurvivability: a *consequence* of ML7 (value-fixity) ∧ ML1 (content-identity recording), not a fresh store invariant — editing source documents changes `Σ.M` but never the recorded I-addresses, so by S0 the endset reference survives as long as any referenced content persists; this is bought by the V→I conversion of ML1, since value-fixity of positions would not yield survival of the reference | introduced |
 | ML9 | DiscoverabilityDecoupledFromResidence: `wp(makelink, discoverable_from(a, d', ·)) ≡ enabled(makelink) ∧ d' ∈ dom(Σ.M) ∧ (E i : ρ(R_i,Σ) ∩ ran(Σ.M(d')) ≠ ∅)`, with `enabled(makelink) ≡ d ∈ dom(Σ.M) ∧ ρ(R₃,Σ) ≠ ∅`; beyond enabledness the home `d` does not appear in the discoverability test — the link is discoverable from every region its endsets reference, residence-independently and endset-symmetrically | introduced |
 | ML10 | Frame: `Σ'.C = Σ.C`; `(A d' ≠ d : Σ'.M(d') = Σ.M(d'))`; existing `Σ.L` entries unchanged; the linked-into sources are unmodified by being linked into | introduced |
 
 ## Open Questions
-
-What must MAKELINK guarantee about the relative order in which a single endset's resolved I-address runs are recorded, and is any ordering across runs observable through later operations?
 
 Under what conditions, if any, may the resolution `ρ(R, Σ)` legitimately recover an empty set for the from or to endset, and what does an empty non-type endset mean for the link's connection?
 
