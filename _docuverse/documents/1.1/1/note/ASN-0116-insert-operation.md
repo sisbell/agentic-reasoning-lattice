@@ -387,14 +387,14 @@ worth doing once in full, because it is the formal content of Nelson's
 assurance (Q10) that reading end to end yields the original content with the
 new material interleaved at the chosen point.
 
-The three pieces of I-DOM are, as index sets over `q`:
-`{1, …, J-1}` (prefix), `{J, …, J+n-1}` (new), `{J+n, …, N+n}` (shifted suffix).
-These are consecutive integer intervals with no gap and no overlap; their union
-is `{1, …, N+n}`. Therefore
-
-> `V_S(d') = {q_1, …, q_{N+n}}`,
-
-which is again the canonical dense run, now of length `N' = N + n`. We must be
+The post-state text domain `V_S(d')` is the union of I-DOM's three index
+intervals over `q` — `{1, …, J-1}` (prefix), `{J, …, J+n-1}` (new),
+`{J+n, …, N+n}` (shifted suffix) — and equals the canonical dense run
+`{q_1, …, q_{N+n}}` of length `N' = N + n`. The interval computation behind that
+equality is the load-bearing one promised above; we give it once, in full, under
+*Contiguity of the filled post-state* below, after the intervening subsections
+establish the per-region well-formedness on which the dense-run conclusion rests.
+We must be
 careful about what is inherited and what is INSERT's own obligation, because
 ASN-0082's post-insertion arrangement is *not* the filled post-state we want: its
 domain closure I3-CS characterises `dom(M'(d)) ∩ S` as left positions ∪ shifted
@@ -446,8 +446,9 @@ ExtendedReachableStateInvariants (ASN-0047) demands.
   regions — depth uniformity holds across the whole filled subspace.
 - *Single-valuedness.* The new-block index set `{J, …, J+n-1}` (as ordinals `q_k`)
   is disjoint from the left set `{1, …, J-1}` and the shifted-suffix set
-  `{J+n, …, N+n}` — the three integer intervals are pairwise disjoint (shown
-  below). Hence no new-block position coincides with any left or shifted image, and
+  `{J+n, …, N+n}` — by the pairwise disjointness of the three index intervals
+  established once under *Contiguity of the filled post-state* below. Hence no
+  new-block position coincides with any left or shifted image, and
   within the block the map `k ↦ shift(p, k) = q_{J+k}` is injective (distinct `k`
   give distinct ordinals). `M'(d)` is therefore single-valued on the union.
 - *Referential integrity.* Each new-block image is `shift(a, k) ∈ A_new ⊆ dom(C')`
@@ -578,13 +579,21 @@ content formerly at `q_J` resolves from `q_{J+n}`. The permanence guarantee
 attaches to identity, not to arrangement; INSERT is the operation that exploits
 the gap between them.
 
-**P3 (AddressPermanence).** *No I-address in `dom(C)` is removed or rebound by
-INSERT: `(A b : b ∈ dom(C) : b ∈ dom(C') ∧ C'(b) = C(b))`, and every new
-binding is at a fresh address (P0).*
+The I-address-permanence half is already carried by P0 (every new binding is at a
+fresh address) and P2 (no existing address removed or rebound); we therefore reserve
+the boxed claim for the V-position-impermanence half, which the prose above argues
+but no prior claim captures.
+
+**P3 (PositionImpermanence).** *A V-position binds no permanent content. When the
+insertion point is occupied (`J ≤ N`), the block slots `{q_k : J ≤ k ≤
+min(J+n−1, N)}` lie in `dom(M(d)) ∩ dom(M'(d))` yet `M'(d)(q_k) = shift(a, k−J) ≠
+M(d)(q_k)` — the same slot now resolves to freshly minted content, since
+`shift(a, k−J) ∈ A_new` is fresh (P0) while `M(d)(q_k) ∈ ran(M(d)) ⊆ dom(C)`. The
+permanence guarantee attaches to the I-address (P0, P2), never to the slot.*
 
 **Link anchoring across the displacement.** A link's endsets reference
 I-addresses, not V-positions (4/42, 4/30). Since INSERT removes no I-address
-(P3) and adds only fresh ones (P0), every link designates *exactly the same
+(P2) and adds only fresh ones (P0), every link designates *exactly the same
 content* after the operation as before. We can state this without modelling the
 link store in detail, using only the foundation notion that a link endpoint is
 an endset whose `coverage` is a set of I-addresses, and that its appearance in
@@ -670,7 +679,7 @@ prior set onto (left ∪ shifted-suffix ∪ cross-subspace). Hence the witness
 arranges some of the same content `d` does — `ran(M(d')) ∩ ran(M(d)) ≠ ∅`. The
 question is whether inserting into `d` can perturb `d'`. It cannot, and the
 proof is the conjunction of three facts already in hand. By F-DOC,
-`M'(d') = M(d')` — `d'`'s arrangement is untouched. By P2/P3, the shared
+`M'(d') = M(d')` — `d'`'s arrangement is untouched. By P2, the shared
 I-addresses retain their content — the bytes `d'` reads are immutable. And the
 fresh addresses `A_new` cannot already inhabit `ran(M(d'))`: every arrangement
 obeys referential integrity, `ran(M(d')) ⊆ dom(C)` (S3), while `A_new ∩ dom(C) =
@@ -848,7 +857,7 @@ insertion. ✓ I-DOM (with `J = 1`, prefix and suffix intervals empty), I-NEW, P
 Two effects, two layers, kept clean — and composed from foundation transitions
 rather than re-derived. On the **content layer**, INSERT is the `n`-fold content
 allocation K.α (ASN-0093): fresh, contiguous, origin-stamped I-addresses, monotone
-and append-only (`P0`, `P2`, `P3`), each coupled to its inserting document by an
+and append-only (`P0`, `P2`), each coupled to its inserting document by an
 atomic provenance recording (`PROV`, the `n`-fold K.ρ of ASN-0047) that discharges
 ASN-0047's coupling constraints J0, J1★, J1'★ and re-establishes the coverage
 property P7a at the composite boundary. On the **arrangement layer**, INSERT is the
@@ -856,8 +865,8 @@ contraction–extension pair `K.μ⁻` then `K.μ⁺` (a single `K.μ⁺` when n
 moves), exhibited as a valid composite over the K-vocabulary, whose net effect is
 ASN-0082's post-insertion shift (`I-SHIFT`, `I-LEFT`, `F-SUB`, `F-DOC`) — a uniform
 ordinal shift confined to one subspace of one document, opening a gap-free block of
-the right width and re-coordinating the suffix around fixed content identities
-(`I-NEW`, `I-DOM`, `P1`). The two layers never contaminate each other: links
+the right width and re-coordinating the suffix around fixed content identities —
+the slots are relabelled while identities stay fixed (`I-NEW`, `I-DOM`, `P1`, `P3`). The two layers never contaminate each other: links
 survive because they anchor on immutable identity (`P4`), every other document is
 isolated because sharing is by reference and not by arrangement (`P5`), and the
 weakest precondition for preserving discoverability is a containment, not `true`
@@ -873,7 +882,7 @@ catalogued below.
 | P0 (OriginIdentity) | The `n` allocated I-addresses `{shift(a,k) : 0 ≤ k < n}` are fresh and distinct from all prior addresses, independent of content value | restated (K.α freshness + S4, ASN-0036/0093) |
 | P1 (InsertedRun) | The inserted material forms one correspondence run: `M'(d)(shift(p,k)) = shift(a,k)`, V- and I-addresses advancing in lockstep over a contiguous block | introduced |
 | P2 (ContentAppendOnly) | `dom(C) ⊆ dom(C')` and existing values preserved; INSERT is purely additive on content | restated (C0, ASN-0093) |
-| P3 (AddressPermanence) | No existing I-address is removed or rebound; every new binding is at a fresh address | restated (C0 + P0) |
+| P3 (PositionImpermanence) | A V-position binds no permanent content: an occupied block slot `q_k` (J ≤ k ≤ min(J+n−1, N)) satisfies `M'(d)(q_k) = shift(a,k−J) ≠ M(d)(q_k)`, resolving to fresh content; permanence attaches to the I-address (P0, P2), not the slot | introduced |
 | P4 (LinkSurvival) | Every prior endset's coverage is unchanged (L12+LP3★ across the composite); post-insert witness set = left ∪ shifted-suffix ∪ cross-subspace ∪ new-block; prior witnesses map bijectively onto the first three parts (suffix relabelled by `shift(·,n)`), so witness count is non-decreasing and resolved content grows monotonically (new-block is LP18 resurrection only when the link was orphaned) | introduced |
 | P6 (DiscoverabilityWP) | `wp(INSERT, D(d,Σ')=D(d,Σ)) ≡ INSERT-pre ∧ {a : (∃i) coverage(Σ.L(a).eᵢ) ∩ A_new ≠ ∅} ⊆ D(d,Σ)` (containment, not emptiness); the emptiness form is sufficient but strictly stronger; discharged free under tight-endset discipline (LP19a) | introduced |
 | P5 (DocumentIsolation) | Every other document's arrangement and resolved content are invariant under INSERT on `d` | introduced |
