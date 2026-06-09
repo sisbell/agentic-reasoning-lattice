@@ -440,11 +440,15 @@ content-identity regime — there is no other kind in the grammar), `sat` depend
 `Σ.L`, on link addresses, and on the fixed `q`. None of these moves under editing.
 
 **FL-STB (stability under editing).** For a transition `Σ → Σ'` that preserves the link
-store and the retraction set — `Σ'.L = Σ.L`, `nullified(Σ') = nullified(Σ)` — and any
+store — `Σ'.L = Σ.L` — and any
 request `q` (necessarily an I-address request, the grammar's only kind),
-`findlinks(q, Σ') = findlinks(q, Σ)`. Pure-arrangement edits
-(insertion, deletion, rearrangement) and content appends, which preserve `Σ.L` and the
-retraction set, leave the answer invariant. The membership of the result may be expressed
+`findlinks(q, Σ') = findlinks(q, Σ)`. The single hypothesis `Σ'.L = Σ.L` suffices: because
+`nullified` is a function of `Σ.L` alone (it is defined through the retraction relation
+`L_R^Σ ⊆ Σ.L`, as established in the monotonicity discussion above), `Σ'.L = Σ.L` already
+entails `nullified(Σ') = nullified(Σ)`, so retraction-set preservation is a consequence of
+the link-store hypothesis rather than an independent assumption. Pure-arrangement edits
+(insertion, deletion, rearrangement) and content appends, which preserve `Σ.L`, leave the
+answer invariant. The membership of the result may be expressed
 through different V-positions before and after the edit, but the *set of link
 identities returned is unchanged*.
 
@@ -598,6 +602,53 @@ Under the to-request `q' = (∗, ∗, X, ∗)`, with the from-slot wildcarded, i
 from-endpoint is found only as a to-match, never as a from-match — the same zero as the
 empty *request* component, now on the link's side.
 
+*Trace 6 — residence axis (exercises FL-RES, and FL-SND on the home slot).* The earlier
+traces all fix `H = ∗`, so the residence criterion is never exercised concretely. We do so
+now. Augment the store with a second document `d' = [1,0,1,0,2]` (document-level,
+`zeros(d') = 2`, non-nesting with `d` — they are equal-length and differ in the last
+component) and a fourth link homed there,
+
+  `a₅ = [1,0,1,0,2,0,2,1]`,  so `home(a₅) = N(a₅).0.U(a₅).0.D(a₅) = [1,0,1,0,2] = d'`,
+
+carrying endpoints *identical* to `a₁`'s — from-endset `{x}`-subtree, to-endset
+`{y}`-subtree, type `{τ}`-subtree. (Its endsets reference content homed under `d`;
+cross-document endsets are admissible, L4.) Take three home-sets, each a unit-depth span
+whose coverage is the subtree of its root (`coverage = {t : root ≼ t}`, PrefixSpanCoverage,
+ASN-0043; order-convex under T5, ASN-0034):
+
+- `H_d` rooted at the document `d = [1,0,1,0,1]`, covering `{t : d ≼ t}`;
+- `H_other` rooted at the document `d' = [1,0,1,0,2]`, covering `{t : d' ≼ t}`;
+- `H_node` rooted at the node `[1]`, covering `{t : [1] ≼ t}` — every address beneath node 1.
+
+Hold the endpoint constraints fixed at `X, Y` and vary only `H`. Both `a₁` and `a₅` satisfy
+the endpoint slots (`lift(e₁, X) = true`, `lift(e₂, Y) = true`), so the from/to/type axes
+*cannot* separate them — any difference in the answer is residence alone.
+
+*Document-granularity, excluding `a₁`.* For `q = (H_other, X, Y, ∗)`,
+`athome(a₁, H_other) = (home(a₁) = d ∈ {t : d' ≼ t})`; since `d` and `d'` are equal-length
+and non-nesting, `d ∉ coverage(H_other)`, so `liftH(a₁, H_other) = false` and `a₁` is
+excluded *purely on `liftH`* — its endsets still touch `X` and `Y`. Symmetrically
+`athome(a₅, H_other) = (d' ∈ {t : d' ≼ t}) = true` by reflexivity of `≼`, so
+`findlinks((H_other, X, Y, ∗), Σ) = {a₅}`.
+
+*Document-granularity, readmitting `a₁`.* For `q = (H_d, X, Y, ∗)`,
+`athome(a₁, H_d) = (d ∈ {t : d ≼ t}) = true` (reflexivity), readmitting `a₁`, while
+`athome(a₅, H_d) = (d' ∈ {t : d ≼ t}) = false`, so `findlinks((H_d, X, Y, ∗), Σ) = {a₁}`.
+The two document-bounded requests differ only in `H` — the endpoint slots are byte-for-byte
+identical — yet the result flips between `{a₅}` and `{a₁}`. Residence is varied while
+endpoints are held fixed, and the answer changes: orthogonality witnessed directly, exactly
+as FL-RES asserts.
+
+*Node-granularity, admitting both (the T5 subtree reading of `athome`).* For
+`q = (H_node, X, Y, ∗)`, both documents lie beneath node 1 — `[1] ≼ d` and `[1] ≼ d'`, each
+extending the one-component prefix `[1]` — so `athome` holds for both and
+`findlinks((H_node, X, Y, ∗), Σ) = {a₁, a₅}`. This is genuinely a residence *test*, not its
+absence: a link homed outside node 1's subtree would fail `liftH(·, H_node)`, whereas the
+wildcard `H = ∗` of Trace 1 imposes no test at all. The node-rooted span verifies that
+`athome` reads `home(a)`'s membership in the contiguous subtree `{t : [1] ≼ t}` (T5), so
+the home-set bounds residence at node — and, by the same construction, account or
+document — granularity.
+
 ## Claims Introduced
 
 | Label | Statement | Status |
@@ -613,7 +664,7 @@ empty *request* component, now on the link's side.
 | FL-EMP | Empty-constraint zero — a constrained slot with empty coverage (`∅`) gives `lift = false` for every link, so any empty constrained component forces `findlinks(q, Σ) = ∅`; empty-spec (zero) is distinct from wildcard/NOSPECS (unit). By the symmetry of `touch`, the same zero applies to a *link's* own empty endset (L3 permits `e₁ = ∅` or `e₂ = ∅`): such a link is excluded from any constrained from-/to-slot and admitted on that axis only under the corresponding wildcard | introduced |
 | FL-CUR | Currency — `a ∈ findlinks(q, Σ) ⟺ a ∈ addressable(Σ) ∧ sat(a, q, Σ)`, the conjunction of FL-SND and FL-CMP against `addressable(Σ)`: current additions in, current retractions out, non-matches irrelevant | introduced |
 | FL-MON | Monotone accumulation absent retraction — an unretracted matching link, once found, stays found as the store grows | introduced |
-| FL-STB | Stability under editing — for any request (the grammar's only kind being I-address requests), the result is invariant under any transition preserving `Σ.L` and the retraction set; pure-arrangement edits and content appends do not change which links are returned | introduced |
+| FL-STB | Stability under editing — for any request (the grammar's only kind being I-address requests), the result is invariant under any transition preserving `Σ.L` (the single load-bearing hypothesis, since `nullified` is a function of `Σ.L` alone and so retraction-set preservation follows); pure-arrangement edits and content appends do not change which links are returned | introduced |
 | FL-RET | Retraction absence — a retracted link is permanently and completely absent from every subsequent current-state inquiry, and its absence does not impede other results | introduced |
 | FL-REACH | Cross-document reach — for any request `findlinks` is independent of `Σ.M`: global over the store, finds transcluded content once, returns all links under a whole-docuverse home-set, and contains every satisfying, addressable link that any document surfaces — `findlinks(q, Σ) ⊇ ⋃_d { a : a ∈ addressable(Σ) ∧ sat(a, q, Σ) ∧ discoverable_from(a, d, Σ) }`, strict given satisfying orphans (not a superset of the bare, request-independent discoverable union) | introduced |
 
