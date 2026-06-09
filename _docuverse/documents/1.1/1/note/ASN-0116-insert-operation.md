@@ -221,8 +221,14 @@ family. We name its clauses but derive them by citation, not from scratch:
   ASN-0082 **I3-L (PostInsertionLeftFrame)**.
 - (I-NEW) `(A k : 0 ≤ k < n : shift(p, k) ∈ dom(M'(d)) ∧
   M'(d)(shift(p, k)) = shift(a, k))` — the INSERT-specific fill of the block that
-  I3 leaves vacated (the positions I3-V withholds from `dom(M'(d))` until they are
-  re-populated), mapped in lockstep to the K.α run `A_new`.
+  ASN-0082's gapped arrangement leaves vacated, mapped in lockstep to the K.α run
+  `A_new`. The block's absence from that gapped arrangement is attributed precisely
+  by case: in the *occupied* case (`J ≤ N`, so `p ∈ dom(M(d))`) the block consists
+  of pre-existing positions `≥ p` not in the shifted image, withheld by I3-V
+  (PostInsertionVacating, which quantifies over `v ∈ dom(M(d))`); in the *append*
+  case (`J = N+1`, so `p ∉ dom(M(d))`) the block positions were never in
+  `dom(M(d))`, so I3-V is silent about them and their absence follows instead from
+  the domain-closure characterisation I3-CS.
 - (I-DOM) `{v ∈ dom(M'(d)) : subspace(v) = S} =
   {q_1, …, q_{J-1}} ∪ {q_J, …, q_{J+n-1}} ∪ {q_{J+n}, …, q_{N+n}}` — the domain
   closure ASN-0082 I3-CS/I3-CX specialised to the dense text subspace.
@@ -255,7 +261,9 @@ careful about what is inherited and what is INSERT's own obligation, because
 ASN-0082's post-insertion arrangement is *not* the filled post-state we want: its
 domain closure I3-CS characterises `dom(M'(d)) ∩ S` as left positions ∪ shifted
 positions *only*, with the block `{shift(p, k) : 0 ≤ k < n}` deliberately
-withheld (I3-V). ASN-0082's `M'(d)` is the *gapped*, room-made arrangement, and
+withheld — by I3-V in the occupied case (`J ≤ N`) and by the I3-CS domain closure
+itself in the append case (`J = N+1`, where the block positions were never in
+`dom(M(d))` for I3-V to range over). ASN-0082's `M'(d)` is the *gapped*, room-made arrangement, and
 its preservation lemmas establish well-formedness only for those two regions.
 The new block is not covered by any of them; each of its properties is an INSERT
 obligation that we discharge here.
@@ -274,15 +282,34 @@ and `dom(C) ⊆ dom(C')` by append-only monotonicity (P2); so the image lies in
 `dom(C')`, and S3★ holds for both regions by S3 plus content *monotonicity* — not
 by a lemma whose proof frame INSERT does not satisfy.
 
+*The same non-inheritance applies to the content-store structural invariants.*
+ASN-0082's **I3-S7** (AllocationInvariantsPreservation) preserves S7a/S7b post-
+insertion "trivially by I3-C (`dom(C') = dom(C)`) and I3-D" — exactly the content
+frame INSERT breaks via I-ALLOC. So I3-S7 is no more inheritable than I3-S3, and the
+post-state's content-store invariants for the freshly allocated run `A_new` —
+`zeros(a) = 3` (S7b), `#E(a) ≥ 2` (C1b), `origin(a) = d` (S7a/C2), allocator
+conformance (C1c) — are *not* borrowed but discharged at the source: each
+`shift(a, k) ∈ A_new` is a K.α emission, and K.α establishes exactly these
+(ASN-0093: **C1** for `zeros = 3`, **C1b** for `#E ≥ 2`, **C1c** for allocator
+conformance, **C2** for `origin(a) = d`). The unchanged addresses `b ∈ dom(C)`
+retain them by P2 (append-only: domains grow, values fixed), since they are the
+very element-level content addresses for which those invariants already held at the
+pre-state. Thus every content address in `dom(C')` — old and new — is structurally
+valid element-level content, as ExtendedReachableStateInvariants (ASN-0047)
+demands.
+
 *Proved here for the new block* `{shift(p, k) : 0 ≤ k < n}`, mapped by I-NEW to
 `{shift(a, k) : 0 ≤ k < n}`:
 
 - *S8a and depth uniformity.* `p = q_J` satisfies S8a (precondition) with `#p = m`.
-  By **OrdShiftHom** (ASN-0036), each `shift(p, k)` is zero-free with all
-  components positive, `subspace(shift(p, k)) = S`, and `#shift(p, k) = m` (the
-  result-length identity of TumblerAdd). So every new-block position is
-  S8a-well-formed and shares depth `m` with the left and shifted regions — depth
-  uniformity holds across the whole filled subspace.
+  The block index runs `0 ≤ k < n`, which we split at the boundary. For `k = 0`,
+  `shift(p, 0) = p` is S8a-well-formed directly by precondition, with `#p = m` —
+  OrdShiftHom does not apply here, since its shift amount precondition is `n ≥ 1`.
+  For `1 ≤ k < n`, **OrdShiftHom** (ASN-0036) applies: each `shift(p, k)` is
+  zero-free with all components positive, `subspace(shift(p, k)) = S`, and
+  `#shift(p, k) = m` (the result-length identity of TumblerAdd). So every new-block
+  position is S8a-well-formed and shares depth `m` with the left and shifted
+  regions — depth uniformity holds across the whole filled subspace.
 - *Single-valuedness.* The new-block index set `{J, …, J+n-1}` (as ordinals `q_k`)
   is disjoint from the left set `{1, …, J-1}` and the shifted-suffix set
   `{J+n, …, N+n}` — the three integer intervals are pairwise disjoint (shown
