@@ -36,11 +36,7 @@ it touches).
 
 **Standing precondition (reachability).** Throughout, every state `Σ` ranges over
 states reachable from the initial state `Σ₀` under the sequential transition order
-(ASN-0047, SequentialTransitionAxiom). This licenses the per-state invariant
-citations below — S0/S1 (content permanence), S2/S3 (arrangement functionality
-and referential integrity), S7 (structural attribution), L0–L14 and L12 (link
-structure and permanence), each of which the foundation ASNs guarantee only of
-reachable states.
+(ASN-0047, SequentialTransitionAxiom).
 
 We take the strand and link models as given. The *content store*
 `Σ.C : T ⇀ Val` (ASN-0036) binds *I-addresses* to values; it is append-only and
@@ -168,16 +164,14 @@ Two structural facts about resolution deserve emphasis, both abstract. First, a
 single V-span may resolve to *several non-contiguous* I-address runs: if the
 source document's span covers content transcluded from two origins, the two runs
 carry different I-addresses and cannot be merged into one contiguous span (ASN-0058,
-M16 CrossOriginMergeImpossibility). The observable guarantee is *completeness of
-recovery*: `coverage(e_j) ∩ dom(Σ.C) = ρ(R_j, Σ)` regardless of how the supplied
-span fragments in I-space — every referenced content address is recovered, and no
-spurious content address is introduced, whatever the contiguity structure or the
-number of V-spans supplied. We name this **ML2 (FaithfulRecovery)**. (How many
-spans the endset's representation happens to use to cover those addresses is *not*
-abstractly observable: the model exposes no span-positional accessor (ASN-0043, L5)
-and projection depends only on coverage, not decomposition (ASN-0098, LP21). The
-span-set cardinality is therefore a representation matter, left to the
-implementation note.) Second, the same resolution applies *uniformly* to all three
+M16 CrossOriginMergeImpossibility). ML1's recovery equation
+`coverage(e_j) ∩ dom(Σ.C) = ρ(R_j, Σ)` holds whatever this contiguity structure —
+but the *number* of spans the representation uses to cover the resolved addresses is
+not abstractly observable, since the model exposes no span-positional accessor
+(ASN-0043, L5) and projection depends only on coverage, not decomposition (ASN-0098,
+LP21). We name this **ML2 (RepresentationIndependence)**: the stored span-set's
+cardinality is a representation matter, with no abstract observable sensitive to it.
+Second, the same resolution applies *uniformly* to all three
 endset arguments — from, to, and type are read through their sources by one
 procedure, with no slot privileged at the conversion step (**ML3,
 UniformResolution**).
@@ -353,7 +347,7 @@ is exactly the resolved set,
 membership, not over the value of `subspace_I` at arbitrary covered tumblers (where
 it need not be defined: a covering-surplus descendant formed by a zero extension has
 `zeros = 4` and is not T4-valid, so `subspace_I` does not apply to it). The content
-half is ML2: `coverage(eᵢ) ∩ dom(Σ.C) = ρ(R_i, Σ)`. The link half is empty,
+half is ML1: `coverage(eᵢ) ∩ dom(Σ.C) = ρ(R_i, Σ)`. The link half is empty,
 `coverage(eᵢ) ∩ dom(Σ.L) = ∅`: each `eᵢ` is a union of canonical unit-depth spans
 rooted at resolved content addresses `aₖ ∈ ρ(R_i, Σ) ⊆ dom(Σ.C)` (of form
 `[d.0.s_C.k]`), so by ASN-0098 (LP-Fin Corollary, with `dom(Σ.L) ⊆ F` from LP-Sub)
@@ -475,7 +469,7 @@ reachability are orthogonal.
 |-------|-----------|--------|
 | ML0 | IdentityAllocation: the link's identity is a fresh (`a ∉ dom(Σ.L)`), permanent (never removed, never reused — GlobalUniqueness, T8), value-fixed (L12) link-subspace address allocated by `A_L(d)` under home `d`, with `home(a) = d` | introduced |
 | ML1 | EndsetResolution: each endset argument `R` is recorded as `ρ(R,Σ) = {Σ.M(d_j)(v) : v ∈ dom(Σ.M(d_j)) ∧ v ∈ ⟦σ_j⟧}` ⊆ dom(Σ.C) (ASN-0058 `resolve` generalized to partial spans) — I-addresses read through source arrangements at creation; canonical unit-depth spans give `coverage(e_j) ⊇ ρ(R_j,Σ)` with `coverage(e_j) ∩ dom(Σ.C) = ρ(R_j,Σ)` (covering, not exact — ASN-0053 S7) | introduced |
-| ML2 | FaithfulRecovery: `coverage(e_j) ∩ dom(Σ.C) = ρ(R_j,Σ)` regardless of I-space fragmentation — every referenced content address recovered, none spurious; recorded span-set cardinality is a representation matter (no span-positional accessor, L5; projection by coverage only, LP21), not an abstract observable | introduced |
+| ML2 | RepresentationIndependence: the stored endset's span-set cardinality is not an abstract observable — the model exposes no span-positional accessor (L5) and projection depends only on coverage, not decomposition (LP21); whatever the I-space fragmentation of a resolved set, only its content-coverage `coverage(e_j) ∩ dom(Σ.C) = ρ(R_j,Σ)` (ML1) is observable | introduced |
 | ML3 | UniformResolution: from, to, and type arguments are resolved by one procedure with no slot privileged at the V→I conversion step | introduced |
 | ML4 | ResidenceApplicationOrthogonality: home document and endset content are independent; the precondition relates `d` to no `ρ(R_j,Σ)`; a link may home anywhere and point anywhere, connecting two documents without residing in either | introduced |
 | ML5 | OrderedEndsets: the recorded triple is ordered, `(F,G,Θ) ≠ (G,F,Θ)` for `F ≠ G` (L6); the order fixes from/to roles semantically without restricting reachability (discovery is endset-symmetric) | introduced |
@@ -492,5 +486,3 @@ What must MAKELINK guarantee about the relative order in which a single endset's
 Under what conditions, if any, may the resolution `ρ(R, Σ)` legitimately recover an empty set for the from or to endset, and what does an empty non-type endset mean for the link's connection?
 
 What must the operation guarantee when an endset argument references content in the link subspace — a link whose endset points at another link — for the resolved record to remain well-formed?
-
-What is the precise condition under which a newly created link is discoverable from *no* document, and what must be true for a later operation to bring it into discoverability without altering the link?
