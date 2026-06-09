@@ -32,7 +32,20 @@ I-addresses that records how document `d` currently arranges that content. A
 V-position carries a subspace identifier in its first component, written
 `subspace(v) = v₁`; content lives in the text subspace `s_C`, links in `s_L`.
 We write `V_S(d) = {v ∈ dom(M(d)) : subspace(v) = S}` for the V-positions of
-`d` in subspace `S`.
+`d` in subspace `S`. We work inside ASN-0047's extended state
+`Σ = (C, L, E, M, R)`; beyond `C` and `M` the one further component INSERT
+touches is the **provenance relation** `Σ.R ⊆ T_elem × E_doc` (pairs of an
+element-level I-address and a document), the record coupling each content
+I-address to the document that placed it, where `E_doc = dom(M)` is the set of
+allocated documents. The consultation is emphatic that this
+coupling is *not* a separately-maintained relation but is established by the
+act of insertion itself — "the origin IS the address," minted as content
+enters the document (4/11, theory answer). INSERT therefore carries an
+obligation to grow `R` in lockstep with allocation; we discharge it below
+rather than defer it, so that the post-state satisfies the coupling
+invariants J0, J1★, J1'★ and the coverage property P7a that
+ExtendedReachableStateInvariants (ASN-0047) demands of every composite
+boundary.
 
 The standing well-formedness facts we will lean on, all inherited from the
 arrangement model: every active V-position is zero-free of depth `m ≥ 2` with
@@ -186,7 +199,8 @@ We collect the arrangement effect as a named operation.
 
 **INSERT(`d`, `p`, `w₀ … w_{n-1}`).**
 
-*Precondition.* `d ∈ dom(M)`; `n ≥ 1`; `(A k : 0 ≤ k < n : w_k ∈ Val)` — each
+*Precondition.* `d ∈ dom(M) = E_doc` (the document is an allocated entity, so the
+provenance step below has a legal home); `n ≥ 1`; `(A k : 0 ≤ k < n : w_k ∈ Val)` — each
 inserted unit is a well-formed content value, the typing obligation the K.α step
 below carries (ASN-0093: K.α commits `a ↦ v` only for `v ∈ Val`), discharged here
 at the boundary rather than left implicit in the Effect; `S = subspace(p) = s_C`;
@@ -211,9 +225,10 @@ distinct operation drawing on K.λ, not K.α. The position predicates are:
 Allocation supplies `a` as the K.α-fresh origin-`d` content I-start (above),
 with `A_new ∩ dom(C) = ∅`.
 
-*Effect.* INSERT is the composite of `n` content allocations (K.α, ASN-0093) and
+*Effect.* INSERT is the composite of `n` content allocations (K.α, ASN-0093),
 one arrangement transition realising the post-insertion shift of ASN-0082's I3
-family. We name its clauses but derive them by citation, not from scratch:
+family, and `n` provenance recordings (K.ρ, ASN-0047) that couple each allocated
+address to `d`. We name its clauses but derive them by citation, not from scratch:
 
 - (I-ALLOC) `dom(C') = dom(C) ∪ A_new`, with `C'(shift(a, k)) = w_k` for
   `0 ≤ k < n` — the K.α effect (ASN-0093), iterated `n` times along `A_C(d)`.
@@ -258,6 +273,14 @@ family. We name its clauses but derive them by citation, not from scratch:
 - (I-DOM) `{v ∈ dom(M'(d)) : subspace(v) = S} =
   {q_1, …, q_{J-1}} ∪ {q_J, …, q_{J+n-1}} ∪ {q_{J+n}, …, q_{N+n}}` — the domain
   closure ASN-0082 I3-CS/I3-CX specialised to the dense text subspace.
+- (I-PROV) `R' = R ∪ {(shift(a, k), d) : 0 ≤ k < n}` — the `n` provenance records
+  coupling each freshly allocated I-address to its inserting document, by **K.ρ
+  (ProvenanceRecording, ASN-0047)** iterated `n` times. Each K.ρ step's precondition
+  `shift(a, k) ∈ dom(C') ∧ d ∈ E_doc` is met: `shift(a, k)` is in the store the
+  moment its K.α step commits it, and `d ∈ dom(M) = E_doc` by precondition. The
+  record is `(shift(a, k), d)` with `shift(a, k)` element-level content (S7b/C1) and
+  `d` document-level, matching `Σ.R ⊆ T_elem × E_doc`. These are the only additions
+  to `R`; INSERT removes nothing from it (P2 of ASN-0047, R monotone).
 
 *Frame.*
 - (F-SUB) `(A S' : S' ≠ S : {v ∈ dom(M'(d)) : subspace(v) = S'} =
@@ -374,6 +397,64 @@ content subspace by **S8 (CorrespondenceRunPartition, ASN-0036)**. INSERT adds
 no special structure here — P1 records that the inserted material forms *one*
 such run, but S8★ for the whole post-state is inherited from S8 applied to the
 finite filled arrangement, not re-proved.
+
+*Provenance coupling — the obligation allocation incurs.* Because INSERT both
+allocates content (I-ALLOC) and places it into the content subspace of `ran(M'(d))`
+(I-NEW), ASN-0047 binds it to three coupling constraints between the initial and
+final states of the composite, plus a composite-boundary coverage property. These
+are not optional: ASN-0047's ValidComposite clause (2) declares a composite that
+meets every transition precondition but violates a coupling constraint to be *not a
+valid composite*. The consultation settles that this coupling is intrinsic to
+insertion — the inserting document's identity is minted into the address as content
+enters, and the implementation makes the binding concrete by writing a DOCISPAN
+provenance record per inserted I-span (KB synthesis; theory answer "provenance
+follows creation, and for native insertion creation and placement are the same
+act"). I-PROV is the abstract counterpart of that record. We discharge each
+constraint directly.
+
+First fix the range identity that drives all four. By I-LEFT and I-SHIFT the
+content-subspace range of `M'(d)` retains every prior I-address (left verbatim,
+suffix carried to new slots), and by I-NEW it gains exactly `A_new`; no other
+content-subspace address enters or leaves. Hence the I-addresses *new to the
+content-subspace range* of `M'(d)` are precisely `A_new = {shift(a, k) : 0 ≤ k < n}`
+— the shifted-suffix addresses are range-old, since they already sat in `ran(M(d))`
+before merely changing slot.
+
+- **J0 (AllocationPlacementCoupling).** Every freshly allocated I-address must appear
+  in some arrangement of the post-state. The fresh addresses are `A_new`, and I-NEW
+  places each `shift(a, k)` at the V-position `shift(p, k) ∈ dom(M'(d))` with
+  `d ∈ E_doc`. So J0 holds.
+- **J1★ (ExtensionRecordsProvenance).** Every I-address new to the content-subspace
+  range of `M'(d)` must carry a record `(a, d) ∈ R'`. The range-new addresses are
+  exactly `A_new` (range identity above), and I-PROV records `(shift(a, k), d)` for
+  each `0 ≤ k < n`. So J1★ holds. The shifted-suffix addresses, being range-old,
+  impose no new obligation — and indeed J1'★ forbids recording them.
+- **J1'★ (ProvenanceRequiresExtension).** Every new provenance entry `(a, d) ∈ R' ∖ R`
+  must correspond to an I-address range-new in `M'(d)`. The new entries are exactly
+  `{(shift(a, k), d) : 0 ≤ k < n}` (I-PROV adds only these, and `R` is otherwise
+  untouched), and each `shift(a, k) ∈ A_new` is range-new. So J1'★ holds. This is the
+  reason I-PROV records *only* `A_new` and not the shifted suffix: recording a
+  range-old address would manufacture an entry with no range-new witness, violating
+  J1'★.
+
+The post-state is a composite boundary, so it must also satisfy **P7a
+(ProvenanceCoverage)**: every `a ∈ dom(C')` carries some record `(a, d') ∈ R'`. Split
+`dom(C') = dom(C) ∪ A_new` (I-ALLOC). For prior addresses `b ∈ dom(C)`: the pre-state
+is itself a composite boundary, so P7a held there, giving some `(b, d') ∈ R`; and
+`R ⊆ R'` (I-PROV is purely additive), so `(b, d') ∈ R'`. For the new addresses
+`shift(a, k) ∈ A_new`: I-PROV supplies `(shift(a, k), d) ∈ R'` directly. Hence every
+content address — old and new — is covered, and P7a holds at the post-state.
+Symmetrically **P7 (ProvenanceGrounding)** — every `(a, d') ∈ R'` has `a ∈ dom(C')` —
+is preserved: prior entries by P2-monotonicity of the store, the new entries because
+each `shift(a, k) ∈ A_new ⊆ dom(C')`. We record the coupling as a claim.
+
+**PROV (InsertionProvenance).** *INSERT records `R' = R ∪ {(shift(a, k), d) :
+0 ≤ k < n}` (I-PROV), which discharges the coupling constraints J0, J1★, J1'★ of
+ASN-0047 between the composite's initial and final states, and — together with the
+pre-state's coverage — establishes P7a and P7 at the post-state. Provenance is thus
+established atomically-with-allocation as part of the operation, not deferred: every
+freshly minted content address `shift(a, k)` enters `R` coupled to its inserting
+document `d` in the same composite that allocates and places it.*
 
 Two finer points the consultation insists on. First, inserting a *span* rather
 than a single byte is, at the V-layer, no different in kind — the same uniform
@@ -709,7 +790,12 @@ Two effects, two layers, kept clean — and, crucially, *composed from foundatio
 transitions rather than re-derived*. On the content layer INSERT is the `n`-fold
 content allocation K.α (ASN-0093), freshness-respecting and monotone (`P0`, `P2`,
 `P3`): `n` contiguous, origin-stamped I-addresses are minted and filled, and
-nothing prior is touched. On the arrangement layer INSERT is ASN-0082's
+nothing prior is touched. Allocation does not stand alone: each minted address is
+coupled to its inserting document by an atomic provenance recording (I-PROV, the
+`n`-fold K.ρ of ASN-0047), and this discharges the coupling constraints J0, J1★, J1'★
+between the composite's endpoints and re-establishes the coverage property P7a at the
+post-state (`PROV`), so the operation lands in a state ExtendedReachableStateInvariants
+actually admits rather than one its own theorem would reject. On the arrangement layer INSERT is ASN-0082's
 post-insertion shift (I3, I3-L, I3-X, I3-D), a uniform ordinal shift confined to
 one subspace of one document, opening a gap-free block of exactly the right width
 and re-coordinating the suffix around fixed content identities. The
@@ -737,7 +823,7 @@ identity.
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| INSERT | Operation: place `n` fresh content units at valid V-position `p` in document `d`, as the composite K.α (×n) + ASN-0082 I3 shift + new-block fill | introduced (composite) |
+| INSERT | Operation: place `n` fresh content units at valid V-position `p` in document `d`, as the composite K.α (×n) + ASN-0082 I3 shift + new-block fill + K.ρ (×n) provenance | introduced (composite) |
 | P0 (OriginIdentity) | The `n` allocated I-addresses `{shift(a,k) : 0 ≤ k < n}` are fresh and distinct from all prior addresses, independent of content value | restated (K.α freshness + S4, ASN-0036/0093) |
 | P1 (InsertedRun) | The inserted material forms one correspondence run: `M'(d)(shift(p,k)) = shift(a,k)`, V- and I-addresses advancing in lockstep over a contiguous block | introduced |
 | P2 (ContentAppendOnly) | `dom(C) ⊆ dom(C')` and existing values preserved; INSERT is purely additive on content | restated (C0, ASN-0093) |
@@ -745,7 +831,9 @@ identity.
 | P4 (LinkSurvival) | Every prior endset's coverage is unchanged (L12+LP3★ across the composite); post-insert witness set = left ∪ shifted-suffix ∪ cross-subspace ∪ new-block; prior witnesses map bijectively onto the first three parts (suffix relabelled by `shift(·,n)`), so witness count is non-decreasing and resolved content grows monotonically (new-block is LP18 resurrection only when the link was orphaned) | introduced |
 | P6 (DiscoverabilityWP) | `wp(INSERT, D(d,Σ')=D(d,Σ)) ≡ INSERT-pre ∧ {a : (∃i) coverage(Σ.L(a).eᵢ) ∩ A_new ≠ ∅} ⊆ D(d,Σ)` (containment, not emptiness); the emptiness form is sufficient but strictly stronger; discharged free under tight-endset discipline (LP19a) | introduced |
 | P5 (DocumentIsolation) | Every other document's arrangement and resolved content are invariant under INSERT on `d` | introduced |
+| PROV (InsertionProvenance) | `R' = R ∪ {(shift(a,k), d) : 0 ≤ k < n}` discharges ASN-0047's J0, J1★, J1'★ across the composite and re-establishes P7a/P7 at the post-state; provenance is recorded atomically with allocation | introduced |
 | I-ALLOC | `dom(C') = dom(C) ∪ A_new`, `C'(shift(a,k)) = w_k` | cited (K.α, ASN-0093), iterated |
+| I-PROV | `R' = R ∪ {(shift(a,k), d) : 0 ≤ k < n}` — provenance record per allocated address | cited (K.ρ, ASN-0047), iterated |
 | I-SHIFT | V-positions `≥ p` in subspace `S` move to `shift(v,n)`, carrying their I-address | cited (I3, ASN-0082) |
 | I-LEFT | V-positions `< p` in subspace `S` are unchanged | cited (I3-L, ASN-0082) |
 | I-NEW | The vacated block `{shift(p,k)}` maps to the fresh run `{shift(a,k)}` | introduced (composition glue) |
@@ -759,6 +847,6 @@ What must INSERT guarantee when the insertion point names a position that is cur
 
 Under what conditions, if any, may two concurrent insertions into the same document's content scope both claim freshness without a serializing authority?
 
-What invariant relates the fresh I-addresses of an insertion to the document's recorded provenance, and must INSERT establish that relation atomically with allocation?
+What must provenance guarantee when content is placed into a document not by fresh allocation but by transclusion of an address whose provenance already names a different origin document?
 
 What relationship must hold between the inserted run's contiguity at creation and the system's obligations after later editing fragments that run?
