@@ -548,24 +548,10 @@ We name the layer invariant:
 `(A b : b ∈ dom(C) : C'(b) = C(b))`.* INSERT is purely additive on the content
 layer.
 
-**Position permanence.** The consultation distinguishes two senses of
-"position" with opposite answers (Q6). The *I-address* — content identity — is
-permanent: never reused, never reassigned, never made to point at different
-content. The *V-position* — the slot in the current arrangement — is
-deliberately impermanent: the same slot `q_J` denotes different content before
-and after the insert. INSERT honours both halves. It honours I-address
-permanence because, by IP0, the only new bindings `shift(a, k) ↦ w_k` are at
-addresses that *did not exist*, so no existing `b ↦ C(b)` is disturbed and no
-address is repurposed. It honours V-position impermanence because that is
-exactly what the shift performs — `q_J` now resolves to fresh content while the
-content formerly at `q_J` resolves from `q_{J+n}`. The permanence guarantee
-attaches to identity, not to arrangement; INSERT is the operation that exploits
-the gap between them.
-
-The I-address-permanence half is already carried by IP0 (every new binding is at a
-fresh address) and IP2 (no existing address removed or rebound); we therefore reserve
-the boxed claim for the V-position-impermanence half, which the prose above argues
-but no prior claim captures.
+**Position permanence.** The consultation's two-sense answer (Q6) is discharged
+by named claims. I-address permanence holds by IP0 and IP2 — no existing binding
+is disturbed and no address repurposed. V-position impermanence is exactly what
+the shift performs; we name it.
 
 **IP3 (PositionImpermanence).** *A V-position binds no permanent content. When the
 insertion point is occupied (`J ≤ N`), the block slots `{q_k : J ≤ k ≤
