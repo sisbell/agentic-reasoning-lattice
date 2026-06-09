@@ -1,0 +1,16 @@
+# Review of ASN-0121
+
+## REVISE
+
+### Issue 1: Retraction-class membership written as coverage-in-endset-class (type confusion with ASN-0086's `[·]`)
+**ASN-0121, FL-WP case (a) and the FL-WP table row**: "`¬(|Σ'.L(ℓ)| = 3 ∧ coverage(Σ'.L(ℓ).e₃) ∈ [coverage(R)])`, where `R` is ASN-0086's designated retraction-type representative and `[coverage(R)]` its coverage class under `~`." The same form recurs in case (c) (`coverage(Θ_b) ∈ [coverage(R)]`) and in Trace 7 (`coverage(τ) ∉ [coverage(R)]`, `coverage({ρ}-subtree) ∈ [coverage(R)]`).
+
+**Problem**: ASN-0086 defines the `~`-class operator `[K]` on *endsets* (`T_admissible / ~`), so `[R]` is a set of endsets. The ASN applies `[·]` to a *coverage* (a set of addresses) and then tests `coverage(Θ) ∈ [coverage(R)]` — membership of a coverage value in a set of endsets, which is ill-typed. ASN-0086's actual retraction-slice criterion is the coverage equality `coverage(Σ.L(a).e₃) = coverage(R)` (with `|Σ.L(a)| = 3`). The intended predicate is unambiguous to a careful reader, but as written it leaves an implementer unsure whether the slot-3 test compares endsets or coverages, and it reuses the foundation's `[·]` operator off its declared domain rather than the foundation's own membership form.
+
+**Required**: State the retraction-class test in the foundation's terms — either `Σ'.L(ℓ).e₃ ∈ [R]` (endset in R's `~`-class) or, more directly, `coverage(Σ'.L(ℓ).e₃) = coverage(R)` — and drop the `[coverage(R)]` form. Apply uniformly to FL-WP cases (a), (c), the claims-table FL-WP row, and the Trace 7 occurrences.
+
+## OUT_OF_SCOPE
+
+(none — the ASN stays within the query operation; its analysis of K.λ in FL-WP characterizes how the *query result* responds to a creation, not the creation operation itself, so it is not link-creation scope-creep.)
+
+VERDICT: REVISE
