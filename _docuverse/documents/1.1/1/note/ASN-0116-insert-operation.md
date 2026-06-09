@@ -112,9 +112,8 @@ significant position is its last, so `inc(·, 0)` increments the final component
 
 contiguous on `d`'s content chain and fresh as a whole — `A_new ∩ dom(C) = ∅` —
 because each K.α step is fresh against the store as it stands after the previous
-step (Q14). This is the answer to *what is allocated to hold the new material*:
-`n` fresh, contiguous, origin-stamped I-addresses, and the content values written
-there.
+step (Q14). The run `A_new` is thus `n` fresh, contiguous, origin-stamped
+I-addresses, with the content values written there.
 
 **P0 (OriginIdentity)** *(restatement of K.α freshness + **S4 (OriginBasedIdentity,
 ASN-0036)**: I-addresses from distinct allocation events are distinct regardless of
@@ -163,9 +162,9 @@ q_{k+n}`:
   map in lockstep to the freshly allocated run:
   `M'(d)(shift(p, k)) = shift(a, k)` for `0 ≤ k < n`.
 
-Here is the answer to *what relationship the displaced positions bear to the
-prior arrangement*. The consultation is sharp on this (Q2): a V-position never
-*binds* content; it is an ordinal slot, not a container. After the insertion,
+The consultation is sharp on the relationship the displaced positions bear to the
+prior arrangement (Q2): a V-position never *binds* content; it is an ordinal slot,
+not a container. After the insertion,
 the relation "position `q_J` holds content `X`" is gone — `q_J` now holds new
 content, and `X` has moved to `q_{J+n}`. What is preserved is the orthogonal
 relation: *content `X` keeps its I-address, and the arrangement re-coordinates
@@ -218,8 +217,10 @@ arrangement contraction–extension pair `K.μ⁻` then `K.μ⁺` (degenerating 
 ASN-0082's I3 family, and `n` provenance recordings (K.ρ, ASN-0047) that couple each
 allocated address to `d`. We record first the **block-disjointness
 fact**: as ordinals `q`, the three index intervals `{1, …, J-1}` (left),
-`{J, …, J+n-1}` (block), and `{J+n, …, N+n}` (shifted suffix) are consecutive and
-pairwise disjoint. We name the clauses but derive them by citation, not from
+`{J, …, J+n-1}` (block), and `{J+n, …, N+n}` (shifted suffix) are consecutive —
+with no integer gap — and pairwise disjoint, their union being `{1, …, N+n}`
+(immediate from `0 < J ≤ N+1`: the right endpoint of each interval is one below the
+left endpoint of the next). We name the clauses but derive them by citation, not from
 scratch:
 
 - (I-ALLOC) `dom(C') = dom(C) ∪ A_new`, with `C'(shift(a, k)) = w_k` for
@@ -387,12 +388,10 @@ new material interleaved at the chosen point.
 The post-state text domain `V_S(d')` is the union of I-DOM's three index
 intervals over `q` — `{1, …, J-1}` (prefix), `{J, …, J+n-1}` (new),
 `{J+n, …, N+n}` (shifted suffix) — and equals the canonical dense run
-`{q_1, …, q_{N+n}}` of length `N' = N + n`. We state the small interval fact that
-the arguments below rest on. **Three-interval fact.** The three index intervals are
-*consecutive* — `J-1`, then `J` through `J+n-1`, then `J+n` through `N+n`, with no
-integer gap — and *pairwise disjoint*, their union being `{1, …, N+n}`. (Immediate
-from `0 < J ≤ N+1`: the right endpoint of each interval is one below the left
-endpoint of the next.) We must be
+`{q_1, …, q_{N+n}}` of length `N' = N + n`. These three index intervals are
+consecutive, pairwise disjoint, and union to `{1, …, N+n}` — the
+**block-disjointness fact** stated in the Effect, which the arguments below rest on.
+We must be
 careful about what is inherited and what is INSERT's own obligation, because
 ASN-0082's post-insertion arrangement is *not* the filled post-state we want: its
 domain closure I3-CS characterises `dom(M'(d)) ∩ S` as left positions ∪ shifted
@@ -415,10 +414,10 @@ referential integrity, content-store invariants, and contiguity directly below.
 `{q_{J+n}, …, q_{N+n}}` (shifted suffix), well-formedness is exactly ASN-0082's
 family: **I3-VD** (depth uniformity) and **I3-VP** (S8a) for the positions,
 **I3-S2** for single-valuedness, **I3-fin** for finiteness. Referential integrity is
-discharged directly: each left or shifted position carries an I-address
-`M(d)(v) ∈ ran(M(d)) ⊆ dom(C)` (S3 at the pre-state), and `dom(C) ⊆ dom(C')` by
-append-only monotonicity (P2), so the image lies in `dom(C')` and S3★ holds for both
-regions.
+discharged directly: each left or shifted position `v` lies in subspace `S = s_C`,
+so `M(d)(v) ∈ dom(C)` (S3★ at the pre-state, content-subspace clause
+`subspace(v) = s_C ⟹ M(d)(v) ∈ dom(C)`), and `dom(C) ⊆ dom(C')` by append-only
+monotonicity (P2), so the image lies in `dom(C')` and S3★ holds for both regions.
 
 *Content-store invariants for the freshly allocated run.* The post-state's
 content-store invariants for `A_new` — `zeros(a) = 3` (S7b), `#E(a) ≥ 2` (C1b),
@@ -444,7 +443,7 @@ ExtendedReachableStateInvariants (ASN-0047) demands.
   regions — depth uniformity holds across the whole filled subspace.
 - *Single-valuedness.* The new-block index set `{J, …, J+n-1}` (as ordinals `q_k`)
   is disjoint from the left set `{1, …, J-1}` and the shifted-suffix set
-  `{J+n, …, N+n}` — by the three-interval fact above. Hence no
+  `{J+n, …, N+n}` — by the block-disjointness fact. Hence no
   new-block position coincides with any left or shifted image, and
   within the block the map `k ↦ shift(p, k) = q_{J+k}` is injective (distinct `k`
   give distinct ordinals). `M'(d)` is therefore single-valued on the union.
@@ -453,14 +452,13 @@ ExtendedReachableStateInvariants (ASN-0047) demands.
   = s_C`, so S3★ is satisfied for the block: a content-subspace position maps to a
   content address.
 
-*Contiguity of the filled post-state.* By the three-interval fact, the prefix
+*Contiguity of the filled post-state.* By the block-disjointness fact, the prefix
 `{1, …, J-1}`, new `{J, …, J+n-1}`, and shifted suffix `{J+n, …, N+n}` are
 consecutive — no gap — and pairwise disjoint — no double assignment — with
 union `{1, …, N+n}`. Therefore `V_S(d') = {q_1, …, q_{N+n}}` is the canonical dense
 run: `min(V_S(d')) = q_1` and the run is gap-free at the fixed depth `m`. This *is*
 the D-SEQ/D-MIN/D-CTG property of the post-state, established for INSERT rather
-than borrowed. This is also the answer to *how the insertion sits within the
-V-stream as a connected region*: the new material occupies exactly the interval
+than borrowed. The new material occupies exactly the interval
 `{q_J, …, q_{J+n-1}}`, a connected, ordered, gap-free block, and the whole stream
 around it stays a single coherent ordinal sequence.
 
@@ -676,10 +674,13 @@ arranges some of the same content `d` does — `ran(M(d')) ∩ ran(M(d)) ≠ ∅
 question is whether inserting into `d` can perturb `d'`. It cannot, and the
 proof is the conjunction of three facts already in hand. By F-DOC,
 `M'(d') = M(d')` — `d'`'s arrangement is untouched. By P2, the shared
-I-addresses retain their content — the bytes `d'` reads are immutable. And the
+content I-addresses retain their content — the bytes `d'` reads are immutable
+(and by F-LINK any link-subspace images retain their link values). And the
 fresh addresses `A_new` cannot already inhabit `ran(M(d'))`: every arrangement
-obeys referential integrity, `ran(M(d')) ⊆ dom(C)` (S3), while `A_new ∩ dom(C) =
-∅` by P0, so `A_new ∩ ran(M(d')) = ∅`. Therefore `d'` resolves
+obeys generalized referential integrity, `ran(M(d')) ⊆ dom(C) ∪ dom(L)` (S3★),
+while `A_new ∩ (dom(C) ∪ dom(L)) = ∅` by K.α's whole-store freshness
+(FirstEmissionFreshness/SubsequentEmissionFreshness, ASN-0093), so
+`A_new ∩ ran(M(d')) = ∅`. Therefore `d'` resolves
 every one of its V-positions to the same content, in the same order, before and
 after: its arrangement *and its reader's experience* are identical (Q8). The isolation is a structural consequence of the two-layer split: INSERT
 writes the arrangement of exactly one document (F-DOC) and appends to the global
@@ -688,9 +689,11 @@ reference to immutable identity, so an insertion into one sharer is invisible to
 the others.
 
 **P5 (DocumentIsolation).** *For every `d' ≠ d`: `M'(d') = M(d')`, and for every
-`v' ∈ dom(M(d'))`, `M'(d')(v') ∈ dom(C')` with `C'(M'(d')(v')) =
-C(M(d')(v'))`. The arrangement and resolved content of every other document are
-invariant under INSERT on `d`.*
+`v' ∈ dom(M(d'))` the resolved entity is invariant per subspace —
+`subspace(v') = s_C ⟹ M'(d')(v') ∈ dom(C')` with `C'(M'(d')(v')) = C(M(d')(v'))`
+(content value fixed by P2), and `subspace(v') = s_L ⟹ M'(d')(v') ∈ dom(L')` with
+`L'(M'(d')(v')) = L(M(d')(v'))` (link value fixed by F-LINK). The arrangement and
+resolved content of every other document are invariant under INSERT on `d`.*
 
 ## A weakest precondition: when is discoverability preserved?
 
@@ -830,8 +833,9 @@ sense** because `ℓ'` was orphaned. ✓ P4 new-block, P6 escape branch.
 
 *Isolation (P5).* Suppose `d'` also arranges `a_3`: `M(d')(q'_1) = a_3`. INSERT on
 `d` leaves `M'(d') = M(d')` (F-DOC), and `a_3 ∈ dom(C)` retains its value (P2),
-while `A_new ∩ ran(M(d')) = ∅` because `ran(M(d')) ⊆ dom(C)` (S3) and
-`A_new ∩ dom(C) = ∅` (P0). So `d'` resolves `q'_1` to `a_3`'s content exactly as
+while `A_new ∩ ran(M(d')) = ∅` because `ran(M(d')) ⊆ dom(C) ∪ dom(L)` (S3★) and
+`A_new ∩ (dom(C) ∪ dom(L)) = ∅` (K.α whole-store freshness). So `d'` resolves
+`q'_1` to `a_3`'s content exactly as
 before — untouched by the insertion into `d`. ✓ P5.
 
 **Boundary — append (`J = N + 1 = 6`).** Take `p = q_6 = shift(max(V_S(d)), 1) =
