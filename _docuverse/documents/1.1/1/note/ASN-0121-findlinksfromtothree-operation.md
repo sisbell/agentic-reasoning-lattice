@@ -28,7 +28,14 @@ total order and span machinery of ASN-0034 throughout.
 
 A link `a ∈ dom(Σ.L)` carries a value `Σ.L(a) = (e₁, e₂, …)` of at least three endsets
 (L3). The first three slots are, by convention, the *from-endset* `e₁`, the *to-endset*
-`e₂`, and the *type-endset* `e₃`. Each endset references a set of I-addresses, its
+`e₂`, and the *type-endset* `e₃`. L3 permits arity `N ≥ 3`, so a link may carry further
+endsets `e₄, …, eₙ` beyond the third — the n-set form Nelson calls for (4/79). This
+operation — FINDLINKS*FROMTOTHREE* — constrains exactly the first three slots: the
+satisfaction rule `sat` (below) tests `e₁, e₂, e₃` and leaves any higher slots
+`e₄ … eₙ` unconstrained. A higher-arity link is therefore matched on its first three
+endsets alone and remains in the result space; the name fixes the three matched slots,
+and the determinacy of the result is unaffected by whatever further endsets a link may
+carry. This is the intended semantics for the operation. Each endset references a set of I-addresses, its
 coverage. The link also resides somewhere: `home(a)` is a document-level tumbler,
 extracted from the *address* `a` by field projection, **not** from the endsets. These
 two facts — what a link *connects* (its endset coverages) and where it *lives* (its
@@ -123,6 +130,26 @@ retraction is ASN-0086's concern; here we need only its effect on addressability
 currently addressable links are
 
   `addressable(Σ) = dom(Σ.L) \ nullified(Σ)`.
+
+Several claims below quantify over transitions `Σ → Σ'` and over reachable `Σ →* Σ'`, so
+we must say what relation `→` ranges over. We take `→` to be the full atomic transition
+vocabulary of ASN-0047: the allocation operations K.α (content) and K.λ (link), document
+and entity registration K.δ, the arrangement-editing family K.μ⁺, K.μ⁺_L, K.μ⁻ and the
+named composite K.μ~ (extension, contraction, reordering), and provenance recording K.ρ;
+`Σ →* Σ'` is the reflexive-transitive (reachability) closure of `→`. Two monotonicity
+facts about this *whole* vocabulary underwrite the permanence claims, and we record them
+once here. First, `dom(Σ.L)` is non-decreasing across `→`: only K.λ touches the link
+store, and it only extends it (L12a), with every other operation framing `Σ.L` fixed;
+ASN-0098's StoreMonotonicity★ lifts this to `dom(Σ.L) ⊆ dom(Σ'.L)` across `→*`. Second,
+`nullified` is non-decreasing across `→`. R6a (ASN-0086, RetractionStability) establishes
+this across ASN-0086's allocation-only relation `K.σ ∪ K.α ∪ K.λ`; the editing and
+provenance operations lie outside that relation, but each leaves `Σ.L` literally unchanged
+(K.μ⁺/K.μ⁺_L/K.μ⁻/K.μ~ rewrite only `Σ.M`; K.ρ writes only `Σ.R`), hence leaves the
+retraction relation `L_R^Σ` and `nullified(Σ)` unchanged. So `nullified` is constant
+across every editing/provenance step and monotone (R6a) across every allocation step,
+hence non-decreasing across all of `→` and, by induction, across `→*`. We invoke these two
+facts — link-store monotonicity and `nullified` monotonicity over the full vocabulary —
+wherever permanence is at issue below.
 
 Now we may derive, rather than stipulate, the answer set. Demand of any candidate answer
 `R` two things. *Soundness*: `(A a : a ∈ R : sat(a, q, Σ))` — nothing returned fails a
@@ -298,7 +325,10 @@ constrained slots admit. In the limit `findlinks((∗, ∗, ∗, ∗), Σ) = add
 all currently addressable links — and a single constrained slot yields precisely the
 links matching that slot alone. This is the formal reading of Nelson's "If the home-set
 is the whole docuverse, all links between these two elements are returned" (4/63): an
-unconstrained axis widens, never empties, the result.
+unconstrained axis widens, never empties, the result. `addressable(Σ)` here ranges over
+links of *every* arity `N ≥ 3`; a higher-arity link is admitted by the all-wildcard
+request like any other, and under a constrained request is matched on its first three
+endsets alone (its slots `e₄ … eₙ` never enter `sat`).
 
 A wildcard must not be conflated with a *constrained* slot that happens to bound nothing.
 The request grammar admits both: a slot may be left unspecified (`∗`, NOSPECS) or
@@ -357,7 +387,9 @@ leave the answer.
 **FL-MON (monotone accumulation absent retraction).** For any reachable `Σ →* Σ'` with
 `a ∉ nullified(Σ')`: if `a ∈ findlinks(q, Σ)` then `a ∈ findlinks(q, Σ')`. A matching
 link, once found and not withdrawn, stays found as the store grows. (By immutability
-`sat(a, q, Σ') = sat(a, q, Σ)`, and `a ∈ addressable(Σ')` since it is un-nullified.)
+`sat(a, q, Σ') = sat(a, q, Σ)`; and `a ∈ addressable(Σ')` because `a ∈ dom(Σ'.L)` by
+link-store monotonicity across `Σ →* Σ'` (ASN-0098 StoreMonotonicity★) and
+`a ∉ nullified(Σ')` by hypothesis.)
 
 ## Stability under content editing
 
@@ -403,7 +435,10 @@ current line of descent.
 **FL-RET (retraction absence).** If `a ∈ nullified(Σ)`, then for every reachable
 `Σ →* Σ'` and every request `q`, `a ∉ findlinks(q, Σ')`. The exclusion is total: even if
 `a`'s endsets would still satisfy every endpoint criterion, `a ∉ addressable(Σ')` removes
-it from FL-DEF, and the monotonicity of `nullified` (R6a) keeps it out forever. A retracted
+it from FL-DEF, and the non-decrease of `nullified` across the full transition vocabulary
+— R6a (ASN-0086) for allocation steps, and constancy of `nullified` across the editing
+and provenance operations that leave `Σ.L` (hence `L_R^Σ`) untouched, as established for
+`→` and `→*` above — keeps it out forever. A retracted
 link neither lingers as a phantom result nor obstructs retrieval of the links that still
 satisfy the inquiry (FL-JUNK applies to its absence as to any non-match).
 
@@ -530,7 +565,7 @@ the criteria, and by R6a it stays excluded along every reachable `Σ →* Σ'`.
 | FL-RES | Residence–endpoint independence — the home criterion is a function of the link address alone, the endpoint criteria of the link value alone; the four slots are orthogonal constraints | introduced |
 | FL-DIR | Positional directionality — `F` matches `e₁` only and `G` matches `e₂` only; reversing the from/to constraints can change the result, keeping "from X" and "to X" distinct queries | introduced |
 | FL-TYP | Type by address — the type criterion tests `coverage(e₃)` by address overlap, never reads stored content; ghost types are matchable, type may be constrained alone, and prefix-rooted type spans match subtype subtrees | introduced |
-| FL-WILD | Wildcard semantics — a wildcard slot drops from the conjunction (universal), not empties it; all-wildcard returns all addressable links | introduced |
+| FL-WILD | Wildcard semantics — a wildcard slot drops from the conjunction (universal), not empties it; all-wildcard returns all addressable links, of every arity `N ≥ 3`, each matched on its first three endsets `e₁, e₂, e₃` (slots `e₄ … eₙ` never enter `sat`) | introduced |
 | FL-EMP | Empty-constraint zero — a constrained slot with empty coverage (`∅`) gives `lift = false` for every link, so any empty constrained component forces `findlinks(q, Σ) = ∅`; empty-spec (zero) is distinct from wildcard/NOSPECS (unit) | introduced |
 | FL-CUR | Currency — `a ∈ findlinks(q, Σ) ⟺ a ∈ addressable(Σ) ∧ sat(a, q, Σ)`, the conjunction of FL-SND and FL-CMP against `addressable(Σ)`: current additions in, current retractions out, non-matches irrelevant | introduced |
 | FL-MON | Monotone accumulation absent retraction — an unretracted matching link, once found, stays found as the store grows | introduced |
