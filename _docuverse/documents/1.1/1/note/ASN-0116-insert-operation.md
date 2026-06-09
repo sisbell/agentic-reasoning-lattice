@@ -176,11 +176,10 @@ We collect the arrangement effect as a named operation.
 
 *Precondition.* `d ∈ dom(M) = E_doc` (the document is an allocated entity, so the
 provenance step below has a legal home); `Σ` is reachable from `Σ₀` by a valid
-transition trace — hence a composite boundary — so the per-state invariants together
+transition trace — hence a composite boundary, so the per-state invariants together
 with the composite-boundary properties of ExtendedReachableStateInvariants
-(ASN-0047), in particular P7a (ProvenanceCoverage), hold at the pre-state; `n ≥ 1`; `(A k : 0 ≤ k < n : w_k ∈ Val)` — each
-inserted unit is a well-formed content value, the typing obligation the K.α step
-below carries (ASN-0093: K.α commits `a ↦ v` only for `v ∈ Val`); `S = subspace(p) = s_C`;
+(ASN-0047) hold at the pre-state; `n ≥ 1`; `(A k : 0 ≤ k < n : w_k ∈ Val)` — each
+inserted unit is a well-formed content value; `S = subspace(p) = s_C`;
 `m := #p ≥ 2`, and when `V_S(d) ≠ ∅` this `m` equals the common depth that
 S8-depth fixes on `V_S(d)`; `p` is S8a-well-formed; and `p` is a valid insertion
 position in the foundation sense (ASN-0036). The position predicates are:
@@ -207,7 +206,9 @@ left endpoint of the next). We name the clauses but derive them by citation, not
 scratch:
 
 - (I-ALLOC) `dom(C') = dom(C) ∪ A_new`, with `C'(shift(a, k)) = w_k` for
-  `0 ≤ k < n` — the K.α effect (ASN-0093), iterated `n` times along `A_C(d)`.
+  `0 ≤ k < n` — the K.α effect (ASN-0093), iterated `n` times along `A_C(d)`. K.α
+  commits `a ↦ v` only for `v ∈ Val`, the typing obligation discharged here by the
+  precondition `w_k ∈ Val`.
 - (I-IMM) `(A b : b ∈ dom(C) : C'(b) = C(b))` — K.α append-only (C0, ASN-0093).
 - (I-SHIFT) `(A v : v ∈ V_S(d) ∧ v ≥ p : shift(v, n) ∈ dom(M'(d)) ∧
   M'(d)(shift(v, n)) = M(d)(v))` — by ASN-0082 **I3 (PostInsertionShift)** together
@@ -490,10 +491,7 @@ inserting document's identity is minted into the address as content enters
 I-span; I-PROV is the abstract counterpart of that record.
 
 It remains to establish the composite-boundary coverage properties P7a and P7. (The
-three couplings J0, J1★, J1'★ are discharged with the valid composite above, all driven
-by the range identity RAN — the I-addresses *new to the content-subspace range* of
-`M'(d)` are precisely `A_new = {shift(a, k) : 0 ≤ k < n}`, the shifted-suffix addresses
-being range-old, which is why I-PROV records *only* `A_new` and not the shifted suffix.)
+three couplings J0, J1★, J1'★ are discharged with the valid composite above.)
 
 The post-state is a composite boundary, so it must also satisfy **P7a
 (ProvenanceCoverage, ASN-0047)**: every `a ∈ dom(C')` carries some record `(a, d') ∈ R'`. Split
