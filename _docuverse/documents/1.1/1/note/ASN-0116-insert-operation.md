@@ -24,7 +24,12 @@ about keeping those layers from contaminating each other.
 We work in the address space `T` of tumblers under the lexicographic total
 order T1, with the displacement algebra `⊕`, `⊖`, and the ordinal shift
 `shift(v, n) = v ⊕ δ(n, #v)` that advances a tumbler's final component by `n`
-while fixing its prefix (foundation: OrdinalShift, OrdinalDisplacement). We
+while fixing its prefix (foundation: OrdinalShift, OrdinalDisplacement). That
+formula requires `n ≥ 1` — `δ(0, #v)` is the zero tumbler, which TumblerAdd
+cannot apply (it requires `Pos(w)`) — so at the boundary we adopt the standard
+convention `shift(t, 0) := t`, the identity shift (as in ASN-0036 S8 and
+ASN-0058 OrdinalShiftBase). Every `0 ≤ k < n` indexing below invokes it at
+`k = 0`, where `shift(p, 0) = p` and `shift(a, 0) = a`. We
 take as given the two-layer state: a **content store** `Σ.C : T ⇀ Val`, the
 append-only ground truth of what content exists, and a per-document
 **arrangement** `Σ.M(d) : T ⇀ T`, the partial function from V-positions to
@@ -697,10 +702,14 @@ the addresses *new to the content-subspace range* of `M'(d)` are exactly
 already in `ran(M(d))`, hence range-old), and `R'` carries a record for each. ✓
 **J1'★** — the only entries in `R' ∖ R` are these two, both range-new. The
 subtle case is the shifted suffix: `a_3, a_4, a_5` now occupy the *new* slots
-`q_5, q_6, q_7`, yet they are range-old — already resolved before the insert —
-and so receive **no** new record. A position-based reader who recorded them
-(because their V-positions changed) would manufacture entries with no range-new
-witness, violating J1'★; the range-based coupling records only `A_new`. ✓
+`q_5, q_6, q_7`, yet provenance keys on `(I-address, document)`, not on
+V-position, and these addresses are *range-old* — already in `ran(M(d))` at the
+pre-state, where by P4★ at the composite boundary the records `(a_3, d)`,
+`(a_4, d)`, `(a_5, d)` already sit in `R`. Their V-positions changed, but their
+I-addresses did not, so they induce **no** new entry: even a reader that
+re-recorded them on the position change would only re-add records already in
+`R`, a no-op that never reaches `R' ∖ R` — and J1'★ constrains only `R' ∖ R`.
+The range-based coupling records exactly `A_new`. ✓
 Finally **P7a** at the post-state for a prior address: `a_1` carried some
 `(a_1, d) ∈ R` at the pre-state (P7a there), and `R ⊆ R'` preserves it, so `a_1`
 remains covered; the two fresh addresses are covered by the records just added. ✓
