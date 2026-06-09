@@ -301,10 +301,8 @@ atomic transitions `{K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.ρ}` (K.μ
 named K.μ⁻+K.μ⁺ composite) in which each step's precondition holds at the
 *intermediate* state it acts on (**ValidComposite★** clause 1), with the coupling
 constraints J0, J1★, J1'★ verified *only* between the initial and final states
-(clause 2). By ValidComposite★, a sequence that meets every transition precondition
-(clause 1) but violates a coupling constraint (clause 2) is *not* a valid composite —
-so the coupling constraints are mandatory, not optional, and we discharge them at the
-boundary below. The arrangement change is *not* itself one of these atomics. It rewrites
+(clause 2); we discharge them at the boundary below. The arrangement change is *not*
+itself one of these atomics. It rewrites
 the I-address at *existing* suffix positions — `M(d)(q_k)` at `q_k` becomes
 `M'(d)(q_{k+n})` at `q_{k+n}` — which K.μ⁺'s prior-domain agreement
 (`M'(d)(v) = M(d)(v)` for `v ∈ dom(M(d))`) forbids, while it strictly *grows* the
@@ -469,15 +467,11 @@ V-stream as a connected region*: the new material occupies exactly the interval
 `{q_J, …, q_{J+n-1}}`, a connected, ordered, gap-free block, and the whole stream
 around it stays a single coherent ordinal sequence.
 
-*Per-subspace run decomposition.* ExtendedReachableStateInvariants (ASN-0047)
-also demands **S8★ (PerSubspaceSpanDecomposition)** at the filled post-state.
-This is automatic rather than an INSERT-specific obligation: `M'(d)` is finite
-(I3-fin), so its content-subspace restriction `M'(d)|_{V_S(d')}` decomposes into
-maximal correspondence runs, and that decomposition exists and is unique on the
-content subspace by **S8 (CorrespondenceRunPartition, ASN-0036)**. INSERT adds
-no special structure here — P1 records that the inserted material forms *one*
-such run, but S8★ for the whole post-state is inherited from S8 applied to the
-finite filled arrangement, not re-proved.
+*Per-subspace run decomposition.* **S8★ (PerSubspaceSpanDecomposition)** holds at
+the filled post-state directly by ExtendedReachableStateInvariants (ASN-0047),
+INSERT being a valid composite — it is a post-state invariant, not a precondition of
+any composite step, so it carries no INSERT-specific obligation. P1 records the
+narrower fact that the inserted material forms *one* such run.
 
 *Provenance coupling — the obligation allocation incurs.* Because INSERT both
 allocates content (I-ALLOC) and places it into the content subspace of `ran(M'(d))`
@@ -895,6 +889,7 @@ catalogued below.
 | P5 (DocumentIsolation) | Every other document's arrangement and resolved content are invariant under INSERT on `d` | introduced |
 | PROV (InsertionProvenance) | `R' = R ∪ {(shift(a,k), d) : 0 ≤ k < n}` discharges ASN-0047's J0, J1★, J1'★ across the composite and re-establishes P7a/P7 at the post-state; provenance is recorded atomically with allocation | introduced |
 | I-ALLOC | `dom(C') = dom(C) ∪ A_new`, `C'(shift(a,k)) = w_k` | cited (K.α, ASN-0093), iterated |
+| I-IMM | `(A b : b ∈ dom(C) : C'(b) = C(b))` — existing content values unchanged | cited (C0, ASN-0093) |
 | I-PROV | `R' = R ∪ {(shift(a,k), d) : 0 ≤ k < n}` — provenance record per allocated address | cited (K.ρ, ASN-0047), iterated |
 | I-SHIFT | V-positions `≥ p` in subspace `S` move to `shift(v,n)`, carrying their I-address | cited (I3, ASN-0082) |
 | I-LEFT | V-positions `< p` in subspace `S` are unchanged | cited (I3-L, ASN-0082) |
@@ -902,6 +897,8 @@ catalogued below.
 | I-DOM | `V_S(d')` is the dense run `{q_1, …, q_{N+n}}`; D-SEQ/D-MIN/D-CTG of the filled post-state established here with `N' = N+n` | introduced (interval argument; domain closure cites I3-CS/I3-CX, ASN-0082) |
 | F-SUB | Positions in subspaces `S' ≠ S` are unchanged (subspace confinement of the shift) | cited (I3-X, ASN-0082) |
 | F-DOC | Arrangements of all documents `d' ≠ d` are unchanged | cited (I3-D, ASN-0082) |
+| F-LINK | `Σ'.L = Σ.L` — the link store is untouched | cited (frame; no K-atomic touches `Σ.L`) |
+| F-ENT | `Σ'.E = Σ.E` — the entity set is untouched | cited (frame; INSERT registers no entity) |
 
 ## Open Questions
 
