@@ -346,9 +346,7 @@ predecessors leave, is
   added position sits in subspace `s_C`, meeting the amended K.μ⁺ content-subspace
   restriction; and (v) the domain grows strictly (`J−1 < N+n`). The prior positions
   `{q_1, …, q_{J−1}}` are untouched, so prior-domain agreement holds — K.μ⁺ never
-  rewrites an existing entry. The apparent "rewrite" of the suffix has been split into
-  a *removal* at the old slot (K.μ⁻) followed by a *fresh insertion at a new slot*
-  (K.μ⁺), each individually legal.
+  rewrites an existing entry.
 - *`K.ρ₁, …, K.ρₙ` (record provenance).* The `k`-th records `(shift(a, k), d)`; its
   precondition `shift(a, k) ∈ dom(C') ∧ d ∈ E_doc` holds because `shift(a, k)` entered
   the store at its K.α step and `d ∈ dom(M) = E_doc`.
@@ -369,11 +367,10 @@ because the prefix is left in place. Dropping K.μ⁻ here is forced, not option
 `J−1 = N = n_{s_C}` the content subspace would not contract strictly, so K.μ⁻ is
 *inapplicable* — and unnecessary, since nothing is vacated.
 
-In both cases the coupling constraints are checked only at the composite boundary
-(clause 2), where the I-addresses range-new to the content subspace of `M'(d)` are
-exactly `A_new` (established below); J0, J1★, J1'★ and the boundary coverage property
-P7a are discharged there. With clause 1 verified step-by-step and clause 2 at the
-boundary, INSERT is a valid composite; since `Σ` is reachable from `Σ₀`
+In both cases the coupling constraints (clause 2) are checked only at the composite
+boundary, discharged in the provenance section below. With clause 1 verified
+step-by-step and clause 2 at the boundary, INSERT is a valid composite; since `Σ` is
+reachable from `Σ₀`
 (precondition), the post-state is reachable too, and the appeal to
 ExtendedReachableStateInvariants for its post-state is licensed.
 
@@ -852,25 +849,11 @@ insertion. ✓ I-DOM (with `J = 1`, prefix and suffix intervals empty), I-NEW, P
 
 ## What we have established
 
-Two effects, two layers, kept clean — and composed from foundation transitions
-rather than re-derived. On the **content layer**, INSERT is the `n`-fold content
-allocation K.α (ASN-0093): fresh, contiguous, origin-stamped I-addresses, monotone
-and append-only (`P0`, `P2`), each coupled to its inserting document by an
-atomic provenance recording (`PROV`, the `n`-fold K.ρ of ASN-0047) that discharges
-ASN-0047's coupling constraints J0, J1★, J1'★ and re-establishes the coverage
-property P7a at the composite boundary. On the **arrangement layer**, INSERT is the
-contraction–extension pair `K.μ⁻` then `K.μ⁺` (a single `K.μ⁺` when no suffix
-moves), exhibited as a valid composite over the K-vocabulary, whose net effect is
-ASN-0082's post-insertion shift (`I-SHIFT`, `I-LEFT`, `F-SUB`, `F-DOC`) — a uniform
-ordinal shift confined to one subspace of one document, opening a gap-free block of
-the right width and re-coordinating the suffix around fixed content identities —
-the slots are relabelled while identities stay fixed (`I-NEW`, `I-DOM`, `P1`, `P3`). The two layers never contaminate each other: links
-survive because they anchor on immutable identity (`P4`), every other document is
-isolated because sharing is by reference and not by arrangement (`P5`), and the
-weakest precondition for preserving discoverability is a containment, not `true`
-(`P6`). The whole specification is, at bottom, the discipline of never letting an
-ephemeral position pretend to be a permanent identity. The claims established are
-catalogued below.
+Two effects, two layers, kept clean: on the content layer INSERT is the `n`-fold
+allocation K.α with its coupled provenance K.ρ, and on the arrangement layer the
+contraction–extension pair `K.μ⁻` then `K.μ⁺` realising ASN-0082's shift. The whole
+specification is, at bottom, the discipline of never letting an ephemeral position
+pretend to be a permanent identity. The claims established are catalogued below.
 
 ## Claims Introduced
 
