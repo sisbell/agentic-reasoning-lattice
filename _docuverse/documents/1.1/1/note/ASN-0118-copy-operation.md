@@ -101,8 +101,9 @@ met, we do *not* inherit ordinal-level from C0 but require it directly — a
 condition on `ℓ`, independent of how much of `⟦σ⟧` the arrangement binds. Its start
 is then a well-formed V-position (ASN-0036, S8a): `zeros(s) = 0`, `#s ≥ 2`, every
 component of `s` positive. We reuse ASN-0058's construct rather than reinvent it. A *spec-set* is an ASN-0058 *ContentReferenceSequence*
-`R = ⟨ρ₁, …, ρₚ⟩` (ContentReferenceSequence), a finite ordered sequence of V-specs
-with `p ≥ 1`. The ordering is part of the request — Nelson is explicit that "if you
+`R = ⟨ρ₁, …, ρ_q⟩` (ContentReferenceSequence), a finite ordered sequence of V-specs
+with `q ≥ 1` (we write the spec-set length as `q`, reserving `p` for the insertion
+position introduced with the operation below). The ordering is part of the request — Nelson is explicit that "if you
 want to designate a separated series of items exactly, including nothing else, you
 do this by a span-set, which is a series of spans" (4/25): a spec-set is a
 *sequence*, not a set, and its "exactly" is the *exclusion* of unwanted
@@ -157,7 +158,7 @@ ASN-0058's `resolve` (Resolution). ASN-0058 resolves a content reference
 `(d_s, σ)` by reading the restriction `M(d_s)|⟦σ⟧`, decomposing it into maximal
 runs ordered by V-start, and returning *compressed run-pairs*
 `resolve(d_s, σ) = ⟨(a₁, n₁), …, (aₖ, nₖ)⟩`; a content-reference sequence resolves
-by concatenation, `resolve(R) = resolve(ρ₁) ⌢ … ⌢ resolve(ρₚ)`. The flat sequence
+by concatenation, `resolve(R) = resolve(ρ₁) ⌢ … ⌢ resolve(ρ_q)`. The flat sequence
 we use is the address-by-address expansion of those run-pairs:
 
 > `resolve(R, Σ) = expand(resolve(R))`,  where
@@ -197,7 +198,7 @@ object we record as the *resolution integrity* claim CP0:
   run and records as many distinct origins as the source content had homes (CP11
   below).
 
-By the ContentReferenceSequence definition a spec-set has `p ≥ 1`; but even a
+By the ContentReferenceSequence definition a spec-set has `q ≥ 1`; but even a
 non-empty spec-set may resolve to `W = 0` when partial binding leaves every named
 position unbound (resolution restricting to the empty bound subset). We exclude
 that degenerate outcome from the operation below by requiring `W ≥ 1`, since
@@ -448,12 +449,17 @@ Two consequences matter beyond bookkeeping. First, because the prior content's
 those I-addresses survives the placement unmoved; links attach to content
 identity, not arrangement position (CP7 below). Second, the post-state arrangement
 is again a well-formed, contiguous, sequential text subspace. ASN-0082's I3
-lemmas supply the per-position facts — that the shifted positions stay
-well-formed (I3-VP), preserve depth (I3-VD), and keep the arrangement a function
-(I3-S2) and finite (I3-fin) — but they describe only the *shift* of trailing
-content and so do not by themselves establish gap-filling. The no-holes tiling we
-derive explicitly from ordinal arithmetic, splitting on whether the destination's
-text subspace is already populated.
+lemmas supply the per-position facts *about the shifted trailing content* — that
+those positions stay well-formed (I3-VP), preserve depth (I3-VD), and finite
+(I3-fin) — but they describe only the *shift*, leaving the gap `[p, p+W)` empty in
+I3's `M'(d)`. COPY fills that gap with the placement positions (CP2), so the
+function-ness and no-holes of COPY's actual `Σ'.M(d)` are *not* established by the
+I3 lemmas: they rest on the tiling argument below — the placement, shift, and left
+ranges occupy disjoint, abutting ordinal intervals — together with K.μ⁺'s
+strict-extension contract, which adds the placement positions without disturbing
+the retained mappings. We derive the no-holes tiling explicitly from ordinal
+arithmetic, splitting on whether the destination's text subspace is already
+populated.
 
 *Empty destination* (`V_{s_C}(d) = ∅`, so `N = 0`). Here COPY establishes the
 document's first content rather than preserving prior content. The valid insertion
