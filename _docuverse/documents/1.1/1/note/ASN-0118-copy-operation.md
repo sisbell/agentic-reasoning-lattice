@@ -81,62 +81,98 @@ invariant across every state in which `a` is stored (S7(d)).
 
 ## What a spec-set names, and what resolution recovers
 
-A *V-spec* is a pair `ρ = (d_s, σ)` naming an allocated source document
-`d_s ∈ dom(Σ.M)` together with a span `σ = (s, ℓ)` constrained by the foundation
-primitives directly. The span is *well-formed* in the sense of T12 (ASN-0034):
+A *V-spec* is an ASN-0058 *ContentReference* `ρ = (d_s, σ)` (ContentReference):
+an allocated source document `d_s ∈ dom(Σ.M)` together with a span `σ = (s, ℓ)`
+that ASN-0058 already constrains. It is *level-uniform* (ASN-0058 condition (iii);
+ASN-0053, S6): `#s = #ℓ`, so start, width, and reach all carry one tumbler length.
+It is *well-formed* in the sense of T12 (ASN-0058 condition (ii); ASN-0034):
 `Pos(ℓ)` and `actionPoint(ℓ) ≤ #s`, so its denotation
 `⟦σ⟧ = {t ∈ T : s ≤ t < s ⊕ ℓ}` is a well-defined order-convex set of tumblers.
-It is *level-uniform* (ASN-0053, S6): `#s = #ℓ`, so start, width, and reach all
-carry one tumbler length. It is *ordinal-level* (ASN-0053; ASN-0082): the action
-point sits at the deepest component, `actionPoint(ℓ) = #ℓ`, so the span advances
-along the last component alone. Its start is a well-formed V-position (ASN-0036,
-S8a): `zeros(s) = 0`, `#s ≥ 2`, and every component of `s` is positive. These
-four conjuncts are the entire definition of `σ`; no external operation's
-definition is borrowed. A *spec-set* is a finite ordered sequence
-`R = ⟨ρ₁, …, ρₚ⟩` of V-specs (`p ≥ 0`). The ordering is part of the request —
-Nelson is explicit that "if you want to designate a separated series of items
-exactly, including nothing else, you do this by a span-set, which is a series of
-spans" (4/25): a spec-set is a *sequence*, not a set, and it designates content
-*exactly*.
+It draws from a non-empty source subspace (ASN-0058 condition (i)):
+`V_{subspace(s)}(d_s) ≠ ∅`. For the content spec-sets COPY consumes the span is
+moreover *ordinal-level* — the action point sits at the deepest component,
+`actionPoint(ℓ) = #ℓ`, which ASN-0058 *derives* for content references (C0,
+OrdinalDisplacementNecessity) — so the span advances along the last component
+alone, and its start is a well-formed V-position (ASN-0036, S8a): `zeros(s) = 0`,
+`#s ≥ 2`, every component of `s` positive. We reuse ASN-0058's construct rather
+than reinvent it. A *spec-set* is an ASN-0058 *ContentReferenceSequence*
+`R = ⟨ρ₁, …, ρₚ⟩` (ContentReferenceSequence), a finite ordered sequence of V-specs
+with `p ≥ 1`. The ordering is part of the request — Nelson is explicit that "if you
+want to designate a separated series of items exactly, including nothing else, you
+do this by a span-set, which is a series of spans" (4/25): a spec-set is a
+*sequence*, not a set, and its "exactly" is the *exclusion* of unwanted
+intermediate content between the named pieces — a precision-of-boundary mechanism,
+not a demand that every named position be occupied.
 
 The *active positions* of a V-spec are those tumblers the span denotes that the
-source arrangement actually binds, defined directly from the foundation
-primitives as `act(ρ, Σ) = dom(Σ.M(d_s)) ∩ ⟦σ⟧` — the intersection of the source
-document's bound V-positions (ASN-0036) with the span's denotation (ASN-0034,
-T12). This
-set is finite (subset of the finite `dom(Σ.M(d_s))`, S8-fin) and totally ordered
-(subset of the totally ordered carrier `T`, T1), hence has a unique ascending
-enumeration `v₁ < … < v_k`. We restrict attention to *content* spec-sets: COPY's
-content-residence precondition (stated with the operation below) requires every
-active position to be in the text subspace, `subspace(vⱼ) = s_C`, so by referential
-integrity (S3★) each resolves to a content address `Σ.M(d_s)(vⱼ) ∈ dom(Σ.C)`.
+source arrangement actually binds, `act(ρ, Σ) = dom(Σ.M(d_s)) ∩ ⟦σ⟧` — the
+intersection of the source document's bound V-positions (ASN-0036) with the span's
+denotation (ASN-0034, T12). This is exactly the domain of ASN-0058's restriction
+`M(d_s)|⟦σ⟧` on which its `resolve` is defined. The set is finite (subset of the
+finite `dom(Σ.M(d_s))`, S8-fin) and totally ordered (subset of the totally ordered
+carrier `T`, T1), hence has a unique ascending enumeration `v₁ < … < v_k`.
 
-We define **resolution** as the ordered sequence of I-addresses obtained by
-reading each active position through its source arrangement and concatenating in
-spec-set order:
+Because `act` intersects the denotation with the *bound* positions, a V-spec whose
+span names positions the source does not bind is admitted, and resolution silently
+restricts to the bound subset. We deliberately do *not* adopt ASN-0058's optional
+*well-formedness* condition (full binding,
+`{v : u ≤ v < reach(σ) ∧ #v = m} ⊆ dom(M(d_s))`); a partially-bound — or even
+empty — span is a well-formed request, and COPY acts on whatever the boundaries
+actually determine. This is Nelson's span semantics: content is designated by its
+boundaries, "what lies between... is implicit in the choice of first and last
+point," and "a span that contains nothing today may at a later time contain a
+million documents" (4/25) — partial binding was never a well-formedness violation.
+Gregory's udanax-green realizes the same decision operationally: a COPY spec whose
+V-positions are unbound is neither rejected nor errored; `retrieverestricted`
+returns nothing for the unbound range and those positions are silently dropped,
+transcluding only the bound portion. So `act` *resolves* partial binding by
+restriction — a settled part of the operation, not a deferred question.
 
-> `resolve(R, Σ) = ⟨ Σ.M(d₁)(v) : v ∈ act(ρ₁,Σ) ascending ⟩ ⌢ … ⌢ ⟨ Σ.M(dₚ)(v) : v ∈ act(ρₚ,Σ) ascending ⟩`     (CP0)
+We restrict attention to *content* spec-sets: COPY's content-residence precondition
+(stated with the operation below) requires every active position to be in the text
+subspace, `subspace(vⱼ) = s_C`, so by referential integrity (S3★) each resolves to
+a content address `Σ.M(d_s)(vⱼ) ∈ dom(Σ.C)`.
 
-Write `resolve(R, Σ) = ⟨c₀, c₁, …, c_{W−1}⟩`, with `W = |resolve(R,Σ)|` the total
-count of resolved addresses. Three facts about this object are immediate, and we
-record them as the *resolution integrity* claim CP0:
+We define **resolution** as the flat I-address sequence obtained by expanding
+ASN-0058's `resolve` (Resolution). ASN-0058 resolves a content reference
+`(d_s, σ)` by reading the restriction `M(d_s)|⟦σ⟧`, decomposing it into maximal
+runs ordered by V-start, and returning *compressed run-pairs*
+`resolve(d_s, σ) = ⟨(a₁, n₁), …, (aₖ, nₖ)⟩`; a content-reference sequence resolves
+by concatenation, `resolve(R) = resolve(ρ₁) ⌢ … ⌢ resolve(ρₚ)`. The flat sequence
+we use is the address-by-address expansion of those run-pairs:
 
-- **(a) Every resolved address already exists.** `cᵢ ∈ dom(Σ.C)` for `0 ≤ i < W`,
-  by S3★ applied at each active position. *Nothing named by the spec-set is
-  invented; it is all found.* This is the precondition that the placement to come
-  will require, and it is met by the source arrangements alone.
+> `resolve(R, Σ) = expand(resolve(R))`,  where
+> `expand(⟨(aⱼ, nⱼ)⟩ⱼ) = ⟨a₁, a₁+1, …, a₁+(n₁−1), …, aₖ, …, aₖ+(nₖ−1)⟩`     (CP0)
+
+This is not a new object — it is ASN-0058's resolution listed one address at a
+time rather than run-by-run, and it coincides with the per-position reading
+`⟨ Σ.M(d_s)(v) : v ∈ act(ρ, Σ) ascending ⟩` concatenated in spec-set order. Write
+`resolve(R, Σ) = ⟨c₀, c₁, …, c_{W−1}⟩`, with `W = |resolve(R,Σ)|` the total count
+of resolved addresses (the sum of the run widths `nⱼ`). Three facts about this
+object we record as the *resolution integrity* claim CP0:
+
+- **(a) Every resolved address already exists.** `cᵢ ∈ dom(Σ.C)` for `0 ≤ i < W`.
+  This is ASN-0058 C1 (ResolutionIntegrity) — "every resolved I-address is in
+  `dom(C)`" — read off the expansion: each run-pair `(aⱼ, nⱼ)` has
+  `aⱼ + i ∈ dom(Σ.C)` for `0 ≤ i < nⱼ`, and `expand` lists exactly those
+  addresses. *Nothing named by the spec-set is invented; it is all found.* This is
+  the precondition that the placement to come will require, met by the source
+  arrangements alone.
 - **(b) Resolution is a pure read.** `resolve` is a function of `Σ`; it modifies no
   component — not `Σ.C`, not any `Σ.M(d)`, not `Σ.L`, not `Σ.R`. The source
   document is consulted, never altered, by the act of resolving a spec-set against
   it. This is the seed of source isolation (CP6 below).
 - **(c) Non-contiguity survives resolution.** When a single V-span covers content
-  that the source itself assembled from several disjoint I-regions, the ascending
-  positions `v₁ < … < v_k` resolve to addresses that are *not* one contiguous run:
-  `resolve` returns each region's addresses in turn, so the resolved sequence
-  records as many distinct origins as the source content had homes (CP11 below).
+  the source itself assembled from several disjoint I-regions, ASN-0058's
+  decomposition returns several run-pairs in V-start order (C1b,
+  ResolutionSequenceOrder), so the expanded sequence is *not* one contiguous run
+  and records as many distinct origins as the source content had homes (CP11
+  below).
 
-The empty spec-set resolves to the empty sequence, `resolve(⟨⟩, Σ) = ⟨⟩` and
-`W = 0`; we exclude it from the operation below by requiring `W ≥ 1`, since
+By the ContentReferenceSequence definition a spec-set has `p ≥ 1`; but even a
+non-empty spec-set may resolve to `W = 0` when partial binding leaves every named
+position unbound (resolution restricting to the empty bound subset). We exclude
+that degenerate outcome from the operation below by requiring `W ≥ 1`, since
 placing nothing is a no-op.
 
 ## The COPY operation
@@ -199,7 +235,9 @@ right matters, because a single K.μ⁺ cannot realize the displacement.
 satisfies `v ≥ p`, so CP3a is vacuous and the effect is a pure extension: a single
 K.μ⁺ step adds the `W` placement positions `[p, p+W)` bound to `c₀,…,c_{W−1}`,
 leaving every prior mapping intact — exactly K.μ⁺'s strict-extension frame
-`(A v ∈ dom(Σ.M(d)) : Σ'.M(d)(v) = Σ.M(d)(v))`. The resulting text run is the
+`(A v ∈ dom(Σ.M(d)) : Σ'.M(d)(v) = Σ.M(d)(v))`. These placement positions
+`{p + i : 0 ≤ i < W}` are well-formed by S8a-validity of `p` and OrdShiftHom(b)
+(ASN-0036), with `p + 0 = p` S8a-valid directly. The resulting text run is the
 contiguous block `[min, max+W]` (or `[p, p+W)` when empty), discharging K.μ⁺'s
 D-CTG★/D-MIN★ precondition.
 
@@ -233,9 +271,15 @@ top of the retained prefix, both the `W` placement positions `[p, p+W)` bound to
 `c₀,…,c_{W−1}` (CP2) and the displaced trailing positions
 `{(min+i)+W : j ≤ i < N} = [p+W, max+W]` bound to their original images
 `Σ.M(d)(min+i)` (CP3a). Each retained mapping is left intact — K.μ⁺'s
-strict-extension frame — and the freshly added V-positions are well-formed (I3-VP);
-the resulting text run is the contiguous block `[min, max+W]`, discharging K.μ⁺'s
-D-CTG★/D-MIN★ precondition. Steps (i)–(ii) together reproduce CP2, CP3a, and CP3b
+strict-extension frame. The freshly added V-positions are well-formed (S8a), and
+the two kinds discharge that obligation by distinct routes: the displaced trailing
+positions `{(min+i)+W : j ≤ i < N}` are *shifted* content, so I3-VP
+(PostInsertionWellFormedness, ASN-0082) applies; the placement positions
+`{p + i : 0 ≤ i < W}` are *gap-fill*, not shifted content, so I3-VP does not cover
+them — instead `p` is itself S8a-valid (a valid insertion position), and each
+`p + i = shift(p, i)` preserves S8a by OrdShiftHom(b) (ASN-0036), with `p + 0 = p`
+S8a-valid directly. The resulting text run is the contiguous block `[min, max+W]`,
+discharging K.μ⁺'s D-CTG★/D-MIN★ precondition. Steps (i)–(ii) together reproduce CP2, CP3a, and CP3b
 (the left prefix is retained by (i) and untouched by (ii)).
 
 To these arrangement steps the composite appends one K.ρ provenance step per
@@ -656,8 +700,12 @@ sources.
 
 ## Open Questions
 
-What must COPY guarantee when a named V-span is only partially bound — some
-positions in the span resolve to content and others to no current binding?
+ASN-0058's C2 (ResolutionWidthPreservation) equates a content reference's resolved
+width with its named ordinal extent only for *well-formed* (fully bound) spans;
+under the partial binding COPY admits, the resolved width `W` may fall strictly
+below the named extent. What, if anything, must COPY guarantee about the
+relationship between a partially-bound span's nominal extent and its smaller placed
+width, given that the design treats the shortfall as silent?
 
 What invariant fixes the placement order when a spec-set names overlapping or
 repeated source spans that resolve a single I-address to multiple positions in the
