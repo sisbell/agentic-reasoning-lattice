@@ -186,10 +186,13 @@ We collect the arrangement effect as a named operation.
 
 **INSERT(`d`, `p`, `w₀ … w_{n-1}`).**
 
-*Precondition.* `d ∈ dom(M)`; `n ≥ 1`; `S = subspace(p) = s_C`; `m := #p ≥ 2`,
-and when `V_S(d) ≠ ∅` this `m` equals the common depth that S8-depth fixes on
-`V_S(d)`; `p` is S8a-well-formed; and `p` is a valid insertion position in the
-foundation sense (ASN-0036). The constraint `S = s_C` is load-bearing, not
+*Precondition.* `d ∈ dom(M)`; `n ≥ 1`; `(A k : 0 ≤ k < n : w_k ∈ Val)` — each
+inserted unit is a well-formed content value, the typing obligation the K.α step
+below carries (ASN-0093: K.α commits `a ↦ v` only for `v ∈ Val`), discharged here
+at the boundary rather than left implicit in the Effect; `S = subspace(p) = s_C`;
+`m := #p ≥ 2`, and when `V_S(d) ≠ ∅` this `m` equals the common depth that
+S8-depth fixes on `V_S(d)`; `p` is S8a-well-formed; and `p` is a valid insertion
+position in the foundation sense (ASN-0036). The constraint `S = s_C` is load-bearing, not
 cosmetic: the allocation below is **K.α (ContentAllocation)**, which yields only
 content-subspace addresses (`subspace_I(a) = s_C`). Were `p` to sit in the link
 subspace (`S = s_L`), I-NEW would map link-subspace positions `shift(p, k)` —
