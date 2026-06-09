@@ -281,9 +281,15 @@ K.μ⁺ step adds the `W` placement positions `[p, p+W)` bound to `c₀,…,c_{W
 leaving every prior mapping intact — exactly K.μ⁺'s strict-extension frame
 `(A v ∈ dom(Σ.M(d)) : Σ'.M(d)(v) = Σ.M(d)(v))`. These placement positions
 `{p + i : 0 ≤ i < W}` are well-formed by S8a-validity of `p` and OrdShiftHom(b)
-(ASN-0036), with `p + 0 = p` S8a-valid directly. The resulting text run is the
-contiguous block `[min, max+W]` (or `[p, p+W)` when empty), discharging K.μ⁺'s
-D-CTG★/D-MIN★ precondition.
+(ASN-0036), with `p + 0 = p` S8a-valid directly. They also carry the subspace
+common depth: `p` is a valid insertion position, so `#p = m_{s_C}(d)`
+(ValidInsertionPosition postcondition (a) in the append sub-case;
+ValidFirstInsertionPosition (a) in the empty sub-case), and
+`#(p + i) = #shift(p, i) = #p = m_{s_C}(d)`, so every placement position has
+depth `m_{s_C}(d)` — preserving S8-depth (establishing it, in the empty sub-case)
+for the gap-fill exactly as OrdShiftHom(b) preserves S8a. The resulting text run
+is the contiguous block `[min, max+W]` (or `[p, p+W)` when empty), discharging
+K.μ⁺'s D-CTG★/D-MIN★ precondition.
 
 *Displacing case* (`p ≤ max`, so trailing content exists). Here a pure K.μ⁺ is
 *not* a faithful decomposition, and the difference is structural. The displacement
@@ -322,7 +328,12 @@ positions `{(min+i)+W : j ≤ i < N}` are *shifted* content, so I3-VP
 `{p + i : 0 ≤ i < W}` are *gap-fill*, not shifted content, so I3-VP does not cover
 them — instead `p` is itself S8a-valid (a valid insertion position), and each
 `p + i = shift(p, i)` preserves S8a by OrdShiftHom(b) (ASN-0036), with `p + 0 = p`
-S8a-valid directly. The resulting text run is the contiguous block `[min, max+W]`,
+S8a-valid directly. The same gap-fill positions also carry the subspace common
+depth, which I3-VD likewise does not cover: `p` is a valid insertion position, so
+`#p = m_{s_C}(d)` (ValidInsertionPosition postcondition (a)), and
+`#(p + i) = #shift(p, i) = #p = m_{s_C}(d)`, so every placement position has depth
+`m_{s_C}(d)` — preserving S8-depth for the gap-fill exactly as OrdShiftHom(b)
+preserves S8a. The resulting text run is the contiguous block `[min, max+W]`,
 discharging K.μ⁺'s D-CTG★/D-MIN★ precondition. Steps (i)–(ii) together reproduce CP2, CP3a, and CP3b
 (the left prefix is retained by (i) and untouched by (ii)).
 
