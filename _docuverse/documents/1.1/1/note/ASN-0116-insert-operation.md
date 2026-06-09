@@ -225,10 +225,13 @@ distinct operation drawing on K.λ, not K.α. The position predicates are:
 Allocation supplies `a` as the K.α-fresh origin-`d` content I-start (above),
 with `A_new ∩ dom(C) = ∅`.
 
-*Effect.* INSERT is the composite of `n` content allocations (K.α, ASN-0093),
-one arrangement transition realising the post-insertion shift of ASN-0082's I3
-family, and `n` provenance recordings (K.ρ, ASN-0047) that couple each allocated
-address to `d`. We name its clauses but derive them by citation, not from scratch:
+*Effect.* INSERT is the composite of `n` content allocations (K.α, ASN-0093), an
+arrangement contraction–extension pair `K.μ⁻` then `K.μ⁺` (degenerating to a single
+`K.μ⁺` when no suffix moves) whose net effect realises the post-insertion shift of
+ASN-0082's I3 family, and `n` provenance recordings (K.ρ, ASN-0047) that couple each
+allocated address to `d`. The explicit step sequence and the discharge of each
+intermediate precondition are given in the next subsection; here we name the clauses
+but derive them by citation, not from scratch:
 
 - (I-ALLOC) `dom(C') = dom(C) ∪ A_new`, with `C'(shift(a, k)) = w_k` for
   `0 ≤ k < n` — the K.α effect (ASN-0093), iterated `n` times along `A_C(d)`.
@@ -288,6 +291,86 @@ address to `d`. We name its clauses but derive them by citation, not from scratc
   ASN-0082 **I3-X (PostInsertionCrossSubspaceFrame)**.
 - (F-DOC) `(A d' : d' ≠ d : M'(d') = M(d'))` — ASN-0082 **I3-D
   (PostInsertionCrossDocumentFrame)**.
+
+## INSERT as a valid composite over the K-vocabulary
+
+The Effect names its clauses by citation, but ASN-0047's reachable-state machinery —
+**ExtendedReachableStateInvariants** for the post-state, and the coupling constraints
+discharged below — applies only to a *valid composite*: a finite sequence of the
+atomic transitions `{K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.ρ}` (K.μ~ being itself a
+named K.μ⁻+K.μ⁺ composite) in which each step's precondition holds at the
+*intermediate* state it acts on (**ValidComposite★** clause 1), with the coupling
+constraints J0, J1★, J1'★ verified *only* between the initial and final states
+(clause 2). The arrangement change is *not* itself one of these atomics. It rewrites
+the I-address at *existing* suffix positions — `M(d)(q_k)` at `q_k` becomes
+`M'(d)(q_{k+n})` at `q_{k+n}` — which K.μ⁺'s prior-domain agreement
+(`M'(d)(v) = M(d)(v)` for `v ∈ dom(M(d))`) forbids, while it strictly *grows* the
+domain, which K.μ⁻ and K.μ~ (the latter by K.μ~-FIX, `dom(M'(d)) = dom(M(d))`) both
+forbid. ASN-0082's I3 family is a displacement *postcondition spec*, not a
+K-transition. We therefore exhibit INSERT as an explicit sequence and discharge each
+step's precondition.
+
+*Suffix-present case `1 ≤ J ≤ N`* (a genuine suffix `{q_J, …, q_N}` must move). The
+sequence, read left to right with each step evaluated against the state its
+predecessors leave, is
+
+> `K.α₁, …, K.αₙ`  →  `K.μ⁻`  →  `K.μ⁺`  →  `K.ρ₁, …, K.ρₙ`.
+
+- *`K.α₁, …, K.αₙ` (allocate).* Each commits one fresh content address along `A_C(d)`;
+  the `k`-th acts on a store already holding `{shift(a, 0), …, shift(a, k−1)}`, against
+  which **SubsequentEmissionFreshness** gives `shift(a, k) ∉ dom(C) ∪ dom(L)`. The
+  precondition `d ∈ dom(M)` holds throughout — no K.α step touches `M`. After these `n`
+  steps `dom(C)` has grown by `A_new` and `M(d)` is still the original `{q_1, …, q_N}`.
+- *`K.μ⁻` (vacate the suffix).* Acting on `d ∈ E_doc`, retain the content-subspace
+  prefix `n'_{s_C} = J−1` and the link subspace in full (`n'_{s_L} = n_{s_L}`). Since
+  `J−1 < N = n_{s_C}`, the content subspace contracts strictly, so K.μ⁻'s "at least one
+  subspace strictly contracts" precondition is met; the retained domain is
+  `{q_1, …, q_{J−1}} ∪ V_{s_L}(d)`. The intermediate text subspace is now the prefix
+  alone, the link subspace untouched.
+- *`K.μ⁺` (install block and shifted suffix).* Acting on `d`, add the new block
+  `{q_J, …, q_{J+n−1}} → A_new` together with the shifted suffix
+  `{q_{J+n}, …, q_{N+n}} → {M(d)(q_J), …, M(d)(q_N)}` (the displaced suffix
+  I-addresses). Clause 1 at this intermediate state: (i) every added target lies in
+  `dom(C)` — the block targets `A_new`, just committed by K.α, and the shifted-suffix
+  targets are the old suffix addresses `{M(d)(q_J), …, M(d)(q_N)} ⊆ dom(C)` — which is
+  exactly why the allocations must precede this step; (ii) every added V-position is
+  S8a-well-formed of depth `m` (shown below); (iii) the resulting content subspace
+  `{q_1, …, q_{N+n}}` is the dense run, so S8-depth, D-CTG★, D-MIN★ hold; (iv) every
+  added position sits in subspace `s_C`, meeting the amended K.μ⁺ content-subspace
+  restriction; and (v) the domain grows strictly (`J−1 < N+n`). The prior positions
+  `{q_1, …, q_{J−1}}` are untouched, so prior-domain agreement holds — K.μ⁺ never
+  rewrites an existing entry. The apparent "rewrite" of the suffix has been split into
+  a *removal* at the old slot (K.μ⁻) followed by a *fresh insertion at a new slot*
+  (K.μ⁺), each individually legal.
+- *`K.ρ₁, …, K.ρₙ` (record provenance).* The `k`-th records `(shift(a, k), d)`; its
+  precondition `shift(a, k) ∈ dom(C') ∧ d ∈ E_doc` holds because `shift(a, k)` entered
+  the store at its K.α step and `d ∈ dom(M) = E_doc`.
+
+The net effect of `K.μ⁻` then `K.μ⁺` on the text subspace is *exactly* I3's
+post-insertion shift: the suffix I-addresses removed at their old slots and
+re-installed `n` positions higher, the prefix fixed, the block filled. This is why the
+Effect clauses I-SHIFT, I-LEFT, I-NEW, I-DOM may continue to cite the I3 family for
+their *values* while the *transitions* realising those values are the K-atomics named
+here.
+
+*Append case `J = N+1` and empty case `V_S(d) = ∅`* (no suffix moves). I-SHIFT is
+vacuous and no contraction is needed; the sequence collapses to
+
+> `K.α₁, …, K.αₙ`  →  `K.μ⁺`  →  `K.ρ₁, …, K.ρₙ`,
+
+the single K.μ⁺ adding only the new block `{q_J, …, q_{J+n−1}} → A_new` above the
+untouched prefix `{q_1, …, q_N}` (empty when `V_S(d) = ∅`). Its preconditions are
+discharged exactly as in (i)–(v) above, with prior-domain agreement again holding
+because the prefix is left in place. Dropping K.μ⁻ here is forced, not optional: with
+`J−1 = N = n_{s_C}` the content subspace would not contract strictly, so K.μ⁻ is
+*inapplicable* — and unnecessary, since nothing is vacated.
+
+In both cases the coupling constraints are checked only at the composite boundary
+(clause 2), where the I-addresses range-new to the content subspace of `M'(d)` are
+exactly `A_new` (established below); J0, J1★, J1'★ and the boundary coverage property
+P7a are discharged there. With clause 1 verified step-by-step and clause 2 at the
+boundary, INSERT is a valid composite, and the appeal to
+ExtendedReachableStateInvariants for its post-state is licensed.
 
 ## The document remains one coherent sequence
 
@@ -795,10 +878,15 @@ coupled to its inserting document by an atomic provenance recording (I-PROV, the
 `n`-fold K.ρ of ASN-0047), and this discharges the coupling constraints J0, J1★, J1'★
 between the composite's endpoints and re-establishes the coverage property P7a at the
 post-state (`PROV`), so the operation lands in a state ExtendedReachableStateInvariants
-actually admits rather than one its own theorem would reject. On the arrangement layer INSERT is ASN-0082's
-post-insertion shift (I3, I3-L, I3-X, I3-D), a uniform ordinal shift confined to
+actually admits rather than one its own theorem would reject. On the arrangement layer
+INSERT is realised by an ASN-0047 contraction–extension pair `K.μ⁻` then `K.μ⁺` (a
+single `K.μ⁺` when no suffix moves), whose net effect is ASN-0082's post-insertion
+shift (I3, I3-L, I3-X, I3-D) — a uniform ordinal shift confined to
 one subspace of one document, opening a gap-free block of exactly the right width
-and re-coordinating the suffix around fixed content identities. The
+and re-coordinating the suffix around fixed content identities. The explicit step
+sequence is exhibited as a valid composite over the K-vocabulary, with each
+intermediate precondition discharged and the coupling constraints checked only at the
+composite boundary. The
 well-formedness of the left and shifted regions is inherited from the I3-VD/I3-VP
 family, the new block's well-formedness is discharged directly (S8a via
 OrdShiftHom, depth uniformity, single-valuedness, S3★), and the contiguity of the
@@ -823,7 +911,7 @@ identity.
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| INSERT | Operation: place `n` fresh content units at valid V-position `p` in document `d`, as the composite K.α (×n) + ASN-0082 I3 shift + new-block fill + K.ρ (×n) provenance | introduced (composite) |
+| INSERT | Operation: place `n` fresh content units at valid V-position `p` in document `d`, as the valid ASN-0047 composite `K.α`(×n) → `K.μ⁻` → `K.μ⁺` → `K.ρ`(×n) (K.μ⁻ dropped in the append/empty cases), whose arrangement net effect realises ASN-0082's I3 shift | introduced (composite) |
 | P0 (OriginIdentity) | The `n` allocated I-addresses `{shift(a,k) : 0 ≤ k < n}` are fresh and distinct from all prior addresses, independent of content value | restated (K.α freshness + S4, ASN-0036/0093) |
 | P1 (InsertedRun) | The inserted material forms one correspondence run: `M'(d)(shift(p,k)) = shift(a,k)`, V- and I-addresses advancing in lockstep over a contiguous block | introduced |
 | P2 (ContentAppendOnly) | `dom(C) ⊆ dom(C')` and existing values preserved; INSERT is purely additive on content | restated (C0, ASN-0093) |
