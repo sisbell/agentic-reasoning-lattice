@@ -37,11 +37,7 @@ We write `V_S(d) = {v ∈ dom(M(d)) : subspace(v) = S}` for the V-positions of
 touches is the **provenance relation** `Σ.R ⊆ T_elem × E_doc` (pairs of an
 element-level I-address and a document), the record coupling each content
 I-address to the document that placed it, where `E_doc = dom(M)` is the set of
-allocated documents. The consultation is emphatic that this
-coupling is *not* a separately-maintained relation but is established by the
-act of insertion itself — "the origin IS the address," minted as content
-enters the document (4/11, theory answer). INSERT therefore carries an
-obligation to grow `R` in lockstep with allocation.
+allocated documents.
 
 The standing well-formedness facts we will lean on, all inherited from the
 arrangement model: every active V-position is zero-free of depth `m ≥ 2` with
@@ -60,9 +56,8 @@ observe the single arithmetic fact that does all the work below:
 
 ## What is allocated, and why it must be fresh
 
-Consider first the content being inserted. The consultation is unanimous and
-emphatic on a single point: at the instant new content enters the document it
-acquires a *permanent identity* — an I-address — that is strictly distinct
+Consider first the content being inserted. At the instant new content enters the
+document it acquires a *permanent identity* — an I-address — that is strictly distinct
 from the document's *arrangement* of it. "The address of a byte in its native
 document is of no concern to the user or to the front end; indeed, it may be
 constantly changing… but since the links are to the bytes themselves, any
@@ -151,9 +146,8 @@ q_{k+n}`:
   map in lockstep to the freshly allocated run:
   `M'(d)(shift(p, k)) = shift(a, k)` for `0 ≤ k < n`.
 
-The consultation is sharp on the relationship the displaced positions bear to the
-prior arrangement (Q2): a V-position never *binds* content; it is an ordinal slot,
-not a container. After the insertion,
+A V-position never *binds* content; it is an ordinal slot, not a container (Q2).
+After the insertion,
 the relation "position `q_J` holds content `X`" is gone — `q_J` now holds new
 content, and `X` has moved to `q_{J+n}`. What is preserved is the orthogonal
 relation: *content `X` keeps its I-address, and the arrangement re-coordinates
@@ -459,11 +453,9 @@ fact that the inserted material forms *one* such run.
 *Provenance coupling — the obligation allocation incurs.* Because INSERT both
 allocates content (I-ALLOC) and places it into the content subspace of `ran(M'(d))`
 (I-NEW), ASN-0047 binds it to three coupling constraints between the initial and
-final states of the composite, plus a composite-boundary coverage property —
-mandatory, not optional, by the composite-validity discipline established above
-(ValidComposite★ clause 2). The consultation settles that this coupling is intrinsic to
+final states of the composite, plus a composite-boundary coverage property. The consultation settles that this coupling is intrinsic to
 insertion — the inserting document's identity is minted into the address as content
-enters, and the implementation makes the binding concrete by writing a DOCISPAN
+enters (4/11, theory answer: "the origin IS the address"), and the implementation makes the binding concrete by writing a DOCISPAN
 provenance record per inserted I-span (KB synthesis; theory answer "provenance
 follows creation, and for native insertion creation and placement are the same
 act"). I-PROV is the abstract counterpart of that record. We discharge each
@@ -509,7 +501,7 @@ established atomically-with-allocation as part of the operation, not deferred: e
 freshly minted content address `shift(a, k)` enters `R` coupled to its inserting
 document `d` in the same composite that allocates and places it.*
 
-Two finer points the consultation insists on. First, inserting a *span* rather
+Two finer points remain. First, inserting a *span* rather
 than a single byte is, at the V-layer, no different in kind — the same uniform
 shift opens a block of exactly the right size and the suffix slides over by
 precisely `n` (Q5). The span enters as a single contiguous run; it is under no
@@ -545,8 +537,8 @@ We name the layer invariant:
 `(A b : b ∈ dom(C) : C'(b) = C(b))`.* INSERT is purely additive on the content
 layer.
 
-**Position permanence.** The consultation's two-sense answer (Q6) is discharged
-by named claims. I-address permanence holds by IP0 and IP2 — no existing binding
+**Position permanence.** Position permanence has two senses (Q6), each discharged
+by a named claim. I-address permanence holds by IP0 and IP2 — no existing binding
 is disturbed and no address repurposed. V-position impermanence is exactly what
 the shift performs; we name it.
 
@@ -861,7 +853,7 @@ I-DOM, D-MIN★.
 ## What we have established
 
 Two effects, two layers, kept clean: on the content layer INSERT is the `n`-fold
-allocation K.α with its coupled provenance K.ρ, and on the arrangement layer the
+allocation K.α with its provenance recording K.ρ, and on the arrangement layer the
 contraction–extension pair `K.μ⁻` then `K.μ⁺` realising ASN-0082's shift. The claims
 established are catalogued below.
 
