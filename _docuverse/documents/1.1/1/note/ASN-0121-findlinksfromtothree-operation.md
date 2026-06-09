@@ -141,15 +141,19 @@ facts about this *whole* vocabulary underwrite the permanence claims, and we rec
 once here. First, `dom(Σ.L)` is non-decreasing across `→`: only K.λ touches the link
 store, and it only extends it (L12a), with every other operation framing `Σ.L` fixed;
 ASN-0098's StoreMonotonicity★ lifts this to `dom(Σ.L) ⊆ dom(Σ'.L)` across `→*`. Second,
-`nullified` is non-decreasing across `→`. R6a (ASN-0086, RetractionStability) establishes
-this across ASN-0086's allocation-only relation `K.σ ∪ K.α ∪ K.λ`; the editing and
-provenance operations lie outside that relation, but each leaves `Σ.L` literally unchanged
-(K.μ⁺/K.μ⁺_L/K.μ⁻/K.μ~ rewrite only `Σ.M`; K.ρ writes only `Σ.R`), hence leaves the
-retraction relation `L_R^Σ` and `nullified(Σ)` unchanged. So `nullified` is constant
-across every editing/provenance step and monotone (R6a) across every allocation step,
-hence non-decreasing across all of `→` and, by induction, across `→*`. We invoke these two
-facts — link-store monotonicity and `nullified` monotonicity over the full vocabulary —
-wherever permanence is at issue below.
+`nullified` is non-decreasing across `→`. The cleanest way to see this is structural,
+which also avoids any gap in a per-operation enumeration: `nullified(Σ)` is a function of
+`Σ.L` *alone* — it is defined through the retraction relation `L_R^Σ`, which is itself a
+subset of the link store — so any operation that frames `Σ.L` fixed leaves both `L_R^Σ`
+and `nullified(Σ)` unchanged. Within the ASN-0047 vocabulary the only operation that
+changes `Σ.L` is K.λ; every other operation frames the link store fixed — K.α writes only
+`Σ.C`; K.δ extends `Σ.E`/`Σ.M`/`Σ.C`/`Σ.R` but never `Σ.L`; K.μ⁺/K.μ⁺_L/K.μ⁻/K.μ~ rewrite
+only `Σ.M`; K.ρ writes only `Σ.R` — and so each holds `nullified` constant. Across the one
+link-store-changing operation K.λ, R6a (ASN-0086, RetractionStability:
+`a ∈ nullified(Σ) ⟹ a ∈ nullified(Σ')`) supplies monotonicity. So `nullified` is constant
+across every non-K.λ step and monotone (R6a) across K.λ, hence non-decreasing across all of
+`→` and, by induction, across `→*`. We invoke these two facts — link-store monotonicity and
+`nullified` monotonicity over the full vocabulary — wherever permanence is at issue below.
 
 Now we may derive, rather than stipulate, the answer set. Demand of any candidate answer
 `R` two things. *Soundness*: `(A a : a ∈ R : sat(a, q, Σ))` — nothing returned fails a
@@ -436,9 +440,9 @@ current line of descent.
 `Σ →* Σ'` and every request `q`, `a ∉ findlinks(q, Σ')`. The exclusion is total: even if
 `a`'s endsets would still satisfy every endpoint criterion, `a ∉ addressable(Σ')` removes
 it from FL-DEF, and the non-decrease of `nullified` across the full transition vocabulary
-— R6a (ASN-0086) for allocation steps, and constancy of `nullified` across the editing
-and provenance operations that leave `Σ.L` (hence `L_R^Σ`) untouched, as established for
-`→` and `→*` above — keeps it out forever. A retracted
+— R6a (ASN-0086) across the one link-store-changing operation K.λ, and constancy of
+`nullified` across every other operation in `→` (all of which leave `Σ.L`, hence `L_R^Σ`,
+untouched), as established for `→` and `→*` above — keeps it out forever. A retracted
 link neither lingers as a phantom result nor obstructs retrieval of the links that still
 satisfy the inquiry (FL-JUNK applies to its absence as to any non-match).
 
