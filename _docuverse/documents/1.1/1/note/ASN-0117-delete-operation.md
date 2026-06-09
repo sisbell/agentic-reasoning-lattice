@@ -125,8 +125,8 @@ and `r = p ⊕ w = q_{J+c}` is the first surviving position past the gap. By the
 foundation SubspaceConventionAxiom (ASN-0047/ASN-0093) the text subspace
 identifier is `s_C = 1`, so `V_S(d) = V_1(d)` and ASN-0082's contraction —
 stated literally for `S = 1` on `V_1(d)` — applies here verbatim, licensing every
-D-clause we cite below at `S = s_C`. The three regions partition `V_S(d)` by
-trichotomy of T1:
+D-clause we cite below at `S = s_C`. The three regions of the foundation
+contraction (ASN-0082 **ThreeRegions**) partition `V_S(d)` by trichotomy of T1:
 
 - `L = {v ∈ V_S(d) : v < p}` — the prefix, untouched;
 - `X = {v ∈ V_S(d) : p ≤ v < r}` — the deleted block, `|X| = c`;
@@ -337,17 +337,16 @@ arrangement layer.
 
 We must check that the result is well-formed — that closing the gap has not
 left a hole, overlaid two positions, or broken the density that lets spans
-name contiguous regions. The computation is immediate from `σ(q_k) = q_{k−c}`
-and from the gap-closure `σ(q_{J+c}) = q_J` (D-SEP). The surviving index sets
-are `{1, …, J−1}` (prefix `L`) and `{J, J+1, …, N−c}` (the shifted suffix, since
-`q_k` for `k ∈ {J+c, …, N}` maps to `q_{k−c}` for `k−c ∈ {J, …, N−c}`). These
-are consecutive integer intervals with no gap and no overlap; their union is
-`{1, …, N−c}`. Therefore
+name contiguous regions. We do not re-derive the post-contraction domain: it is
+exactly ASN-0082's dense run **D-SEQ-post**,
 
 > `V_S(d') = {q_1, …, q_{N−c}}`,
 
-again the canonical dense run, now of length `N' = N − c`. We do not re-prove
-well-formedness: it is exactly ASN-0082's post-contraction preservation family —
+of length `N' = N − c`. The prefix `L = {q_1, …, q_{J−1}}` abuts the shifted
+suffix `{q_J, …, q_{N−c}}` (the images of `q_{J+c}, …, q_N` under
+`σ(q_k) = q_{k−c}`) flush — the gap-closure `σ(q_{J+c}) = q_J` (D-SEP) seats the
+two with no hole and no overlap. We do not re-prove
+well-formedness either: it is exactly ASN-0082's post-contraction preservation family —
 **D-SEQ-post**/**D-MIN-post** (`min(V_S(d')) = q_1`)/**D-CTG-post** for the dense
 run, **S8a-post** and **S8-depth-post** for the positions, **S2-post** for
 single-valuedness, **S8-fin-post** for finiteness, and **S3-post** for
