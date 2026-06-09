@@ -365,6 +365,16 @@ V-stream as a connected region*: the new material occupies exactly the interval
 `{q_J, …, q_{J+n-1}}`, a connected, ordered, gap-free block, and the whole stream
 around it stays a single coherent ordinal sequence.
 
+*Per-subspace run decomposition.* ExtendedReachableStateInvariants (ASN-0047)
+also demands **S8★ (PerSubspaceSpanDecomposition)** at the filled post-state.
+This is automatic rather than an INSERT-specific obligation: `M'(d)` is finite
+(I3-fin), so its content-subspace restriction `M'(d)|_{V_S(d')}` decomposes into
+maximal correspondence runs, and that decomposition exists and is unique on the
+content subspace by **S8 (CorrespondenceRunPartition, ASN-0036)**. INSERT adds
+no special structure here — P1 records that the inserted material forms *one*
+such run, but S8★ for the whole post-state is inherited from S8 applied to the
+finite filled arrangement, not re-proved.
+
 Two finer points the consultation insists on. First, inserting a *span* rather
 than a single byte is, at the V-layer, no different in kind — the same uniform
 shift opens a block of exactly the right size and the suffix slides over by
@@ -430,9 +440,12 @@ facts hold — the first about the target, the next two about the resolved
 witnesses:
 
 - *The link's target is unchanged.* For any endset `e`, `coverage(e)` is a
-  function of `e`'s spans alone, and INSERT never edits a stored link value: link
-  immutability **L12 (LinkImmutability, ASN-0043)** fixes `Σ'.L(a) = Σ.L(a)` for
-  every prior link `a`, so **LP3 (CoverageInvariance, ASN-0098)** gives
+  function of `e`'s spans alone, and INSERT never edits a stored link value. Since
+  INSERT is the composite of `n` content allocations (K.α) and one arrangement
+  transition — `Σ → Σ'` spans `n+1` steps — we cite the multi-step lemmas: link
+  immutability **L12 (LinkImmutability, ASN-0043)** lifted across the composite
+  fixes `Σ'.L(a) = Σ.L(a)` for every prior link `a`, so **LP3★
+  (MultiStepCoverageInvariance, ASN-0098)** gives
   `coverage_{Σ'}(e) = coverage_{Σ}(e)` for every prior endset. We stress what
   does *not* underwrite this: it is *not* that `A_new` is fresh against `dom(C)`.
   Foundation **L4 (EndsetGenerality)** and **L9 (TypeGhostPermission)** let an
@@ -468,7 +481,7 @@ verbatim), and the new block can only add witnesses, never remove or redirect. W
 record it.
 
 **P4 (LinkSurvival).** *For every endset `e` existing in `Σ`,
-`coverage_{Σ'}(e) = coverage_{Σ}(e)` (by L12 + LP3) — no link's designated content
+`coverage_{Σ'}(e) = coverage_{Σ}(e)` (by L12 + LP3★ across the composite) — no link's designated content
 changes. The post-insert resolved-witness set of `e` in `d` is
 `project(e, d, Σ') = {v ∈ dom(M'(d)) : M'(d)(v) ∈ coverage(e)}`, which decomposes
 into four disjoint parts:*
@@ -549,9 +562,17 @@ carry their I-addresses to new slots (I-SHIFT), and the new block adds exactly
 
 > `ran(M'(d)) = ran(M(d)) ∪ A_new`.
 
-This is one direction of **LP9 (ExtensionMonotonicity, ASN-0098)** made exact for
-the dense subspace: the arrangement range grows by precisely the freshly
-allocated run. Substituting into LP12, for every prior link `a`,
+This range identity is derived directly from the Effect clauses just cited
+(I-LEFT, I-SHIFT, I-NEW), *not* from **LP9 (ExtensionMonotonicity, ASN-0098)**.
+LP9 does not apply: it governs only K.μ⁺/K.μ⁺_L extension transitions, and its
+proof rests on prior-domain agreement (E2: `M'(d)(v) = M(d)(v)` for every
+`v ∈ dom(M(d))`), which INSERT's I-SHIFT violates by vacating every suffix
+position `v ≥ p`. INSERT is not a pure extension, and LP9's conclusion is about
+`project`, not `ran`. Substituting the directly-derived range identity into
+LP12, for every prior link `a` — and noting that the unsubscripted `coverage(eᵢ)`
+below is well-defined because each slot's coverage is invariant pre-to-post across
+the whole composite (L12 + **LP3★ (MultiStepCoverageInvariance, ASN-0098)**, so
+`coverage_{Σ'}(eᵢ) = coverage_{Σ}(eᵢ)`) —
 
 ```
   discoverable_from(a, d, Σ')
@@ -699,7 +720,7 @@ filled run (`N' = N + n`) is INSERT's own theorem — the consecutive-disjoint
 interval argument — not a borrowed contraction lemma; the inserted span enters as
 a single connected run (`P1`); every
 link survives because it anchors on immutable identity, its coverage fixed by
-endset immutability L12+LP3 — and its resolved-witness count can *grow* (never
+endset immutability L12+LP3★ — and its resolved-witness count can *grow* (never
 shrink or redirect; prior witnesses map bijectively onto left ∪ shifted-suffix ∪
 cross-subspace, the suffix relabelled by `shift(·, n)`) when a prior endset already
 referenced an address INSERT now mints (`P4`; a resurrection in LP18's sense only
@@ -721,7 +742,7 @@ identity.
 | P1 (InsertedRun) | The inserted material forms one correspondence run: `M'(d)(shift(p,k)) = shift(a,k)`, V- and I-addresses advancing in lockstep over a contiguous block | introduced |
 | P2 (ContentAppendOnly) | `dom(C) ⊆ dom(C')` and existing values preserved; INSERT is purely additive on content | restated (C0, ASN-0093) |
 | P3 (AddressPermanence) | No existing I-address is removed or rebound; every new binding is at a fresh address | restated (C0 + P0) |
-| P4 (LinkSurvival) | Every prior endset's coverage is unchanged (L12+LP3); post-insert witness set = left ∪ shifted-suffix ∪ cross-subspace ∪ new-block; prior witnesses map bijectively onto the first three parts (suffix relabelled by `shift(·,n)`), so witness count is non-decreasing and resolved content grows monotonically (new-block is LP18 resurrection only when the link was orphaned) | introduced |
+| P4 (LinkSurvival) | Every prior endset's coverage is unchanged (L12+LP3★ across the composite); post-insert witness set = left ∪ shifted-suffix ∪ cross-subspace ∪ new-block; prior witnesses map bijectively onto the first three parts (suffix relabelled by `shift(·,n)`), so witness count is non-decreasing and resolved content grows monotonically (new-block is LP18 resurrection only when the link was orphaned) | introduced |
 | P6 (DiscoverabilityWP) | `wp(INSERT, D(d,Σ')=D(d,Σ)) ≡ INSERT-pre ∧ {a : (∃i) coverage(Σ.L(a).eᵢ) ∩ A_new ≠ ∅} ⊆ D(d,Σ)` (containment, not emptiness); the emptiness form is sufficient but strictly stronger; discharged free under tight-endset discipline (LP19a) | introduced |
 | P5 (DocumentIsolation) | Every other document's arrangement and resolved content are invariant under INSERT on `d` | introduced |
 | I-ALLOC | `dom(C') = dom(C) ∪ A_new`, `C'(shift(a,k)) = w_k` | cited (K.α, ASN-0093), iterated |
