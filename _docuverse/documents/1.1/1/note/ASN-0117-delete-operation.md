@@ -258,22 +258,12 @@ place. We name DELETE's clauses but derive them by citation:
 
 - (DEL-REMOVE) The arrangement loses exactly `c` V→I correspondences in subspace
   `S`: the surviving domain contracts by precisely the deletion width,
-  `|{v ∈ dom(M'(d)) : subspace(v) = S}| = N − c`, and the top `c` position
-  *labels* leave the domain, `(A k : N − c < k ≤ N : q_k ∉ dom(M'(d)))`. We state
-  the contraction as a count, plus the vacating of the top `c` labels, rather than
-  as the absence of each specific old pair — because a deleted-span label `q_k`
-  with `k ≤ N − c` does *not* vacate the domain: it remains in `dom(M'(d))` but is
-  reoccupied by the shifted survivor (DEL-SHIFT), binding `M'(d)(q_k) = M(d)(q_{k+c})`.
-  In the generic (no-sharing) case this is a *different* I-address than `M(d)(q_k)`,
-  so the old pair `(q_k, M(d)(q_k))` is absent; but under within-document sharing
-  (S5/M13 of the arrangement model), where `d` already arranges one address at two
-  positions, the reoccupant `M(d)(q_{k+c})` may coincide with the old image
-  `M(d)(q_k)`, and then the per-pair absence `(q_k, M(d)(q_k)) ∉ M'(d)` *fails* even
-  though the count contraction still holds. This is why the robust statement of
-  removal is the count `N − c` together with the top-`c` label vacancy, not a
-  universal over deleted pairs. The deleted I-addresses `A_del` are *not* removed
-  from anything else; they persist in `C` (P0) and may be mapped by other positions
-  of `d` or by other documents.
+  `|{v ∈ dom(M'(d)) : subspace(v) = S}| = N − c`, and the top `c` position labels
+  leave the domain, `(A k : N − c < k ≤ N : q_k ∉ dom(M'(d)))`. The deleted
+  I-addresses `A_del` persist in `C` (P0); they are not removed from anything else,
+  and may be mapped by other positions of `d` or by other documents. (The
+  count-plus-label-vacancy form, rather than a per-pair absence, is required for
+  the reason given at P1.)
 - (DEL-SHIFT) `(A v : v ∈ R : σ(v) ∈ dom(M'(d)) ∧ M'(d)(σ(v)) = M(d)(v))` —
   verbatim ASN-0082 **D-SHIFT**, with `σ(q_k) = q_{k−c}`.
 - (DEL-LEFT) `(A v : v ∈ L : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v))` —
@@ -366,43 +356,31 @@ And the dual fact, the arrangement-side removal:
 correspondences in subspace `S`, removed from the arrangement only:
 `|{v ∈ dom(M'(d)) : subspace(v) = S}| = N − c`, with the top `c` position labels
 leaving the domain, `(A k : N − c < k ≤ N : q_k ∉ dom(M'(d)))`; and every deleted
-I-address persists in `C` (P0). The count-plus-label-vacancy form, rather than a
-per-pair absence, is required for the reason given at DEL-REMOVE above. The
-deletion subtracts `c` V→I correspondences; it subtracts no content.*
+I-address persists in `C` (P0). The deletion subtracts `c` V→I correspondences;
+it subtracts no content.*
+
+We state removal as a count plus top-`c` label vacancy rather than as the absence
+of each old pair, because a deleted-span label `q_k` with `k ≤ N − c` does not
+vacate the domain — it is reoccupied by the shifted survivor (DEL-SHIFT), binding
+`M'(d)(q_k) = M(d)(q_{k+c})`. Generically this differs from `M(d)(q_k)`, so the
+old pair `(q_k, M(d)(q_k))` is absent; but under within-document sharing (S5/M13
+of the arrangement model) the reoccupant may coincide with the old image, and then
+the per-pair absence fails while the count contraction still holds. The
+count-plus-label-vacancy form is therefore the robust statement.
 
 ## A span, not a position: binding versus being
 
-The question asks what deleting a *span* — rather than a single position —
-reveals. The answer is the sharpest articulation of the two-layer architecture
-the operations afford, and it deserves its own argument.
-
-A single V-position is a boundary: an ordinal slot in the arrangement. By
-itself it designates no content — it is a place *between* or *at*, the index of
-a correspondence, not a container of bytes. A span, by contrast, has *extent*:
-it covers a contiguous run of V-positions, and each of those maps to a
-permanent I-address whose bytes exist independently of where — or whether — any
-document arranges them. The span is therefore the smallest unit that carries
-*both* aspects at once: an *arrangement* feature (its V-extent, a from-here-to-
-there in the Vstream) and an *existence* fact (the I-addressed bytes it covers).
-"There is no choice as to what lies between; this is implicit in the choice of
-first and last point" (4/25, Q4). Deleting the span is the operation that pulls
-the two aspects apart.
-
-In our model the separation is two disjoint facts already in hand: DEL-REMOVE/P1
-strips the span's V→I correspondences (the arrangement ceases to bind), while
-P0/DEL-CIMM keeps `A_del ⊆ dom(C')` with values intact (the content does not cease
-to exist). A position-deletion would reveal none of this, because a position binds
-no content — there would be nothing underneath it that could "still exist." Only a
-span, with extent, exposes the seam between *binding* and *being*.
-
-What witnesses that the seam is real — that arrangement-ceasing-to-bind is a
-genuinely different act from content-ceasing-to-exist? The links, and the other
-documents that share the content. A link survives because it anchors on the
-still-existing bytes (established formally at P4 below); the other documents that
-still arrange the content continue to resolve it (P5) — both impossible if the
-bytes were gone. Each is direct evidence that DELETE removed a binding and left
-the existence intact. The span is the seam between binding and being; deleting it
-is what shows the seam was there all along.
+Deleting a *span* rather than a single position is what exposes the two-layer
+separation. A span carries both aspects at once: an *arrangement* feature (its
+V-extent in the Vstream) and an *existence* fact (the I-addressed bytes it
+covers) — "there is no choice as to what lies between; this is implicit in the
+choice of first and last point" (4/25, Q4). DELETE pulls the two apart:
+DEL-REMOVE/P1 strips the span's V→I correspondences (the arrangement ceases to
+bind) while P0/DEL-CIMM keeps `A_del ⊆ dom(C')` with values intact (the content
+does not cease to exist). A single position binds no content, so a
+position-deletion would reveal nothing underneath; only a span, with extent,
+separates binding from being — and the links and other documents that still
+resolve the content (P4, P5) are direct evidence the bytes endured.
 
 ## Invariants the operation must preserve
 
