@@ -95,20 +95,14 @@ non-destructive editing must satisfy.
 `dom(C') = dom(C)` and `(A b : b ∈ dom(C) : C'(b) = C(b))`. In particular every
 deleted I-address survives: `A_del ⊆ dom(C')` with content preserved.*
 
-Why must this hold for *any* implementation? Because everything Nelson builds
-on top of editing — historical backtrack, transclusion across documents,
-links that survive editing, version comparison — presumes the bytes endure.
-"Virtually all of computerdom is built around the destructive replacement of
-successive whole copies… Instead, suppose we create an append-only storage
-system" (2/14). Append-only is not a performance choice; it is the foundation
-of every downstream guarantee. An implementation that freed the deleted bytes
-would satisfy the immediate semantics of "the span is gone from this document"
-while silently breaking transclusion, backtrack, and link survival all at once.
 Gregory confirms the architecture enforces this structurally: the codebase
 maintains *two distinct deletion primitives*, and the document-span delete
 calls only the one that operates on the arrangement enfilade, never the one
-that would touch the permanent store (Q15). The non-destruction guarantee is a
-frame condition, not a courtesy.
+that would touch the permanent store (Q15). The non-destruction guarantee is
+thus a frame condition, not a courtesy — and a load-bearing one: historical
+backtrack, transclusion across documents, and link survival all presume the
+bytes endure, so an implementation that freed them would break all three at
+once while appearing to honour "the span is gone from this document."
 
 ## What shifts, and what the shift must preserve
 
@@ -159,11 +153,9 @@ After the deletion, the relation "position `q_k` holds content `X`" has been
 rewritten — `X`, if it survived in `R`, now sits at `q_{k−c}`. What is preserved
 is the orthogonal relation: *each surviving piece of content keeps its
 I-address, and the arrangement re-coordinates itself around that fixed
-identity.* The left-shift is a relabelling of slots, not a transport of
-bindings. The exact-gap-closure happens *only in the Vstream*; the permanent
-I-addresses of the survivors do not change at all. The deletion's boundaries are
-reflected precisely in the virtual renumbering and not at all in the content
-identity.
+identity.* The left-shift is a relabelling of slots in the Vstream, not a
+transport of bindings; the permanent I-addresses of the survivors do not
+change at all.
 
 The displacement is confined to the subspace `S`. Gregory's evidence makes this
 structural: a text deletion at `1.x` cannot reach link positions at `2.x`,
@@ -315,14 +307,19 @@ exactly ASN-0082's dense run **D-SEQ-post**,
 of length `N' = N − c`. The prefix `L = {q_1, …, q_{J−1}}` abuts the shifted
 suffix `{q_J, …, q_{N−c}}` (the images of `q_{J+c}, …, q_N` under
 `σ(q_k) = q_{k−c}`) flush — the gap-closure `σ(q_{J+c}) = q_J` (D-SEP) seats the
-two with no hole and no overlap. We do not re-prove
-well-formedness either: it is exactly ASN-0082's post-contraction preservation family —
-**D-SEQ-post**/**D-MIN-post** (`min(V_S(d')) = q_1`)/**D-CTG-post** for the dense
-run, **S8a-post** and **S8-depth-post** for the positions, **S2-post** for
-single-valuedness, **S8-fin-post** for finiteness, and **S3-post** for
-referential integrity — read at the two-subspace level as S3★
-(GeneralizedReferentialIntegrity, ASN-0047): the *text* V-positions resolve into
-`dom(C')` and the *link* V-positions into `dom(L')`. The content clause
+two with no hole and no overlap. We do not re-prove well-formedness either.
+Because DELETE is a valid composite of elementary K.μ⁻/K.μ⁺ steps (or a lone
+elementary K.μ⁻ when `R = ∅`), its post-state satisfies the *entire* per-state
+invariant package of **ExtendedReachableStateInvariants** (ASN-0047)
+uniformly — every conjunct that theorem closes over, not a hand-picked subset.
+We name only the conjuncts the deletion actively reshapes, all of them
+ASN-0082's post-contraction preservation family: **D-SEQ-post**/**D-MIN-post**
+(`min(V_S(d')) = q_1`)/**D-CTG-post** for the dense run, **S8a-post** and
+**S8-depth-post** for the positions, **S2-post** for single-valuedness,
+**S8-fin-post** for finiteness, and **S3-post** for referential integrity —
+read at the two-subspace level as S3★ (GeneralizedReferentialIntegrity,
+ASN-0047): the *text* V-positions resolve into `dom(C')` and the *link*
+V-positions into `dom(L')`. The content clause
 `ran(M'(d)|_{V_{s_C}(d)}) ⊆ dom(C')` holds because every surviving
 text image already appeared in `ran(M(d)|_{V_{s_C}(d)}) ⊆ dom(C)`
 (DEL-LEFT and DEL-SHIFT preserve each survivor's I-address) and `C' = C`
@@ -335,6 +332,23 @@ ASN-0093) is disjoint from `dom(C)`. This is the answer to *how the survivors
 sit within the V-stream after the cut*: reading end to end yields the original
 content with exactly the deleted span omitted, the stream around it re-closed
 into a single coherent ordinal sequence (Q2).
+
+One per-state conjunct of the package deserves explicit mention, because the
+deletion *materially re-cuts* it: **S8★** (PerSubspaceSpanDecomposition,
+ASN-0047), the partition of `M(d)|_{V_S}` into maximal V→I correspondence runs.
+Closing the gap can fuse or split runs — across the closed boundary the
+survivors `M'(d)(q_{J−1}) = a_{J−1}` and `M'(d)(q_J) = a_{J+c}` need not advance
+in lockstep, so the maximal-run decomposition of the post-state differs from
+that of the pre-state. But S8★ asserts only that *some* finite maximal-run
+partition exists, which S8 (ASN-0036) guarantees for any finite single-subspace
+arrangement; the contracted text arrangement `V_S(d') = {q_1, …, q_{N−c}}` is
+exactly such, so S8★ holds in the post-state notwithstanding the re-cut. The
+remaining extended-state per-state conjuncts the deletion leaves undisturbed —
+**S3★-aux** (subspace exhaustiveness), **CL-OWN** (link-subspace ownership),
+**CL-UNIQ** (link-subspace position uniqueness) — are preserved trivially:
+DEL-FSUB carries the entire link subspace through verbatim and the text
+positions stay `s_C`-tagged, so every clause quantifying over `s_L` positions
+or over subspace tags is untouched.
 
 One subtlety the evidence insists on. The cut at the span's boundaries is
 *clean*: because the deletion endpoints `p` and `r` fall on existing position
