@@ -89,13 +89,18 @@ It is *well-formed* in the sense of T12 (ASN-0058 condition (ii); ASN-0034):
 `Pos(ℓ)` and `actionPoint(ℓ) ≤ #s`, so its denotation
 `⟦σ⟧ = {t ∈ T : s ≤ t < s ⊕ ℓ}` is a well-defined order-convex set of tumblers.
 It draws from a non-empty source subspace (ASN-0058 condition (i)):
-`V_{subspace(s)}(d_s) ≠ ∅`. For the content spec-sets COPY consumes the span is
-moreover *ordinal-level* — the action point sits at the deepest component,
-`actionPoint(ℓ) = #ℓ`, which ASN-0058 *derives* for content references (C0,
-OrdinalDisplacementNecessity) — so the span advances along the last component
-alone, and its start is a well-formed V-position (ASN-0036, S8a): `zeros(s) = 0`,
-`#s ≥ 2`, every component of `s` positive. We reuse ASN-0058's construct rather
-than reinvent it. A *spec-set* is an ASN-0058 *ContentReferenceSequence*
+`V_{subspace(s)}(d_s) ≠ ∅`. For the content spec-sets COPY consumes we require, as
+input discipline, that the span be *ordinal-level* — the action point sits at the
+deepest component, `actionPoint(ℓ) = #ℓ`. This is a property of the displacement
+`ℓ` alone: its components fix `actionPoint(ℓ)`, and it is what makes the span
+advance along the last component alone. ASN-0058 shows ordinal-level *automatic*
+for a fully-bound content reference (C0, OrdinalDisplacementNecessity, a necessity
+result stated under that ASN's *well-formed* refinement); because COPY deliberately
+admits partially-bound spans (below), where C0's full-binding hypothesis is not
+met, we do *not* inherit ordinal-level from C0 but require it directly — a
+condition on `ℓ`, independent of how much of `⟦σ⟧` the arrangement binds. Its start
+is then a well-formed V-position (ASN-0036, S8a): `zeros(s) = 0`, `#s ≥ 2`, every
+component of `s` positive. We reuse ASN-0058's construct rather than reinvent it. A *spec-set* is an ASN-0058 *ContentReferenceSequence*
 `R = ⟨ρ₁, …, ρₚ⟩` (ContentReferenceSequence), a finite ordered sequence of V-specs
 with `p ≥ 1`. The ordering is part of the request — Nelson is explicit that "if you
 want to designate a separated series of items exactly, including nothing else, you
@@ -131,7 +136,21 @@ restriction — a settled part of the operation, not a deferred question.
 We restrict attention to *content* spec-sets: COPY's content-residence precondition
 (stated with the operation below) requires every active position to be in the text
 subspace, `subspace(vⱼ) = s_C`, so by referential integrity (S3★) each resolves to
-a content address `Σ.M(d_s)(vⱼ) ∈ dom(Σ.C)`.
+a content address `Σ.M(d_s)(vⱼ) ∈ dom(Σ.C)`. This precondition does the work the
+discarded full-binding hypothesis would otherwise have done, and does it without
+appeal to binding. It confines the resolved domain
+`act(ρ, Σ) = dom(Σ.M(d_s)) ∩ ⟦σ⟧` to a single subspace —
+`act(ρ, Σ) ⊆ V_{s_C}(d_s)` — directly, and it grounds resolution integrity in S3★
+over exactly the bound positions COPY acts on, rather than in ASN-0058's C1 (whose
+stated precondition is the full binding we drop). The remaining structural facts
+COPY leans on — the span's ordinal-level form and the confinement of every depth-`m`
+position of `⟦σ⟧` to `s`'s prefix and subspace — are properties of the span object
+`(s, ℓ)`: ordinal-level is required of `ℓ` as input discipline (above), and
+prefix/subspace confinement of the depth-`m` positions then follows from the
+half-open interval `[s, s ⊕ ℓ)` with `ℓ` acting at the last component alone. Neither
+consults the arrangement, so neither rests on the full-binding hypothesis. The one
+ASN-0058 property that genuinely does *not* survive partial binding — its
+width-preservation C2 — COPY never uses; we record its loss as an open question.
 
 We define **resolution** as the flat I-address sequence obtained by expanding
 ASN-0058's `resolve` (Resolution). ASN-0058 resolves a content reference
@@ -152,21 +171,30 @@ of resolved addresses (the sum of the run widths `nⱼ`). Three facts about this
 object we record as the *resolution integrity* claim CP0:
 
 - **(a) Every resolved address already exists.** `cᵢ ∈ dom(Σ.C)` for `0 ≤ i < W`.
-  This is ASN-0058 C1 (ResolutionIntegrity) — "every resolved I-address is in
-  `dom(C)`" — read off the expansion: each run-pair `(aⱼ, nⱼ)` has
-  `aⱼ + i ∈ dom(Σ.C)` for `0 ≤ i < nⱼ`, and `expand` lists exactly those
-  addresses. *Nothing named by the spec-set is invented; it is all found.* This is
-  the precondition that the placement to come will require, met by the source
-  arrangements alone.
+  We read this off the per-position form of resolution directly: each `cᵢ` is
+  `Σ.M(d_s)(vⱼ)` for some active position `vⱼ ∈ act(ρ, Σ) ⊆ dom(Σ.M(d_s))` with
+  `subspace(vⱼ) = s_C` (content-residence), so referential integrity S3★ gives
+  `Σ.M(d_s)(vⱼ) ∈ dom(Σ.C)`. The conclusion coincides with ASN-0058 C1
+  (ResolutionIntegrity), but we derive it from S3★ over the bound subset rather than
+  cite C1, whose stated precondition is the full binding COPY discards — S3★ holds
+  of every bound position whether or not `⟦σ⟧` is fully bound. *Nothing named by the
+  spec-set is invented; it is all found.* This is the precondition that the
+  placement to come will require, met by the source arrangements alone.
 - **(b) Resolution is a pure read.** `resolve` is a function of `Σ`; it modifies no
   component — not `Σ.C`, not any `Σ.M(d)`, not `Σ.L`, not `Σ.R`. The source
   document is consulted, never altered, by the act of resolving a spec-set against
   it. This is the seed of source isolation (CP6 below).
-- **(c) Non-contiguity survives resolution.** When a single V-span covers content
-  the source itself assembled from several disjoint I-regions, ASN-0058's
-  decomposition returns several run-pairs in V-start order (C1b,
-  ResolutionSequenceOrder), so the expanded sequence is *not* one contiguous run
-  and records as many distinct origins as the source content had homes (CP11
+- **(c) Non-contiguity survives resolution.** The decomposition resolution rests on
+  is licensed without the full-binding hypothesis: ASN-0058's C1a
+  (RestrictionDecomposition) supplies the unique maximal-run decomposition of *any*
+  restriction `M(d_s)|⟦σ⟧` whose domain lies in a single subspace, and that
+  single-subspace precondition is met here by content-residence
+  (`act(ρ, Σ) ⊆ V_{s_C}(d_s)`), not by ASN-0058's C0a stated under well-formedness.
+  When a single V-span covers content the source itself assembled from several
+  disjoint I-regions, that decomposition returns several run-pairs in V-start order
+  (C1b, ResolutionSequenceOrder) — an ordering of whatever runs the bound subset
+  yields, independent of binding — so the expanded sequence is *not* one contiguous
+  run and records as many distinct origins as the source content had homes (CP11
   below).
 
 By the ContentReferenceSequence definition a spec-set has `p ≥ 1`; but even a
