@@ -148,8 +148,9 @@ which also avoids any gap in a per-operation enumeration: `nullified(Σ)` is a f
 subset of the link store — so any operation that frames `Σ.L` fixed leaves both `L_R^Σ`
 and `nullified(Σ)` unchanged. Within the ASN-0047 vocabulary the only operation that
 changes `Σ.L` is K.λ; every other operation frames the link store fixed — K.α writes only
-`Σ.C`; K.δ extends `Σ.E`/`Σ.M`/`Σ.C`/`Σ.R` but never `Σ.L`; K.μ⁺/K.μ⁺_L/K.μ⁻/K.μ~ rewrite
-only `Σ.M`; K.ρ writes only `Σ.R` — and so each holds `nullified` constant. Across the one
+`Σ.C`; K.δ extends `Σ.E` (and, for documents, `dom(Σ.M)`) while framing `Σ.C`, `Σ.L`, and
+`Σ.R` fixed; K.μ⁺/K.μ⁺_L/K.μ⁻/K.μ~ rewrite only `Σ.M`; K.ρ writes only `Σ.R` — and so each
+holds `nullified` constant (the only fact needed here being `L' = L`). Across the one
 link-store-changing operation K.λ, R6a (ASN-0086, RetractionStability:
 `a ∈ nullified(Σ) ⟹ a ∈ nullified(Σ')`) supplies monotonicity. So `nullified` is constant
 across every non-K.λ step and monotone (R6a) across K.λ, hence non-decreasing across all of
