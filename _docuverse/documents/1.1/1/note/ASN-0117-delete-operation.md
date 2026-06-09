@@ -194,8 +194,7 @@ its postcondition fixes `M'(d)(v) = M(d)(v)` on the retained domain
 
 *Case `R ≠ ∅` (`J + c ≤ N`): the K.μ⁻ + K.μ⁺ composite.* When survivors remain
 past the gap, DELETE is the foundation *composite* of two atomic transitions of the
-extended-state model `Σ = (C, L, E, M, R)` (ASN-0047), in the same sense that K.μ~
-(ArrangementReordering) is itself a named K.μ⁻ + K.μ⁺ composite:
+extended-state model `Σ = (C, L, E, M, R)` (ASN-0047):
 
 1. a **K.μ⁻** step that contracts the text subspace to its surviving prefix
    `L = {q_1, …, q_{J−1}}` (retention count `n'_{s_C} = J − 1`), while holding
@@ -229,12 +228,7 @@ realisation outright, without recourse to a second step.
 
 In both cases the net effect on `M(d)` is exactly ASN-0082's left-shift
 displacement (vacuous on the suffix when `R = ∅`), which is why we read DELETE's
-clauses off ASN-0082 below; the K.μ⁻ + K.μ⁺ decomposition (or the lone K.μ⁻ when
-`R = ∅`) is what places DELETE inside ASN-0047's *valid-composite* vocabulary,
-licensing our appeal to the properties proven over that fuller model — the
-per-subspace well-formedness package, the referential-integrity invariant S3★, and
-the link/discoverability lemmas of ASN-0098, all quantified over reachable states
-and valid transitions of `Σ`.
+clauses off ASN-0082 below.
 
 DELETE's coupling and frame obligations are discharged identically in both
 realisations. For the `R = ∅` single step, J2 (ContractionIsolation) already
@@ -294,9 +288,7 @@ place. We name DELETE's clauses but derive them by citation:
   `(A a : a ∈ dom(Σ.L) : Σ'.L(a) = Σ.L(a))`. DELETE allocates no link and edits
   none. This is *stronger* than L12 (LinkImmutability, ASN-0043), which fixes
   only the values of links already present and would still permit
-  `dom(Σ'.L) ⊋ dom(Σ.L)`; DELETE's contract forbids any growth of `dom(L)`. The
-  arrangement state ASN-0082 governs carries no link store, so this frame is
-  imposed here directly, not inherited.
+  `dom(Σ'.L) ⊋ dom(Σ.L)`; DELETE's contract forbids any growth of `dom(L)`.
 - (DEL-FSUB) `(A S' : S' ≠ S : {v ∈ dom(M'(d)) : subspace(v) = S'} =
   {v ∈ dom(M(d)) : subspace(v) = S'}` and `M'(d)` agrees there`)` —
   ASN-0082 **D-CS**. In particular the document's *links* (subspace `s_L`) are
@@ -396,17 +388,12 @@ there in the Vstream) and an *existence* fact (the I-addressed bytes it covers).
 first and last point" (4/25, Q4). Deleting the span is the operation that pulls
 the two aspects apart.
 
-In our model the separation is two disjoint facts. DEL-REMOVE strips the span's
-V→I correspondences from `M'(d)` — the *arrangement* ceases to bind that content.
-DEL-CIMM leaves `A_del ⊆ dom(C')` with values intact — the *content* does not
-cease to exist. Nelson's three-clause annotation (4/9) is precisely these two
-facts plus their consequence: "not currently addressable" is DEL-REMOVE (the
-loss is to *this arrangement's* reach); "may remain included in other versions"
-is the cross-document survival we prove next (P5); "awaiting historical
-backtrack" is the reconstructibility that P0 makes possible. A position-deletion
-would reveal none of this, because a position binds no content — there would be
-nothing underneath it that could "still exist." Only a span, with extent, exposes
-the seam between *binding* and *being*.
+In our model the separation is two disjoint facts already in hand: DEL-REMOVE/P1
+strips the span's V→I correspondences (the arrangement ceases to bind), while
+P0/DEL-CIMM keeps `A_del ⊆ dom(C')` with values intact (the content does not cease
+to exist). A position-deletion would reveal none of this, because a position binds
+no content — there would be nothing underneath it that could "still exist." Only a
+span, with extent, exposes the seam between *binding* and *being*.
 
 What witnesses that the seam is real — that arrangement-ceasing-to-bind is a
 genuinely different act from content-ceasing-to-exist? The links, and the other
@@ -591,13 +578,7 @@ every link still has something left at each end *within `d`*. This is Nelson's
 survivability qualifier "if anything is left at each end" (4/43) read at the
 level of one document's discoverability: the link itself never dies (P4), but a
 *document's ability to find it* survives exactly when the deletion spared at
-least one of that document's anchors to it. Had P4 asserted unconditional
-preservation of discoverability, this computation would have refuted it: the
-escape branch — every slot of `a` whose coverage met `ran(M(d))` has that meeting
-contained in `A_del^{excl}`, so no slot retains a witness — is realised exactly in
-the last-witness case. The wp is the formal witness that "deletion preserves
-discoverability" is a *conditional*, not a theorem: deletion can only orphan,
-never resurrect, discoverability from `d`.
+least one of that document's anchors to it.
 
 ## A worked deletion
 
