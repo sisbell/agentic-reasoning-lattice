@@ -272,9 +272,14 @@ above with no fragments. We record the survivor-structure fact.
 **P2 (GapClosure).** *The surviving content closes into the dense run
 `V_S(d') = {q_1, …, q_{N−c}}` of length `N − c`. The prefix `L` is fixed; the
 suffix `R` shifts left uniformly by `c` via the order-preserving injection `σ`,
-carrying each survivor's I-address unchanged (`M'(d)(σ(v)) = M(d)(v)`); the gap
-closes exactly (`σ(q_{J+c}) = q_J`). Relative order and density are preserved;
-no hole, no overlap, no degenerate position.*
+carrying each survivor's I-address unchanged (`M'(d)(σ(v)) = M(d)(v)`). The
+underlying arithmetic identity `ord(r) ⊖ w_ord = ord(p)` holds unconditionally
+(ASN-0082 D-SEP(a)); when `R ≠ ∅` it reads positionally as the gap closing
+exactly — `σ(q_{J+c}) = q_J`, the first survivor landing where the deletion began
+(ASN-0082 D-SEP(b)). In the suffix-delete case `J + c = N + 1`, `R = ∅` and
+`q_{J+c} = q_{N+1}` is not an arranged position: there is no gap to close, and the
+positional reading is vacuous. Relative order and density are preserved; no hole,
+no overlap, no degenerate position.*
 
 And the dual fact, the arrangement-side removal:
 
@@ -453,16 +458,27 @@ Write `D(d, Σ) = {a ∈ dom(Σ.L) : discoverable_from(a, d, Σ)}`. We seek
 
 > `wp(DELETE, "D(d, Σ') = D(d, Σ)")`.
 
-We read `ran(M'(d))` off the Effect. Left positions keep their I-addresses
-(DEL-LEFT); shifted positions carry their I-addresses to new slots (DEL-SHIFT);
-the deleted block contributes nothing (DEL-REMOVE). Hence, writing
+We read `ran(M'(d))` off the Effect. Note `ran(M'(d))` is the *full-document*
+range, spanning both subspaces. Left text positions keep their I-addresses
+(DEL-LEFT); shifted text positions carry their I-addresses to new slots
+(DEL-SHIFT); the deleted block contributes nothing (DEL-REMOVE); and the
+link-subspace positions (subspace `s_L`) are preserved verbatim (DEL-FSUB),
+contributing `ran(M(d)\!\restriction\!V_{s_L}(d))` unchanged. Hence, writing
 `M(d)\!\restriction\!Y` for the image of the position set `Y`,
 
-> `ran(M'(d)) = M(d)(L) ∪ M(d)(R) = ran(M(d)) \ A_del^{excl}`,
+> `ran(M'(d)) = (M(d)(L) ∪ M(d)(R)) ∪ ran(M(d)\!\restriction\!V_{s_L}(d)) = ran(M(d)) \ A_del^{excl}`,
 
 where `A_del^{excl} = A_del \ M(d)(L ∪ R)` is the set of deleted I-addresses
 that *no surviving position of `d` also maps* — the addresses `d` loses from its
-range entirely. (If a deleted I-address is also arranged elsewhere in `d` — the
+range entirely. The second equality is justified, not asserted: `A_del` consists
+of *text* content addresses (`subspace_I = s_C`, by S7b/L0), hence disjoint from
+the unchanged `s_L` images, so removing exactly `A_del^{excl}` from the full prior
+range `ran(M(d))` — which already contained those same `s_L` images verbatim —
+yields precisely the full post-state range. The intermediate text-subspace term
+`M(d)(L) ∪ M(d)(R)` alone would *not* equal `ran(M'(d))`; the link-subspace
+images must be carried through, and they are. This matters because LP12 evaluates
+discoverability against the full `ran(M(d))`, and a link's coverage may reference
+link-subspace addresses (L4(c), cross-subspace endsets). (If a deleted I-address is also arranged elsewhere in `d` — the
 within-document sharing that S5/M13 of the arrangement model permit — it does
 not leave the range.) The link store is fixed throughout — `dom(Σ'.L) = dom(Σ.L)`
 (DEL-LIMM) — so `D(d, ·)` is computed over the *same* index set before and after,
