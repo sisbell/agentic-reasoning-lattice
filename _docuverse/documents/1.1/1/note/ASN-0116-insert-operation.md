@@ -50,16 +50,9 @@ positions share a common depth (S8-depth); the text subspace is *dense* —
 `V_S(d) = {[S, 1, …, 1, k] : 1 ≤ k ≤ N}` for some `N ≥ 0` (D-SEQ, with `N = 0`
 the empty case), so it occupies a contiguous, gap-free run of ordinals
 starting at the canonical first position `[S, 1, …, 1]`. We abbreviate the
-`k`-th position of this run as `q_k = [S, 1, …, 1, k]` of depth `m`. The
-depth `m` deserves care: S8-depth fixes a single common depth only when
-`V_S(d) ≠ ∅`. When the subspace is empty there is no "common depth of
-`V_S(d)`" to speak of — the depth is instead supplied by the insertion
-position itself, `m := #p`, since the first insertion into an empty subspace
-is what *fixes* the depth for all later insertions (foundation:
-ValidFirstInsertionPosition, which takes an explicit `m ≥ 2` for exactly this
-reason). We carry `m = #p ≥ 2` throughout, equal to the S8-depth of `V_S(d)`
-whenever that set is non-empty. With `m` so pinned, we observe the single
-arithmetic fact that does all the work below:
+`k`-th position of this run as `q_k = [S, 1, …, 1, k]` of depth `m`, where
+`m` is pinned by the insertion precondition below. With `m` so pinned, we
+observe the single arithmetic fact that does all the work below:
 
 > `shift(q_k, n) = q_{k+n}` — advancing the last component by `n` carries the
 > `k`-th slot to the `(k+n)`-th, leaving the shared prefix `[S, 1, …, 1]`
@@ -115,7 +108,7 @@ because each K.α step is fresh against the store as it stands after the previou
 step (Q14). The run `A_new` is thus `n` fresh, contiguous, origin-stamped
 I-addresses, with the content values written there.
 
-**P0 (OriginIdentity)** *(restatement of K.α freshness + **S4 (OriginBasedIdentity,
+**IP0 (OriginIdentity)** *(restatement of K.α freshness + **S4 (OriginBasedIdentity,
 ASN-0036)**: I-addresses from distinct allocation events are distinct regardless of
 stored value).* *For each `k` with
 `0 ≤ k < n`, `shift(a, k) ∉ dom(C)`, and `shift(a, k)` is distinct from every
@@ -413,7 +406,7 @@ family: **I3-VD** (depth uniformity) and **I3-VP** (S8a) for the positions,
 discharged directly: each left or shifted position `v` lies in subspace `S = s_C`,
 so `M(d)(v) ∈ dom(C)` (S3★ at the pre-state, content-subspace clause
 `subspace(v) = s_C ⟹ M(d)(v) ∈ dom(C)`), and `dom(C) ⊆ dom(C')` by append-only
-monotonicity (P2), so the image lies in `dom(C')` and S3★ holds for both regions.
+monotonicity (IP2), so the image lies in `dom(C')` and S3★ holds for both regions.
 
 *Content-store invariants for the freshly allocated run.* The post-state's
 content-store invariants for `A_new` — `zeros(a) = 3` (S7b), `#E(a) ≥ 2` (C1b),
@@ -421,7 +414,7 @@ content-store invariants for `A_new` — `zeros(a) = 3` (S7b), `#E(a) ≥ 2` (C1
 each `shift(a, k) ∈ A_new` is a K.α emission, and K.α establishes exactly these
 (ASN-0093: **C1** for `zeros = 3`, **C1b** for `#E ≥ 2`, **C1c** for allocator
 conformance, **C2** for `origin(a) = d`). The unchanged addresses `b ∈ dom(C)` retain
-them by P2 (append-only: domains grow, values fixed). Thus every content address in
+them by IP2 (append-only: domains grow, values fixed). Thus every content address in
 `dom(C')` — old and new — is structurally valid element-level content, as
 ExtendedReachableStateInvariants (ASN-0047) demands.
 
@@ -463,7 +456,7 @@ the filled post-state directly by ExtendedReachableStateInvariants (ASN-0047): t
 pre-state `Σ` is reachable from `Σ₀` (precondition) and INSERT is a valid composite,
 so the post-state is reachable as well, and the theorem's per-state invariants —
 S8★ among them — hold there. It is a post-state invariant, not a precondition of any
-composite step, so it carries no INSERT-specific obligation. P1 records the narrower
+composite step, so it carries no INSERT-specific obligation. IP1 records the narrower
 fact that the inserted material forms *one* such run.
 
 *Provenance coupling — the obligation allocation incurs.* Because INSERT both
@@ -501,14 +494,14 @@ the shifted-suffix addresses being range-old.
   J1'★.
 
 The post-state is a composite boundary, so it must also satisfy **P7a
-(ProvenanceCoverage)**: every `a ∈ dom(C')` carries some record `(a, d') ∈ R'`. Split
+(ProvenanceCoverage, ASN-0047)**: every `a ∈ dom(C')` carries some record `(a, d') ∈ R'`. Split
 `dom(C') = dom(C) ∪ A_new` (I-ALLOC). For prior addresses `b ∈ dom(C)`: by
 precondition `Σ` is reachable, hence a composite boundary, so P7a holds at the
 pre-state, giving some `(b, d') ∈ R`; and `R ⊆ R'` (I-PROV is purely additive), so `(b, d') ∈ R'`. For the new addresses
 `shift(a, k) ∈ A_new`: I-PROV supplies `(shift(a, k), d) ∈ R'` directly. Hence every
 content address — old and new — is covered, and P7a holds at the post-state.
-Symmetrically **P7 (ProvenanceGrounding)** — every `(a, d') ∈ R'` has `a ∈ dom(C')` —
-is preserved: prior entries by P2-monotonicity of the store, the new entries because
+Symmetrically **P7 (ProvenanceGrounding, ASN-0047)** — every `(a, d') ∈ R'` has `a ∈ dom(C')` —
+is preserved: prior entries by IP2-monotonicity of the store, the new entries because
 each `shift(a, k) ∈ A_new ⊆ dom(C')`. We record the coupling as a claim.
 
 **PROV (InsertionProvenance).** *INSERT records `R' = R ∪ {(shift(a, k), d) :
@@ -532,7 +525,7 @@ carries a fresh, origin-stamped address that records exactly which span was
 introduced. The seam is erased in the arrangement and preserved in the
 identity. We record the connected-region fact as a claim:
 
-**P1 (InsertedRun).** *The inserted material forms a single correspondence run:
+**IP1 (InsertedRun).** *The inserted material forms a single correspondence run:
 for `0 ≤ k < n`, `M'(d)(shift(p, k)) = shift(a, k)`, so V-positions and
 I-addresses advance in lockstep over a contiguous block. The block
 `{shift(p, k) : 0 ≤ k < n}` is order-isomorphic to its image
@@ -551,7 +544,7 @@ disjointness: `dom(C)` grows by the fresh run `A_new`, and every prior
 monotone — and the only writes are to addresses that did not previously exist.
 We name the layer invariant:
 
-**P2 (ContentAppendOnly).** *`dom(C) ⊆ dom(C')` and
+**IP2 (ContentAppendOnly).** *`dom(C) ⊆ dom(C')` and
 `(A b : b ∈ dom(C) : C'(b) = C(b))`.* INSERT is purely additive on the content
 layer.
 
@@ -561,7 +554,7 @@ permanent: never reused, never reassigned, never made to point at different
 content. The *V-position* — the slot in the current arrangement — is
 deliberately impermanent: the same slot `q_J` denotes different content before
 and after the insert. INSERT honours both halves. It honours I-address
-permanence because, by P0, the only new bindings `shift(a, k) ↦ w_k` are at
+permanence because, by IP0, the only new bindings `shift(a, k) ↦ w_k` are at
 addresses that *did not exist*, so no existing `b ↦ C(b)` is disturbed and no
 address is repurposed. It honours V-position impermanence because that is
 exactly what the shift performs — `q_J` now resolves to fresh content while the
@@ -569,21 +562,21 @@ content formerly at `q_J` resolves from `q_{J+n}`. The permanence guarantee
 attaches to identity, not to arrangement; INSERT is the operation that exploits
 the gap between them.
 
-The I-address-permanence half is already carried by P0 (every new binding is at a
-fresh address) and P2 (no existing address removed or rebound); we therefore reserve
+The I-address-permanence half is already carried by IP0 (every new binding is at a
+fresh address) and IP2 (no existing address removed or rebound); we therefore reserve
 the boxed claim for the V-position-impermanence half, which the prose above argues
 but no prior claim captures.
 
-**P3 (PositionImpermanence).** *A V-position binds no permanent content. When the
+**IP3 (PositionImpermanence).** *A V-position binds no permanent content. When the
 insertion point is occupied (`J ≤ N`), the block slots `{q_k : J ≤ k ≤
 min(J+n−1, N)}` lie in `dom(M(d)) ∩ dom(M'(d))` yet `M'(d)(q_k) = shift(a, k−J) ≠
 M(d)(q_k)` — the same slot now resolves to freshly minted content, since
-`shift(a, k−J) ∈ A_new` is fresh (P0) while `M(d)(q_k) ∈ ran(M(d)) ⊆ dom(C)`. The
-permanence guarantee attaches to the I-address (P0, P2), never to the slot.*
+`shift(a, k−J) ∈ A_new` is fresh (IP0) while `M(d)(q_k) ∈ ran(M(d)) ⊆ dom(C)`. The
+permanence guarantee attaches to the I-address (IP0, IP2), never to the slot.*
 
 **Link anchoring across the displacement.** A link's endsets reference
 I-addresses, not V-positions (4/42, 4/30). Since INSERT removes no I-address
-(P2) and adds only fresh ones (P0), every link designates *exactly the same
+(IP2) and adds only fresh ones (IP0), every link designates *exactly the same
 content* after the operation as before. We can state this without modelling the
 link store in detail, using only the foundation notion that a link endpoint is
 an endset whose `coverage` is a set of I-addresses, and that its appearance in
@@ -631,7 +624,7 @@ injectively to a surviving one (left verbatim, suffix shifted, cross-subspace
 verbatim), and the new block can only add witnesses, never remove or redirect. We
 record it.
 
-**P4 (LinkSurvival).** *For every endset `e` existing in `Σ`,
+**IP4 (LinkSurvival).** *For every endset `e` existing in `Σ`,
 `coverage_{Σ'}(e) = coverage_{Σ}(e)` (by L12 + LP3★ across the composite) — no link's designated content
 changes. The post-insert resolved-witness set of `e` in `d` is
 `project(e, d, Σ') = {v ∈ dom(M'(d)) : M'(d)(v) ∈ coverage(e)}`, which decomposes
@@ -669,7 +662,7 @@ prior set onto (left ∪ shifted-suffix ∪ cross-subspace). Hence the witness
 arranges some of the same content `d` does — `ran(M(d')) ∩ ran(M(d)) ≠ ∅`. The
 question is whether inserting into `d` can perturb `d'`. It cannot, and the
 proof is the conjunction of three facts already in hand. By F-DOC,
-`M'(d') = M(d')` — `d'`'s arrangement is untouched. By P2, the shared
+`M'(d') = M(d')` — `d'`'s arrangement is untouched. By IP2, the shared
 content I-addresses retain their content — the bytes `d'` reads are immutable
 (and by F-LINK any link-subspace images retain their link values). And the
 fresh addresses `A_new` cannot already inhabit `ran(M(d'))`: every arrangement
@@ -680,24 +673,24 @@ while `A_new ∩ (dom(C) ∪ dom(L)) = ∅` by K.α's whole-store freshness
 every one of its V-positions to the same content, in the same order, before and
 after: its arrangement *and its reader's experience* are identical (Q8). The isolation is a structural consequence of the two-layer split: INSERT
 writes the arrangement of exactly one document (F-DOC) and appends to the global
-content store without disturbing any existing entry (P2). Sharing is by
+content store without disturbing any existing entry (IP2). Sharing is by
 reference to immutable identity, so an insertion into one sharer is invisible to
 the others.
 
-**P5 (DocumentIsolation).** *For every `d' ≠ d`: `M'(d') = M(d')`, and for every
+**IP5 (DocumentIsolation).** *For every `d' ≠ d`: `M'(d') = M(d')`, and for every
 `v' ∈ dom(M(d'))` the resolved entity is invariant per subspace —
 `subspace(v') = s_C ⟹ M'(d')(v') ∈ dom(C')` with `C'(M'(d')(v')) = C(M(d')(v'))`
-(content value fixed by P2), and `subspace(v') = s_L ⟹ M'(d')(v') ∈ dom(L')` with
+(content value fixed by IP2), and `subspace(v') = s_L ⟹ M'(d')(v') ∈ dom(L')` with
 `L'(M'(d')(v')) = L(M(d')(v'))` (link value fixed by F-LINK). The arrangement and
 resolved content of every other document are invariant under INSERT on `d`.*
 
 ## A weakest precondition: when is discoverability preserved?
 
-P4 leaves one question pointed but unanswered: under what condition does INSERT
+IP4 leaves one question pointed but unanswered: under what condition does INSERT
 preserve, rather than merely not-shrink, the set of links discoverable from `d`?
 It is tempting to assume the answer is "always" — insertion removes nothing.
 Computing the weakest precondition shows otherwise, and the place it fails is
-exactly the new-block-witness gap P4 now records.
+exactly the new-block-witness gap IP4 now records.
 
 Write `D(d, Σ) = {a ∈ dom(Σ.L) : discoverable_from(a, d, Σ)}` for the links
 discoverable from `d` (foundation `discoverable_from`, ASN-0098). We seek
@@ -736,9 +729,9 @@ whose endset has one span into `A_new` (a ghost reference) *and* another span
 already meeting `ran(M(d))` lies in `Added` yet was *already* discoverable, so
 adding its new-block witness leaves `D(d)` unchanged. The weakest precondition is
 thus the operation's precondition conjoined with a *containment*, not an
-emptiness. We record it as a named claim, parallel to P0–P5:
+emptiness. We record it as a named claim, parallel to IP0–IP5:
 
-**P6 (DiscoverabilityWP).** *The weakest precondition under which INSERT preserves
+**IP6 (DiscoverabilityWP).** *The weakest precondition under which INSERT preserves
 the set of links discoverable from `d` is*
 
 > `wp(INSERT, D(d, Σ') = D(d, Σ)) ≡ INSERT-pre ∧
@@ -770,10 +763,10 @@ I-address `a_max = [d.0.s_C.6]`, so K.α's next emission is
 **Insert `XY` (`n = 2`) at `p = q_3`.** Here `J = 3`, `S = s_C`, `m = #p = 2`,
 and `1 ≤ J ≤ N+1`, so `ValidInsertionPosition(d, q_3)` holds.
 
-*Allocation (I-ALLOC, P0).* `A_new = {shift(a, 0), shift(a, 1)} = {[d.0.s_C.7],
+*Allocation (I-ALLOC, IP0).* `A_new = {shift(a, 0), shift(a, 1)} = {[d.0.s_C.7],
 [d.0.s_C.8]}`, both fresh (`a_max` was `[d.0.s_C.6]`, so neither `.7` nor `.8`
 was in `dom(C)`), contiguous, origin-`d`. Content written: `C'([d.0.s_C.7]) =
-X`, `C'([d.0.s_C.8]) = Y`. ✓ P0, P2.
+X`, `C'([d.0.s_C.8]) = Y`. ✓ IP0, IP2.
 
 *Shift (I-SHIFT, I-LEFT).* Prefix `q_1, q_2` unchanged (I-LEFT). Suffix `q_k`
 with `k ≥ 3` moves by `shift(·, 2)`:
@@ -782,10 +775,10 @@ with `k ≥ 3` moves by `shift(·, 2)`:
   q_3 → q_5  carrying a_3      q_4 → q_6  carrying a_4      q_5 → q_7  carrying a_5
 ```
 
-*New block (I-NEW, P1).* The vacated block `{shift(p, 0), shift(p, 1)} = {q_3,
+*New block (I-NEW, IP1).* The vacated block `{shift(p, 0), shift(p, 1)} = {q_3,
 q_4}` maps in lockstep to `A_new`: `M'(d)(q_3) = [d.0.s_C.7]`, `M'(d)(q_4) =
 [d.0.s_C.8]`. The pair `q_3 < q_4` is order-isomorphic to `[d.0.s_C.7] <
-[d.0.s_C.8]`. ✓ P1.
+[d.0.s_C.8]`. ✓ IP1.
 
 *Domain (I-DOM).* The three index intervals are `{1, 2}` (prefix), `{3, 4}`
 (new), `{5, 6, 7}` (shifted suffix) — consecutive, disjoint, union `{1, …, 7}`.
@@ -795,29 +788,29 @@ So `V_S(d') = {q_1, …, q_7}`, the dense run with `N' = N + n = 7`. ✓ I-DOM.
 content with `XY` interleaved between the second and third units, exactly
 Nelson's promise (Q10).
 
-**Links over the insertion (P4, P5, P6).** Equip `d` with two links to drive the
+**Links over the insertion (IP4, IP5, IP6).** Equip `d` with two links to drive the
 link claims against this concrete shift.
 
 *A link that both shifts and resurrects.* Let `ℓ` carry an endset `e` with
 `coverage(e) = {a_3, [d.0.s_C.8]}`. At the pre-state `a_3 = M(d)(q_3) ∈ ran(M(d))`,
 while `[d.0.s_C.8]` is a *ghost* — not yet in `dom(C)` — which L4/L9 permit an
 endset to name. So `project(e, d, Σ) = {q_3}`: one witness, at `q_3`. After the
-insert, P4's four parts are: left `∅`; cross-subspace `∅`; shifted-suffix
+insert, IP4's four parts are: left `∅`; cross-subspace `∅`; shifted-suffix
 `{q_5}`, since `q_3 ≥ p` carries `a_3` to `shift(q_3, 2) = q_5`; new-block
 `{q_4}`, since `shift(a, 1) = [d.0.s_C.8] ∈ coverage(e)` puts a witness at
 `shift(p, 1) = q_4`. Hence `project(e, d, Σ') = {q_4, q_5}`. The prior witness set
 `{q_3}` is **not** a subset of `{q_4, q_5}` — the witness was *relabelled*
-(`q_3 → q_5`), not retained — confirming P4's bijection-not-inclusion form. The
+(`q_3 → q_5`), not retained — confirming IP4's bijection-not-inclusion form. The
 count rose by exactly the one new-block witness (`1 → 2`), and the resolved content
 grew monotonically: `coverage(e) ∩ ran(M(d)) = {a_3} ⊆ {a_3, [d.0.s_C.8]} =
-coverage(e) ∩ ran(M'(d))`. ✓ P4.
+coverage(e) ∩ ran(M'(d))`. ✓ IP4.
 
-*The P6 trap.* Was discoverability of `ℓ` from `d` *newly* gained? No — `ℓ` was
+*The IP6 trap.* Was discoverability of `ℓ` from `d` *newly* gained? No — `ℓ` was
 *already* discoverable via `a_3` (`coverage(e) ∩ ran(M(d)) = {a_3} ≠ ∅`), so
 `ℓ ∈ D(d, Σ)`. Yet `ℓ ∈ Added`, since `coverage(e) ∩ A_new = {[d.0.s_C.8]} ≠ ∅`.
 This is precisely the pre-state the *sufficient* emptiness form would reject and
 the *weakest* containment form accepts: `ℓ ∈ Added ⊆ D(d, Σ)` leaves `D(d)`
-unchanged. ✓ P6 (containment, not emptiness).
+unchanged. ✓ IP6 (containment, not emptiness).
 
 *A genuine resurrection.* Let `ℓ'` carry `coverage(e') = {[d.0.s_C.7]}`, a single
 ghost address, orphaned at `Σ` (`coverage(e') ∩ ran(M(d)) = ∅`, and discoverable
@@ -825,28 +818,28 @@ from no document). After the insert the new block carries
 `M'(d)(q_3) = [d.0.s_C.7] ∈ coverage(e')`, so `q_3 ∈ project(e', d, Σ')`: `ℓ'`
 becomes discoverable from `d`. Here `ℓ' ∈ Added ∖ D(d, Σ)`, so `D(d, Σ') ⊋
 D(d, Σ)` — a real change to the discoverable set, and a **resurrection in LP18's
-sense** because `ℓ'` was orphaned. ✓ P4 new-block, P6 escape branch.
+sense** because `ℓ'` was orphaned. ✓ IP4 new-block, IP6 escape branch.
 
-*Isolation (P5).* Suppose `d'` also arranges `a_3`: `M(d')(q'_1) = a_3`. INSERT on
-`d` leaves `M'(d') = M(d')` (F-DOC), and `a_3 ∈ dom(C)` retains its value (P2),
+*Isolation (IP5).* Suppose `d'` also arranges `a_3`: `M(d')(q'_1) = a_3`. INSERT on
+`d` leaves `M'(d') = M(d')` (F-DOC), and `a_3 ∈ dom(C)` retains its value (IP2),
 while `A_new ∩ ran(M(d')) = ∅` because `ran(M(d')) ⊆ dom(C) ∪ dom(L)` (S3★) and
 `A_new ∩ (dom(C) ∪ dom(L)) = ∅` (K.α whole-store freshness). So `d'` resolves
 `q'_1` to `a_3`'s content exactly as
-before — untouched by the insertion into `d`. ✓ P5.
+before — untouched by the insertion into `d`. ✓ IP5.
 
 **Boundary — append (`J = N + 1 = 6`).** Take `p = q_6 = shift(max(V_S(d)), 1) =
 shift(q_5, 1)`, `ValidInsertionPosition(d, q_6)`. No position `v ≥ q_6` lies in
 `V_S(d)`, so I-SHIFT is vacuous; I-LEFT preserves all of `q_1, …, q_5`; the new
 block `{q_6, q_7}` receives `A_new`. `V_S(d') = {q_1, …, q_5} ∪ {q_6, q_7} =
 {q_1, …, q_7}`, `N' = 7`. The inserted material lands at the end, no suffix
-moves. ✓ I-DOM, I-NEW, P1.
+moves. ✓ I-DOM, I-NEW, IP1.
 
 **Boundary — empty subspace (`V_S(d) = ∅`).** The first insertion fixes the
 depth. Choose `m = 2` and `p = q_1 = [s_C, 1]`, so
 `ValidFirstInsertionPosition(d, p, 2)` holds. Insert `XY` (`n = 2`): no prefix,
 no suffix; the new block `{q_1, q_2}` receives `A_new`. `V_S(d') = {q_1, q_2}`,
 `N' = 0 + 2 = 2`, and the subspace depth is now pinned at `m = 2` for every later
-insertion. ✓ I-DOM (with `J = 1`, prefix and suffix intervals empty), I-NEW, P1.
+insertion. ✓ I-DOM (with `J = 1`, prefix and suffix intervals empty), I-NEW, IP1.
 
 ## What we have established
 
@@ -860,13 +853,13 @@ established are catalogued below.
 | Label | Statement | Status |
 |-------|-----------|--------|
 | INSERT | Operation: place `n` fresh content units at valid V-position `p` in document `d`, as the valid ASN-0047 composite `K.α`(×n) → `K.μ⁻` → `K.μ⁺` → `K.ρ`(×n) (K.μ⁻ dropped in the append/empty cases), whose arrangement net effect realises ASN-0082's I3 shift | introduced (composite) |
-| P0 (OriginIdentity) | The `n` allocated I-addresses `{shift(a,k) : 0 ≤ k < n}` are fresh and distinct from all prior addresses, independent of content value | restated (K.α freshness + S4, ASN-0036/0093) |
-| P1 (InsertedRun) | The inserted material forms one correspondence run: `M'(d)(shift(p,k)) = shift(a,k)`, V- and I-addresses advancing in lockstep over a contiguous block | introduced |
-| P2 (ContentAppendOnly) | `dom(C) ⊆ dom(C')` and existing values preserved; INSERT is purely additive on content | restated (C0, ASN-0093) |
-| P3 (PositionImpermanence) | A V-position binds no permanent content: an occupied block slot `q_k` (J ≤ k ≤ min(J+n−1, N)) satisfies `M'(d)(q_k) = shift(a,k−J) ≠ M(d)(q_k)`, resolving to fresh content; permanence attaches to the I-address (P0, P2), not the slot | introduced |
-| P4 (LinkSurvival) | Every prior endset's coverage is unchanged (L12+LP3★ across the composite); post-insert witness set = left ∪ shifted-suffix ∪ cross-subspace ∪ new-block; prior witnesses map bijectively onto the first three parts (suffix relabelled by `shift(·,n)`), so witness count is non-decreasing and resolved content grows monotonically (new-block is LP18 resurrection only when the link was orphaned) | introduced |
-| P6 (DiscoverabilityWP) | `wp(INSERT, D(d,Σ')=D(d,Σ)) ≡ INSERT-pre ∧ {a : (∃i) coverage(Σ.L(a).eᵢ) ∩ A_new ≠ ∅} ⊆ D(d,Σ)` (containment, not emptiness); the emptiness form is sufficient but strictly stronger; discharged free under tight-endset discipline (LP19a) | introduced |
-| P5 (DocumentIsolation) | Every other document's arrangement and resolved content are invariant under INSERT on `d` | introduced |
+| IP0 (OriginIdentity) | The `n` allocated I-addresses `{shift(a,k) : 0 ≤ k < n}` are fresh and distinct from all prior addresses, independent of content value | restated (K.α freshness + S4, ASN-0036/0093) |
+| IP1 (InsertedRun) | The inserted material forms one correspondence run: `M'(d)(shift(p,k)) = shift(a,k)`, V- and I-addresses advancing in lockstep over a contiguous block | introduced |
+| IP2 (ContentAppendOnly) | `dom(C) ⊆ dom(C')` and existing values preserved; INSERT is purely additive on content | restated (C0, ASN-0093) |
+| IP3 (PositionImpermanence) | A V-position binds no permanent content: an occupied block slot `q_k` (J ≤ k ≤ min(J+n−1, N)) satisfies `M'(d)(q_k) = shift(a,k−J) ≠ M(d)(q_k)`, resolving to fresh content; permanence attaches to the I-address (IP0, IP2), not the slot | introduced |
+| IP4 (LinkSurvival) | Every prior endset's coverage is unchanged (L12+LP3★ across the composite); post-insert witness set = left ∪ shifted-suffix ∪ cross-subspace ∪ new-block; prior witnesses map bijectively onto the first three parts (suffix relabelled by `shift(·,n)`), so witness count is non-decreasing and resolved content grows monotonically (new-block is LP18 resurrection only when the link was orphaned) | introduced |
+| IP5 (DocumentIsolation) | Every other document's arrangement and resolved content are invariant under INSERT on `d` | introduced |
+| IP6 (DiscoverabilityWP) | `wp(INSERT, D(d,Σ')=D(d,Σ)) ≡ INSERT-pre ∧ {a : (∃i) coverage(Σ.L(a).eᵢ) ∩ A_new ≠ ∅} ⊆ D(d,Σ)` (containment, not emptiness); the emptiness form is sufficient but strictly stronger; discharged free under tight-endset discipline (LP19a) | introduced |
 | PROV (InsertionProvenance) | `R' = R ∪ {(shift(a,k), d) : 0 ≤ k < n}` discharges ASN-0047's J0, J1★, J1'★ across the composite and re-establishes P7a/P7 at the post-state; provenance is recorded atomically with allocation | introduced |
 | I-ALLOC | `dom(C') = dom(C) ∪ A_new`, `C'(shift(a,k)) = w_k` | cited (K.α, ASN-0093), iterated |
 | I-IMM | `(A b : b ∈ dom(C) : C'(b) = C(b))` — existing content values unchanged | cited (C0, ASN-0093) |
