@@ -128,14 +128,7 @@ depth `m = #u_j`, `u_j ⊕ ℓ_j = shift(u_j, n_j)` agrees with `u_j` on positio
 `v ∈ dom(Σ.M(d_j))` — has `subspace(v) = s_C`. Generalized referential integrity
 (S3★, ASN-0047) discharges containment on exactly these content-subspace positions
 (`subspace(v) = s_C ⟹ Σ.M(d_j)(v) ∈ dom(Σ.C)`), giving `ρ(R, Σ) ⊆ dom(Σ.C)`: every
-recovered address is real content. (In the ASN-0047 substrate S3★ supersedes
-ASN-0036's S3, which alone would not discharge the containment, since a document's
-arrangement also maps link-subspace V-positions into `dom(Σ.L)`; the
-subspace-confinement step just shown is what restricts `ρ` to the content store.
-Note we cannot lean on ASN-0058's C0/C0a here — those force action point `= m` only
-for a *well-formed* content reference, and `ρ` deliberately admits partial spans
-below — so the confinement is re-derived directly from the ordinal-displacement form,
-which holds whether or not the reference is well-formed.) This is ASN-0058's `resolve` lifted to a spec-set: writing
+recovered address is real content. This is ASN-0058's `resolve` lifted to a spec-set: writing
 `resolve(d_j, σ_j)` for that ASN's recovery of the I-address runs under `σ_j`,
 `ρ(R, Σ)` is the union over `j` of the I-addresses those runs name. We diverge from
 `resolve` in one deliberate respect and name it as such: `resolve` is defined only
@@ -164,13 +157,7 @@ strictly below it — are never content: every store address has the structural 
 `[d.0.s.k]`, hence element-field depth `#E = 2` *exactly* (ASN-0098, LP-Sub, which
 fixes this form for all of `dom(Σ.C) ∪ dom(Σ.L)`), not merely the `#E ≥ 2` that C1b
 alone supplies. A proper descendant of such an address has `#E ≥ 3`, so it is no
-store address and in particular not in `dom(Σ.C)`. This exact bound is
-load-bearing twice over: it is what makes the creation-state equality
-`coverage(e_j) ∩ dom(Σ.C) = ρ(R_j, Σ)` (ML1, ML2) hold — with only `#E ≥ 2` a
-`#E = 3` descendant could itself be content and slip into the surplus — and it is
-what keeps that equality intact under *later* `K.α` allocation (ML8): no
-future-allocated content address can fall strictly below a resolved address either,
-so the recorded endset's content-coverage never grows. We name this
+store address and in particular not in `dom(Σ.C)`. We name this
 **ML1 (EndsetResolution)**: each endset
 argument is recorded as I-addresses recovered by reading the source arrangement at
 creation time, so the stored endset references content by identity, not by position;
@@ -306,22 +293,13 @@ opened that never held the type content — resolves to `∅`; on such input the
 operation is *undefined* and must be rejected before `K.λ` is attempted, since an
 empty `e₃` violates L3. (Gregory's CREATELINK does *not* enforce this: an empty type
 sporgl set resolves to `NULL`, passes the two insertion guards `do2.c:122` and
-`do2.c:136` silently — the latter even debug-prints the missing-type pointer, an
-acknowledged accommodation rather than a rejection — and a link is stored with no
-type endset at all. The abstract operation forbids what the implementation tolerates;
-the precondition is the correct contract.) With the precondition met, every link
+`do2.c:136` silently — the latter even debug-prints the missing-type pointer — and
+a link is stored with no type endset at all.) With the precondition met, every link
 MAKELINK creates carries a classifier, and by L8
 (TypeByAddress) the type is matched by the *addresses* its endset covers, not by
-any content stored there. Matching by address does not, for MAKELINK, license a
-ghost type. The type argument is `ρ`-resolved exactly as from and to (ML3), so
-`ρ(R₃, Σ) ⊆ dom(Σ.C)`, and ML6's own precondition forces `ρ(R₃, Σ) ≠ ∅`: the
-type's *resolved* addresses are always active content. The only unstored tumblers
-in `coverage(e₃)` are the subtree-surplus descendants of those resolved
-addresses — an artifact of the unit-span representation (`#E ≥ 3`, never on a
-content chain), not an L9-permitted reference to a region outside
-`dom(Σ.C) ∪ dom(Σ.L)`. MAKELINK therefore does *not* exercise L9's general
-ghost-type permission, which would require minting a type reference to unstored
-content — something `ρ` cannot produce. What L8 buys here is narrower: type
+any content stored there. The type argument is `ρ`-resolved exactly as from and to
+(ML3), so it resolves to stored content like any other endset
+(`ρ(R₃, Σ) ⊆ dom(Σ.C)`). What L8 buys here is narrower: type
 *matching* compares addresses, so two links share a type when their type endsets
 cover the same addresses, whatever content sits there. We name this **ML6
 (TypedRelation)**: the third endset, recorded identically to from and to but read
@@ -409,17 +387,13 @@ defined only for `d' ∈ dom(Σ.M)`,
 
 where `enabled(makelink(d, R₁, R₂, R₃)) ≡ d ∈ dom(Σ.M) ∧ ρ(R₃, Σ) ≠ ∅` unfolds the
 operation's own preconditions (paralleling the `enabled(K.μ⁻[d,R])` conjunct of
-ASN-0098 LP12a). Source-document allocation is *not* a separate conjunct of
-`enabled`, and its absence is deliberate, not an omission. Every well-formed
-spec-set argument already names allocated sources (`d_j ∈ dom(Σ.M)`, by the spec-set
-definition above), and the definedness of each `ρ(R_i, Σ)` requires exactly that
-every source document it names lie in `dom(Σ.M)`. So definedness of `ρ(R₁, Σ)`,
-`ρ(R₂, Σ)`, and `ρ(R₃, Σ)` alike is presupposed by well-formed input rather than
-guarded by `enabled`; `enabled` folds in only the genuinely operation-level guards
-that well-formedness does not already secure — home-document allocation and a
-non-empty type resolution. The remaining definedness conjuncts shown are essential:
-without them the formula would assert the postcondition reachable on inputs the
-operation rejects — e.g. an empty type spec, which ML6 forbids.
+ASN-0098 LP12a). By the spec-set definition above, a well-formed argument `R_i`
+names only allocated sources (`d_j ∈ dom(Σ.M)`), which is exactly what definedness
+of each `ρ(R_i, Σ)` requires; `enabled` thus carries only the operation-level
+guards — home-document allocation and a non-empty type resolution. The definedness
+conjuncts shown remain essential: without them the formula would assert the
+postcondition reachable on inputs the operation rejects — e.g. an empty type spec,
+which ML6 forbids.
 
 Beyond the operation's own enabledness, the home document `d` does not appear in
 the discoverability test on the right. The condition for finding the
@@ -505,7 +479,7 @@ reachability are orthogonal.
 | ML3 | UniformResolution: from, to, and type arguments are resolved by one procedure with no slot privileged at the V→I conversion step | introduced |
 | ML4 | ResidenceApplicationOrthogonality: home document and endset content are independent; the precondition relates `d` to no `ρ(R_j,Σ)`; a link may home anywhere and point anywhere, connecting two documents without residing in either | introduced |
 | ML5 | OrderedEndsets: the recorded triple is ordered, `(F,G,Θ) ≠ (G,F,Θ)` for `F ≠ G` (L6); the order fixes from/to roles semantically without restricting reachability (discovery is endset-symmetric) | introduced |
-| ML6 | TypedRelation: operation precondition `ρ(R₃,Σ) ≠ ∅` (the operation is undefined on a type spec that resolves empty, since K.λ requires `e₃ ≠ ∅`, L3); the third endset, recorded like from/to but matched by address (L8), distinguishes a typed relation from a bare connection; MAKELINK's type always resolves to stored content (`ρ(R₃,Σ) ⊆ dom(Σ.C)`), so it does *not* exercise L9's ghost-type permission — the only unstored tumblers in `coverage(e₃)` are surplus descendants | introduced |
+| ML6 | TypedRelation: operation precondition `ρ(R₃,Σ) ≠ ∅` (the operation is undefined on a type spec that resolves empty, since K.λ requires `e₃ ≠ ∅`, L3); the third endset, recorded like from/to but matched by address (L8), distinguishes a typed relation from a bare connection; the type resolves to stored content like any other endset (`ρ(R₃,Σ) ⊆ dom(Σ.C)`) | introduced |
 | ML7 | Permanence: `(A Σ' → Σ'' : a ∈ dom(Σ'.L) : a ∈ dom(Σ''.L) ∧ Σ''.L(a) = Σ'.L(a))` — the made link is not broken by any editing of the content it connects | introduced |
 | ML8 | EndsetImmutability: the recorded value `Σ'.L(a)` is frozen at creation (L12), with `coverage(e_i) ∩ dom(Σ.C) = ρ(R_i,Σ)`; editing source documents changes `Σ.M` but never the recorded I-addresses, so by S0 the endset survives as long as any referenced content persists | introduced |
 | ML9 | DiscoverabilityDecoupledFromResidence: `wp(makelink, discoverable_from(a, d', ·)) ≡ enabled(makelink) ∧ d' ∈ dom(Σ.M) ∧ (E i : ρ(R_i,Σ) ∩ ran(Σ.M(d')) ≠ ∅)`, with `enabled(makelink) ≡ d ∈ dom(Σ.M) ∧ ρ(R₃,Σ) ≠ ∅`; beyond enabledness the home `d` does not appear in the discoverability test — the link is discoverable from every region its endsets reference, residence-independently and endset-symmetrically | introduced |
