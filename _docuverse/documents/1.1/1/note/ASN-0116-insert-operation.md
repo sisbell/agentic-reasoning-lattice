@@ -197,8 +197,7 @@ transition trace — hence a composite boundary — so the per-state invariants 
 with the composite-boundary properties of ExtendedReachableStateInvariants
 (ASN-0047), in particular P7a (ProvenanceCoverage), hold at the pre-state; `n ≥ 1`; `(A k : 0 ≤ k < n : w_k ∈ Val)` — each
 inserted unit is a well-formed content value, the typing obligation the K.α step
-below carries (ASN-0093: K.α commits `a ↦ v` only for `v ∈ Val`), discharged here
-at the boundary rather than left implicit in the Effect; `S = subspace(p) = s_C`;
+below carries (ASN-0093: K.α commits `a ↦ v` only for `v ∈ Val`); `S = subspace(p) = s_C`;
 `m := #p ≥ 2`, and when `V_S(d) ≠ ∅` this `m` equals the common depth that
 S8-depth fixes on `V_S(d)`; `p` is S8a-well-formed; and `p` is a valid insertion
 position in the foundation sense (ASN-0036). Link placement is a distinct
@@ -390,11 +389,12 @@ new material interleaved at the chosen point.
 The post-state text domain `V_S(d')` is the union of I-DOM's three index
 intervals over `q` — `{1, …, J-1}` (prefix), `{J, …, J+n-1}` (new),
 `{J+n, …, N+n}` (shifted suffix) — and equals the canonical dense run
-`{q_1, …, q_{N+n}}` of length `N' = N + n`. The interval computation behind that
-equality is the load-bearing one promised above; we give it once, in full, under
-*Contiguity of the filled post-state* below, after the intervening subsections
-establish the per-region well-formedness on which the dense-run conclusion rests.
-We must be
+`{q_1, …, q_{N+n}}` of length `N' = N + n`. We state the small interval fact that
+the arguments below rest on. **Three-interval fact.** The three index intervals are
+*consecutive* — `J-1`, then `J` through `J+n-1`, then `J+n` through `N+n`, with no
+integer gap — and *pairwise disjoint*, their union being `{1, …, N+n}`. (Immediate
+from `0 < J ≤ N+1`: the right endpoint of each interval is one below the left
+endpoint of the next.) We must be
 careful about what is inherited and what is INSERT's own obligation, because
 ASN-0082's post-insertion arrangement is *not* the filled post-state we want: its
 domain closure I3-CS characterises `dom(M'(d)) ∩ S` as left positions ∪ shifted
@@ -446,8 +446,7 @@ ExtendedReachableStateInvariants (ASN-0047) demands.
   regions — depth uniformity holds across the whole filled subspace.
 - *Single-valuedness.* The new-block index set `{J, …, J+n-1}` (as ordinals `q_k`)
   is disjoint from the left set `{1, …, J-1}` and the shifted-suffix set
-  `{J+n, …, N+n}` — by the pairwise disjointness of the three index intervals
-  established once under *Contiguity of the filled post-state* below. Hence no
+  `{J+n, …, N+n}` — by the three-interval fact above. Hence no
   new-block position coincides with any left or shifted image, and
   within the block the map `k ↦ shift(p, k) = q_{J+k}` is injective (distinct `k`
   give distinct ordinals). `M'(d)` is therefore single-valued on the union.
@@ -456,10 +455,9 @@ ExtendedReachableStateInvariants (ASN-0047) demands.
   = s_C`, so S3★ is satisfied for the block: a content-subspace position maps to a
   content address.
 
-*Contiguity of the filled post-state.* This is the load-bearing argument, given
-directly. The three index intervals over `q` are `{1, …, J-1}` (prefix),
-`{J, …, J+n-1}` (new), `{J+n, …, N+n}` (shifted suffix). These are consecutive
-integer intervals — no gap — and pairwise disjoint — no double assignment — with
+*Contiguity of the filled post-state.* By the three-interval fact, the prefix
+`{1, …, J-1}`, new `{J, …, J+n-1}`, and shifted suffix `{J+n, …, N+n}` are
+consecutive — no gap — and pairwise disjoint — no double assignment — with
 union `{1, …, N+n}`. Therefore `V_S(d') = {q_1, …, q_{N+n}}` is the canonical dense
 run: `min(V_S(d')) = q_1` and the run is gap-free at the fixed depth `m`. This *is*
 the D-SEQ/D-MIN/D-CTG property of the post-state, established for INSERT rather
