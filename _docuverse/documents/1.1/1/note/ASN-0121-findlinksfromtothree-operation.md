@@ -41,7 +41,13 @@ A request is a four-tuple
 where each component is either an *endset* (ASN-0043's `Endset = 𝒫_fin(Span)`) or the
 distinguished *wildcard* `∗` (Nelson's NOSPECS — "no specification"). The home-component
 `H` ranges over document-address space; the three endset-components `F, G, Θ` range over
-I-address space. We phrase request components as endsets precisely so that `coverage`
+I-address space. Every request the grammar admits is thus phrased entirely over addresses —
+all of its components denote sets of tumbler addresses — and we call it an *I-address
+request*. There is exactly one kind of request in this grammar; the arrangement-mediated
+*V-spec* phrasing discussed later (under editing stability) is a separable front-end
+convenience that resolves to addresses before reaching `findlinks`, not a second kind of
+request. So the qualifier "I-address request," wherever it appears below, is simply every
+`q` the grammar admits. We phrase request components as endsets precisely so that `coverage`
 (ASN-0043), which is defined on `Endset`, applies to them uniformly with the link's own
 endsets; an endset denotes, through `coverage`, a set of addresses, and the wildcard
 denotes "no constraint." (An endset and an ASN-0053 span-set built from the same spans
@@ -363,13 +369,14 @@ attach to bytes — to I-addresses (content identity) — not to V-positions:
 
 Editing operations rewrite arrangements `Σ.M`; they do not touch the link store `Σ.L`
 (immutable, L12) nor the content store `Σ.C` (append-only, S0), and they do not alter the
-I-addresses an endset references. When the request is phrased over I-addresses — the
-content-identity regime — `sat` depends only on `Σ.L`, on link addresses, and on the
-fixed `q`. None of these moves under editing.
+I-addresses an endset references. Because every request is phrased over I-addresses (the
+content-identity regime — there is no other kind in the grammar), `sat` depends only on
+`Σ.L`, on link addresses, and on the fixed `q`. None of these moves under editing.
 
 **FL-STB (stability under editing).** For a transition `Σ → Σ'` that preserves the link
-store and the retraction set — `Σ'.L = Σ.L`, `nullified(Σ') = nullified(Σ)` — and an
-I-address request `q`, `findlinks(q, Σ') = findlinks(q, Σ)`. Pure-arrangement edits
+store and the retraction set — `Σ'.L = Σ.L`, `nullified(Σ') = nullified(Σ)` — and any
+request `q` (necessarily an I-address request, the grammar's only kind),
+`findlinks(q, Σ') = findlinks(q, Σ)`. Pure-arrangement edits
 (insertion, deletion, rearrangement) and content appends, which preserve `Σ.L` and the
 retraction set, leave the answer invariant. The membership of the result may be expressed
 through different V-positions before and after the edit, but the *set of link
@@ -417,8 +424,9 @@ of `Σ.L`, `nullified(Σ)`, and `q` *alone* — the arrangements `Σ.M` do not a
 it. The search is therefore intrinsically a global content-identity sieve over the link
 store, not a per-document enumeration.
 
-**FL-REACH (cross-document reach).** For an I-address request `q`, `findlinks(q, Σ)` is
-independent of `Σ.M`. Four consequences follow. *(a) Every home is reached.* The store is
+**FL-REACH (cross-document reach).** For any request `q` (an I-address request, the
+grammar's only kind), `findlinks(q, Σ)` is independent of `Σ.M`. Four consequences
+follow. *(a) Every home is reached.* The store is
 searched whole; a link is eligible regardless of which document homes it, so in-links —
 stored in documents other than the one being read — are found on equal footing with
 out-links. *(b) Transclusion is found once.* When the same endpoint content is shared
@@ -426,23 +434,29 @@ across documents, the link is indexed by that content's I-addresses and is found
 once by content identity, however many documents surface it (consultation Q20). *(c)
 Whole-docuverse residence.* Setting `H = ∗` imposes no residence bound, returning all
 matching links wherever homed — Nelson's "if the home-set is the whole docuverse, all
-links … are returned" (4/63). *(d) Superset of the per-document discoverable union.* The
-reach subsumes ASN-0098's per-document `discoverable_from`, but the two conclusions must
-be kept distinct, because `discoverable_from` needs only one surfaced slot whereas
-`findlinks` membership needs the full conjunction. First, a *single* surfaced endpoint
-suffices for discoverability: if some document `d` has `coverage(eᵢ) ∩ coverage(Rᵢ) ∩
-ran(Σ.M(d)) ≠ ∅` for some slot `i`, then `a` is discoverable from `d` (ASN-0098's
-`discoverable_from`). Second, membership in the result is governed by FL-DEF, not by any
-single slot: `a ∈ findlinks(q, Σ) ⟺ a ∈ addressable(Σ) ∧ sat(a, q, Σ)` — the AND of all
-four lifted criteria. So the membership conclusion holds precisely when `a` is addressable
-and `sat(a, q, Σ)` holds; if in addition *some* document surfaces one of its constrained
-endpoints, that same `a` is both discoverable from `d` and in `findlinks(q, Σ)`. A single
-overlapping endpoint alone establishes only discoverability, never the conjunction.
-Moreover `findlinks` returns satisfying links that *no* document surfaces (orphans, whose
-endset I-addresses lie in no arrangement range). The operation is therefore at least as
-complete as any document-by-document enumeration of the satisfying links, and strictly
-more so in the presence of orphaned links. No qualifying link is missed for want of a
-document to look in.
+links … are returned" (4/63). *(d) Superset of the satisfying discoverable links.* It is tempting to say the reach
+"subsumes" ASN-0098's per-document `discoverable_from`, but that comparison must be drawn
+carefully, because `discoverable_from` is *request-independent* while `findlinks` is not.
+By LP12 (ASN-0098), `discoverable_from(a, d, Σ)` holds iff *some* slot's coverage meets
+`ran(Σ.M(d))` — with no reference to `q`. Hence the bare per-document union
+`⋃_d { a : discoverable_from(a, d, Σ) }` is the set of *all* non-orphan links, irrespective
+of the request, and for a restrictive `q` it can dwarf `findlinks(q, Σ)` — take
+`q = (∗, ∅, ∗, ∗)`, a constrained empty from-slot, where FL-EMP forces
+`findlinks(q, Σ) = ∅` while the discoverable union may be large. So `findlinks(q, Σ)` is
+*not* in general a superset of the bare discoverable union; the headed claim must be
+restricted to the *satisfying* links. Membership in the result is governed by FL-DEF, the
+full conjunction `a ∈ findlinks(q, Σ) ⟺ a ∈ addressable(Σ) ∧ sat(a, q, Σ)` — the AND of
+all four lifted criteria, not any single surfaced slot. The true containment is
+
+  `findlinks(q, Σ) ⊇ ⋃_d { a : a ∈ addressable(Σ) ∧ sat(a, q, Σ) ∧ discoverable_from(a, d, Σ) }`:
+
+every satisfying, addressable link that some document `d` surfaces is in the result. The
+inclusion is *strict* whenever a satisfying, addressable *orphan* exists — an addressable
+`a` with `sat(a, q, Σ)` whose endset I-addresses lie in no arrangement range, so
+`discoverable_from(a, d, Σ)` fails for every `d` yet `a ∈ findlinks(q, Σ)`. The operation
+is therefore at least as complete as any document-by-document enumeration of the
+*satisfying* links, and strictly more so in the presence of satisfying orphans. No
+qualifying link is missed for want of a document to look in.
 
 This is precisely the reach that a docuverse-wide guarantee requires: because a link's
 in-links, its home, the transclusions of its endpoints, and the versions of its
@@ -520,9 +534,9 @@ the criteria, and by R6a it stays excluded along every reachable `Σ →* Σ'`.
 | FL-EMP | Empty-constraint zero — a constrained slot with empty coverage (`∅`) gives `lift = false` for every link, so any empty constrained component forces `findlinks(q, Σ) = ∅`; empty-spec (zero) is distinct from wildcard/NOSPECS (unit) | introduced |
 | FL-CUR | Currency — `a ∈ findlinks(q, Σ) ⟺ a ∈ addressable(Σ) ∧ sat(a, q, Σ)`, the conjunction of FL-SND and FL-CMP against `addressable(Σ)`: current additions in, current retractions out, non-matches irrelevant | introduced |
 | FL-MON | Monotone accumulation absent retraction — an unretracted matching link, once found, stays found as the store grows | introduced |
-| FL-STB | Stability under editing — for I-address requests, the result is invariant under any transition preserving `Σ.L` and the retraction set; pure-arrangement edits and content appends do not change which links are returned | introduced |
+| FL-STB | Stability under editing — for any request (the grammar's only kind being I-address requests), the result is invariant under any transition preserving `Σ.L` and the retraction set; pure-arrangement edits and content appends do not change which links are returned | introduced |
 | FL-RET | Retraction absence — a retracted link is permanently and completely absent from every subsequent current-state inquiry, and its absence does not impede other results | introduced |
-| FL-REACH | Cross-document reach — for I-address requests `findlinks` is independent of `Σ.M`: global over the store, finds transcluded content once, returns all links under a whole-docuverse home-set, and is a superset of the per-document discoverable union (including orphans) | introduced |
+| FL-REACH | Cross-document reach — for any request `findlinks` is independent of `Σ.M`: global over the store, finds transcluded content once, returns all links under a whole-docuverse home-set, and contains every satisfying, addressable link that any document surfaces — `findlinks(q, Σ) ⊇ ⋃_d { a : a ∈ addressable(Σ) ∧ sat(a, q, Σ) ∧ discoverable_from(a, d, Σ) }`, strict given satisfying orphans (not a superset of the bare, request-independent discoverable union) | introduced |
 
 ## Open Questions
 
