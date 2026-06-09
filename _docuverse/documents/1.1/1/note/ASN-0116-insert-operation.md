@@ -219,9 +219,19 @@ family. We name its clauses but derive them by citation, not from scratch:
   `0 ≤ k < n` — the K.α effect (ASN-0093), iterated `n` times along `A_C(d)`.
 - (I-IMM) `(A b : b ∈ dom(C) : C'(b) = C(b))` — K.α append-only (C0, ASN-0093).
 - (I-SHIFT) `(A v : v ∈ V_S(d) ∧ v ≥ p : shift(v, n) ∈ dom(M'(d)) ∧
-  M'(d)(shift(v, n)) = M(d)(v))` — verbatim ASN-0082 **I3 (PostInsertionShift)**.
+  M'(d)(shift(v, n)) = M(d)(v))` — by ASN-0082 **I3 (PostInsertionShift)** together
+  with block-disjointness (established below). I3 fixes these values on ASN-0082's
+  *gapped* arrangement `M'₀(d)`, whose domain (by I3-V/I3-CS) excludes the inserted
+  block; INSERT's post-state is `M'(d) = M'₀(d) ∪ {block fill}`. The carry-over is
+  licensed because the block `{shift(p, k) : 0 ≤ k < n}` (index interval `{J, …,
+  J+n-1}`) is disjoint from the shifted-suffix positions (index interval `{J+n, …,
+  N+n}`) — the consecutive-disjoint interval argument proved below — so the union
+  adds no entry at any shifted-suffix slot and I3's values transfer unchanged.
 - (I-LEFT) `(A v : v ∈ V_S(d) ∧ v < p : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v))` —
-  ASN-0082 **I3-L (PostInsertionLeftFrame)**.
+  by ASN-0082 **I3-L (PostInsertionLeftFrame)** together with the same
+  block-disjointness: the block sits at index interval `{J, …, J+n-1}`, disjoint
+  from the left positions `{1, …, J-1}`, so the union `M'₀(d) ∪ {block fill}` leaves
+  I3-L's values on the left region unchanged.
 - (I-NEW) `(A k : 0 ≤ k < n : shift(p, k) ∈ dom(M'(d)) ∧
   M'(d)(shift(p, k)) = shift(a, k))` — the INSERT-specific fill of the block that
   ASN-0082's gapped arrangement leaves vacated, mapped in lockstep to the K.α run
@@ -553,7 +563,10 @@ whose endset has one span into `A_new` (a ghost reference) *and* another span
 already meeting `ran(M(d))` lies in `Added` yet was *already* discoverable, so
 adding its new-block witness leaves `D(d)` unchanged. The weakest precondition is
 thus the operation's precondition conjoined with a *containment*, not an
-emptiness:
+emptiness. We record it as a named claim, parallel to P0–P5:
+
+**P6 (DiscoverabilityWP).** *The weakest precondition under which INSERT preserves
+the set of links discoverable from `d` is*
 
 > `wp(INSERT, D(d, Σ') = D(d, Σ)) ≡ INSERT-pre ∧
 > {a ∈ dom(Σ.L) : (E i : coverage(Σ.L(a).eᵢ) ∩ A_new ≠ ∅)} ⊆ D(d, Σ)`.
