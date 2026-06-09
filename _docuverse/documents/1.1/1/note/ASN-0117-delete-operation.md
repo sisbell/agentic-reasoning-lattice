@@ -323,10 +323,10 @@ single-valuedness, **S8-fin-post** for finiteness, and **S3-post** for
 referential integrity — read at the two-subspace level as S3★
 (GeneralizedReferentialIntegrity, ASN-0047): the *text* V-positions resolve into
 `dom(C')` and the *link* V-positions into `dom(L')`. The content clause
-`ran(M'(d)\!\restriction\!V_{s_C}(d)) ⊆ dom(C')` holds because every surviving
-text image already appeared in `ran(M(d)\!\restriction\!V_{s_C}(d)) ⊆ dom(C)`
+`ran(M'(d)|_{V_{s_C}(d)}) ⊆ dom(C')` holds because every surviving
+text image already appeared in `ran(M(d)|_{V_{s_C}(d)}) ⊆ dom(C)`
 (DEL-LEFT and DEL-SHIFT preserve each survivor's I-address) and `C' = C`
-(DEL-CIMM); the link clause `ran(M'(d)\!\restriction\!V_{s_L}(d)) ⊆ dom(L')`
+(DEL-CIMM); the link clause `ran(M'(d)|_{V_{s_L}(d)}) ⊆ dom(L')`
 holds because DEL-FSUB carries the link-subspace positions through verbatim and
 DEL-LIMM holds the link store fixed. Stating the whole range as
 `ran(M'(d)) ⊆ dom(C')` would be false for any document containing a link, since
@@ -434,7 +434,7 @@ shrinks `d`'s range — `ran(M'(d)) ⊆ ran(M(d))` — directly from its own cla
 accounting for *both* subspaces. The surviving domain splits into the text
 positions `L ∪ σ(R)` (DEL-DOM) and the link positions `V_{s_L}(d)` carried
 through verbatim (DEL-FSUB), so the full post-state range decomposes as
-`ran(M'(d)) = M(d)(L) ∪ M(d)(R) ∪ ran(M(d)\!\restriction\!V_{s_L}(d))`. Each
+`ran(M'(d)) = M(d)(L) ∪ M(d)(R) ∪ ran(M(d)|_{V_{s_L}(d)})`. Each
 summand lies in `ran(M(d))`: the two text summands because DEL-LEFT and DEL-SHIFT
 preserve every surviving position's I-address value (`M'(d)(v) = M(d)(v)` on `L`,
 `M'(d)(σ(v)) = M(d)(v)` on the image of `R`), and the link summand because
@@ -487,10 +487,10 @@ Write `D(d, Σ) = {a ∈ dom(Σ.L) : discoverable_from(a, d, Σ)}`. We seek
 
 P4 already established the full-document range decomposition, accounting for
 *both* subspaces:
-`ran(M'(d)) = M(d)(L) ∪ M(d)(R) ∪ ran(M(d)\!\restriction\!V_{s_L}(d)) ⊆ ran(M(d))`
+`ran(M'(d)) = M(d)(L) ∪ M(d)(R) ∪ ran(M(d)|_{V_{s_L}(d)}) ⊆ ran(M(d))`
 (the two text summands from DEL-LEFT/DEL-SHIFT, the link summand from DEL-FSUB).
 We do not re-derive it; we only refine the subset to the *exact* loss. Writing
-`M(d)\!\restriction\!Y` for the image of the position set `Y`,
+`M(d)|_Y` for the image of the position set `Y`,
 
 > `ran(M'(d)) = ran(M(d)) \ A_del^{excl}`,
 
@@ -740,10 +740,6 @@ identity is shared by reference, not by arrangement (P5). The bytes endure;
 only their placement in this one document's present view is withdrawn.
 
 ## Claims Introduced
-
-*The claim labels run P0, P2, P4, P5. The arrangement-side removal fact once
-carried as a separate P1 (ArrangementContraction) now lives in DEL-REMOVE; an
-earlier address-permanence claim P3 was absorbed into P0.*
 
 | Label | Statement | Status |
 |-------|-----------|--------|
