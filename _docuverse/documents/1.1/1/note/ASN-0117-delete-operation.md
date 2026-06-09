@@ -410,12 +410,17 @@ the layering is precise. A link `a` is discoverable from a document iff some
 slot's coverage meets that document's arranged I-address range:
 `discoverable_from(a, d, Σ) ⟺ (E i : coverage(Σ.L(a).eᵢ) ∩ ran(M(d)) ≠ ∅)`
 (foundation **LP12 (DiscoverabilityCharacterisation)**, ASN-0098). DELETE
-shrinks `d`'s range — `ran(M'(d)) ⊆ ran(M(d))` — directly from its own clauses:
-DEL-LEFT and DEL-SHIFT preserve every surviving position's I-address value
-(`M'(d)(v) = M(d)(v)` on `L`, `M'(d)(σ(v)) = M(d)(v)` on the image of `R`), so
-every I-address in `ran(M'(d))` already appears in `ran(M(d))`, while DEL-REMOVE
-drops the deleted correspondences and DEL-DOM fixes the surviving domain to
-`L ∪ σ(R)`. (We
+shrinks `d`'s range — `ran(M'(d)) ⊆ ran(M(d))` — directly from its own clauses,
+accounting for *both* subspaces. The surviving domain splits into the text
+positions `L ∪ σ(R)` (DEL-DOM) and the link positions `V_{s_L}(d)` carried
+through verbatim (DEL-FSUB), so the full post-state range decomposes as
+`ran(M'(d)) = M(d)(L) ∪ M(d)(R) ∪ ran(M(d)\!\restriction\!V_{s_L}(d))`. Each
+summand lies in `ran(M(d))`: the two text summands because DEL-LEFT and DEL-SHIFT
+preserve every surviving position's I-address value (`M'(d)(v) = M(d)(v)` on `L`,
+`M'(d)(σ(v)) = M(d)(v)` on the image of `R`), and the link summand because
+DEL-FSUB holds the `s_L` positions and their images fixed. DEL-REMOVE drops the
+deleted correspondences, contributing nothing new. Hence
+`ran(M'(d)) ⊆ ran(M(d))`. (We
 do *not* appeal to LP10 (ContractionMonotonicity, ASN-0098): LP10's premise is a
 K.μ⁻ prefix-retention truncation, in which survivors keep their V-positions
 unshifted, whereas DELETE left-shifts the suffix; and LP10's conclusion is a
@@ -573,6 +578,36 @@ third and fourth units omitted and the stream re-closed, exactly Nelson's
 canonical-order guarantee (Q2). The bytes `a_3, a_4` are not gone: they sit in
 `C`, recoverable by backtrack, still resolved by any link or any other document
 that names them.
+
+**A multi-position suffix shift (`|R| ≥ 2`).** The primary scenario moved a lone
+suffix position, so it never exercised DELETE's signature effect: the *uniform*
+left-shift of an entire suffix of two or more positions, all by the same `c`,
+with their relative order preserved. Take the same `N = 5` document and **delete
+the span at `p = q_2` of width `c = 1`** (removing `q_2`). Here `J = 2`,
+`w = [0, 1]`, `r = p ⊕ w = q_3`, `L = {q_1}`, `X = {q_2}`,
+`R = {q_3, q_4, q_5}` — three suffix positions. Containment holds: `J = 2 ≥ 1`
+and `J + c = 3 ≤ N + 1 = 6`.
+
+*Shift (DEL-SHIFT, DEL-LEFT).* Prefix `q_1` unchanged (DEL-LEFT). All three
+suffix positions shift left by `c = 1`, each carrying its I-address:
+
+```
+  q_3 → q_2   carrying a_3      (σ(q_3) = q_{3−1} = q_2,  M'(d)(q_2) = a_3)
+  q_4 → q_3   carrying a_4      (σ(q_4) = q_{4−1} = q_3,  M'(d)(q_3) = a_4)
+  q_5 → q_4   carrying a_5      (σ(q_5) = q_{5−1} = q_4,  M'(d)(q_4) = a_5)
+```
+
+Every following position moves by the *same* constant `c = 1`, and the source
+order `q_3 < q_4 < q_5` is carried to the image order `q_2 < q_3 < q_4` — the
+shift is the order-preserving injection `σ` (D-BJ), demonstrated here across
+multiple positions rather than one. The gap closes exactly: `σ(r) = σ(q_3) = q_2
+= q_J` (D-SEP).
+
+*Domain (DEL-DOM, P2).* Surviving index set `{1}` (prefix) ∪ `{2, 3, 4}` (shifted
+suffix) = `{1, 2, 3, 4}`, consecutive and gap-free. So `V_S(d') = {q_1, …, q_4}`,
+the dense run with `N' = N − c = 4`. Reading end to end yields `a_1, a_3, a_4, a_5`
+— the second unit omitted, the remaining three re-closed in their original
+relative order. ✓ DEL-SHIFT, D-BJ, P2.
 
 **Boundary — suffix delete (`J + c = N + 1`).** Take `p = q_4`, `c = 2`, so
 `r = q_6`, `R = ∅`. No position is shifted (DEL-SHIFT vacuous); `q_4, q_5` are
