@@ -1,0 +1,17 @@
+# Review of ASN-0119
+
+## REVISE
+
+### Issue 1: Open Question 6 is already settled by the note's own P2/P3
+
+**ASN-0119, Open Questions (sixth question)**: "What must a rearrangement guarantee about the well-formedness of a cut sequence whose affected interval reaches the document's first or last arranged position, so that no relocated position is carried outside the document's valid V-extent?"
+
+**Problem**: The clause "so that no relocated position is carried outside the document's valid V-extent" is not open — it is a theorem of this note. P2 establishes that the induced map `π` is a bijection of `dom(M(d))` *onto itself* with `dom(M'(d)) = dom(M(d))`, so every relocated position `π(v) ∈ dom(M(d))` lies in the valid V-extent unconditionally, regardless of whether `c₀` is the minimum position or `c_{n-1}` reaches one past the maximum. P3 further fixes the active run's endpoints. The residual concern — well-formedness of a boundary-reaching cut sequence — is governed by the imported R-PRE / CutSequence preconditions of ASN-0084 (a foundation), and a depth-2 text position one past the last active position is structurally well-formed there. So neither half of the question is open for ASN-0119, and listing it as future work understates the guarantees the note actually proves.
+
+**Required**: Either remove this open question, or replace it with a one-line resolution that cites P2/P3 (no relocated position escapes the V-extent because `π` permutes `dom(M(d))` onto itself) and R-PRE (boundary cut well-formedness). If a genuinely open residue remains, state precisely what it is — as written, the question reads as if a guarantee the note has already discharged were still owed.
+
+## OUT_OF_SCOPE
+
+(none — the note correctly defers transclusion-cut interaction, serialization authority, index/footprint invariants, prior-arrangement recoverability, and subspace-boundary preservation to future ASNs.)
+
+VERDICT: REVISE
