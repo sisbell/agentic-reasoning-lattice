@@ -395,15 +395,10 @@ reachable too. **ExtendedReachableStateInvariants (ASN-0047)** therefore deliver
 the *entire* post-state invariant set at once — the per-state invariants S2
 (single-valuedness), S3★ (referential integrity), S8a, S8-depth, S8★, D-CTG★,
 D-MIN★, D-SEQ★, and the content-store validity S7b/C1/C1b/C1c of the freshly
-allocated run, together with the composite-boundary properties P7 and P7a. We do
-*not* re-derive these per region. What the valid-composite section discharged as
-K.μ⁺'s clause-1 preconditions — new-position S8a and depth uniformity, the
-dense-run contiguity (clause iii), new-mapping referential integrity, finiteness —
-are the *inputs* that earn this reachability; the theorem returns everything else
-as a corollary. This is the same appeal we already make for S8★, and the reason
-the walk-through is unnecessary: K.μ⁺ is INSERT's last arrangement-modifying step
-— K.ρ does not touch `M` — so the very state whose preconditions we discharged
-*is* the final post-state.
+allocated run, together with the composite-boundary properties P7 and P7a. K.μ⁺ is
+INSERT's last arrangement-modifying step — K.ρ does not touch `M` — so the state
+whose clause-1 preconditions the valid-composite section discharged *is* the final
+post-state, and the theorem returns the full invariant set there.
 
 One concrete shape is worth stating once, because it is the formal content of
 Nelson's assurance (Q10) that reading end to end yields the original content with
@@ -420,15 +415,11 @@ around it stays a single coherent ordinal sequence; on the content subspace
 reduce to the unstarred D-CTG/D-MIN/D-SEQ of ASN-0036. IP1 records the narrower fact
 that the inserted material forms *one* correspondence run within the S8★ partition.
 
-*Provenance coupling — the obligation allocation incurs.* Because INSERT both
-allocates content (I-ALLOC) and places it into the content subspace of `ran(M'(d))`
-(I-NEW), ASN-0047 binds it to the three coupling constraints J0, J1★, J1'★ between
-the composite's initial and final states — discharged with the valid composite
-above (clause 2) — and to the composite-boundary coverage properties P7a and P7,
-which hold at the post-state as part of the theorem's boundary set cited above, not
-re-derived here. The inserting document's identity is minted into the address as
-content enters (4/11), and the implementation writes a DOCISPAN provenance record
-per inserted I-span; I-PROV is the abstract counterpart of that record.
+*Provenance coupling — the obligation allocation incurs.* The inserting document's
+identity is minted into the address as content enters (4/11), and the implementation
+writes a DOCISPAN provenance record per inserted I-span; I-PROV is the abstract
+counterpart of that record. The coupling that allocation-with-placement incurs —
+J0, J1★, J1'★, and the boundary coverage P7a/P7 — is carried by PROV below.
 
 **PROV (InsertionProvenance).** *INSERT records `R' = R ∪ {(shift(a, k), d) :
 0 ≤ k < n}` (I-PROV), which discharges the coupling constraints J0, J1★, J1'★ of
