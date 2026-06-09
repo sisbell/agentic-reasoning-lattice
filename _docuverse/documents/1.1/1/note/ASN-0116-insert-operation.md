@@ -423,16 +423,17 @@ that the inserted material forms *one* correspondence run within the S8★ parti
 *Provenance coupling — the obligation allocation incurs.* The inserting document's
 identity is minted into the address as content enters (4/11), and the implementation
 writes a DOCISPAN provenance record per inserted I-span; I-PROV is the abstract
-counterpart of that record. The coupling that allocation-with-placement incurs —
-J0, J1★, J1'★, and the boundary coverage P7a/P7 — is carried by PROV below.
+counterpart of that record.
 
 **PROV (InsertionProvenance).** *INSERT records `R' = R ∪ {(shift(a, k), d) :
-0 ≤ k < n}` (I-PROV), which discharges the coupling constraints J0, J1★, J1'★ of
-ASN-0047 between the composite's initial and final states; the composite-boundary
-properties P7a and P7 then hold at the post-state by ExtendedReachableStateInvariants.
-Provenance is thus established atomically-with-allocation as part of the operation,
-not deferred: every freshly minted content address `shift(a, k)` enters `R` coupled
-to its inserting document `d` in the same composite that allocates and places it.*
+0 ≤ k < n}` (I-PROV). Its coupling constraints J0, J1★, J1'★ of ASN-0047 are
+discharged once, in the valid-composite section (Clause 2), between the composite's
+initial and final states; given them, the composite-boundary properties P7a and P7
+hold at the post-state by ExtendedReachableStateInvariants. PROV's own content is this
+last step together with the timing observation: provenance is established
+atomically-with-allocation as part of the operation, not deferred — every freshly
+minted content address `shift(a, k)` enters `R` coupled to its inserting document `d`
+in the same composite that allocates and places it.*
 
 Two finer points remain. First, inserting a *span* rather
 than a single byte is, at the V-layer, no different in kind — the same uniform
@@ -479,8 +480,10 @@ the shift performs; we name it.
 insertion point is occupied (`J ≤ N`), the block slots `{q_k : J ≤ k ≤
 min(J+n−1, N)}` lie in `dom(M(d)) ∩ dom(M'(d))` yet `M'(d)(q_k) = shift(a, k−J) ≠
 M(d)(q_k)` — the same slot now resolves to freshly minted content, since
-`shift(a, k−J) ∈ A_new` is fresh (IP0) while `M(d)(q_k) ∈ ran(M(d)) ⊆ dom(C)`. The
-permanence guarantee attaches to the I-address (IP0, IP2), never to the slot.*
+`shift(a, k−J) ∈ A_new` is fresh (IP0) while `M(d)(q_k) ∈ dom(C)` by **S3★
+(GeneralizedReferentialIntegrity, ASN-0047)**, since `subspace(q_k) = s_C` places the
+image of a content-subspace V-position in the content store. The permanence guarantee
+attaches to the I-address (IP0, IP2), never to the slot.*
 
 **Link anchoring across the displacement.** A link's endsets reference
 I-addresses, not V-positions (4/42, 4/30). Since INSERT removes no I-address
@@ -552,10 +555,17 @@ into four disjoint parts:*
 *The prior witness set `project(e, d, Σ)` partitions into left, suffix, and
 cross-subspace witnesses, and INSERT maps these injectively into the post-insert
 set: left and cross-subspace verbatim, suffix by the bijection `v ↦ shift(v, n)`
-(I-SHIFT). The two sets are therefore **not** in a set-inclusion relation — the
-shifted witnesses occupy new V-positions — but the map is a bijection from the
-prior set onto (left ∪ shifted-suffix ∪ cross-subspace). Hence the witness
-**count** is non-decreasing,*
+(I-SHIFT). Whether the prior set is *contained* in the post-insert set turns on the
+suffix part. When no suffix witness shifts — the suffix part is empty — every prior
+witness is a left or cross-subspace witness, retained at its own V-position, so
+`project(e, d, Σ) ⊆ project(e, d, Σ')` (proper iff the new-block part is non-empty).
+When at least one suffix witness is present the two sets are **incomparable**: a
+shifted witness `v ≥ p` is relabelled to the new V-position `shift(v, n)`, vacating
+`v` (so `project(e, d, Σ) ⊄ project(e, d, Σ')`), while the largest shifted witness
+lands at a slot that carried no coverage witness before (so `project(e, d, Σ') ⊄
+project(e, d, Σ)`). Either way the map is a bijection from the prior set onto
+(left ∪ shifted-suffix ∪ cross-subspace). Hence the witness **count** is
+non-decreasing,*
 
 > `|project(e, d, Σ')| = |project(e, d, Σ)| + |{shift(p, k) : 0 ≤ k < n ∧ shift(a, k) ∈ coverage(e)}|`,
 
@@ -726,7 +736,8 @@ insert, IP4's four parts are: left `∅`; cross-subspace `∅`; shifted-suffix
 `{q_4}`, since `shift(a, 1) = [d.0.s_C.8] ∈ coverage(e)` puts a witness at
 `shift(p, 1) = q_4`. Hence `project(e, d, Σ') = {q_4, q_5}`. The prior witness set
 `{q_3}` is **not** a subset of `{q_4, q_5}` — the witness was *relabelled*
-(`q_3 → q_5`), not retained — confirming IP4's bijection-not-inclusion form. The
+(`q_3 → q_5`), not retained — confirming IP4's **incomparable** case, where a suffix
+witness is present (`q_3 ≥ p`). The
 count rose by exactly the one new-block witness (`1 → 2`), and the resolved content
 grew monotonically: `coverage(e) ∩ ran(M(d)) = {a_3} ⊆ {a_3, [d.0.s_C.8]} =
 coverage(e) ∩ ran(M'(d))`. ✓ IP4.
@@ -828,7 +839,7 @@ established are catalogued below.
 | IP4 (LinkSurvival) | Every prior endset's coverage is unchanged (L12+LP3★ across the composite); post-insert witness set = left ∪ shifted-suffix ∪ cross-subspace ∪ new-block; prior witnesses map bijectively onto the first three parts (suffix relabelled by `shift(·,n)`), so witness count is non-decreasing and resolved content grows monotonically (new-block is LP18 resurrection only when the link was orphaned) | introduced |
 | IP5 (DocumentIsolation) | Every other document's arrangement and resolved content are invariant under INSERT on `d` | introduced |
 | IP6 (DiscoverabilityWP) | `wp(INSERT, D(d,Σ')=D(d,Σ)) ≡ INSERT-pre ∧ {a : (∃i) coverage(Σ.L(a).eᵢ) ∩ A_new ≠ ∅} ⊆ D(d,Σ)` (containment, not emptiness); the emptiness form is sufficient but strictly stronger; discharged free under tight-endset discipline (LP19a) | introduced |
-| PROV (InsertionProvenance) | `R' = R ∪ {(shift(a,k), d) : 0 ≤ k < n}` discharges ASN-0047's J0, J1★, J1'★ across the composite; P7a/P7 then hold at the post-state by ExtendedReachableStateInvariants; provenance is recorded atomically with allocation | introduced |
+| PROV (InsertionProvenance) | `R' = R ∪ {(shift(a,k), d) : 0 ≤ k < n}` (I-PROV); its J0/J1★/J1'★ coupling is discharged in Clause 2 (valid-composite section), whence P7a/P7 hold at the post-state by ExtendedReachableStateInvariants; provenance is recorded atomically with allocation | introduced |
 | I-ALLOC | `dom(C') = dom(C) ∪ A_new`, `C'(shift(a,k)) = w_k` | cited (K.α, ASN-0093), iterated |
 | I-IMM | `(A b : b ∈ dom(C) : C'(b) = C(b))` — existing content values unchanged | cited (C0, ASN-0093) |
 | I-PROV | `R' = R ∪ {(shift(a,k), d) : 0 ≤ k < n}` — provenance record per allocated address | cited (K.ρ, ASN-0047), iterated |
