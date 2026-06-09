@@ -24,10 +24,8 @@ delete path operates entirely on the document's arrangement enfilade and
 "leaves the granfilade entirely untouched, such that the I-addresses
 underlying the deleted span remain resolvable to their original bytes even
 though no POOM currently references them" (Q15). One layer changes; the other
-does not. Almost every invariant we must preserve is a statement about keeping
-those two layers from contaminating each other — and this time the discipline
-is even sharper than for insertion, because deletion writes *nothing* to the
-permanent store at all.
+does not — and this time the discipline is even sharper than for insertion,
+because deletion writes *nothing* to the permanent store at all.
 
 We work in the address space `T` of tumblers under the lexicographic total
 order T1, with the displacement algebra `⊕`, `⊖`, and the ordinal shift
@@ -186,16 +184,13 @@ leaving `R = ∅`). This is exactly the foundation contraction's precondition
 *Effect.* DELETE is one arrangement contraction realising ASN-0082's
 displacement family, with the content store held in frame. Which ASN-0047
 realisation it is splits on whether any suffix survives the cut — on whether
-`R = ∅`. The foundation transition **K.μ⁻ (ArrangementContraction)** of that model
-is a *prefix-retention truncation*: it keeps a contiguous prefix of each subspace
-run *at the survivors' original V-positions* — its postcondition fixes
-`M'(d)(v) = M(d)(v)` on the retained domain
-`R := ∪_S {[S, 1, …, 1, k] : 1 ≤ k ≤ n'_S}`. When a *non-empty* suffix must shift
-left into the vacated slots, a survivor's V-position changes, and no single atomic
-transition expresses that: K.μ⁻ leaves survivors unshifted, K.μ~ preserves domain
-cardinality, K.μ⁺ adds content. But when the deletion reaches the end of the run
-(`R = ∅`), no survivor shifts, and a lone K.μ⁻ suffices. We take the two cases in
-turn.
+`R = ∅`: when a non-empty suffix survives (`R ≠ ∅`), DELETE is the K.μ⁻ + K.μ⁺
+composite; when the deletion reaches the end of the run (`R = ∅`), no survivor
+shifts and DELETE is a lone K.μ⁻. The foundation transition
+**K.μ⁻ (ArrangementContraction)** is a *prefix-retention truncation*: it keeps a
+contiguous prefix of each subspace run *at the survivors' original V-positions* —
+its postcondition fixes `M'(d)(v) = M(d)(v)` on the retained domain
+`R := ∪_S {[S, 1, …, 1, k] : 1 ≤ k ≤ n'_S}`. We take the two cases in turn.
 
 *Case `R ≠ ∅` (`J + c ≤ N`): the K.μ⁻ + K.μ⁺ composite.* When survivors remain
 past the gap, DELETE is the foundation *composite* of two atomic transitions of the
@@ -472,9 +467,10 @@ that transcludes the deleted I-addresses — are invariant under DELETE on `d`.*
 reference I-addresses, not V-positions (4/42, 4/30). DELETE removes no I-address
 (P3) and adds, removes, or edits no link, so the link store is held entirely
 fixed — `Σ'.L = Σ.L` in both domain and value (DEL-LIMM, strictly stronger than
-L12's value-only guarantee) — and every endset's *coverage* is unchanged
-(**LP3 (CoverageInvariance)**, ASN-0098): every link designates exactly the same
-content after the deletion as before. The link is anchored to bytes that still
+L12's value-only guarantee) — and every endset's *coverage* is unchanged across
+the (possibly two-step) transition (**LP3★ (MultiStepCoverageInvariance)**,
+ASN-0098, the closure of the single-step LP3): every link designates exactly the
+same content after the deletion as before. The link is anchored to bytes that still
 exist; the strap stays attached. This is Nelson's survivability clause (4/43,
 Q6, Q19).
 
@@ -518,7 +514,8 @@ are exactly Nelson's design intent:
   one-way door at the content layer.
 
 **P4 (LinkSurvival).** *For every endset `e` existing in `Σ`,
-`coverage_{Σ'}(e) = coverage_{Σ}(e)` (DEL-LIMM + LP3) — no link's designated
+`coverage_{Σ'}(e) = coverage_{Σ}(e)` (DEL-LIMM + LP3★, which closes single-step
+LP3 over the composite; the lone-K.μ⁻ `R = ∅` case needs only LP3) — no link's designated
 content changes, and the link store is untouched (`Σ'.L = Σ.L`). A link discoverable from `d` before
 the deletion remains discoverable from `d` iff some surviving V-position of `d`
 still maps into its coverage; otherwise it is orphaned from `d` (LP17) yet
@@ -794,11 +791,8 @@ preserved (D-SEQ/D-MIN/D-CTG-post with `N' = N − c`), the survivors re-close i
 a single dense run (P2), every link survives because it anchors on immutable
 identity (P4), the deleted material stays discoverable from every other document
 that still arranges it (P4, P5), and every other document is isolated because
-identity is shared by reference, not by arrangement (P5). Deleting a *span*
-rather than a position is what makes the architecture visible: it is the seam
-between an arrangement ceasing to bind content and that content ceasing to
-exist, and DELETE severs the first while the second remains untouched — the bytes
-endure, only their placement in this one document's present view is withdrawn.
+identity is shared by reference, not by arrangement (P5). The bytes endure;
+only their placement in this one document's present view is withdrawn.
 
 ## Claims Introduced
 
@@ -809,7 +803,7 @@ endure, only their placement in this one document's present view is withdrawn.
 | P1 (ArrangementContraction) | The deleted span's `c` V→I mappings are removed from the arrangement only; no content is removed | introduced |
 | P2 (GapClosure) | Survivors close into the dense run `{q_1, …, q_{N−c}}`; prefix fixed, suffix shifts left by `c` carrying I-addresses unchanged, gap closes exactly, order and density preserved | introduced |
 | P3 (AddressPermanence) | No I-address is removed or rebound; DELETE allocates and frees nothing — the content layer is invariant | introduced |
-| P4 (LinkSurvival) | Every endset's coverage is unchanged and the link store untouched, `Σ'.L = Σ.L` (DEL-LIMM + LP3); a link orphaned from `d` (LP17) still persists, stays discoverable from other documents arranging it (LP16), and is re-discoverable on re-arrangement (LP18) | introduced |
+| P4 (LinkSurvival) | Every endset's coverage is unchanged and the link store untouched, `Σ'.L = Σ.L` (DEL-LIMM + LP3★, closing single-step LP3 over the composite); a link orphaned from `d` (LP17) still persists, stays discoverable from other documents arranging it (LP16), and is re-discoverable on re-arrangement (LP18) | introduced |
 | P5 (DocumentIsolation) | Every other document's arrangement and resolved content — including transcluders of the deleted I-addresses — are invariant under DELETE on `d` | introduced |
 | DEL-REMOVE | The arrangement loses exactly `c` V→I correspondences (`|{v ∈ dom(M'(d)) : subspace(v) = S}| = N − c`) and the top `c` labels `{q_{N−c+1}, …, q_N}` leave `dom(M'(d))`; the deleted I-addresses persist in `C` | introduced |
 | DEL-SHIFT | Suffix positions `v ∈ R` move to `σ(v) = q_{k−c}`, carrying their I-address (ASN-0082 D-SHIFT) | introduced |
