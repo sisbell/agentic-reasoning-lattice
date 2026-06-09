@@ -599,12 +599,11 @@ witnesses:
   immutability **L12 (LinkImmutability, ASN-0043)** lifted across the composite
   fixes `Σ'.L(a) = Σ.L(a)` for every prior link `a`, so **LP3★
   (MultiStepCoverageInvariance, ASN-0098)** gives
-  `coverage_{Σ'}(e) = coverage_{Σ}(e)` for every prior endset. We stress what
-  does *not* underwrite this: it is *not* that `A_new` is fresh against `dom(C)`.
-  Foundation **L4 (EndsetGenerality)** and **L9 (TypeGhostPermission)** let an
-  endset reference *any* tumbler, including ghost addresses not yet in `dom(C)`,
-  so a pre-existing endset may already name an address that INSERT now mints into
-  `A_new`. Coverage-invariance rests on endset immutability, not on freshness.
+  `coverage_{Σ'}(e) = coverage_{Σ}(e)` for every prior endset. Coverage-invariance
+  rests on endset immutability, not on freshness. Foundation **L4 (EndsetGenerality)**
+  and **L9 (TypeGhostPermission)** let an endset reference *any* tumbler, including
+  ghost addresses not yet in `dom(C)`, so a pre-existing endset may already name an
+  address that INSERT now mints into `A_new`.
 - *The shifted-suffix witnesses move uniformly.* A link whose coverage includes
   `M(d)(v)` for some shifted `v ≥ p` is now found at `shift(v, n)`, because
   `M'(d)(shift(v, n)) = M(d)(v)` (I-SHIFT) carries the same I-address to the new
@@ -711,11 +710,7 @@ identity is RAN above:
 > `ran(M'(d)) = ran(M(d)) ∪ A_new`,
 
 whose cross-subspace contribution is fixed by F-SUB and whose content-subspace
-contribution gains exactly `A_new`. Note this is *not* an instance of **LP9
-(ExtensionMonotonicity, ASN-0098)**: LP9 governs only K.μ⁺/K.μ⁺_L extension
-transitions, its proof rests on prior-domain agreement (E2: `M'(d)(v) = M(d)(v)` for
-every `v ∈ dom(M(d))`), which INSERT's I-SHIFT violates by vacating every suffix
-position `v ≥ p`, and its conclusion is about `project`, not `ran`. Substituting the
+contribution gains exactly `A_new`. Substituting the
 full-range identity RAN into
 LP12, for every prior link `a` — and noting that the unsubscripted `coverage(eᵢ)`
 below is well-defined because each slot's coverage is invariant pre-to-post across
@@ -750,10 +745,7 @@ run would newly witness was *already* discoverable from `d`. The strictly strong
 *sufficient* condition `(A a ∈ dom(Σ.L), i : coverage(Σ.L(a).eᵢ) ∩ A_new = ∅)` —
 no prior endset references the allocated run at all — discharges the containment by
 emptying `Added`, but it over-rejects: it refuses the ghost-plus-live-span
-pre-states above, on which discoverability is in fact preserved. Had P4 asserted
-unconditional preservation, this computation would have refuted it: `Added ∖
-D(d, Σ)` is non-empty exactly when a ghost reference is resurrected from
-non-discoverability into discoverability. Two corollaries fall out. (i) A
+pre-states above, on which discoverability is in fact preserved. Two corollaries fall out. (i) A
 sufficient condition discharging the wp for free is a tight-endset discipline: if
 every prior endset is tight at its creation state (foundation `tight`, ASN-0098),
 then **LP19a (TightFreshness)** gives `A_new ∩ coverage(e) = ∅` for every K.α-fresh
