@@ -389,128 +389,54 @@ ExtendedReachableStateInvariants for its post-state is licensed.
 
 We must check that the result is well-formed — that we have not opened a gap,
 overlaid two positions, or broken the density that lets spans name contiguous
-regions. The computation is immediate from `shift(q_k, n) = q_{k+n}` and is
-worth doing once in full, because it is the formal content of Nelson's
-assurance (Q10) that reading end to end yields the original content with the
-new material interleaved at the chosen point.
+regions. The previous section did the load-bearing work: INSERT is a valid
+composite, and `Σ` is reachable from `Σ₀` (precondition), so the post-state is
+reachable too. **ExtendedReachableStateInvariants (ASN-0047)** therefore delivers
+the *entire* post-state invariant set at once — the per-state invariants S2
+(single-valuedness), S3★ (referential integrity), S8a, S8-depth, S8★, D-CTG★,
+D-MIN★, D-SEQ★, and the content-store validity S7b/C1/C1b/C1c of the freshly
+allocated run, together with the composite-boundary properties P7 and P7a. We do
+*not* re-derive these per region. What the valid-composite section discharged as
+K.μ⁺'s clause-1 preconditions — new-position S8a and depth uniformity, the
+dense-run contiguity (clause iii), new-mapping referential integrity, finiteness —
+are the *inputs* that earn this reachability; the theorem returns everything else
+as a corollary. This is the same appeal we already make for S8★, and the reason
+the walk-through is unnecessary: K.μ⁺ is INSERT's last arrangement-modifying step
+— K.ρ does not touch `M` — so the very state whose preconditions we discharged
+*is* the final post-state.
 
-The post-state text domain `V_S(d')` is the union of I-DOM's three index
-intervals over `q` — `{1, …, J-1}` (prefix), `{J, …, J+n-1}` (new),
-`{J+n, …, N+n}` (shifted suffix) — and equals the canonical dense run
-`{q_1, …, q_{N+n}}` of length `N' = N + n`. These three index intervals are
-consecutive, pairwise disjoint, and union to `{1, …, N+n}` — the
-**block-disjointness fact** stated in the Effect, which the arguments below rest on.
-We must be
-careful about what is inherited and what is INSERT's own obligation, because
-ASN-0082's post-insertion arrangement is *not* the filled post-state we want: its
-domain closure I3-CS characterises `dom(M'(d)) ∩ S` as left positions ∪ shifted
-positions *only*, with the block `{shift(p, k) : 0 ≤ k < n}` deliberately
-withheld — *per block position*: by I3-V where the position pre-existed
-(`shift(p, k) ∈ dom(M(d))`, index `≤ N`) and by the I3-CS domain closure itself
-where it did not (`shift(p, k) ∉ dom(M(d))`, index `> N`, never in `dom(M(d))` for
-I3-V to range over). ASN-0082's `M'(d)` is the *gapped*, room-made arrangement, and
-its preservation lemmas establish well-formedness only for those two regions.
-The new block is not covered by any of them; each of its properties is an INSERT
-obligation that we discharge here. Two of ASN-0082's preservation lemmas do not
-transfer even on the left and shifted regions: **I3-S3** (referential integrity) and
-**I3-S7** (content-store invariants) are both proved under the content frame **I3-C**
-(`dom(C') = dom(C)`), which INSERT breaks via I-ALLOC; and the contiguity lemmas
-**D-SEQ-post**/**D-MIN-post**/**D-CTG-post** are *contraction* results (post-state
-`{[S, 1, …, 1, k] : 1 ≤ k ≤ N − c}`), inapplicable to a fill. We therefore discharge
-referential integrity, content-store invariants, and contiguity directly below.
-
-*Left and shifted regions.* For the positions `{q_1, …, q_{J-1}}` (left) and
-`{q_{J+n}, …, q_{N+n}}` (shifted suffix), well-formedness is exactly ASN-0082's
-family: **I3-VD** (depth uniformity) and **I3-VP** (S8a) for the positions,
-**I3-S2** for single-valuedness, **I3-fin** for finiteness. Referential integrity is
-discharged directly: each left or shifted position `v` lies in subspace `S = s_C`,
-so `M(d)(v) ∈ dom(C)` (S3★ at the pre-state, content-subspace clause
-`subspace(v) = s_C ⟹ M(d)(v) ∈ dom(C)`), and `dom(C) ⊆ dom(C')` by append-only
-monotonicity (IP2), so the image lies in `dom(C')` and S3★ holds for both regions.
-
-*Content-store invariants for the freshly allocated run.* The post-state's
-content-store invariants for `A_new` — `zeros(a) = 3` (S7b), `#E(a) ≥ 2` (C1b),
-`origin(a) = d` (S7a/C2), allocator conformance (C1c) — are discharged at the source:
-each `shift(a, k) ∈ A_new` is a K.α emission, and K.α establishes exactly these
-(ASN-0093: **C1** for `zeros = 3`, **C1b** for `#E ≥ 2`, **C1c** for allocator
-conformance, **C2** for `origin(a) = d`). The unchanged addresses `b ∈ dom(C)` retain
-them by IP2 (append-only: domains grow, values fixed). Thus every content address in
-`dom(C')` — old and new — is structurally valid element-level content, as
-ExtendedReachableStateInvariants (ASN-0047) demands.
-
-*Proved here for the new block* `{shift(p, k) : 0 ≤ k < n}`, mapped by I-NEW to
-`{shift(a, k) : 0 ≤ k < n}`:
-
-- *S8a and depth uniformity.* `p = q_J` satisfies S8a (precondition) with `#p = m`.
-  The block index runs `0 ≤ k < n`, which we split at the boundary. For `k = 0`,
-  `shift(p, 0) = p` is S8a-well-formed directly by precondition, with `#p = m` —
-  OrdShiftHom does not apply here, since its shift amount precondition is `n ≥ 1`.
-  For `1 ≤ k < n`, **OrdShiftHom** (ASN-0036) applies: each `shift(p, k)` is
-  zero-free with all components positive, `subspace(shift(p, k)) = S`, and
-  `#shift(p, k) = m` (the result-length identity of TumblerAdd). So every new-block
-  position is S8a-well-formed and shares depth `m` with the left and shifted
-  regions — depth uniformity holds across the whole filled subspace.
-- *Single-valuedness.* The new-block index set `{J, …, J+n-1}` (as ordinals `q_k`)
-  is disjoint from the left set `{1, …, J-1}` and the shifted-suffix set
-  `{J+n, …, N+n}` — by the block-disjointness fact. Hence no
-  new-block position coincides with any left or shifted image, and
-  within the block the map `k ↦ shift(p, k) = q_{J+k}` is injective (distinct `k`
-  give distinct ordinals). `M'(d)` is therefore single-valued on the union.
-- *Referential integrity.* Each new-block image is `shift(a, k) ∈ A_new ⊆ dom(C')`
-  by I-ALLOC, and `subspace(shift(p, k)) = S = s_C` matches `subspace_I(shift(a, k))
-  = s_C`, so S3★ is satisfied for the block: a content-subspace position maps to a
-  content address.
-
-*Contiguity of the filled post-state.* By the block-disjointness fact, the prefix
-`{1, …, J-1}`, new `{J, …, J+n-1}`, and shifted suffix `{J+n, …, N+n}` are
-consecutive — no gap — and pairwise disjoint — no double assignment — with
-union `{1, …, N+n}`. Therefore `V_S(d') = {q_1, …, q_{N+n}}` is the canonical dense
-run: `min(V_S(d')) = q_1` and the run is gap-free at the fixed depth `m`. This *is*
-the per-subspace contiguity of the post-state — **D-CTG★/D-MIN★/D-SEQ★**, the
-starred invariants that ExtendedReachableStateInvariants and the amended K.μ⁺
-require (ASN-0047) — established for INSERT rather than borrowed. We state the
-conclusion in the starred forms the operative state model uses; on the content
-subspace `S = s_C` the per-subspace slice is the whole text subspace, so these
-starred forms reduce to the unstarred D-CTG/D-MIN/D-SEQ of ASN-0036. The new material occupies exactly the interval
+One concrete shape is worth stating once, because it is the formal content of
+Nelson's assurance (Q10) that reading end to end yields the original content with
+the new material interleaved at the chosen point. The post-state text domain
+`V_S(d')` is the canonical dense run `{q_1, …, q_{N+n}}` of length `N' = N + n`: by
+the **block-disjointness fact** (Effect), the three index intervals `{1, …, J-1}`
+(prefix), `{J, …, J+n-1}` (new), `{J+n, …, N+n}` (shifted suffix) are consecutive,
+pairwise disjoint, and union to `{1, …, N+n}`. This is I-DOM — and is exactly the
+contiguity K.μ⁺'s clause (iii) discharged, hence the post-state D-CTG★/D-MIN★/D-SEQ★
+the theorem returns. The new material occupies exactly the interval
 `{q_J, …, q_{J+n-1}}`, a connected, ordered, gap-free block, and the whole stream
-around it stays a single coherent ordinal sequence.
-
-*Per-subspace run decomposition.* **S8★ (PerSubspaceSpanDecomposition)** holds at
-the filled post-state directly by ExtendedReachableStateInvariants (ASN-0047): the
-pre-state `Σ` is reachable from `Σ₀` (precondition) and INSERT is a valid composite,
-so the post-state is reachable as well, and the theorem's per-state invariants —
-S8★ among them — hold there. IP1 records the narrower
-fact that the inserted material forms *one* such run.
+around it stays a single coherent ordinal sequence; on the content subspace
+`S = s_C` the per-subspace slice is the whole text subspace, so these starred forms
+reduce to the unstarred D-CTG/D-MIN/D-SEQ of ASN-0036. IP1 records the narrower fact
+that the inserted material forms *one* correspondence run within the S8★ partition.
 
 *Provenance coupling — the obligation allocation incurs.* Because INSERT both
 allocates content (I-ALLOC) and places it into the content subspace of `ran(M'(d))`
-(I-NEW), ASN-0047 binds it to three coupling constraints between the initial and
-final states of the composite, plus a composite-boundary coverage property. The
-inserting document's identity is minted into the address as content enters
-(4/11), and the implementation writes a DOCISPAN provenance record per inserted
-I-span; I-PROV is the abstract counterpart of that record.
-
-It remains to establish the composite-boundary coverage properties P7a and P7. (The
-three couplings J0, J1★, J1'★ are discharged with the valid composite above.)
-
-The post-state is a composite boundary, so it must also satisfy **P7a
-(ProvenanceCoverage, ASN-0047)**: every `a ∈ dom(C')` carries some record `(a, d') ∈ R'`. Split
-`dom(C') = dom(C) ∪ A_new` (I-ALLOC). For prior addresses `b ∈ dom(C)`: by
-precondition `Σ` is reachable, hence a composite boundary, so P7a holds at the
-pre-state, giving some `(b, d') ∈ R`; and `R ⊆ R'` (I-PROV is purely additive), so `(b, d') ∈ R'`. For the new addresses
-`shift(a, k) ∈ A_new`: I-PROV supplies `(shift(a, k), d) ∈ R'` directly. Hence every
-content address — old and new — is covered, and P7a holds at the post-state.
-Symmetrically **P7 (ProvenanceGrounding, ASN-0047)** — every `(a, d') ∈ R'` has `a ∈ dom(C')` —
-is preserved: prior entries by IP2-monotonicity of the store, the new entries because
-each `shift(a, k) ∈ A_new ⊆ dom(C')`. We record the coupling as a claim.
+(I-NEW), ASN-0047 binds it to the three coupling constraints J0, J1★, J1'★ between
+the composite's initial and final states — discharged with the valid composite
+above (clause 2) — and to the composite-boundary coverage properties P7a and P7,
+which hold at the post-state as part of the theorem's boundary set cited above, not
+re-derived here. The inserting document's identity is minted into the address as
+content enters (4/11), and the implementation writes a DOCISPAN provenance record
+per inserted I-span; I-PROV is the abstract counterpart of that record.
 
 **PROV (InsertionProvenance).** *INSERT records `R' = R ∪ {(shift(a, k), d) :
 0 ≤ k < n}` (I-PROV), which discharges the coupling constraints J0, J1★, J1'★ of
-ASN-0047 between the composite's initial and final states, and — together with the
-pre-state's coverage — establishes P7a and P7 at the post-state. Provenance is thus
-established atomically-with-allocation as part of the operation, not deferred: every
-freshly minted content address `shift(a, k)` enters `R` coupled to its inserting
-document `d` in the same composite that allocates and places it.*
+ASN-0047 between the composite's initial and final states; the composite-boundary
+properties P7a and P7 then hold at the post-state by ExtendedReachableStateInvariants.
+Provenance is thus established atomically-with-allocation as part of the operation,
+not deferred: every freshly minted content address `shift(a, k)` enters `R` coupled
+to its inserting document `d` in the same composite that allocates and places it.*
 
 Two finer points remain. First, inserting a *span* rather
 than a single byte is, at the V-layer, no different in kind — the same uniform
@@ -902,14 +828,14 @@ established are catalogued below.
 | IP4 (LinkSurvival) | Every prior endset's coverage is unchanged (L12+LP3★ across the composite); post-insert witness set = left ∪ shifted-suffix ∪ cross-subspace ∪ new-block; prior witnesses map bijectively onto the first three parts (suffix relabelled by `shift(·,n)`), so witness count is non-decreasing and resolved content grows monotonically (new-block is LP18 resurrection only when the link was orphaned) | introduced |
 | IP5 (DocumentIsolation) | Every other document's arrangement and resolved content are invariant under INSERT on `d` | introduced |
 | IP6 (DiscoverabilityWP) | `wp(INSERT, D(d,Σ')=D(d,Σ)) ≡ INSERT-pre ∧ {a : (∃i) coverage(Σ.L(a).eᵢ) ∩ A_new ≠ ∅} ⊆ D(d,Σ)` (containment, not emptiness); the emptiness form is sufficient but strictly stronger; discharged free under tight-endset discipline (LP19a) | introduced |
-| PROV (InsertionProvenance) | `R' = R ∪ {(shift(a,k), d) : 0 ≤ k < n}` discharges ASN-0047's J0, J1★, J1'★ across the composite and re-establishes P7a/P7 at the post-state; provenance is recorded atomically with allocation | introduced |
+| PROV (InsertionProvenance) | `R' = R ∪ {(shift(a,k), d) : 0 ≤ k < n}` discharges ASN-0047's J0, J1★, J1'★ across the composite; P7a/P7 then hold at the post-state by ExtendedReachableStateInvariants; provenance is recorded atomically with allocation | introduced |
 | I-ALLOC | `dom(C') = dom(C) ∪ A_new`, `C'(shift(a,k)) = w_k` | cited (K.α, ASN-0093), iterated |
 | I-IMM | `(A b : b ∈ dom(C) : C'(b) = C(b))` — existing content values unchanged | cited (C0, ASN-0093) |
 | I-PROV | `R' = R ∪ {(shift(a,k), d) : 0 ≤ k < n}` — provenance record per allocated address | cited (K.ρ, ASN-0047), iterated |
 | I-SHIFT | V-positions `≥ p` in subspace `S` move to `shift(v,n)`, carrying their I-address | cited (I3, ASN-0082) |
 | I-LEFT | V-positions `< p` in subspace `S` are unchanged | cited (I3-L, ASN-0082) |
 | I-NEW | The vacated block `{shift(p,k)}` maps to the fresh run `{shift(a,k)}` | introduced (composition glue) |
-| I-DOM | `V_S(d')` is the dense run `{q_1, …, q_{N+n}}`; D-SEQ/D-MIN/D-CTG of the filled post-state established here with `N' = N+n` | introduced (interval argument; prefix+suffix from I3-CS, ASN-0082; middle block from I-NEW) |
+| I-DOM | `V_S(d')` is the dense run `{q_1, …, q_{N+n}}` with `N' = N+n`; the post-state D-SEQ/D-MIN/D-CTG follow from this shape via ExtendedReachableStateInvariants (ASN-0047) | introduced (interval argument; prefix+suffix from I3-CS, ASN-0082; middle block from I-NEW) |
 | F-SUB | Positions in subspaces `S' ≠ S` are unchanged (subspace confinement of the shift) | cited (I3-X, ASN-0082) |
 | F-DOC | Arrangements of all documents `d' ≠ d` are unchanged | cited (I3-D, ASN-0082) |
 | F-LINK | `Σ'.L = Σ.L` — the link store is untouched | cited (frame; no K-atomic touches `Σ.L`) |
