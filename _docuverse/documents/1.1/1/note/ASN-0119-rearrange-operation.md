@@ -552,5 +552,3 @@ What invariant must relate a content-based discovery index to the arrangement af
 What must the operation guarantee about the recoverability of a prior arrangement from the permanent content store, given that REARRANGE records only the new V→I mapping and the old order is no longer expressed?
 
 What relationship must hold between the displacement imposed on intervening content and the requirement that every subspace boundary be preserved, so that no permuted position may cross from one subspace into another?
-
-What must a rearrangement guarantee about the well-formedness of a cut sequence whose affected interval reaches the document's first or last arranged position, so that no relocated position is carried outside the document's valid V-extent?
