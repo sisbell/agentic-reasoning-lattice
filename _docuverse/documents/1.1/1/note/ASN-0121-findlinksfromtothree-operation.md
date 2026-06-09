@@ -523,6 +523,17 @@ grows `L_R`, carrying a self-retraction term.
 
 **FL-WP (weakest precondition for the result-changing step).**
 
+*Scope of the wp — additional precondition given an enabled step.* Each case below opens
+"Let `Σ → Σ'` be a K.λ step that allocates a fresh address …", which presupposes the step's
+own applicability predicate `enabled(K.λ)` — K.λ's freshness `ℓ ∉ dom(Σ.L)`, its L3
+well-formedness (`arity ≥ 3`, slot-3 type endset non-empty), and `home(ℓ) ∈ dom(Σ.M)` (ASN-0093
+K.λ). The displayed conjunctions are therefore the weakest *additional* precondition under which
+the named, enabled K.λ step lands `ℓ` (resp. `b`, `a`) in the answer; the full weakest
+precondition is `enabled(K.λ) ∧ ⟨displayed conjunction⟩`. We carry `enabled(K.λ)` implicitly
+rather than redisplay it in each case, matching ASN-0086's wp Case 2 (EmitKWeakestPrecondition),
+which likewise carries the operation's applicability predicate (`enabled(K.μ⁻[d, R])`) as a wp
+conjunct alongside the substantive pullback term.
+
 *(a) Entry of a fresh ordinary link.* Let `Σ → Σ'` be a K.λ step that allocates a fresh
 address `ℓ ∉ dom(Σ.L)` with value `Σ'.L(ℓ) = (F, G, Θ)` of arity `N ≥ 3`, homed at
 `d = home(ℓ)`. We must cut the partition on *retraction-relation membership*, not on coverage
@@ -649,10 +660,17 @@ This equation is stated and used only on the existing-link slice `a ∈ dom(Σ.L
 retractor address `b ∈ dom(Σ'.L) \ dom(Σ.L)` lies outside that slice, so the *self-retraction*
 case `b ∈ coverage(G')` — in which `b` nullifies its own address — is excluded by scope and does
 not bear on the conclusion drawn for existing links (its weakest precondition is the subject of
-case (c) above, where it appears as the live self-retraction conjunct `b ∉ coverage(G')`). (Over the full post-state index `dom(Σ'.L)`
-the exact increment is `nullified(Σ') = nullified(Σ) ∪ {t ∈ dom(Σ'.L) : t ∈ coverage(G')}`, which
-the singleton-extension premise `L_R^{Σ'} = L_R^Σ ∪ {(b, ∅, G')}` discharges alongside R6b; on
-the `dom(Σ.L)` slice the two index sets agree.)
+case (c) above, where it appears as the live self-retraction conjunct `b ∉ coverage(G')`). (On
+the existing-link slice `dom(Σ.L)` — all this case uses — the increment is exactly
+`nullified(Σ') ∩ dom(Σ.L) = (nullified(Σ) ∪ coverage(G')) ∩ dom(Σ.L)`, which the
+singleton-extension premise `L_R^{Σ'} = L_R^Σ ∪ {(b, ∅, G')}` discharges alongside R6b. We do
+*not* assert the corresponding equation over the full post-state index `dom(Σ'.L)`: the naive
+`nullified(Σ) ∪ {t ∈ dom(Σ'.L) : t ∈ coverage(G')}` would omit the fresh retractor `b` whenever
+`b ∉ coverage(G')` yet `b` is covered by a *pre-existing* tuple `(c, F'', G'') ∈ L_R^Σ` with
+`b ∈ coverage(G'')` — the ghost-pre-coverage hazard of case (a) — so over the full index the
+newly-nullified set is `(coverage(G') ∩ dom(Σ.L) \ nullified(Σ))` plus the fresh `b` nullified by
+*either* `G'` *or* a pre-existing tuple, and the "exact" simplification fails. Case (b) needs only
+the `dom(Σ.L)` slice, where the fresh-`b` terms do not arise.)
 R6b discharges only the ⟸ (⊇) half — that hitting `coverage(G')` forces nullification — while
 the displayed split supplies the ⟹ (⊆) half from the singleton extension of `L_R`. Negating,
 `a ∈ addressable(Σ') ⟺ a ∉ nullified(Σ) ∧ a ∉ coverage(G')`. Conjoining with `sat` and
