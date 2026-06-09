@@ -254,8 +254,11 @@ scratch:
   outside the shifted-suffix range I3-CS quantifies over. So I3-CS adds no entry at
   any block position.
 - (I-DOM) `{v ∈ dom(M'(d)) : subspace(v) = S} =
-  {q_1, …, q_{J-1}} ∪ {q_J, …, q_{J+n-1}} ∪ {q_{J+n}, …, q_{N+n}}` — the domain
-  closure ASN-0082 I3-CS/I3-CX specialised to the dense text subspace.
+  {q_1, …, q_{J-1}} ∪ {q_J, …, q_{J+n-1}} ∪ {q_{J+n}, …, q_{N+n}}`. The left
+  prefix `{q_1, …, q_{J-1}}` and shifted suffix `{q_{J+n}, …, q_{N+n}}` are the
+  gapped domain that ASN-0082 I3-CS/I3-CX characterise (specialised to the dense
+  text subspace); the middle block `{q_J, …, q_{J+n-1}}` — exactly the interval
+  I3-V vacates and I3-CS excludes — is contributed by INSERT's own I-NEW fill.
 - (I-PROV) `R' = R ∪ {(shift(a, k), d) : 0 ≤ k < n}` — the `n` provenance records
   coupling each freshly allocated I-address to its inserting document, by **K.ρ
   (ProvenanceRecording, ASN-0047)** iterated `n` times. Each K.ρ step's precondition
@@ -353,10 +356,7 @@ predecessors leave, is
 
 The net effect of `K.μ⁻` then `K.μ⁺` on the text subspace is *exactly* I3's
 post-insertion shift: the suffix I-addresses removed at their old slots and
-re-installed `n` positions higher, the prefix fixed, the block filled. This is why the
-Effect clauses I-SHIFT, I-LEFT, I-NEW, I-DOM may continue to cite the I3 family for
-their *values* while the *transitions* realising those values are the K-atomics named
-here.
+re-installed `n` positions higher, the prefix fixed, the block filled.
 
 *Append case `J = N+1` and empty case `V_S(d) = ∅`* (no suffix moves). I-SHIFT is
 vacuous and no contraction is needed; the sequence collapses to
@@ -892,7 +892,7 @@ catalogued below.
 | I-SHIFT | V-positions `≥ p` in subspace `S` move to `shift(v,n)`, carrying their I-address | cited (I3, ASN-0082) |
 | I-LEFT | V-positions `< p` in subspace `S` are unchanged | cited (I3-L, ASN-0082) |
 | I-NEW | The vacated block `{shift(p,k)}` maps to the fresh run `{shift(a,k)}` | introduced (composition glue) |
-| I-DOM | `V_S(d')` is the dense run `{q_1, …, q_{N+n}}`; D-SEQ/D-MIN/D-CTG of the filled post-state established here with `N' = N+n` | introduced (interval argument; domain closure cites I3-CS/I3-CX, ASN-0082) |
+| I-DOM | `V_S(d')` is the dense run `{q_1, …, q_{N+n}}`; D-SEQ/D-MIN/D-CTG of the filled post-state established here with `N' = N+n` | introduced (interval argument; prefix+suffix from I3-CS/I3-CX, ASN-0082; middle block from I-NEW) |
 | F-SUB | Positions in subspaces `S' ≠ S` are unchanged (subspace confinement of the shift) | cited (I3-X, ASN-0082) |
 | F-DOC | Arrangements of all documents `d' ≠ d` are unchanged | cited (I3-D, ASN-0082) |
 | F-LINK | `Σ'.L = Σ.L` — the link store is untouched | cited (frame; no K-atomic touches `Σ.L`) |
