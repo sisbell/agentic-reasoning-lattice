@@ -495,8 +495,13 @@ the survival of an existing match under a retraction-bearing K.λ.
 **FL-WP (weakest precondition for the result-changing step).**
 
 *(a) Entry of a fresh ordinary link.* Let `Σ → Σ'` be a K.λ step that allocates a fresh
-address `ℓ ∉ dom(Σ.L)` with value `Σ'.L(ℓ) = (F, G, Θ)` (an ordinary, non-retraction link)
-homed at `d = home(ℓ)`. Then
+address `ℓ ∉ dom(Σ.L)` with value `Σ'.L(ℓ) = (F, G, Θ)` homed at `d = home(ℓ)`. We call the
+link *ordinary (non-retraction)* exactly when its committed type endset does not fall in the
+retraction coverage class — `coverage(Σ'.L(ℓ).e₃) = coverage(Θ) ∉ [coverage(R)]`, where `R`
+is ASN-0086's designated retraction-type representative and `[coverage(R)]` its coverage
+class under `~`. This is the precise, load-bearing condition: it places `ℓ ∉ L_R^{Σ'}` (the
+slot-3 coverage test that selects `L_R` fails), and since `ℓ` is the only address `Σ.L`
+gains, no other tuple enters `L_R` either, so `L_R^{Σ'} = L_R^Σ`. Then
 
   `wp(K.λ, ℓ ∈ findlinks(q, ·)) ≡ ℓ ∉ nullified(Σ') ∧ liftH_d(q.H) ∧ lift(F, q.F) ∧ lift(G, q.G) ∧ lift(Θ, q.Θ)`,
 
@@ -506,8 +511,10 @@ unfolds, for an ordinary K.λ, as `ℓ ∉ nullified(Σ') ≡ ¬(E (b, F', G') �
 the two conjuncts in turn.
 
 The addressability conjunct does *not* drop out by freshness alone, and we must carry it.
-An ordinary (non-retraction) K.λ leaves the retraction relation fixed, `L_R^{Σ'} = L_R^Σ`,
-so by ASN-0086's definition
+The ordinariness condition above — `coverage(Θ) ∉ [coverage(R)]` — is exactly what leaves
+the retraction relation fixed: `ℓ ∉ L_R^{Σ'}` because its slot-3 coverage is not the
+retraction class, and `ℓ` is the only address `Σ.L` acquires, so `L_R^{Σ'} = L_R^Σ`;
+hence by ASN-0086's definition
 `nullified(Σ') = { a ∈ dom(Σ'.L) : (E (b, F', G') ∈ L_R^Σ :: a ∈ coverage(G')) }`. Freshness
 `ℓ ∉ dom(Σ.L)` guarantees only that *this* step emits no retraction targeting `ℓ`; it does
 not exclude a *pre-existing* retraction tuple `(b, F', G') ∈ L_R^Σ` whose to-coverage already
@@ -544,7 +551,19 @@ home untouched (L12). For an existing link `a ∈ dom(Σ.L)`,
 
 *Derivation.* `sat(a, q, ·)` is constant across the step (`Σ'.L(a) = Σ.L(a)` by L12,
 `home(a)` fixed), so by FL-DEF `a ∈ findlinks(q, Σ') ⟺ a ∈ addressable(Σ') ∧ sat(a, q, Σ)`.
-Now `nullified(Σ') = nullified(Σ) ∪ {t ∈ dom(Σ.L) : t ∈ coverage(G')}` (R6b), so
+We need the *exact* membership equation for `nullified(Σ')` on existing addresses, both
+directions — the ⊆ direction is what makes this the *weakest* precondition, licensing
+`a ∉ nullified(Σ')` from `a ∉ nullified(Σ) ∧ a ∉ coverage(G')`, and R6b supplies only ⊇.
+The retraction-bearing K.λ commits exactly the one tuple `(b, ∅, G')`, and by L12
+(immutability) every prior tuple persists unchanged, so the retraction relation grows by
+exactly that tuple: `L_R^{Σ'} = L_R^Σ ∪ {(b, ∅, G')}`. Unfolding ASN-0086's definition of
+`nullified` at `Σ'` over this relation, for an existing `a ∈ dom(Σ.L)`:
+`a ∈ nullified(Σ') ⟺ (E (c, F'', G'') ∈ L_R^{Σ'} :: a ∈ coverage(G''))
+⟺ (E (c, F'', G'') ∈ L_R^Σ :: a ∈ coverage(G'')) ∨ a ∈ coverage(G')
+⟺ a ∈ nullified(Σ) ∨ a ∈ coverage(G')`,
+where the middle step splits the existential over the disjoint union `L_R^Σ ∪ {(b, ∅, G')}`.
+R6b discharges only the ⟸ (⊇) half — that hitting `coverage(G')` forces nullification — while
+the displayed split supplies the ⟹ (⊆) half from the singleton extension of `L_R`. Negating,
 `a ∈ addressable(Σ') ⟺ a ∉ nullified(Σ) ∧ a ∉ coverage(G')`. Conjoining with `sat` and
 folding `a ∉ nullified(Σ) ∧ sat(a, q, Σ)` back into `a ∈ findlinks(q, Σ)` gives the stated
 wp: a found link survives a retraction step exactly when the retraction's to-coverage does
