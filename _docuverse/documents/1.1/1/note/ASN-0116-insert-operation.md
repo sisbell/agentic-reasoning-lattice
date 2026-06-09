@@ -201,7 +201,10 @@ We collect the arrangement effect as a named operation.
 **INSERT(`d`, `p`, `w₀ … w_{n-1}`).**
 
 *Precondition.* `d ∈ dom(M) = E_doc` (the document is an allocated entity, so the
-provenance step below has a legal home); `n ≥ 1`; `(A k : 0 ≤ k < n : w_k ∈ Val)` — each
+provenance step below has a legal home); `Σ` is a composite boundary — the natural
+input to a composite operation — so the composite-boundary properties of
+ExtendedReachableStateInvariants (ASN-0047), in particular P7a (ProvenanceCoverage),
+hold at the pre-state; `n ≥ 1`; `(A k : 0 ≤ k < n : w_k ∈ Val)` — each
 inserted unit is a well-formed content value, the typing obligation the K.α step
 below carries (ASN-0093: K.α commits `a ↦ v` only for `v ∈ Val`), discharged here
 at the boundary rather than left implicit in the Effect; `S = subspace(p) = s_C`;
@@ -279,6 +282,21 @@ scratch:
   ASN-0082 **I3-X (PostInsertionCrossSubspaceFrame)**.
 - (F-DOC) `(A d' : d' ≠ d : M'(d') = M(d'))` — ASN-0082 **I3-D
   (PostInsertionCrossDocumentFrame)**.
+
+We derive once, from these clauses, the range identity that both the provenance
+discharge and the discoverability weakest precondition consume:
+
+- (RAN) **Range identity.** `ran(M'(d)) = ran(M(d)) ∪ A_new`, and the I-addresses
+  *new to the content-subspace range* of `M'(d)` are exactly
+  `A_new = {shift(a, k) : 0 ≤ k < n}`. In the content subspace, I-LEFT keeps the
+  left images verbatim, I-SHIFT carries each suffix image to its new slot (so those
+  addresses are range-old — already in `ran(M(d))`, merely re-slotted), and I-NEW
+  adds exactly `A_new`; hence the content-subspace range gains precisely `A_new` and
+  loses nothing. Across the other subspaces F-SUB fixes the per-position images
+  (`{M'(d)(v) : subspace(v) = S'} = {M(d)(v) : subspace(v) = S'}` for every
+  `S' ≠ S`), so the cross-subspace range is unchanged. Taking the union of the
+  content-subspace and cross-subspace contributions gives the full-range identity
+  `ran(M'(d)) = ran(M(d)) ∪ A_new`.
 
 ## INSERT as a valid composite over the K-vocabulary
 
@@ -392,37 +410,32 @@ where it did not (`shift(p, k) ∉ dom(M(d))`, index `> N`, never in `dom(M(d))`
 I3-V to range over). ASN-0082's `M'(d)` is the *gapped*, room-made arrangement, and
 its preservation lemmas establish well-formedness only for those two regions.
 The new block is not covered by any of them; each of its properties is an INSERT
-obligation that we discharge here.
+obligation that we discharge here. Two of ASN-0082's preservation lemmas do not
+transfer even on the left and shifted regions: **I3-S3** (referential integrity) and
+**I3-S7** (content-store invariants) are both proved under the content frame **I3-C**
+(`dom(C') = dom(C)`), which INSERT breaks via I-ALLOC; and the contiguity lemmas
+**D-SEQ-post**/**D-MIN-post**/**D-CTG-post** are *contraction* results (post-state
+`{[S, 1, …, 1, k] : 1 ≤ k ≤ N − c}`), inapplicable to a fill. We therefore discharge
+referential integrity, content-store invariants, and contiguity directly below.
 
-*Inherited for the left and shifted regions.* For the positions `{q_1, …, q_{J-1}}`
-(left) and `{q_{J+n}, …, q_{N+n}}` (shifted suffix), well-formedness is exactly
-ASN-0082's family: **I3-VD** (depth uniformity) and **I3-VP** (S8a) for the
-positions, **I3-S2** for single-valuedness, **I3-fin** for finiteness. These say
-nothing about the new block, which is absent from ASN-0082's `M'(d)`. We do *not*
-inherit referential integrity from ASN-0082's **I3-S3**: that lemma is proved under
-the content frame **I3-C** (`dom(C') = dom(C)`, content fixed), and INSERT
-deliberately breaks I3-C via I-ALLOC (`dom(C') = dom(C) ∪ A_new`). We discharge
-referential integrity for these two regions directly instead. Each left or shifted
-position carries an I-address `M(d)(v) ∈ ran(M(d)) ⊆ dom(C)` (S3 at the pre-state),
-and `dom(C) ⊆ dom(C')` by append-only monotonicity (P2); so the image lies in
-`dom(C')`, and S3★ holds for both regions by S3 plus content *monotonicity* — not
-by a lemma whose proof frame INSERT does not satisfy.
+*Left and shifted regions.* For the positions `{q_1, …, q_{J-1}}` (left) and
+`{q_{J+n}, …, q_{N+n}}` (shifted suffix), well-formedness is exactly ASN-0082's
+family: **I3-VD** (depth uniformity) and **I3-VP** (S8a) for the positions,
+**I3-S2** for single-valuedness, **I3-fin** for finiteness. Referential integrity is
+discharged directly: each left or shifted position carries an I-address
+`M(d)(v) ∈ ran(M(d)) ⊆ dom(C)` (S3 at the pre-state), and `dom(C) ⊆ dom(C')` by
+append-only monotonicity (P2), so the image lies in `dom(C')` and S3★ holds for both
+regions.
 
-*The same non-inheritance applies to the content-store structural invariants.*
-ASN-0082's **I3-S7** (AllocationInvariantsPreservation) preserves S7a/S7b post-
-insertion "trivially by I3-C (`dom(C') = dom(C)`) and I3-D" — exactly the content
-frame INSERT breaks via I-ALLOC. So I3-S7 is no more inheritable than I3-S3, and the
-post-state's content-store invariants for the freshly allocated run `A_new` —
-`zeros(a) = 3` (S7b), `#E(a) ≥ 2` (C1b), `origin(a) = d` (S7a/C2), allocator
-conformance (C1c) — are *not* borrowed but discharged at the source: each
-`shift(a, k) ∈ A_new` is a K.α emission, and K.α establishes exactly these
+*Content-store invariants for the freshly allocated run.* The post-state's
+content-store invariants for `A_new` — `zeros(a) = 3` (S7b), `#E(a) ≥ 2` (C1b),
+`origin(a) = d` (S7a/C2), allocator conformance (C1c) — are discharged at the source:
+each `shift(a, k) ∈ A_new` is a K.α emission, and K.α establishes exactly these
 (ASN-0093: **C1** for `zeros = 3`, **C1b** for `#E ≥ 2`, **C1c** for allocator
-conformance, **C2** for `origin(a) = d`). The unchanged addresses `b ∈ dom(C)`
-retain them by P2 (append-only: domains grow, values fixed), since they are the
-very element-level content addresses for which those invariants already held at the
-pre-state. Thus every content address in `dom(C')` — old and new — is structurally
-valid element-level content, as ExtendedReachableStateInvariants (ASN-0047)
-demands.
+conformance, **C2** for `origin(a) = d`). The unchanged addresses `b ∈ dom(C)` retain
+them by P2 (append-only: domains grow, values fixed). Thus every content address in
+`dom(C')` — old and new — is structurally valid element-level content, as
+ExtendedReachableStateInvariants (ASN-0047) demands.
 
 *Proved here for the new block* `{shift(p, k) : 0 ≤ k < n}`, mapped by I-NEW to
 `{shift(a, k) : 0 ≤ k < n}`:
@@ -447,13 +460,8 @@ demands.
   = s_C`, so S3★ is satisfied for the block: a content-subspace position maps to a
   content address.
 
-*Contiguity is INSERT's own theorem, not an inherited lemma.* There is no
-insertion-side contiguity lemma to cite: ASN-0082's gapped `M'(d)` *fails*
-contiguity until the block is filled, and the D-family lemmas **D-SEQ-post**,
-**D-MIN-post**, **D-CTG-post** are *contraction* results (their post-state is
-`{[S, 1, …, 1, k] : 1 ≤ k ≤ N − c}` for a contraction amount `c`) — inapplicable
-here. The contiguity of the *filled* post-state is the load-bearing argument we
-now give directly. The three index intervals over `q` are `{1, …, J-1}` (prefix),
+*Contiguity of the filled post-state.* This is the load-bearing argument, given
+directly. The three index intervals over `q` are `{1, …, J-1}` (prefix),
 `{J, …, J+n-1}` (new), `{J+n, …, N+n}` (shifted suffix). These are consecutive
 integer intervals — no gap — and pairwise disjoint — no double assignment — with
 union `{1, …, N+n}`. Therefore `V_S(d') = {q_1, …, q_{N+n}}` is the canonical dense
@@ -488,13 +496,9 @@ follows creation, and for native insertion creation and placement are the same
 act"). I-PROV is the abstract counterpart of that record. We discharge each
 constraint directly.
 
-First fix the range identity that drives all four. By I-LEFT and I-SHIFT the
-content-subspace range of `M'(d)` retains every prior I-address (left verbatim,
-suffix carried to new slots), and by I-NEW it gains exactly `A_new`; no other
-content-subspace address enters or leaves. Hence the I-addresses *new to the
-content-subspace range* of `M'(d)` are precisely `A_new = {shift(a, k) : 0 ≤ k < n}`
-— the shifted-suffix addresses are range-old, since they already sat in `ran(M(d))`
-before merely changing slot.
+The range identity (RAN) drives all four: the I-addresses *new to the
+content-subspace range* of `M'(d)` are precisely `A_new = {shift(a, k) : 0 ≤ k < n}`,
+the shifted-suffix addresses being range-old.
 
 - **J0 (AllocationPlacementCoupling).** Every freshly allocated I-address must appear
   in some arrangement of the post-state. The fresh addresses are `A_new`, and I-NEW
@@ -515,9 +519,9 @@ before merely changing slot.
 
 The post-state is a composite boundary, so it must also satisfy **P7a
 (ProvenanceCoverage)**: every `a ∈ dom(C')` carries some record `(a, d') ∈ R'`. Split
-`dom(C') = dom(C) ∪ A_new` (I-ALLOC). For prior addresses `b ∈ dom(C)`: the pre-state
-is itself a composite boundary, so P7a held there, giving some `(b, d') ∈ R`; and
-`R ⊆ R'` (I-PROV is purely additive), so `(b, d') ∈ R'`. For the new addresses
+`dom(C') = dom(C) ∪ A_new` (I-ALLOC). For prior addresses `b ∈ dom(C)`: by
+precondition `Σ` is a composite boundary, so P7a holds at the pre-state, giving some
+`(b, d') ∈ R`; and `R ⊆ R'` (I-PROV is purely additive), so `(b, d') ∈ R'`. For the new addresses
 `shift(a, k) ∈ A_new`: I-PROV supplies `(shift(a, k), d) ∈ R'` directly. Hence every
 content address — old and new — is covered, and P7a holds at the post-state.
 Symmetrically **P7 (ProvenanceGrounding)** — every `(a, d') ∈ R'` has `a ∈ dom(C')` —
@@ -712,20 +716,19 @@ discoverable from `d` (foundation `discoverable_from`, ASN-0098). We seek
 By **LP12 (DiscoverabilityCharacterisation, ASN-0098)**, a link `a` is
 discoverable from `d` iff some slot's coverage meets the document's I-address
 range: `discoverable_from(a, d, Σ) ⟺ (E i : coverage(Σ.L(a).eᵢ) ∩ ran(M(d)) ≠
-∅)`. So the entire question reduces to how INSERT changes `ran(M(d))`. We read it
-off the Effect: left positions keep their I-addresses (I-LEFT), shifted positions
-carry their I-addresses to new slots (I-SHIFT), and the new block adds exactly
-`A_new` (I-NEW). Hence
+∅)`. LP12 consumes the *full* `ran(M(d))` — content and cross-subspace alike — so
+the entire question reduces to how INSERT changes `ran(M(d))`. The full-range
+identity is RAN above:
 
-> `ran(M'(d)) = ran(M(d)) ∪ A_new`.
+> `ran(M'(d)) = ran(M(d)) ∪ A_new`,
 
-This range identity is derived directly from the Effect clauses just cited
-(I-LEFT, I-SHIFT, I-NEW), *not* from **LP9 (ExtensionMonotonicity, ASN-0098)**.
-LP9 does not apply: it governs only K.μ⁺/K.μ⁺_L extension transitions, and its
-proof rests on prior-domain agreement (E2: `M'(d)(v) = M(d)(v)` for every
-`v ∈ dom(M(d))`), which INSERT's I-SHIFT violates by vacating every suffix
-position `v ≥ p`. INSERT is not a pure extension, and LP9's conclusion is about
-`project`, not `ran`. Substituting the directly-derived range identity into
+whose cross-subspace contribution is fixed by F-SUB and whose content-subspace
+contribution gains exactly `A_new`. Note this is *not* an instance of **LP9
+(ExtensionMonotonicity, ASN-0098)**: LP9 governs only K.μ⁺/K.μ⁺_L extension
+transitions, its proof rests on prior-domain agreement (E2: `M'(d)(v) = M(d)(v)` for
+every `v ∈ dom(M(d))`), which INSERT's I-SHIFT violates by vacating every suffix
+position `v ≥ p`, and its conclusion is about `project`, not `ran`. Substituting the
+full-range identity RAN into
 LP12, for every prior link `a` — and noting that the unsubscripted `coverage(eᵢ)`
 below is well-defined because each slot's coverage is invariant pre-to-post across
 the whole composite (L12 + **LP3★ (MultiStepCoverageInvariance, ASN-0098)**, so
