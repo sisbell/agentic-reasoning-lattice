@@ -69,16 +69,24 @@ def _topo_sorted(session) -> tuple[list[str], dict[str, set[str]]]:
 
     state = session.store
 
+    # Build asn → note-addr index in one pass over paths instead of
+    # rescanning per-ASN (was O(|asns| × |paths|) — ~150 × 25k = 3.8M
+    # string comparisons per invocation).
+    note_addr_idx: dict[str, object] = {}
+    note_path_re = re.compile(r"/note/(ASN-\d{4})-")
+    for path, addr in state.path_to_addr.items():
+        if path.endswith(".statements.md"):
+            continue
+        m = note_path_re.search(path)
+        if m is not None:
+            note_addr_idx[m.group(1)] = addr
+
     # Filter out substrate-retired. For inquiry-only ASNs (no note),
     # check retirement on the inquiry address — mirrors note-scheduler.
     active: set[str] = set()
     asn_to_note_addr: dict[str, object] = {}
     for asn in discovered:
-        note_addr = None
-        for path, addr in state.path_to_addr.items():
-            if f"/note/{asn}-" in path and not path.endswith(".statements.md"):
-                note_addr = addr
-                break
+        note_addr = note_addr_idx.get(asn)
         if note_addr is None:
             inquiry_rel = f"_docuverse/documents/1.1/1/inquiry/{asn}.md"
             inquiry_addr = state.path_to_addr.get(inquiry_rel)
@@ -126,12 +134,30 @@ def _topo_sorted(session) -> tuple[list[str], dict[str, set[str]]]:
     return sorted_list, deps
 
 
+_NOTE_ADDR_CACHE: dict[str, object] = {}
+_NOTE_ADDR_CACHE_LEN = 0
+
+
 def _note_addr_for(session, asn: str):
+    """Look up the note doc address for an ASN. Memoized over a
+    one-pass index of path_to_addr; the index is rebuilt only if
+    the path map's length changed since the previous call (the path
+    map is append-only during a diagnostic run, so length change
+    indicates re-import)."""
+    global _NOTE_ADDR_CACHE_LEN
     state = session.store
-    for path, addr in state.path_to_addr.items():
-        if f"/note/{asn}-" in path and not path.endswith(".statements.md"):
-            return addr
-    return None
+    plen = len(state.path_to_addr)
+    if plen != _NOTE_ADDR_CACHE_LEN:
+        _NOTE_ADDR_CACHE.clear()
+        note_path_re = re.compile(r"/note/(ASN-\d{4})-")
+        for path, addr in state.path_to_addr.items():
+            if path.endswith(".statements.md"):
+                continue
+            m = note_path_re.search(path)
+            if m is not None:
+                _NOTE_ADDR_CACHE[m.group(1)] = addr
+        _NOTE_ADDR_CACHE_LEN = plen
+    return _NOTE_ADDR_CACHE.get(asn)
 
 
 def _inquiry_addr_for(session, asn: str):
@@ -142,13 +168,36 @@ def _inquiry_addr_for(session, asn: str):
     return state.path_to_addr.get(rel)
 
 
+_NOTE_PATH_INDEX: dict[str, str] = {}
+_NOTE_PATH_INDEX_BUILT = False
+
+
+def _build_note_path_index() -> None:
+    """Single recursive scan of `_docuverse/documents/**/note/` to map
+    every ASN to its note path. Replaces ~150 per-ASN globs (~233ms each
+    = ~35 seconds total) with one scan plus O(1) lookups.
+    """
+    global _NOTE_PATH_INDEX_BUILT
+    note_pat = re.compile(r"/note/(ASN-\d{4})-")
+    for m in glob("_docuverse/documents/**/note/ASN-*.md", recursive=True):
+        if ".statements.md" in m or ".motif." in m:
+            continue
+        match = note_pat.search(m)
+        if match is not None:
+            # First match wins; multiple files with same ASN prefix are unexpected.
+            _NOTE_PATH_INDEX.setdefault(match.group(1), m)
+    _NOTE_PATH_INDEX_BUILT = True
+
+
 def _note_title_for(asn: str) -> str:
     """Read the first H1 from the ASN's note file on disk, or fall back
     to the inquiry's frontmatter `title` when no note exists yet.
     Strips the `ASN-NNNN:` prefix when present.
     """
-    matches = glob(f"_docuverse/documents/**/note/{asn}-*.md", recursive=True)
-    matches = [m for m in matches if ".statements.md" not in m and ".motif." not in m]
+    if not _NOTE_PATH_INDEX_BUILT:
+        _build_note_path_index()
+    match = _NOTE_PATH_INDEX.get(asn)
+    matches = [match] if match else []
     if matches:
         try:
             with open(matches[0]) as f:
