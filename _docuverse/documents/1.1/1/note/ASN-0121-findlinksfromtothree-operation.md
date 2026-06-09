@@ -362,6 +362,23 @@ slot is simply not consulted), whereas a constrained slot that resolves to no I-
 short-circuits the entire find to the empty link-set *before* `intersectlinksets` is even
 reached (consultation Q7).
 
+The `touch` test is symmetric in its two coverages, so the same zero behaviour appears
+when the empty endset sits on the *link's* side rather than the request's. L3 constrains
+only the type slot to be non-empty (`e₃ ≠ ∅`); a stored link may legitimately carry an
+empty from- or to-endset (`e₁ = ∅` or `e₂ = ∅`). For such a link, against *any*
+constrained from-request `F ≠ ∗`,
+
+  `lift(∅, F) ≡ touch(∅, F) ≡ coverage(∅) ∩ coverage(F) = ∅ ∩ coverage(F) = ∅`,
+
+so `lift(∅, F) = false` and the link is correctly excluded from every constrained
+from-slot — *from nothing is not a from-match*. On that axis it is admitted only under
+the from-wildcard `F = ∗`, where `lift(∅, ∗) = true` drops the slot from the conjunction
+and the link is matched on its remaining (non-empty) slots alone. The to-side is identical
+with `e₂` and the to-request `G`. Empty coverage on *either* side of `touch` — the request
+component (FL-EMP above) or the link's own endset (here) — annihilates that slot's test;
+the two are the same zero, and this is the intended "a link with no from-endpoint is
+discoverable only as a to-match, never as a from-match" semantics.
+
 We record a second implementation divergence here. Gregory's `intersectlinksets`, given
 three empty (wildcard) slots, returns the empty set rather than the universal set — the
 degenerate all-wildcard request yields nothing in the current back end (consultation
@@ -569,6 +586,16 @@ annihilates; the wildcard slot widens.
 `findlinks(q, Σ) = ∅` — `a₁` is excluded by FL-DEF even though its endsets still satisfy
 the criteria, and by R6a it stays excluded along every reachable `Σ →* Σ'`.
 
+*Trace 5 — empty link endset (FL-EMP link-side symmetry).* Were a fourth link `a₄` homed
+at `d` with from-endset `e₁ = ∅`, to-endset `e₂ = {x}`-subtree, and some non-empty type
+endset (well-formed: L3 constrains only the type slot to be non-empty, so an empty `e₁` is
+permitted), then under the constrained from-request `q = (∗, X, ∗, ∗)` it fails —
+`lift(e₁, X) ≡ touch(∅, X) = coverage(∅) ∩ coverage(X) = ∅`, so `false` — and is absent.
+Under the to-request `q' = (∗, ∗, X, ∗)`, with the from-slot wildcarded, it is admitted —
+`lift(e₂, X) = true` while `lift(e₁, ∗) = true` drops the empty from-slot. The link with no
+from-endpoint is found only as a to-match, never as a from-match — the same zero as the
+empty *request* component, now on the link's side.
+
 ## Claims Introduced
 
 | Label | Statement | Status |
@@ -581,7 +608,7 @@ the criteria, and by R6a it stays excluded along every reachable `Σ →* Σ'`.
 | FL-DIR | Positional directionality — `F` matches `e₁` only and `G` matches `e₂` only; reversing the from/to constraints can change the result, keeping "from X" and "to X" distinct queries | introduced |
 | FL-TYP | Type by address — the type criterion tests `coverage(e₃)` by address overlap, never reads stored content; ghost types are matchable, type may be constrained alone, and prefix-rooted type spans match subtype subtrees | introduced |
 | FL-WILD | Wildcard semantics — a wildcard slot drops from the conjunction (universal), not empties it; all-wildcard returns all addressable links, of every arity `N ≥ 3`, each matched on its first three endsets `e₁, e₂, e₃` (slots `e₄ … eₙ` never enter `sat`) | introduced |
-| FL-EMP | Empty-constraint zero — a constrained slot with empty coverage (`∅`) gives `lift = false` for every link, so any empty constrained component forces `findlinks(q, Σ) = ∅`; empty-spec (zero) is distinct from wildcard/NOSPECS (unit) | introduced |
+| FL-EMP | Empty-constraint zero — a constrained slot with empty coverage (`∅`) gives `lift = false` for every link, so any empty constrained component forces `findlinks(q, Σ) = ∅`; empty-spec (zero) is distinct from wildcard/NOSPECS (unit). By the symmetry of `touch`, the same zero applies to a *link's* own empty endset (L3 permits `e₁ = ∅` or `e₂ = ∅`): such a link is excluded from any constrained from-/to-slot and admitted on that axis only under the corresponding wildcard | introduced |
 | FL-CUR | Currency — `a ∈ findlinks(q, Σ) ⟺ a ∈ addressable(Σ) ∧ sat(a, q, Σ)`, the conjunction of FL-SND and FL-CMP against `addressable(Σ)`: current additions in, current retractions out, non-matches irrelevant | introduced |
 | FL-MON | Monotone accumulation absent retraction — an unretracted matching link, once found, stays found as the store grows | introduced |
 | FL-STB | Stability under editing — for any request (the grammar's only kind being I-address requests), the result is invariant under any transition preserving `Σ.L` and the retraction set; pure-arrangement edits and content appends do not change which links are returned | introduced |
