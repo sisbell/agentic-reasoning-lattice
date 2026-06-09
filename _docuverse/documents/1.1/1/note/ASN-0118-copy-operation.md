@@ -449,9 +449,27 @@ invariant and needs no such scoping. Across all three branches the membership
 
 > `Σ'.L = Σ.L`     (CP7a)
 >
-> `(A v : v ∈ dom(Σ.M(d)) ∧ subspace(v) ≠ s_C : Σ'.M(d)(v) = Σ.M(d)(v))`
+> `{v ∈ dom(Σ'.M(d)) : subspace(v) ≠ s_C} = {v ∈ dom(Σ.M(d)) : subspace(v) ≠ s_C}`
+> `  ∧ (A v : v ∈ dom(Σ.M(d)) ∧ subspace(v) ≠ s_C : Σ'.M(d)(v) = Σ.M(d)(v))`
 >
 > `(A d' : d' ≠ d : Σ'.M(d') = Σ.M(d'))`     (CP6)
+
+The middle clause has two conjuncts, and the first is load-bearing for the same
+reason CP3c is. The pointwise conjunct preserves the *pre-state* non-text bindings
+of `d`, but does not by itself assert that those are the *only* non-text bindings
+in the post-state; without the domain-equality conjunct, `Σ'.M(d)` is left
+underdetermined on subspaces `≠ s_C`, and a model could satisfy every other stated
+postcondition while introducing a spurious fresh link-subspace position (say
+`v* ↦ ℓ*` with `ℓ* ∈ dom(Σ.L)`, `origin(ℓ*) = d`), violating none of CP1, CP2,
+CP3a–c, CP7a, CP8 yet defeating the standard CP3c sets — that `d`'s per-state
+invariants (S2, S3★, CL-OWN, CL-UNIQ) be dischargeable from the postconditions
+alone. The domain-equality conjunct is the non-text analogue of CP3c's text-domain
+closure: it pins `d`'s non-`s_C` domain to exactly its pre-state value, closing the
+third underdetermination of precisely the kind the text-domain closure repairs. It
+is in exact step with the exhibited composite: the K.μ⁻ of step (i) retains `d`'s
+link subspace *in full* and step (ii)'s K.μ⁺ adds only `s_C` positions, so `d`'s
+non-text arrangement is carried through both steps unchanged — exactly the
+domain-and-value equality the conjunct asserts.
 
 The last clause includes every source document `d_s ≠ d` and every other document
 in the docuverse. The single self-reference case `d_s = d` — *self-transclusion* —
@@ -820,7 +838,7 @@ sources.
 | CP3 | PriorArrangementPreservation: left content unchanged (CP3b, `v < p`), trailing text content shifted forward by `W` with bindings intact (CP3a, `v ≥ p`), and the text-subspace domain closed to left ∪ placement ∪ shifted with the pre-shift positions vacated (CP3c) — so S2 functionality is dischargeable from the postconditions; order-preserving, injective, non-destructive | introduced |
 | CP4 | MultiplicityIncrease: total references into the placed set increase by exactly `W`; each placed `cᵢ`'s own reference count increases by its occurrence count in `resolve(R, Σ)` (≥ 1); distinct V-positions binding one address are permanently independent occurrences (S5, M14) | introduced |
 | CP5 | OriginInvariance: `origin(cᵢ)` is unchanged by COPY and equals the source document that allocated `cᵢ`, never `d`; attribution and ownership remain the source's | introduced |
-| CP6 | SourceIsolation: `(A d' ≠ d : Σ'.M(d') = Σ.M(d'))` and cross-subspace frame — every source and every other document is unmodified; the source's connectedness nonetheless grows (shared identity + provenance) | introduced |
+| CP6 | SourceIsolation: `(A d' ≠ d : Σ'.M(d') = Σ.M(d'))` and cross-subspace frame, the latter closing `d`'s non-`s_C` domain to its pre-state value (`{v ∈ dom(Σ'.M(d)) : subspace(v) ≠ s_C} = {v ∈ dom(Σ.M(d)) : subspace(v) ≠ s_C}`) with bindings preserved — every source and every other document is unmodified; the source's connectedness nonetheless grows (shared identity + provenance) | introduced |
 | CP7 | Links: (a) `Σ'.L = Σ.L`; (b) LinkSurvivalUnderReuse — any link whose endset coverage meets `{c₀,…,c_{W−1}}` becomes discoverable from `d` in `Σ'`; links to the destination's prior content survive (I-addresses unchanged) | introduced |
 | CP8 | ProvenanceRecording: `(A i : 0 ≤ i < W : (cᵢ, d) ∈ Σ'.R)` — J1★ demands the *membership* in `Σ'.R`, satisfied by a fresh K.ρ step for range-new addresses not already in `Σ.R` (J1'★-admissible), by permanence P2 for range-new addresses already in `Σ.R` (re-COPY of deleted content, K.ρ optional), and by P4★ + P2 for addresses already in `d`'s current range | introduced |
 | CP9 | SelfTransclusionAdmissibility: when `d_s = d`, resolution reads the pre-state, so placement adds independent V-positions of `d` referring to addresses `d` already bound; no content is duplicated | introduced |
