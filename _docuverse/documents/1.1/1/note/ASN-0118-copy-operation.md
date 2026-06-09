@@ -46,6 +46,16 @@ only of reachable states. At a non-reachable state these may fail, and so the
 scoping is load-bearing, not decorative; the project's foundation ASNs scope the
 same way (ASN-0086, ASN-0098).
 
+**Standing precondition (composite boundary).** COPY is itself an ASN-0047
+composite (we exhibit its decomposition below), so it is invoked *at a composite
+boundary*: its pre-state `Σ` is the final state of a completed composite, never a
+state reached mid-composite. This licenses the *composite-boundary properties*
+that ASN-0047 collects separately from the per-state invariants — in particular
+P4★ (`Contains_C(Σ) ⊆ R`), which holds at composite boundaries but may fail at an
+intermediate atomic state. We use P4★ exactly once, in the CP8 derivation, and the
+boundary scoping is what makes that use sound; the per-state invariants above
+require only reachability and are unaffected by it.
+
 We take the strand model as given. The *content store* `Σ.C : T ⇀ Val`
 (ASN-0036) binds content addresses — *I-addresses* — to values. It is append-only
 and immutable: once `a ∈ dom(Σ.C)`, `a` persists and `Σ.C(a)` never changes
@@ -219,8 +229,14 @@ D-CTG★/D-MIN★ precondition. Steps (i)–(ii) together reproduce CP2, CP3a, a
 (the left prefix is retained by (i) and untouched by (ii)).
 
 To these arrangement steps the composite appends one K.ρ provenance step per
-range-new address; it is these K.ρ steps that put pairs into `Σ.R`. The provenance
-obligation is read off ASN-0047's couplings, which ValidComposite evaluates
+range-new address; it is these K.ρ steps that put pairs into `Σ.R`. ASN-0047's
+ValidComposite requires all three couplings — J0, J1★, and J1'★ — to hold
+initial-to-final. J0 (AllocationPlacementCoupling), which demands that every
+freshly allocated I-address appear in some arrangement, is discharged *vacuously*:
+COPY runs no K.α step (CP1 gives `dom(Σ'.C) = dom(Σ.C)`), so
+`dom(Σ'.C) ∖ dom(Σ.C) = ∅` and J0's universal quantifier ranges over the empty
+set. The remaining two couplings carry the provenance obligation. The provenance
+obligation is read off these couplings, which ValidComposite evaluates
 *initial-to-final* (`Σ` to `Σ'`) — so the intermediate removal and re-addition of
 the displaced positions across steps (i)–(ii) is invisible to the coupling check,
 and only the net change in `d`'s content-subspace range matters. The discharge then
@@ -236,8 +252,12 @@ produce `(cᵢ, d) ∈ Σ'.R` for each. For each `cᵢ` *already* referenced by 
 of `d`'s own pre-state content positions), no K.ρ step is needed: `cᵢ` already lies
 in the content-subspace range of `M(d)` in the pre-state, so by P4★
 (`Contains_C(Σ) ⊆ R`, ASN-0047) `(cᵢ, d) ∈ Σ.R` already holds, and provenance
-permanence (P2) carries it into `Σ'`. Either way the membership holds in `Σ'`;
-fresh recording occurs exactly for the range-new addresses.
+permanence (P2) carries it into `Σ'`. The appeal to P4★ here is licensed precisely
+because COPY's pre-state `Σ` is a composite boundary (standing precondition): P4★
+is one of ASN-0047's composite-boundary properties, not a per-state invariant, and
+would not be available at a state reached mid-composite. P2, by contrast, is a
+genuine per-state invariant and needs no such scoping. Either way the membership
+holds in `Σ'`; fresh recording occurs exactly for the range-new addresses.
 
 *Frame — left of the insertion point.*
 
