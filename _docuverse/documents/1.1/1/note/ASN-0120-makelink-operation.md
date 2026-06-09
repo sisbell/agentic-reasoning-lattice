@@ -160,10 +160,20 @@ content — the only content addresses in `coverage(e)` are the resolved ones:
 > `coverage(e_j) ⊇ ρ(R_j, Σ)` and `coverage(e_j) ∩ dom(Σ.C) = ρ(R_j, Σ)`.
 
 The extra coverage points — the tumblers lying in a resolved address's subtree but
-strictly below it — are never content: every content address sits on a sub-allocator
-chain `A_C(d)` with element-field depth `#E = 2` (ASN-0093, C1b and ChainDiscipline),
-whereas a proper descendant of such an address has `#E ≥ 3`, so it lies on no content
-chain and is not in `dom(Σ.C)`. We name this **ML1 (EndsetResolution)**: each endset
+strictly below it — are never content: every content address lies on some
+sub-allocator chain `A_C(d)` of its origin (ASN-0093, ChainMembershipForOrigin),
+whose first emission `[d.0.s_C.1]` has element-field depth `#E = 2` (FirstEmission)
+and whose successors advance by `inc(·, 0)`, which preserves length (ChainDiscipline,
+TA5(c)) — so *every* content address has `#E = 2` *exactly*, not merely `#E ≥ 2`
+(the bound C1b alone supplies). A proper descendant of such an address has `#E ≥ 3`,
+so it lies on no content chain and is not in `dom(Σ.C)`. This exact bound is
+load-bearing twice over: it is what makes the creation-state equality
+`coverage(e_j) ∩ dom(Σ.C) = ρ(R_j, Σ)` (ML1, ML2) hold — with only `#E ≥ 2` a
+`#E = 3` descendant could itself be content and slip into the surplus — and it is
+what keeps that equality intact under *later* `K.α` allocation (ML8): no
+future-allocated content address can fall strictly below a resolved address either,
+so the recorded endset's content-coverage never grows. We name this
+**ML1 (EndsetResolution)**: each endset
 argument is recorded as I-addresses recovered by reading the source arrangement at
 creation time, so the stored endset references content by identity, not by position;
 its coverage *covers* the resolved set and meets the content store in exactly the
@@ -290,13 +300,23 @@ type endset at all. The abstract operation forbids what the implementation toler
 the precondition is the correct contract.) With the precondition met, every link
 MAKELINK creates carries a classifier, and by L8
 (TypeByAddress) the type is matched by the *addresses* its endset covers, not by
-any content stored there. So the type may even reference a region where nothing is
-stored (a ghost type, L9), because what the system records and compares is the
-address, not its content. We name this **ML6 (TypedRelation)**: the third endset,
-recorded identically to from and to but read as a classifier by address, is what
-distinguishes a typed relation from an untyped connection. The structural cost of
-typing is one more I-address endset; the semantic gain is the difference between
-"these are linked" and "these are linked *thus*."
+any content stored there. Matching by address does not, for MAKELINK, license a
+ghost type. The type argument is `ρ`-resolved exactly as from and to (ML3), so
+`ρ(R₃, Σ) ⊆ dom(Σ.C)`, and ML6's own precondition forces `ρ(R₃, Σ) ≠ ∅`: the
+type's *resolved* addresses are always active content. The only unstored tumblers
+in `coverage(e₃)` are the subtree-surplus descendants of those resolved
+addresses — an artifact of the unit-span representation (`#E ≥ 3`, never on a
+content chain), not an L9-permitted reference to a region outside
+`dom(Σ.C) ∪ dom(Σ.L)`. MAKELINK therefore does *not* exercise L9's general
+ghost-type permission, which would require minting a type reference to unstored
+content — something `ρ` cannot produce. What L8 buys here is narrower: type
+*matching* compares addresses, so two links share a type when their type endsets
+cover the same addresses, whatever content sits there. We name this **ML6
+(TypedRelation)**: the third endset, recorded identically to from and to but read
+as a classifier by address, is what distinguishes a typed relation from an untyped
+connection. The structural cost of typing is one more I-address endset; the
+semantic gain is the difference between "these are linked" and "these are linked
+*thus*."
 
 ## The invariants MAKELINK preserves
 
@@ -355,8 +375,8 @@ extends the arrangement by the single binding `v_a ↦ a`, so
 `ran(Σ'.M(d)) = ran(Σ.M(d)) ∪ {a}`; but the added address `a` is a link-subspace
 address (`subspace_I(a) = s_L`), while `coverage(eᵢ)` and its surplus lie in content
 subtrees (subspace `s_C`) — every supplied spec is content-subspace, the type spec
-of ML6 included, and a ghost type (L9) is a content-subspace address not yet in
-`dom(Σ.C)`, still carrying `subspace_I = s_C` — so `a ∉ coverage(eᵢ)` and the added
+of ML6 included (which resolves into `dom(Σ.C)`, all of subspace `s_C`) — so every
+covered tumbler carries `subspace_I = s_C`, hence `a ∉ coverage(eᵢ)` and the added
 point is inert:
 `coverage(eᵢ) ∩ ran(Σ'.M(d)) = coverage(eᵢ) ∩ ran(Σ.M(d))`. In both cases the test
 reads against the pre-state range.
@@ -467,7 +487,7 @@ reachability are orthogonal.
 | ML3 | UniformResolution: from, to, and type arguments are resolved by one procedure with no slot privileged at the V→I conversion step | introduced |
 | ML4 | ResidenceApplicationOrthogonality: home document and endset content are independent; the precondition relates `d` to no `ρ(R_j,Σ)`; a link may home anywhere and point anywhere, connecting two documents without residing in either | introduced |
 | ML5 | OrderedEndsets: the recorded triple is ordered, `(F,G,Θ) ≠ (G,F,Θ)` for `F ≠ G` (L6); the order fixes from/to roles semantically without restricting reachability (discovery is endset-symmetric) | introduced |
-| ML6 | TypedRelation: operation precondition `ρ(R₃,Σ) ≠ ∅` (the operation is undefined on a type spec that resolves empty, since K.λ requires `e₃ ≠ ∅`, L3); the third endset, recorded like from/to but matched by address (L8), distinguishes a typed relation from a bare connection; type-by-address admits ghost types | introduced |
+| ML6 | TypedRelation: operation precondition `ρ(R₃,Σ) ≠ ∅` (the operation is undefined on a type spec that resolves empty, since K.λ requires `e₃ ≠ ∅`, L3); the third endset, recorded like from/to but matched by address (L8), distinguishes a typed relation from a bare connection; MAKELINK's type always resolves to stored content (`ρ(R₃,Σ) ⊆ dom(Σ.C)`), so it does *not* exercise L9's ghost-type permission — the only unstored tumblers in `coverage(e₃)` are surplus descendants | introduced |
 | ML7 | Permanence: `(A Σ' → Σ'' : a ∈ dom(Σ'.L) : a ∈ dom(Σ''.L) ∧ Σ''.L(a) = Σ'.L(a))` — the made link is not broken by any editing of the content it connects | introduced |
 | ML8 | EndsetImmutability: the recorded value `Σ'.L(a)` is frozen at creation (L12), with `coverage(e_i) ∩ dom(Σ.C) = ρ(R_i,Σ)`; editing source documents changes `Σ.M` but never the recorded I-addresses, so by S0 the endset survives as long as any referenced content persists | introduced |
 | ML9 | DiscoverabilityDecoupledFromResidence: `wp(makelink, discoverable_from(a, d', ·)) ≡ enabled(makelink) ∧ d' ∈ dom(Σ.M) ∧ (E i : ρ(R_i,Σ) ∩ ran(Σ.M(d')) ≠ ∅)`, with `enabled(makelink) ≡ d ∈ dom(Σ.M) ∧ ρ(R₃,Σ) ≠ ∅`; beyond enabledness the home `d` does not appear in the discoverability test — the link is discoverable from every region its endsets reference, residence-independently and endset-symmetrically | introduced |
