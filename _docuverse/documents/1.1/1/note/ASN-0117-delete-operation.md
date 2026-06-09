@@ -188,15 +188,24 @@ leaving `R = ∅`). This is exactly the foundation contraction's precondition
 displacement family, with the content store held in frame. We name its clauses
 but derive them by citation:
 
-- (DEL-REMOVE) The deleted block's `c` V→I correspondences leave the arrangement,
-  `(A k : J ≤ k < J + c : (q_k, M(d)(q_k)) ∉ M'(d))`, and the top `c` position
-  *labels* leave the domain, `(A k : N − c < k ≤ N : q_k ∉ dom(M'(d)))`. These are
-  distinct facts: a deleted-span label `q_k` with `k ≤ N − c` remains in
-  `dom(M'(d))` but is reoccupied by a shifted survivor (DEL-SHIFT), so it now binds
-  a *different* I-address than before — it is the top `c` labels, not the deleted-
-  span labels, that vacate the domain. The deleted I-addresses `A_del` are *not*
-  removed from anything else; they persist in `C` (P0) and may be mapped by other
-  positions of `d` or by other documents.
+- (DEL-REMOVE) The arrangement loses exactly `c` V→I correspondences in subspace
+  `S`: the surviving domain contracts by precisely the deletion width,
+  `|{v ∈ dom(M'(d)) : subspace(v) = S}| = N − c`, and the top `c` position
+  *labels* leave the domain, `(A k : N − c < k ≤ N : q_k ∉ dom(M'(d)))`. We state
+  the contraction as a count, plus the vacating of the top `c` labels, rather than
+  as the absence of each specific old pair — because a deleted-span label `q_k`
+  with `k ≤ N − c` does *not* vacate the domain: it remains in `dom(M'(d))` but is
+  reoccupied by the shifted survivor (DEL-SHIFT), binding `M'(d)(q_k) = M(d)(q_{k+c})`.
+  In the generic (no-sharing) case this is a *different* I-address than `M(d)(q_k)`,
+  so the old pair `(q_k, M(d)(q_k))` is absent; but under within-document sharing
+  (S5/M13 of the arrangement model), where `d` already arranges one address at two
+  positions, the reoccupant `M(d)(q_{k+c})` may coincide with the old image
+  `M(d)(q_k)`, and then the per-pair absence `(q_k, M(d)(q_k)) ∉ M'(d)` *fails* even
+  though the count contraction still holds. This is why the robust statement of
+  removal is the count `N − c` together with the top-`c` label vacancy, not a
+  universal over deleted pairs. The deleted I-addresses `A_del` are *not* removed
+  from anything else; they persist in `C` (P0) and may be mapped by other positions
+  of `d` or by other documents.
 - (DEL-SHIFT) `(A v : v ∈ R : σ(v) ∈ dom(M'(d)) ∧ M'(d)(σ(v)) = M(d)(v))` —
   verbatim ASN-0082 **D-SHIFT**, with `σ(q_k) = q_{k−c}`.
 - (DEL-LEFT) `(A v : v ∈ L : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v))` —
@@ -269,11 +278,14 @@ no hole, no overlap, no degenerate position.*
 
 And the dual fact, the arrangement-side removal:
 
-**P1 (ArrangementContraction).** *The deleted span's `c` V→I correspondences are
-removed from the arrangement only: `(A k : J ≤ k < J+c : (q_k, M(d)(q_k)) ∉ M'(d))`;
-the top `c` position labels leave the domain,
-`(A k : N − c < k ≤ N : q_k ∉ dom(M'(d)))`; and every deleted I-address persists in
-`C` (P0). The deletion subtracts V→I correspondences; it subtracts no content.*
+**P1 (ArrangementContraction).** *The arrangement loses exactly `c` V→I
+correspondences in subspace `S`, removed from the arrangement only:
+`|{v ∈ dom(M'(d)) : subspace(v) = S}| = N − c`, with the top `c` position labels
+leaving the domain, `(A k : N − c < k ≤ N : q_k ∉ dom(M'(d)))`; and every deleted
+I-address persists in `C` (P0). We state the contraction as a count rather than as
+the absence of each old pair, since within-document sharing (S5/M13) can let a
+shifted reoccupant rebind a deleted-span label to the very same I-address. The
+deletion subtracts `c` V→I correspondences; it subtracts no content.*
 
 ## A span, not a position: binding versus being
 
@@ -468,8 +480,18 @@ A link drops from `D(d, ·)` precisely when *all* of its witnesses in `d` lay in
 `A_del^{excl}` — when the deleted span carried the link's last anchor in `d`.
 Therefore
 
-> `wp(DELETE, D(d, Σ') = D(d, Σ)) ≡ DELETE-pre ∧ (A a ∈ dom(Σ.L), i :`
-> `coverage(Σ.L(a).eᵢ) ∩ ran(M(d)) ≠ ∅ ⟹ coverage(Σ.L(a).eᵢ) ∩ (ran(M(d)) \ A_del^{excl}) ≠ ∅)`.
+> `wp(DELETE, D(d, Σ') = D(d, Σ)) ≡ DELETE-pre ∧ (A a ∈ dom(Σ.L) :`
+> `(E i : coverage(Σ.L(a).eᵢ) ∩ ran(M(d)) ≠ ∅) ⟹ (E i : coverage(Σ.L(a).eᵢ) ∩ (ran(M(d)) \ A_del^{excl}) ≠ ∅))`.
+
+The quantifier structure is essential. Discoverability of a link is *existential*
+over its slots — `discoverable_from(a, d, Σ) ⟺ (E i : coverage(eᵢ) ∩ ran(M(d)) ≠ ∅)`
+(LP12) — so preservation must be stated per *link*, not per *slot*. A per-slot
+universal would wrongly reject a link that loses all witnesses in one slot but
+keeps a witness in another: that link is still discoverable (some slot survives),
+so `D(d, ·)` retains it, yet a per-slot reading would falsify the implication on
+the emptied slot. The per-link existential above is exactly the weakest condition,
+matching the "last witness" reading below; a per-slot universal would be merely
+sufficient, not necessary.
 
 The derived consequence is exact and informative. Discoverability from `d` is
 preserved precisely when the deleted span removed *no link's last witness* — when
@@ -479,7 +501,8 @@ level of one document's discoverability: the link itself never dies (P4), but a
 *document's ability to find it* survives exactly when the deletion spared at
 least one of that document's anchors to it. Had P4 asserted unconditional
 preservation of discoverability, this computation would have refuted it: the
-escape branch `coverage(eᵢ) ∩ ran(M(d)) ⊆ A_del^{excl}` is non-empty exactly in
+escape branch — every slot of `a` whose coverage met `ran(M(d))` has that meeting
+contained in `A_del^{excl}`, so no slot retains a witness — is realised exactly in
 the last-witness case. The wp is the formal witness that "deletion preserves
 discoverability" is a *conditional*, not a theorem — and, dually to insertion's
 resurrection branch, deletion can only orphan, never resurrect, discoverability
@@ -578,7 +601,7 @@ endure, only their placement in this one document's present view is withdrawn.
 | P3 (AddressPermanence) | No I-address is removed or rebound; DELETE allocates and frees nothing — the content layer is invariant | introduced |
 | P4 (LinkSurvival) | Every endset's coverage is unchanged and the link store untouched, `Σ'.L = Σ.L` (DEL-LIMM + LP3); a link orphaned from `d` (LP17) still persists, stays discoverable from other documents arranging it (LP16), and is re-discoverable on re-arrangement (LP18) | introduced |
 | P5 (DocumentIsolation) | Every other document's arrangement and resolved content — including transcluders of the deleted I-addresses — are invariant under DELETE on `d` | introduced |
-| DEL-REMOVE | The deleted block's `c` V→I correspondences leave `M'(d)` and the top `c` labels `{q_{N−c+1}, …, q_N}` leave `dom(M'(d))`; the deleted I-addresses persist in `C` | introduced |
+| DEL-REMOVE | The arrangement loses exactly `c` V→I correspondences (`|{v ∈ dom(M'(d)) : subspace(v) = S}| = N − c`) and the top `c` labels `{q_{N−c+1}, …, q_N}` leave `dom(M'(d))`; the deleted I-addresses persist in `C` | introduced |
 | DEL-SHIFT | Suffix positions `v ∈ R` move to `σ(v) = q_{k−c}`, carrying their I-address (ASN-0082 D-SHIFT) | introduced |
 | DEL-LEFT | Prefix positions `v < p` are unchanged (ASN-0082 D-L) | introduced |
 | DEL-DOM | `V_S(d')` is the dense run `{q_1, …, q_{N−c}}` with the gap closed (ASN-0082 D-DOM, D-SEP) | introduced |
