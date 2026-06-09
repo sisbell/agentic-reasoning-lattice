@@ -64,7 +64,7 @@ The three inherited conjuncts read: the home is an allocated document (C1); the 
 `≡ {g → S guard conjunction}`
 `K registered ∧ Sh-conf(K, F, G) ∧ d ∈ dom(Σ.M) ∧ (K ≁ R ∨ a_emit(Σ, d) ∉ coverage(G)) ∧ ¬(∃ (b, F', G') ∈ L_R^Σ :: a_emit(Σ, d) ∈ coverage(G'))`.
 
-The first two conjuncts are this note's contribution; the remaining three are inherited verbatim. The underlying `Emit_K` carries one further enablement precondition — `K ∈ T_admissible`, which ASN-0086's Case 2 presupposes as the operation's own precondition rather than listing among its three conjuncts — and it requires no separate guard here because `K registered` absorbs it, via the following lemma.
+The first two conjuncts are this note's contribution; the remaining three are inherited verbatim. The underlying `Emit_K` carries one further enablement precondition — `K ∈ T_admissible`, which ASN-0086's Case 2 presupposes as the operation's own precondition rather than listing among its three conjuncts — and it requires no separate guard here because `K registered` absorbs it, via the following lemma. The gate's other inherited component, L3, is likewise absent from the wp, for the parallel reason: its three clauses — arity ≥ 3, both content slots in `Endset`, and a non-empty type slot — are discharged respectively by precondition (0) (arity exactly 3, hence ≥ 3), the input typing `F, G ∈ Endset`, and Lemma (RegisteredAdmissible) (slot-3 non-emptiness, `K ≠ ∅`); so L3 is absorbed by guards already accounted for and contributes no conjunct of its own. The conjunct accounting is then complete: every named gate component is either present in the wp or shown absorbed.
 
 **Lemma (RegisteredAdmissible).** Every registered K satisfies `K ∈ T_admissible`. By C0 (RegistryWellFormedness) the registry stores, for K's coverage class, a finite representative endset `K_j ∈ T_admissible`, and "K registered" means `coverage(K) = coverage(K_j)`. Non-emptiness must transfer from the stored representative to the emitted type, since the emitted triple's type slot is `K`, not `K_j`: `K_j ∈ T_admissible` is non-empty and every span has length `ℓ > 0`, so `coverage(K_j) ≠ ∅`; hence `coverage(K) = coverage(K_j) ≠ ∅`, so `K ≠ ∅`, i.e. `K ∈ T_admissible`.
 
@@ -104,7 +104,7 @@ The framework constructs `Σ_init` by adjoining the registry to ASN-0086's three
 
 No step kind in `→_sh` has the registry in its *effect*; each leaves it in its frame. P1 then follows by induction on the length of a `→_sh*`-derivation: the base case `Σ = Σ_init` is immediate, and each step preserves `Σ.registry = Σ_init.registry` by the frame condition for whichever of the three kinds it is. So for every Σ reachable from Σ_init, `Σ.registry = Σ_init.registry`.
 
-This invariance has structural consequences. A type K's shape is a function of K alone — `shape(K)` depends only on the P1-invariant registry, hence is constant on `→_sh*` (P2), and the same K cannot carry one shape at Σ and another at Σ'. `Sh-conf` is therefore stable on registered types: for registered K it reads only `(F, G)` and `shape(K)`, and since `shape(K)` is registry-determined and the registry is invariant, `Sh-conf(K, F, G)` evaluates the same against Σ as against any Σ' reachable from Σ. Moreover registration status is itself state-independent by P1 — K is registered at Σ iff registered at Σ' — so the predicate is *defined* at Σ exactly when it is defined at Σ' (P4).
+This invariance has structural consequences. A type K's shape is a function of K alone — `shape(K)` depends only on the P1-invariant registry, hence is constant on `→_sh*` (P2), and the same K cannot carry one shape at Σ and another at Σ'. `Sh-conf` is therefore stable on registered types: for registered K it reads only `(F, G)` and `shape(K)`, and since `shape(K)` is registry-determined and the registry is invariant, `Sh-conf(K, F, G)` evaluates the same against Σ as against any Σ' reachable from Σ. Moreover registration status is itself state-independent by P1 — K is registered at Σ iff registered at Σ' — so the predicate is *defined* at Σ exactly when it is defined at Σ'. These two facts — verdict-stability and definedness-coincidence — are exactly what this note's fourth property records. **P4 (Sh-confStateIndependence).** For any *registered* K, any F, G, and any reachable Σ, Σ', `Sh-conf(K, F, G)` is defined at both states and its verdict at Σ equals its verdict at Σ'.
 
 ## Registration entries
 
@@ -115,7 +115,7 @@ Registration is keyed by *coverage class*, not by raw endset. ASN-0086's TypeEqu
 
 Because lookup is by coverage class, `shape` and `Sh-conf` respect `~`: for `K ~ K'`, `shape(K) = shape(K')` and `Sh-conf(K, F, G) = Sh-conf(K', F, G)` (the predicate reads `shape(K)`, which is now a function of `[K]`). This is what makes `shape(·)` a function of the type-as-coverage-class rather than of an arbitrary endset representative — the well-definedness P2 asserts.
 
-A registry is well-formed when shape values lie in `{Unary, Binary, Multi}`, names are unique within the registry, and — the condition P2 well-definedness actually rests on — *coverage-class keys are unique*: no two entries have `~`-equal keys. Equivalently, a well-formed registry *is* a partial function `T_admissible/~ ⇀ (name, shape)` from coverage classes to entries. This is the load-bearing condition; name-uniqueness is by contrast a convenience for app-side lookup. The substrate makes no commitment about which name strings are admissible — that is the app's namespace. Distinct substrates may carry registries with overlapping names; within one substrate, the name uniquely identifies a registry entry.
+A registry is well-formed when shape values lie in `{Unary, Binary, Multi}`, names are unique within the registry, and — the condition P2 well-definedness actually rests on — *coverage-class keys are unique*: no two entries have `~`-equal keys. Equivalently, a well-formed registry *is* a partial function `T_admissible/~ ⇀ (name, shape)` from coverage classes to entries. Within one substrate, the name uniquely identifies a registry entry.
 
 C0 constrains `Σ_init.registry` directly, since P1 freezes ill-formed registries as faithfully as well-formed ones.
 
@@ -127,15 +127,15 @@ Precondition (i) of `K.λ_sh` requires deciding whether the emitted `[K]` is a r
 
 This note establishes the following structural properties of every substrate satisfying its commitments:
 
-**P1 (RegistryInvariance).** Stated and derived in Registry permanence — by induction on `→_sh*`-derivation length, the registry sitting in the frame of every step kind.
+**P1 (RegistryInvariance).** Stated and derived in Registry permanence.
 
-**P2 (ShapeStability).** Stated and derived in Registry permanence — single-valuedness from C0 (RegistryWellFormedness, Registration entries), state-independence from P1 (RegistryInvariance).
+**P2 (ShapeStability).** Stated and derived in Registry permanence.
 
-**P3 (Sh-confWellFormedness).** Stated and derived in The shape-gated emit — immediate from `K.λ_sh`'s arity-3, registration, and conformance preconditions on the only `dom(Σ.L)`-extending step kind.
+**P3 (Sh-confWellFormedness).** Stated and derived in The shape-gated emit.
 
-**P4 (Sh-confStateIndependence).** For any *registered* K and any F, G, and any reachable Σ, Σ', `Sh-conf(K, F, G)` is defined at both states and its verdict at Σ equals its verdict at Σ'. *Derived* (Registry permanence): definedness coincides because registration status is P1-invariant, and the verdict coincides because `Sh-conf` consults only the P1-invariant registry (Shape-conformance), reading the registered `shape(K)` and the tuple's own span counts.
+**P4 (Sh-confStateIndependence).** Stated and derived in Registry permanence.
 
-**P5 (GateRealizability).** Stated and proved in The shape-gated emit (Gate realizability) — the *liveness* dual of P3.
+**P5 (GateRealizability).** Stated and proved in The shape-gated emit (Gate realizability).
 
 **P6 (ReachableConformance).** For every `→_sh*`-reachable Σ and every `a ∈ dom(Σ.L)`, the stored value `Σ.L(a)` is a standard triple `(F, G, K)` whose K is registered and for which `Sh-conf(K, F, G) = ⊤`. This is the state-level closure of P3's single-step half — the guarantee a consuming app relies on. *Derived* by induction on derivation length: the base `Σ_init.L = ∅` (Registry permanence) holds vacuously; each `→_sh`-step either leaves `dom(Σ.L)` unchanged (K.σ, K.α) or extends it by one tuple that P3 forces to be a standard triple with K registered and conforming. The induction hypothesis being carried is the *predicate* "stored value is a standard triple ∧ K registered ∧ `Sh-conf(K, F, G) = ⊤`," not merely value-persistence. For the tuple a step newly deposits, P3 supplies all three conjuncts — the standard-triple shape from precondition (0) of `K.λ_sh`, registration from (i), conformance from (ii). For a tuple already present, the three conjuncts persist by, in turn: L12 (LinkImmutability, ASN-0043), under which the stored value `(F, G, K)` — and hence its standard-triple shape — persists unchanged, applicable through the projection bridge (The shape-gated emit), each `→_sh`-step projecting to a `→`-step on which L12 holds with the L-component shared (`Σ.L = π(Σ).L`); P1 (RegistryInvariance, Registry permanence), under which K's registration status persists, the registry being invariant so a type registered at Σ is registered at Σ'; and P4 (Sh-confStateIndependence), under which the conformance verdict persists, `Sh-conf(K, F, G)` being defined and evaluating identically at Σ and Σ'.
 
