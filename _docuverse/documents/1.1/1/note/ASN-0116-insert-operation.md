@@ -292,8 +292,7 @@ discharged below — applies only to a *valid composite* (**ValidComposite★**)
 sequence of atomic transitions in which (clause 1) each step's precondition holds at the
 *intermediate* state it acts on, and (clause 2) the coupling constraints J0, J1★, J1'★
 hold *only* between the initial and final states. INSERT sequences just four of the
-atomics — `K.α`, `K.μ⁻`, `K.μ⁺`, `K.ρ` — and we discharge clause 2 at the boundary
-below. The arrangement change is *not*
+atomics — `K.α`, `K.μ⁻`, `K.μ⁺`, `K.ρ`. The arrangement change is *not*
 itself one of these atomics. It rewrites
 the I-address at *existing* suffix positions — `M(d)(q_k)` at `q_k` becomes
 `M'(d)(q_{k+n})` at `q_{k+n}` — which K.μ⁺'s prior-domain agreement
@@ -358,10 +357,9 @@ because the prefix is left in place. Dropping K.μ⁻ here is forced, not option
 `J−1 = N = n_{s_C}` the content subspace would not contract strictly, so K.μ⁻ is
 *inapplicable* — and unnecessary, since nothing is vacated.
 
-In both cases the coupling constraints (clause 2) are checked only at the composite
-boundary, discharged in the provenance section below. With clause 1 verified
-step-by-step and clause 2 at the boundary, INSERT is a valid composite; since `Σ` is
-reachable from `Σ₀`
+With clause 1 verified step-by-step here and clause 2 (the coupling constraints J0,
+J1★, J1'★) discharged at the composite boundary in the provenance section below,
+INSERT is a valid composite; since `Σ` is reachable from `Σ₀`
 (precondition), the post-state is reachable too, and the appeal to
 ExtendedReachableStateInvariants for its post-state is licensed.
 
@@ -455,8 +453,7 @@ around it stays a single coherent ordinal sequence.
 the filled post-state directly by ExtendedReachableStateInvariants (ASN-0047): the
 pre-state `Σ` is reachable from `Σ₀` (precondition) and INSERT is a valid composite,
 so the post-state is reachable as well, and the theorem's per-state invariants —
-S8★ among them — hold there. It is a post-state invariant, not a precondition of any
-composite step, so it carries no INSERT-specific obligation. IP1 records the narrower
+S8★ among them — hold there. IP1 records the narrower
 fact that the inserted material forms *one* such run.
 
 *Provenance coupling — the obligation allocation incurs.* Because INSERT both
@@ -826,6 +823,27 @@ depth. Choose `m = 2` and `p = q_1 = [s_C, 1]`, so
 no suffix; the new block `{q_1, q_2}` receives `A_new`. `V_S(d') = {q_1, q_2}`,
 `N' = 0 + 2 = 2`, and the subspace depth is now pinned at `m = 2` for every later
 insertion. ✓ I-DOM (with `J = 1`, prefix and suffix intervals empty), I-NEW, IP1.
+
+**Boundary — front insertion into a non-empty document (`J = 1`).** Return to the
+`N = 5` document `V_S(d) = {q_1, …, q_5}` and insert `XY` (`n = 2`) at `p = q_1`. Here
+`J = 1`, `1 ≤ J ≤ N+1`, so `ValidInsertionPosition(d, q_1)` holds — and unlike the
+empty-subspace case there *is* a suffix, the whole of `V_S(d)`, to displace. This is
+the only branch exercising the `n'_{s_C} = 0` strict-contraction precondition.
+
+*Vacate (K.μ⁻).* The retained content prefix is `n'_{s_C} = J − 1 = 0`, so the retained
+domain `{q_1, …, q_0}` is empty and `V_{s_C}(d)` clears entirely; strict contraction
+`0 < N = 5` still holds (the link subspace is retained in full), so K.μ⁻ *fires* rather
+than being dropped. After it the content subspace is empty, the whole suffix vacated.
+
+*Re-install (K.μ⁺).* Every `q_k` (all `k ≥ 1 = J`) shifts by `shift(·, 2)`:
+`q_1 → q_3` carrying `a_1`, …, `q_5 → q_7` carrying `a_5` (I-SHIFT). The vacated block
+`{q_1, q_2}` maps in lockstep to `A_new`: `M'(d)(q_1) = [d.0.s_C.7]`,
+`M'(d)(q_2) = [d.0.s_C.8]` (I-NEW). The reinstalled subspace is `V_S(d') = {q_1, …, q_7}`
+with `min(V_S(d')) = q_1` (D-MIN★) and `N' = 7`.
+
+*Reading end to end* now yields `X, Y, a_1, a_2, a_3, a_4, a_5` — the inserted material
+ahead of all prior content. ✓ K.μ⁻ strict contraction at `n'_{s_C} = 0`, I-SHIFT, I-NEW,
+I-DOM, D-MIN★.
 
 ## What we have established
 
