@@ -70,7 +70,7 @@ The underlying `Emit_K` carries one further enablement precondition — `K ∈ T
 
 This weakest precondition is *strictly stronger* than `K.λ_sh`'s own precondition: the gate (`g_sh ≡ K registered ∧ Sh-conf(K, F, G)`, together with the inherited L3 and `d ∈ dom(Σ.M)`) governs only well-formedness — it *enables* the emit, is what P3 rests on, and deposits the conforming tuple into the *audit* slice `L_K^{Σ'}` — whereas the two remaining inherited conjuncts C2 and C3 govern *landing* in the *active* subset `A_K^{Σ'}`. **Both** can fail for a gate-clearing emit. C2, `(K ≁ R ∨ a_emit(Σ, d) ∉ coverage(G))`, fails for a *self-nullifying retraction* — `K ~ R ∧ a_emit(Σ, d) ∈ coverage(G)`, the retraction's own to-set covering its fresh address `a = a_emit(Σ, d)`. A gate-clearing witness is the Binary self-emit `Emit_R(Σ, d, {r}, {(a, δ(1, #a))})` with self-target `a = a_emit(Σ, d)` — the attributed Binary wrapper Single-source constructs for retraction (canonical from-fill `r = (d, δ(1, #d))`; ASN-0086's `P-tgt` self-emit branch with `d_retr = d`) — whose `|F| = |{r}| = 1` and `|G| = 1` clear the gate where the empty-from Nullify it re-expresses has no `→_sh` image. C3, `¬(∃ (b, F', G') ∈ L_R^Σ :: a_emit(Σ, d) ∈ coverage(G'))`, fails when a *pre-existing* `L_R` tuple already covers that address. Under either failure the tuple is *born nullified* — present in the audit slice `L_K^{Σ'}` yet absent from the active subset `A_K^{Σ'}`.
 
-What singles out C3 is not that it can fail — so can C2 — but that it is the conjunct *newly* live under `→_sh`. Under ASN-0086's unit-depth retraction discipline C3 was vacuous: unit-depth to-spans together with R0a (FlatLinkDomain) force `a_emit(Σ, d) ∉ coverage(G')` for every pre-existing `L_R` tuple — the disciplined-domain simplification of ASN-0086's wp Case 2. This framework gates R by Binary alone (Single-source), strictly weaker than the unit-depth discipline, so `→_sh` admits non-unit retraction to-spans whose coverage can include a fresh address, and C3 becomes live. C2's self-nullification, by contrast, is inherited from ASN-0086 and already live there.
+What singles out C3 is not that it can fail — so can C2 — but that it is the conjunct *newly* live under `→_sh`. Under ASN-0086's unit-depth retraction discipline C3 was vacuous: unit-depth to-spans together with R0a (FlatLinkDomain) force `a_emit(Σ, d) ∉ coverage(G')` for every pre-existing `L_R` tuple — the disciplined-domain simplification of ASN-0086's wp Case 2. By Single-source, `→_sh` admits non-unit retraction to-spans whose coverage can include a fresh address, so C3 becomes live. C2's self-nullification, by contrast, is inherited from ASN-0086 and already live there.
 
 We bridge to ASN-0086 through the projection `π(Σ) = (Σ.C, Σ.M, Σ.L)` that forgets the registry — call this **the projection bridge**. Each `→_sh`-step preserves the registry in its frame (Registry permanence) and acts on the C/M/L components exactly as the corresponding ASN-0086 step: a K.σ-step as `K.σ`, a K.α-step as `K.α`, and a `K.λ_sh`-step as a `K.λ` step — its three added preconditions (0), (i), (ii) only *restrict* when it fires, leaving its C/M/L effect and frame identical to `K.λ`'s. Hence whenever `Σ →_sh Σ'`, we have `π(Σ) → π(Σ')` in ASN-0086's relation. By induction on derivation length, `π` maps every `→_sh*`-reachable state to a state `→*`-reachable from ASN-0086's initial state: at the base, `π(Σ_init)` is ASN-0086's own initial state by the `Σ_init` construction (Registry permanence), trivially `→*`-reachable from itself; and each step extends a `→`-derivation rooted at `Σ_init^{0086}` by the projected step just exhibited. The bridge has two consequences. First, `a_emit` reads only the M and L components, which Σ and `π(Σ)` share, so `a_emit(π(Σ), d) = a_emit(Σ, d)` and `dom(π(Σ).L) = dom(Σ.L)`. Second, ASN-0086's structural lemmas — R0 (fresh-address emission), `a_emit` totality, L-ContiguousPrefix, PrefixSpanCoverage — are quantified over `→*`-reachable three-component states, so they hold at `π(Σ)` for every state Σ this note reasons about; since they constrain only the shared C/M/L components, their conclusions transfer to Σ directly.
 
@@ -102,7 +102,7 @@ The framework constructs `Σ_init` by adjoining the registry to ASN-0086's three
 - K.α: `Σ'.M = Σ.M`, `Σ'.L = Σ.L`, `Σ'.registry = Σ.registry`;
 - K.λ_sh: `Σ'.C = Σ.C`, `Σ'.M = Σ.M`, `Σ'.registry = Σ.registry`.
 
-No step kind in `→_sh` has the registry in its *effect*; each leaves it in its frame. P1 then follows by induction on the length of a `→_sh*`-derivation: the base case `Σ = Σ_init` is immediate, and each step preserves `Σ.registry = Σ_init.registry` by the frame condition for whichever of the three kinds it is. So for every Σ reachable from Σ_init, `Σ.registry = Σ_init.registry`.
+No step kind in `→_sh` has the registry in its *effect*; each leaves it in its frame. **P1 (RegistryInvariance).** At every `→_sh*`-reachable state, `Σ.registry = Σ_init.registry` — the registry never drifts. This follows by induction on the length of a `→_sh*`-derivation: the base case `Σ = Σ_init` is immediate, and each step preserves `Σ.registry = Σ_init.registry` by the frame condition for whichever of the three kinds it is.
 
 ## Registration entries
 
@@ -134,19 +134,14 @@ We lift P3's single-step guarantee to an invariant holding at every reachable st
 
 ## Properties established
 
-For a consuming app, the framework's guarantees are the following — each a property of *every* substrate satisfying this note's commitments, with the section establishing it named in parentheses.
+For a consuming app, the framework's guarantees are indexed below — each a property of *every* substrate satisfying this note's commitments. The canonical formal statement and proof of each live at the section named in parentheses; the glosses here are pointers, not restatements.
 
-**P1 (RegistryInvariance).** At every `→_sh*`-reachable state, `Σ.registry = Σ_init.registry`; the registry never drifts. (Registry permanence.)
-
-**P2 (ShapeStability).** For any registered K, `shape(K)` is a well-defined function of the coverage class `[K]` and takes the same value at every reachable state. (Registration entries.)
-
-**P3 (Sh-confWellFormedness).** Every value a `→_sh`-step adjoins to `dom(Σ.L)` is a standard triple `(F, G, K)` with K registered and `Sh-conf(K, F, G) = ⊤`. (The shape-gated emit.)
-
-**P4 (Sh-confStateIndependence).** For any registered K and all F, G, `Sh-conf(K, F, G)` is defined at every reachable state and its verdict is state-independent. (Registration entries.)
-
-**P5 (GateRealizability).** Every conforming triple `(F, G, K)` with K registered and home `d ∈ dom(Σ.M)` fires a `→_sh`-step depositing it at the fresh address `a_emit(Σ, d)`. (The shape-gated emit.)
-
-**P6 (ReachableConformance).** At every `→_sh*`-reachable state, every stored `Σ.L(a)` is a standard triple `(F, G, K)` with K registered and `Sh-conf(K, F, G) = ⊤` — the state-level guarantee a consuming app relies on. (Reachable conformance.)
+- **P1 (RegistryInvariance)** — the registry never drifts from `Σ_init.registry`. (Registry permanence.)
+- **P2 (ShapeStability)** — a registered type's `shape(K)` is a well-defined function of `[K]`, constant across reachable states. (Registration entries.)
+- **P3 (Sh-confWellFormedness)** — every value a `→_sh`-step deposits is a standard triple with K registered and shape-conforming. (The shape-gated emit.)
+- **P4 (Sh-confStateIndependence)** — for registered K, `Sh-conf(K, F, G)` is defined and its verdict is state-independent. (Registration entries.)
+- **P5 (GateRealizability)** — every conforming triple at an allocated home fires a `→_sh`-step depositing it at `a_emit(Σ, d)`. (The shape-gated emit.)
+- **P6 (ReachableConformance)** — at every reachable state, every stored `Σ.L(a)` is a standard triple with K registered and shape-conforming — the guarantee a consuming app relies on. (Reachable conformance.)
 
 ## Worked illustration
 
