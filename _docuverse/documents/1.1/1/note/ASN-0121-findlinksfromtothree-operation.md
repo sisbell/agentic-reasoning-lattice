@@ -156,12 +156,20 @@ across every non-K.λ step and monotone (R6a) across K.λ, hence non-decreasing 
 `nullified` monotonicity over the full vocabulary — wherever permanence is at issue below.
 
 Now we may derive, rather than stipulate, the answer set. Demand of any candidate answer
-`R` two things. *Soundness*: `(A a : a ∈ R : sat(a, q, Σ))` — nothing returned fails a
-criterion. *Completeness*: `(A a : a ∈ addressable(Σ) ∧ sat(a, q, Σ) : a ∈ R)` — nothing
-qualifying is omitted. The weakest predicate on an addressable link that soundness
-*permits* into `R` is `sat(a, q, Σ)`; the predicate that completeness *forces* into `R`
-is the same `sat(a, q, Σ)`. The two demands meet with no slack between them, leaving no
-design freedom:
+`R` two things. *Soundness*: `(A a : a ∈ R : a ∈ addressable(Σ) ∧ sat(a, q, Σ))` —
+nothing returned is withdrawn or fails a criterion. *Completeness*:
+`(A a : a ∈ addressable(Σ) ∧ sat(a, q, Σ) : a ∈ R)` — nothing qualifying is omitted. The
+addressability conjunct of soundness is essential and not implied by the matching rule:
+retraction is *not* one of the four criteria, so a nullified link `a` with `sat(a, q, Σ)`
+true still satisfies every criterion. Were soundness to demand only `sat(a, q, Σ)`, both
+`R_min = { a ∈ addressable(Σ) : sat(a, q, Σ) }` and the larger
+`R_max = { a ∈ dom(Σ.L) : sat(a, q, Σ) }` — which retains nullified-but-satisfying links —
+would meet the two demands, and the answer would not be forced: the residual freedom is
+exactly whether to return retracted-but-satisfying links, precisely the freedom Nelson's
+"not currently addressable" (4/9) closes. The addressability conjunct removes that slack.
+With it, the predicate soundness *permits* into `R` for any link is
+`a ∈ addressable(Σ) ∧ sat(a, q, Σ)`; the predicate completeness *forces* into `R` is the
+same. The two demands meet with no slack between them, leaving no design freedom:
 
   `findlinks(q, Σ) = { a ∈ addressable(Σ) : sat(a, q, Σ) }`.   **(FL-DEF)**
 
@@ -374,11 +382,14 @@ addressable links — every addressable link meeting the four criteria, and only
   `a ∈ findlinks(q, Σ) ⟺ a ∈ addressable(Σ) ∧ sat(a, q, Σ)`.
 
 The result is the faithful, exhaustive satisfying subset of the currently addressable
-links. This is the conjunction of FL-SND (`a ∈ findlinks(q, Σ) ⟹ sat(a, q, Σ)` — no
-returned link fails) and FL-CMP (`a ∈ addressable(Σ) ∧ sat(a, q, Σ) ⟹ a ∈ findlinks(q, Σ)`
-— no satisfying addressable link omitted), each evaluated against `addressable(Σ)` at `Σ`;
-the two implications compose into the biconditional, which is FL-DEF restated as a
-membership test. Current additions are included (a newly created matching link enters the
+links. The biconditional is FL-DEF restated as a membership test, and we read off each
+direction from it. *Forward* (`a ∈ findlinks(q, Σ) ⟹ a ∈ addressable(Σ) ∧ sat(a, q, Σ)`):
+FL-DEF's set-builder `{ a ∈ addressable(Σ) : sat(a, q, Σ) }` supplies *both* conjuncts —
+the restriction `a ∈ addressable(Σ)` from the index set and `sat(a, q, Σ)` from the
+selector; FL-SND alone delivers only the `sat` conjunct, so the addressability half rests
+on FL-DEF, not FL-SND. *Backward* (`a ∈ addressable(Σ) ∧ sat(a, q, Σ) ⟹ a ∈ findlinks(q, Σ)`):
+this is FL-CMP, no satisfying addressable link omitted. The two directions compose into
+the biconditional. Current additions are included (a newly created matching link enters the
 answer); current withdrawals are excluded (a nullified link leaves it, R6a); the
 surrounding mass of non-matching links is irrelevant (FL-JUNK).
 
