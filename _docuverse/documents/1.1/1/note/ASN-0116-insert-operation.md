@@ -120,14 +120,9 @@ step (Q14). This is the answer to *what is allocated to hold the new material*:
 `n` fresh, contiguous, origin-stamped I-addresses, and the content values written
 there.
 
-We record the freshness-and-distinctness guarantee the K.α composition carries,
-since it is the load-bearing fact the rest of the argument leans on. It is not
-new content: its freshness half is K.α's FirstEmission/SubsequentEmissionFreshness,
-and its value-independence half is **S4 (OriginBasedIdentity, ASN-0036)** —
-I-addresses from distinct allocation events are distinct regardless of stored
-value.
-
-**P0 (OriginIdentity)** *(restatement of K.α freshness + S4).* *For each `k` with
+**P0 (OriginIdentity)** *(restatement of K.α freshness + **S4 (OriginBasedIdentity,
+ASN-0036)**: I-addresses from distinct allocation events are distinct regardless of
+stored value).* *For each `k` with
 `0 ≤ k < n`, `shift(a, k) ∉ dom(C)`, and `shift(a, k)` is distinct from every
 I-address in `dom(C)` regardless of whether `C(shift(a, k))` equals the content
 stored at any existing address.*
@@ -282,6 +277,15 @@ scratch:
   ASN-0082 **I3-X (PostInsertionCrossSubspaceFrame)**.
 - (F-DOC) `(A d' : d' ≠ d : M'(d') = M(d'))` — ASN-0082 **I3-D
   (PostInsertionCrossDocumentFrame)**.
+- (F-LINK) `Σ'.L = Σ.L` — the link store is untouched. INSERT's only K-atomics are
+  K.α (content), K.μ⁻/K.μ⁺ (arrangement), and K.ρ (provenance); none touches `Σ.L`.
+  This is the stated premise on which the post-state inherits the per-state link
+  invariants (L0, L1, L1a, L1c, L3, L14, L-fin, CL-OWN, CL-UNIQ) of
+  ExtendedReachableStateInvariants (ASN-0047), and on which P5 and the P4
+  link-survival argument lean.
+- (F-ENT) `Σ'.E = Σ.E` — the entity set is untouched. INSERT registers no entity
+  (it requires `d ∈ dom(M) = E_doc` already), so the post-state inherits the entity
+  invariants (S7d, NodeLineage, ActivatedEmission) by frame.
 
 We derive once, from these clauses, the range identity that both the provenance
 discharge and the discoverability weakest precondition consume:
@@ -307,7 +311,10 @@ atomic transitions `{K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.ρ}` (K.μ
 named K.μ⁻+K.μ⁺ composite) in which each step's precondition holds at the
 *intermediate* state it acts on (**ValidComposite★** clause 1), with the coupling
 constraints J0, J1★, J1'★ verified *only* between the initial and final states
-(clause 2). The arrangement change is *not* itself one of these atomics. It rewrites
+(clause 2). By ValidComposite★, a sequence that meets every transition precondition
+(clause 1) but violates a coupling constraint (clause 2) is *not* a valid composite —
+so the coupling constraints are mandatory, not optional, and we discharge them at the
+boundary below. The arrangement change is *not* itself one of these atomics. It rewrites
 the I-address at *existing* suffix positions — `M(d)(q_k)` at `q_k` becomes
 `M'(d)(q_{k+n})` at `q_{k+n}` — which K.μ⁺'s prior-domain agreement
 (`M'(d)(v) = M(d)(v)` for `v ∈ dom(M(d))`) forbids, while it strictly *grows* the
@@ -485,10 +492,9 @@ finite filled arrangement, not re-proved.
 *Provenance coupling — the obligation allocation incurs.* Because INSERT both
 allocates content (I-ALLOC) and places it into the content subspace of `ran(M'(d))`
 (I-NEW), ASN-0047 binds it to three coupling constraints between the initial and
-final states of the composite, plus a composite-boundary coverage property. These
-are not optional: ASN-0047's ValidComposite clause (2) declares a composite that
-meets every transition precondition but violates a coupling constraint to be *not a
-valid composite*. The consultation settles that this coupling is intrinsic to
+final states of the composite, plus a composite-boundary coverage property —
+mandatory, not optional, by the composite-validity discipline established above
+(ValidComposite★ clause 2). The consultation settles that this coupling is intrinsic to
 insertion — the inserting document's identity is minted into the address as content
 enters, and the implementation makes the binding concrete by writing a DOCISPAN
 provenance record per inserted I-span (KB synthesis; theory answer "provenance
