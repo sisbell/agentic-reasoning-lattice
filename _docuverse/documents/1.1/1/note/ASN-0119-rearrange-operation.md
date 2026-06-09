@@ -191,10 +191,17 @@ We state it per-subspace rather than as the plain `ran(M'(d)) ⊆ dom(C)` becaus
 document's arrangement carries link-subspace V-positions as well — these are
 exactly the positions the operation leaves untouched in the frame, and their
 images are link addresses in `dom(L)`, not content addresses in `dom(C)`. Both
-inclusions are inherited verbatim: by P1, `ran(M'(d)) = ran(M(d))`; `π` permutes
-the text subspace onto itself without disturbing any I-address *value* and leaves
-the link subspace literally fixed in the frame, so every position retains both its
-subspace and its image, and each pre-state inclusion carries to the post-state.
+inclusions are inherited, but the inheritance runs through the inverse
+permutation, not through any claim that a position keeps its image — inside the
+affected interval the image filed at a key generally *does* change
+(`M'(d)(v) ≠ M(d)(v)`; in the worked pivot below `M'([s_C,2]) = a₃` while
+`M([s_C,2]) = a₂`). What `π` preserves is that it maps each subspace onto itself.
+Take a text position `v ∈ dom(M'(d))` with `subspace(v) = s_C`. Then
+`M'(d)(v) = M(d)(π⁻¹(v))`, and `π⁻¹(v)` is again a text position (`π` permutes the
+text subspace onto itself); pre-state S3★ applied at `π⁻¹(v)` gives
+`M(d)(π⁻¹(v)) ∈ dom(C)`, so `M'(d)(v) ∈ dom(C)`. A link position `v` with
+`subspace(v) = s_L` is fixed in the frame, so `M'(d)(v) = M(d)(v) ∈ dom(L)` by
+pre-state S3★. Each subspace's inclusion thus carries to the post-state.
 
 The contiguity and tiling invariants of the text subspace — the ones a future
 operation will lean on to name cuts — ride along on a single observation, and we
@@ -598,7 +605,7 @@ the regions tile, not merely shift each by a local offset.
 | P1 (IdentityCorrespondence) | `M'(d)(π(v)) = M(d)(v)`, hence `ran(M'(d)) = ran(M(d))` — I-addresses carried across the reassignment | imported (ASN-0084 R-RI) |
 | P2 (Permutation) | The induced `π` (R-PPERM/R-SPERM) is a bijection of `dom(M(d))` onto itself; `dom(M'(d)) = dom(M(d))` | imported (ASN-0084 R-PIV/R-SWP) |
 | S2 (FunctionalityPreserved) | `M'(d)` is single-valued — the disjoint tiling of destinations (R-PIV/R-SWP) gives each V-position one I-address (ASN-0036 S2) | preserved |
-| S3★ (ReferentialIntegrityPreserved) | per-subspace: `subspace(v) = s_C ⟹ M'(d)(v) ∈ dom(C)` and `subspace(v) = s_L ⟹ M'(d)(v) ∈ dom(L)` — by P1, `ran(M'(d)) = ran(M(d))`, and each pre-state inclusion is inherited since `π` permutes the text subspace and frames the link subspace (ASN-0047 S3★) | preserved |
+| S3★ (ReferentialIntegrityPreserved) | per-subspace: `subspace(v) = s_C ⟹ M'(d)(v) ∈ dom(C)` and `subspace(v) = s_L ⟹ M'(d)(v) ∈ dom(L)` — for a text position `v`, `M'(d)(v) = M(d)(π⁻¹(v))` with `π⁻¹(v)` again a text position, so pre-state S3★ gives `M(d)(π⁻¹(v)) ∈ dom(C)`; link positions are frame-fixed, so their images stay in `dom(L)`. What is invariant is that `π` maps each subspace onto itself, not the image filed at any individual key (ASN-0047 S3★) | preserved |
 | P3 (VExtentConservation) | `\|dom(M'(d))\| = \|dom(M(d))\|`, and the active run's endpoints are fixed — the document's total extent is conserved | introduced |
 | P5 (Discoverability) | Moved content is discoverable under its new V-position `π(v)` and resolves to its original I-address `M(d)(v)` | introduced |
 | P6 (LinkStoreFrame) | `Σ'.L = Σ.L` — links are untouched; a link anchored in a moved region survives and travels with its content because endsets reference unchanged I-addresses | introduced |
