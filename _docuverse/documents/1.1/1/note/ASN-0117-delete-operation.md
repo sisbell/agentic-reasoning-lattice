@@ -261,9 +261,15 @@ place. We name DELETE's clauses but derive them by citation:
   `|{v ∈ dom(M'(d)) : subspace(v) = S}| = N − c`, and the top `c` position labels
   leave the domain, `(A k : N − c < k ≤ N : q_k ∉ dom(M'(d)))`. The deleted
   I-addresses `A_del` persist in `C` (P0); they are not removed from anything else,
-  and may be mapped by other positions of `d` or by other documents. (The
-  count-plus-label-vacancy form, rather than a per-pair absence, is required for
-  the reason given at P1.)
+  and may be mapped by other positions of `d` or by other documents. We state
+  removal as a count plus top-`c` label vacancy rather than as the absence of each
+  old pair, because a deleted-span label `q_k` with `k ≤ N − c` does not vacate the
+  domain — it is reoccupied by the shifted survivor (DEL-SHIFT), binding
+  `M'(d)(q_k) = M(d)(q_{k+c})`. Generically this differs from `M(d)(q_k)`, so the
+  old pair `(q_k, M(d)(q_k))` is absent; but under within-document sharing (S5/M13
+  of the arrangement model) the reoccupant may coincide with the old image, and
+  then the per-pair absence fails while the count contraction still holds. The
+  count-plus-label-vacancy form is therefore the robust statement.
 - (DEL-SHIFT) `(A v : v ∈ R : σ(v) ∈ dom(M'(d)) ∧ M'(d)(σ(v)) = M(d)(v))` —
   verbatim ASN-0082 **D-SHIFT**, with `σ(q_k) = q_{k−c}`.
 - (DEL-LEFT) `(A v : v ∈ L : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v))` —
@@ -352,21 +358,13 @@ no overlap, no degenerate position.*
 
 And the dual fact, the arrangement-side removal:
 
-**P1 (ArrangementContraction).** *The arrangement loses exactly `c` V→I
-correspondences in subspace `S`, removed from the arrangement only:
-`|{v ∈ dom(M'(d)) : subspace(v) = S}| = N − c`, with the top `c` position labels
-leaving the domain, `(A k : N − c < k ≤ N : q_k ∉ dom(M'(d)))`; and every deleted
-I-address persists in `C` (P0). The deletion subtracts `c` V→I correspondences;
-it subtracts no content.*
-
-We state removal as a count plus top-`c` label vacancy rather than as the absence
-of each old pair, because a deleted-span label `q_k` with `k ≤ N − c` does not
-vacate the domain — it is reoccupied by the shifted survivor (DEL-SHIFT), binding
-`M'(d)(q_k) = M(d)(q_{k+c})`. Generically this differs from `M(d)(q_k)`, so the
-old pair `(q_k, M(d)(q_k))` is absent; but under within-document sharing (S5/M13
-of the arrangement model) the reoccupant may coincide with the old image, and then
-the per-pair absence fails while the count contraction still holds. The
-count-plus-label-vacancy form is therefore the robust statement.
+**P1 (ArrangementContraction).** *DEL-REMOVE, read as a guarantee about*
+binding *rather than* being. *The `c` correspondences DEL-REMOVE strips from the
+arrangement are bindings, not content: the arrangement ceases to bind those
+positions, while every deleted I-address persists in `C` (P0). The deletion
+subtracts `c` V→I correspondences; it subtracts no content.* The count-and-label
+form of that removal, and why it is robust against within-document sharing, are
+established once at DEL-REMOVE above.
 
 ## A span, not a position: binding versus being
 
@@ -389,15 +387,17 @@ keeping the content layer and the arrangement layer from contaminating each
 other — and, this time, the content layer is touched not at all, which makes
 three of the four nearly immediate.
 
-**Content permanence.** This is P0, and it is the whole non-destruction
-guarantee. The store is unchanged in domain and value (DEL-CIMM). No I-address
-is removed; none is rebound; the deleted bytes remain at their permanent
-addresses forever. We name the address-level half separately because the
-question lists it as a distinct obligation.
-
-**P3 (AddressPermanence).** *No I-address in `dom(C)` is removed or rebound by
-DELETE: `(A b : b ∈ dom(C) : b ∈ dom(C') ∧ C'(b) = C(b))`. DELETE allocates no
-new address and frees no existing one — the content layer is invariant.*
+**Content permanence, and address permanence.** This is P0, and it is the whole
+non-destruction guarantee. The store is unchanged in domain and value
+(DEL-CIMM). The question also lists *address permanence* — that no I-address in
+`dom(C)` is removed or rebound, that DELETE allocates and frees nothing — as a
+distinct obligation, but it is not a distinct claim: it is read off P0 directly.
+The equation `dom(C') = dom(C)` is precisely "frees nothing, allocates nothing"
+(the domain neither shrinks nor grows), and `(A b : b ∈ dom(C) : C'(b) = C(b))`
+is precisely "no address is rebound." No I-address is removed; none is rebound;
+the deleted bytes remain at their permanent addresses forever — every clause of
+the address-level obligation discharged by P0, with no separate guarantee
+needed.
 
 A remark on well-definedness, in Dijkstra's spirit of establishing that an
 argument is in a function's domain before using it. The left-shift
@@ -413,7 +413,7 @@ some of the same content `d` does — `ran(M(d')) ∩ A_del ≠ ∅`, the transc
 case. Can deleting from `d` perturb `d'`? It cannot, and the proof is the
 conjunction of two facts already in hand. By DEL-FDOC, `M'(d') = M(d')` — `d'`'s
 arrangement is a separate object, named and modified by nothing in DELETE's
-effect. By P0/P3, the shared I-addresses retain their content — the bytes `d'`
+effect. By P0, the shared I-addresses retain their content — the bytes `d'`
 reads are immutable. Therefore `d'` resolves every one of its V-positions to the
 same content, in the same order, before and after: "the owner of a document may
 delete bytes from the owner's current version, but those bytes remain in all
@@ -438,7 +438,7 @@ under DELETE on `d`.*
 
 **Link survival, and discoverability across documents.** A link's endsets
 reference I-addresses, not V-positions (4/42, 4/30). DELETE removes no I-address
-(P3) and adds, removes, or edits no link, so the link store is held entirely
+(P0) and adds, removes, or edits no link, so the link store is held entirely
 fixed — `Σ'.L = Σ.L` in both domain and value (DEL-LIMM, strictly stronger than
 L12's value-only guarantee) — and every endset's *coverage* is unchanged across
 the (possibly two-step) transition (**LP3★ (MultiStepCoverageInvariance)**,
@@ -579,7 +579,7 @@ is a permanent I-address in `dom(C)`.
 
 *Content frame (DEL-CIMM, P0).* `Σ'.C = Σ.C`. The deleted I-addresses
 `A_del = {a_3, a_4}` remain in `dom(C')` with their bytes intact. Nothing is
-allocated or freed. ✓ P0, P3.
+allocated or freed. ✓ P0.
 
 *Removal (DEL-REMOVE, P1).* The two correspondences `q_3 ↦ a_3` and `q_4 ↦ a_4`
 leave the arrangement. The position labels that actually vacate the domain are the
@@ -748,7 +748,7 @@ stays discoverable from `d'` regardless of `d`'s deletion, since
 
 One effect, one layer touched, the other held in perfect frame. On the content
 layer DELETE does *nothing*: `Σ'.C = Σ.C`, append-only taken to its limit — not
-even an append (P0, P3). The deleted bytes survive at their permanent
+even an append (P0). The deleted bytes survive at their permanent
 I-addresses forever; this is the non-destruction guarantee, and it is a frame
 condition, not a courtesy. On the arrangement layer DELETE is a uniform left-
 shift confined to one subspace of one document (DEL-REMOVE, DEL-SHIFT, DEL-LEFT,
@@ -767,9 +767,8 @@ only their placement in this one document's present view is withdrawn.
 |-------|-----------|--------|
 | DELETE | Operation: remove the span `(p, w)` of width `c` from document `d`'s arrangement; shift the suffix left to close the gap; touch the content store not at all | introduced |
 | P0 (NonDestruction) | `dom(C') = dom(C)` with all values preserved; every deleted I-address `A_del` survives in `C` — the permanent content store is untouched | introduced |
-| P1 (ArrangementContraction) | The deleted span's `c` V→I mappings are removed from the arrangement only; no content is removed | introduced |
+| P1 (ArrangementContraction) | DEL-REMOVE read as binding-vs-being: the `c` correspondences stripped are bindings, not content; no content is removed | introduced |
 | P2 (GapClosure) | Survivors close into the dense run `{q_1, …, q_{N−c}}`; prefix fixed, suffix shifts left by `c` carrying I-addresses unchanged, gap closes exactly, order and density preserved | introduced |
-| P3 (AddressPermanence) | No I-address is removed or rebound; DELETE allocates and frees nothing — the content layer is invariant | introduced |
 | P4 (LinkSurvival) | Every endset's coverage is unchanged and the link store untouched, `Σ'.L = Σ.L` (DEL-LIMM + LP3★, closing single-step LP3 over the composite); a link orphaned from `d` (LP17) still persists, stays discoverable from other documents arranging it (LP16), and is re-discoverable on re-arrangement (LP18) | introduced |
 | P5 (DocumentIsolation) | Every other document's arrangement and resolved content — including transcluders of the deleted I-addresses — are invariant under DELETE on `d` | introduced |
 | DEL-REMOVE | The arrangement loses exactly `c` V→I correspondences (`|{v ∈ dom(M'(d)) : subspace(v) = S}| = N − c`) and the top `c` labels `{q_{N−c+1}, …, q_N}` leave `dom(M'(d))`; the deleted I-addresses persist in `C` | introduced |
