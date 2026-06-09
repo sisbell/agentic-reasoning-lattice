@@ -407,10 +407,11 @@ whichever store its subspace designates. For content-subspace positions
 (`subspace(v') = s_C`): `M'(d')(v') ∈ dom(C')` with
 `C'(M'(d')(v')) = C(M(d')(v'))` (P0). For link-subspace positions
 (`subspace(v') = s_L`): `M'(d')(v') ∈ dom(L')` with
-`Σ'.L(M'(d')(v')) = Σ.L(M(d')(v'))` (DEL-LIMM). Stating the resolution as
-`M'(d')(v') ∈ dom(C')` for *every* `v'` would be false for any `d'` containing a
-link, whose `s_L` positions map into `dom(L)` — disjoint from `dom(C)` by store
-disjointness (SD, ASN-0093). The arrangement and resolved content of every other
+`Σ'.L(M'(d')(v')) = Σ.L(M(d')(v'))` (DEL-LIMM). The per-subspace split here is
+the same one S3★ forces on `M'(d)` above (§"The document remains one coherent
+sequence"): a single `M'(d')(v') ∈ dom(C')` clause cannot be stated for *every*
+`v'`, because link positions resolve into `dom(L)`. The arrangement and resolved
+content of every other
 document — including any that transcludes the deleted I-addresses — are invariant
 under DELETE on `d`.*
 
@@ -418,10 +419,14 @@ under DELETE on `d`.*
 reference I-addresses, not V-positions (4/42, 4/30). DELETE removes no I-address
 (P0) and adds, removes, or edits no link, so the link store is held entirely
 fixed — `Σ'.L = Σ.L` in both domain and value (DEL-LIMM, strictly stronger than
-L12's value-only guarantee) — and every endset's *coverage* is unchanged across
-the (possibly two-step) transition (**LP3★ (MultiStepCoverageInvariance)**,
-ASN-0098, the closure of the single-step LP3): every link designates exactly the
-same content after the deletion as before. The link is anchored to bytes that still
+L12's value-only guarantee) — and the endset stored at each link slot has
+unchanged coverage across the (possibly two-step) transition:
+`coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)` for every `a ∈ dom(Σ.L)` and slot
+`i` (**LP3★ (MultiStepCoverageInvariance)**, ASN-0098, the closure of the
+single-step LP3). Coverage is a state-independent property of an endset value
+(ASN-0098); the content of LP3★ is that the *stored* endset `Σ.L(a).eᵢ` itself
+does not change, which L12 forbids. Every link designates exactly the same
+content after the deletion as before. The link is anchored to bytes that still
 exist; the strap stays attached. This is Nelson's survivability clause (4/43,
 Q6, Q19).
 
@@ -464,10 +469,11 @@ are exactly Nelson's design intent:
   *resurrection* in the sense of **LP18** (ASN-0098). Deletion is not a
   one-way door at the content layer.
 
-**P4 (LinkSurvival).** *For every endset `e` existing in `Σ`,
-`coverage_{Σ'}(e) = coverage_{Σ}(e)` (DEL-LIMM + LP3★, which closes single-step
-LP3 over the composite; the lone-K.μ⁻ `R = ∅` case needs only LP3) — no link's designated
-content changes, and the link store is untouched (`Σ'.L = Σ.L`). A link discoverable from `d` before
+**P4 (LinkSurvival).** *For every link `a ∈ dom(Σ.L)` and slot `i`, the stored
+endset has unchanged coverage: `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)`
+(DEL-LIMM + LP3★, which closes single-step LP3 over the composite; the
+lone-K.μ⁻ `R = ∅` case needs only LP3) — no link's designated content changes,
+and the link store is untouched (`Σ'.L = Σ.L`). A link discoverable from `d` before
 the deletion remains discoverable from `d` iff some surviving V-position of `d`
 still maps into its coverage; otherwise it is orphaned from `d` (LP17) yet
 persists (L12), remains discoverable from every other document that still
