@@ -308,15 +308,12 @@ place. We name DELETE's clauses but derive them by citation:
   ASN-0082 **D-CS**. In particular the document's *links* (subspace `s_L`) are
   not moved by a text deletion.
 - (DEL-FDOC) `(A d' : d' ≠ d : M'(d') = M(d'))` — ASN-0082 **D-CD**.
-- (DEL-FENT) `Σ'.E = Σ.E` — the entity set is held fixed. Both component steps
-  carry an entity frame `E' = E` (K.μ⁻'s frame and K.μ⁺'s frame, ASN-0047), so
-  their composite fixes `E`. P1 (EntityPermanence) and P8 (EntityHierarchy)
-  survive DELETE trivially.
-- (DEL-FPROV) `Σ'.R = Σ.R` — the provenance relation is held fixed. Both
-  component steps carry a provenance frame `R' = R` (K.μ⁻'s frame and K.μ⁺'s
-  frame, ASN-0047), so their composite fixes `R`. Together with `dom(C') = dom(C)`
-  (P0) this preserves P4★ and P7a, by the preservation argument given in the
-  Effect section above.
+- (DEL-FENT) `Σ'.E = Σ.E` — the entity set is held fixed, by the composite-frame
+  argument given in the Effect section above. P1 (EntityPermanence) and P8
+  (EntityHierarchy) survive DELETE trivially.
+- (DEL-FPROV) `Σ'.R = Σ.R` — the provenance relation is held fixed, by the
+  composite-frame argument given in the Effect section above. Together with
+  `dom(C') = dom(C)` (P0) this preserves P4★ and P7a.
 
 DELETE allocates nothing and frees nothing: the content layer sees *no change
 whatsoever* (DEL-CIMM). All of DELETE's work is in the arrangement layer, where
@@ -383,9 +380,8 @@ And the dual fact, the arrangement-side removal:
 correspondences in subspace `S`, removed from the arrangement only:
 `|{v ∈ dom(M'(d)) : subspace(v) = S}| = N − c`, with the top `c` position labels
 leaving the domain, `(A k : N − c < k ≤ N : q_k ∉ dom(M'(d)))`; and every deleted
-I-address persists in `C` (P0). We state the contraction as a count rather than as
-the absence of each old pair, since within-document sharing (S5/M13) can let a
-shifted reoccupant rebind a deleted-span label to the very same I-address. The
+I-address persists in `C` (P0). The count-plus-label-vacancy form, rather than a
+per-pair absence, is required for the reason given at DEL-REMOVE above. The
 deletion subtracts `c` V→I correspondences; it subtracts no content.*
 
 ## A span, not a position: binding versus being
