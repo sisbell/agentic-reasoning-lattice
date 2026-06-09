@@ -207,15 +207,8 @@ below carries (ASN-0093: K.α commits `a ↦ v` only for `v ∈ Val`), discharge
 at the boundary rather than left implicit in the Effect; `S = subspace(p) = s_C`;
 `m := #p ≥ 2`, and when `V_S(d) ≠ ∅` this `m` equals the common depth that
 S8-depth fixes on `V_S(d)`; `p` is S8a-well-formed; and `p` is a valid insertion
-position in the foundation sense (ASN-0036). The constraint `S = s_C` is load-bearing, not
-cosmetic: the allocation below is **K.α (ContentAllocation)**, which yields only
-content-subspace addresses (`subspace_I(a) = s_C`). Were `p` to sit in the link
-subspace (`S = s_L`), I-NEW would map link-subspace positions `shift(p, k)` —
-which OrdinalShift keeps in subspace `s_L` — to content addresses
-`shift(a, k)` in subspace `s_C`, violating generalized referential integrity
-(S3★, ASN-0047: `subspace(v) = s_L ⟹ M(d)(v) ∈ dom(L)`). INSERT-as-content-
-insertion is well-defined only for the text subspace; link placement is a
-distinct operation drawing on K.λ, not K.α. The position predicates are:
+position in the foundation sense (ASN-0036). Link placement is a distinct
+operation drawing on K.λ, not K.α. The position predicates are:
 
 - if `V_S(d) = ∅`: `ValidFirstInsertionPosition(d, p, m)` — `p` is the canonical
   first position `[S, 1, …, 1]` of depth `m`, and this first insertion *fixes*
@@ -231,49 +224,43 @@ arrangement contraction–extension pair `K.μ⁻` then `K.μ⁺` (degenerating 
 `K.μ⁺` when no suffix moves) whose net effect realises the post-insertion shift of
 ASN-0082's I3 family, and `n` provenance recordings (K.ρ, ASN-0047) that couple each
 allocated address to `d`. The explicit step sequence and the discharge of each
-intermediate precondition are given in the next subsection; here we name the clauses
-but derive them by citation, not from scratch:
+intermediate precondition are given in the next subsection. One arithmetic fact,
+consumed by the value clauses below, we record first — the **block-disjointness
+fact**: as ordinals `q`, the three index intervals `{1, …, J-1}` (left),
+`{J, …, J+n-1}` (block), and `{J+n, …, N+n}` (shifted suffix) are consecutive and
+pairwise disjoint. We name the clauses but derive them by citation, not from
+scratch:
 
 - (I-ALLOC) `dom(C') = dom(C) ∪ A_new`, with `C'(shift(a, k)) = w_k` for
   `0 ≤ k < n` — the K.α effect (ASN-0093), iterated `n` times along `A_C(d)`.
 - (I-IMM) `(A b : b ∈ dom(C) : C'(b) = C(b))` — K.α append-only (C0, ASN-0093).
 - (I-SHIFT) `(A v : v ∈ V_S(d) ∧ v ≥ p : shift(v, n) ∈ dom(M'(d)) ∧
   M'(d)(shift(v, n)) = M(d)(v))` — by ASN-0082 **I3 (PostInsertionShift)** together
-  with block-disjointness (established below). I3 fixes these values on ASN-0082's
+  with the block-disjointness fact above. I3 fixes these values on ASN-0082's
   *gapped* arrangement `M'₀(d)`, whose domain (by I3-V/I3-CS) excludes the inserted
-  block; INSERT's post-state is `M'(d) = M'₀(d) ∪ {block fill}`. The carry-over is
-  licensed because the block `{shift(p, k) : 0 ≤ k < n}` (index interval `{J, …,
-  J+n-1}`) is disjoint from the shifted-suffix positions (index interval `{J+n, …,
-  N+n}`) — the consecutive-disjoint interval argument proved below — so the union
-  adds no entry at any shifted-suffix slot and I3's values transfer unchanged.
+  block; INSERT's post-state is `M'(d) = M'₀(d) ∪ {block fill}`. Since the block
+  (index interval `{J, …, J+n-1}`) is disjoint from the shifted-suffix positions
+  (index interval `{J+n, …, N+n}`), the union adds no entry at any shifted-suffix
+  slot and I3's values transfer unchanged.
 - (I-LEFT) `(A v : v ∈ V_S(d) ∧ v < p : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v))` —
-  by ASN-0082 **I3-L (PostInsertionLeftFrame)** together with the same
-  block-disjointness: the block sits at index interval `{J, …, J+n-1}`, disjoint
-  from the left positions `{1, …, J-1}`, so the union `M'₀(d) ∪ {block fill}` leaves
-  I3-L's values on the left region unchanged.
+  by ASN-0082 **I3-L (PostInsertionLeftFrame)** together with the block-disjointness
+  fact above: the block (index interval `{J, …, J+n-1}`) is disjoint from the left
+  positions `{1, …, J-1}`, so the union `M'₀(d) ∪ {block fill}` leaves I3-L's values
+  on the left region unchanged.
 - (I-NEW) `(A k : 0 ≤ k < n : shift(p, k) ∈ dom(M'(d)) ∧
   M'(d)(shift(p, k)) = shift(a, k))` — the INSERT-specific fill of the block that
   ASN-0082's gapped arrangement leaves vacated, mapped in lockstep to the K.α run
-  `A_new`. The block's absence from that gapped arrangement is attributed precisely
-  *per block position* — by whether that position pre-existed — not by a single case
-  on `J`. A block position is `shift(p, k) = q_{J+k}` for `0 ≤ k < n`, and it lies
-  in `dom(M(d))` iff its index `J+k ≤ N`. For block positions with
-  `shift(p, k) ∈ dom(M(d))` (index `≤ N`, hence `≥ p` and not in the shifted image),
-  absence is withheld by I3-V (PostInsertionVacating, which quantifies over
-  `v ∈ dom(M(d))`). For block positions with `shift(p, k) ∉ dom(M(d))` (index `> N`,
-  never in `dom(M(d))` for I3-V to range over), absence follows instead from the
-  domain-closure characterisation I3-CS. Both the occupied case (`J ≤ N`) and the
-  append case (`J = N+1`) split this way; in particular an insertion of `n ≥ 2`
-  units seated within the last `n−1` occupied slots exercises the *mixed* split,
-  with the lower block positions (index `≤ N`) discharged by I3-V and the upper ones
-  (index `> N`) by I3-CS. The unified attribution is sound because no block position
-  is a shifted-suffix image at all — so I3-CS adds no entry there. A block position
-  `q_i` is a shifted-suffix image only if `q_i = shift(u, n)` for some `u ≥ p` with
-  `u ∈ dom(M(d))`, i.e. `u = q_{i−n}` with index `i − n ≥ J`. But every block index
-  satisfies `i ≤ J + n − 1`, so `i − n ≤ J − 1 < J`, forcing `u < p` — outside the
-  shifted-suffix range `{u ∈ V_S(d) : u ≥ p}` that I3-CS quantifies over. This holds
-  for *every* block position uniformly (occupied and append cases alike), not merely
-  the single instance `i = N+1`.
+  `A_new`. A block position is `shift(p, k) = q_{J+k}` for `0 ≤ k < n`, lying in
+  `dom(M(d))` iff its index `J+k ≤ N`. Its absence from the gapped arrangement is
+  attributed by index: a position of index `≤ N` (hence `≥ p` and not in the shifted
+  image) is withheld by I3-V (PostInsertionVacating, which quantifies over
+  `v ∈ dom(M(d))`); a position of index `> N` (never in `dom(M(d))`) is withheld
+  instead by the domain-closure characterisation I3-CS. The attribution is sound
+  because no block position is a shifted-suffix image: such an image is
+  `q_i = shift(u, n)` for some `u = q_{i−n}` of index `i − n ≥ J`, whereas every
+  block index satisfies `i ≤ J + n − 1`, so `i − n ≤ J − 1 < J`, forcing `u < p` —
+  outside the shifted-suffix range I3-CS quantifies over. So I3-CS adds no entry at
+  any block position.
 - (I-DOM) `{v ∈ dom(M'(d)) : subspace(v) = S} =
   {q_1, …, q_{J-1}} ∪ {q_J, …, q_{J+n-1}} ∪ {q_{J+n}, …, q_{N+n}}` — the domain
   closure ASN-0082 I3-CS/I3-CX specialised to the dense text subspace.
@@ -327,7 +314,12 @@ predecessors leave, is
   `J−1 < N = n_{s_C}`, the content subspace contracts strictly, so K.μ⁻'s "at least one
   subspace strictly contracts" precondition is met; the retained domain is
   `{q_1, …, q_{J−1}} ∪ V_{s_L}(d)`. The intermediate text subspace is now the prefix
-  alone, the link subspace untouched.
+  alone, the link subspace untouched. At the front-insertion extreme `J = 1` this
+  branch still fires with `n'_{s_C} = 0`: the content subspace clears entirely (the
+  retained prefix `{q_1, …, q_0}` is empty), strict contraction `0 < N` still holding,
+  so the whole suffix is vacated and re-installed `n` higher by the following K.μ⁺ —
+  distinct from the append case (where K.μ⁻ is dropped) and the empty subspace (where
+  there is no suffix to shift).
 - *`K.μ⁺` (install block and shifted suffix).* Acting on `d`, add the new block
   `{q_J, …, q_{J+n−1}} → A_new` together with the shifted suffix
   `{q_{J+n}, …, q_{N+n}} → {M(d)(q_J), …, M(d)(q_N)}` (the displaced suffix
@@ -870,43 +862,25 @@ insertion. ✓ I-DOM (with `J = 1`, prefix and suffix intervals empty), I-NEW, P
 
 ## What we have established
 
-Two effects, two layers, kept clean — and, crucially, *composed from foundation
-transitions rather than re-derived*. On the content layer INSERT is the `n`-fold
-content allocation K.α (ASN-0093), freshness-respecting and monotone (`P0`, `P2`,
-`P3`): `n` contiguous, origin-stamped I-addresses are minted and filled, and
-nothing prior is touched. Allocation does not stand alone: each minted address is
-coupled to its inserting document by an atomic provenance recording (I-PROV, the
-`n`-fold K.ρ of ASN-0047), and this discharges the coupling constraints J0, J1★, J1'★
-between the composite's endpoints and re-establishes the coverage property P7a at the
-post-state (`PROV`), so the operation lands in a state ExtendedReachableStateInvariants
-actually admits rather than one its own theorem would reject. On the arrangement layer
-INSERT is realised by an ASN-0047 contraction–extension pair `K.μ⁻` then `K.μ⁺` (a
-single `K.μ⁺` when no suffix moves), whose net effect is ASN-0082's post-insertion
-shift (I3, I3-L, I3-X, I3-D) — a uniform ordinal shift confined to
-one subspace of one document, opening a gap-free block of exactly the right width
-and re-coordinating the suffix around fixed content identities. The explicit step
-sequence is exhibited as a valid composite over the K-vocabulary, with each
-intermediate precondition discharged and the coupling constraints checked only at the
-composite boundary. The
-well-formedness of the left and shifted regions is inherited from the I3-VD/I3-VP
-family, the new block's well-formedness is discharged directly (S8a via
-OrdShiftHom, depth uniformity, single-valuedness, S3★), and the contiguity of the
-filled run (`N' = N + n`) is INSERT's own theorem — the consecutive-disjoint
-interval argument — not a borrowed contraction lemma; the inserted span enters as
-a single connected run (`P1`); every
-link survives because it anchors on immutable identity, its coverage fixed by
-endset immutability L12+LP3★ — and its resolved-witness count can *grow* (never
-shrink or redirect; prior witnesses map bijectively onto left ∪ shifted-suffix ∪
-cross-subspace, the suffix relabelled by `shift(·, n)`) when a prior endset already
-referenced an address INSERT now mints (`P4`; a resurrection in LP18's sense only
-when the link was orphaned). Every other document is isolated because identity is
-shared by reference, not by arrangement (`P5`). And the weakest precondition for
-preserving discoverability is not `true` but a containment — every link the new run
-would newly witness was already discoverable — for which `coverage(e) ∩ A_new = ∅`
-is a sufficient (strictly stronger) discharge, free under a tight-endset discipline
-and genuinely binding otherwise. The whole specification is, at bottom, the
-discipline of never letting an ephemeral position pretend to be a permanent
-identity.
+Two effects, two layers, kept clean — and composed from foundation transitions
+rather than re-derived. On the **content layer**, INSERT is the `n`-fold content
+allocation K.α (ASN-0093): fresh, contiguous, origin-stamped I-addresses, monotone
+and append-only (`P0`, `P2`, `P3`), each coupled to its inserting document by an
+atomic provenance recording (`PROV`, the `n`-fold K.ρ of ASN-0047) that discharges
+ASN-0047's coupling constraints J0, J1★, J1'★ and re-establishes the coverage
+property P7a at the composite boundary. On the **arrangement layer**, INSERT is the
+contraction–extension pair `K.μ⁻` then `K.μ⁺` (a single `K.μ⁺` when no suffix
+moves), exhibited as a valid composite over the K-vocabulary, whose net effect is
+ASN-0082's post-insertion shift (`I-SHIFT`, `I-LEFT`, `F-SUB`, `F-DOC`) — a uniform
+ordinal shift confined to one subspace of one document, opening a gap-free block of
+the right width and re-coordinating the suffix around fixed content identities
+(`I-NEW`, `I-DOM`, `P1`). The two layers never contaminate each other: links
+survive because they anchor on immutable identity (`P4`), every other document is
+isolated because sharing is by reference and not by arrangement (`P5`), and the
+weakest precondition for preserving discoverability is a containment, not `true`
+(`P6`). The whole specification is, at bottom, the discipline of never letting an
+ephemeral position pretend to be a permanent identity. The claims established are
+catalogued below.
 
 ## Claims Introduced
 
