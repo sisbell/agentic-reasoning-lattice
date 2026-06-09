@@ -96,8 +96,9 @@ document's bound V-positions (ASN-0036) with the span's denotation (ASN-0034,
 T12). This
 set is finite (subset of the finite `dom(Σ.M(d_s))`, S8-fin) and totally ordered
 (subset of the totally ordered carrier `T`, T1), hence has a unique ascending
-enumeration `v₁ < … < v_k`. We restrict attention to *content* spec-sets: every
-active position is in the text subspace, `subspace(vⱼ) = s_C`, so by referential
+enumeration `v₁ < … < v_k`. We restrict attention to *content* spec-sets: COPY's
+content-residence precondition (stated with the operation below) requires every
+active position to be in the text subspace, `subspace(vⱼ) = s_C`, so by referential
 integrity (S3★) each resolves to a content address `Σ.M(d_s)(vⱼ) ∈ dom(Σ.C)`.
 
 We define **resolution** as the ordered sequence of I-addresses obtained by
@@ -138,6 +139,18 @@ canonical first position `[s_C, 1, …, 1]` when `V_{s_C}(d) = ∅`
 (ValidFirstInsertionPosition). Let `resolve(R, Σ) = ⟨c₀, …, c_{W−1}⟩` with
 `W ≥ 1`.
 
+**Precondition — content residence.** Every active position of every V-spec in `R`
+lies in the text subspace:
+`(A ρ ∈ R, v ∈ act(ρ, Σ) : subspace(v) = s_C)`. This promotes the resolution
+section's "content spec-set" restriction to an explicit precondition of the
+operation, and it is load-bearing in two places. Without it a resolved `vⱼ` could
+be a link V-position (`subspace(vⱼ) = s_L`), and S3★ would place
+`Σ.M(d_s)(vⱼ)` in `dom(Σ.L)` rather than `dom(Σ.C)` — falsifying CP0(a). And CP2
+would then bind that link address to a content-subspace destination position
+`p + i`, leaving a content V-position imaging a link address, in violation of S3★
+in the post-state. The precondition discharges both obligations at once: CP0(a)'s
+`cᵢ ∈ dom(Σ.C)` and CP2's content-subspace referential integrity.
+
 **COPY(`Σ, d, p, R`)** is the transition `Σ → Σ'` with the following effect on the
 destination arrangement, displacement of its prior content, and recording of
 provenance, and with the frame conditions that say what it leaves alone.
@@ -166,17 +179,25 @@ post-state:
 
 > `(A i : 0 ≤ i < W : (cᵢ, d) ∈ Σ'.R)`     (CP8)
 
-CP8 is a *membership* postcondition, and it is discharged two ways according to
-whether `cᵢ` is new to `d`'s content range. For each `cᵢ` that is *range-new* —
-not already in the content-subspace range of `M(d)` — the placement enters it
-into that range (CP2), and ASN-0047's coupling J1★ (ExtensionRecordsProvenance)
-fires, forcing `(cᵢ, d) ∈ Σ'.R`. For each `cᵢ` *already* referenced by `d`
+CP8 is a *membership* postcondition, and to see that the membership is *produced*
+rather than merely *required*, we read COPY as the valid composite it is (ASN-0047,
+ValidComposite): its atomic steps are the arrangement-extension steps K.μ⁺ that
+realize the placement (CP2) together with a provenance-recording step K.ρ for each
+address that COPY newly references. It is these K.ρ steps that put pairs into
+`Σ.R`; the discharge then splits on whether `cᵢ` is new to `d`'s content range. For
+each `cᵢ` that is *range-new* — not already in the content-subspace range of
+`M(d)` — the placement (CP2) makes it range-new in `Σ'`, so ASN-0047's coupling
+J1★ (ExtensionRecordsProvenance) is an *obligation* on the composite: a valid COPY
+must include a K.ρ step recording `(cᵢ, d)`, and J1'★ (ProvenanceRequiresExtension)
+constrains that step's admissibility — no provenance record without a corresponding
+range extension — so the K.ρ steps record exactly the range-new addresses and
+produce `(cᵢ, d) ∈ Σ'.R` for each. For each `cᵢ` *already* referenced by `d`
 (already transcluded into `d`, or, in self-transclusion CP9, already bound by one
-of `d`'s own pre-state positions), `cᵢ` is not range-new, so J1★ does not fire —
-and J1'★ (ProvenanceRequiresExtension) forbids minting a spurious fresh record —
-but `(cᵢ, d) ∈ Σ.R` already held and persists by provenance permanence (P2,
-ASN-0047). Either way the membership holds in `Σ'`; fresh recording occurs
-exactly for the range-new addresses.
+of `d`'s own pre-state content positions), no K.ρ step is needed: `cᵢ` already lies
+in the content-subspace range of `M(d)` in the pre-state, so by P4★
+(`Contains_C(Σ) ⊆ R`, ASN-0047) `(cᵢ, d) ∈ Σ.R` already holds, and provenance
+permanence (P2) carries it into `Σ'`. Either way the membership holds in `Σ'`;
+fresh recording occurs exactly for the range-new addresses.
 
 *Frame — left of the insertion point.*
 
@@ -203,22 +224,22 @@ positions of the same document. We return to this case under CP9.
 ## The transclusion frame: content is referenced, never allocated
 
 The single claim that makes COPY *transclusion* and not *copying* is CP1:
-`dom(Σ'.C) = dom(Σ.C)`. We derive it as a necessity, not a stipulation, by
-reasoning backward from the placement.
+`dom(Σ'.C) = dom(Σ.C)`. This is the *defining frame condition* of COPY — a design
+stipulation, not a theorem. We adopt it as the operation's content and then show
+it is consistent with the placement, and that dropping it yields a different
+operation (REPLICATE) entirely.
 
 The placement (CP2) requires, for each `i`, that `Σ'.M(d)(p + i) = cᵢ` be a legal
 arrangement binding — and referential integrity (S3) demands its image lie in the
-content store, `cᵢ ∈ dom(Σ'.C)`. There are exactly two ways to discharge this. The
-first is to *find* `cᵢ` already present: resolution integrity CP0(a) gives
-`cᵢ ∈ dom(Σ.C)`, and store monotonicity (S1) lifts this to `cᵢ ∈ dom(Σ'.C)` with
-no growth required. The second is to *allocate* a fresh address and copy the value
-into it. The first leaves `dom(Σ.C)` fixed; the second strictly enlarges it. COPY
-takes the first. The placement's referential-integrity obligation —
-`(A i : 0 ≤ i < W : cᵢ ∈ dom(Σ'.C))` — is therefore discharged with no growth,
-because resolution integrity CP0(a) already supplies `cᵢ ∈ dom(Σ.C)` and store
-monotonicity S1 lifts it to `Σ'`. No allocation step is reachable from a state
-where resolution already names existing addresses, and so CP1 holds. The
-destination binds *the very I-addresses the sources bind* — the
+content store, `cᵢ ∈ dom(Σ'.C)`. There are two ways an operation *could* discharge
+this. The first is to *find* `cᵢ` already present; the second is to *allocate* a
+fresh address and copy the value into it. *Given* CP1, only the first is available
+— and it suffices: resolution integrity CP0(a) gives `cᵢ ∈ dom(Σ.C)`, and store
+monotonicity (S1) lifts this to `cᵢ ∈ dom(Σ'.C)` with no growth. So under CP1 the
+placement's referential-integrity obligation —
+`(A i : 0 ≤ i < W : cᵢ ∈ dom(Σ'.C))` — is dischargeable: every address the
+placement names is already present, and CP1 is in no tension with the binding it
+must support. The destination binds *the very I-addresses the sources bind* — the
 placed material and its source share one content identity, not two equal copies of
 one value.
 
@@ -289,9 +310,23 @@ lemmas supply the per-position facts — that the shifted positions stay
 well-formed (I3-VP), preserve depth (I3-VD), and keep the arrangement a function
 (I3-S2) and finite (I3-fin) — but they describe only the *shift* of trailing
 content and so do not by themselves establish gap-filling. The no-holes tiling we
-derive explicitly from ordinal arithmetic. Before COPY, `V_{s_C}(d)` is the
-contiguous run `{min + i : 0 ≤ i < N}` with `min = [s_C, 1, …, 1]` (D-MIN) and
-`N = |V_{s_C}(d)|` (D-SEQ), so its top is `max = min + (N−1)`. The valid
+derive explicitly from ordinal arithmetic, splitting on whether the destination's
+text subspace is already populated.
+
+*Empty destination* (`V_{s_C}(d) = ∅`, so `N = 0`). Here COPY establishes the
+document's first content rather than preserving prior content. The valid insertion
+position is the canonical `p = [s_C, 1, …, 1]` (ValidFirstInsertionPosition); the
+displacement (CP3a) and left-frame (CP3b) clauses are vacuous — there is no prior
+`v ≥ p` to shift and none `v < p` to fix — and the placement (CP2) lays the `W`
+positions `p, p+1, …, p+(W−1)`. The post-state run is `{p + i : 0 ≤ i < W}`, which
+has minimum `p = [s_C, 1, …, 1]` (D-MIN *established*), is the sequential block of
+`W` positions from that minimum (D-SEQ *established*), and has no interior hole
+(D-CTG). In the empty case D-MIN and D-SEQ are established, not preserved — COPY
+lays down the first content the document holds.
+
+*Non-empty destination* (`V_{s_C}(d) ≠ ∅`, so `N ≥ 1`). Before COPY, `V_{s_C}(d)`
+is the contiguous run `{min + i : 0 ≤ i < N}` with `min = [s_C, 1, …, 1]` (D-MIN)
+and `N = |V_{s_C}(d)|` (D-SEQ), so its top is `max = min + (N−1)`. The valid
 insertion position `p` is `min + j` for some `0 ≤ j ≤ N` (ASN-0036,
 ValidInsertionPosition), i.e. `p`'s ordinal lies in `[min, max+1]`. COPY lays
 the post-state out as three ordinal ranges, using `+` for the ordinal shift:
@@ -525,7 +560,7 @@ sources.
 | CP5 | OriginInvariance: `origin(cᵢ)` is unchanged by COPY and equals the source document that allocated `cᵢ`, never `d`; attribution and ownership remain the source's | introduced |
 | CP6 | SourceIsolation: `(A d' ≠ d : Σ'.M(d') = Σ.M(d'))` and cross-subspace frame — every source and every other document is unmodified; the source's connectedness nonetheless grows (shared identity + provenance) | introduced |
 | CP7 | Links: (a) `Σ'.L = Σ.L`; (b) LinkSurvivalUnderReuse — any link whose endset coverage meets `{c₀,…,c_{W−1}}` becomes discoverable from `d` in `Σ'`; links to the destination's prior content survive (I-addresses unchanged) | introduced |
-| CP8 | ProvenanceRecording: `(A i : 0 ≤ i < W : (cᵢ, d) ∈ Σ'.R)` — membership discharged by J1★ (fresh recording) for range-new addresses and by provenance permanence P2 for addresses `d` already referenced | introduced |
+| CP8 | ProvenanceRecording: `(A i : 0 ≤ i < W : (cᵢ, d) ∈ Σ'.R)` — produced by COPY's K.ρ steps for range-new addresses (J1★ obligation, J1'★ uniqueness) and supplied by P4★ + permanence P2 for addresses `d` already referenced | introduced |
 | CP9 | SelfTransclusionAdmissibility: when `d_s = d`, resolution reads the pre-state, so placement adds independent V-positions of `d` referring to addresses `d` already bound; no content is duplicated | introduced |
 | CP10 | ImmutabilityPreservation: S0 preserved across COPY (corollary of CP1); reused content carries identical bytes into the destination because they are the same bytes | introduced |
 | CP11 | OriginMultisetPreservation: `{origin(cᵢ) : 0 ≤ i < W}` is preserved into the destination's arrangement; cross-origin blocks cannot merge (M16). Replication would collapse it to `{d,…,d}` — the reveal that separates reuse from replication | introduced |
