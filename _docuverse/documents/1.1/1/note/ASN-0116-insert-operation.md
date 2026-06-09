@@ -255,8 +255,9 @@ scratch:
 - (I-DOM) `{v ∈ dom(M'(d)) : subspace(v) = S} =
   {q_1, …, q_{J-1}} ∪ {q_J, …, q_{J+n-1}} ∪ {q_{J+n}, …, q_{N+n}}`. The left
   prefix `{q_1, …, q_{J-1}}` and shifted suffix `{q_{J+n}, …, q_{N+n}}` are the
-  gapped domain that ASN-0082 I3-CS/I3-CX characterise (specialised to the dense
-  text subspace); the middle block `{q_J, …, q_{J+n-1}}` — exactly the interval
+  gapped domain that ASN-0082 I3-CS (PostInsertionSubspaceClosure) characterises —
+  the subspace-`S` closure being exactly the domain this equation ranges over; the
+  middle block `{q_J, …, q_{J+n-1}}` — exactly the interval
   I3-V vacates and I3-CS excludes — is contributed by INSERT's own I-NEW fill.
 - (I-PROV) `R' = R ∪ {(shift(a, k), d) : 0 ≤ k < n}` — the `n` provenance records
   coupling each freshly allocated I-address to its inserting document, by **K.ρ
@@ -334,10 +335,10 @@ predecessors leave, is
   so the whole suffix is vacated and re-installed `n` higher by the following K.μ⁺ —
   distinct from the append case (where K.μ⁻ is dropped) and the empty subspace (where
   there is no suffix to shift).
-- *`K.μ⁺` (install block and shifted suffix).* Acting on `d`, add the new block
-  `{q_J, …, q_{J+n−1}} → A_new` together with the shifted suffix
-  `{q_{J+n}, …, q_{N+n}} → {M(d)(q_J), …, M(d)(q_N)}` (the displaced suffix
-  I-addresses). Clause 1 at this intermediate state: (i) every added target lies in
+- *`K.μ⁺` (install block and shifted suffix).* Acting on `d`, add the I-NEW block
+  and the I-SHIFT shifted suffix — the same mappings the Effect fixes (the values are
+  pinned there, via I3); this step installs them as one domain-extending transition
+  and discharges its preconditions. Clause 1 at this intermediate state: (i) every added target lies in
   `dom(C)` — the block targets `A_new`, just committed by K.α, and the shifted-suffix
   targets are the old suffix addresses `{M(d)(q_J), …, M(d)(q_N)} ⊆ dom(C)` — which is
   exactly why the allocations must precede this step; (ii) every added V-position is
@@ -351,9 +352,10 @@ predecessors leave, is
   precondition `shift(a, k) ∈ dom(C') ∧ d ∈ E_doc` holds because `shift(a, k)` entered
   the store at its K.α step and `d ∈ dom(M) = E_doc`.
 
-The net effect of `K.μ⁻` then `K.μ⁺` on the text subspace is *exactly* I3's
-post-insertion shift: the suffix I-addresses removed at their old slots and
-re-installed `n` positions higher, the prefix fixed, the block filled.
+The `K.μ⁻` then `K.μ⁺` pair is the K-atomic realization of the Effect's
+I-LEFT/I-SHIFT/I-NEW clauses — prefix fixed, suffix vacated and re-installed `n`
+higher, block filled. This section establishes only that the realization is a valid
+composite; the values themselves are fixed once, in the Effect.
 
 *Append case `J = N+1` and empty case `V_S(d) = ∅`* (no suffix moves). I-SHIFT is
 vacuous and no contraction is needed; the sequence collapses to
@@ -874,7 +876,7 @@ pretend to be a permanent identity. The claims established are catalogued below.
 | I-SHIFT | V-positions `≥ p` in subspace `S` move to `shift(v,n)`, carrying their I-address | cited (I3, ASN-0082) |
 | I-LEFT | V-positions `< p` in subspace `S` are unchanged | cited (I3-L, ASN-0082) |
 | I-NEW | The vacated block `{shift(p,k)}` maps to the fresh run `{shift(a,k)}` | introduced (composition glue) |
-| I-DOM | `V_S(d')` is the dense run `{q_1, …, q_{N+n}}`; D-SEQ/D-MIN/D-CTG of the filled post-state established here with `N' = N+n` | introduced (interval argument; prefix+suffix from I3-CS/I3-CX, ASN-0082; middle block from I-NEW) |
+| I-DOM | `V_S(d')` is the dense run `{q_1, …, q_{N+n}}`; D-SEQ/D-MIN/D-CTG of the filled post-state established here with `N' = N+n` | introduced (interval argument; prefix+suffix from I3-CS, ASN-0082; middle block from I-NEW) |
 | F-SUB | Positions in subspaces `S' ≠ S` are unchanged (subspace confinement of the shift) | cited (I3-X, ASN-0082) |
 | F-DOC | Arrangements of all documents `d' ≠ d` are unchanged | cited (I3-D, ASN-0082) |
 | F-LINK | `Σ'.L = Σ.L` — the link store is untouched | cited (frame; no K-atomic touches `Σ.L`) |
