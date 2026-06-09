@@ -122,14 +122,10 @@ stored value).* *For each `k` with
 I-address in `dom(C)` regardless of whether `C(shift(a, k))` equals the content
 stored at any existing address.*
 
-Why must this hold for *any* implementation? Because everything downstream —
-links that survive editing, transclusion, version correspondence, historical
-reconstruction — anchors on identity, and identity is intensional (by origin),
-not extensional (by value). Were two equal-valued insertions to share an
-address, a link to one would silently become a link to the other, and the
-"strap between bytes" (4/42) would bind the wrong bytes. The freshness of `P0`
-is precisely what lets the rest of the system trust that an I-address names one
-content event for all time.
+Identity is intensional (by origin), not extensional (by value). Were two
+equal-valued insertions to share an address, a link to one would silently
+become a link to the other, and the "strap between bytes" (4/42) would bind the
+wrong bytes.
 
 ## What shifts, and what the shift must preserve
 
@@ -856,9 +852,8 @@ insertion. ✓ I-DOM (with `J = 1`, prefix and suffix intervals empty), I-NEW, P
 
 Two effects, two layers, kept clean: on the content layer INSERT is the `n`-fold
 allocation K.α with its coupled provenance K.ρ, and on the arrangement layer the
-contraction–extension pair `K.μ⁻` then `K.μ⁺` realising ASN-0082's shift. The whole
-specification is, at bottom, the discipline of never letting an ephemeral position
-pretend to be a permanent identity. The claims established are catalogued below.
+contraction–extension pair `K.μ⁻` then `K.μ⁺` realising ASN-0082's shift. The claims
+established are catalogued below.
 
 ## Claims Introduced
 
