@@ -60,9 +60,17 @@ grammar does not confine it to any address level, and `athome` (below) is well-d
 plain coverage membership for whatever endset `H` is. By *convention*, a home request is
 phrased on the *organizational-prefix* axis, its spans rooted at node-, account-, or
 document-level addresses; but this rooting is intended usage, not a well-formedness
-condition the type enforces. (An element-rooted `H` is admissible and simply vacuous: its
-coverage contains no document-level `home(a)`, so `athome` is uniformly `false` — the
-operation is total over the declared request type, with no ill-formed inputs to exclude.)
+condition the type enforces. (An element-rooted `H` is admissible regardless: `athome` is
+well-defined as coverage membership for any endset, so there are no ill-formed inputs to
+exclude and the operation is total over the declared request type. For a *unit-depth*
+element-rooted span the match is simply vacuous — its coverage `{t : p ≼ t}` is the subtree
+of an element-level `p` with `zeros(p) = 3`, which contains no document-level tumbler, so
+`athome` is uniformly `false`. A *wide* element-rooted span carries no such guarantee: its
+coverage is the order-convex range `{t : p ≤ t < p ⊕ ℓ}`, which may straddle a length
+boundary and so contain a document-level tumbler — e.g. `p = [1,0,1,0,1,0,1,1]` with
+`ℓ = [0,0,0,0,1,1,1,1]` (T12-well-formed) gives `p ⊕ ℓ = [1,0,1,0,2,1,1,1]`, and the
+document tumbler `q = [1,0,1,0,2]` lies in `coverage((p, ℓ))`, so `athome(a, H)` can hold
+for a link with `home(a) = q`. Totality does not depend on vacuity in either case.)
 The *canonical* home span is the **unit-depth prefix span** `(p, δ(1, #p))`, whose
 displacement is exactly the unit-depth `δ(1, #p)` that PrefixSpanCoverage (ASN-0043)
 requires; it denotes the full subtree `{t : p ≼ t}`, order-convex under T5 (ASN-0034).
@@ -562,6 +570,13 @@ exactly that tuple: `L_R^{Σ'} = L_R^Σ ∪ {(b, ∅, G')}`. Unfolding ASN-0086'
 ⟺ (E (c, F'', G'') ∈ L_R^Σ :: a ∈ coverage(G'')) ∨ a ∈ coverage(G')
 ⟺ a ∈ nullified(Σ) ∨ a ∈ coverage(G')`,
 where the middle step splits the existential over the disjoint union `L_R^Σ ∪ {(b, ∅, G')}`.
+This equation is stated and used only on the existing-link slice `a ∈ dom(Σ.L)`; the fresh
+retractor address `b ∈ dom(Σ'.L) \ dom(Σ.L)` lies outside that slice, so the *self-retraction*
+case `b ∈ coverage(G')` — in which `b` nullifies its own address — is excluded by scope and does
+not bear on the conclusion drawn for existing links. (Over the full post-state index `dom(Σ'.L)`
+the exact increment is `nullified(Σ') = nullified(Σ) ∪ {t ∈ dom(Σ'.L) : t ∈ coverage(G')}`, which
+the singleton-extension premise `L_R^{Σ'} = L_R^Σ ∪ {(b, ∅, G')}` discharges alongside R6b; on
+the `dom(Σ.L)` slice the two index sets agree.)
 R6b discharges only the ⟸ (⊇) half — that hitting `coverage(G')` forces nullification — while
 the displayed split supplies the ⟹ (⊆) half from the singleton extension of `L_R`. Negating,
 `a ∈ addressable(Σ') ⟺ a ∉ nullified(Σ) ∧ a ∉ coverage(G')`. Conjoining with `sat` and
