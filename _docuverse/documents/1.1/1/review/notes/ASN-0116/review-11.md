@@ -1,0 +1,26 @@
+# Review of ASN-0116
+
+## REVISE
+
+### Issue 1: INSERT allocates content into an arrangement but records no provenance — the post-state violates ASN-0047's P7a, and the composite violates J1★
+
+**ASN-0116, *Effect* and "The document remains one coherent sequence"**: The Effect lists I-ALLOC, I-IMM, I-SHIFT, I-LEFT, I-NEW, I-DOM, with no update to the provenance relation `Σ.R`. The ASN nonetheless works squarely inside ASN-0047's framework — it cites S3★, S3, P2, and asserts the result holds "as ExtendedReachableStateInvariants (ASN-0047) demands."
+
+**Problem**: INSERT is a content-allocating-and-arranging transition: it commits `A_new ⊆ dom(C')` and places each `shift(a,k)` into the content subspace of `ran(M'(d))` (I-ALLOC + I-NEW). Within ASN-0047 this triggers two obligations the operation never discharges:
+
+- **J1★ (ExtensionRecordsProvenance)** is range-based: any I-address new to the content-subspace range of `M'(d)` must satisfy `(a, d) ∈ R'`. Every address in `A_new` is range-new, yet INSERT leaves `R' = R`. A composite that satisfies the transition preconditions but violates the coupling is, by ASN-0047's ValidComposite clause (2), *not a valid composite*.
+- **P7a (ProvenanceCoverage)**, a composite-boundary property of ExtendedReachableStateInvariants, requires every `a ∈ dom(C)` to carry a provenance record. After INSERT, the `A_new` addresses have none, so the post-state — a composite boundary — fails P7a.
+
+Because INSERT's arrangement effect (the ASN-0082 I3 shift) is *not* one of ASN-0047's atomic transitions ({K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.ρ} — a pure K.μ⁺ cannot vacate/relabel suffix positions, and K.μ~ fixes the domain), this ASN introduces a genuinely new transition and therefore *owns* the obligation to discharge every reachable-state invariant for it. J0 is met (A_new is placed by I-NEW), but J1★/P7a is not. The Open-Questions deferral ("must INSERT establish that relation atomically with allocation?") acknowledges the gap but does not resolve the resulting invariant violation: as written, the operation transitions to a state the ASN's own invoked theorem rejects.
+
+**Required**: Either (a) include the `n` provenance steps (K.ρ recording `(shift(a,k), d)` for `0 ≤ k < n`) in the composite and explicitly discharge J0, J1★, and J1'★ between initial and final states; or (b) if provenance is to be genuinely scoped out, prove that the post-state nonetheless satisfies P7a (and that the composite need not satisfy J1★), rather than leaving it to an open question while invoking ExtendedReachableStateInvariants.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Concurrent insertions claiming freshness without a serializing authority
+**Why out of scope**: The single-authority/serialization question (Open Question 2) is new territory about the transition model's concurrency semantics, not an error in INSERT's single-threaded specification.
+
+### Topic 2: Behavior when the insertion point is transclusion-shared with another document
+**Why out of scope**: Transclusion (COPY/ASN-0118) is explicitly retired/reframed and excluded by the scope list; the open question correctly defers it.
+
+VERDICT: REVISE
