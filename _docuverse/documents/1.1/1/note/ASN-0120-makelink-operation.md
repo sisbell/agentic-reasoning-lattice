@@ -77,9 +77,12 @@ must guarantee abstractly.
 The from/to/type arguments do not arrive as I-addresses. They arrive as
 *content-region specifications*: each is a spec-set
 `R = ⟨(d₁, σ₁), …, (dₚ, σₚ)⟩`, a finite sequence of V-specs naming an allocated
-source document `d_j ∈ dom(Σ.M)` and a well-formed V-span `σ_j` over it (ASN-0058,
-ASN-0118). A V-span lives in *arrangement* coordinates — the positions a reader
-currently sees — and arrangement is exactly the mutable component of state.
+source document `d_j ∈ dom(Σ.M)` and a well-formed V-span `σ_j = (u_j, ℓ_j)` over
+it — level-uniform (`#ℓ_j = #u_j`) and T12-well-formed (`Pos(ℓ_j)` and
+`actionPoint(ℓ_j) ≤ #u_j`, ASN-0034), at the common V-position depth of its
+subspace in `d_j` (ASN-0058). A V-span lives in *arrangement* coordinates — the
+positions a reader currently sees — and arrangement is exactly the mutable
+component of state.
 
 We must ask: what would happen if MAKELINK simply *stored the V-positions*? A
 subsequent edit to `d_j` — an insertion before `σ_j`, a deletion, a rearrangement
@@ -103,24 +106,57 @@ We define *endset resolution* accordingly. For a spec-set `R` at state `Σ`,
 
 — the set of I-addresses to which the named, currently-active V-positions map. By
 referential integrity (S3), `ρ(R, Σ) ⊆ dom(Σ.C)`: every recovered address is real
-content. The resolved set is then packaged as an endset — a finite set of spans
-whose coverage equals `ρ(R, Σ)` (ASN-0053 supplies normalization; ASN-0058
-supplies the block decomposition that names contiguous runs). We name this
-**ML1 (EndsetResolution)**: each endset argument is recorded as I-addresses
-recovered by reading the source arrangement at creation time, so the stored endset
-references content by identity, not by position.
+content. This is ASN-0058's `resolve` lifted to a spec-set: writing
+`resolve(d_j, σ_j)` for that ASN's recovery of the I-address runs under `σ_j`,
+`ρ(R, Σ)` is the union over `j` of the I-addresses those runs name. We diverge from
+`resolve` in one deliberate respect and name it as such: `resolve` is defined only
+for a *well-formed content reference* — one in which every depth-`m` position of
+`⟦σ_j⟧` is active in `d_j`'s arrangement — whereas `ρ` filters to the
+currently-active positions (`v ∈ dom(Σ.M(d_j))`) and so resolves *partial* spans as
+well. MAKELINK must accept a span some of whose positions have since been deleted,
+so this generalization is required, not incidental.
+
+The resolved set is then packaged as an endset. We fix the *canonical*
+representation: each I-address `aₖ ∈ ρ(R, Σ)` is recorded by its unit-depth span
+`(aₖ, δ(1, #aₖ))`, whose denotation is the subtree `{t : aₖ ≼ t}` (ASN-0043,
+PrefixSpanCoverage). The endset is the finite set of these spans (ASN-0058 supplies
+the block decomposition that may merge adjacent runs into a wider span where the
+content is contiguous in I-space; the merge is a representation choice and changes
+nothing below). This representation does *not* make `coverage(e)` equal to
+`ρ(R, Σ)`: coverage is a union of order-convex intervals, while `ρ(R, Σ)` is a bare
+finite set, and ASN-0053 (S7, CoveringExistence) guarantees only *covering*,
+`coverage(e) ⊇ ρ(R, Σ)`, never exact equality. What *is* exact is the recovery of
+content — the only content addresses in `coverage(e)` are the resolved ones:
+
+> `coverage(e_j) ⊇ ρ(R_j, Σ)` and `coverage(e_j) ∩ dom(Σ.C) = ρ(R_j, Σ)`.
+
+The extra coverage points — the tumblers lying in a resolved address's subtree but
+strictly below it — are never content: every content address sits on a sub-allocator
+chain `A_C(d)` with element-field depth `#E = 2` (ASN-0093, C1b and ChainDiscipline),
+whereas a proper descendant of such an address has `#E ≥ 3`, so it lies on no content
+chain and is not in `dom(Σ.C)`. We name this **ML1 (EndsetResolution)**: each endset
+argument is recorded as I-addresses recovered by reading the source arrangement at
+creation time, so the stored endset references content by identity, not by position;
+its coverage *covers* the resolved set and meets the content store in exactly the
+resolved set.
 
 Two structural facts about resolution deserve emphasis, both abstract. First, a
 single V-span may resolve to *several non-contiguous* I-address runs: if the
 source document's span covers content transcluded from two origins, the two runs
-carry different I-addresses and cannot be a single contiguous span (ASN-0058,
-M16 CrossOriginMergeImpossibility). MAKELINK records each run faithfully as a
-distinct region; the cardinality of the recorded span-set is dictated by the
-fragmentation of the content in I-space, not by the number of V-spans supplied.
-We name this **ML2 (FragmentationFaithful)**. Second, the same resolution applies
-*uniformly* to all three endset arguments — from, to, and type are read through
-their sources by one procedure, with no slot privileged at the conversion step
-(**ML3, UniformResolution**).
+carry different I-addresses and cannot be merged into one contiguous span (ASN-0058,
+M16 CrossOriginMergeImpossibility). The observable guarantee is *completeness of
+recovery*: `coverage(e_j) ∩ dom(Σ.C) = ρ(R_j, Σ)` regardless of how the supplied
+span fragments in I-space — every referenced content address is recovered, and no
+spurious content address is introduced, whatever the contiguity structure or the
+number of V-spans supplied. We name this **ML2 (FaithfulRecovery)**. (How many
+spans the endset's representation happens to use to cover those addresses is *not*
+abstractly observable: the model exposes no span-positional accessor (ASN-0043, L5)
+and projection depends only on coverage, not decomposition (ASN-0098, LP21). The
+span-set cardinality is therefore a representation matter, left to the
+implementation note.) Second, the same resolution applies *uniformly* to all three
+endset arguments — from, to, and type are read through their sources by one
+procedure, with no slot privileged at the conversion step (**ML3,
+UniformResolution**).
 
 > *Implementation note.* Gregory's CREATELINK realizes ρ in `vspanset2sporglset`,
 > which calls `permute` to walk each source document's arrangement and emit one
@@ -207,8 +243,23 @@ pointed at.
 The third endset reveals the difference between a *connection* and a *relation*.
 A link with only from and to asserts that two regions are tied together — a bare
 connection. The third endset is a *type*: a classifying address-set that says in
-*what way* they are tied. By L3 (ASN-0043) MAKELINK requires the type endset to be
-non-empty — every link the operation creates carries a classifier — and by L8
+*what way* they are tied. The substrate transition `K.λ` requires a non-empty type
+endset (`e₃ ≠ ∅`, L3, ASN-0093). Since the type argument is `ρ`-resolved like the
+others (ML3), MAKELINK must carry this as an *operation precondition on its type
+argument*: the supplied type spec must resolve non-empty,
+
+> `ρ(R₃, Σ) ≠ ∅`  (equivalently, `R₃` names at least one currently-active V-position).
+
+A type spec whose V-positions are all inactive — content deleted, or a document
+opened that never held the type content — resolves to `∅`; on such input the
+operation is *undefined* and must be rejected before `K.λ` is attempted, since an
+empty `e₃` violates L3. (Gregory's CREATELINK does *not* enforce this: an empty type
+sporgl set resolves to `NULL`, passes the two insertion guards `do2.c:122` and
+`do2.c:136` silently — the latter even debug-prints the missing-type pointer, an
+acknowledged accommodation rather than a rejection — and a link is stored with no
+type endset at all. The abstract operation forbids what the implementation tolerates;
+the precondition is the correct contract.) With the precondition met, every link
+MAKELINK creates carries a classifier, and by L8
 (TypeByAddress) the type is matched by the *addresses* its endset covers, not by
 any content stored there. So the type may even reference a region where nothing is
 stored (a ghost type, L9), because what the system records and compares is the
@@ -229,8 +280,9 @@ it connects — because editing touches `Σ.M`, and the link lives in `Σ.L`. (W
 a link's *owner* may delete it is a separate operation outside this ASN; MAKELINK
 guarantees that no one *else's* edit can break it.)
 
-**Endset immutability (ML8).** The recorded coverage `coverage(e_j) = ρ(R_j, Σ)`
-is frozen at the creating state `Σ`. No subsequent operation rewrites an endset:
+**Endset immutability (ML8).** The recorded endset value `Σ'.L(a)` is frozen at the
+creating state `Σ`, with `coverage(e_j) ∩ dom(Σ.C) = ρ(R_j, Σ)` (ML1). No
+subsequent operation rewrites an endset:
 the link store is immutable (L12), and editing a source document changes
 `Σ.M(d_j)` but never the I-addresses already recorded in `Σ.L(a)`. Suppose content
 is later inserted before, deleted from, or rearranged around a referenced region:
@@ -248,7 +300,28 @@ in the abstract characterization of ASN-0098 (LP12),
 
 > `discoverable_from(a, d', Σ') ⟺ (E i : 1 ≤ i ≤ 3 : coverage(Σ'.L(a).eᵢ) ∩ ran(Σ'.M(d')) ≠ ∅)`.
 
-Since MAKELINK sets `Σ'.L(a) = (e₁, e₂, e₃)` with `coverage(e_i) = ρ(R_i, Σ)`,
+Since MAKELINK sets `Σ'.L(a) = (e₁, e₂, e₃)`, the right-hand side reduces in two
+steps.
+
+*Fact (a) — the coverage/`ρ` gap collapses on the content store.* Every image of an
+arrangement is content, `ran(Σ'.M(d')) ⊆ dom(Σ.C)` (S3), so intersecting with
+`coverage(eᵢ)` consults only its content part, which by ML1 is exactly the resolved
+set: `coverage(eᵢ) ∩ ran(Σ'.M(d')) = ρ(R_i, Σ) ∩ ran(Σ'.M(d'))`. The covering
+surplus — the non-content descendants in `coverage(eᵢ)` — cannot meet a content
+range and so drops out.
+
+*Fact (b) — the post-state range equals the pre-state range for the test.* For
+`d' ≠ d`, `K.μ⁺_L` touches only the home document's arrangement, so
+`Σ'.M(d') = Σ.M(d')` and `ran(Σ'.M(d')) = ran(Σ.M(d'))`. For the boundary case
+`d' = d` — the home document itself, exactly the case ML4 highlights — `K.μ⁺_L`
+extends the arrangement by the single binding `v_a ↦ a`, so
+`ran(Σ'.M(d)) = ran(Σ.M(d)) ∪ {a}`; but the added address `a` is a link-subspace
+address (`subspace_I(a) = s_L`), while `coverage(eᵢ)` and its surplus lie in content
+subtrees (subspace `s_C`), so `a ∉ coverage(eᵢ)` and the added point is inert:
+`coverage(eᵢ) ∩ ran(Σ'.M(d)) = coverage(eᵢ) ∩ ran(Σ.M(d))`. In both cases the test
+reads against the pre-state range.
+
+Composing (a) and (b),
 
 > `wp(makelink(d, R₁, R₂, R₃), discoverable_from(a, d', ·))`
 > `≡ (E i : 1 ≤ i ≤ 3 : ρ(R_i, Σ) ∩ ran(Σ.M(d')) ≠ ∅)`.
@@ -286,19 +359,59 @@ identity, in an owned home, by a permanent address — refracted through the
 permanence of the I-address space and the orthogonality of ownership and
 application.
 
+## A worked example
+
+Fix three documents `A`, `B`, `C`, all in `dom(Σ.M)`, and create a link homed in
+`C` that connects content of `A` to content of `B` — touching nothing in `C`. This
+is the annotation shape of ML4.
+
+*Source content.* In `A`, two active V-positions map to content I-addresses
+`a₁ = A.0.s_C.1` and `a₂ = A.0.s_C.2`, so `{a₁, a₂} ⊆ ran(Σ.M(A))`. In `B`, one
+active V-position maps to `b₁ = B.0.s_C.1`, so `b₁ ∈ ran(Σ.M(B))`. A type address
+`θ₁` is held somewhere stable.
+
+*Arguments.* `from = R₁` resolves to `ρ(R₁, Σ) = {a₁, a₂}`; `to = R₂` resolves to
+`ρ(R₂, Σ) = {b₁}`; `type = R₃` resolves to `ρ(R₃, Σ) = {θ₁} ≠ ∅`, so the type
+precondition of ML6 is met; `home = C`.
+
+*Identity (ML0).* `A_L(C)` emits the fresh link address `a = C.0.s_L.1` — `C`'s
+first link. It is fresh (`a ∉ dom(Σ.L)`), home-scoped
+(`home(a) = N(a).0.U(a).0.D(a) = C`), and distinct from every content address
+(`subspace_I(a) = s_L ≠ s_C`).
+
+*Record (ML1, ML2).* `Σ'.L(a) = (e₁, e₂, e₃)` with
+`e₁ = {(a₁, δ(1,#a₁)), (a₂, δ(1,#a₂))}`, `e₂ = {(b₁, δ(1,#b₁))}`,
+`e₃ = {(θ₁, δ(1,#θ₁))}`. Checking ML1/ML2: `coverage(e₁) ∩ dom(Σ.C) = {a₁, a₂} =
+ρ(R₁, Σ)` — the subtrees of `a₁` and `a₂` hold no other content address, their
+proper descendants having `#E ≥ 3` — and likewise `coverage(e₂) ∩ dom(Σ.C) = {b₁}`.
+The two runs of `e₁` stay separate when `a₁, a₂` are non-adjacent in I-space, but
+nothing observable hangs on whether they are recorded as two unit spans or one
+wider span; only the content-coverage `{a₁, a₂}` is observable.
+
+*Discoverability (ML9).* Evaluate `discoverable_from(a, d', Σ')` for each document.
+From `A`: `coverage(e₁) ∩ ran(Σ'.M(A)) ⊇ {a₁} ≠ ∅` — discoverable. From `B`:
+`coverage(e₂) ∩ ran(Σ'.M(B)) ⊇ {b₁} ≠ ∅` — discoverable. From the home `C`: the
+link's endsets reference only `A`- and `B`-content, none of it in `ran(Σ'.M(C))`;
+the one address `C`'s arrangement gained is `a` itself, in the link subspace and
+outside every `coverage(eᵢ)`. So `coverage(eᵢ) ∩ ran(Σ'.M(C)) = ∅` for all `i`, and
+the link is *not* discoverable from its own home. This is ML9 made concrete:
+discovery follows the content the endsets name (`A` and `B`), not the residence
+(`C`). The link lives in `C` yet is found from `A` and `B` — residence and
+reachability are orthogonal.
+
 ## Claims Introduced
 
 | Label | Statement | Status |
 |-------|-----------|--------|
 | ML0 | IdentityAllocation: the link's identity is a fresh (`a ∉ dom(Σ.L)`), permanent (never removed, never reused — GlobalUniqueness, T8), value-fixed (L12) link-subspace address allocated by `A_L(d)` under home `d`, with `home(a) = d` | introduced |
-| ML1 | EndsetResolution: each endset argument `R` is recorded as `ρ(R,Σ) = {Σ.M(d_j)(v) : v ∈ dom(Σ.M(d_j)) ∧ v ∈ ⟦σ_j⟧}` ⊆ dom(Σ.C) — I-addresses read through source arrangements at creation; the stored endset references content by identity, not position | introduced |
-| ML2 | FragmentationFaithful: a single V-span resolving to non-contiguous I-regions is recorded as the corresponding several distinct spans; recorded span-set cardinality is dictated by I-space fragmentation, not by the supplied V-span count | introduced |
+| ML1 | EndsetResolution: each endset argument `R` is recorded as `ρ(R,Σ) = {Σ.M(d_j)(v) : v ∈ dom(Σ.M(d_j)) ∧ v ∈ ⟦σ_j⟧}` ⊆ dom(Σ.C) (ASN-0058 `resolve` generalized to partial spans) — I-addresses read through source arrangements at creation; canonical unit-depth spans give `coverage(e_j) ⊇ ρ(R_j,Σ)` with `coverage(e_j) ∩ dom(Σ.C) = ρ(R_j,Σ)` (covering, not exact — ASN-0053 S7) | introduced |
+| ML2 | FaithfulRecovery: `coverage(e_j) ∩ dom(Σ.C) = ρ(R_j,Σ)` regardless of I-space fragmentation — every referenced content address recovered, none spurious; recorded span-set cardinality is a representation matter (no span-positional accessor, L5; projection by coverage only, LP21), not an abstract observable | introduced |
 | ML3 | UniformResolution: from, to, and type arguments are resolved by one procedure with no slot privileged at the V→I conversion step | introduced |
 | ML4 | ResidenceApplicationOrthogonality: home document and endset content are independent; the precondition relates `d` to no `ρ(R_j,Σ)`; a link may home anywhere and point anywhere, connecting two documents without residing in either | introduced |
 | ML5 | OrderedEndsets: the recorded triple is ordered, `(F,G,Θ) ≠ (G,F,Θ)` for `F ≠ G` (L6); the order fixes from/to roles semantically without restricting reachability (discovery is endset-symmetric) | introduced |
-| ML6 | TypedRelation: the non-empty third endset (L3), recorded like from/to but matched by address (L8), distinguishes a typed relation from a bare connection; type-by-address admits ghost types | introduced |
+| ML6 | TypedRelation: operation precondition `ρ(R₃,Σ) ≠ ∅` (the operation is undefined on a type spec that resolves empty, since K.λ requires `e₃ ≠ ∅`, L3); the third endset, recorded like from/to but matched by address (L8), distinguishes a typed relation from a bare connection; type-by-address admits ghost types | introduced |
 | ML7 | Permanence: `(A Σ' → Σ'' : a ∈ dom(Σ'.L) : a ∈ dom(Σ''.L) ∧ Σ''.L(a) = Σ'.L(a))` — the made link is not broken by any editing of the content it connects | introduced |
-| ML8 | EndsetImmutability: `coverage(Σ'.L(a).eᵢ)` is frozen at creation; editing source documents changes `Σ.M` but never the recorded I-addresses, so by S0 the endset survives as long as any referenced content persists | introduced |
+| ML8 | EndsetImmutability: the recorded value `Σ'.L(a)` is frozen at creation (L12), with `coverage(e_i) ∩ dom(Σ.C) = ρ(R_i,Σ)`; editing source documents changes `Σ.M` but never the recorded I-addresses, so by S0 the endset survives as long as any referenced content persists | introduced |
 | ML9 | DiscoverabilityDecoupledFromResidence: `wp(makelink, discoverable_from(a, d', ·)) ≡ (E i : ρ(R_i,Σ) ∩ ran(Σ.M(d')) ≠ ∅)`; home `d` does not appear — the link is discoverable from every region its endsets reference, residence-independently and endset-symmetrically | introduced |
 | ML10 | Frame: `Σ'.C = Σ.C`; `(A d' ≠ d : Σ'.M(d') = Σ.M(d'))`; existing `Σ.L` entries unchanged; the linked-into sources are unmodified by being linked into | introduced |
 
