@@ -1,0 +1,27 @@
+# Review of ASN-0121
+
+This is a query specification (FINDLINKSFROMTOTHREE) and it is unusually careful — soundness/completeness are derived rather than stipulated, directionality has an explicit disjoint-subtree witness, the empty-vs-wildcard distinction is drawn on both request and link sides, and the worked instance exercises every principal claim including the residence axis in Trace 6. The cross-document reach claim (FL-REACH d) is notably well-disciplined about *not* overclaiming a superset of the request-independent discoverable union. One genuine gap in the weakest-precondition analysis.
+
+## REVISE
+
+### Issue 1: FL-WP case (a) discharges addressability with the wrong notion of freshness
+
+**ASN-0121, FL-WP(a) derivation**: "The addressability conjunct is discharged by freshness: `ℓ ∉ dom(Σ.L)`, and an ordinary K.λ does not emit a retraction tuple targeting `ℓ`, so `ℓ ∉ nullified(Σ')` and hence `ℓ ∈ addressable(Σ')` unconditionally."
+
+**Problem**: This only rules out a retraction tuple emitted *by this step*. It ignores a **pre-existing** retraction tuple. Unfolding the inherited definition: since an ordinary K.λ leaves the retraction slice fixed, `L_R^{Σ'} = L_R^Σ`, so
+
+  `nullified(Σ') = { a ∈ dom(Σ'.L) : (E (b,F',G') ∈ L_R^Σ :: a ∈ coverage(G')) }`.
+
+Because `ℓ` now lies in `dom(Σ'.L)`, `ℓ ∈ nullified(Σ')` precisely when some pre-existing retraction tuple already covers `ℓ`. Freshness against `dom(Σ.L)` does **not** discharge this — `nullified(Σ)` is restricted to `dom(Σ.L)`, so `ℓ` can be uncovered "before" allocation yet covered "after." This is exactly the conjunct ASN-0086 deliberately carries in its wp Case 2: `¬(E (b, F', G') ∈ L_R^Σ :: a_emit(Σ, d) ∈ coverage(G'))`. ASN-0086 was careful not to assert this case away unconditionally; ASN-0121 asserts it away by appeal to "freshness," which is the weaker fact. As written, the stated wp is therefore not the weakest precondition (it admits a pre-state that fails the postcondition), and "unconditionally" is unjustified.
+
+**Required**: Either (a) add the missing conjunct `¬(E (b,F',G') ∈ L_R^Σ :: ℓ ∈ coverage(G'))` to the wp, or (b) prove it vacuous over this ASN's domain. Note (b) is available but must be shown, not assumed: link addresses form a prefix antichain (R0a, ASN-0086) and all link addresses under one document share the length-`#d+3` structure, so a unit-depth-disciplined retraction span `{t : target ≼ t}` cannot cover a fresh same-structure `ℓ` (same length forces `target = ℓ ∈ dom`, contradicting freshness; cross-document is excluded by T10). That argument — not "freshness" alone — is what discharges the conjunct, and it relies on the unit-depth retraction discipline, which the ASN works over the full ASN-0047 vocabulary without invoking.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Version-/time-qualified inquiry into pre-retraction states
+Correctly deferred to the Open Questions; FL-RET scopes the guarantee to current addressability per Nelson 4/9, and a prior-state inquiry is a different operation.
+
+### Topic 2: I-address vs V-spec request equivalence under full endpoint deletion
+The fragility of arrangement-mediated naming under full deletion is correctly framed as a front-end property and left to an Open Question, not a defect in `findlinks`.
+
+VERDICT: REVISE
