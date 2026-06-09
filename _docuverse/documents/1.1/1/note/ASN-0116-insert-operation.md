@@ -247,9 +247,14 @@ family. We name its clauses but derive them by citation, not from scratch:
   append case (`J = N+1`) split this way; in particular an insertion of `n ≥ 2`
   units seated within the last `n−1` occupied slots exercises the *mixed* split,
   with the lower block positions (index `≤ N`) discharged by I3-V and the upper ones
-  (index `> N`) by I3-CS. The unified attribution is sound because I3-CS discharges
-  every index-`> N` block position in both cases: `shift(u, n) = q_i` for `i > N`
-  would force `u = q_{N+1-n} < p`, which is not in the shifted suffix.
+  (index `> N`) by I3-CS. The unified attribution is sound because no block position
+  is a shifted-suffix image at all — so I3-CS adds no entry there. A block position
+  `q_i` is a shifted-suffix image only if `q_i = shift(u, n)` for some `u ≥ p` with
+  `u ∈ dom(M(d))`, i.e. `u = q_{i−n}` with index `i − n ≥ J`. But every block index
+  satisfies `i ≤ J + n − 1`, so `i − n ≤ J − 1 < J`, forcing `u < p` — outside the
+  shifted-suffix range `{u ∈ V_S(d) : u ≥ p}` that I3-CS quantifies over. This holds
+  for *every* block position uniformly (occupied and append cases alike), not merely
+  the single instance `i = N+1`.
 - (I-DOM) `{v ∈ dom(M'(d)) : subspace(v) = S} =
   {q_1, …, q_{J-1}} ∪ {q_J, …, q_{J+n-1}} ∪ {q_{J+n}, …, q_{N+n}}` — the domain
   closure ASN-0082 I3-CS/I3-CX specialised to the dense text subspace.
