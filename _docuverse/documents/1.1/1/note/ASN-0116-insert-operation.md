@@ -280,12 +280,17 @@ arrangement:
 
 ## INSERT as a valid composite over the K-vocabulary
 
-The Effect names its clauses by citation, but ASN-0047's reachable-state machinery —
-**ExtendedReachableStateInvariants** for the post-state, and the coupling constraints
-discharged below — applies only to a *valid composite* (**ValidComposite★**): a finite
-sequence of atomic transitions in which (clause 1) each step's precondition holds at the
-*intermediate* state it acts on, and (clause 2) the coupling constraints J0, J1★, J1'★
-hold *only* between the initial and final states. INSERT sequences just four of the
+To license the appeal to ASN-0047's reachable-state machinery —
+**ExtendedReachableStateInvariants** for the post-state — INSERT must be exhibited as a
+*valid composite* in the precise sense of ASN-0047's **ValidComposite★** (which we cite
+rather than restate): a finite sequence of atomic transitions whose (clause 1) per-step
+preconditions each hold at the intermediate state that step acts on, and whose (clause 2)
+coupling constraints J0, J1★, J1'★ hold between the composite's initial and final states.
+We discharge both clauses here, self-contained: every prerequisite is either fixed in the
+Effect above (the block-disjointness fact, RAN, I-NEW, I-PROV) or derived inline in this
+section, so the validity conclusion rests on nothing proved in a later section.
+
+INSERT sequences just four of the
 atomics — `K.α`, `K.μ⁻`, `K.μ⁺`, `K.ρ`. The arrangement change is *not*
 itself one of these atomics. It rewrites
 the I-address at *existing* suffix positions — `M(d)(q_k)` at `q_k` becomes
@@ -330,8 +335,14 @@ predecessors leave, is
   `dom(C)` — the block targets `A_new`, just committed by K.α, and the shifted-suffix
   targets are the old suffix addresses `{M(d)(q_J), …, M(d)(q_N)} ⊆ dom(C)` — which is
   exactly why the allocations must precede this step; (ii) every added V-position is
-  S8a-well-formed of depth `m` (shown below); (iii) the resulting content subspace
-  `{q_1, …, q_{N+n}}` is the dense run, so S8-depth, D-CTG★, D-MIN★ hold; (iv) every
+  S8a-well-formed of depth `m` — the shifted-suffix positions by **I3-VP**/**I3-VD**
+  (ASN-0082), and each new-block position `shift(p, k)` because `p` is S8a (precondition)
+  of depth `m` and **OrdShiftHom** (ASN-0036) preserves zero-freedom, positivity,
+  subspace, and depth `m` under the shift (the `k = 0` slot being `p` itself); (iii) the
+  resulting content subspace `{q_1, …, q_{N+n}}` is the dense run — by the
+  block-disjointness fact (Effect) the three index intervals `{1,…,J−1}`, `{J,…,J+n−1}`,
+  `{J+n,…,N+n}` are consecutive, gap-free, and union to `{1,…,N+n}` — so S8-depth,
+  D-CTG★, D-MIN★ hold; (iv) every
   added position sits in subspace `s_C`, meeting the amended K.μ⁺ content-subspace
   restriction; and (v) the domain grows strictly (`J−1 < N+n`). The prior positions
   `{q_1, …, q_{J−1}}` are untouched, so prior-domain agreement holds — K.μ⁺ never
@@ -356,9 +367,25 @@ because the prefix is left in place. Dropping K.μ⁻ here is forced, not option
 `J−1 = N = n_{s_C}` the content subspace would not contract strictly, so K.μ⁻ is
 *inapplicable* — and unnecessary, since nothing is vacated.
 
-With clause 1 verified step-by-step here and clause 2 (the coupling constraints J0,
-J1★, J1'★) discharged at the composite boundary in the provenance section below,
-INSERT is a valid composite; since `Σ` is reachable from `Σ₀`
+*Clause 2 — the couplings at the composite boundary.* Because INSERT both allocates
+content (I-ALLOC) and places it into the content subspace of `ran(M'(d))` (I-NEW), the
+boundary couplings J0, J1★, J1'★ apply; all three are driven by the range identity RAN
+(Effect), by which the I-addresses *new to the content-subspace range* of `M'(d)` are
+exactly `A_new = {shift(a, k) : 0 ≤ k < n}`, the shifted-suffix addresses being
+range-old. **J0 (AllocationPlacementCoupling)** — every freshly allocated I-address
+appears in the post-state arrangement: I-NEW places each `shift(a, k)` at
+`shift(p, k) ∈ dom(M'(d))` with `d ∈ E_doc`. **J1★ (ExtensionRecordsProvenance)** —
+every content-subspace range-new address carries a record: the range-new addresses are
+exactly `A_new`, and I-PROV records `(shift(a, k), d)` for each. **J1'★
+(ProvenanceRequiresExtension)** — every new entry `(a, d) ∈ R' ∖ R` is range-new: I-PROV
+adds only `A_new` records, each range-new, and recording a range-old (shifted-suffix)
+address would manufacture an entry with no range-new witness. So clause 2 holds between
+the composite's initial and final states. (The provenance section records this discharge
+as the named claim PROV and, separately from clause 2, establishes the composite-boundary
+coverage properties P7a/P7.)
+
+With clause 1 verified step-by-step and clause 2 discharged just above, INSERT is a
+valid composite; since `Σ` is reachable from `Σ₀`
 (precondition), the post-state is reachable too, and the appeal to
 ExtendedReachableStateInvariants for its post-state is licensed.
 
@@ -443,8 +470,12 @@ ExtendedReachableStateInvariants (ASN-0047) demands.
 consecutive — no gap — and pairwise disjoint — no double assignment — with
 union `{1, …, N+n}`. Therefore `V_S(d') = {q_1, …, q_{N+n}}` is the canonical dense
 run: `min(V_S(d')) = q_1` and the run is gap-free at the fixed depth `m`. This *is*
-the D-SEQ/D-MIN/D-CTG property of the post-state, established for INSERT rather
-than borrowed. The new material occupies exactly the interval
+the per-subspace contiguity of the post-state — **D-CTG★/D-MIN★/D-SEQ★**, the
+starred invariants that ExtendedReachableStateInvariants and the amended K.μ⁺
+require (ASN-0047) — established for INSERT rather than borrowed. We state the
+conclusion in the starred forms the operative state model uses; on the content
+subspace `S = s_C` the per-subspace slice is the whole text subspace, so these
+starred forms reduce to the unstarred D-CTG/D-MIN/D-SEQ of ASN-0036. The new material occupies exactly the interval
 `{q_J, …, q_{J+n-1}}`, a connected, ordered, gap-free block, and the whole stream
 around it stays a single coherent ordinal sequence.
 
@@ -461,29 +492,15 @@ allocates content (I-ALLOC) and places it into the content subspace of `ran(M'(d
 final states of the composite, plus a composite-boundary coverage property. The
 inserting document's identity is minted into the address as content enters
 (4/11), and the implementation writes a DOCISPAN provenance record per inserted
-I-span; I-PROV is the abstract counterpart of that record. We discharge each
-constraint directly.
+I-span; I-PROV is the abstract counterpart of that record.
 
-The range identity (RAN) drives all four: the I-addresses *new to the
+The three couplings J0 (AllocationPlacementCoupling), J1★ (ExtensionRecordsProvenance),
+and J1'★ (ProvenanceRequiresExtension) were discharged in the valid-composite argument
+above, all driven by the range identity RAN — the I-addresses *new to the
 content-subspace range* of `M'(d)` are precisely `A_new = {shift(a, k) : 0 ≤ k < n}`,
-the shifted-suffix addresses being range-old.
-
-- **J0 (AllocationPlacementCoupling).** Every freshly allocated I-address must appear
-  in some arrangement of the post-state. The fresh addresses are `A_new`, and I-NEW
-  places each `shift(a, k)` at the V-position `shift(p, k) ∈ dom(M'(d))` with
-  `d ∈ E_doc`. So J0 holds.
-- **J1★ (ExtensionRecordsProvenance).** Every I-address new to the content-subspace
-  range of `M'(d)` must carry a record `(a, d) ∈ R'`. The range-new addresses are
-  exactly `A_new` (range identity above), and I-PROV records `(shift(a, k), d)` for
-  each `0 ≤ k < n`. So J1★ holds. The shifted-suffix addresses, being range-old,
-  impose no new obligation — and indeed J1'★ forbids recording them.
-- **J1'★ (ProvenanceRequiresExtension).** Every new provenance entry `(a, d) ∈ R' ∖ R`
-  must correspond to an I-address range-new in `M'(d)`. The new entries are exactly
-  `{(shift(a, k), d) : 0 ≤ k < n}` (I-PROV adds only these, and `R` is otherwise
-  untouched), and each `shift(a, k) ∈ A_new` is range-new. So J1'★ holds. This is the
-  reason I-PROV records *only* `A_new` and not the shifted suffix: recording a
-  range-old address would manufacture an entry with no range-new witness, violating
-  J1'★.
+the shifted-suffix addresses being range-old, which is why I-PROV records *only* `A_new`
+and not the shifted suffix. Here we record that discharge as the named claim PROV and,
+separately from clause 2, establish the composite-boundary coverage properties P7a/P7.
 
 The post-state is a composite boundary, so it must also satisfy **P7a
 (ProvenanceCoverage, ASN-0047)**: every `a ∈ dom(C')` carries some record `(a, d') ∈ R'`. Split
