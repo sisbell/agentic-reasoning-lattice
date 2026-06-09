@@ -6,15 +6,15 @@ ASN-0086 commits the substrate to typed relations of arity three over `(F, G, K)
 
 ## Single-source
 
-Every typed relation *the framework gates* — every registered type emitted under `→_sh` — has a single-span source — `|F| = 1`, where for an endset `e` we write `|e|` for its *span count*: the number of spans `e` contains — an intrinsic measure distinct from `coverage(e)` (Shape-conformance). This is a commitment about what the framework admits, not about the link store underneath: a tuple filed directly into the link store (ASN-0043) may carry `|F| > 1`. The substrate narrows away only the multi-span, discontiguous from-set that the full link store (ASN-0043) would permit; it does not narrow what one span may reach — the one F span may itself cover a contiguous range or a whole subtree, not merely one address.
+Every typed relation *the framework gates* — every registered type emitted under `→_sh` — has a single-span source — `|F| = 1`, where for an endset `e` we write `|e|` for its *span count*: the number of spans `e` contains (Shape-conformance). This is a commitment about what the framework admits, not about the link store underneath: a tuple filed directly into the link store (ASN-0043) may carry `|F| > 1`. The substrate narrows away only the multi-span, discontiguous from-set that the full link store (ASN-0043) would permit; it does not narrow what one span may reach — the one F span may itself cover a contiguous range or a whole subtree, not merely one address.
 
 The one place this commitment bites against ASN-0086's own vocabulary is retraction. ASN-0086 defines `Nullify(Σ, d_retr, a) ≡ Emit_R(Σ, d_retr, ∅, {(a, δ(1, #a))})` — an *empty* from-set, with the target carried in G. Under `|F| = 1` that empty form fails every shape, so ASN-0086's literal `F = ∅` Nullify has **no** `→_sh` image.
 
-The framework supplies a one-span source in place of the empty one. The retraction wrapper is `Emit_R(Σ, d_retr, {r}, {(a, δ(1, #a))})`, with canonical from-fill the home document's own unit-depth span `r = (d_retr, δ(1, #d_retr))`: a one-span source (`|F| = 1`) and the single target as one unit-depth to-span in G (`|G| = 1`). That wrapper shape — `|F| = 1`, `|G| = 1` — conforms to **Binary** and to **Multi** alike; the span counts alone do not single out a shape. The framework *chooses* to register R as **Binary**, not because the wrapper forces it but because Binary's `|G| = 1` gates out multi-span retraction G: a Multi registration would admit gated `|G| ≥ 2` (discontiguous multi-target) retraction, and the framework's intent is that only *discontiguous* multi-target retraction fall to the front end (below), never to a gated `→_sh`-step. Binary is the strongest registration consistent with the wrapper, and the one that enforces that intent. The target remains in G as that single span, so ASN-0086's `nullified`/`L_R`/active-subset machinery, all of which read `coverage(G')` and ignore F, carry over unchanged.
+The framework supplies a one-span source in place of the empty one. The retraction wrapper is `Emit_R(Σ, d_retr, {r}, {(a, δ(1, #a))})`, with canonical from-fill the home document's own unit-depth span `r = (d_retr, δ(1, #d_retr))`: a one-span source (`|F| = 1`) and the single target as one unit-depth to-span in G (`|G| = 1`). That wrapper shape — `|F| = 1`, `|G| = 1` — conforms to **Binary** and to **Multi** alike; the span counts alone do not single out a shape. The framework registers R as **Binary**: Binary's `|G| = 1` gates out multi-span (`|G| ≥ 2`) retraction G, so discontiguous multi-target retraction falls to the front end (below), never to a gated `→_sh`-step. The target remains in G as that single span, so ASN-0086's `nullified`/`L_R`/active-subset machinery, all of which read `coverage(G')` and ignore F, carry over unchanged.
 
 Binary registration is strictly weaker than ASN-0086's UnitDepthRetractionDiscipline: a single G-span of non-unit length — say `(t, δ(2, #t))`, covering a contiguous multi-address range — is equally Binary-conformant. Because `→_sh` gates R by Binary alone, a non-unit (contiguous-range) retraction is a legal `→_sh`-step that withdraws a whole contiguous region at once; unit-depth and R-Scope's single-tuple-scope result `{t : a ≼ t} ∩ A_rel^{Σ'} = {a}` hold only when the app routes every retraction through the unit-depth wrapper `Emit_R(Σ, d_retr, {r}, {(a, δ(1, #a))})`, which writes the canonical `{(a, δ(1, #a))}` to-span by construction. Only *discontiguous* multi-target retraction falls to the front end.
 
-We settle the relationship to the underlying link store explicitly: `→_sh` is the *complete* transition relation of a framework-governed substrate — every emit it admits is a `K.λ_sh`-step through the gate. The "only conforming tuples" conclusion below is inductive, so it needs a base case the gate cannot supply: we commit that the framework's base state carries an empty link store, `Σ_init.L = ∅` (inherited from ASN-0086's base state). With that base discharged, induction over `→_sh`-steps gives that within such a substrate `dom(Σ.L)` carries only conforming tuples and there is no off-gate path into the link store — the reachable-state conformance invariant P6 (Properties established). An app needing multi-source relations drops to a *different* substrate — ASN-0086's ungated `→`, whose `K.λ` admits arbitrary arity directly.
+`→_sh` is the *complete* transition relation of a framework-governed substrate — every emit it admits is a `K.λ_sh`-step through the gate. The "only conforming tuples" conclusion below is inductive, so it needs a base case the gate cannot supply: we commit that the framework's base state carries an empty link store, `Σ_init.L = ∅` (inherited from ASN-0086's base state). With that base discharged, induction over `→_sh`-steps gives that within such a substrate `dom(Σ.L)` carries only conforming tuples and there is no off-gate path into the link store — the reachable-state conformance invariant P6 (Properties established). An app needing multi-source relations drops to a *different* substrate — ASN-0086's ungated `→`, whose `K.λ` admits arbitrary arity directly.
 
 ## Three shapes by G span count
 
@@ -24,15 +24,15 @@ With F fixed at one span, the framework varies only by what G can hold. We measu
 |--------|----------------|-----------------------------------------------------------------|
 | Unary  | `\|G\| = 0` (G = ∅) | A predicate or marker on a single source                    |
 | Binary | `\|G\| = 1`      | A directed relation to one target span                          |
-| Multi  | `\|G\|` finite   | A single source connected to finitely many — possibly zero — target spans (subsumes Unary and Binary) |
+| Multi  | `\|G\|` finite   | A single source connected to finitely many — possibly zero — target spans |
 
-These conditions do **not** partition the space of expressible tuples: Unary (`|G| = 0`) and Binary (`|G| = 1`) are mutually exclusive, but Multi subsumes both (Shape-conformance). The shapes therefore classify *registrations*, not tuples: a type K is registered once with one shape, and that shape fixes which tuples are well-formed under K.
+Unary (`|G| = 0`) and Binary (`|G| = 1`) are mutually exclusive; the shapes classify *registrations*, not tuples: a type K is registered once with one shape, and that shape fixes which tuples are well-formed under K.
 
 ## Shape-conformance
 
 The shapes are stated in terms of the *span count* `|e|` of an endset (Single-source). F and G are endsets, and `Endset = 𝒫_fin(Span)` (ASN-0043) — a finite set of spans, so `|e|` is its cardinality as that set. The span-count and coverage measures diverge sharply. A single unit-depth span `(a, δ(1, #a))` is one span — `|{(a, δ(1, #a))}| = 1` — yet its coverage is `{t : a ≼ t}`, generally infinite (PrefixSpanCoverage, ASN-0043). Span-count, not coverage, is the measure.
 
-One edge follows from counting spans rather than coverage. Types are keyed by *coverage class* (Registration entries) — coverage-invariant — but F-conformance counts spans, a coverage-variant notion. So a source presenting one contiguous extent as two abutting spans `(a, ℓ₁)`, `(a ⊕ ℓ₁, ℓ₂)` has `|F| = 2` and fails every shape, even though its coverage equals that of the conformant one-span F. The rule is on the side of the literal emission: **a single-span slot means a single span as emitted**, and coalescing abutting spans to that canonical form before emit is the app's responsibility wherever a shape constrains a slot to one span — F under every shape, G under Binary — not the substrate's at the gate (udanax-green performs no endset coalescing, `spanf1.c`). (Genuinely discontiguous multi-span F — a gap between spans, hence a *different* coverage — is rejected on its own merits as the multi-source case the substrate does not provide; see Single-source.) Counting spans-as-emitted keeps the measure intrinsic to the value and thus state-independent (P4).
+One edge follows from counting spans rather than coverage. Types are keyed by *coverage class* (Registration entries) — coverage-invariant — but F-conformance counts spans, a coverage-variant notion. So a source presenting one contiguous extent as two abutting spans `(a, ℓ₁)`, `(a ⊕ ℓ₁, ℓ₂)` has `|F| = 2` and fails every shape, even though its coverage equals that of the conformant one-span F. The rule is on the side of the literal emission: **a single-span slot means a single span as emitted**, and coalescing abutting spans to that canonical form before emit is the app's responsibility wherever a shape constrains a slot to one span — F under every shape, G under Binary — not the substrate's at the gate. (Genuinely discontiguous multi-span F — a gap between spans, hence a *different* coverage — is rejected on its own merits as the multi-source case the substrate does not provide; see Single-source.) Counting spans-as-emitted keeps the measure intrinsic to the value and thus state-independent (P4).
 
 The predicate `Sh-conf(K, F, G)` is defined only for *registered* K — those for which the registry records a shape. For an unregistered K, `shape(K)` does not exist and `Sh-conf(K, F, G)` carries no truth value. For a typed tuple `(F, G, K)` under a type K registered with shape s, `Sh-conf(K, F, G)` holds when:
 
@@ -40,9 +40,9 @@ The predicate `Sh-conf(K, F, G)` is defined only for *registered* K — those fo
 - Binary: `|F| = 1` and `|G| = 1`;
 - Multi: `|F| = 1` and `|G| < ∞`.
 
-For Multi the conjunct `|G| < ∞` holds for *every* endset by `Endset = 𝒫_fin(Span)`, so Multi places no real bound on G's span count — it is the unrestricted, permissive shape, constraining only F.
+For Multi the conjunct `|G| < ∞` holds for *every* endset by `Endset = 𝒫_fin(Span)`, so Multi places no real bound on G's span count — it is the unrestricted, permissive shape that subsumes Unary and Binary, constraining only F.
 
-`Sh-conf` consults nothing about content residence. Endset spans may reference any address, including ghost addresses at which nothing is stored: L4 and L9 (ASN-0043) permit this, Nelson is explicit that "endset addresses do NOT need to resolve to stored content" — the type endset especially "is designed to exploit this" — and Gregory confirms udanax-green enforces no residence check at link creation. The framework inherits that permission unchanged. In particular `Sh-conf` consults no state-indexed address set.
+`Sh-conf` consults no state-indexed address set: it imposes no residence check, so endset spans may reference any address, including ghost addresses at which nothing is stored. L4 and L9 (ASN-0043) permit this, and the framework inherits the permission unchanged.
 
 The predicate therefore depends only on the tuple's span counts `|F|`, `|G|` and the shape recorded for K in the registry — a property of the tuple-plus-registration pair, evaluable identically at any reachable state.
 
@@ -133,11 +133,11 @@ This note establishes the following structural properties of every substrate sat
 
 **P2 (ShapeStability).** For every registered K, `shape(K)` depends only on the P1-invariant registry, hence is constant on `→_sh*`. *Derived* from C0 (RegistryWellFormedness, Registration entries) for single-valuedness and P1 (RegistryInvariance, Registry permanence) for state-independence.
 
-**P3 (Sh-confWellFormedness).** No `→_sh`-step extends `dom(Σ.L)` with a tuple `(F, G, K)` whose K is unregistered, nor with one for which `Sh-conf(K, F, G)` fails. *Derived in The shape-gated emit*: the only store-of-links step is `K.λ_sh`, whose preconditions (0)–(ii) reject every such tuple at the gate.
+**P3 (Sh-confWellFormedness).** No `→_sh`-step extends `dom(Σ.L)` with a tuple `(F, G, K)` whose K is unregistered, nor with one for which `Sh-conf(K, F, G)` fails. *Derived in The shape-gated emit.*
 
 **P4 (Sh-confStateIndependence).** For any *registered* K and any F, G, and any reachable Σ, Σ', `Sh-conf(K, F, G)` is defined at both states and its verdict at Σ equals its verdict at Σ'. *Derived* (Registry permanence): definedness coincides because registration status is P1-invariant, and the verdict coincides because `Sh-conf` consults only the P1-invariant registry (Shape-conformance), reading the registered `shape(K)` and the tuple's own span counts.
 
-**P5 (GateRealizability).** Every conforming triple at an allocated home fires a `→_sh`-step depositing it at the fresh `a_emit(Σ, d)`. The *liveness* dual of P3. *Derived in The shape-gated emit* (Gate realizability), where the full statement is given.
+**P5 (GateRealizability).** Every conforming triple at an allocated home fires a `→_sh`-step depositing it at the fresh `a_emit(Σ, d)`. The *liveness* dual of P3. *Derived in The shape-gated emit (Gate realizability).*
 
 **P6 (ReachableConformance).** For every `→_sh*`-reachable Σ and every `a ∈ dom(Σ.L)`, the stored tuple `Σ.L(a) = (F, G, K)` has K registered and `Sh-conf(K, F, G) = ⊤`. This is the state-level closure of P3's single-step half — the guarantee a consuming app relies on. *Derived* by induction on derivation length: the base `Σ_init.L = ∅` (Single-source) holds vacuously; each `→_sh`-step either leaves `dom(Σ.L)` unchanged (K.σ, K.α) or extends it by one tuple that P3 forces to be registered and conforming, while every pre-existing tuple persists unchanged by L12 (LinkImmutability, ASN-0043) — applicable through the projection bridge (The shape-gated emit): each `→_sh`-step projects to a `→`-step on which L12 holds, and the L-component is shared (`Σ.L = π(Σ).L`) — preserving the hypothesis.
 
@@ -149,7 +149,7 @@ We fix concrete addresses to check P3 and P4 against a real scenario. Let the co
 - `c₂ = 1.1.0.1.0.1.0.1.2`
 - `c₃ = 1.1.0.1.0.1.0.1.3`
 
-each an element-level I-address with `zeros = 3`. Write `[x] = {(x, δ(1, #x))}` for the unit-depth singleton endset at `x` — a one-span endset, so `|[x]| = 1` whatever `coverage([x])` turns out to be (here `coverage([x]) = {t : x ≼ t}`, by PrefixSpanCoverage).
+each an element-level I-address with `zeros = 3`. Write `[x] = {(x, δ(1, #x))}` for the unit-depth singleton endset at `x` — a one-span endset, so `|[x]| = 1` (here `coverage([x]) = {t : x ≼ t}`, by PrefixSpanCoverage).
 
 Consider five registry entries:
 
@@ -189,6 +189,6 @@ The following are deliberately left for the successor note that layers operation
 
 5. **Predicate composition.** Composition rules over the atomic predicates each type receives — the predicate-composition territory left open here.
 
-6. **Extension beyond F=1 and N=3.** When an app eventually needs multi-source relations or richer arity, whether the path is a supplemental note that loosens the constraints here, a parallel framework, or direct link-store interaction.
+6. **Extension beyond F=1 and N=3.** Beyond the multi-source exit to ASN-0086's ungated `→` (Single-source), what path serves an app that needs richer arity — a supplemental note that loosens the constraints here, or a parallel framework.
 
 Each of these can be resolved without revisiting the structural commitments above.
