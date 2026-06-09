@@ -157,10 +157,9 @@ is the orthogonal relation: *each surviving piece of content keeps its
 I-address, and the arrangement re-coordinates itself around that fixed
 identity.* The left-shift is a relabelling of slots, not a transport of
 bindings. The exact-gap-closure happens *only in the Vstream*; the permanent
-I-addresses of the survivors do not change at all — "since the links are to the
-bytes themselves, any links to those bytes remain stably attached to them"
-(4/30, Q9). The deletion's boundaries are reflected precisely in the virtual
-renumbering and not at all in the content identity.
+I-addresses of the survivors do not change at all. The deletion's boundaries are
+reflected precisely in the virtual renumbering and not at all in the content
+identity.
 
 The displacement is confined to the subspace `S`. Gregory's evidence makes this
 structural: a text deletion at `1.x` cannot reach link positions at `2.x`,
@@ -415,16 +414,13 @@ nothing underneath it that could "still exist." Only a span, with extent, expose
 the seam between *binding* and *being*.
 
 What witnesses that the seam is real — that arrangement-ceasing-to-bind is a
-genuinely different act from content-ceasing-to-exist? The links. "Links between
-bytes can survive deletions, insertions and rearrangements, if anything is left
-at each end" (4/43, Q6). A link is anchored to bytes (I-addresses), not to
-positions, so deleting the span from `d`'s arrangement leaves the strap
-attached to the still-existing bytes. *A link could not survive deletion if
-deletion annihilated the bytes.* Its survival is direct evidence that DELETE
-removed a binding and left the existence intact. The same witness is the other
-documents that still arrange the content (P5): they continue to resolve it,
-which is impossible if the bytes are gone. The span is the seam between binding
-and being; deleting it is what shows the seam was there all along.
+genuinely different act from content-ceasing-to-exist? The links, and the other
+documents that share the content. A link survives because it anchors on the
+still-existing bytes (established formally at P4 below); the other documents that
+still arrange the content continue to resolve it (P5) — both impossible if the
+bytes were gone. Each is direct evidence that DELETE removed a binding and left
+the existence intact. The span is the seam between binding and being; deleting it
+is what shows the seam was there all along.
 
 ## Invariants the operation must preserve
 
@@ -736,11 +732,8 @@ frames hold directly: the content store is still `Σ.C` — every `a_k` survives
 DEL-FPROV), and the link store is untouched (DEL-LIMM). S3★ is vacuous over the
 now-empty text arrangement and verbatim on the untouched link positions; P4★ and
 P7a hold by the Effect-section preservation argument. The document now arranges no text, yet all of
-its former content remains permanent and reconstructible (Q20). *(We note only as
-an observation, not an abstract claim, that an implementation's internal index
-structure may retain shape after full deletion that a freshly-created empty
-document would not have; abstractly the two empty arrangements are
-query-indistinguishable, both denoting the empty partial function.)* ✓ P0, P2 (with
+its former content remains permanent and reconstructible (Q20); the resulting
+empty text arrangement denotes the empty partial function. ✓ P0, P2 (with
 `N' = 0`), S3★, DEL-FENT, DEL-FPROV, P4★, P7a.
 
 **Within-document sharing.** Suppose additionally `M(d)(q_2) = a_5` — `d`
