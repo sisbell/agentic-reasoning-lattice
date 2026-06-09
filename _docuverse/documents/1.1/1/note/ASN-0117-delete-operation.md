@@ -445,10 +445,18 @@ exactly one document's arrangement and reaches no other (Q17). Sharing is by
 reference to immutable identity, so a deletion in one sharer is invisible to the
 rest.
 
-**P5 (DocumentIsolation).** *For every `d' ≠ d`: `M'(d') = M(d')`, and for every
-`v' ∈ dom(M(d'))`, `M'(d')(v') ∈ dom(C')` with `C'(M'(d')(v')) = C(M(d')(v'))`.
-The arrangement and resolved content of every other document — including any
-that transcludes the deleted I-addresses — are invariant under DELETE on `d`.*
+**P5 (DocumentIsolation).** *For every `d' ≠ d`: `M'(d') = M(d')`, and every
+V-position of `d'` resolves to identical content across the transition, in
+whichever store its subspace designates. For content-subspace positions
+(`subspace(v') = s_C`): `M'(d')(v') ∈ dom(C')` with
+`C'(M'(d')(v')) = C(M(d')(v'))` (P0). For link-subspace positions
+(`subspace(v') = s_L`): `M'(d')(v') ∈ dom(L')` with
+`Σ'.L(M'(d')(v')) = Σ.L(M(d')(v'))` (DEL-LIMM). Stating the resolution as
+`M'(d')(v') ∈ dom(C')` for *every* `v'` would be false for any `d'` containing a
+link, whose `s_L` positions map into `dom(L)` — disjoint from `dom(C)` by store
+disjointness (SD, ASN-0093). The arrangement and resolved content of every other
+document — including any that transcludes the deleted I-addresses — are invariant
+under DELETE on `d`.*
 
 **Link survival, and discoverability across documents.** A link's endsets
 reference I-addresses, not V-positions (4/42, 4/30). DELETE removes no I-address
@@ -521,29 +529,29 @@ Write `D(d, Σ) = {a ∈ dom(Σ.L) : discoverable_from(a, d, Σ)}`. We seek
 
 > `wp(DELETE, "D(d, Σ') = D(d, Σ)")`.
 
-We read `ran(M'(d))` off the Effect. Note `ran(M'(d))` is the *full-document*
-range, spanning both subspaces. Left text positions keep their I-addresses
-(DEL-LEFT); shifted text positions carry their I-addresses to new slots
-(DEL-SHIFT); the deleted block contributes nothing (DEL-REMOVE); and the
-link-subspace positions (subspace `s_L`) are preserved verbatim (DEL-FSUB),
-contributing `ran(M(d)\!\restriction\!V_{s_L}(d))` unchanged. Hence, writing
+P4 already established the full-document range decomposition, accounting for
+*both* subspaces:
+`ran(M'(d)) = M(d)(L) ∪ M(d)(R) ∪ ran(M(d)\!\restriction\!V_{s_L}(d)) ⊆ ran(M(d))`
+(the two text summands from DEL-LEFT/DEL-SHIFT, the link summand from DEL-FSUB).
+We do not re-derive it; we only refine the subset to the *exact* loss. Writing
 `M(d)\!\restriction\!Y` for the image of the position set `Y`,
 
-> `ran(M'(d)) = (M(d)(L) ∪ M(d)(R)) ∪ ran(M(d)\!\restriction\!V_{s_L}(d)) = ran(M(d)) \ A_del^{excl}`,
+> `ran(M'(d)) = ran(M(d)) \ A_del^{excl}`,
 
 where `A_del^{excl} = A_del \ M(d)(L ∪ R)` is the set of deleted I-addresses
 that *no surviving position of `d` also maps* — the addresses `d` loses from its
-range entirely. The second equality is justified, not asserted: `A_del` consists
-of *text* content addresses (`subspace_I = s_C`, by S7b/L0), hence disjoint from
-the unchanged `s_L` images, so removing exactly `A_del^{excl}` from the full prior
-range `ran(M(d))` — which already contained those same `s_L` images verbatim —
-yields precisely the full post-state range. The intermediate text-subspace term
-`M(d)(L) ∪ M(d)(R)` alone would *not* equal `ran(M'(d))`; the link-subspace
-images must be carried through, and they are. This matters because LP12 evaluates
-discoverability against the full `ran(M(d))`, and a link's coverage may reference
-link-subspace addresses (L4(c), cross-subspace endsets). (If a deleted I-address is also arranged elsewhere in `d` — the
-within-document sharing that S5/M13 of the arrangement model permit — it does
-not leave the range.) The link store is fixed throughout — `dom(Σ'.L) = dom(Σ.L)`
+range entirely. This refinement of P4's subset is justified, not asserted:
+`A_del` consists of *text* content addresses (`subspace_I = s_C`, by S7b/L0),
+hence disjoint from the unchanged `s_L` images that P4's decomposition carries
+through verbatim, so removing exactly `A_del^{excl}` from the full prior range
+`ran(M(d))` — which already contained those same `s_L` images — yields precisely
+the full post-state range. The link-subspace term is what makes the refinement
+exact rather than merely a text-subspace identity: LP12 evaluates discoverability
+against the full `ran(M(d))`, and a link's coverage may reference link-subspace
+addresses (L4(c), cross-subspace endsets). (If a deleted I-address is also
+arranged elsewhere in `d` — the within-document sharing that S5/M13 of the
+arrangement model permit — it does not leave the range.) The link store is fixed
+throughout — `dom(Σ'.L) = dom(Σ.L)`
 (DEL-LIMM) — so `D(d, ·)` is computed over the *same* index set before and after,
 and the quantification "for every prior link `a ∈ dom(Σ.L)`" below exhausts
 `dom(Σ'.L)` as well; were DELETE permitted to add a link, `D(d, Σ')` could acquire
