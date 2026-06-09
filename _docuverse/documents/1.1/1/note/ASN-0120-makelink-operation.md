@@ -78,12 +78,20 @@ The from/to/type arguments do not arrive as I-addresses. They arrive as
 *content-region specifications*: each is a spec-set
 `R = ⟨(d₁, σ₁), …, (dₚ, σₚ)⟩`, a finite sequence of V-specs naming an allocated
 source document `d_j ∈ dom(Σ.M)` and a well-formed V-span `σ_j = (u_j, ℓ_j)` over
-it — *content-subspace* (`subspace(u_j) = s_C`), level-uniform (`#ℓ_j = #u_j`) and
-T12-well-formed (`Pos(ℓ_j)` and `actionPoint(ℓ_j) ≤ #u_j`, ASN-0034), at the common
-content V-position depth in `d_j` (ASN-0058). Restricting every supplied V-span to
-the content subspace is what lets resolution land in the content store below; an
-endset argument that reaches into the link subspace — a link pointing at another
-link — is deferred (Open Questions). A V-span lives in *arrangement* coordinates —
+it. We require each `σ_j` to be *content-subspace* (`subspace(u_j) = s_C`), at the
+common content V-position depth `m = #u_j ≥ 2` in `d_j` (ASN-0058), and — the
+load-bearing condition — to carry an *ordinal displacement* `ℓ_j = δ(n_j, m)` for
+some `n_j ≥ 1` (equivalently `actionPoint(ℓ_j) = #u_j`, the tight half of T12's
+`actionPoint(ℓ_j) ≤ #u_j`; `Pos(ℓ_j)` holds since `n_j ≥ 1`, so `σ_j` is
+T12-well-formed, ASN-0034). The ordinal-displacement requirement is not cosmetic.
+A merely level-uniform `ℓ_j` (`#ℓ_j = #u_j`) whose action point `k < m` would let
+the half-open interval `⟦σ_j⟧` escape the content subspace — e.g.
+`ℓ_j = [c, 0, …, 0]` has action point 1, so `u_j ⊕ ℓ_j = [s_C + c, 0, …, 0]` and
+`⟦σ_j⟧` sweeps in link-subspace V-positions such as `[s_L, 1]`, whose images lie in
+`dom(Σ.L)`, not `dom(Σ.C)`. Forcing the displacement to act at depth `m` pins
+position 1 of every tumbler in `⟦σ_j⟧` to `s_C` (derived below), which is exactly
+what lets resolution land in the content store. An endset argument that reaches into
+the link subspace — a link pointing at another link — is deferred (Open Questions). A V-span lives in *arrangement* coordinates —
 the positions a reader currently sees — and arrangement is exactly the mutable
 component of state.
 
@@ -107,14 +115,27 @@ We define *endset resolution* accordingly. For a spec-set `R` at state `Σ`,
 
 > `ρ(R, Σ) = (∪ j : 1 ≤ j ≤ p : { Σ.M(d_j)(v) : v ∈ dom(Σ.M(d_j)) ∧ v ∈ ⟦σ_j⟧ })`
 
-— the set of I-addresses to which the named, currently-active V-positions map. By
-generalized referential integrity (S3★, ASN-0047) applied to the content-subspace
-V-positions the spec restricts to (`subspace(v) = s_C ⟹ Σ.M(d_j)(v) ∈ dom(Σ.C)`),
-`ρ(R, Σ) ⊆ dom(Σ.C)`: every recovered address is real content. (In the ASN-0047
-substrate S3★ supersedes ASN-0036's S3, which alone would not discharge the
-containment, since a document's arrangement also maps link-subspace V-positions
-into `dom(Σ.L)`; the content-subspace restriction is what confines `ρ` to the
-content store.) This is ASN-0058's `resolve` lifted to a spec-set: writing
+— the set of I-addresses to which the named, currently-active V-positions map. We
+must discharge `ρ(R, Σ) ⊆ dom(Σ.C)`, and this turns on a confinement step the
+ordinal-displacement precondition now supplies. Because `ℓ_j = δ(n_j, m)` acts at
+depth `m = #u_j`, `u_j ⊕ ℓ_j = shift(u_j, n_j)` agrees with `u_j` on positions
+`1..m−1` and differs only in the last (ASN-0034, OrdinalShift). Both endpoints of
+`⟦σ_j⟧ = {t : u_j ≤ t < u_j ⊕ ℓ_j}` therefore share the length-`(m−1)` prefix
+`p = (u_j)_1 … (u_j)_{m−1}` (non-empty since `m ≥ 2`), so `p ≼ u_j` and
+`p ≼ u_j ⊕ ℓ_j`; by T5 (ContiguousSubtrees, ASN-0034) every `t` with
+`u_j ≤ t ≤ u_j ⊕ ℓ_j` satisfies `p ≼ t`, hence in particular every `t ∈ ⟦σ_j⟧` has
+`t₁ = (u_j)₁ = s_C`. Thus every `v ∈ ⟦σ_j⟧` — a fortiori every active such
+`v ∈ dom(Σ.M(d_j))` — has `subspace(v) = s_C`. Generalized referential integrity
+(S3★, ASN-0047) discharges containment on exactly these content-subspace positions
+(`subspace(v) = s_C ⟹ Σ.M(d_j)(v) ∈ dom(Σ.C)`), giving `ρ(R, Σ) ⊆ dom(Σ.C)`: every
+recovered address is real content. (In the ASN-0047 substrate S3★ supersedes
+ASN-0036's S3, which alone would not discharge the containment, since a document's
+arrangement also maps link-subspace V-positions into `dom(Σ.L)`; the
+subspace-confinement step just shown is what restricts `ρ` to the content store.
+Note we cannot lean on ASN-0058's C0/C0a here — those force action point `= m` only
+for a *well-formed* content reference, and `ρ` deliberately admits partial spans
+below — so the confinement is re-derived directly from the ordinal-displacement form,
+which holds whether or not the reference is well-formed.) This is ASN-0058's `resolve` lifted to a spec-set: writing
 `resolve(d_j, σ_j)` for that ASN's recovery of the I-address runs under `σ_j`,
 `ρ(R, Σ)` is the union over `j` of the I-addresses those runs name. We diverge from
 `resolve` in one deliberate respect and name it as such: `resolve` is defined only
@@ -350,9 +371,17 @@ defined only for `d' ∈ dom(Σ.M)`,
 
 where `enabled(makelink(d, R₁, R₂, R₃)) ≡ d ∈ dom(Σ.M) ∧ ρ(R₃, Σ) ≠ ∅` unfolds the
 operation's own preconditions (paralleling the `enabled(K.μ⁻[d,R])` conjunct of
-ASN-0098 LP12a). The definedness conjuncts are essential: without them the formula
-would assert the postcondition reachable on inputs the operation rejects — e.g. an
-empty type spec, which ML6 forbids.
+ASN-0098 LP12a). Source-document allocation is *not* a separate conjunct of
+`enabled`, and its absence is deliberate, not an omission. Every well-formed
+spec-set argument already names allocated sources (`d_j ∈ dom(Σ.M)`, by the spec-set
+definition above), and the definedness of each `ρ(R_i, Σ)` requires exactly that
+every source document it names lie in `dom(Σ.M)`. So definedness of `ρ(R₁, Σ)`,
+`ρ(R₂, Σ)`, and `ρ(R₃, Σ)` alike is presupposed by well-formed input rather than
+guarded by `enabled`; `enabled` folds in only the genuinely operation-level guards
+that well-formedness does not already secure — home-document allocation and a
+non-empty type resolution. The remaining definedness conjuncts shown are essential:
+without them the formula would assert the postcondition reachable on inputs the
+operation rejects — e.g. an empty type spec, which ML6 forbids.
 
 Beyond the operation's own enabledness, the home document `d` does not appear in
 the discoverability test on the right. The condition for finding the
