@@ -340,12 +340,30 @@ stated as run-structure preservation, not as "the result is one span": confineme
 preserves *whatever* contiguity the footprint already had, neither creating nor
 healing fragmentation.
 
-*A genuine fragmentation.* The behaviour Nelson and Gregory describe — a single
-contiguous endset becoming discontiguous — occurs exactly when a single pre-run
-straddles a cut. In the worked pivot, a link covering `{B, C} = {a₂, a₃}` has the
-*contiguous* pre-footprint `{ord 2, ord 3}` (one run straddling the cut at
-`c₁ = ord 3`); `π` sends `ord 2 ↦ ord 5` and `ord 3 ↦ ord 2`, fragmenting it into
-the *discontiguous* post-footprint `{ord 2, ord 5}`. This realizes Nelson's "a link
+*Fragmentation requires straddling, but straddling does not force it.* The
+behaviour Nelson and Gregory describe — a single contiguous endset becoming
+discontiguous — occurs *only when* a single pre-run straddles a cut. The necessity
+is P7c read contrapositively: a footprint confined to one region keeps its run
+structure, so a contiguous run that fragments cannot have been confined and must
+therefore cross a cut. The converse fails. Straddling a cut does *not* force
+fragmentation, because the relocated region blocks re-tile `[c₀, c_{n-1})` so as to
+abut, and a run that covers one or more *complete* relocated blocks lands as an
+interval again. Take the worked pivot below (`A B C D E ↦ A C D E B`) and a link
+covering all of `α ∪ β = {B, C, D, E} = {a₂, a₃, a₄, a₅}`. The pre-footprint
+`{ord 2, 3, 4, 5}` is a single contiguous run straddling the cut `c₁ = ord 3`, yet
+`π` sends `ord 2 ↦ ord 5`, `ord 3 ↦ ord 2`, `ord 4 ↦ ord 3`, `ord 5 ↦ ord 4`, so
+the post-footprint is again `{ord 2, 3, 4, 5}` — one contiguous run, no
+fragmentation. The exact characterization is therefore geometric, not "straddles a
+cut": a contiguous footprint survives as contiguous precisely when its image under
+`π` is again an interval, which holds both for within-region confinement (P7c) *and*
+for runs that span complete relocated blocks.
+
+*A genuine fragmentation.* Fragmentation does occur when a straddling run covers
+only *part* of a relocated block. In the worked pivot, a link covering
+`{B, C} = {a₂, a₃}` straddles the cut at `c₁ = ord 3` while covering all of `α` but
+only the first byte of `β` — a partial block. Its *contiguous* pre-footprint
+`{ord 2, ord 3}` is sent by `π` (`ord 2 ↦ ord 5`, `ord 3 ↦ ord 2`) to the
+*discontiguous* post-footprint `{ord 2, ord 5}`. This realizes Nelson's "a link
 end that was a single contiguous span before the rearrange may become discontiguous
 afterward, because the bytes it holds onto have moved to new virtual positions"
 (Question 5) and Gregory's directly-observed endset fragmentation (Question 16).
@@ -507,6 +525,22 @@ well-defined only when the induced map is a bijection of `dom(M(d))` onto itself
 preserving the domain (P2). An alternative implementation must satisfy this no
 matter how it computes positions.
 
+REARRANGE is therefore a *partial* operation: it is defined exactly where its
+preconditions R-PRE hold against `M(d)` (ASN-0084 states that REARRANGE_K "is
+partial, defined exactly where R-PRE(K) holds"). R-PRE demands a strictly ascending
+cut sequence whose affected interval `[c₀, c_{n-1})` lies wholly within the active
+text subspace (R-PRE(iv)) and whose two moved-region widths are each `≥ 1` (a
+zero-width moved region is degenerate). The degenerate document sizes admit no such
+sequence and so fall outside the domain of definition; on them there is no
+transition. An empty text subspace (`V_{s_C}(d) = ∅`) offers no active positions to
+cut. A single active position cannot furnish an affected interval of the minimum
+width — two positions for a pivot (`w_α, w_β ≥ 1`), three for a swap
+(`w_α, w_μ, w_β ≥ 1`) — that strict ascent together with R-PRE(iv) require. More
+generally, any document whose active run is shorter than that minimum interval
+cannot satisfy R-PRE(iv) and strict ascent simultaneously. In each such case there
+is no valid cut sequence: REARRANGE does not apply, and the operation is simply
+silent on inputs outside its domain — it names no post-state.
+
 We flag, as an observation rather than a claim, that computing destinations by a
 *uniform displacement formula* per region — rather than by the tiling above — is
 correct only when the two moved regions have equal width. Gregory's analysis shows
@@ -534,7 +568,7 @@ the regions tile, not merely shift each by a local offset.
 | P3 (VExtentConservation) | `\|dom(M'(d))\| = \|dom(M(d))\|`, and the active run's endpoints are fixed — the document's total extent is conserved | introduced |
 | P5 (Discoverability) | Moved content is discoverable under its new V-position `π(v)` and resolves to its original I-address `M(d)(v)` | introduced |
 | P6 (LinkStoreFrame) | `Σ'.L = Σ.L` — links are untouched; a link anchored in a moved region survives and travels with its content because endsets reference unchanged I-addresses | introduced |
-| P7a (FootprintTransport) | `project(a, i, d, Σ') = π(project(a, i, d, Σ))` — a link's V-footprint is relocated through `π`; fragmentation of a contiguous endset occurs precisely when a single contiguous run straddles a cut, while a footprint merely split across regions may become more, less, or equally contiguous | introduced |
+| P7a (FootprintTransport) | `project(a, i, d, Σ') = π(project(a, i, d, Σ))` — a link's V-footprint is relocated through `π`; a contiguous footprint stays contiguous iff its `π`-image is again an interval (within-region confinement, or coverage of complete relocated blocks), so fragmentation of a contiguous run occurs *only when* it straddles a cut covering a partial block — straddling alone does not force it | introduced |
 | P7c (FootprintRunStructure) | `project(a, i, d, Σ) ⊆ one region ⟹ π preserves the footprint's run structure` — within each region `π` is a uniform ordinal shift, so confinement to one region is *sufficient* (not necessary) for contiguity-preservation; this is not a weakest precondition, since relocating the region blocks creates new seams (a straddling footprint may stay contiguous; a within-region gap stays fragmented) | introduced |
 | P7b (DiscoverabilityPreserved) | `project(a, i, d, Σ') ≠ ∅ ⟺ project(a, i, d, Σ) ≠ ∅` — fragmentation never costs discoverability | introduced |
 | P8a (FinalStateInvariance) | The atomic transposition and any two-move composite achieving the same net `π` reach the same final arrangement | introduced |
