@@ -211,7 +211,17 @@ mapping fixed, growing the domain only. No K.μ⁺ can vacate `v`. The effect is
 therefore a *contraction-then-extension* composite. Write `p = min + j` with
 `0 ≤ j < N`. **(i)** A K.μ⁻ step contracts `d`'s text subspace to the retained
 prefix `[min, p)` — retention count `n'_{s_C} = j` (a strict contraction, since
-`j < N`) — removing the trailing positions `{min + i : j ≤ i < N}`. The
+`j < N`) — removing the trailing positions `{min + i : j ≤ i < N}`. K.μ⁻ takes a
+*per-subspace* retention count (ASN-0047, K.μ⁻ PerSubspaceContractionScope), so we
+must fix the link subspace too: the step retains `d`'s link subspace *in full*,
+`n'_{s_L} = n_{s_L}`. This is a non-strict retention on `s_L`, which is admissible
+because the text subspace already supplies the strict contraction K.μ⁻ requires of
+*some* subspace (`n'_{s_C} = j < N`). Consequently the contraction leaves
+`d`'s link-subspace V-positions untouched, and step (ii)'s K.μ⁺ adds only `s_C`
+positions (the placement and the displaced trailing content) — so `d`'s
+link-subspace arrangement is carried through *both* steps unchanged. This is what
+discharges CP6's `subspace(v) ≠ s_C` conjunct: every non-text V-position of `d`
+survives the composite with its binding intact. The
 intermediate state `Σ₁` satisfies the per-state invariants: its text run
 `{min + i : 0 ≤ i < j}` is a contiguous block from `min` (D-CTG★/D-MIN★ restricted
 to `s_C`, the latter vacuous when `j = 0`); `Σ₁.M(d)` is a restriction of the
@@ -603,6 +613,25 @@ We check the claims numerically.
   so the two cannot merge (ASN-0058, M16). Two live parents are named, neither of
   them `d`. A REPLICATE would instead mint three addresses under `d` and collapse
   the multiset to `{d, d, d}`, erasing the seam between source A and source B.
+- **CP8 (provenance).** We classify each resolved address against `d`'s pre-state
+  content-subspace range, `ran(Σ.M(d))|_{s_C} = {x₁, x₂}`. None of `a₁, a₂, b₁`
+  lies in `{x₁, x₂}` — each was allocated by a source (`d_A` or `d_B`), so by S4
+  (OriginBasedIdentity) it is distinct from `d`'s own `x₁, x₂`. All three placed
+  addresses are therefore *range-new*: the placement (CP2) makes each new to
+  `d`'s content-subspace range in `Σ'`, so J1★ obliges a K.ρ step for each, and
+  J1'★ admits exactly those three. The composite thus runs three provenance steps,
+  yielding `(a₁, d), (a₂, d), (b₁, d) ∈ Σ'.R` — fresh recording for every
+  range-new address.
+
+  To exhibit the already-referenced branch, vary the spec-set to *re-place* `d`'s
+  own `x₁`: append `(d, σ_x)` with `σ_x = ([1,1], δ(1,2))`, resolving the extra
+  address `x₁` (a self-transclusion, CP9). Now `x₁ ∈ ran(Σ.M(d))|_{s_C}` already in
+  the pre-state — it is *not* range-new — so the placement re-binds an address `d`
+  already references. No K.ρ step fires for it: because `Σ` is a composite boundary,
+  P4★ (`Contains_C(Σ) ⊆ R`) gives `(x₁, d) ∈ Σ.R` already, and provenance
+  permanence P2 carries it into `Σ'`. The membership `(x₁, d) ∈ Σ'.R` holds without
+  a redundant record — the P4★/P2 branch firing exactly where J1'★ would forbid a
+  fresh K.ρ.
 
 The numbers exhibit the whole point: the destination's V-positions are new, but
 every I-address and every origin in the assembly is borrowed, intact, from the
