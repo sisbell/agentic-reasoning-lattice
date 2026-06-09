@@ -298,12 +298,12 @@ arrangement:
 
 The Effect names its clauses by citation, but ASN-0047's reachable-state machinery —
 **ExtendedReachableStateInvariants** for the post-state, and the coupling constraints
-discharged below — applies only to a *valid composite*: a finite sequence of the
-atomic transitions `{K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.ρ}` (K.μ~ being itself a
-named K.μ⁻+K.μ⁺ composite) in which each step's precondition holds at the
-*intermediate* state it acts on (**ValidComposite★** clause 1), with the coupling
-constraints J0, J1★, J1'★ verified *only* between the initial and final states
-(clause 2); we discharge them at the boundary below. The arrangement change is *not*
+discharged below — applies only to a *valid composite* (**ValidComposite★**): a finite
+sequence of atomic transitions in which (clause 1) each step's precondition holds at the
+*intermediate* state it acts on, and (clause 2) the coupling constraints J0, J1★, J1'★
+hold *only* between the initial and final states. INSERT sequences just four of the
+atomics — `K.α`, `K.μ⁻`, `K.μ⁺`, `K.ρ` — and we discharge clause 2 at the boundary
+below. The arrangement change is *not*
 itself one of these atomics. It rewrites
 the I-address at *existing* suffix positions — `M(d)(q_k)` at `q_k` becomes
 `M'(d)(q_{k+n})` at `q_{k+n}` — which K.μ⁺'s prior-domain agreement
@@ -354,8 +354,7 @@ predecessors leave, is
 
 The `K.μ⁻` then `K.μ⁺` pair is the K-atomic realization of the Effect's
 I-LEFT/I-SHIFT/I-NEW clauses — prefix fixed, suffix vacated and re-installed `n`
-higher, block filled. This section establishes only that the realization is a valid
-composite; the values themselves are fixed once, in the Effect.
+higher, block filled.
 
 *Append case `J = N+1` and empty case `V_S(d) = ∅`* (no suffix moves). I-SHIFT is
 vacuous and no contraction is needed; the sequence collapses to
