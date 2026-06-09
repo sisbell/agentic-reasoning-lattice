@@ -185,18 +185,23 @@ leaving `R = ∅`). This is exactly the foundation contraction's precondition
 (ASN-0082).
 
 *Effect.* DELETE is one arrangement contraction realising ASN-0082's
-displacement family, with the content store held in frame. It is *not* a single
-ASN-0047 atomic transition. The foundation transition **K.μ⁻
-(ArrangementContraction)** of that model is a *prefix-retention truncation*: it
-keeps a contiguous prefix of each subspace run *at the survivors' original
-V-positions* — its postcondition fixes `M'(d)(v) = M(d)(v)` on the retained
-domain `R := ∪_S {[S, 1, …, 1, k] : 1 ≤ k ≤ n'_S}` — whereas DELETE removes a
-span from the *middle* and left-shifts the suffix into the vacated slots, so a
-survivor's V-position changes. No single atomic transition expresses that:
-K.μ⁻ leaves survivors unshifted, K.μ~ preserves domain cardinality, K.μ⁺ adds
-content. DELETE is instead the foundation *composite* of two atomic transitions
-of the extended-state model `Σ = (C, L, E, M, R)` (ASN-0047), in the same sense
-that K.μ~ (ArrangementReordering) is itself a named K.μ⁻ + K.μ⁺ composite:
+displacement family, with the content store held in frame. Which ASN-0047
+realisation it is splits on whether any suffix survives the cut — on whether
+`R = ∅`. The foundation transition **K.μ⁻ (ArrangementContraction)** of that model
+is a *prefix-retention truncation*: it keeps a contiguous prefix of each subspace
+run *at the survivors' original V-positions* — its postcondition fixes
+`M'(d)(v) = M(d)(v)` on the retained domain
+`R := ∪_S {[S, 1, …, 1, k] : 1 ≤ k ≤ n'_S}`. When a *non-empty* suffix must shift
+left into the vacated slots, a survivor's V-position changes, and no single atomic
+transition expresses that: K.μ⁻ leaves survivors unshifted, K.μ~ preserves domain
+cardinality, K.μ⁺ adds content. But when the deletion reaches the end of the run
+(`R = ∅`), no survivor shifts, and a lone K.μ⁻ suffices. We take the two cases in
+turn.
+
+*Case `R ≠ ∅` (`J + c ≤ N`): the K.μ⁻ + K.μ⁺ composite.* When survivors remain
+past the gap, DELETE is the foundation *composite* of two atomic transitions of the
+extended-state model `Σ = (C, L, E, M, R)` (ASN-0047), in the same sense that K.μ~
+(ArrangementReordering) is itself a named K.μ⁻ + K.μ⁺ composite:
 
 1. a **K.μ⁻** step that contracts the text subspace to its surviving prefix
    `L = {q_1, …, q_{J−1}}` (retention count `n'_{s_C} = J − 1`), while holding
@@ -206,19 +211,44 @@ that K.μ~ (ArrangementReordering) is itself a named K.μ⁻ + K.μ⁺ composite
    closed-up text positions `{q_J, …, q_{N−c}}`, each carrying the I-address it
    held before — the former images of `q_{J+c}, …, q_N` (each in `dom(C)`, so
    K.μ⁺'s `a ∈ dom(C)` placement precondition is met) — yielding the dense run
-   `{q_1, …, q_{N−c}}` that discharges K.μ⁺'s D-CTG/D-MIN obligations.
+   `{q_1, …, q_{N−c}}` that discharges K.μ⁺'s D-CTG/D-MIN obligations. Because
+   `R ≠ ∅`, at least one survivor is re-placed (`N − c − (J − 1) ≥ 1`), so this
+   K.μ⁺ adds at least one mapping and meets K.μ⁺'s strict-extension precondition
+   (`dom(M'(d)) ⊃ dom(M(d))`, ASN-0047).
 
-The net effect on `M(d)` is exactly ASN-0082's left-shift displacement, which is
-why we read DELETE's clauses off ASN-0082 below; the K.μ⁻ + K.μ⁺ decomposition is
-what places DELETE inside ASN-0047's *valid-composite* vocabulary, licensing our
-appeal to the properties proven over that fuller model — the per-subspace
-well-formedness package, the referential-integrity invariant S3★, and the
-link/discoverability lemmas of ASN-0098, all quantified over reachable states and
-valid transitions of `Σ`.
+*Case `R = ∅` (`J + c = N + 1`): K.μ⁻ alone.* When the deletion reaches the end of
+the run there is no suffix to shift: the survivors are exactly the prefix
+`L = {q_1, …, q_{J−1}}` *at their original V-positions*, and since `J + c = N + 1`
+gives `J − 1 = N − c`, that prefix is already the closed-up dense run
+`{q_1, …, q_{N−c}}`. No re-placement is needed, and a K.μ⁺ step would have
+`N − c − (J − 1) = 0` survivors to add — an *empty* extension, which K.μ⁺'s
+strict-extension precondition (`dom(M'(d)) ⊃ dom(M(d))`) forbids, so the two-step
+composite has no realisation here. DELETE is instead a *single* **K.μ⁻** step: a
+prefix-retention truncation of the text subspace to count `n'_{s_C} = J − 1 = N − c`
+(with `n'_{s_C} < N` since `c ≥ 1`, supplying the strictly-contracting subspace),
+the link subspace held at full retention. The delete-everything sub-case
+`J = 1, c = N` is this with `n'_{s_C} = 0`. As an *elementary* transition K.μ⁻ is
+self-sufficient — it requires no coupling and carries
+`C' = C ∧ L' = L ∧ E' = E ∧ R' = R` directly (J2, ContractionIsolation, ASN-0047)
+— so every coupling and frame obligation below holds for this single-step
+realisation outright, without recourse to a second step.
 
-The composite's coupling obligations (ValidComposite clause 2: J0, J1★, J1'★
-evaluated *only* between the initial state `Σ` and the final state `Σ'`) are all
-discharged vacuously. **J0** (every freshly allocated I-address appears in some
+In both cases the net effect on `M(d)` is exactly ASN-0082's left-shift
+displacement (vacuous on the suffix when `R = ∅`), which is why we read DELETE's
+clauses off ASN-0082 below; the K.μ⁻ + K.μ⁺ decomposition (or the lone K.μ⁻ when
+`R = ∅`) is what places DELETE inside ASN-0047's *valid-composite* vocabulary,
+licensing our appeal to the properties proven over that fuller model — the
+per-subspace well-formedness package, the referential-integrity invariant S3★, and
+the link/discoverability lemmas of ASN-0098, all quantified over reachable states
+and valid transitions of `Σ`.
+
+DELETE's coupling and frame obligations are discharged identically in both
+realisations. For the `R = ∅` single step, J2 (ContractionIsolation) already
+supplies `C' = C ∧ L' = L ∧ E' = E ∧ R' = R` outright, so every obligation below
+holds trivially and the elementary K.μ⁻ carries no composite-coupling clause at
+all. For the `R ≠ ∅` composite we discharge ValidComposite clause 2 (J0, J1★, J1'★
+evaluated *only* between the initial state `Σ` and the final state `Σ'`)
+explicitly, all vacuously. **J0** (every freshly allocated I-address appears in some
 arrangement) holds because DELETE allocates no content — `dom(C') = dom(C)` (P0)
 — so its antecedent `dom(C') ∖ dom(C)` is empty. **J1★** (every I-address *new to*
 `d`'s content-subspace range must be recorded in `R`) holds because DELETE
@@ -681,19 +711,35 @@ the dense run with `N' = N − c = 4`. Reading end to end yields `a_1, a_3, a_4,
 relative order. ✓ DEL-SHIFT, D-BJ, P2.
 
 **Boundary — suffix delete (`J + c = N + 1`).** Take `p = q_4`, `c = 2`, so
-`r = q_6`, `R = ∅`. No position is shifted (DEL-SHIFT vacuous); `q_4, q_5` are
-removed; `V_S(d') = {q_1, q_2, q_3}`, `N' = 3`. Deleting the tail moves nothing.
-✓ DEL-DOM, P2.
+`r = q_6`, `R = ∅`. This is the `R = ∅` case, realised as a *single* K.μ⁻ step (no
+K.μ⁺): a prefix-retention truncation of the text subspace to count
+`n'_{s_C} = J − 1 = N − c = 3`. No position is shifted (DEL-SHIFT vacuous);
+`q_4, q_5` are removed; the surviving prefix `{q_1, q_2, q_3}` stays at its
+original positions, already the closed-up dense run, so `V_S(d') = {q_1, q_2, q_3}`,
+`N' = 3`. Deleting the tail moves nothing. K.μ⁻'s self-sufficiency (J2) supplies
+the frames directly: `Σ'.C = Σ.C` (P0, DEL-CIMM), `Σ'.E = Σ.E` (DEL-FENT),
+`Σ'.R = Σ.R` (DEL-FPROV), and the link store fixed (DEL-LIMM). S3★ holds because
+every surviving text image is unchanged with `C' = C`, and the link positions are
+untouched; P4★ holds because `Contains_C(Σ')` only shrinks while `R' = R`, and P7a
+because `dom(C') = dom(C)` with `R' = R` leaves every provenance record in place.
+✓ DEL-DOM, P2, S3★, DEL-FENT, DEL-FPROV, P4★, P7a.
 
 **Boundary — delete everything (`J = 1`, `c = N`).** Take `p = q_1`, `c = 5`,
-`r = q_6`. All five mappings are removed; `R = ∅`; `V_S(d') = ∅`, the empty
-arrangement. The content store is still `Σ.C` — every `a_k` survives. The
-document now arranges no text, yet all of its former content remains permanent
-and reconstructible (Q20). *(We note only as an observation, not an abstract
-claim, that an implementation's internal index structure may retain shape after
-full deletion that a freshly-created empty document would not have; abstractly
-the two empty arrangements are query-indistinguishable, both denoting the empty
-partial function.)* ✓ P0, P2 (with `N' = 0`).
+`r = q_6`. This too is the `R = ∅` case, realised as a single K.μ⁻ step — here a
+prefix-retention truncation to count `n'_{s_C} = J − 1 = 0` (the empty prefix). All
+five mappings are removed; `R = ∅`; `V_S(d') = ∅`, the empty arrangement. By J2 the
+frames hold directly: the content store is still `Σ.C` — every `a_k` survives
+(P0, DEL-CIMM) — the entity set and provenance relation are fixed (DEL-FENT,
+DEL-FPROV), and the link store is untouched (DEL-LIMM). S3★ is vacuous over the
+now-empty text arrangement and verbatim on the untouched link positions; P4★ holds
+since `Contains_C(Σ')` only shrinks while `R' = R`, and P7a since `dom(C') = dom(C)`
+with `R' = R` preserves every record. The document now arranges no text, yet all of
+its former content remains permanent and reconstructible (Q20). *(We note only as
+an observation, not an abstract claim, that an implementation's internal index
+structure may retain shape after full deletion that a freshly-created empty
+document would not have; abstractly the two empty arrangements are
+query-indistinguishable, both denoting the empty partial function.)* ✓ P0, P2 (with
+`N' = 0`), S3★, DEL-FENT, DEL-FPROV, P4★, P7a.
 
 **Within-document sharing.** Suppose additionally `M(d)(q_2) = a_5` — `d`
 arranges the content `a_5` at *two* positions. Delete `p = q_5`, `c = 1`. Then
