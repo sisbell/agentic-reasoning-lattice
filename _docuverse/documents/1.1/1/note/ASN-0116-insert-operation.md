@@ -109,7 +109,8 @@ K.α's subsequent-emission branch `a = inc(a_prev, 0)`, where
 For a span of `n` units, INSERT is the `n`-fold composition of K.α along the
 single content sub-allocator chain `A_C(d)`: the start `a` is fixed and each
 successive address advances by `inc(·, 0) = shift(·, 1)` (a valid address's
-significant position is its last). The allocated run is therefore exactly
+significant position is its last, so `inc(·, 0)` increments the final component —
+**TA5-SigValid** and **TA5(c)**, ASN-0034). The allocated run is therefore exactly
 
 > `A_new = {shift(a, k) : 0 ≤ k < n}`,
 
