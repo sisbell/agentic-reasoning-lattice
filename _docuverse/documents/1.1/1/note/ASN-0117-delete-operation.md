@@ -250,9 +250,15 @@ provenance entry requires range-new content) holds because DELETE adds no
 provenance, so its antecedent `R' ∖ R` is empty. Both component steps fix the
 entity set and the provenance relation (`E' = E`, `R' = R`: K.μ⁻'s frame and
 K.μ⁺'s frame each list both — clauses DEL-FENT, DEL-FPROV below), so the
-composite does too, and the two provenance invariants that coexist with S3★ are
-preserved across DELETE: P4★ (`Contains_C(Σ') ⊆ R'`) holds because `Contains_C`
-can only *shrink* under the net contraction while `R' = R` is unchanged, and P7a
+composite does too, and the three composite-boundary provenance properties of
+ExtendedReachableStateInvariants are preserved across DELETE. **P4★**
+(`Contains_C(Σ') ⊆ R'`) holds because `Contains_C` can only *shrink* under the
+net contraction while `R' = R` is unchanged. **P4a** (TraceWitnessing — every
+`(a, d) ∈ R` has a trace state whose content-subspace arrangement mapped some
+V-position to `a`) holds because `R' = R` and a valid trace to `Σ'` is the trace
+to `Σ` extended by this single DELETE composite; every existing record
+`(a, d) ∈ R = R'` therefore keeps the witness state it already had on the prefix
+trace, the deletion introducing no new record needing a fresh witness. **P7a**
 (every content address carries a provenance record) holds because
 `dom(C') = dom(C)` (P0) and `R' = R` leave every existing `(a, d)` record in
 place. We name DELETE's clauses but derive them by citation:
@@ -279,9 +285,7 @@ place. We name DELETE's clauses but derive them by citation:
 - (DEL-LIMM) `Σ'.L = Σ.L` — the link store is held entirely fixed, in both
   domain and per-address value: `dom(Σ'.L) = dom(Σ.L)` and
   `(A a : a ∈ dom(Σ.L) : Σ'.L(a) = Σ.L(a))`. DELETE allocates no link and edits
-  none. This is *stronger* than L12 (LinkImmutability, ASN-0043), which fixes
-  only the values of links already present and would still permit
-  `dom(Σ'.L) ⊋ dom(Σ.L)`; DELETE's contract forbids any growth of `dom(L)`.
+  none, so `dom(L)` neither grows nor shrinks.
 - (DEL-FSUB) `(A S' : S' ≠ S : {v ∈ dom(M'(d)) : subspace(v) = S'} =
   {v ∈ dom(M(d)) : subspace(v) = S'}` and `M'(d)` agrees there`)` —
   ASN-0082 **D-CS**. In particular the document's *links* (subspace `s_L`) are
@@ -292,7 +296,7 @@ place. We name DELETE's clauses but derive them by citation:
   (EntityHierarchy) survive DELETE trivially.
 - (DEL-FPROV) `Σ'.R = Σ.R` — the provenance relation is held fixed, by the
   composite-frame argument given in the Effect section above. Together with
-  `dom(C') = dom(C)` (P0) this preserves P4★ and P7a.
+  `dom(C') = dom(C)` (P0) this preserves P4★, P4a, and P7a.
 
 ## The document remains one coherent sequence
 
@@ -417,8 +421,7 @@ whichever store its subspace designates. For content-subspace positions
 (`subspace(v') = s_L`): `M'(d')(v') ∈ dom(L')` with
 `Σ'.L(M'(d')(v')) = Σ.L(M(d')(v'))` (DEL-LIMM). The per-subspace split here is
 the same one S3★ forces on `M'(d)` above (§"The document remains one coherent
-sequence"): a single `M'(d')(v') ∈ dom(C')` clause cannot be stated for *every*
-`v'`, because link positions resolve into `dom(L)`. The arrangement and resolved
+sequence"). The arrangement and resolved
 content of every other
 document — including any that transcludes the deleted I-addresses — are invariant
 under DELETE on `d`.*
@@ -660,31 +663,25 @@ end yields `a_2, a_3, a_4, a_5` — the opening unit omitted, the rest re-closed
 order. The deleted `a_1` persists in `C` (P0). ✓ DEL-SHIFT, D-BJ, D-SEP, P2,
 D-SEQ-post.
 
-**Boundary — suffix delete (`J + c = N + 1`).** Take `p = q_4`, `c = 2`, so
-`r = q_6`, `R = ∅`. This is the `R = ∅` case, realised as a *single* K.μ⁻ step (no
-K.μ⁺): a prefix-retention truncation of the text subspace to count
-`n'_{s_C} = J − 1 = N − c = 3`. No position is shifted (DEL-SHIFT vacuous);
-`q_4, q_5` are removed; the surviving prefix `{q_1, q_2, q_3}` stays at its
-original positions, already the closed-up dense run, so `V_S(d') = {q_1, q_2, q_3}`,
-`N' = 3`. Deleting the tail moves nothing. K.μ⁻'s self-sufficiency (J2) supplies
-the frames directly: `Σ'.C = Σ.C` (P0, DEL-CIMM), `Σ'.E = Σ.E` (DEL-FENT),
-`Σ'.R = Σ.R` (DEL-FPROV), and the link store fixed (DEL-LIMM). S3★ holds because
-every surviving text image is unchanged with `C' = C`, and the link positions are
-untouched; P4★ and P7a hold by the Effect-section preservation argument.
-✓ DEL-DOM, P2, S3★, DEL-FENT, DEL-FPROV, P4★, P7a.
-
-**Boundary — delete everything (`J = 1`, `c = N`).** Take `p = q_1`, `c = 5`,
-`r = q_6`. This too is the `R = ∅` case, realised as a single K.μ⁻ step — here a
-prefix-retention truncation to count `n'_{s_C} = J − 1 = 0` (the empty prefix). All
-five mappings are removed; `R = ∅`; `V_S(d') = ∅`, the empty arrangement. By J2 the
-frames hold directly: the content store is still `Σ.C` — every `a_k` survives
-(P0, DEL-CIMM) — the entity set and provenance relation are fixed (DEL-FENT,
-DEL-FPROV), and the link store is untouched (DEL-LIMM). S3★ is vacuous over the
-now-empty text arrangement and verbatim on the untouched link positions; P4★ and
-P7a hold by the Effect-section preservation argument. The document now arranges no text, yet all of
-its former content remains permanent and reconstructible (Q20); the resulting
-empty text arrangement denotes the empty partial function. ✓ P0, P2 (with
-`N' = 0`), S3★, DEL-FENT, DEL-FPROV, P4★, P7a.
+**Boundary — suffix delete and delete-everything (`R = ∅`).** Both `R = ∅`
+deletions are the *single* K.μ⁻ realisation (no K.μ⁺): a prefix-retention
+truncation of the text subspace to count `n'_{s_C} = J − 1 = N − c`, the link
+subspace held at full retention; no position is shifted (DEL-SHIFT vacuous).
+Take first the *suffix delete* `p = q_4`, `c = 2`, so `r = q_6`, `R = ∅`,
+retention count `n'_{s_C} = 3`: `q_4, q_5` are removed, and the surviving prefix
+`{q_1, q_2, q_3}` stays at its original positions — already the closed-up dense
+run — so `V_S(d') = {q_1, q_2, q_3}`, `N' = 3`. *Delete-everything* is the
+`n'_{s_C} = 0` specialisation: `p = q_1`, `c = N = 5`, all five mappings removed,
+`V_S(d') = ∅`, the empty arrangement denoting the empty partial function. In both,
+K.μ⁻'s self-sufficiency (J2) supplies the frames directly — `Σ'.C = Σ.C`
+(P0, DEL-CIMM, every `a_k` surviving permanently in `C`), `Σ'.E = Σ.E` (DEL-FENT),
+`Σ'.R = Σ.R` (DEL-FPROV), the link store fixed (DEL-LIMM) — and S3★ holds because
+every surviving text image is unchanged with `C' = C` (vacuously when
+`V_S(d') = ∅`) while the link positions are untouched; P4★, P4a, and P7a hold by
+the Effect-section preservation argument. The document then arranges all but the
+deleted tail (or, for delete-everything, no text at all), yet every former
+I-address remains permanent and reconstructible in `C` (Q20). ✓ DEL-DOM,
+P2 (with `N' = N − c`, including `N' = 0`), S3★, DEL-FENT, DEL-FPROV, P4★, P4a, P7a.
 
 **Within-document sharing.** Suppose additionally `M(d)(q_2) = a_5` — `d`
 arranges the content `a_5` at *two* positions. Delete `p = q_5`, `c = 1`. Then
@@ -761,7 +758,7 @@ only their placement in this one document's present view is withdrawn.
 | DEL-LEFT | Prefix positions `v < p` are unchanged (ASN-0082 D-L) | introduced |
 | DEL-DOM | `V_S(d')` is the dense run `{q_1, …, q_{N−c}}` with the gap closed (ASN-0082 D-DOM, D-SEP) | introduced |
 | DEL-CIMM | `Σ'.C = Σ.C` — the content store is a strict frame (ASN-0082 D-I) | introduced |
-| DEL-LIMM | `Σ'.L = Σ.L` — the link store is a strict frame, domain and value (stronger than L12) | introduced |
+| DEL-LIMM | `Σ'.L = Σ.L` — the link store is a strict frame, domain and value | introduced |
 | DEL-FSUB | Positions in subspaces `S' ≠ S` (notably links) are unchanged (ASN-0082 D-CS) | introduced |
 | DEL-FDOC | Arrangements of all documents `d' ≠ d` are unchanged (ASN-0082 D-CD) | introduced |
 | DEL-FENT | `Σ'.E = Σ.E` — the entity set is a strict frame (the K.μ⁻+K.μ⁺ composite entity frames, ASN-0047); P1/P8 preserved | introduced |
