@@ -41,8 +41,16 @@ positions share a common depth (S8-depth); the text subspace is *dense* —
 `V_S(d) = {[S, 1, …, 1, k] : 1 ≤ k ≤ N}` for some `N ≥ 0` (D-SEQ, with `N = 0`
 the empty case), so it occupies a contiguous, gap-free run of ordinals
 starting at the canonical first position `[S, 1, …, 1]`. We abbreviate the
-`k`-th position of this run as `q_k = [S, 1, …, 1, k]` of depth `m`, and
-observe the single arithmetic fact that does all the work below:
+`k`-th position of this run as `q_k = [S, 1, …, 1, k]` of depth `m`. The
+depth `m` deserves care: S8-depth fixes a single common depth only when
+`V_S(d) ≠ ∅`. When the subspace is empty there is no "common depth of
+`V_S(d)`" to speak of — the depth is instead supplied by the insertion
+position itself, `m := #p`, since the first insertion into an empty subspace
+is what *fixes* the depth for all later insertions (foundation:
+ValidFirstInsertionPosition, which takes an explicit `m ≥ 2` for exactly this
+reason). We carry `m = #p ≥ 2` throughout, equal to the S8-depth of `V_S(d)`
+whenever that set is non-empty. With `m` so pinned, we observe the single
+arithmetic fact that does all the work below:
 
 > `shift(q_k, n) = q_{k+n}` — advancing the last component by `n` carries the
 > `k`-th slot to the `(k+n)`-th, leaving the shared prefix `[S, 1, …, 1]`
@@ -71,31 +79,44 @@ address previously allocated under this document. Second, allocation consults
 deduplication mechanism anywhere in the insert path" (Q17). Inserting the same
 bytes twice yields two distinct addresses.
 
-We elevate this to the governing principle of allocation. Let `a` denote the
-I-start chosen for an insertion of width `n`. We require `a` to be **fresh**
-against the content store and to carry the document's origin:
+This is exactly the content-allocation transition of the substrate, and we do
+not re-derive it: allocating one unit is the foundation operation **K.α
+(ContentAllocation, ASN-0093)**, which commits a fresh content address `a`
+scoped to `d`, with
 
 > `a ∉ dom(C)`, `origin(a) = d`, `subspace_I(a) = s_C`.
 
-For a span of `n` units, the evidence shows the `n` addresses are allocated
-*contiguously* in one pass: the allocator fixes the start and advances by the
-full length, consolidating the run into a single I-span (Q14). Using the same
-ordinal shift on the content layer — `inc(a, 0) = shift(a, 1)` for a valid
-address, since its significant position is its last — the allocated addresses
-are exactly
+Its freshness is proved, not assumed — **FirstEmissionFreshness** (when `d`'s
+content region is empty) and **SubsequentEmissionFreshness** (otherwise)
+discharge `a ∉ dom(C) ∪ dom(L)` against the whole store. The
+`findpreviousisagr`-and-increment evidence above is the concrete realisation of
+K.α's subsequent-emission branch `a = inc(a_prev, 0)`, where
+`a_prev = max{a' ∈ dom(C) : origin(a') = d}`.
+
+For a span of `n` units, INSERT is the `n`-fold composition of K.α along the
+single content sub-allocator chain `A_C(d)`: the start `a` is fixed and each
+successive address advances by `inc(·, 0) = shift(·, 1)` (a valid address's
+significant position is its last). The allocated run is therefore exactly
 
 > `A_new = {shift(a, k) : 0 ≤ k < n}`,
 
-and we require the whole run fresh: `A_new ∩ dom(C) = ∅`. This is the answer to
-*what is allocated to hold the new material*: `n` fresh, contiguous,
-origin-stamped I-addresses, and the content values written there.
+contiguous on `d`'s content chain and fresh as a whole — `A_new ∩ dom(C) = ∅` —
+because each K.α step is fresh against the store as it stands after the previous
+step (Q14). This is the answer to *what is allocated to hold the new material*:
+`n` fresh, contiguous, origin-stamped I-addresses, and the content values written
+there.
 
-We name the freshness-and-distinctness guarantee, because it is the load-bearing
-abstract claim and an alternative implementation could not omit it:
+We record the freshness-and-distinctness guarantee the K.α composition carries,
+since it is the load-bearing fact the rest of the argument leans on. It is not
+new content: its freshness half is K.α's FirstEmission/SubsequentEmissionFreshness,
+and its value-independence half is **S4 (OriginBasedIdentity, ASN-0036)** —
+I-addresses from distinct allocation events are distinct regardless of stored
+value.
 
-**P0 (OriginIdentity).** *For each `k` with `0 ≤ k < n`, `shift(a, k) ∉ dom(C)`,
-and `shift(a, k)` is distinct from every I-address in `dom(C)` regardless of
-whether `C(shift(a, k))` equals the content stored at any existing address.*
+**P0 (OriginIdentity)** *(restatement of K.α freshness + S4).* *For each `k` with
+`0 ≤ k < n`, `shift(a, k) ∉ dom(C)`, and `shift(a, k)` is distinct from every
+I-address in `dom(C)` regardless of whether `C(shift(a, k))` equals the content
+stored at any existing address.*
 
 Why must this hold for *any* implementation? Because everything downstream —
 links that survive editing, transclusion, version correspondence, historical
@@ -165,27 +186,45 @@ We collect the arrangement effect as a named operation.
 
 **INSERT(`d`, `p`, `w₀ … w_{n-1}`).**
 
-*Precondition.* `d ∈ dom(M)`; `n ≥ 1`; `S = subspace(p)`; `p` is S8a-well-formed
-of the common depth `m` of `V_S(d)`; `p` is a valid insertion position (`p = q_1`
-if `V_S(d) = ∅`, else `p = q_J` for some `1 ≤ J ≤ N+1`); `a` is the fresh
-origin-`d` content I-start with `A_new ∩ dom(C) = ∅`.
+*Precondition.* `d ∈ dom(M)`; `n ≥ 1`; `S = subspace(p)`; `m := #p ≥ 2`, and
+when `V_S(d) ≠ ∅` this `m` equals the common depth that S8-depth fixes on
+`V_S(d)`; `p` is S8a-well-formed; and `p` is a valid insertion position in the
+foundation sense (ASN-0036):
 
-*Effect.*
+- if `V_S(d) = ∅`: `ValidFirstInsertionPosition(d, p, m)` — `p` is the canonical
+  first position `[S, 1, …, 1]` of depth `m`, and this first insertion *fixes*
+  the subspace depth at `m` for every later insertion;
+- if `V_S(d) ≠ ∅`: `ValidInsertionPosition(d, p)` — `p = q_J` for some
+  `1 ≤ J ≤ N+1`, with `J = N+1` the *append* case `p = shift(max(V_S(d)), 1)`.
+
+Allocation supplies `a` as the K.α-fresh origin-`d` content I-start (above),
+with `A_new ∩ dom(C) = ∅`.
+
+*Effect.* INSERT is the composite of `n` content allocations (K.α, ASN-0093) and
+one arrangement transition realising the post-insertion shift of ASN-0082's I3
+family. We name its clauses but derive them by citation, not from scratch:
+
 - (I-ALLOC) `dom(C') = dom(C) ∪ A_new`, with `C'(shift(a, k)) = w_k` for
-  `0 ≤ k < n`.
-- (I-IMM) `(A b : b ∈ dom(C) : C'(b) = C(b))`.
+  `0 ≤ k < n` — the K.α effect (ASN-0093), iterated `n` times along `A_C(d)`.
+- (I-IMM) `(A b : b ∈ dom(C) : C'(b) = C(b))` — K.α append-only (C0, ASN-0093).
 - (I-SHIFT) `(A v : v ∈ V_S(d) ∧ v ≥ p : shift(v, n) ∈ dom(M'(d)) ∧
-  M'(d)(shift(v, n)) = M(d)(v))`.
-- (I-LEFT) `(A v : v ∈ V_S(d) ∧ v < p : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v))`.
+  M'(d)(shift(v, n)) = M(d)(v))` — verbatim ASN-0082 **I3 (PostInsertionShift)**.
+- (I-LEFT) `(A v : v ∈ V_S(d) ∧ v < p : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v))` —
+  ASN-0082 **I3-L (PostInsertionLeftFrame)**.
 - (I-NEW) `(A k : 0 ≤ k < n : shift(p, k) ∈ dom(M'(d)) ∧
-  M'(d)(shift(p, k)) = shift(a, k))`.
+  M'(d)(shift(p, k)) = shift(a, k))` — the INSERT-specific fill of the block that
+  I3 leaves vacated (the positions I3-V withholds from `dom(M'(d))` until they are
+  re-populated), mapped in lockstep to the K.α run `A_new`.
 - (I-DOM) `{v ∈ dom(M'(d)) : subspace(v) = S} =
-  {q_1, …, q_{J-1}} ∪ {q_J, …, q_{J+n-1}} ∪ {q_{J+n}, …, q_{N+n}}`.
+  {q_1, …, q_{J-1}} ∪ {q_J, …, q_{J+n-1}} ∪ {q_{J+n}, …, q_{N+n}}` — the domain
+  closure ASN-0082 I3-CS/I3-CX specialised to the dense text subspace.
 
 *Frame.*
 - (F-SUB) `(A S' : S' ≠ S : {v ∈ dom(M'(d)) : subspace(v) = S'} =
-  {v ∈ dom(M(d)) : subspace(v) = S'}` and `M'(d)` agrees with `M(d)` there`)`.
-- (F-DOC) `(A d' : d' ≠ d : M'(d') = M(d'))`.
+  {v ∈ dom(M(d)) : subspace(v) = S'}` and `M'(d)` agrees with `M(d)` there`)` —
+  ASN-0082 **I3-X (PostInsertionCrossSubspaceFrame)**.
+- (F-DOC) `(A d' : d' ≠ d : M'(d') = M(d'))` — ASN-0082 **I3-D
+  (PostInsertionCrossDocumentFrame)**.
 
 ## The document remains one coherent sequence
 
@@ -203,11 +242,15 @@ is `{1, …, N+n}`. Therefore
 
 > `V_S(d') = {q_1, …, q_{N+n}}`,
 
-which is again the canonical dense run, now of length `N' = N + n`. D-SEQ,
-D-MIN (`min(V_S(d')) = q_1`), and D-CTG (contiguity) are preserved with the new
-count. No position is skipped — no gap; no position is doubly assigned — the
-three index intervals are disjoint, so `M'(d)` is single-valued and remains a
-function. This is the answer to *how the insertion sits within the V-stream as
+which is again the canonical dense run, now of length `N' = N + n`. We do not
+re-prove well-formedness: it is exactly ASN-0082's post-insertion preservation
+family — **D-SEQ-post**/**D-MIN-post** (`min(V_S(d')) = q_1`)/**D-CTG-post**
+(contiguity) for the dense run, **I3-VD** (depth uniformity) and **I3-VP** (S8a)
+for the positions, **I3-S2** for single-valuedness, **I3-fin** for finiteness,
+**I3-S3** for referential integrity. We restate the count-bearing fact here only
+to read off `N' = N + n`: the three index intervals `{1, …, J-1}`, `{J, …, J+n-1}`,
+`{J+n, …, N+n}` are consecutive (no gap) and disjoint (no double assignment),
+union `{1, …, N+n}`. This is the answer to *how the insertion sits within the V-stream as
 a connected region*: the new material occupies exactly the interval
 `{q_J, …, q_{J+n-1}}`, a connected, ordered, gap-free block, and the whole
 stream around it stays a single coherent ordinal sequence.
@@ -272,41 +315,64 @@ I-addresses, not V-positions (4/42, 4/30). Since INSERT removes no I-address
 content* after the operation as before. We can state this without modelling the
 link store in detail, using only the foundation notion that a link endpoint is
 an endset whose `coverage` is a set of I-addresses, and that its appearance in
-document `d` is the set of V-positions of `d` mapping into that coverage. Two
-facts hold:
+document `d` is the set of V-positions of `d` mapping into that coverage. Three
+facts hold — the first about the target, the next two about the resolved
+witnesses:
 
 - *The link's target is unchanged.* For any endset `e`, `coverage(e)` is a
-  function of I-addresses alone; INSERT alters no existing I-address and the new
-  addresses `A_new` are fresh, hence absent from any endset created before this
-  operation. So `coverage(e)` is identical in `Σ` and `Σ'` for every prior
-  endset.
-- *The resolved V-positions reflect the new layout.* A link whose coverage
-  includes `M(d)(v)` for some shifted `v ≥ p` is now found at `shift(v, n)`,
-  because `M'(d)(shift(v, n)) = M(d)(v)` (I-SHIFT) carries the same I-address to
-  the new slot. The link did not move to *different content*; the content it
-  always named simply sits at a higher V-address.
+  function of `e`'s spans alone, and INSERT never edits a stored link value: link
+  immutability **L12 (LinkImmutability, ASN-0043)** fixes `Σ'.L(a) = Σ.L(a)` for
+  every prior link `a`, so **LP3 (CoverageInvariance, ASN-0098)** gives
+  `coverage_{Σ'}(e) = coverage_{Σ}(e)` for every prior endset. We stress what
+  does *not* underwrite this: it is *not* that `A_new` is fresh against `dom(C)`.
+  Foundation **L4 (EndsetGenerality)** and **L9 (TypeGhostPermission)** let an
+  endset reference *any* tumbler, including ghost addresses not yet in `dom(C)`,
+  so a pre-existing endset may already name an address that INSERT now mints into
+  `A_new`. Coverage-invariance rests on endset immutability, not on freshness.
+- *The shifted-suffix witnesses move uniformly.* A link whose coverage includes
+  `M(d)(v)` for some shifted `v ≥ p` is now found at `shift(v, n)`, because
+  `M'(d)(shift(v, n)) = M(d)(v)` (I-SHIFT) carries the same I-address to the new
+  slot. The link did not move to *different content*; the content it always named
+  simply sits at a higher V-address.
+- *New-block witnesses (resurrection).* Precisely because a prior endset `e` may
+  reference an address in `A_new` (the ghost-reference case above), INSERT can
+  *add* witnesses to such a link. After the operation the new block carries
+  `M'(d)(shift(p, k)) = shift(a, k)`; if `shift(a, k) ∈ coverage(e)` for some
+  `0 ≤ k < n`, the V-position `shift(p, k)` newly resolves into `coverage(e)` — a
+  resurrection in the sense of **LP18 (ASN-0098)**, an orphaned reference becoming
+  discoverable exactly when an arrangement entry to its target appears. These
+  witnesses live at the inserted block, not at any `shift(v, n)`.
 
 This is the precise sense of Nelson's survivability clause restricted to
-insertion (4/43): because insertion removes nothing, *every* link survives, and
-each comes to rest on the same bytes it designated before. We record it.
+insertion (4/43): because insertion removes nothing, *every* link survives with
+its designated content unchanged. What insertion can do is *enlarge* a link's
+resolved-witness set — never shrink it, never redirect it. We record it.
 
 **P4 (LinkSurvival).** *For every endset `e` existing in `Σ`,
-`coverage_{Σ'}(e) = coverage_{Σ}(e)`; and for every V-position `v ≥ p` in
-`V_S(d)` whose image lies in `coverage(e)`, the witness in `Σ'` is
-`shift(v, n)`. No link's designated content changes; only its resolved
-V-positions reflect the post-insert arrangement.*
+`coverage_{Σ'}(e) = coverage_{Σ}(e)` (by L12 + LP3) — no link's designated content
+changes. For every V-position `v ≥ p` in `V_S(d)` whose image lies in
+`coverage(e)`, its post-insert witness is `shift(v, n)`. Additionally, when
+`coverage(e) ∩ A_new ≠ ∅`, the inserted block contributes new witnesses
+`shift(p, k)` with `shift(a, k) ∈ coverage(e)` (resurrection, LP18). Hence the
+post-insert resolved-witness set of `e` in `d` is the shifted-suffix witnesses
+together with any such new-block witnesses — a superset of the prior set, equal
+to it iff `coverage(e) ∩ A_new = ∅`.*
 
 **Isolation of documents sharing I-addresses.** Suppose another document `d'`
 arranges some of the same content `d` does — `ran(M(d')) ∩ ran(M(d)) ≠ ∅`. The
 question is whether inserting into `d` can perturb `d'`. It cannot, and the
 proof is the conjunction of three facts already in hand. By F-DOC,
 `M'(d') = M(d')` — `d'`'s arrangement is untouched. By P2/P3, the shared
-I-addresses retain their content — the bytes `d'` reads are immutable. And by
-P0, the addresses `A_new` are fresh, so they appear in no endset and no
-arrangement that existed before, in particular not in `M(d')`. Therefore `d'`
-resolves every one of its V-positions to the same content, in the same order,
-before and after: its arrangement *and its reader's experience* are identical
-(Q8). The isolation is a structural consequence of the two-layer split: INSERT
+I-addresses retain their content — the bytes `d'` reads are immutable. And the
+fresh addresses `A_new` cannot already inhabit `ran(M(d'))`: every arrangement
+obeys referential integrity, `ran(M(d')) ⊆ dom(C)` (S3), while `A_new ∩ dom(C) =
+∅` by P0, so `A_new ∩ ran(M(d')) = ∅`. (This step turns on *arrangements*, not
+endsets: it is valid here precisely because `ran(M(d')) ⊆ dom(C)`, whereas the
+analogous "fresh ⇒ not in any endset" inference fails — endsets may name ghost
+addresses, L4/L9. The isolation guarantee is about `d'`'s arrangement, so the
+valid arrangement-side argument is the one we need.) Therefore `d'` resolves
+every one of its V-positions to the same content, in the same order, before and
+after: its arrangement *and its reader's experience* are identical (Q8). The isolation is a structural consequence of the two-layer split: INSERT
 writes the arrangement of exactly one document (F-DOC) and appends to the global
 content store without disturbing any existing entry (P2). Sharing is by
 reference to immutable identity, so an insertion into one sharer is invisible to
@@ -317,40 +383,154 @@ the others.
 C(M(d')(v'))`. The arrangement and resolved content of every other document are
 invariant under INSERT on `d`.*
 
+## A weakest precondition: when is discoverability preserved?
+
+P4 leaves one question pointed but unanswered: under what condition does INSERT
+preserve, rather than merely not-shrink, the set of links discoverable from `d`?
+It is tempting to assume the answer is "always" — insertion removes nothing.
+Computing the weakest precondition shows otherwise, and the place it fails is
+exactly the resurrection gap P4 now records.
+
+Write `D(d, Σ) = {a ∈ dom(Σ.L) : discoverable_from(a, d, Σ)}` for the links
+discoverable from `d` (foundation `discoverable_from`, ASN-0098). We seek
+
+> `wp(INSERT, "D(d, Σ') = D(d, Σ)")`.
+
+By **LP12 (DiscoverabilityCharacterisation, ASN-0098)**, a link `a` is
+discoverable from `d` iff some slot's coverage meets the document's I-address
+range: `discoverable_from(a, d, Σ) ⟺ (E i : coverage(Σ.L(a).eᵢ) ∩ ran(M(d)) ≠
+∅)`. So the entire question reduces to how INSERT changes `ran(M(d))`. We read it
+off the Effect: left positions keep their I-addresses (I-LEFT), shifted positions
+carry their I-addresses to new slots (I-SHIFT), and the new block adds exactly
+`A_new` (I-NEW). Hence
+
+> `ran(M'(d)) = ran(M(d)) ∪ A_new`.
+
+This is one direction of **LP9 (ExtensionMonotonicity, ASN-0098)** made exact for
+the dense subspace: the arrangement range grows by precisely the freshly
+allocated run. Substituting into LP12, for every prior link `a`,
+
+```
+  discoverable_from(a, d, Σ')
+    ⟺ (E i : coverage(eᵢ) ∩ (ran(M(d)) ∪ A_new) ≠ ∅)
+    ⟺ discoverable_from(a, d, Σ)  ∨  (E i : coverage(eᵢ) ∩ A_new ≠ ∅).
+```
+
+Therefore `D(d, Σ') = D(d, Σ) ∪ {a ∈ dom(Σ.L) : (E i : coverage(Σ.L(a).eᵢ) ∩
+A_new ≠ ∅)}`. The two sets coincide iff that added set is empty. The weakest
+precondition is thus *not* trivially `true`; it is the operation's precondition
+conjoined with a genuine side condition on the allocated run:
+
+> `wp(INSERT, D(d, Σ') = D(d, Σ)) ≡ INSERT-pre ∧ (A a ∈ dom(Σ.L), i :
+> coverage(Σ.L(a).eᵢ) ∩ A_new = ∅)`.
+
+The derived consequence is exact and informative. Discoverability from `d` is
+preserved precisely when the freshly minted addresses lie outside every prior
+endset's coverage — that is, when no ghost reference is being resurrected. Had P4
+asserted unconditional preservation, this computation would have refuted it: the
+escape branch `coverage(eᵢ) ∩ A_new ≠ ∅` is non-empty exactly in the
+ghost-reference case that L4/L9 permit. Two corollaries fall out. (i) A
+*sufficient* condition discharging the side condition for free is a tight-endset
+discipline: if every prior endset is tight at its creation state (foundation
+`tight`, ASN-0098), then **LP19a (TightFreshness)** gives `A_new ∩ coverage(e) =
+∅` for every K.α-fresh address, so the wp reduces to `INSERT-pre`. (ii) Absent
+that discipline, the wp is the sharpest statement available, and it is the formal
+witness that "insertion preserves discoverability" is a *conditional*, not a
+theorem.
+
+## A worked insertion
+
+Fix the text subspace `S = s_C` at depth `m = 2`, so `q_k = [s_C, k]` and
+`shift(q_k, n) = [s_C, k+n] = q_{k+n}`. Let `d` currently hold `N = 5` text
+positions, `V_S(d) = {q_1, …, q_5}`, with I-addresses
+`M(d)(q_k) = a_k` for `k = 1, …, 5`. Suppose `d`'s content chain has greatest
+I-address `a_max = [d.0.s_C.6]`, so K.α's next emission is
+`a = inc(a_max, 0) = [d.0.s_C.7]`.
+
+**Insert `XY` (`n = 2`) at `p = q_3`.** Here `J = 3`, `S = s_C`, `m = #p = 2`,
+and `1 ≤ J ≤ N+1`, so `ValidInsertionPosition(d, q_3)` holds.
+
+*Allocation (I-ALLOC, P0).* `A_new = {shift(a, 0), shift(a, 1)} = {[d.0.s_C.7],
+[d.0.s_C.8]}`, both fresh (`a_max` was `[d.0.s_C.6]`, so neither `.7` nor `.8`
+was in `dom(C)`), contiguous, origin-`d`. Content written: `C'([d.0.s_C.7]) =
+X`, `C'([d.0.s_C.8]) = Y`. ✓ P0, P2.
+
+*Shift (I-SHIFT, I-LEFT).* Prefix `q_1, q_2` unchanged (I-LEFT). Suffix `q_k`
+with `k ≥ 3` moves by `shift(·, 2)`:
+
+```
+  q_3 → q_5  carrying a_3      q_4 → q_6  carrying a_4      q_5 → q_7  carrying a_5
+```
+
+*New block (I-NEW, P1).* The vacated block `{shift(p, 0), shift(p, 1)} = {q_3,
+q_4}` maps in lockstep to `A_new`: `M'(d)(q_3) = [d.0.s_C.7]`, `M'(d)(q_4) =
+[d.0.s_C.8]`. The pair `q_3 < q_4` is order-isomorphic to `[d.0.s_C.7] <
+[d.0.s_C.8]`. ✓ P1.
+
+*Domain (I-DOM).* The three index intervals are `{1, 2}` (prefix), `{3, 4}`
+(new), `{5, 6, 7}` (shifted suffix) — consecutive, disjoint, union `{1, …, 7}`.
+So `V_S(d') = {q_1, …, q_7}`, the dense run with `N' = N + n = 7`. ✓ I-DOM.
+
+*Reading end to end* now yields `a_1, a_2, X, Y, a_3, a_4, a_5` — the original
+content with `XY` interleaved between the second and third units, exactly
+Nelson's promise (Q10).
+
+**Boundary — append (`J = N + 1 = 6`).** Take `p = q_6 = shift(max(V_S(d)), 1) =
+shift(q_5, 1)`, `ValidInsertionPosition(d, q_6)`. No position `v ≥ q_6` lies in
+`V_S(d)`, so I-SHIFT is vacuous; I-LEFT preserves all of `q_1, …, q_5`; the new
+block `{q_6, q_7}` receives `A_new`. `V_S(d') = {q_1, …, q_5} ∪ {q_6, q_7} =
+{q_1, …, q_7}`, `N' = 7`. The inserted material lands at the end, no suffix
+moves. ✓ I-DOM, I-NEW, P1.
+
+**Boundary — empty subspace (`V_S(d) = ∅`).** The first insertion fixes the
+depth. Choose `m = 2` and `p = q_1 = [s_C, 1]`, so
+`ValidFirstInsertionPosition(d, p, 2)` holds. Insert `XY` (`n = 2`): no prefix,
+no suffix; the new block `{q_1, q_2}` receives `A_new`. `V_S(d') = {q_1, q_2}`,
+`N' = 0 + 2 = 2`, and the subspace depth is now pinned at `m = 2` for every later
+insertion. ✓ I-DOM (with `J = 1`, prefix and suffix intervals empty), I-NEW, P1.
+
 ## What we have established
 
-Two effects, two layers, kept clean. On the content layer INSERT is a
-freshness-respecting, monotone append (`P0`, `P2`, `P3`): `n` contiguous,
-origin-stamped I-addresses are minted and filled, and nothing prior is touched.
-On the arrangement layer INSERT is a uniform ordinal shift confined to one
-subspace of one document (I-SHIFT, I-LEFT, I-NEW, F-SUB, F-DOC), opening a
-gap-free block of exactly the right width and re-coordinating the suffix around
-fixed content identities. The well-formedness of the V-stream is preserved
-(D-SEQ/D-MIN/D-CTG with `N' = N + n`), the inserted span enters as a single
-connected run (`P1`), every link survives because it anchors on immutable
-identity (`P4`), and every other document is isolated because identity is shared
-by reference, not by arrangement (`P5`). The whole specification is, at bottom,
-the discipline of never letting an ephemeral position pretend to be a permanent
+Two effects, two layers, kept clean — and, crucially, *composed from foundation
+transitions rather than re-derived*. On the content layer INSERT is the `n`-fold
+content allocation K.α (ASN-0093), freshness-respecting and monotone (`P0`, `P2`,
+`P3`): `n` contiguous, origin-stamped I-addresses are minted and filled, and
+nothing prior is touched. On the arrangement layer INSERT is ASN-0082's
+post-insertion shift (I3, I3-L, I3-X, I3-D), a uniform ordinal shift confined to
+one subspace of one document, opening a gap-free block of exactly the right width
+and re-coordinating the suffix around fixed content identities. The
+well-formedness of the V-stream is preserved by the I3-VD/I3-VP/D-SEQ-post family
+(`N' = N + n`); the inserted span enters as a single connected run (`P1`); every
+link survives because it anchors on immutable identity, its coverage fixed by
+endset immutability L12+LP3 — and its resolved-witness set can *grow* (never
+shrink or redirect) when a prior endset already referenced an address INSERT now
+mints (`P4`, resurrection LP18). Every other document is isolated because
+identity is shared by reference, not by arrangement (`P5`). And the weakest
+precondition for preserving discoverability is not `true` but the side condition
+`coverage(e) ∩ A_new = ∅` — discharged for free under a tight-endset discipline,
+genuinely binding otherwise. The whole specification is, at bottom, the
+discipline of never letting an ephemeral position pretend to be a permanent
 identity.
 
 ## Claims Introduced
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| INSERT | Operation: place `n` fresh content units at valid V-position `p` in document `d`; allocate, append, shift | introduced |
-| P0 (OriginIdentity) | The `n` allocated I-addresses `{shift(a,k) : 0 ≤ k < n}` are fresh and distinct from all prior addresses, independent of content value | introduced |
+| INSERT | Operation: place `n` fresh content units at valid V-position `p` in document `d`, as the composite K.α (×n) + ASN-0082 I3 shift + new-block fill | introduced (composite) |
+| P0 (OriginIdentity) | The `n` allocated I-addresses `{shift(a,k) : 0 ≤ k < n}` are fresh and distinct from all prior addresses, independent of content value | restated (K.α freshness + S4, ASN-0036/0093) |
 | P1 (InsertedRun) | The inserted material forms one correspondence run: `M'(d)(shift(p,k)) = shift(a,k)`, V- and I-addresses advancing in lockstep over a contiguous block | introduced |
-| P2 (ContentAppendOnly) | `dom(C) ⊆ dom(C')` and existing values preserved; INSERT is purely additive on content | introduced |
-| P3 (AddressPermanence) | No existing I-address is removed or rebound; every new binding is at a fresh address | introduced |
-| P4 (LinkSurvival) | Every prior endset's coverage is unchanged; shifted links resolve at `shift(v,n)`, designating the same content | introduced |
+| P2 (ContentAppendOnly) | `dom(C) ⊆ dom(C')` and existing values preserved; INSERT is purely additive on content | restated (C0, ASN-0093) |
+| P3 (AddressPermanence) | No existing I-address is removed or rebound; every new binding is at a fresh address | restated (C0 + P0) |
+| P4 (LinkSurvival) | Every prior endset's coverage is unchanged (L12+LP3); shifted witnesses move to `shift(v,n)`; the resolved-witness set grows by new-block witnesses iff `coverage(e) ∩ A_new ≠ ∅` (resurrection, LP18) | introduced |
+| P6 (DiscoverabilityWP) | `wp(INSERT, D(d,Σ')=D(d,Σ)) ≡ INSERT-pre ∧ (∀ prior endset e : coverage(e) ∩ A_new = ∅)`; preservation is conditional, discharged free under tight-endset discipline (LP19a) | introduced |
 | P5 (DocumentIsolation) | Every other document's arrangement and resolved content are invariant under INSERT on `d` | introduced |
-| I-ALLOC | `dom(C') = dom(C) ∪ A_new`, `C'(shift(a,k)) = w_k` | introduced |
-| I-SHIFT | V-positions `≥ p` in subspace `S` move to `shift(v,n)`, carrying their I-address | introduced |
-| I-LEFT | V-positions `< p` in subspace `S` are unchanged | introduced |
-| I-NEW | The vacated block `{shift(p,k)}` maps to the fresh run `{shift(a,k)}` | introduced |
-| I-DOM | `V_S(d')` is the dense run `{q_1, …, q_{N+n}}`; D-SEQ/D-MIN/D-CTG preserved with `N' = N+n` | introduced |
-| F-SUB | Positions in subspaces `S' ≠ S` are unchanged (subspace confinement of the shift) | introduced |
-| F-DOC | Arrangements of all documents `d' ≠ d` are unchanged | introduced |
+| I-ALLOC | `dom(C') = dom(C) ∪ A_new`, `C'(shift(a,k)) = w_k` | cited (K.α, ASN-0093), iterated |
+| I-SHIFT | V-positions `≥ p` in subspace `S` move to `shift(v,n)`, carrying their I-address | cited (I3, ASN-0082) |
+| I-LEFT | V-positions `< p` in subspace `S` are unchanged | cited (I3-L, ASN-0082) |
+| I-NEW | The vacated block `{shift(p,k)}` maps to the fresh run `{shift(a,k)}` | introduced (composition glue) |
+| I-DOM | `V_S(d')` is the dense run `{q_1, …, q_{N+n}}`; D-SEQ/D-MIN/D-CTG preserved with `N' = N+n` | cited (D-SEQ-post / I3-CS, ASN-0082) |
+| F-SUB | Positions in subspaces `S' ≠ S` are unchanged (subspace confinement of the shift) | cited (I3-X, ASN-0082) |
+| F-DOC | Arrangements of all documents `d' ≠ d` are unchanged | cited (I3-D, ASN-0082) |
 
 ## Open Questions
 
@@ -359,7 +539,5 @@ What must INSERT guarantee when the insertion point names a position that is cur
 Under what conditions, if any, may two concurrent insertions into the same document's content scope both claim freshness without a serializing authority?
 
 What invariant relates the fresh I-addresses of an insertion to the document's recorded provenance, and must INSERT establish that relation atomically with allocation?
-
-What must the operation guarantee about the well-formedness of an insertion position whose subspace is currently empty, so that the first inserted unit fixes the subspace depth consistently for all later insertions?
 
 What relationship must hold between the inserted run's contiguity at creation and the system's obligations after later editing fragments that run?
