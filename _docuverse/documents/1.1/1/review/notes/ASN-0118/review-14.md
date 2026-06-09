@@ -1,0 +1,25 @@
+# Review of ASN-0118
+
+## REVISE
+
+### Issue 1: Non-text subspace domain is underdetermined by the postconditions
+
+**ASN-0118, "The COPY operation" — frame CP6 and effect CP3c**: CP3c closes the *text*-subspace domain exactly —
+
+> `{v ∈ dom(Σ'.M(d)) : subspace(v) = s_C} = {v < p} ∪ {p+i} ∪ {v+W : v ≥ p}`
+
+— but the only constraint on the destination's *other* subspaces is CP6's pointwise frame:
+
+> "`(A v : v ∈ dom(Σ.M(d)) ∧ subspace(v) ≠ s_C : Σ'.M(d)(v) = Σ.M(d)(v))`"
+
+**Problem**: This clause preserves the *pre-state* non-`s_C` bindings but does not assert that those are the *only* non-`s_C` bindings in the post-state. The ASN explicitly adopts the standard that the post-state must be "dischargeable from the postconditions alone, not only from the exhibited composite" — that is precisely why CP3c was introduced, to close a double-binding gap left by CP2/CP3a/CP3b. By that same standard, `Σ'.M(d)` is left underdetermined on subspaces ≠ `s_C`: a model satisfying every stated postcondition could introduce a spurious fresh link-subspace position (e.g. `v* ↦ ℓ*` with `ℓ* ∈ dom(Σ.L)`, `origin(ℓ*) = d`), violating none of CP1, CP2, CP3a–c, CP6, CP7a, CP8 — and still satisfying S2, S3★, CL-OWN, CL-UNIQ at the fresh position. The exhibited composite (K.μ⁻ retaining `s_L` in full, K.μ⁺ adding only `s_C`) never produces such a position, but the *postconditions* do not exclude it. This is the third underdetermination of exactly the kind CP3c was added to repair; closing two while leaving the structurally identical third open is inconsistent with the rigor standard the ASN sets for itself.
+
+**Required**: Add a non-text domain-closure clause (the CP3c analogue), or strengthen CP6's within-`d` non-text clause to full domain equality:
+`{v ∈ dom(Σ'.M(d)) : subspace(v) ≠ s_C} = {v ∈ dom(Σ.M(d)) : subspace(v) ≠ s_C}`,
+so that S2/S3★/CL-OWN/CL-UNIQ on `d` are dischargeable from the postconditions alone, matching the standard invoked for CP3c.
+
+## OUT_OF_SCOPE
+
+(none — the open questions on C2 width loss, repeated-span ordering, mixed-depth assembly, post-removal undiscoverability, the correspondence relation, and link-subspace transclusion are correctly deferred; COPY uses none of them.)
+
+VERDICT: REVISE
