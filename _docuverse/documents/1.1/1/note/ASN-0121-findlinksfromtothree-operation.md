@@ -18,11 +18,18 @@ be: for an arbitrary link to belong in the result, what must hold of it, and wha
 the result as a whole guarantee against the body of links as it stands at the moment of
 inquiry. We want a specification an alternative implementation would also have to meet.
 
-We write the system state as `Σ = (Σ.C, Σ.M, Σ.L)` — the content store, the family of
-document arrangements, and the link store — using the foundation vocabulary. We use
-`coverage(e)` (ASN-0043) for the set of I-addresses an endset references, `home(a)`
-(ASN-0043) for the document-level prefix at which a link address `a` resides, and the
-total order and span machinery of ASN-0034 throughout.
+We write the system state as ASN-0047's five-tuple `Σ = (Σ.C, Σ.L, Σ.E, Σ.M, Σ.R)` —
+the content store, the link store, the entity set, the family of document arrangements,
+and the provenance relation. This is the state the transition vocabulary `→` (below)
+operates on, so the monotonicity arguments that underwrite the permanence claims have
+the same state object to range over as the operations they reason about. The query
+itself is far narrower: `findlinks(q, Σ)` reads only the *link-store projection* `Σ.L`
+(values and addresses) — the retraction relation it consults is itself a sub-part of
+`Σ.L` (below). The remaining components `Σ.C`, `Σ.E`, `Σ.M`, `Σ.R` enter only the
+surrounding transition vocabulary, never the query; FL-DEF's frame records this
+explicitly. We use `coverage(e)` (ASN-0043) for the set of I-addresses an endset
+references, `home(a)` (ASN-0043) for the document-level prefix at which a link address
+`a` resides, and the total order and span machinery of ASN-0034 throughout.
 
 ## What is being matched
 
@@ -43,27 +50,34 @@ home) — are the raw material the request will constrain.
 
 A request is a four-tuple
 
-  `q = (H, F, G, Θ)`,
+  `q = (H, F, G, Θ) ∈ (Endset ∪ {∗})⁴`,
 
 where each component is either an *endset* (ASN-0043's `Endset = 𝒫_fin(Span)`) or the
-distinguished *wildcard* `∗` (Nelson's NOSPECS — "no specification"). The home-component
-`H` is, architecturally, a general span-set on the *organizational-prefix* axis: its spans
-are rooted at node-, account-, or document-level addresses. The *canonical* home span is
-the **unit-depth prefix span** `(p, δ(1, #p))`, whose displacement is exactly the
-unit-depth `δ(1, #p)` that PrefixSpanCoverage (ASN-0043) requires; it denotes the full
-subtree `{t : p ≼ t}`, order-convex under T5 (ASN-0034). The grammar does not, however,
-confine `H` to that form — `Endset = 𝒫_fin(Span)` admits a wider span `(p, ℓ)` rooted at
-the same `p`, whose coverage is then the order-convex *range* `{t : p ≤ t < p ⊕ ℓ}` (T12,
-ASN-0034), a proper sub-range of the subtree, not `{t : p ≼ t}`. The PrefixSpanCoverage
-citation discharges the subtree reading *only* for the unit-depth case; for a wider `H`,
-`athome` (below) is still well-defined — it is plain coverage membership — but bounds
-residence to an order-convex sub-range rather than a whole subtree. The traces below, and
-the canonical residence-bounding uses (node/account/document granularity), exercise only
-unit-depth spans, where the subtree reading holds. The three endset-components
-`F, G, Θ` range over the *element-level I-address* axis. (Note `home(a)` itself is always
-document-level — the field projection `N(a).0.U(a).0.D(a)` — but the *request component* `H`
-is not so confined: a node- or account-rooted span tests `home(a)`'s membership in the
-broader subtree it denotes, the residence bounding exercised at node granularity in Trace 6.)
+distinguished *wildcard* `∗` (Nelson's NOSPECS — "no specification"). This is the full
+well-formedness condition on a request: there is no further typing constraint on any
+component. In particular, the home-component `H` is an *arbitrary* endset (or `∗`) — the
+grammar does not confine it to any address level, and `athome` (below) is well-defined as
+plain coverage membership for whatever endset `H` is. By *convention*, a home request is
+phrased on the *organizational-prefix* axis, its spans rooted at node-, account-, or
+document-level addresses; but this rooting is intended usage, not a well-formedness
+condition the type enforces. (An element-rooted `H` is admissible and simply vacuous: its
+coverage contains no document-level `home(a)`, so `athome` is uniformly `false` — the
+operation is total over the declared request type, with no ill-formed inputs to exclude.)
+The *canonical* home span is the **unit-depth prefix span** `(p, δ(1, #p))`, whose
+displacement is exactly the unit-depth `δ(1, #p)` that PrefixSpanCoverage (ASN-0043)
+requires; it denotes the full subtree `{t : p ≼ t}`, order-convex under T5 (ASN-0034).
+A wider span `(p, ℓ)` rooted at the same `p` is equally admissible — `Endset = 𝒫_fin(Span)`
+imposes no upper-displacement bound — and its coverage is then the order-convex *range*
+`{t : p ≤ t < p ⊕ ℓ}` (T12, ASN-0034), a proper sub-range of the subtree, not `{t : p ≼ t}`.
+The PrefixSpanCoverage citation discharges the subtree reading *only* for the unit-depth
+case; for a wider `H`, `athome` still bounds residence, now to an order-convex sub-range
+rather than a whole subtree. The traces below, and the canonical residence-bounding uses
+(node/account/document granularity), exercise only unit-depth spans, where the subtree
+reading holds. The three endset-components `F, G, Θ` are, by the same convention, phrased on
+the *element-level I-address* axis. (Note `home(a)` itself is always document-level — the
+field projection `N(a).0.U(a).0.D(a)` — while the *request component* `H` is not so
+confined: a node- or account-rooted span tests `home(a)`'s membership in the broader
+subtree it denotes, the residence bounding exercised at node granularity in Trace 6.)
 Every request the grammar admits is thus phrased entirely over addresses —
 all of its components denote sets of tumbler addresses — and we call it an *I-address
 request*. There is exactly one kind of request in this grammar; the arrangement-mediated
@@ -94,9 +108,31 @@ relation between an endset `e` and a request set `r`:
 `touch(e, r)` holds exactly when some address lies in both coverages — when *one span*
 of `e` covers an address *also* covered by `r`. The endset need not match `r` in its
 entirety; a partial, single-span overlap is enough. This is the disjunction that lives
-*inside* a slot — "from all or any part of" the requested set. The corresponding
-residence test, for a link `a` and a home-set `H`, asks only that the link's residence
-fall in the requested region:
+*inside* a slot — "from all or any part of" the requested set.
+
+`touch` must be *decidable* for `findlinks` to be a realisable query and not merely a
+mathematically defined set, and it is — by exactly the argument that discharged the
+analogous concern in the foundation (ASN-0086 CoverageEqualityDecidable).
+
+**FL-DEC (decidability).** For any two endsets `e, r ∈ Endset`, `touch(e, r)` is
+decidable using only T2 comparisons and TumblerAdd; consequently `sat(a, q, Σ)` is
+decidable per link, and `findlinks(q, Σ)` is a finite, computable set. *Proof.* By
+`Endset = 𝒫_fin(Span)` (ASN-0043), `e ∪ r` is finite, so `coverage(e)` and `coverage(r)`
+are each a finite union of half-open T1-intervals `[s, s ⊕ ℓ)` (T12, ASN-0034). Sort the
+finite endpoint set `{s : (s, ℓ) ∈ e ∪ r} ∪ {s ⊕ ℓ : (s, ℓ) ∈ e ∪ r}` under T1 into
+distinct values `c₁ < … < c_m`; each coverage is constant (in or out) on every cell
+between consecutive endpoints, so `coverage(e) ∩ coverage(r) ≠ ∅` iff some cell with a
+representative is in both — a cell-wise membership comparison, finitely many T2 tests.
+This is exactly the cell-decomposition of ASN-0086's CoverageEqualityDecidable, applied
+to intersection-nonemptiness rather than coverage equality. The home test
+`athome(a, H) ≡ home(a) ∈ coverage(H)` is decidable by the same finite cell membership
+(a single point against a finite interval union). Hence `sat` — a conjunction of four
+decidable tests — is decidable, and `findlinks(q, Σ) ⊆ dom(Σ.L)` is finite by L-fin
+(`|dom(Σ.L)| < ∞`, ASN-0093), so it is computed by deciding `sat` over the finitely many
+addressable links. ∎
+
+The corresponding residence test, for a link `a` and a home-set `H`, asks only that the
+link's residence fall in the requested region:
 
   `athome(a, H) ≡ home(a) ∈ coverage(H)`.
 
@@ -446,6 +482,52 @@ and `home(a)` is a projection of the fixed address `a`, so `sat(a, q, Σ') = sat
 and `a ∈ addressable(Σ')` because `a ∈ dom(Σ'.L)` by link-store monotonicity across
 `Σ →* Σ'` (ASN-0098 StoreMonotonicity★) and `a ∉ nullified(Σ')` by hypothesis.)
 
+### The only result-changing transition
+
+FL-MON and FL-STB are monotonicity and invariance statements; they do not isolate *which*
+single transition can move a link into or out of the answer. Since `findlinks(q, ·)` is a
+function of `Σ.L` alone (FL-DEF's frame; `nullified` is itself a function of `Σ.L`), and
+the only operation in `→` that changes `Σ.L` is K.λ (every other operation frames `Σ.L`
+fixed, as recorded above), *K.λ is the unique result-changing transition*. We compute its
+weakest precondition in the two cases that matter — the entry of a newly created link, and
+the survival of an existing match under a retraction-bearing K.λ.
+
+**FL-WP (weakest precondition for the result-changing step).**
+
+*(a) Entry of a fresh ordinary link.* Let `Σ → Σ'` be a K.λ step that allocates a fresh
+address `ℓ ∉ dom(Σ.L)` with value `Σ'.L(ℓ) = (F, G, Θ)` (an ordinary, non-retraction link)
+homed at `d = home(ℓ)`. Then
+
+  `wp(K.λ, ℓ ∈ findlinks(q, ·)) ≡ liftH_d(q.H) ∧ lift(F, q.F) ∧ lift(G, q.G) ∧ lift(Θ, q.Θ)`,
+
+where `liftH_d(q.H) ≡ (q.H = ∗) ∨ (d ∈ coverage(q.H))`. *Derivation.* By FL-DEF,
+`ℓ ∈ findlinks(q, Σ') ⟺ ℓ ∈ addressable(Σ') ∧ sat(ℓ, q, Σ')`. The addressability conjunct
+is discharged by freshness: `ℓ ∉ dom(Σ.L)`, and an ordinary K.λ does not emit a retraction
+tuple targeting `ℓ`, so `ℓ ∉ nullified(Σ')` and hence `ℓ ∈ addressable(Σ')` unconditionally
+(the addressability conjunct "drops out," as the issue notes). The matching conjunct
+`sat(ℓ, q, Σ')` reads only the committed value `(F, G, Θ)` and the committed address (via
+`home(ℓ) = d`) — both fixed by the operation's own arguments, with no further pre-state
+dependence — so it equals the four-way conjunction displayed. The wp is therefore exactly
+that conjunction: a fresh link enters the answer iff its just-committed value and home meet
+all four lifted criteria of `q`.
+
+*(b) Survival of an existing match under retraction.* Let `Σ → Σ'` be a K.λ step that
+commits a *retraction tuple* whose to-coverage is `coverage(G')` — by ASN-0086 this grows
+`nullified` by exactly the targets in `coverage(G')` (R6b), leaving every link value and
+home untouched (L12). For an existing link `a ∈ dom(Σ.L)`,
+
+  `wp(K.λ_retract, a ∈ findlinks(q, ·)) ≡ a ∈ findlinks(q, Σ) ∧ a ∉ coverage(G')`.
+
+*Derivation.* `sat(a, q, ·)` is constant across the step (`Σ'.L(a) = Σ.L(a)` by L12,
+`home(a)` fixed), so by FL-DEF `a ∈ findlinks(q, Σ') ⟺ a ∈ addressable(Σ') ∧ sat(a, q, Σ)`.
+Now `nullified(Σ') = nullified(Σ) ∪ {t ∈ dom(Σ.L) : t ∈ coverage(G')}` (R6b), so
+`a ∈ addressable(Σ') ⟺ a ∉ nullified(Σ) ∧ a ∉ coverage(G')`. Conjoining with `sat` and
+folding `a ∉ nullified(Σ) ∧ sat(a, q, Σ)` back into `a ∈ findlinks(q, Σ)` gives the stated
+wp: a found link survives a retraction step exactly when the retraction's to-coverage does
+not name it. Setting `a ∉ coverage(G')` to hold for all `a` already in the answer recovers
+FL-MON's no-retraction hypothesis; its failure is the sole route by which a match leaves
+the answer, which is FL-RET.
+
 ## Stability under content editing
 
 If linked content is later edited, what of the result must remain stable? Xanadu links
@@ -675,6 +757,7 @@ document — granularity.
 | Label | Statement | Status |
 |-------|-----------|--------|
 | FL-DEF | `findlinks(q, Σ) = { a ∈ addressable(Σ) : sat(a, q, Σ) }`, with `sat` the conjunction of the four lifted slot-criteria (AND of the ORs); `addressable(Σ) = dom(Σ.L) \ nullified(Σ)` (ASN-0086, monotone by R6a); the operation has frame `Σ` (reads only, writes nothing) | introduced |
+| FL-DEC | Decidability — `touch(e, r)` is decidable by finite cell-decomposition of `coverage(e) ∪ coverage(r)` (cf. ASN-0086 CoverageEqualityDecidable), so `sat` is decidable per link and `findlinks(q, Σ) ⊆ dom(Σ.L)` is a finite, computable set (L-fin, ASN-0093) | introduced |
 | FL-SND | Soundness — `a ∈ findlinks(q, Σ) ⟹ sat(a, q, Σ)`; a link with any constrained slot wholly disjoint from the request is excluded; no false positives | introduced |
 | FL-CMP | Completeness — every `a ∈ addressable(Σ)` with `sat(a, q, Σ)` is returned; the result is exactly the satisfying subset; no silent omission | introduced |
 | FL-JUNK | Non-impedance — the result is invariant under addition of non-matching links and unaffected by their quantity; match status is decided per link | introduced |
@@ -685,6 +768,7 @@ document — granularity.
 | FL-EMP | Empty-constraint zero — a constrained slot with empty coverage (`∅`) gives `lift = false` for every link, so any empty constrained component forces `findlinks(q, Σ) = ∅`; empty-spec (zero) is distinct from wildcard/NOSPECS (unit). By the symmetry of `touch`, the same zero applies to a *link's* own empty endset (L3 permits `e₁ = ∅` or `e₂ = ∅`): such a link is excluded from any constrained from-/to-slot and admitted on that axis only under the corresponding wildcard | introduced |
 | FL-CUR | Currency — `a ∈ findlinks(q, Σ) ⟺ a ∈ addressable(Σ) ∧ sat(a, q, Σ)`, the conjunction of FL-SND and FL-CMP against `addressable(Σ)`: current additions in, current retractions out, non-matches irrelevant | introduced |
 | FL-MON | Monotone accumulation absent retraction — an unretracted matching link, once found, stays found as the store grows | introduced |
+| FL-WP | Weakest precondition for the unique result-changing transition (K.λ) — `(a)` a fresh ordinary link enters the answer iff `liftH_d(q.H) ∧ lift(F, q.F) ∧ lift(G, q.G) ∧ lift(Θ, q.Θ)` (addressability discharged by freshness); `(b)` an existing match survives a retraction-bearing K.λ iff `a ∈ findlinks(q, Σ) ∧ a ∉ coverage(G')` | introduced |
 | FL-STB | Stability under editing — for any request (the grammar's only kind being I-address requests), the result is invariant under any transition preserving `Σ.L` (the single load-bearing hypothesis, since `nullified` is a function of `Σ.L` alone and so retraction-set preservation follows); pure-arrangement edits and content appends do not change which links are returned | introduced |
 | FL-RET | Retraction absence — a retracted link is permanently and completely absent from every subsequent current-state inquiry, and its absence does not impede other results | introduced |
 | FL-REACH | Cross-document reach — for any request `findlinks` is independent of `Σ.M`: global over the store, finds transcluded content once, returns all links under a whole-docuverse home-set, and contains every satisfying, addressable link that any document surfaces — `findlinks(q, Σ) ⊇ ⋃_d { a : a ∈ addressable(Σ) ∧ sat(a, q, Σ) ∧ discoverable_from(a, d, Σ) }`, strict given satisfying orphans (not a superset of the bare, request-independent discoverable union) | introduced |
