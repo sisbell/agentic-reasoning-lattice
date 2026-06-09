@@ -1,0 +1,18 @@
+# Review of ASN-0118
+
+## REVISE
+
+### Issue 1: The stated atomic decomposition cannot realize the displacement effect (CP3a), undermining the CP8 provenance derivation
+
+**ASN-0118, "The COPY operation" / CP8 discharge**: "we read COPY as the valid composite it is (ASN-0047, ValidComposite): its atomic steps are the arrangement-extension steps K.μ⁺ that realize the placement (CP2) together with a provenance-recording step K.ρ for each address that COPY newly references."
+
+**Problem**: The displacement (CP3a) rewrites *existing* arrangement entries: the binding `v ↦ a` becomes `(v + W) ↦ a`, which removes the V-position `v` from `dom(M(d))`. ASN-0047's K.μ⁺ is *strict extension* — its definition requires `(A v ∈ dom(M(d)) : M'(d)(v) = M(d)(v))`, i.e. every prior mapping is left intact and the domain only grows. A pure K.μ⁺ step therefore cannot vacate position `v`, so the composite "K.μ⁺ steps + K.ρ steps" stated in the ASN cannot produce CP3a for any insertion point `p` with trailing content (`p ≤ max`). Since the whole CP8 argument rests on COPY *being* a valid ASN-0047 composite (J1★ is an obligation only on a valid composite, and J1'★ constrains only steps drawn from the named vocabulary), the provenance postcondition is asserted on an ill-formed decomposition. This is the kind of one-sentence "read it as the composite it is" that hides a genuinely multi-step obligation.
+
+**Required**: Give the actual decomposition of COPY's effect into ASN-0047 atomic steps. The natural one is a K.μ⁻ contraction retaining the prefix `[min, p)` (retention count `n'_{s_C} = j`), followed by a K.μ⁺ that re-adds the displaced trailing content at its shifted positions *and* the `W` placement positions, then the K.ρ steps. Show the intermediate state after K.μ⁻ satisfies the per-state invariants (D-CTG/D-MIN restricted, S2, S8-fin), that the subsequent K.μ⁺ meets its D-CTG★/D-MIN★ precondition, and that J1★/J1'★ evaluated initial-to-final then yield CP8. Alternatively, cite the foundation lemma (ASN-0082/I3 or its ASN-0047 realization) that licenses the displacement as a valid composite and drop the inaccurate "K.μ⁺ steps … realize the placement" wording, which omits the required contraction.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Partial binding, overlapping/repeated spans, mixed-depth assembly, later link removal, correspondence, link-subspace transclusion
+**Why out of scope**: These are correctly deferred to the Open Questions and are new territory rather than defects in COPY's content-transclusion specification. The `act(ρ, Σ) = dom(Σ.M(d_s)) ∩ ⟦σ⟧` definition already degrades gracefully under partial binding, so no claim here is wrong; the deeper guarantees belong to future ASNs.
+
+VERDICT: REVISE
