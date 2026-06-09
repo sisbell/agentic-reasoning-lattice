@@ -221,6 +221,14 @@ is fixed for all time once written. We name this **ML0 (IdentityAllocation)**: t
 link's identity is a fresh, permanent, never-reused link-subspace address
 allocated under the home document.
 
+A corollary settles whether two MAKELINK calls with identical endset arguments and
+identical home could *coalesce* into one link: they cannot. Each call draws a fresh
+emission of `A_L(d)` (SubsequentEmissionFreshness, ASN-0093), so the second call's
+address differs from the first's already-allocated one; value-coincidence of the
+recorded triples is permitted (L11b NonInjectivity, ASN-0043), but
+address-coincidence is excluded. Distinct identities are therefore *guaranteed*, not
+contingent — the never-reuse half of ML0 is exactly what forbids coalescing.
+
 Nelson's premise that a link's home "does not change" is now a theorem rather than
 an assumption: the home fields `N(a).0.U(a).0.D(a)` are the leftmost components of
 the link's *own* address, fixed at allocation, and no operation rewrites an
@@ -240,8 +248,14 @@ Where does the link reside? In two senses, both recorded by MAKELINK. The link
 *reference* enters the home document's arrangement in the link subspace, via
 `K.μ⁺_L` (ASN-0047): a fresh link-subspace V-position `v_a` of `d` is bound to `a`,
 making the link a member of `d`'s V-stream (so `d`'s owner can enumerate the links
-it homes). The home document is thereby the link's residence and the locus of its
-ownership.
+it homes). The elementary precondition of `K.μ⁺_L` is discharged at the intermediate
+state left by `K.λ`: there `a ∈ dom(Σ.L)` with `origin(a) = home(a) = d` (ML0); `a`
+is link-subspace and fresh (`a ∉ dom(Σ.L)` before `K.λ`), so since the link-subspace
+range of `M(d)` lies entirely in `dom(Σ.L)` (S3★/CL-OWN, ASN-0047) we have
+`a ∉ ran(M(d))`; and the bound V-position `v_a` is the one `K.μ⁺_L` itself selects —
+`ValidFirstLinkPosition(d, v_a, m)` when `V_{s_L}(d) = ∅`, else
+`v_a = shift(max(V_{s_L}(d)), 1)`. The home document is thereby the link's residence
+and the locus of its ownership.
 
 Now the orthogonality. The home `d` was supplied independently of the endset
 arguments, and nothing in the operation couples them. MAKELINK admits a home `d`
@@ -352,32 +366,38 @@ in the abstract characterization of ASN-0098 (LP12),
 Since MAKELINK sets `Σ'.L(a) = (e₁, e₂, e₃)`, the right-hand side reduces in two
 steps.
 
-*Fact (a) — the coverage/`ρ` gap collapses on the content store.* By generalized
-referential integrity (S3★, ASN-0047) an arrangement's images split by subspace:
+*Fact (a) — the coverage/`ρ` gap collapses on the store.* By generalized
+referential integrity (S3★, ASN-0047) an arrangement's images lie in the store:
 `ran(Σ'.M(d')) ⊆ dom(Σ.C) ∪ dom(Σ.L)`, the content-subspace V-positions mapping
-into `dom(Σ.C)` and the link-subspace ones into `dom(Σ.L)`. Each `coverage(eᵢ)`
-lies in content subtrees (subspace `s_C`): every recorded span is a unit-depth span
-on a resolved content address or its descendants, and the specs resolve only
-content-subspace V-positions (above), so every covered tumbler carries
-`subspace_I = s_C`. The link-subspace images, by contrast, lie in subspace `s_L`;
-since `s_C ≠ s_L`, `coverage(eᵢ)` meets no link-subspace image, and the
-intersection consults only the content images. By ML1 the content part of
-`coverage(eᵢ)` is exactly the resolved set, giving
-`coverage(eᵢ) ∩ ran(Σ'.M(d')) = ρ(R_i, Σ) ∩ ran(Σ'.M(d'))`. The covering
-surplus — the non-content descendants in `coverage(eᵢ)` — cannot meet a content
-range and so drops out.
+into `dom(Σ.C)` and the link-subspace ones into `dom(Σ.L)`. The intersection
+`coverage(eᵢ) ∩ ran(Σ'.M(d'))` therefore consults `coverage(eᵢ)` only at store
+addresses, so what we need is `coverage(eᵢ)`'s trace on the store — and that trace
+is exactly the resolved set,
+`coverage(eᵢ) ∩ (dom(Σ.C) ∪ dom(Σ.L)) = ρ(R_i, Σ)`. We establish this over store
+membership, not over the value of `subspace_I` at arbitrary covered tumblers (where
+it need not be defined: a covering-surplus descendant formed by a zero extension has
+`zeros = 4` and is not T4-valid, so `subspace_I` does not apply to it). The content
+half is ML2: `coverage(eᵢ) ∩ dom(Σ.C) = ρ(R_i, Σ)`. The link half is empty,
+`coverage(eᵢ) ∩ dom(Σ.L) = ∅`: suppose `ℓ ∈ coverage(eᵢ) ∩ dom(Σ.L)`; then `ℓ` lies
+in some resolved address's subtree, `aₖ ≼ ℓ` with `aₖ ∈ ρ(R_i, Σ) ⊆ dom(Σ.C)`
+(unit-depth spans, ASN-0043 PrefixSpanCoverage), and since `ℓ ∈ dom(Σ.L)` is a
+genuine link address it is T4-valid with `zeros(ℓ) = 3`, so `subspace_I(ℓ)` *is*
+defined and the prefix `aₖ ≼ ℓ` forces `E(ℓ)₁ = E(aₖ)₁ = s_C`; but L0 (ASN-0093)
+gives `E(ℓ)₁ = s_L`, and `s_C ≠ s_L` — contradiction. So no covered tumbler is a
+link address, and `coverage(eᵢ) ∩ ran(Σ'.M(d')) = ρ(R_i, Σ) ∩ ran(Σ'.M(d'))`. The
+covering surplus — the non-store descendants in `coverage(eᵢ)` — cannot meet an
+arrangement range and so drops out.
 
 *Fact (b) — the post-state range equals the pre-state range for the test.* For
 `d' ≠ d`, `K.μ⁺_L` touches only the home document's arrangement, so
 `Σ'.M(d') = Σ.M(d')` and `ran(Σ'.M(d')) = ran(Σ.M(d'))`. For the boundary case
 `d' = d` — the home document itself, exactly the case ML4 highlights — `K.μ⁺_L`
 extends the arrangement by the single binding `v_a ↦ a`, so
-`ran(Σ'.M(d)) = ran(Σ.M(d)) ∪ {a}`; but the added address `a` is a link-subspace
-address (`subspace_I(a) = s_L`), while `coverage(eᵢ)` and its surplus lie in content
-subtrees (subspace `s_C`) — every supplied spec is content-subspace, the type spec
-of ML6 included (which resolves into `dom(Σ.C)`, all of subspace `s_C`) — so every
-covered tumbler carries `subspace_I = s_C`, hence `a ∉ coverage(eᵢ)` and the added
-point is inert:
+`ran(Σ'.M(d)) = ran(Σ.M(d)) ∪ {a}`; but the added address `a` is itself a link
+address (`a ∈ dom(Σ'.L)`, `E(a)₁ = s_L` by L0), so Fact (a)'s link-half argument
+applies to `a` verbatim — were `a ∈ coverage(eᵢ)` it would extend a resolved content
+address `aₖ ≼ a` and inherit `E(a)₁ = E(aₖ)₁ = s_C ≠ s_L` — hence `a ∉ coverage(eᵢ)`
+and the added point is inert:
 `coverage(eᵢ) ∩ ran(Σ'.M(d)) = coverage(eᵢ) ∩ ran(Σ.M(d))`. In both cases the test
 reads against the pre-state range.
 
@@ -498,8 +518,6 @@ reachability are orthogonal.
 What must MAKELINK guarantee about the relative order in which a single endset's resolved I-address runs are recorded, and is any ordering across runs observable through later operations?
 
 Under what conditions, if any, may the resolution `ρ(R, Σ)` legitimately recover an empty set for the from or to endset, and what does an empty non-type endset mean for the link's connection?
-
-What invariant must hold so that two MAKELINK calls supplying identical endset arguments and identical home necessarily produce distinct link identities rather than coalescing?
 
 What must the operation guarantee when an endset argument references content in the link subspace — a link whose endset points at another link — for the resolved record to remain well-formed?
 
