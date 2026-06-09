@@ -180,11 +180,51 @@ post-state:
 > `(A i : 0 ≤ i < W : (cᵢ, d) ∈ Σ'.R)`     (CP8)
 
 CP8 is a *membership* postcondition, and to see that the membership is *produced*
-rather than merely *required*, we read COPY as the valid composite it is (ASN-0047,
-ValidComposite): its atomic steps are the arrangement-extension steps K.μ⁺ that
-realize the placement (CP2) together with a provenance-recording step K.ρ for each
-address that COPY newly references. It is these K.ρ steps that put pairs into
-`Σ.R`; the discharge then splits on whether `cᵢ` is new to `d`'s content range. For
+rather than merely *required*, we exhibit COPY as a valid ASN-0047 composite
+(ValidComposite) and read the obligation off its atomic steps. The decomposition
+splits on whether the insertion point has trailing content to displace; getting it
+right matters, because a single K.μ⁺ cannot realize the displacement.
+
+*Append or empty case* (`p = max+1`, or `V_{s_C}(d) = ∅`). No prior position
+satisfies `v ≥ p`, so CP3a is vacuous and the effect is a pure extension: a single
+K.μ⁺ step adds the `W` placement positions `[p, p+W)` bound to `c₀,…,c_{W−1}`,
+leaving every prior mapping intact — exactly K.μ⁺'s strict-extension frame
+`(A v ∈ dom(Σ.M(d)) : Σ'.M(d)(v) = Σ.M(d)(v))`. The resulting text run is the
+contiguous block `[min, max+W]` (or `[p, p+W)` when empty), discharging K.μ⁺'s
+D-CTG★/D-MIN★ precondition.
+
+*Displacing case* (`p ≤ max`, so trailing content exists). Here a pure K.μ⁺ is
+*not* a faithful decomposition, and the difference is structural. The displacement
+(CP3a) rewrites the existing binding `v ↦ a` into `(v+W) ↦ a`, which *removes* `v`
+from `dom(Σ.M(d))` — whereas K.μ⁺ is strict extension and leaves every prior
+mapping fixed, growing the domain only. No K.μ⁺ can vacate `v`. The effect is
+therefore a *contraction-then-extension* composite. Write `p = min + j` with
+`0 ≤ j < N`. **(i)** A K.μ⁻ step contracts `d`'s text subspace to the retained
+prefix `[min, p)` — retention count `n'_{s_C} = j` (a strict contraction, since
+`j < N`) — removing the trailing positions `{min + i : j ≤ i < N}`. The
+intermediate state `Σ₁` satisfies the per-state invariants: its text run
+`{min + i : 0 ≤ i < j}` is a contiguous block from `min` (D-CTG★/D-MIN★ restricted
+to `s_C`, the latter vacuous when `j = 0`); `Σ₁.M(d)` is a restriction of the
+function `Σ.M(d)`, hence itself a function (S2) with surviving images unchanged and
+still in `dom(Σ.C)` (S3★); and its domain is a subset of a finite set (S8-fin).
+K.μ⁻ frames the content store, link store, and provenance unchanged
+(`Σ₁.C = Σ.C`, `Σ₁.L = Σ.L`, `Σ₁.R = Σ.R`). **(ii)** A K.μ⁺ step then re-adds, on
+top of the retained prefix, both the `W` placement positions `[p, p+W)` bound to
+`c₀,…,c_{W−1}` (CP2) and the displaced trailing positions
+`{(min+i)+W : j ≤ i < N} = [p+W, max+W]` bound to their original images
+`Σ.M(d)(min+i)` (CP3a). Each retained mapping is left intact — K.μ⁺'s
+strict-extension frame — and the freshly added V-positions are well-formed (I3-VP);
+the resulting text run is the contiguous block `[min, max+W]`, discharging K.μ⁺'s
+D-CTG★/D-MIN★ precondition. Steps (i)–(ii) together reproduce CP2, CP3a, and CP3b
+(the left prefix is retained by (i) and untouched by (ii)).
+
+To these arrangement steps the composite appends one K.ρ provenance step per
+range-new address; it is these K.ρ steps that put pairs into `Σ.R`. The provenance
+obligation is read off ASN-0047's couplings, which ValidComposite evaluates
+*initial-to-final* (`Σ` to `Σ'`) — so the intermediate removal and re-addition of
+the displaced positions across steps (i)–(ii) is invisible to the coupling check,
+and only the net change in `d`'s content-subspace range matters. The discharge then
+splits on whether `cᵢ` is new to that range. For
 each `cᵢ` that is *range-new* — not already in the content-subspace range of
 `M(d)` — the placement (CP2) makes it range-new in `Σ'`, so ASN-0047's coupling
 J1★ (ExtensionRecordsProvenance) is an *obligation* on the composite: a valid COPY
