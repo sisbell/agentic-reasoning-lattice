@@ -1,0 +1,17 @@
+# Review of ASN-0116
+
+## REVISE
+
+### Issue 1: Incorrect index algebra in the I-NEW soundness justification
+
+**ASN-0116, Effect clause (I-NEW)**: "The unified attribution is sound because I3-CS discharges every index-`> N` block position in both cases: `shift(u, n) = q_i` for `i > N` would force `u = q_{N+1-n} < p`, which is not in the shifted suffix."
+
+**Problem**: The substitution `shift(u, n) = q_i ⟹ u = q_{N+1-n}` is false as a general statement. `shift(q_j, n) = q_{j+n}`, so `shift(u, n) = q_i` forces `u = q_{i-n}`, whose index `i − n` depends on `i`. The value `q_{N+1-n}` is only the instance `i = N+1`. The clause asserts this for "every index-`> N` block position," but exhibits a single forced value rather than the general one — exactly the "show each case" gap the surrounding argument is otherwise careful to avoid. (The block positions with index `> N` range over `i ∈ {N+1, …, J+n−1}`, giving `u = q_{i−n}` with `i − n ∈ {N+1−n, …, J−1}`.)
+
+**Required**: State the general source: a block position `q_i` is a shifted-suffix image only if `q_i = shift(u, n)` with `u ≥ p` and `u ∈ dom(M(d))`, i.e. `u = q_{i−n}` with index `i − n ≥ J`. Since every block index satisfies `i ≤ J + n − 1`, we get `i − n ≤ J − 1 < J`, so `u < p` for *all* block positions (occupied and append cases alike) — hence none is in the shifted-suffix range I3-CS quantifies over. The conclusion is correct; the demonstration as written is not. This is a rigor/exposition fix, not a correctness break.
+
+## OUT_OF_SCOPE
+
+(none — the ASN correctly confines itself to content insertion and defers transclusion, deletion, reordering, and link operations to their reframed ASNs.)
+
+VERDICT: REVISE
