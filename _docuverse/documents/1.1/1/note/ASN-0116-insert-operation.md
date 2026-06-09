@@ -263,9 +263,16 @@ obligation that we discharge here.
 *Inherited for the left and shifted regions.* For the positions `{q_1, …, q_{J-1}}`
 (left) and `{q_{J+n}, …, q_{N+n}}` (shifted suffix), well-formedness is exactly
 ASN-0082's family: **I3-VD** (depth uniformity) and **I3-VP** (S8a) for the
-positions, **I3-S2** for single-valuedness, **I3-fin** for finiteness, **I3-S3**
-for referential integrity. These say nothing about the new block, which is absent
-from ASN-0082's `M'(d)`.
+positions, **I3-S2** for single-valuedness, **I3-fin** for finiteness. These say
+nothing about the new block, which is absent from ASN-0082's `M'(d)`. We do *not*
+inherit referential integrity from ASN-0082's **I3-S3**: that lemma is proved under
+the content frame **I3-C** (`dom(C') = dom(C)`, content fixed), and INSERT
+deliberately breaks I3-C via I-ALLOC (`dom(C') = dom(C) ∪ A_new`). We discharge
+referential integrity for these two regions directly instead. Each left or shifted
+position carries an I-address `M(d)(v) ∈ ran(M(d)) ⊆ dom(C)` (S3 at the pre-state),
+and `dom(C) ⊆ dom(C')` by append-only monotonicity (P2); so the image lies in
+`dom(C')`, and S3★ holds for both regions by S3 plus content *monotonicity* — not
+by a lemma whose proof frame INSERT does not satisfy.
 
 *Proved here for the new block* `{shift(p, k) : 0 ≤ k < n}`, mapped by I-NEW to
 `{shift(a, k) : 0 ≤ k < n}`:
@@ -383,19 +390,28 @@ witnesses:
   `M'(d)(shift(v, n)) = M(d)(v)` (I-SHIFT) carries the same I-address to the new
   slot. The link did not move to *different content*; the content it always named
   simply sits at a higher V-address.
-- *New-block witnesses (resurrection).* Precisely because a prior endset `e` may
-  reference an address in `A_new` (the ghost-reference case above), INSERT can
-  *add* witnesses to such a link. After the operation the new block carries
-  `M'(d)(shift(p, k)) = shift(a, k)`; if `shift(a, k) ∈ coverage(e)` for some
-  `0 ≤ k < n`, the V-position `shift(p, k)` newly resolves into `coverage(e)` — a
-  resurrection in the sense of **LP18 (ASN-0098)**, an orphaned reference becoming
-  discoverable exactly when an arrangement entry to its target appears. These
-  witnesses live at the inserted block, not at any `shift(v, n)`.
+- *New-block witnesses.* Precisely because a prior endset `e` may reference an
+  address in `A_new` (the ghost-reference case above), INSERT can *add* witnesses
+  to such a link — whether or not that link was already discoverable elsewhere.
+  After the operation the new block carries `M'(d)(shift(p, k)) = shift(a, k)`; if
+  `shift(a, k) ∈ coverage(e)` for some `0 ≤ k < n`, the V-position `shift(p, k)`
+  newly resolves into `coverage(e)`. This new-block gain occurs for *any* link with
+  `coverage(e) ∩ A_new ≠ ∅`, including a link already discoverable through other
+  witnesses. Only in the special sub-case where the link is *orphaned* at `Σ` —
+  discoverable from no document at all — is the gain a **resurrection in the sense
+  of LP18 (ASN-0098)**: an orphaned reference becoming discoverable exactly when an
+  arrangement entry to its target appears. These witnesses live at the inserted
+  block, not at any `shift(v, n)`.
 
 This is the precise sense of Nelson's survivability clause restricted to
 insertion (4/43): because insertion removes nothing, *every* link survives with
-its designated content unchanged. What insertion can do is *enlarge* a link's
-resolved-witness set — never shrink it, never redirect it. We record it.
+its designated content unchanged. The resolved witnesses are V-positions, and the
+suffix witnesses are *relabelled* by `v ↦ shift(v, n)` — so the post-insert
+V-position set is *not* a superset of the prior one. What is monotone is the
+*count* of witnesses and the *resolved content*: each prior witness maps
+injectively to a surviving one (left verbatim, suffix shifted, cross-subspace
+verbatim), and the new block can only add witnesses, never remove or redirect. We
+record it.
 
 **P4 (LinkSurvival).** *For every endset `e` existing in `Σ`,
 `coverage_{Σ'}(e) = coverage_{Σ}(e)` (by L12 + LP3) — no link's designated content
@@ -411,12 +427,24 @@ into four disjoint parts:*
   coverage(e)}`, preserved verbatim by F-SUB (a link's coverage may include images
   of `d`'s positions in another subspace).*
 - *New-block witnesses, present iff `coverage(e) ∩ A_new ≠ ∅`:
-  `{shift(p, k) : 0 ≤ k < n ∧ shift(a, k) ∈ coverage(e)}` (resurrection, LP18).*
+  `{shift(p, k) : 0 ≤ k < n ∧ shift(a, k) ∈ coverage(e)}` (a resurrection in the
+  sense of LP18 only when the link was orphaned at `Σ`).*
 
-*The left and cross-subspace parts are common to the prior witness set
-`project(e, d, Σ)`; the shifted-suffix part is the image of the prior suffix
-witnesses under `v ↦ shift(v, n)`. Hence the post-insert set is a superset of the
-prior set, equal to it iff the new-block part is empty, i.e. iff
+*The prior witness set `project(e, d, Σ)` partitions into left, suffix, and
+cross-subspace witnesses, and INSERT maps these injectively into the post-insert
+set: left and cross-subspace verbatim, suffix by the bijection `v ↦ shift(v, n)`
+(I-SHIFT). The two sets are therefore **not** in a set-inclusion relation — the
+shifted witnesses occupy new V-positions — but the map is a bijection from the
+prior set onto (left ∪ shifted-suffix ∪ cross-subspace). Hence the witness
+**count** is non-decreasing,*
+
+> `|project(e, d, Σ')| = |project(e, d, Σ)| + |{shift(p, k) : 0 ≤ k < n ∧ shift(a, k) ∈ coverage(e)}|`,
+
+*and the resolved **content** grows monotonically,*
+
+> `coverage(e) ∩ ran(M(d)) ⊆ coverage(e) ∩ ran(M'(d))`,
+
+*with equality in both iff the new-block part is empty, i.e. iff
 `coverage(e) ∩ A_new = ∅`.*
 
 **Isolation of documents sharing I-addresses.** Suppose another document `d'`
@@ -450,7 +478,7 @@ P4 leaves one question pointed but unanswered: under what condition does INSERT
 preserve, rather than merely not-shrink, the set of links discoverable from `d`?
 It is tempting to assume the answer is "always" — insertion removes nothing.
 Computing the weakest precondition shows otherwise, and the place it fails is
-exactly the resurrection gap P4 now records.
+exactly the new-block-witness gap P4 now records.
 
 Write `D(d, Σ) = {a ∈ dom(Σ.L) : discoverable_from(a, d, Σ)}` for the links
 discoverable from `d` (foundation `discoverable_from`, ASN-0098). We seek
@@ -477,27 +505,36 @@ allocated run. Substituting into LP12, for every prior link `a`,
     ⟺ discoverable_from(a, d, Σ)  ∨  (E i : coverage(eᵢ) ∩ A_new ≠ ∅).
 ```
 
-Therefore `D(d, Σ') = D(d, Σ) ∪ {a ∈ dom(Σ.L) : (E i : coverage(Σ.L(a).eᵢ) ∩
-A_new ≠ ∅)}`. The two sets coincide iff that added set is empty. The weakest
-precondition is thus *not* trivially `true`; it is the operation's precondition
-conjoined with a genuine side condition on the allocated run:
+Therefore `D(d, Σ') = D(d, Σ) ∪ Added`, where
+`Added = {a ∈ dom(Σ.L) : (E i : coverage(Σ.L(a).eᵢ) ∩ A_new ≠ ∅)}` is the set of
+links the freshly minted run would newly witness. Since `D(d, Σ')` is the *union*
+of the prior set with `Added`, the two coincide iff `Added ⊆ D(d, Σ)` — **not** iff
+`Added = ∅`. The distinction is exactly the configuration L4/L9 permit: a link
+whose endset has one span into `A_new` (a ghost reference) *and* another span
+already meeting `ran(M(d))` lies in `Added` yet was *already* discoverable, so
+adding its new-block witness leaves `D(d)` unchanged. The weakest precondition is
+thus the operation's precondition conjoined with a *containment*, not an
+emptiness:
 
-> `wp(INSERT, D(d, Σ') = D(d, Σ)) ≡ INSERT-pre ∧ (A a ∈ dom(Σ.L), i :
-> coverage(Σ.L(a).eᵢ) ∩ A_new = ∅)`.
+> `wp(INSERT, D(d, Σ') = D(d, Σ)) ≡ INSERT-pre ∧
+> {a ∈ dom(Σ.L) : (E i : coverage(Σ.L(a).eᵢ) ∩ A_new ≠ ∅)} ⊆ D(d, Σ)`.
 
-The derived consequence is exact and informative. Discoverability from `d` is
-preserved precisely when the freshly minted addresses lie outside every prior
-endset's coverage — that is, when no ghost reference is being resurrected. Had P4
-asserted unconditional preservation, this computation would have refuted it: the
-escape branch `coverage(eᵢ) ∩ A_new ≠ ∅` is non-empty exactly in the
-ghost-reference case that L4/L9 permit. Two corollaries fall out. (i) A
-*sufficient* condition discharging the side condition for free is a tight-endset
-discipline: if every prior endset is tight at its creation state (foundation
-`tight`, ASN-0098), then **LP19a (TightFreshness)** gives `A_new ∩ coverage(e) =
-∅` for every K.α-fresh address, so the wp reduces to `INSERT-pre`. (ii) Absent
-that discipline, the wp is the sharpest statement available, and it is the formal
-witness that "insertion preserves discoverability" is a *conditional*, not a
-theorem.
+In words: discoverability from `d` is preserved precisely when every link the new
+run would newly witness was *already* discoverable from `d`. The strictly stronger
+*sufficient* condition `(A a ∈ dom(Σ.L), i : coverage(Σ.L(a).eᵢ) ∩ A_new = ∅)` —
+no prior endset references the allocated run at all — discharges the containment by
+emptying `Added`, but it over-rejects: it refuses the ghost-plus-live-span
+pre-states above, on which discoverability is in fact preserved. Had P4 asserted
+unconditional preservation, this computation would have refuted it: `Added ∖
+D(d, Σ)` is non-empty exactly when a ghost reference is resurrected from
+non-discoverability into discoverability. Two corollaries fall out. (i) A
+sufficient condition discharging the wp for free is a tight-endset discipline: if
+every prior endset is tight at its creation state (foundation `tight`, ASN-0098),
+then **LP19a (TightFreshness)** gives `A_new ∩ coverage(e) = ∅` for every K.α-fresh
+address, so `Added = ∅ ⊆ D(d, Σ)` and the wp reduces to `INSERT-pre`. (ii) Absent
+that discipline, the containment wp is the sharpest statement available, and it is
+the formal witness that "insertion preserves discoverability" is a *conditional*,
+not a theorem.
 
 ## A worked insertion
 
@@ -536,6 +573,44 @@ So `V_S(d') = {q_1, …, q_7}`, the dense run with `N' = N + n = 7`. ✓ I-DOM.
 content with `XY` interleaved between the second and third units, exactly
 Nelson's promise (Q10).
 
+**Links over the insertion (P4, P5, P6).** Equip `d` with two links to drive the
+link claims against this concrete shift.
+
+*A link that both shifts and resurrects.* Let `ℓ` carry an endset `e` with
+`coverage(e) = {a_3, [d.0.s_C.8]}`. At the pre-state `a_3 = M(d)(q_3) ∈ ran(M(d))`,
+while `[d.0.s_C.8]` is a *ghost* — not yet in `dom(C)` — which L4/L9 permit an
+endset to name. So `project(e, d, Σ) = {q_3}`: one witness, at `q_3`. After the
+insert, P4's four parts are: left `∅`; cross-subspace `∅`; shifted-suffix
+`{q_5}`, since `q_3 ≥ p` carries `a_3` to `shift(q_3, 2) = q_5`; new-block
+`{q_4}`, since `shift(a, 1) = [d.0.s_C.8] ∈ coverage(e)` puts a witness at
+`shift(p, 1) = q_4`. Hence `project(e, d, Σ') = {q_4, q_5}`. The prior witness set
+`{q_3}` is **not** a subset of `{q_4, q_5}` — the witness was *relabelled*
+(`q_3 → q_5`), not retained — confirming P4's bijection-not-inclusion form. The
+count rose by exactly the one new-block witness (`1 → 2`), and the resolved content
+grew monotonically: `coverage(e) ∩ ran(M(d)) = {a_3} ⊆ {a_3, [d.0.s_C.8]} =
+coverage(e) ∩ ran(M'(d))`. ✓ P4.
+
+*The P6 trap.* Was discoverability of `ℓ` from `d` *newly* gained? No — `ℓ` was
+*already* discoverable via `a_3` (`coverage(e) ∩ ran(M(d)) = {a_3} ≠ ∅`), so
+`ℓ ∈ D(d, Σ)`. Yet `ℓ ∈ Added`, since `coverage(e) ∩ A_new = {[d.0.s_C.8]} ≠ ∅`.
+This is precisely the pre-state the *sufficient* emptiness form would reject and
+the *weakest* containment form accepts: `ℓ ∈ Added ⊆ D(d, Σ)` leaves `D(d)`
+unchanged. ✓ P6 (containment, not emptiness).
+
+*A genuine resurrection.* Let `ℓ'` carry `coverage(e') = {[d.0.s_C.7]}`, a single
+ghost address, orphaned at `Σ` (`coverage(e') ∩ ran(M(d)) = ∅`, and discoverable
+from no document). After the insert the new block carries
+`M'(d)(q_3) = [d.0.s_C.7] ∈ coverage(e')`, so `q_3 ∈ project(e', d, Σ')`: `ℓ'`
+becomes discoverable from `d`. Here `ℓ' ∈ Added ∖ D(d, Σ)`, so `D(d, Σ') ⊋
+D(d, Σ)` — a real change to the discoverable set, and a **resurrection in LP18's
+sense** because `ℓ'` was orphaned. ✓ P4 new-block, P6 escape branch.
+
+*Isolation (P5).* Suppose `d'` also arranges `a_3`: `M(d')(q'_1) = a_3`. INSERT on
+`d` leaves `M'(d') = M(d')` (F-DOC), and `a_3 ∈ dom(C)` retains its value (P2),
+while `A_new ∩ ran(M(d')) = ∅` because `ran(M(d')) ⊆ dom(C)` (S3) and
+`A_new ∩ dom(C) = ∅` (P0). So `d'` resolves `q'_1` to `a_3`'s content exactly as
+before — untouched by the insertion into `d`. ✓ P5.
+
 **Boundary — append (`J = N + 1 = 6`).** Take `p = q_6 = shift(max(V_S(d)), 1) =
 shift(q_5, 1)`, `ValidInsertionPosition(d, q_6)`. No position `v ≥ q_6` lies in
 `V_S(d)`, so I-SHIFT is vacuous; I-LEFT preserves all of `q_1, …, q_5`; the new
@@ -567,13 +642,16 @@ filled run (`N' = N + n`) is INSERT's own theorem — the consecutive-disjoint
 interval argument — not a borrowed contraction lemma; the inserted span enters as
 a single connected run (`P1`); every
 link survives because it anchors on immutable identity, its coverage fixed by
-endset immutability L12+LP3 — and its resolved-witness set can *grow* (never
-shrink or redirect) when a prior endset already referenced an address INSERT now
-mints (`P4`, resurrection LP18). Every other document is isolated because
-identity is shared by reference, not by arrangement (`P5`). And the weakest
-precondition for preserving discoverability is not `true` but the side condition
-`coverage(e) ∩ A_new = ∅` — discharged for free under a tight-endset discipline,
-genuinely binding otherwise. The whole specification is, at bottom, the
+endset immutability L12+LP3 — and its resolved-witness count can *grow* (never
+shrink or redirect; prior witnesses map bijectively onto left ∪ shifted-suffix ∪
+cross-subspace, the suffix relabelled by `shift(·, n)`) when a prior endset already
+referenced an address INSERT now mints (`P4`; a resurrection in LP18's sense only
+when the link was orphaned). Every other document is isolated because identity is
+shared by reference, not by arrangement (`P5`). And the weakest precondition for
+preserving discoverability is not `true` but a containment — every link the new run
+would newly witness was already discoverable — for which `coverage(e) ∩ A_new = ∅`
+is a sufficient (strictly stronger) discharge, free under a tight-endset discipline
+and genuinely binding otherwise. The whole specification is, at bottom, the
 discipline of never letting an ephemeral position pretend to be a permanent
 identity.
 
@@ -586,8 +664,8 @@ identity.
 | P1 (InsertedRun) | The inserted material forms one correspondence run: `M'(d)(shift(p,k)) = shift(a,k)`, V- and I-addresses advancing in lockstep over a contiguous block | introduced |
 | P2 (ContentAppendOnly) | `dom(C) ⊆ dom(C')` and existing values preserved; INSERT is purely additive on content | restated (C0, ASN-0093) |
 | P3 (AddressPermanence) | No existing I-address is removed or rebound; every new binding is at a fresh address | restated (C0 + P0) |
-| P4 (LinkSurvival) | Every prior endset's coverage is unchanged (L12+LP3); post-insert witness set = left ∪ shifted-suffix ∪ cross-subspace ∪ (new-block iff `coverage(e) ∩ A_new ≠ ∅`), a superset of the prior set (resurrection, LP18) | introduced |
-| P6 (DiscoverabilityWP) | `wp(INSERT, D(d,Σ')=D(d,Σ)) ≡ INSERT-pre ∧ (∀ prior endset e : coverage(e) ∩ A_new = ∅)`; preservation is conditional, discharged free under tight-endset discipline (LP19a) | introduced |
+| P4 (LinkSurvival) | Every prior endset's coverage is unchanged (L12+LP3); post-insert witness set = left ∪ shifted-suffix ∪ cross-subspace ∪ new-block; prior witnesses map bijectively onto the first three parts (suffix relabelled by `shift(·,n)`), so witness count is non-decreasing and resolved content grows monotonically (new-block is LP18 resurrection only when the link was orphaned) | introduced |
+| P6 (DiscoverabilityWP) | `wp(INSERT, D(d,Σ')=D(d,Σ)) ≡ INSERT-pre ∧ {a : (∃i) coverage(Σ.L(a).eᵢ) ∩ A_new ≠ ∅} ⊆ D(d,Σ)` (containment, not emptiness); the emptiness form is sufficient but strictly stronger; discharged free under tight-endset discipline (LP19a) | introduced |
 | P5 (DocumentIsolation) | Every other document's arrangement and resolved content are invariant under INSERT on `d` | introduced |
 | I-ALLOC | `dom(C') = dom(C) ∪ A_new`, `C'(shift(a,k)) = w_k` | cited (K.α, ASN-0093), iterated |
 | I-SHIFT | V-positions `≥ p` in subspace `S` move to `shift(v,n)`, carrying their I-address | cited (I3, ASN-0082) |
