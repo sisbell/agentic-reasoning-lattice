@@ -223,12 +223,20 @@ family. We name its clauses but derive them by citation, not from scratch:
   M'(d)(shift(p, k)) = shift(a, k))` — the INSERT-specific fill of the block that
   ASN-0082's gapped arrangement leaves vacated, mapped in lockstep to the K.α run
   `A_new`. The block's absence from that gapped arrangement is attributed precisely
-  by case: in the *occupied* case (`J ≤ N`, so `p ∈ dom(M(d))`) the block consists
-  of pre-existing positions `≥ p` not in the shifted image, withheld by I3-V
-  (PostInsertionVacating, which quantifies over `v ∈ dom(M(d))`); in the *append*
-  case (`J = N+1`, so `p ∉ dom(M(d))`) the block positions were never in
-  `dom(M(d))`, so I3-V is silent about them and their absence follows instead from
-  the domain-closure characterisation I3-CS.
+  *per block position* — by whether that position pre-existed — not by a single case
+  on `J`. A block position is `shift(p, k) = q_{J+k}` for `0 ≤ k < n`, and it lies
+  in `dom(M(d))` iff its index `J+k ≤ N`. For block positions with
+  `shift(p, k) ∈ dom(M(d))` (index `≤ N`, hence `≥ p` and not in the shifted image),
+  absence is withheld by I3-V (PostInsertionVacating, which quantifies over
+  `v ∈ dom(M(d))`). For block positions with `shift(p, k) ∉ dom(M(d))` (index `> N`,
+  never in `dom(M(d))` for I3-V to range over), absence follows instead from the
+  domain-closure characterisation I3-CS. Both the occupied case (`J ≤ N`) and the
+  append case (`J = N+1`) split this way; in particular an insertion of `n ≥ 2`
+  units seated within the last `n−1` occupied slots exercises the *mixed* split,
+  with the lower block positions (index `≤ N`) discharged by I3-V and the upper ones
+  (index `> N`) by I3-CS. The unified attribution is sound because I3-CS discharges
+  every index-`> N` block position in both cases: `shift(u, n) = q_i` for `i > N`
+  would force `u = q_{N+1-n} < p`, which is not in the shifted suffix.
 - (I-DOM) `{v ∈ dom(M'(d)) : subspace(v) = S} =
   {q_1, …, q_{J-1}} ∪ {q_J, …, q_{J+n-1}} ∪ {q_{J+n}, …, q_{N+n}}` — the domain
   closure ASN-0082 I3-CS/I3-CX specialised to the dense text subspace.
@@ -261,9 +269,10 @@ careful about what is inherited and what is INSERT's own obligation, because
 ASN-0082's post-insertion arrangement is *not* the filled post-state we want: its
 domain closure I3-CS characterises `dom(M'(d)) ∩ S` as left positions ∪ shifted
 positions *only*, with the block `{shift(p, k) : 0 ≤ k < n}` deliberately
-withheld — by I3-V in the occupied case (`J ≤ N`) and by the I3-CS domain closure
-itself in the append case (`J = N+1`, where the block positions were never in
-`dom(M(d))` for I3-V to range over). ASN-0082's `M'(d)` is the *gapped*, room-made arrangement, and
+withheld — *per block position*: by I3-V where the position pre-existed
+(`shift(p, k) ∈ dom(M(d))`, index `≤ N`) and by the I3-CS domain closure itself
+where it did not (`shift(p, k) ∉ dom(M(d))`, index `> N`, never in `dom(M(d))` for
+I3-V to range over). ASN-0082's `M'(d)` is the *gapped*, room-made arrangement, and
 its preservation lemmas establish well-formedness only for those two regions.
 The new block is not covered by any of them; each of its properties is an INSERT
 obligation that we discharge here.
