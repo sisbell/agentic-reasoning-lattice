@@ -84,6 +84,7 @@ position from `c₀` up to the last cut is active (ASN-0084, R-PRE) — so the c
 genuinely partition existing content rather than naming holes.
 
 For three cuts the affected interval `[c₀, c₂)` splits into two regions
+(ASN-0084, RegionPartition)
 
       α = { v : c₀ ≤ v < c₁ },    β = { v : c₁ ≤ v < c₂ },
 
@@ -93,9 +94,10 @@ cuts the interval `[c₀, c₃)` splits into three,
       α = [c₀, c₁),    μ = [c₁, c₂),    β = [c₂, c₃),
 
 where `μ` is the *intervening region* belonging to neither moved block. We write
-`w_μ = ord(c₂) − ord(c₁)`. Both region widths of the moved blocks are strictly
-positive (a cut sequence with a zero-width region is degenerate), and in the
-four-cut case `w_μ ≥ 1` as well.
+`w_μ = ord(c₂) − ord(c₁)`. These regions and their ordinal-difference widths are
+ASN-0084's RegionPartition (its widths read off the R-PRE consequences); both
+moved-block widths are strictly positive (a cut sequence with a zero-width region
+is degenerate), and in the four-cut case `w_μ ≥ 1` as well.
 
 The cuts are interpreted against *one* arrangement. This is the first thing the
 "two cuts at once" formulation reveals, and we record it before going further:
@@ -133,11 +135,10 @@ ASN-0084 proves these define a total function whose induced map
 is a bijection that fixes the exterior and permutes the affected interval. Its
 closed form is **R-PPERM** (pivot) and **R-SPERM** (swap); its totality and
 bijectivity, together with the domain identity `dom(M'(d)) = dom(M(d))`, are
-**R-PIV** and **R-SWP**. The destinations tile `[ord(c₀), ord(c_{n-1}))` exactly:
-in the pivot, R-P1's destination ordinals occupy `[ord(c₀), ord(c₀)+w_β)` and
-R-P2's occupy `[ord(c₀)+w_β, ord(c₀)+w_β+w_α)`, which abut and exhaust the
-interval the two regions occupied before; with R-EXT covering the complement,
-every position is assigned exactly once. We take these results as given and write
+**R-PIV** and **R-SWP** — which also establish that the region destinations tile
+`[ord(c₀), ord(c_{n-1}))` exactly (disjoint and exhausting, R-EXT covering the
+complement, so every position is assigned exactly once). We take these results as
+given and write
 
       dom(M'(d)) = dom(M(d))               **(P2, = ASN-0084 R-PIV / R-SWP)**
 
@@ -178,9 +179,9 @@ below. The document points at the same content after the rearrangement as before
 Two foundation invariants ride along on the same structural facts, and we
 discharge them explicitly so that the hardest-to-maintain conjuncts of a
 rearrangement are not left implicit. *Functionality* is preserved — `M'(d)` is
-single-valued (ASN-0036, **S2**) — because the destinations of R-P1/R-P2 (pivot)
-and R-S1/R-S2/R-S3 (swap) tile the affected interval *disjointly* (R-PIV/R-SWP),
-so no V-position receives two I-addresses. *Referential integrity* is preserved
+single-valued (ASN-0036, **S2**) — because ASN-0084's R-PIV/R-SWP already
+establish the post-state to be a total function, each V-position receiving
+exactly one I-address. *Referential integrity* is preserved
 in its per-subspace form (ASN-0047, **S3★**) — a content V-position maps into
 `dom(C)` and a link V-position into `dom(L)`:
 
@@ -200,7 +201,8 @@ Take a text position `v ∈ dom(M'(d))` with `subspace(v) = s_C`. Then
 `M'(d)(v) = M(d)(π⁻¹(v))`, and `π⁻¹(v)` is again a text position (`π` permutes the
 text subspace onto itself); pre-state S3★ applied at `π⁻¹(v)` gives
 `M(d)(π⁻¹(v)) ∈ dom(C)`, so `M'(d)(v) ∈ dom(C)`. A link position `v` with
-`subspace(v) = s_L` is fixed in the frame, so `M'(d)(v) = M(d)(v) ∈ dom(L)` by
+`subspace(v) = s_L` is fixed pointwise by the non-text-subspace frame
+(ASN-0084, **R-NS** / R-FRAME-P/S(a)), so `M'(d)(v) = M(d)(v) ∈ dom(L)` by
 pre-state S3★. Each subspace's inclusion thus carries to the post-state.
 
 The contiguity and tiling invariants of the text subspace — the ones a future
@@ -292,18 +294,24 @@ the operation never changes (Question 4). The link itself does nothing — it
 continues to denote the same I-addresses — and those addresses now happen to be
 arranged at new V-positions.
 
-To make "moves with its content" precise we use the projection of a link into a
-document. For a link `a` with slot `i`, let `coverage(a, i)` be the set of
-I-addresses its endset references (ASN-0098), and define the link's footprint in
-`d` as the V-positions that resolve to those addresses,
+To make "moves with its content" precise we use ASN-0098's projection of a link
+into a document. For a link `a` with slot `i`, `coverage(a, i)` is the set of
+I-addresses its endset references and the link's footprint in `d` is the set of
+V-positions that resolve to those addresses,
 
-      project(a, i, d, Σ) = { v ∈ dom(M(d)) : M(d)(v) ∈ coverage(a, i) }.
+      project(a, i, d, Σ) = { v ∈ dom(M(d)) : M(d)(v) ∈ coverage(a, i) }
+
+— both imported (ASN-0098, Definition — Coverage and Definition — Project), not
+introduced here.
 
 Coverage is a property of the endset's spans alone and is untouched by the
-operation. Since `M'(d)(π(v)) = M(d)(v)`, a position `v` lies in the footprint
-before exactly when `π(v)` lies in it after:
+operation (ASN-0098, LP3 — coverage invariance). The footprint therefore
+transports through `π` by ASN-0098's **LP11** (ReorderingBijection); LP11's only
+hypotheses — a domain-preserving reordering whose bijection satisfies
+`M'(d)(π(v)) = M(d)(v)` — are exactly what P2 (R-PPERM/R-SPERM) supplies, so it
+applies directly:
 
-      project(a, i, d, Σ') = π( project(a, i, d, Σ) ).              **(P7a)**
+      project(a, i, d, Σ') = π( project(a, i, d, Σ) ).      **(P7a, = ASN-0098 LP11)**
 
 The footprint is carried *through* `π`: it is neither lost nor enlarged, only
 relocated to where the content now sits.
@@ -311,16 +319,17 @@ relocated to where the content now sits.
 *A link spanning both moved regions, or running from a moved region into
 stationary content* (Question 5). Here the footprint may be split by a cut, and we
 must say *precisely* what the rearrangement does to its contiguity. The positive
-fact we can lean on is that within each region `π` acts as a *uniform ordinal
-shift* — a constant displacement. In the pivot, every position of `β` moves by
-`−w_α` (R-P1: `π(c₁+j) = c₀+j`), every position of `α` by `+w_β` (R-P2:
-`π(c₀+j) = c₀+w_β+j`), and the exterior by `0` (R-EXT); in the swap the four
-constant displacements are `−(w_α+w_μ)`, `w_β−w_α`, `w_β+w_μ`, and `0` for `β`,
-`μ`, `α`, and the exterior respectively. A constant shift is an order- and
-adjacency-preserving bijection on the region it acts on. Hence a footprint
-*confined to a single region* has its entire run structure carried intact: the
-number of contiguous spans it comprises, and the gaps between them, are exactly the
-same before and after. In particular a footprint that is a single contiguous run
+fact we can lean on is ASN-0084's **R-COMM** (PermutationShiftCommutativity):
+within each region `π` commutes with ordinal shift, `π(v + k) = π(v) + k`, so it
+acts there as a *uniform ordinal shift* — a constant displacement. Reading the
+constants off R-PPERM/R-SPERM: in the pivot every position of `β` moves by `−w_α`
+(R-P1), every position of `α` by `+w_β` (R-P2), and the exterior by `0` (R-EXT);
+in the swap the four constant displacements are `−(w_α+w_μ)`, `w_β−w_α`,
+`w_β+w_μ`, and `0` for `β`, `μ`, `α`, and the exterior respectively. A constant
+shift is an order- and adjacency-preserving bijection on the region it acts on.
+Hence a footprint *confined to a single region* has its entire run structure
+carried intact: the number of contiguous spans it comprises, and the gaps
+between them, are exactly the same before and after. In particular a footprint that is a single contiguous run
 inside one region remains a single contiguous run. We record this as a *sufficient*
 condition for contiguity-preservation — not as a weakest precondition:
 
@@ -414,15 +423,17 @@ do nothing except continue holding its bytes; the system re-expresses the affect
 endset as a span-set in the new ordering.
 
 *Discoverability under fragmentation.* Because `π` is a bijection, the footprint
-is nonempty after exactly when it was nonempty before:
+is nonempty after exactly when it was nonempty before (immediate from P7a):
 
       project(a, i, d, Σ') ≠ ∅   ⟺   project(a, i, d, Σ) ≠ ∅.      **(P7b)**
 
 A link discoverable from `d` before the rearrangement is discoverable from `d`
-after it. Discovery answers by *address* — it tests `coverage(a, i) ∩ ran(M(d))`,
-and by P1 that intersection is invariant — so the link surfaces at whatever
-V-positions the content now occupies (Question 8). Fragmentation changes how many
-spans the footprint comprises; it does not change *whether* the link is found.
+after it. Discovery answers by *address*: ASN-0098's **LP12**
+(DiscoverabilityCharacterisation) reduces discoverability from `d` to
+`coverage(a, i) ∩ ran(M(d)) ≠ ∅`, and by P1 that intersection is invariant — so
+the link surfaces at whatever V-positions the content now occupies (Question 8).
+Fragmentation changes how many spans the footprint comprises; it does not change
+*whether* the link is found.
 
 ## Discoverability of moved content
 
@@ -538,7 +549,8 @@ not any region's claim to have stayed put.
 
 If the rearranged content is shared with another document by transclusion, that
 document's arrangement must be untouched. Every clause of the operation that
-mutates state writes only `M(d)`; the frame is explicit:
+mutates state writes only `M(d)`; the frame is explicit — its cross-document and
+content clauses are ASN-0084's R-FRAME-P/S(b)/(c), its link clause the lifted P6:
 
       (∀ d' ≠ d :: M'(d') = M(d'))   ∧   Σ'.C = Σ.C   ∧   Σ'.L = Σ.L.  **(P9)**
 
@@ -605,13 +617,13 @@ the regions tile, not merely shift each by a local offset.
 | P1 (IdentityCorrespondence) | `M'(d)(π(v)) = M(d)(v)`, hence `ran(M'(d)) = ran(M(d))` — I-addresses carried across the reassignment | imported (ASN-0084 R-RI) |
 | P2 (Permutation) | The induced `π` (R-PPERM/R-SPERM) is a bijection of `dom(M(d))` onto itself; `dom(M'(d)) = dom(M(d))` | imported (ASN-0084 R-PIV/R-SWP) |
 | S2 (FunctionalityPreserved) | `M'(d)` is single-valued — the disjoint tiling of destinations (R-PIV/R-SWP) gives each V-position one I-address (ASN-0036 S2) | preserved |
-| S3★ (ReferentialIntegrityPreserved) | per-subspace: `subspace(v) = s_C ⟹ M'(d)(v) ∈ dom(C)` and `subspace(v) = s_L ⟹ M'(d)(v) ∈ dom(L)` — for a text position `v`, `M'(d)(v) = M(d)(π⁻¹(v))` with `π⁻¹(v)` again a text position, so pre-state S3★ gives `M(d)(π⁻¹(v)) ∈ dom(C)`; link positions are frame-fixed, so their images stay in `dom(L)`. What is invariant is that `π` maps each subspace onto itself, not the image filed at any individual key (ASN-0047 S3★) | preserved |
+| S3★ (ReferentialIntegrityPreserved) | per-subspace: `subspace(v) = s_C ⟹ M'(d)(v) ∈ dom(C)` and `subspace(v) = s_L ⟹ M'(d)(v) ∈ dom(L)` — for a text position `v`, `M'(d)(v) = M(d)(π⁻¹(v))` with `π⁻¹(v)` again a text position, so pre-state S3★ gives `M(d)(π⁻¹(v)) ∈ dom(C)`; link positions are frame-fixed (ASN-0084 R-NS), so their images stay in `dom(L)`. What is invariant is that `π` maps each subspace onto itself, not the image filed at any individual key (ASN-0047 S3★) | preserved |
 | P3 (VExtentConservation) | `\|dom(M'(d))\| = \|dom(M(d))\|`, and the active run's endpoints are fixed — the document's total extent is conserved | introduced |
 | P5 (Discoverability) | Moved content is discoverable under its new V-position `π(v)` and resolves to its original I-address `M(d)(v)` | introduced |
 | P6 (LinkStoreFrame) | `Σ'.L = Σ.L` — links are untouched; a link anchored in a moved region survives and travels with its content because endsets reference unchanged I-addresses | introduced |
-| P7a (FootprintTransport) | `project(a, i, d, Σ') = π(project(a, i, d, Σ))` — a link's V-footprint is relocated through `π`; a contiguous footprint stays contiguous iff its `π`-image is again an interval (e.g. within-region confinement, or coverage of two or more relocated regions that `π` re-abuts), so fragmentation of a contiguous run occurs *only when* it straddles a cut — straddling alone does not force it, and conversely a straddle that mixes the fixed exterior with a relocated region can fragment even when every block it covers is complete | introduced |
-| P7c (FootprintRunStructure) | `project(a, i, d, Σ) ⊆ one region ⟹ π preserves the footprint's run structure` — within each region `π` is a uniform ordinal shift, so confinement to one region is *sufficient* (not necessary) for contiguity-preservation; this is not a weakest precondition, since relocating the region blocks creates new seams (a straddle across two relocated regions that re-abut may stay contiguous; a straddle mixing the fixed exterior with a relocated region may fragment even with complete-block coverage; a within-region gap stays fragmented) | introduced |
-| P7b (DiscoverabilityPreserved) | `project(a, i, d, Σ') ≠ ∅ ⟺ project(a, i, d, Σ) ≠ ∅` — fragmentation never costs discoverability | introduced |
+| P7a (FootprintTransport) | `project(a, i, d, Σ') = π(project(a, i, d, Σ))` (ASN-0098 LP11, instantiated at REARRANGE's `π`) — a link's V-footprint is relocated through `π`; a contiguous footprint stays contiguous iff its `π`-image is again an interval (e.g. within-region confinement, or coverage of two or more relocated regions that `π` re-abuts), so fragmentation of a contiguous run occurs *only when* it straddles a cut — straddling alone does not force it, and conversely a straddle that mixes the fixed exterior with a relocated region can fragment even when every block it covers is complete | imported (ASN-0098 LP11) |
+| P7c (FootprintRunStructure) | `project(a, i, d, Σ) ⊆ one region ⟹ π preserves the footprint's run structure` — within each region `π` is a uniform ordinal shift (ASN-0084 R-COMM), so confinement to one region is *sufficient* (not necessary) for contiguity-preservation; this is not a weakest precondition, since relocating the region blocks creates new seams (a straddle across two relocated regions that re-abut may stay contiguous; a straddle mixing the fixed exterior with a relocated region may fragment even with complete-block coverage; a within-region gap stays fragmented) | introduced |
+| P7b (DiscoverabilityPreserved) | `project(a, i, d, Σ') ≠ ∅ ⟺ project(a, i, d, Σ) ≠ ∅` — fragmentation never costs discoverability; corollary of P7a (`π` a bijection), with discoverability reduced to `coverage ∩ ran ≠ ∅` by ASN-0098 LP12 | introduced |
 | P8a (FinalStateInvariance) | The atomic transposition and any two-move composite achieving the same net `π` reach the same final arrangement | introduced |
 | P8b (IntermediateDivergence) | A two-move composite passes through an observable intermediate arrangement (exhibited: `A C D B E` for the worked pivot) realized by neither endpoint of the atomic transposition | introduced |
 | P9 (DocumentIsolation) | `(∀ d' ≠ d :: M'(d') = M(d'))` together with P0, P6 — every other document, including transcluders of the rearranged I-addresses, is invariant | introduced |
