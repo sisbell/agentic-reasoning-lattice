@@ -252,9 +252,19 @@ again the canonical dense run, now of length `N' = N − c`. We do not re-prove
 well-formedness: it is exactly ASN-0082's post-contraction preservation family —
 **D-SEQ-post**/**D-MIN-post** (`min(V_S(d')) = q_1`)/**D-CTG-post** for the dense
 run, **S8a-post** and **S8-depth-post** for the positions, **S2-post** for
-single-valuedness, **S8-fin-post** for finiteness, **S3-post** for referential
-integrity (`ran(M'(d)) ⊆ dom(C')`, which holds trivially since
-`ran(M'(d)) ⊆ ran(M(d))` and `C' = C`). This is the answer to *how the survivors
+single-valuedness, **S8-fin-post** for finiteness, and **S3-post** for
+referential integrity — read at the two-subspace level as S3★
+(GeneralizedReferentialIntegrity, ASN-0047): the *text* V-positions resolve into
+`dom(C')` and the *link* V-positions into `dom(L')`. The content clause
+`ran(M'(d)\!\restriction\!V_{s_C}(d)) ⊆ dom(C')` holds because every surviving
+text image already appeared in `ran(M(d)\!\restriction\!V_{s_C}(d)) ⊆ dom(C)`
+(DEL-LEFT and DEL-SHIFT preserve each survivor's I-address) and `C' = C`
+(DEL-CIMM); the link clause `ran(M'(d)\!\restriction\!V_{s_L}(d)) ⊆ dom(L')`
+holds because DEL-FSUB carries the link-subspace positions through verbatim and
+DEL-LIMM holds the link store fixed. Stating the whole range as
+`ran(M'(d)) ⊆ dom(C')` would be false for any document containing a link, since
+its preserved link positions map into `dom(L)`, which by store disjointness (SD,
+ASN-0093) is disjoint from `dom(C)`. This is the answer to *how the survivors
 sit within the V-stream after the cut*: reading end to end yields the original
 content with exactly the deleted span omitted, the stream around it re-closed
 into a single coherent ordinal sequence (Q2).
