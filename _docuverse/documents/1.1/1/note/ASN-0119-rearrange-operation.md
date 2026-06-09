@@ -283,36 +283,68 @@ The footprint is carried *through* `π`: it is neither lost nor enlarged, only
 relocated to where the content now sits.
 
 *A link spanning both moved regions, or running from a moved region into
-stationary content* (Question 5). Here the footprint is split by a cut, and we can
-say *precisely* when this costs contiguity rather than hedging it. The key is that
-within each region `π` acts as a *uniform ordinal shift* — a constant displacement.
-In the pivot, every position of `β` moves by `−w_α` (R-P1: `π(c₁+j) = c₀+j`), every
-position of `α` by `+w_β` (R-P2: `π(c₀+j) = c₀+w_β+j`), and the exterior by `0`
-(R-EXT); in the swap the four constant displacements are `−(w_α+w_μ)`, `w_β−w_α`,
-`w_β+w_μ`, and `0` for `β`, `μ`, `α`, and the exterior respectively. A rigid shift
-preserves both order and adjacency, so a footprint *confined to a single region* is
-relocated as one contiguous run — its picture in the new order is still a single
-span. A footprint that *straddles a cut* has its parts carried by different
-branches, hence by different displacements; those parts move by different amounts
-and so land non-adjacently, leaving the endset a *discontiguous span-set* when
-resolved against the new arrangement. This is the operation's one non-trivial
-weakest precondition — every other postcondition here has `wp = true` — and it is
-exact:
+stationary content* (Question 5). Here the footprint may be split by a cut, and we
+must say *precisely* what the rearrangement does to its contiguity. The positive
+fact we can lean on is that within each region `π` acts as a *uniform ordinal
+shift* — a constant displacement. In the pivot, every position of `β` moves by
+`−w_α` (R-P1: `π(c₁+j) = c₀+j`), every position of `α` by `+w_β` (R-P2:
+`π(c₀+j) = c₀+w_β+j`), and the exterior by `0` (R-EXT); in the swap the four
+constant displacements are `−(w_α+w_μ)`, `w_β−w_α`, `w_β+w_μ`, and `0` for `β`,
+`μ`, `α`, and the exterior respectively. A constant shift is an order- and
+adjacency-preserving bijection on the region it acts on. Hence a footprint
+*confined to a single region* has its entire run structure carried intact: the
+number of contiguous spans it comprises, and the gaps between them, are exactly the
+same before and after. In particular a footprint that is a single contiguous run
+inside one region remains a single contiguous run. We record this as a *sufficient*
+condition for contiguity-preservation — not as a weakest precondition:
 
-      wp(REARRANGE_K, "footprint of (a,i) resolves to a contiguous span")
-        ≡  project(a, i, d, Σ) ⊆ one region (exterior, α, μ, or β).   **(P7c)**
+      project(a, i, d, Σ) ⊆ one region (exterior, α, μ, or β)
+        ⟹  π preserves the footprint's run structure
+            (in particular, a single run stays a single run).        **(P7c)**
 
-Equivalently: contiguity is preserved iff the footprint meets at most one region,
-and fragments exactly when it meets two or more. This turns Question 5's
-qualitative claim into a proven boundary. It is also exactly the behaviour Nelson
-describes — "a link end that was a single contiguous span before
-the rearrange may become discontiguous afterward, because the bytes it holds onto
-have moved to new virtual positions" (Question 5) — and which Gregory observes
-directly as endset fragmentation (Question 16). The link still connects precisely
-the same bytes; only its picture in the current order has broken into pieces. The
-operative principle is the one Nelson states: the link "must" do nothing except
-continue holding its bytes; the system re-expresses the affected endset as a
-span-set in the new ordering.
+Every other postcondition of this note holds unconditionally (`wp = true`); the
+footprint's contiguity is the single property REARRANGE does not preserve in
+general, and so the one that needs a precondition. But that precondition is
+genuinely *only sufficient*. The converse of P7c fails in *both* directions, and
+the reason is that REARRANGE does not merely shift each region — it *relocates the
+region blocks*, laying `β` before `α` (pivot) or `β, μ, α` (swap), and so
+manufactures new *seams* where two formerly separated blocks now abut. Run
+structure is preserved *within* a region, but the seams can both heal and break
+contiguity *across* regions.
+
+*Confinement is not necessary (a straddling footprint can stay contiguous).* A
+footprint straddling a cut may land contiguously precisely when its parts meet at a
+relocated seam. In the worked pivot below (`A B C D E ↦ A C D E B`), a link
+covering `{B, E} = {a₂, a₅}` has the *discontiguous* pre-footprint `{ord 2, ord 5}`
+— `B` in `α`, `E` at the tail of `β` — yet `π` sends `ord 2 ↦ ord 5` and
+`ord 5 ↦ ord 4`, giving the *contiguous* post-footprint `{ord 4, ord 5}`: the
+relocated `E` (last byte of `β`) now abuts the relocated `B` (the whole of `α`).
+The footprint straddles the cut, `project ⊆ one region` is false, and yet
+contiguity is *gained*. So "straddles a cut" does not imply fragmentation, and
+confinement to one region is not necessary for a contiguous result.
+
+*Confinement is not sufficient for a literal "resolves to one span" either (a
+fragmented footprint stays fragmented).* Because `coverage` is an arbitrary address
+set (L4, EndsetGenerality), a footprint may have internal gaps *within* a single
+region. A rigid shift preserves those gaps, so the post-footprint is still
+discontiguous though `project ⊆ one region` holds. This is exactly why P7c is
+stated as run-structure preservation, not as "the result is one span": confinement
+preserves *whatever* contiguity the footprint already had, neither creating nor
+healing fragmentation.
+
+*A genuine fragmentation.* The behaviour Nelson and Gregory describe — a single
+contiguous endset becoming discontiguous — occurs exactly when a single pre-run
+straddles a cut. In the worked pivot, a link covering `{B, C} = {a₂, a₃}` has the
+*contiguous* pre-footprint `{ord 2, ord 3}` (one run straddling the cut at
+`c₁ = ord 3`); `π` sends `ord 2 ↦ ord 5` and `ord 3 ↦ ord 2`, fragmenting it into
+the *discontiguous* post-footprint `{ord 2, ord 5}`. This realizes Nelson's "a link
+end that was a single contiguous span before the rearrange may become discontiguous
+afterward, because the bytes it holds onto have moved to new virtual positions"
+(Question 5) and Gregory's directly-observed endset fragmentation (Question 16).
+The link still connects precisely the same bytes; only its picture in the current
+order has broken into pieces. The operative principle is Nelson's: the link "must"
+do nothing except continue holding its bytes; the system re-expresses the affected
+endset as a span-set in the new ordering.
 
 *Discoverability under fragmentation.* Because `π` is a bijection, the footprint
 is nonempty after exactly when it was nonempty before:
@@ -495,7 +527,7 @@ the regions tile, not merely shift each by a local offset.
 | P5 (Discoverability) | Moved content is discoverable under its new V-position `π(v)` and resolves to its original I-address `M(d)(v)` | introduced |
 | P6 (LinkStoreFrame) | `Σ'.L = Σ.L` — links are untouched; a link anchored in a moved region survives and travels with its content because endsets reference unchanged I-addresses | introduced |
 | P7a (FootprintTransport) | `project(a, i, d, Σ') = π(project(a, i, d, Σ))` — a link's V-footprint is relocated through `π`; footprints split by a cut become discontiguous span-sets | introduced |
-| P7c (ContiguityWP) | `wp(REARRANGE_K, "footprint resolves to a contiguous span") ≡ project(a, i, d, Σ) ⊆ one region` — within each region `π` is a uniform ordinal shift, so a footprint stays contiguous iff confined to a single region and fragments iff it straddles a cut | introduced |
+| P7c (FootprintRunStructure) | `project(a, i, d, Σ) ⊆ one region ⟹ π preserves the footprint's run structure` — within each region `π` is a uniform ordinal shift, so confinement to one region is *sufficient* (not necessary) for contiguity-preservation; this is not a weakest precondition, since relocating the region blocks creates new seams (a straddling footprint may stay contiguous; a within-region gap stays fragmented) | introduced |
 | P7b (DiscoverabilityPreserved) | `project(a, i, d, Σ') ≠ ∅ ⟺ project(a, i, d, Σ) ≠ ∅` — fragmentation never costs discoverability | introduced |
 | P8a (FinalStateInvariance) | The atomic transposition and any two-move composite achieving the same net `π` reach the same final arrangement | introduced |
 | P8b (IntermediateDivergence) | A two-move composite passes through an observable intermediate arrangement (exhibited: `A C D B E` for the worked pivot) realized by neither endpoint of the atomic transposition | introduced |
