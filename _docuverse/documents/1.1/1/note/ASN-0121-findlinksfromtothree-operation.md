@@ -84,9 +84,10 @@ fall in the requested region:
 
   `athome(a, H) ≡ home(a) ∈ coverage(H)`.
 
-Because a span in document-address space denotes a contiguous subtree (T5,
-ASN-0034), `H` may bound residence at the granularity of a node, an account, or a single
-document, and `athome` tests membership of `home(a)` against whatever that subtree is.
+Because a prefix-rooted home span denotes the subtree `{t : p ≼ t}` (PrefixSpanCoverage,
+ASN-0043) — which is order-convex/contiguous under T1 (T5, ASN-0034) — `H` may bound
+residence at the granularity of a node, an account, or a single document, and `athome`
+tests membership of `home(a)` against whatever that subtree is.
 
 ## The satisfaction rule: the AND of the ORs
 
@@ -418,10 +419,11 @@ leave the answer.
 
 **FL-MON (monotone accumulation absent retraction).** For any reachable `Σ →* Σ'` with
 `a ∉ nullified(Σ')`: if `a ∈ findlinks(q, Σ)` then `a ∈ findlinks(q, Σ')`. A matching
-link, once found and not withdrawn, stays found as the store grows. (By immutability
-`sat(a, q, Σ') = sat(a, q, Σ)`; and `a ∈ addressable(Σ')` because `a ∈ dom(Σ'.L)` by
-link-store monotonicity across `Σ →* Σ'` (ASN-0098 StoreMonotonicity★) and
-`a ∉ nullified(Σ')` by hypothesis.)
+link, once found and not withdrawn, stays found as the store grows. (By LP13 (ASN-0098,
+UnconditionalLinkPersistence) `Σ'.L(a) = Σ.L(a)` across the reachability closure `Σ →* Σ'`,
+and `home(a)` is a projection of the fixed address `a`, so `sat(a, q, Σ') = sat(a, q, Σ)`;
+and `a ∈ addressable(Σ')` because `a ∈ dom(Σ'.L)` by link-store monotonicity across
+`Σ →* Σ'` (ASN-0098 StoreMonotonicity★) and `a ∉ nullified(Σ')` by hypothesis.)
 
 ## Stability under content editing
 
