@@ -8,7 +8,9 @@ The lattice's actual usage — classifiers, citations, supersession chains, hold
 
 ## Single-source
 
-Every typed relation has a single-span source — `|F| = 1`, where `|·|` counts the spans in an endset (the measure is fixed precisely under Shape-conformance below). There is no two-source variant, no zero-source variant, no variadic-F. Across the lattice's usage, classifiers attach to a single address, citations fan out from a single source, supersession chains anchor on a single predecessor, holdings are owned by a single agent. The single-source commitment captures every observed pattern and rejects nothing the substrate is asked to express. Note that the one F span may itself cover a contiguous range or a whole subtree, not merely one address — Nelson confirms "a single source span [may] legitimately cover a range/subtree ... the single-address case is just the smallest (degenerate) instance." The substrate narrows away only the multi-span, discontiguous from-set that the full link store (ASN-0043) would permit; it does not narrow what one span may reach.
+Every typed relation has a single-span source — `|F| = 1`, where `|·|` counts the spans in an endset (the measure is fixed precisely under Shape-conformance below). There is no two-source variant, no zero-source variant, no variadic-F. Across the lattice's usage, classifiers attach to a single address, citations fan out from a single source, supersession chains anchor on a single predecessor, holdings are owned by a single agent. The single-source commitment captures every observed pattern. Note that the one F span may itself cover a contiguous range or a whole subtree, not merely one address — Nelson confirms "a single source span [may] legitimately cover a range/subtree ... the single-address case is just the smallest (degenerate) instance." The substrate narrows away only the multi-span, discontiguous from-set that the full link store (ASN-0043) would permit; it does not narrow what one span may reach.
+
+The one place this commitment bites against ASN-0086's own vocabulary is retraction. ASN-0086 defines `Nullify(Σ, d_retr, a) ≡ Emit_R(Σ, d_retr, ∅, {(a, δ(1, #a))})` — an *empty* from-set, with the target carried in G; its RetractionDirectionality convention reserves the from-set "for attribution-bearing endset content or [leaves it] empty for unattributed retractions." Under `|F| = 1` the unattributed branch (`F = ∅`, `|F| = 0`) fails every shape, so ASN-0086's literal `F = ∅` Nullify is **not** expressible under `→_sh`. This is a deliberate exclusion, not an oversight, and Nelson's design intent endorses it: an *unattributed* retraction "is not an intended, essential capability ... everything in the system is part of a document. No free-floating materials exist," and "every retraction legitimately — indeed unavoidably — carries a single attributing source," via the home document and, when made explicit in the endsets, via one from-span. The framework re-expresses retraction as that attributed form: `Emit_R(Σ, d_retr, [r], {(a, δ(1, #a))})` where `[r]` is the single attributing source span (`|F| = 1`) and the targets stay in G — Binary when one target, Multi when several. Because the target remains in G, ASN-0086's `nullified`/`L_R`/active-subset machinery, all of which read `coverage(G')`, carry over unchanged; only the from-slot of the emit moves from `∅` to a one-span attribution. So the framework rejects exactly one thing the substrate's raw vocabulary can express — the `F = ∅` unattributed retraction — and that exclusion is precisely what Nelson's "no free-floating materials" rule already forbids. With that single qualification, the single-source commitment rejects nothing the substrate is *legitimately* asked to express.
 
 The link store underneath the substrate (ASN-0043) permits arbitrary higher arity, and an app needing multi-source relations can interact with the link store directly. The substrate does not provide machinery for that case. Adding it later means a supplemental note, not a revision here.
 
@@ -32,7 +34,7 @@ Endset targets are unrestricted. `F` and `G` spans may point anywhere in the tum
 
 The shapes are stated in terms of the *span count* of an endset. F and G are endsets, and `Endset = 𝒫_fin(Span)` (ASN-0043) — a finite set of spans. For an endset `e`, write `|e|` for its cardinality *as a finite set of spans*: the number of spans it contains, **not** the number of tumblers in `coverage(e)`. The two measures diverge sharply. A single unit-depth span `(a, δ(1, #a))` is one span — `|{(a, δ(1, #a))}| = 1` — yet its coverage is `{t : a ≼ t}`, generally infinite (PrefixSpanCoverage, ASN-0043). We count spans, deliberately, because (per the Single-source discussion and Nelson's design intent) a source span is *meant* to be able to cover a range or subtree; a coverage-singleton measure `|coverage(F)| = 1` would contradict that intent and is rejected. The only endsets with singleton coverage are those whose single span has unit length at a terminal (childless) address; the framework requires no such thing.
 
-For a typed tuple `(F, G, K)` under a type K registered with shape s, the well-formedness predicate `Sh-conf(K, F, G)` holds when:
+The predicate `Sh-conf(K, F, G)` is defined only for *registered* K — those for which the registry records a shape. For an unregistered K, `shape(K)` does not exist and `Sh-conf(K, F, G)` carries no truth value; emits under such K are inadmissible by the registration precondition on `K.λ_sh` (below), never reaching the conformance test. For a typed tuple `(F, G, K)` under a type K registered with shape s, `Sh-conf(K, F, G)` holds when:
 
 - Unary: `|F| = 1` and `G = ∅` (equivalently `|G| = 0`);
 - Binary: `|F| = 1` and `|G| = 1`;
@@ -50,7 +52,9 @@ ASN-0086's K.λ step has precondition L3 only (arity ≥ 3, non-empty type slot)
 
 `→_sh ≡ K.σ ∪ K.α ∪ K.λ_sh`,
 
-where `K.λ_sh` is `K.λ` with the added precondition `Sh-conf(K, F, G)`: an emit of value `(F, G, K)` under registered type K is enabled only when the tuple conforms to K's shape. K.σ and K.α are unchanged. All reachability in this note is with respect to `→_sh`. Under this definition P4 holds *by construction* of `K.λ_sh`, not as a derived property of the unmodified ASN-0086 relation.
+where `K.λ_sh` is `K.λ` with two added preconditions: (i) *K is registered* — the registry records a shape for K — and (ii) `Sh-conf(K, F, G)`. The two are ordered: (i) discharges the domain condition for (ii), so that `Sh-conf(K, F, G)` is always evaluated on a registered type and never on the undefined unregistered case. An emit of value `(F, G, K)` is thus enabled only when K names a registered type and the tuple conforms to K's shape. K.σ and K.α are unchanged.
+
+Because `K.λ_sh` is `K.λ` with *added* preconditions, every `K.λ_sh`-enabled transition is also `K.λ`-enabled; the other two step kinds are shared verbatim. Hence `→_sh ⊆ →`, and by induction on derivation length every `→_sh*`-reachable state is `→*`-reachable. ASN-0086's structural lemmas — R0 (fresh-address emission), `a_emit` totality, L-ContiguousPrefix, PrefixSpanCoverage — are quantified over `→*`-reachable states, so they hold at every state this note reasons about. All reachability in this note is with respect to `→_sh`, and the inclusion just shown is what licenses importing those `→`-domain results. Under this definition P4 holds *by construction* of `K.λ_sh`, not as a derived property of the unmodified ASN-0086 relation.
 
 ## Registry permanence
 
@@ -78,11 +82,13 @@ The flag belongs at the framework level rather than in the successor because the
 
 ## Registration entries
 
-Each registry entry records a type K together with:
+Registration is keyed by *coverage class*, not by raw endset. ASN-0086's TypeEquivalence (lifting L8, ASN-0043) identifies type endsets by coverage — `K ~ K' ≡ coverage(K) = coverage(K')` — and treats the type subscript as a coverage-class index, so `L_K = L_{K'}` whenever `K ~ K'`. The registry honours this: the key of an entry is the coverage class `[K]`, equivalently, the registry assigns `~`-equal endsets one and the same entry. Two coverage-equal endsets therefore cannot carry different shapes or idem flags. Each registry entry records a coverage class `[K]` together with:
 
 - a **name** — an opaque string identifier
 - a **shape** — one of `Unary`, `Binary`, `Multi`
 - an **idem** flag — `⊤` or `⊥`
+
+Because lookup is by coverage class, `shape`, `idem`, and `Sh-conf` all respect `~`: for `K ~ K'`, `shape(K) = shape(K')`, `idem(K) = idem(K')`, and `Sh-conf(K, F, G) = Sh-conf(K', F, G)` (the predicate reads `shape(K)`, which is now a function of `[K]`). This is what makes `shape(·)` and `idem(·)` functions of the type-as-coverage-class rather than of an arbitrary endset representative — the well-definedness P2 and P3 assert.
 
 An earlier draft recorded per-slot residence domains (`t_F`, `t_G` ∈ `{A_doc, A_rel, A}`) and had `Sh-conf` enforce them. We have removed that: those domains are state-indexed (`A_doc^Σ = dom(Σ.C)` etc., ASN-0086) and grow across `→`, so enforcing them would make `Sh-conf` state-dependent (contradicting P5) and would forbid the ghost references L4/L9 and Nelson explicitly sanction. The registry records shape and idem only; endset targets are unconstrained by residence.
 
@@ -98,7 +104,7 @@ This note establishes the following structural properties of every substrate sat
 
 **P3 (IdemStability).** For every registered K, `idem(K) ∈ {⊤, ⊥}` is a structural property of K, equal at every reachable state. Corollary of P1, by the same argument as P2.
 
-**P4 (Sh-confWellFormedness).** No `→_sh`-step extends `dom(Σ.L)` with a tuple `(F, G, K)` for which `Sh-conf(K, F, G)` fails. *True by construction* of `→_sh`: the only store-of-links step is `K.λ_sh`, whose precondition includes `Sh-conf(K, F, G)`. This is a definitional refinement of ASN-0086's relation, not a property of the unmodified `→` — which does admit non-conforming tuples.
+**P4 (Sh-confWellFormedness).** No `→_sh`-step extends `dom(Σ.L)` with a tuple `(F, G, K)` whose K is unregistered, nor with one for which `Sh-conf(K, F, G)` fails. *True by construction* of `→_sh`: the only store-of-links step is `K.λ_sh`, whose preconditions are (i) K registered and (ii) `Sh-conf(K, F, G)`. An unregistered K is rejected by (i) before `Sh-conf` is consulted; a registered but non-conforming tuple is rejected by (ii). This is a definitional refinement of ASN-0086's relation, not a property of the unmodified `→` — which admits both unchecked-type and non-conforming tuples.
 
 **P5 (Sh-confStateIndependence).** For any K, F, G and any reachable Σ, Σ', `Sh-conf(K, F, G)` evaluated against Σ equals `Sh-conf(K, F, G)` evaluated against Σ'. *Derived*: `Sh-conf` reads only the span counts `|F|`, `|G|` and `shape(K)`; the counts are intrinsic to the values, and `shape(K)` is invariant by P1. No state-indexed set is consulted (Shape-conformance).
 
@@ -141,7 +147,7 @@ The following are deliberately left for the successor note that layers operation
 
 4. **Standard registrations.** Whether the substrate ships any types pre-registered — `retired` (Unary, idem=⊤, read-filter) and `supersedes` (Binary, idem=⊤, transitive-closure) are obvious candidates the lattice already uses universally — or whether every app registers all of its own types.
 
-5. **Predicate composition.** Composition rules over the atomic predicates each type receives. Retired ASN-0095's territory.
+5. **Predicate composition.** Composition rules over the atomic predicates each type receives — the predicate-composition territory left open here.
 
 6. **Extension beyond F=1 and N=3.** When an app eventually needs multi-source relations or richer arity, whether the path is a supplemental note that loosens the constraints here, a parallel framework, or direct link-store interaction.
 
