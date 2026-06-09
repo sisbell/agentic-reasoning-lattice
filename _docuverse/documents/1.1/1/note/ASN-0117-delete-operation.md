@@ -171,13 +171,16 @@ We collect the arrangement effect as a named operation.
 
 **DELETE(`d`, `p`, `w`).**
 
-*Precondition.* `d ∈ dom(M)`; `S = subspace(p) = s_C`; `m = #p = 2`, equal to
+*Precondition.* `Σ` is `→*`-reachable from the initial state `Σ₀` (so the
+per-state invariant package of ExtendedReachableStateInvariants, ASN-0047, holds
+at `Σ`); `d ∈ dom(M)`; `S = subspace(p) = s_C`; `m = #p = 2`, equal to
 the common depth S8-depth fixes on `V_S(d)`; `p ∈ V_S(d)` is S8a-well-formed;
 `w₁ = 0`, `#w = #p`, `Pos(w)`, with `c = ord(w) ≥ 1`; and *containment* — the
 deleted span lies within the arranged run: `p = q_J` and `r = p ⊕ w = q_{J+c}`
 with `1 ≤ J` and `J + c ≤ N + 1` (the case `J + c = N + 1` deletes a suffix,
 leaving `R = ∅`). This is exactly the foundation contraction's precondition
-(ASN-0082).
+(ASN-0082), together with the reachability hypothesis the invariant-preservation
+argument below relies on.
 
 *Effect.* DELETE is one arrangement contraction realising ASN-0082's
 displacement family, with the content store held in frame. Which ASN-0047
@@ -291,10 +294,6 @@ place. We name DELETE's clauses but derive them by citation:
   composite-frame argument given in the Effect section above. Together with
   `dom(C') = dom(C)` (P0) this preserves P4★ and P7a.
 
-DELETE allocates nothing and frees nothing: the content layer sees *no change
-whatsoever* (DEL-CIMM). All of DELETE's work is in the arrangement layer, where
-it shifts the surviving suffix left to close the gap.
-
 ## The document remains one coherent sequence
 
 We must check that the result is well-formed — that closing the gap has not
@@ -308,10 +307,10 @@ of length `N' = N − c`. The prefix `L = {q_1, …, q_{J−1}}` abuts the shift
 suffix `{q_J, …, q_{N−c}}` (the images of `q_{J+c}, …, q_N` under
 `σ(q_k) = q_{k−c}`) flush — the gap-closure `σ(q_{J+c}) = q_J` (D-SEP) seats the
 two with no hole and no overlap. We do not re-prove well-formedness either.
-Because DELETE is a valid composite of elementary K.μ⁻/K.μ⁺ steps (or a lone
-elementary K.μ⁻ when `R = ∅`), its post-state satisfies the *entire* per-state
-invariant package of **ExtendedReachableStateInvariants** (ASN-0047)
-uniformly — every conjunct that theorem closes over, not a hand-picked subset.
+The pre-state `Σ` is `→*`-reachable (DELETE's precondition), and DELETE is a
+valid composite of elementary K.μ⁻/K.μ⁺ steps (or a lone elementary K.μ⁻ when
+`R = ∅`), so its post-state is itself `→*`-reachable and satisfies the per-state
+invariant package of **ExtendedReachableStateInvariants** (ASN-0047).
 We name only the conjuncts the deletion actively reshapes, all of them
 ASN-0082's post-contraction preservation family: **D-SEQ-post**/**D-MIN-post**
 (`min(V_S(d')) = q_1`)/**D-CTG-post** for the dense run, **S8a-post** and
@@ -381,15 +380,10 @@ three of the four nearly immediate.
 
 **Content permanence, and address permanence.** This is P0, and it is the whole
 non-destruction guarantee. The store is unchanged in domain and value
-(DEL-CIMM). The question also lists *address permanence* — that no I-address in
-`dom(C)` is removed or rebound, that DELETE allocates and frees nothing — as a
-distinct obligation, but it is not a distinct claim: it is read off P0 directly.
-The equation `dom(C') = dom(C)` is precisely "frees nothing, allocates nothing"
-(the domain neither shrinks nor grows), and `(A b : b ∈ dom(C) : C'(b) = C(b))`
-is precisely "no address is rebound." No I-address is removed; none is rebound;
-the deleted bytes remain at their permanent addresses forever — every clause of
-the address-level obligation discharged by P0, with no separate guarantee
-needed.
+(DEL-CIMM). Address permanence — that DELETE allocates and frees nothing and
+rebinds nothing — is P0 itself: `dom(C') = dom(C)` says the domain neither
+shrinks nor grows, and `(A b : b ∈ dom(C) : C'(b) = C(b))` says no address is
+rebound.
 
 A remark on well-definedness, in Dijkstra's spirit of establishing that an
 argument is in a function's domain before using it. The left-shift
