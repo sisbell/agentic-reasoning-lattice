@@ -68,9 +68,9 @@ The three inherited conjuncts read: the home is an allocated document; the emit 
 
 The first two conjuncts are this note's contribution; the remaining three are inherited verbatim. The conjunction is read under the domain-discharge ordering (The shape-gated emit).
 
-This weakest precondition is *strictly stronger* than `K.λ_sh`'s own precondition — and the gap is exactly the two inherited ASN-0086 landing conjuncts. `K.λ_sh`'s precondition is `K.λ`'s enablement precondition (L3 and `d ∈ dom(Σ.M)`) conjoined with the three added guards (0), (i), (ii); it contains neither `(K ≁ R ∨ a_emit(Σ, d) ∉ coverage(G))` nor `¬(∃ (b, F', G') ∈ L_R^Σ :: a_emit(Σ, d) ∈ coverage(G'))`. Those two are not enablement conditions but *landing* conditions — what the post-state must additionally satisfy for the deposited tuple to reach the *active* subset rather than merely the audit slice `L_K^{Σ'}`. The gate (`g_sh ≡ K registered ∧ Sh-conf(K, F, G)`, together with the inherited L3 and `d ∈ dom(Σ.M)`) *enables* the emit and is what P4 rests on; but a legal `→_sh` emit may still fail to land active when an inherited landing conjunct is false — the born-nullified case.
+This weakest precondition is *strictly stronger* than `K.λ_sh`'s own precondition — and the gap is exactly the two inherited ASN-0086 landing conjuncts. `K.λ_sh`'s precondition is `K.λ`'s enablement precondition (L3 and `d ∈ dom(Σ.M)`) conjoined with the three added guards (0), (i), (ii); it contains neither `(K ≁ R ∨ a_emit(Σ, d) ∉ coverage(G))` nor `¬(∃ (b, F', G') ∈ L_R^Σ :: a_emit(Σ, d) ∈ coverage(G'))`. Those two are not enablement conditions but *landing* conditions — what the post-state must additionally satisfy for the deposited tuple to reach the *active* subset rather than merely the audit slice `L_K^{Σ'}`. The gate (`g_sh ≡ K registered ∧ Sh-conf(K, F, G)`, together with the inherited L3 and `d ∈ dom(Σ.M)`) *enables* the emit and is what P4 rests on; but a legal `→_sh` emit may still fail to land active when an inherited landing conjunct is false — the born-nullified case (demonstrated in Worked illustration).
 
-The third inherited conjunct does not vacate under `→_sh`: because R is gated by Binary alone (Single-source), `→_sh` admits non-unit retraction to-spans, so a pre-existing `L_R` tuple may cover the fresh address and the born-nullified guard remains live at a general `→_sh`-reachable state.
+That third inherited conjunct stays live under `→_sh`: because R is gated by Binary alone (Single-source), `→_sh` admits non-unit retraction to-spans whose coverage can include a fresh address — the mechanism Worked illustration exploits.
 
 We bridge to ASN-0086 through the projection `π(Σ) = (Σ.C, Σ.M, Σ.L)` that forgets the registry — call this **the projection bridge**. Each `→_sh`-step preserves the registry in its frame (Registry permanence) and acts on the C/M/L components exactly as the corresponding ASN-0086 step: a K.σ-step as `K.σ`, a K.α-step as `K.α`, and a `K.λ_sh`-step as a `K.λ` step — its three added preconditions (0), (i), (ii) only *restrict* when it fires, leaving its C/M/L effect and frame identical to `K.λ`'s. Hence whenever `Σ →_sh Σ'`, we have `π(Σ) → π(Σ')` in ASN-0086's relation. By induction on derivation length, `π` maps every `→_sh*`-reachable state to a state `→*`-reachable from ASN-0086's initial state: the framework constructs its `Σ_init` by adjoining the registry to ASN-0086's initial three components and altering none of them, so `π(Σ_init) = Σ_init^{0086}` exactly — the base is ASN-0086's own initial state, trivially `→*`-reachable from itself — and each step extends a `→`-derivation rooted at `Σ_init^{0086}` by the projected step just exhibited. The bridge has two consequences. First, `a_emit` reads only the M and L components, which Σ and `π(Σ)` share, so `a_emit(π(Σ), d) = a_emit(Σ, d)` and `dom(π(Σ).L) = dom(Σ.L)`. Second, ASN-0086's structural lemmas — R0 (fresh-address emission), `a_emit` totality, L-ContiguousPrefix, PrefixSpanCoverage — are quantified over `→*`-reachable three-component states, so they hold at `π(Σ)` for every state Σ this note reasons about; since they constrain only the shared C/M/L components, their conclusions transfer to Σ directly.
 
@@ -90,7 +90,7 @@ Second, apply ASN-0086's `Emit_K` operation at `π(Σ)`, whose contract pins the
 
 Third, lift the step. The underlying ASN-0086 step is the `K.λ` step that `Emit_K` realizes at the pinned address `a_emit(Σ, d)`. Form Σ' by adjoining the unchanged registry to `Σ_{0086}`: `Σ'.C = Σ_{0086}.C`, `Σ'.M = Σ_{0086}.M`, `Σ'.L = Σ_{0086}.L`, `Σ'.registry = Σ.registry`. We verify `Σ → Σ'` is a `K.λ_sh`-step. `K.λ_sh` is `K.λ` with the registry framed and three added preconditions; its C/M/L effect is `K.λ`'s, realized by the `Emit_K` step at `a_emit`, and its registry frame `Σ'.registry = Σ.registry` holds by construction. Its preconditions: the inherited L3 and `d ∈ dom(Σ.M)` hold (discharged above and by premise); (0) arity 3 holds — the value is the standard triple `(F, G, K)`; (i) K registered — premise; (ii) `Sh-conf(K, F, G) = ⊤` — premise. All hold, so `Σ → Σ'` is a `K.λ_sh`-step, hence a `→_sh`-step, and Σ' is `→_sh`-reachable. Its post-state map gives `a ∈ dom(Σ'.L)`, `Σ'.L(a) = (F, G, K)`, `home(a) = d`, completing the claim. ∎
 
-P6 lands the tuple in the *audit slice* `dom(Σ'.L)` (equivalently `L_K^{Σ'}`), and makes **no** claim about the active subset `A_K^{Σ'}`.
+P6 lands the tuple in the *audit slice* `dom(Σ'.L)` (equivalently `L_K^{Σ'}`), not necessarily the active subset `A_K^{Σ'}` (gate-vs-landing, The shape-gated emit).
 
 ## Registry permanence
 
@@ -106,7 +106,7 @@ The registry is fixed when `Σ_init` is defined. To show it never drifts we must
 
 No step kind in `→_sh` has the registry in its *effect*; each leaves it in its frame. P1 then follows by induction on the length of a `→_sh*`-derivation: the base case `Σ = Σ_init` is immediate, and each step preserves `Σ.registry = Σ_init.registry` by the frame condition for whichever of the three kinds it is. So for every Σ reachable from Σ_init, `Σ.registry = Σ_init.registry`.
 
-This invariance has structural consequences. A type K's shape is a function of K alone — `shape(K)` is well-defined without reference to state (P2), and the same K cannot carry one shape at Σ and another at Σ'. Likewise `idem(K)` is state-independent (P3). `Sh-conf` is therefore stable on registered types: for registered K it reads only `(F, G)` and `shape(K)`, and since `shape(K)` is registry-determined and the registry is invariant, `Sh-conf(K, F, G)` evaluates the same against Σ as against any Σ' reachable from Σ. Moreover registration status is itself state-independent by P1 — K is registered at Σ iff registered at Σ' — so the predicate is *defined* at Σ exactly when it is defined at Σ' (P5).
+This invariance has structural consequences. A type K's shape is a function of K alone — `shape(K)` depends only on the P1-invariant registry, hence is constant on `→_sh*` (P2), and the same K cannot carry one shape at Σ and another at Σ'. `Sh-conf` is therefore stable on registered types: for registered K it reads only `(F, G)` and `shape(K)`, and since `shape(K)` is registry-determined and the registry is invariant, `Sh-conf(K, F, G)` evaluates the same against Σ as against any Σ' reachable from Σ. Moreover registration status is itself state-independent by P1 — K is registered at Σ iff registered at Σ' — so the predicate is *defined* at Σ exactly when it is defined at Σ' (P5).
 
 Distinct registries yield distinct substrates: the registry is not state the substrate evolves through but a parameter that individuates which substrate one is in.
 
@@ -116,13 +116,11 @@ Registration is keyed by *coverage class*, not by raw endset. ASN-0086's TypeEqu
 
 - a **name** — an opaque string identifier
 - a **shape** — one of `Unary`, `Binary`, `Multi`
-- an **idem** flag — `⊤` or `⊥`
+- a reserved **idem** field — value in `{⊤, ⊥}`, fixed at `Σ_init` and frozen by P1; no predicate, gate, or operation in this note reads it, and its semantics are deferred to Open Question 1.
 
-Because lookup is by coverage class, `shape`, `idem`, and `Sh-conf` all respect `~`: for `K ~ K'`, `shape(K) = shape(K')`, `idem(K) = idem(K')`, and `Sh-conf(K, F, G) = Sh-conf(K', F, G)` (the predicate reads `shape(K)`, which is now a function of `[K]`). This is what makes `shape(·)` and `idem(·)` functions of the type-as-coverage-class rather than of an arbitrary endset representative — the well-definedness P2 and P3 assert.
+Because lookup is by coverage class, `shape` and `Sh-conf` respect `~`: for `K ~ K'`, `shape(K) = shape(K')` and `Sh-conf(K, F, G) = Sh-conf(K', F, G)` (the predicate reads `shape(K)`, which is now a function of `[K]`). This is what makes `shape(·)` a function of the type-as-coverage-class rather than of an arbitrary endset representative — the well-definedness P2 asserts.
 
-The **idem** flag is a registry field with value in `{⊤, ⊥}`, fixed at `Σ_init` and frozen by P1.
-
-A registry is well-formed when shape values lie in `{Unary, Binary, Multi}`, idem values lie in `{⊤, ⊥}`, names are unique within the registry, and — the condition P2/P3 well-definedness actually rests on — *coverage-class keys are unique*: no two entries have `~`-equal keys. Equivalently, a well-formed registry *is* a partial function `T_admissible/~ ⇀ (name, shape, idem)` from coverage classes to entries. This is the load-bearing condition; name-uniqueness is by contrast a convenience for app-side lookup. The substrate makes no commitment about which name strings are admissible — that is the app's namespace. Distinct substrates may carry registries with overlapping names; within one substrate, the name uniquely identifies a registry entry.
+A registry is well-formed when shape values lie in `{Unary, Binary, Multi}`, idem values lie in `{⊤, ⊥}`, names are unique within the registry, and — the condition P2 well-definedness actually rests on — *coverage-class keys are unique*: no two entries have `~`-equal keys. Equivalently, a well-formed registry *is* a partial function `T_admissible/~ ⇀ (name, shape, idem)` from coverage classes to entries. This is the load-bearing condition; name-uniqueness is by contrast a convenience for app-side lookup. The substrate makes no commitment about which name strings are admissible — that is the app's namespace. Distinct substrates may carry registries with overlapping names; within one substrate, the name uniquely identifies a registry entry.
 
 C0 constrains `Σ_init.registry` directly, since P1 freezes ill-formed registries as faithfully as well-formed ones.
 
@@ -136,13 +134,11 @@ This note establishes the following structural properties of every substrate sat
 
 **P1 (RegistryInvariance).** `Σ.registry = Σ_init.registry` for every Σ reachable from Σ_init. *Derived* (Registry permanence) from the registry's presence in the frame of every `→_sh`-step kind, by induction on derivation length.
 
-**P2 (ShapeStability).** For every registered K, `shape(K)` is well-defined without reference to state, and the value is constant on the reflexive-transitive closure of `→_sh`. *Derived* from C0 (RegistryWellFormedness, Registration entries) for single-valuedness and P1 (RegistryInvariance, Registry permanence) for state-independence.
+**P2 (ShapeStability).** For every registered K, `shape(K)` depends only on the P1-invariant registry, hence is constant on `→_sh*`. *Derived* from C0 (RegistryWellFormedness, Registration entries) for single-valuedness and P1 (RegistryInvariance, Registry permanence) for state-independence. The same argument applies to the reserved `idem` field — being a registry component, it too is frozen by P1 — though no claim in this note depends on that.
 
-**P3 (IdemStability).** For every registered K, `idem(K) ∈ {⊤, ⊥}` is a structural property of K, equal at every reachable state. *Corollary of P2*, the same argument applied to the idem field.
+**P4 (Sh-confWellFormedness).** No `→_sh`-step extends `dom(Σ.L)` with a tuple `(F, G, K)` whose K is unregistered, nor with one for which `Sh-conf(K, F, G)` fails. *Derived in The shape-gated emit*: the only store-of-links step is `K.λ_sh`, whose preconditions (0)–(ii) reject every such tuple at the gate.
 
-**P4 (Sh-confWellFormedness).** No `→_sh`-step extends `dom(Σ.L)` with a tuple `(F, G, K)` whose K is unregistered, nor with one for which `Sh-conf(K, F, G)` fails. *Derived in The shape-gated emit*: the only store-of-links step is `K.λ_sh`, whose preconditions (0)–(ii) reject every such tuple at the gate. P4 records the gate's *enablement* half only.
-
-**P5 (Sh-confStateIndependence).** For any *registered* K and any F, G, and any reachable Σ, Σ', `Sh-conf(K, F, G)` is defined at both states and its verdict at Σ equals its verdict at Σ'. *Derived* (Registry permanence): definedness coincides because registration status is P1-invariant, and the verdict coincides because `Sh-conf` consults no state-indexed set (Shape-conformance), reading only the P1-invariant `shape(K)`.
+**P5 (Sh-confStateIndependence).** For any *registered* K and any F, G, and any reachable Σ, Σ', `Sh-conf(K, F, G)` is defined at both states and its verdict at Σ equals its verdict at Σ'. *Derived* (Registry permanence): definedness coincides because registration status is P1-invariant, and the verdict coincides because `Sh-conf` consults only the P1-invariant registry (Shape-conformance), reading the registered `shape(K)` and the tuple's own span counts.
 
 **P6 (GateRealizability).** Every conforming triple at an allocated home fires a `→_sh`-step depositing it at the fresh `a_emit(Σ, d)`. The *liveness* dual of P4. *Derived in The shape-gated emit* (Gate realizability), where the full statement and the audit-slice qualification are given.
 
@@ -160,11 +156,11 @@ each an element-level I-address with `zeros = 3`. Write `[x] = {(x, δ(1, #x))}`
 
 Consider five registry entries:
 
-- `approved`: Unary, idem=⊤
-- `succession`: Binary, idem=⊤
-- `citation`: Multi, idem=⊤
-- `touched`: Multi, idem=⊥
-- `retract`: Binary, idem=⊤ — the framework's retraction type R (the attributed Binary re-expression of ASN-0086's Nullify)
+- `approved`: Unary
+- `succession`: Binary
+- `citation`: Multi
+- `touched`: Multi
+- `retract`: Binary — the framework's retraction type R (the attributed Binary re-expression of ASN-0086's Nullify)
 
 **Unary.** Emit `(F, G, approved)` with `F = [c₁]`, `G = ∅`. Then `|F| = 1` and `|G| = 0`, so `Sh-conf(approved, [c₁], ∅) = ⊤` and `K.λ_sh` is enabled. The variant `([c₁], [c₂], approved)` has `|G| = 1 ≠ 0`, so `Sh-conf = ⊥`; no `→_sh`-step deposits it into `dom(Σ.L)` at any reachable state (P4).
 
