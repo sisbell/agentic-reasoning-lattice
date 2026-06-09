@@ -30,7 +30,8 @@ append-only ground truth of what content exists, and a per-document
 **arrangement** `Σ.M(d) : T ⇀ T`, the partial function from V-positions to
 I-addresses that records how document `d` currently arranges that content. A
 V-position carries a subspace identifier in its first component, written
-`subspace(v) = v₁`; content lives in the text subspace `s_C`, links in `s_L`.
+`subspace(v) = v₁`; content lives in the text subspace `s_C`, links in `s_L`
+(link placement is a distinct operation drawing on K.λ, not K.α).
 We write `V_S(d) = {v ∈ dom(M(d)) : subspace(v) = S}` for the V-positions of
 `d` in subspace `S`. We work inside ASN-0047's extended state
 `Σ = (C, L, E, M, R)`; beyond `C` and `M` the one further component INSERT
@@ -182,8 +183,7 @@ inserted unit is a well-formed content value, the typing obligation the K.α ste
 below carries (ASN-0093: K.α commits `a ↦ v` only for `v ∈ Val`); `S = subspace(p) = s_C`;
 `m := #p ≥ 2`, and when `V_S(d) ≠ ∅` this `m` equals the common depth that
 S8-depth fixes on `V_S(d)`; `p` is S8a-well-formed; and `p` is a valid insertion
-position in the foundation sense (ASN-0036). Link placement is a distinct
-operation drawing on K.λ, not K.α. The position predicates are:
+position in the foundation sense (ASN-0036). The position predicates are:
 
 - if `V_S(d) = ∅`: `ValidFirstInsertionPosition(d, p, m)` — `p` is the canonical
   first position `[S, 1, …, 1]` of depth `m`, and this first insertion *fixes*
@@ -320,12 +320,9 @@ predecessors leave, is
   `J−1 < N = n_{s_C}`, the content subspace contracts strictly, so K.μ⁻'s "at least one
   subspace strictly contracts" precondition is met; the retained domain is
   `{q_1, …, q_{J−1}} ∪ V_{s_L}(d)`. The intermediate text subspace is now the prefix
-  alone, the link subspace untouched. At the front-insertion extreme `J = 1` this
-  branch still fires with `n'_{s_C} = 0`: the content subspace clears entirely (the
-  retained prefix `{q_1, …, q_0}` is empty), strict contraction `0 < N` still holding,
-  so the whole suffix is vacated and re-installed `n` higher by the following K.μ⁺ —
-  distinct from the append case (where K.μ⁻ is dropped) and the empty subspace (where
-  there is no suffix to shift).
+  alone, the link subspace untouched. The bound `J−1 < N` holds down to `J = 1`, so
+  K.μ⁻ fires throughout `1 ≤ J ≤ N`; the front-insertion extreme `J = 1` (with
+  `n'_{s_C} = 0`) is walked through concretely in the front-insertion boundary below.
 - *`K.μ⁺` (install block and shifted suffix).* Acting on `d`, add the I-NEW block
   and the I-SHIFT shifted suffix — the same mappings the Effect fixes (the values are
   pinned there, via I3); this step installs them as one domain-extending transition
@@ -461,12 +458,10 @@ fact that the inserted material forms *one* such run.
 *Provenance coupling — the obligation allocation incurs.* Because INSERT both
 allocates content (I-ALLOC) and places it into the content subspace of `ran(M'(d))`
 (I-NEW), ASN-0047 binds it to three coupling constraints between the initial and
-final states of the composite, plus a composite-boundary coverage property. The consultation settles that this coupling is intrinsic to
-insertion — the inserting document's identity is minted into the address as content
-enters (4/11, theory answer: "the origin IS the address"), and the implementation makes the binding concrete by writing a DOCISPAN
-provenance record per inserted I-span (KB synthesis; theory answer "provenance
-follows creation, and for native insertion creation and placement are the same
-act"). I-PROV is the abstract counterpart of that record. We discharge each
+final states of the composite, plus a composite-boundary coverage property. The
+inserting document's identity is minted into the address as content enters
+(4/11), and the implementation writes a DOCISPAN provenance record per inserted
+I-span; I-PROV is the abstract counterpart of that record. We discharge each
 constraint directly.
 
 The range identity (RAN) drives all four: the I-addresses *new to the
