@@ -181,16 +181,35 @@ we use is the address-by-address expansion of those run-pairs:
 
 This is not a new object — it is ASN-0058's resolution listed one address at a
 time rather than run-by-run, and it coincides with the per-position reading
-`⟨ Σ.M(d_s)(v) : v ∈ act(ρ, Σ) ascending ⟩` concatenated in spec-set order. Write
+`⟨ Σ.M(d_s)(v) : v ∈ act(ρ, Σ) ascending ⟩` concatenated in spec-set order. That
+coincidence is the bridge CP0(a) leans on — it must ground the *interior*
+addresses `aⱼ+1, …, aⱼ+(nⱼ−1)` that `expand` produces, not only the run-leading
+`aⱼ` — so we exhibit it rather than assert it. Fix one V-spec `ρ = (d_s, σ)`. Its
+runs `(vⱼ, aⱼ, nⱼ)` partition `act(ρ, Σ)` — the domain `dom(M(d_s)|⟦σ⟧)` — into
+disjoint maximal runs (ASN-0058, C1a), and the maximal-run lockstep property
+(ASN-0036, S8) fixes each run's images in step with its bound positions:
+`Σ.M(d_s)(vⱼ + k) = aⱼ + k` for every `0 ≤ k < nⱼ`. Hence the address `aⱼ + k`
+that `expand` emits at interior offset `k` is *exactly* the image
+`Σ.M(d_s)(vⱼ + k)` of the bound position `vⱼ + k ∈ act(ρ, Σ)` — run interiors
+included. The runs being a disjoint maximal partition of the totally-ordered
+`act(ρ, Σ)`, each run's positions ascend with `k` and lie wholly below the next
+run's, and C1b (ResolutionSequenceOrder) lists the runs in strictly increasing
+V-start order, so concatenating the runs in C1b order reproduces the ascending
+enumeration of `act(ρ, Σ)` address-for-address; concatenating across the spec-set
+in `R`'s order extends this to the whole sequence. Write
 `resolve(R, Σ) = ⟨c₀, c₁, …, c_{W−1}⟩`, with `W = |resolve(R,Σ)|` the total count
 of resolved addresses (the sum of the run widths `nⱼ`). Three facts about this
 object we record as the *resolution integrity* claim CP0:
 
 - **(a) Every resolved address already exists.** `cᵢ ∈ dom(Σ.C)` for `0 ≤ i < W`.
-  We read this off the per-position form of resolution directly: each `cᵢ` is
-  `Σ.M(d_s)(vⱼ)` for some active position `vⱼ ∈ act(ρ, Σ) ⊆ dom(Σ.M(d_s))` with
-  `subspace(vⱼ) = s_C` (content-residence), so referential integrity S3★ gives
-  `Σ.M(d_s)(vⱼ) ∈ dom(Σ.C)`. The conclusion coincides with ASN-0058 C1
+  We read this off the per-position form of resolution, whose
+  address-for-address agreement with `expand(resolve(R))` was just established:
+  each `cᵢ` — run-leading or run-interior alike — is `Σ.M(d_s)(v)` for some active
+  position `v ∈ act(ρ, Σ) ⊆ dom(Σ.M(d_s))` with `subspace(v) = s_C`
+  (content-residence), so referential integrity S3★ gives `Σ.M(d_s)(v) ∈ dom(Σ.C)`.
+  The interior addresses `aⱼ + k` are covered because the bridge identifies each
+  with the image of the bound position `vⱼ + k`, not left as bare arithmetic on
+  `aⱼ`. The conclusion coincides with ASN-0058 C1
   (ResolutionIntegrity), but we derive it from S3★ over the bound subset rather than
   cite C1, whose stated precondition is the full binding COPY discards — S3★ holds
   of every bound position whether or not `⟦σ⟧` is fully bound. *Nothing named by the
