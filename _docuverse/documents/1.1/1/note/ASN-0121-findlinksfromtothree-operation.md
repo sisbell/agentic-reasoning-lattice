@@ -135,9 +135,20 @@ This is exactly the cell-decomposition of ASN-0086's CoverageEqualityDecidable, 
 to intersection-nonemptiness rather than coverage equality. The home test
 `athome(a, H) ≡ home(a) ∈ coverage(H)` is decidable by the same finite cell membership
 (a single point against a finite interval union). Hence `sat` — a conjunction of four
-decidable tests — is decidable, and `findlinks(q, Σ) ⊆ dom(Σ.L)` is finite by L-fin
-(`|dom(Σ.L)| < ∞`, ASN-0093), so it is computed by deciding `sat` over the finitely many
-addressable links. ∎
+decidable tests — is decidable. It remains to show the *addressability filter* is itself
+computable, since `findlinks(q, Σ) = { a ∈ addressable(Σ) : sat(a, q, Σ) }` ranges over
+`addressable(Σ) = dom(Σ.L) \ nullified(Σ)`, not over `dom(Σ.L)` directly: enumerating the
+index set presupposes `nullified(Σ)`-membership is decidable. It is, by exactly the
+argument ASN-0086 records for its ActiveSubset/`nullified`. The retraction relation
+`L_R^Σ` is selected from the finite `dom(Σ.L)` by CoverageEqualityDecidable (the slot-3
+type-coverage test against the retraction coverage class), so `L_R^Σ` is finite and
+computable; each retraction tuple `(b, F', G') ∈ L_R^Σ` carries a to-endset `G'` whose
+coverage is a finite span-set, and `a ∈ coverage(G')` is decidable by T2 (a point against
+a finite interval union); hence `a ∈ nullified(Σ) ≡ (E (b, F', G') ∈ L_R^Σ :: a ∈ coverage(G'))`
+is a finite disjunction of decidable tests, so `nullified(Σ)` is computable and
+`addressable(Σ) = dom(Σ.L) \ nullified(Σ)` is enumerable. With both the filter and `sat`
+decidable, and `findlinks(q, Σ) ⊆ dom(Σ.L)` finite by L-fin (`|dom(Σ.L)| < ∞`, ASN-0093),
+the result is computed by deciding `sat` over the finitely many addressable links. ∎
 
 The corresponding residence test, for a link `a` and a home-set `H`, asks only that the
 link's residence fall in the requested region:
@@ -496,9 +507,19 @@ FL-MON and FL-STB are monotonicity and invariance statements; they do not isolat
 single transition can move a link into or out of the answer. Since `findlinks(q, ·)` is a
 function of `Σ.L` alone (FL-DEF's frame; `nullified` is itself a function of `Σ.L`), and
 the only operation in `→` that changes `Σ.L` is K.λ (every other operation frames `Σ.L`
-fixed, as recorded above), *K.λ is the unique result-changing transition*. We compute its
-weakest precondition in the two cases that matter — the entry of a newly created link, and
-the survival of an existing match under a retraction-bearing K.λ.
+fixed, as recorded above), *K.λ is the unique result-changing transition*. A single K.λ
+step can change the answer in three ways, and we compute the weakest precondition of each:
+the entry of a newly created *ordinary* link, the entry of a newly created *retraction*
+link, and the survival of an existing match under a retraction-bearing K.λ. The second
+case is not idle: a retraction link is a first-class link with its own address, and
+Nelson's link model exempts no type from search — "there is essentially nothing in the
+Xanadu system except documents and their arbitrary links" (4/41), and the search mechanism
+"does not actually look at what is stored under the 'type' … it merely considers the
+type's address" (4/44–4/45), so a type-`Θ` query touching the retraction class returns a
+retraction link like any other. The operation is therefore obliged to surface a fresh
+retraction link when it matches, and its entry has a weakest precondition we must
+characterise — one that differs from the ordinary case precisely because the *same* K.λ
+grows `L_R`, carrying a self-retraction term.
 
 **FL-WP (weakest precondition for the result-changing step).**
 
@@ -550,6 +571,42 @@ further pre-state dependence — so it equals the four-way conjunction
 *five*-way conjunction: a fresh link enters the answer iff its just-committed value and home meet
 all four lifted criteria of `q` *and* no standing retraction tuple already covers its address.
 
+*(c) Entry of a fresh retraction link.* The ordinariness restriction of case (a) sets aside
+exactly one realisable K.λ result change: the entry of a fresh link whose *own* type is a
+retraction type. Because the link model exempts no type from search (consultation, Q2 — a
+type-`Θ` query touching the retraction class returns such a link like any other), we compute
+its weakest precondition rather than scope it out. Let `Σ → Σ'` be a K.λ step that allocates
+a fresh address `b ∉ dom(Σ.L)` with value `Σ'.L(b) = (∅, G', Θ_b)` whose type endset *does*
+fall in the retraction coverage class — `coverage(Θ_b) ∈ [coverage(R)]` — so by ASN-0086's
+slot-3 test `b ∈ L_R^{Σ'}`, and (following ASN-0086's RetractionDirectionality convention,
+empty from-slot, targets in the to-slot `G'`) the retraction relation grows by exactly this
+one tuple: `L_R^{Σ'} = L_R^Σ ∪ {(b, ∅, G')}` — every prior tuple persists by L12, and `b` is
+the only address `Σ.L` gains. Then
+
+  `wp(K.λ, b ∈ findlinks(q, ·)) ≡ ¬(E (c, F'', G'') ∈ L_R^Σ :: b ∈ coverage(G'')) ∧ b ∉ coverage(G') ∧ liftH_d(q.H) ∧ lift(∅, q.F) ∧ lift(G', q.G) ∧ lift(Θ_b, q.Θ)`,
+
+with `d = home(b)`. *Derivation.* By FL-DEF,
+`b ∈ findlinks(q, Σ') ⟺ b ∈ addressable(Σ') ∧ sat(b, q, Σ')`. The matching conjunct reads
+the committed value `(∅, G', Θ_b)` and home `d` — both fixed by the operation's own
+arguments — so `sat(b, q, Σ') = liftH_d(q.H) ∧ lift(∅, q.F) ∧ lift(G', q.G) ∧ lift(Θ_b, q.Θ)`.
+(By FL-EMP the empty from-endset gives `lift(∅, q.F) = false` under any *constrained* `q.F`
+and `true` only under the from-wildcard, so a retraction link with empty from-slot is
+from-discoverable only when `q.F = ∗` — exactly the link-side zero of FL-EMP.) The
+addressability conjunct unfolds over the *extended* retraction relation: for the fresh `b`,
+`b ∈ nullified(Σ') ⟺ (E (c, F'', G'') ∈ L_R^{Σ'} :: b ∈ coverage(G''))
+⟺ (E (c, F'', G'') ∈ L_R^Σ :: b ∈ coverage(G'')) ∨ b ∈ coverage(G')`, splitting the
+existential over the disjoint union `L_R^Σ ∪ {(b, ∅, G')}`. The first disjunct is the
+case-(a) hazard — a *pre-existing* retraction tuple already covering the ghost-allocated `b`;
+the second is the *self-retraction* term `b ∈ coverage(G')`, in which the very tuple just
+committed names its own address (a self-nullifying retraction). Negating,
+`b ∉ nullified(Σ') ≡ ¬(E (c, F'', G'') ∈ L_R^Σ :: b ∈ coverage(G'')) ∧ b ∉ coverage(G')`.
+This is precisely case (a)'s addressability conjunct with the self-retraction term
+`b ∉ coverage(G')` adjoined — the term case (b) sets aside by scope, here *live* because `b`
+is the fresh retractor's own address. Conjoining matching and addressability gives the
+displayed *six*-way wp: a fresh retraction link enters the answer iff its committed value and
+home meet all four lifted criteria of `q`, no standing retraction tuple already covered its
+address, *and* it does not retract itself.
+
 *(b) Survival of an existing match under retraction.* Let `Σ → Σ'` be a K.λ step that
 commits a *retraction tuple* whose to-coverage is `coverage(G')` — by ASN-0086 this grows
 `nullified` by exactly the targets in `coverage(G')` (R6b), leaving every link value and
@@ -573,7 +630,8 @@ where the middle step splits the existential over the disjoint union `L_R^Σ ∪
 This equation is stated and used only on the existing-link slice `a ∈ dom(Σ.L)`; the fresh
 retractor address `b ∈ dom(Σ'.L) \ dom(Σ.L)` lies outside that slice, so the *self-retraction*
 case `b ∈ coverage(G')` — in which `b` nullifies its own address — is excluded by scope and does
-not bear on the conclusion drawn for existing links. (Over the full post-state index `dom(Σ'.L)`
+not bear on the conclusion drawn for existing links (its weakest precondition is the subject of
+case (c) above, where it appears as the live self-retraction conjunct `b ∉ coverage(G')`). (Over the full post-state index `dom(Σ'.L)`
 the exact increment is `nullified(Σ') = nullified(Σ) ∪ {t ∈ dom(Σ'.L) : t ∈ coverage(G')}`, which
 the singleton-extension premise `L_R^{Σ'} = L_R^Σ ∪ {(b, ∅, G')}` discharges alongside R6b; on
 the `dom(Σ.L)` slice the two index sets agree.)
@@ -826,7 +884,7 @@ document — granularity.
 | FL-EMP | Empty-constraint zero — a constrained slot with empty coverage (`∅`) gives `lift = false` for every link, so any empty constrained component forces `findlinks(q, Σ) = ∅`; empty-spec (zero) is distinct from wildcard/NOSPECS (unit). By the symmetry of `touch`, the same zero applies to a *link's* own empty endset (L3 permits `e₁ = ∅` or `e₂ = ∅`): such a link is excluded from any constrained from-/to-slot and admitted on that axis only under the corresponding wildcard | introduced |
 | FL-CUR | Currency — `a ∈ findlinks(q, Σ) ⟺ a ∈ addressable(Σ) ∧ sat(a, q, Σ)`, the conjunction of FL-SND and FL-CMP against `addressable(Σ)`: current additions in, current retractions out, non-matches irrelevant | introduced |
 | FL-MON | Monotone accumulation absent retraction — an unretracted matching link, once found, stays found as the store grows | introduced |
-| FL-WP | Weakest precondition for the unique result-changing transition (K.λ) — `(a)` a fresh ordinary link enters the answer iff `ℓ ∉ nullified(Σ') ∧ liftH_d(q.H) ∧ lift(F, q.F) ∧ lift(G, q.G) ∧ lift(Θ, q.Θ)`, where the addressability conjunct `ℓ ∉ nullified(Σ') ≡ ¬(E (b, F', G') ∈ L_R^Σ :: ℓ ∈ coverage(G'))` is *not* discharged by freshness alone (a pre-existing retraction tuple may cover the ghost-allocated `ℓ`; cf. ASN-0086 wp Case 2), and is carried explicitly absent a retraction discipline; `(b)` an existing match survives a retraction-bearing K.λ iff `a ∈ findlinks(q, Σ) ∧ a ∉ coverage(G')` | introduced |
+| FL-WP | Weakest precondition for the unique result-changing transition (K.λ), in its three result-changing cases — `(a)` a fresh *ordinary* link (`coverage(Θ) ∉ [coverage(R)]`) enters the answer iff `ℓ ∉ nullified(Σ') ∧ liftH_d(q.H) ∧ lift(F, q.F) ∧ lift(G, q.G) ∧ lift(Θ, q.Θ)`, where the addressability conjunct `ℓ ∉ nullified(Σ') ≡ ¬(E (b, F', G') ∈ L_R^Σ :: ℓ ∈ coverage(G'))` is *not* discharged by freshness alone (a pre-existing retraction tuple may cover the ghost-allocated `ℓ`; cf. ASN-0086 wp Case 2), and is carried explicitly absent a retraction discipline; `(c)` a fresh *retraction* link (`coverage(Θ_b) ∈ [coverage(R)]`, value `(∅, G', Θ_b)`) enters iff `¬(E (c, F'', G'') ∈ L_R^Σ :: b ∈ coverage(G'')) ∧ b ∉ coverage(G') ∧ liftH_d(q.H) ∧ lift(∅, q.F) ∧ lift(G', q.G) ∧ lift(Θ_b, q.Θ)` — case (a) with ordinariness relaxed, `L_R` extended by `b`'s own tuple, and the live self-retraction conjunct `b ∉ coverage(G')`; `(b)` an existing match survives a retraction-bearing K.λ iff `a ∈ findlinks(q, Σ) ∧ a ∉ coverage(G')` | introduced |
 | FL-STB | Stability under editing — for any request (the grammar's only kind being I-address requests), the result is invariant under any transition preserving `Σ.L` (the single load-bearing hypothesis, since `nullified` is a function of `Σ.L` alone and so retraction-set preservation follows); pure-arrangement edits and content appends do not change which links are returned | introduced |
 | FL-RET | Retraction absence — a retracted link is permanently and completely absent from every subsequent current-state inquiry, and its absence does not impede other results | introduced |
 | FL-REACH | Cross-document reach — for any request `findlinks` is independent of `Σ.M`: global over the store, finds transcluded content once, returns all links under a whole-docuverse home-set, and contains every satisfying, addressable link that any document surfaces — `findlinks(q, Σ) ⊇ ⋃_d { a : a ∈ addressable(Σ) ∧ sat(a, q, Σ) ∧ discoverable_from(a, d, Σ) }`, strict given satisfying orphans (not a superset of the bare, request-independent discoverable union) | introduced |
