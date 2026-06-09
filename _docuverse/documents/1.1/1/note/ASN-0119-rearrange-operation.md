@@ -42,10 +42,11 @@ Vstream, the record of *how content is currently ordered* in `d`. The *link
 store* `Σ.L : T ⇀ Link` (ASN-0043) records typed associations whose endsets
 reference content by address. V-positions and I-addresses are tumblers ordered
 by T1 (ASN-0034); within the text subspace the active V-positions are contiguous
-and share a common depth (ASN-0036, D-CTG, D-SEQ, S8-depth). These contiguity
-invariants hold for the text subspace `s_C` and *not* in general for other
-subspaces — the link subspace `s_L`, in particular, is exempt — which is why the
-operation's scope is confined to text below.
+and share a common depth (ASN-0036, D-CTG, D-SEQ, S8-depth). In the ambient model
+of ASN-0047 these contiguity invariants are per-subspace (D-CTG★, D-SEQ★, D-MIN★),
+so the link subspace `s_L` is *also* contiguously and densely indexed; the
+operation's confinement to text below is therefore not a matter of where
+contiguity holds. The genuine grounds are stated where we fix the scope.
 
 The distinction the operation turns on is the one ASN-0034's T6 already records:
 *address versus position*. An I-address is permanent content identity; a
@@ -57,10 +58,15 @@ filed is permuted.
 
 We confine the operation to the text subspace `s_C` of one document, at the
 working V-position depth 2 (`#v = 2`). This is the precise scope at which
-ASN-0036's contiguity invariants and ASN-0084's closed-form rearrangement
-permutations are established; we make no claim about other subspaces or other
-depths, and in particular the link subspace — lacking D-CTG/D-SEQ/D-MIN — does
-not admit the cut-naming this operation relies on. We adopt ASN-0058's
+ASN-0084's closed-form rearrangement permutations are established: REARRANGE_K is
+*defined* only for `S = 1` — its CutSequence condition CS3 fixes every cut in the
+text subspace, and its postconditions are written against `V_S(d)` with `S = s_C`.
+The link subspace is not exempt from contiguity (it carries D-CTG★/D-SEQ★/D-MIN★);
+it is excluded because rearranging it would have to respect the link-subspace
+disciplines CL-UNIQ and CL-OWN (ASN-0047) — each link occupies a unique V-position
+owned by its origin document — which a position-permuting transposition is not
+built to honour. We make no claim about other subspaces or other depths. We adopt
+ASN-0058's
 ordinal-shift convention: for a V-position `v` and natural `k`, `v + k`
 abbreviates `shift(v, k)` (ASN-0034) at `v`'s depth, with `v + 0 = v`; at depth 2
 a text position has the form `[s_C, k]` and `ord(v) = k`. Because the active text
@@ -526,7 +532,7 @@ the regions tile, not merely shift each by a local offset.
 | P3 (VExtentConservation) | `\|dom(M'(d))\| = \|dom(M(d))\|`, and the active run's endpoints are fixed — the document's total extent is conserved | introduced |
 | P5 (Discoverability) | Moved content is discoverable under its new V-position `π(v)` and resolves to its original I-address `M(d)(v)` | introduced |
 | P6 (LinkStoreFrame) | `Σ'.L = Σ.L` — links are untouched; a link anchored in a moved region survives and travels with its content because endsets reference unchanged I-addresses | introduced |
-| P7a (FootprintTransport) | `project(a, i, d, Σ') = π(project(a, i, d, Σ))` — a link's V-footprint is relocated through `π`; footprints split by a cut become discontiguous span-sets | introduced |
+| P7a (FootprintTransport) | `project(a, i, d, Σ') = π(project(a, i, d, Σ))` — a link's V-footprint is relocated through `π`; fragmentation of a contiguous endset occurs precisely when a single contiguous run straddles a cut, while a footprint merely split across regions may become more, less, or equally contiguous | introduced |
 | P7c (FootprintRunStructure) | `project(a, i, d, Σ) ⊆ one region ⟹ π preserves the footprint's run structure` — within each region `π` is a uniform ordinal shift, so confinement to one region is *sufficient* (not necessary) for contiguity-preservation; this is not a weakest precondition, since relocating the region blocks creates new seams (a straddling footprint may stay contiguous; a within-region gap stays fragmented) | introduced |
 | P7b (DiscoverabilityPreserved) | `project(a, i, d, Σ') ≠ ∅ ⟺ project(a, i, d, Σ) ≠ ∅` — fragmentation never costs discoverability | introduced |
 | P8a (FinalStateInvariance) | The atomic transposition and any two-move composite achieving the same net `π` reach the same final arrangement | introduced |
