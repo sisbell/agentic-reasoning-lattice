@@ -42,11 +42,10 @@ Vstream, the record of *how content is currently ordered* in `d`. The *link
 store* `Σ.L : T ⇀ Link` (ASN-0043) records typed associations whose endsets
 reference content by address. V-positions and I-addresses are tumblers ordered
 by T1 (ASN-0034); within the text subspace the active V-positions are contiguous
-and share a common depth (ASN-0036, D-CTG, D-SEQ, S8-depth). In the ambient model
-of ASN-0047 these contiguity invariants are per-subspace (D-CTG★, D-SEQ★, D-MIN★),
-so the link subspace `s_L` is *also* contiguously and densely indexed; the
-operation's confinement to text below is therefore not a matter of where
-contiguity holds. The genuine grounds are stated where we fix the scope.
+and share a common depth (ASN-0036, D-CTG, D-SEQ, S8-depth). These contiguity
+invariants are the text-subspace ones of ASN-0036; the link subspace `s_L` is
+carried untouched in the frame. The grounds for confining the operation to the
+text subspace are stated where we fix the scope.
 
 The distinction the operation turns on is the one ASN-0034's T6 already records:
 *address versus position*. An I-address is permanent content identity; a
@@ -61,11 +60,10 @@ working V-position depth 2 (`#v = 2`). This is the precise scope at which
 ASN-0084's closed-form rearrangement permutations are established: REARRANGE_K is
 *defined* only for `S = 1` — its CutSequence condition CS3 fixes every cut in the
 text subspace, and its postconditions are written against `V_S(d)` with `S = s_C`.
-The link subspace is not exempt from contiguity (it carries D-CTG★/D-SEQ★/D-MIN★);
-it is excluded because rearranging it would have to respect the link-subspace
-disciplines CL-UNIQ and CL-OWN (ASN-0047) — each link occupies a unique V-position
-owned by its origin document — which a position-permuting transposition is not
-built to honour. We make no claim about other subspaces or other depths. We adopt
+The link subspace is left wholly in the frame: the operation neither names nor
+rewrites any link-subspace V-position, so a position-permuting transposition never
+has to honour the placement disciplines that govern where a document's links sit.
+We make no claim about other subspaces or other depths. We adopt
 ASN-0058's
 ordinal-shift convention: for a V-position `v` and natural `k`, `v + k`
 abbreviates `shift(v, k)` (ASN-0034) at `v`'s depth, with `v + 0 = v`; at depth 2
@@ -196,9 +194,9 @@ affected interval onto itself, the active text-position set
 set*: `π` only reassigns the I-address *value* filed at each `v`, never the set of
 keys. Every reachable-state invariant that constrains this set alone is therefore
 inherited verbatim from the pre-state, none of them mentioning the values
-`M(d)(v)` that `π` reshuffles. Concretely: per-subspace contiguity
-(ASN-0047, **D-CTG★**), sequentiality (**D-SEQ★**), the minimum position
-(**D-MIN★**), V-position well-formedness (ASN-0036, **S8a**), uniform per-subspace
+`M(d)(v)` that `π` reshuffles. Concretely: text-subspace contiguity
+(ASN-0036, **D-CTG**), sequentiality (**D-SEQ**), the minimum position
+(**D-MIN**), V-position well-formedness (**S8a**), uniform per-subspace
 depth (**S8-depth**), and finiteness (**S8-fin**) all held for `V_{s_C}(d)` before
 the rearrangement and so hold after it. These are exactly the "hardest to
 maintain" tiling conjuncts; here they are the *easiest*, precisely because
@@ -255,14 +253,18 @@ the document neither grows nor shrinks.
 
 ## Links
 
-A link's endsets reference content by *address*. The link store is not consulted
-by any clause of the operation, so
+A link's endsets reference content by *address*. ASN-0084's REARRANGE_K is
+specified over a state with no link store, so its frame R-FRAME-P/R-FRAME-S says
+nothing about `L`. Lifting the operation into the `(C, M, L)` state, we extend
+that frame with an explicit clause — REARRANGE writes only `M(d)`, so
 
       Σ'.L = Σ.L                                                    **(P6)**
 
-— domain and value both frozen. Nothing about a link changes when content is
-rearranged; the operation does not even read `L`. This is the whole secret of
-link survival, and it specializes cleanly to the cases the consultation poses.
+— domain and value both frozen. This is a fresh frame commitment of the lifted
+operation, not a consequence inherited from the import. Nothing about a link
+changes when content is rearranged; the operation neither reads nor writes `L`.
+This is the whole secret of link survival, and it specializes cleanly to the
+cases the consultation poses.
 
 *A link anchored entirely within a moved region* (Question 4). Its endset
 references I-addresses, all of which belong to the moved block. REARRANGE deletes
