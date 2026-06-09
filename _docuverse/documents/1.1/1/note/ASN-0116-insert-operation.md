@@ -192,10 +192,10 @@ We collect the arrangement effect as a named operation.
 **INSERT(`d`, `p`, `w₀ … w_{n-1}`).**
 
 *Precondition.* `d ∈ dom(M) = E_doc` (the document is an allocated entity, so the
-provenance step below has a legal home); `Σ` is a composite boundary — the natural
-input to a composite operation — so the composite-boundary properties of
-ExtendedReachableStateInvariants (ASN-0047), in particular P7a (ProvenanceCoverage),
-hold at the pre-state; `n ≥ 1`; `(A k : 0 ≤ k < n : w_k ∈ Val)` — each
+provenance step below has a legal home); `Σ` is reachable from `Σ₀` by a valid
+transition trace — hence a composite boundary — so the per-state invariants together
+with the composite-boundary properties of ExtendedReachableStateInvariants
+(ASN-0047), in particular P7a (ProvenanceCoverage), hold at the pre-state; `n ≥ 1`; `(A k : 0 ≤ k < n : w_k ∈ Val)` — each
 inserted unit is a well-formed content value, the typing obligation the K.α step
 below carries (ASN-0093: K.α commits `a ↦ v` only for `v ∈ Val`), discharged here
 at the boundary rather than left implicit in the Effect; `S = subspace(p) = s_C`;
@@ -217,8 +217,7 @@ with `A_new ∩ dom(C) = ∅`.
 arrangement contraction–extension pair `K.μ⁻` then `K.μ⁺` (degenerating to a single
 `K.μ⁺` when no suffix moves) whose net effect realises the post-insertion shift of
 ASN-0082's I3 family, and `n` provenance recordings (K.ρ, ASN-0047) that couple each
-allocated address to `d`. One arithmetic fact,
-consumed by the value clauses below, we record first — the **block-disjointness
+allocated address to `d`. We record first the **block-disjointness
 fact**: as ordinals `q`, the three index intervals `{1, …, J-1}` (left),
 `{J, …, J+n-1}` (block), and `{J+n, …, N+n}` (shifted suffix) are consecutive and
 pairwise disjoint. We name the clauses but derive them by citation, not from
@@ -277,8 +276,8 @@ scratch:
 - (F-ENT) `Σ'.E = Σ.E` — the entity set is untouched. INSERT registers no entity
   (it requires `d ∈ dom(M) = E_doc` already).
 
-We derive once, from these clauses, the range identity that both the provenance
-discharge and the discoverability weakest precondition consume:
+We derive once, from these clauses, the range identity of the post-state
+arrangement:
 
 - (RAN) **Range identity.** `ran(M'(d)) = ran(M(d)) ∪ A_new`, and the I-addresses
   *new to the content-subspace range* of `M'(d)` are exactly
@@ -375,7 +374,8 @@ In both cases the coupling constraints are checked only at the composite boundar
 (clause 2), where the I-addresses range-new to the content subspace of `M'(d)` are
 exactly `A_new` (established below); J0, J1★, J1'★ and the boundary coverage property
 P7a are discharged there. With clause 1 verified step-by-step and clause 2 at the
-boundary, INSERT is a valid composite, and the appeal to
+boundary, INSERT is a valid composite; since `Σ` is reachable from `Σ₀`
+(precondition), the post-state is reachable too, and the appeal to
 ExtendedReachableStateInvariants for its post-state is licensed.
 
 ## The document remains one coherent sequence
@@ -468,10 +468,12 @@ V-stream as a connected region*: the new material occupies exactly the interval
 around it stays a single coherent ordinal sequence.
 
 *Per-subspace run decomposition.* **S8★ (PerSubspaceSpanDecomposition)** holds at
-the filled post-state directly by ExtendedReachableStateInvariants (ASN-0047),
-INSERT being a valid composite — it is a post-state invariant, not a precondition of
-any composite step, so it carries no INSERT-specific obligation. P1 records the
-narrower fact that the inserted material forms *one* such run.
+the filled post-state directly by ExtendedReachableStateInvariants (ASN-0047): the
+pre-state `Σ` is reachable from `Σ₀` (precondition) and INSERT is a valid composite,
+so the post-state is reachable as well, and the theorem's per-state invariants —
+S8★ among them — hold there. It is a post-state invariant, not a precondition of any
+composite step, so it carries no INSERT-specific obligation. P1 records the narrower
+fact that the inserted material forms *one* such run.
 
 *Provenance coupling — the obligation allocation incurs.* Because INSERT both
 allocates content (I-ALLOC) and places it into the content subspace of `ran(M'(d))`
@@ -510,8 +512,8 @@ the shifted-suffix addresses being range-old.
 The post-state is a composite boundary, so it must also satisfy **P7a
 (ProvenanceCoverage)**: every `a ∈ dom(C')` carries some record `(a, d') ∈ R'`. Split
 `dom(C') = dom(C) ∪ A_new` (I-ALLOC). For prior addresses `b ∈ dom(C)`: by
-precondition `Σ` is a composite boundary, so P7a holds at the pre-state, giving some
-`(b, d') ∈ R`; and `R ⊆ R'` (I-PROV is purely additive), so `(b, d') ∈ R'`. For the new addresses
+precondition `Σ` is reachable, hence a composite boundary, so P7a holds at the
+pre-state, giving some `(b, d') ∈ R`; and `R ⊆ R'` (I-PROV is purely additive), so `(b, d') ∈ R'`. For the new addresses
 `shift(a, k) ∈ A_new`: I-PROV supplies `(shift(a, k), d) ∈ R'` directly. Hence every
 content address — old and new — is covered, and P7a holds at the post-state.
 Symmetrically **P7 (ProvenanceGrounding)** — every `(a, d') ∈ R'` has `a ∈ dom(C')` —
@@ -673,11 +675,7 @@ proof is the conjunction of three facts already in hand. By F-DOC,
 I-addresses retain their content — the bytes `d'` reads are immutable. And the
 fresh addresses `A_new` cannot already inhabit `ran(M(d'))`: every arrangement
 obeys referential integrity, `ran(M(d')) ⊆ dom(C)` (S3), while `A_new ∩ dom(C) =
-∅` by P0, so `A_new ∩ ran(M(d')) = ∅`. (This step turns on *arrangements*, not
-endsets: it is valid here precisely because `ran(M(d')) ⊆ dom(C)`, whereas the
-analogous "fresh ⇒ not in any endset" inference fails — endsets may name ghost
-addresses, L4/L9. The isolation guarantee is about `d'`'s arrangement, so the
-valid arrangement-side argument is the one we need.) Therefore `d'` resolves
+∅` by P0, so `A_new ∩ ran(M(d')) = ∅`. Therefore `d'` resolves
 every one of its V-positions to the same content, in the same order, before and
 after: its arrangement *and its reader's experience* are identical (Q8). The isolation is a structural consequence of the two-layer split: INSERT
 writes the arrangement of exactly one document (F-DOC) and appends to the global
