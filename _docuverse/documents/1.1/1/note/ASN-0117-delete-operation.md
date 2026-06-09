@@ -185,8 +185,23 @@ leaving `R = ∅`). This is exactly the foundation contraction's precondition
 (ASN-0082).
 
 *Effect.* DELETE is one arrangement contraction realising ASN-0082's
-displacement family, with the content store held in frame. We name its clauses
-but derive them by citation:
+displacement family, with the content store held in frame. Concretely it *is*
+the foundation transition **K.μ⁻ (ArrangementContraction)** of the extended-state
+model `Σ = (C, L, E, M, R)` (ASN-0047), specialised to the text subspace and
+realised through ASN-0082's left-shift displacement: it removes V→I
+correspondences from a single document `d`'s arrangement and touches nothing
+else. Identifying DELETE with K.μ⁻ is what licenses our appeal below to the
+properties proven over that fuller model — the per-subspace well-formedness
+package, the referential-integrity invariant S3★, and the link/discoverability
+lemmas of ASN-0098, all of which are quantified over reachable states and valid
+transitions of `Σ`. K.μ⁻'s own frame fixes the entity set and the provenance
+relation (`E' = E`, `R' = R`; clauses DEL-FENT, DEL-FPROV below), so the two
+provenance invariants that coexist with S3★ are preserved across DELETE: P4★
+(`Contains_C(Σ') ⊆ R'`) holds because `Contains_C` can only *shrink* under a
+contraction while `R' = R` is unchanged, and P7a (every content address carries a
+provenance record) holds because `dom(C') = dom(C)` (P0) and `R' = R` leave every
+existing `(a, d)` record in place. We name DELETE's clauses but derive them by
+citation:
 
 - (DEL-REMOVE) The arrangement loses exactly `c` V→I correspondences in subspace
   `S`: the surviving domain contracts by precisely the deletion width,
@@ -228,6 +243,16 @@ but derive them by citation:
   ASN-0082 **D-CS**. In particular the document's *links* (subspace `s_L`) are
   not moved by a text deletion.
 - (DEL-FDOC) `(A d' : d' ≠ d : M'(d') = M(d'))` — ASN-0082 **D-CD**.
+- (DEL-FENT) `Σ'.E = Σ.E` — the entity set is held fixed. DELETE creates,
+  removes, and renames no node, account, or document. This is K.μ⁻'s entity
+  frame (ASN-0047); it is what makes P1 (EntityPermanence) and P8
+  (EntityHierarchy) survive DELETE trivially.
+- (DEL-FPROV) `Σ'.R = Σ.R` — the provenance relation is held fixed. DELETE
+  records no new document-content association and retracts none. This is K.μ⁻'s
+  provenance frame (ASN-0047); together with `dom(C') = dom(C)` (P0) it preserves
+  P4★ (`Contains_C(Σ') ⊆ R'`, since the content-containment `Contains_C` only
+  shrinks under a contraction) and P7a (every content address retains its
+  provenance record).
 
 The asymmetry with insertion is the heart of the matter. INSERT mints fresh
 I-addresses and shifts right; DELETE allocates nothing, frees nothing, and
@@ -631,6 +656,43 @@ surviving `q_2`. A link whose coverage contains `a_5` remains discoverable from
 `d` *despite* the deletion — the wp's preservation condition holds because
 something was left at that end within `d`. ✓ P4, wp.
 
+**Cross-document transclusion (P5 in the concrete).** The scenarios above all
+live inside the single document `d`; none exercises the operation's signature
+isolation guarantee. So introduce a *second* document `d'` that transcludes some
+of `d`'s content. Concretely, let `d'` arrange the deleted I-addresses: with
+`V_S(d') = {q'_1, q'_2}` (`d'`'s own canonical run, depth `m = 2`, at its own
+document prefix) and `M(d')(q'_1) = a_3`, `M(d')(q'_2) = a_4` — the very two
+addresses `A_del = {a_3, a_4}` that the primary scenario deletes from `d`. This is
+transclusion by reference: `d'` shares `d`'s content identity without copying,
+since both arrange the *same* permanent I-addresses (S5/M13 across documents).
+
+Now perform exactly the primary deletion on `d` — `p = q_3`, `c = 2`, removing
+`q_3, q_4` from `d`. We check the two facts P5 names against this concrete `d'`:
+
+- *Arrangement untouched (DEL-FDOC).* `d' ≠ d`, so `M'(d') = M(d')` verbatim:
+  `q'_1 ↦ a_3` and `q'_2 ↦ a_4` are exactly the bindings they were before. DELETE
+  resolves `d`'s arrangement enfilade alone and names no position of `d'`; the
+  left-shift, the gap-closure, the domain contraction all happen inside `d`. ✓
+  DEL-FDOC, P5.
+- *Resolved content unchanged (P0).* `Σ'.C = Σ.C`, so `a_3, a_4 ∈ dom(C')` with
+  `C'(a_3) = C(a_3)`, `C'(a_4) = C(a_4)`. Hence `d'` resolves `q'_1` to the same
+  bytes `C(a_3)` and `q'_2` to the same bytes `C(a_4)` after the deletion as
+  before. Reading `d'` end to end yields exactly what it yielded before `d`'s
+  deletion. ✓ P0, P5.
+
+The deletion in `d` is therefore *invisible* to `d'`: `d'`'s arrangement and the
+content it resolves are bit-for-bit identical across the transition, even though
+the same I-addresses just vanished from `d`'s present view. This is the formal
+content of Nelson's "may remain included in other versions" (4/9, 4/11) — the
+deleted bytes "remain in all other documents where they have been included."
+Were DELETE to free `a_3, a_4` from the store, `d'` would resolve `q'_1, q'_2` to
+nothing and the transclusion would shatter; non-destruction (P0) is precisely
+what keeps the sharer whole. And any link whose coverage contains `a_3` or `a_4`
+stays discoverable from `d'` regardless of `d`'s deletion, since
+`coverage(eᵢ) ∩ ran(M'(d')) = coverage(eᵢ) ∩ ran(M(d')) ≠ ∅` is untouched
+(LP16, TransclusionDiscoverability) — the orphaning the wp computes is strictly
+*local to `d`*. ✓ P5, P4.
+
 ## What we have established
 
 One effect, one layer touched, the other held in perfect frame. On the content
@@ -670,6 +732,8 @@ endure, only their placement in this one document's present view is withdrawn.
 | DEL-LIMM | `Σ'.L = Σ.L` — the link store is a strict frame, domain and value (stronger than L12) | introduced |
 | DEL-FSUB | Positions in subspaces `S' ≠ S` (notably links) are unchanged (ASN-0082 D-CS) | introduced |
 | DEL-FDOC | Arrangements of all documents `d' ≠ d` are unchanged (ASN-0082 D-CD) | introduced |
+| DEL-FENT | `Σ'.E = Σ.E` — the entity set is a strict frame (K.μ⁻ entity frame, ASN-0047); P1/P8 preserved | introduced |
+| DEL-FPROV | `Σ'.R = Σ.R` — the provenance relation is a strict frame (K.μ⁻ provenance frame, ASN-0047); P4★/P7a preserved | introduced |
 
 ## Open Questions
 
