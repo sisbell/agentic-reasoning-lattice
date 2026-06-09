@@ -197,6 +197,14 @@ but derive them by citation:
 - (DEL-CIMM) `Σ'.C = Σ.C` — ASN-0082 **D-I**, the content-store frame (P0).
 
 *Frame.*
+- (DEL-LIMM) `Σ'.L = Σ.L` — the link store is held entirely fixed, in both
+  domain and per-address value: `dom(Σ'.L) = dom(Σ.L)` and
+  `(A a : a ∈ dom(Σ.L) : Σ'.L(a) = Σ.L(a))`. DELETE allocates no link and edits
+  none. This is *stronger* than L12 (LinkImmutability, ASN-0043), which fixes
+  only the values of links already present and would still permit
+  `dom(Σ'.L) ⊋ dom(Σ.L)`; DELETE's contract forbids any growth of `dom(L)`. The
+  arrangement state ASN-0082 governs carries no link store, so this frame is
+  imposed here directly, not inherited.
 - (DEL-FSUB) `(A S' : S' ≠ S : {v ∈ dom(M'(d)) : subspace(v) = S'} =
   {v ∈ dom(M(d)) : subspace(v) = S'}` and `M'(d)` agrees there`)` —
   ASN-0082 **D-CS**. In particular the document's *links* (subspace `s_L`) are
@@ -352,8 +360,9 @@ that transcludes the deleted I-addresses — are invariant under DELETE on `d`.*
 
 **Link survival, and discoverability across documents.** A link's endsets
 reference I-addresses, not V-positions (4/42, 4/30). DELETE removes no I-address
-(P3) and edits no stored link value, so the link store is untouched (foundation
-**L12 (LinkImmutability)**, ASN-0043) and every endset's *coverage* is unchanged
+(P3) and adds, removes, or edits no link, so the link store is held entirely
+fixed — `Σ'.L = Σ.L` in both domain and value (DEL-LIMM, strictly stronger than
+L12's value-only guarantee) — and every endset's *coverage* is unchanged
 (**LP3 (CoverageInvariance)**, ASN-0098): every link designates exactly the same
 content after the deletion as before. The link is anchored to bytes that still
 exist; the strap stays attached. This is Nelson's survivability clause (4/43,
@@ -364,8 +373,18 @@ the layering is precise. A link `a` is discoverable from a document iff some
 slot's coverage meets that document's arranged I-address range:
 `discoverable_from(a, d, Σ) ⟺ (E i : coverage(Σ.L(a).eᵢ) ∩ ran(M(d)) ≠ ∅)`
 (foundation **LP12 (DiscoverabilityCharacterisation)**, ASN-0098). DELETE
-shrinks `d`'s range — `ran(M'(d)) ⊆ ran(M(d))` — by removing the deleted
-mappings (foundation **LP10 (ContractionMonotonicity)**, ASN-0098). If the
+shrinks `d`'s range — `ran(M'(d)) ⊆ ran(M(d))` — directly from its own clauses:
+DEL-LEFT and DEL-SHIFT preserve every surviving position's I-address value
+(`M'(d)(v) = M(d)(v)` on `L`, `M'(d)(σ(v)) = M(d)(v)` on the image of `R`), so
+every I-address in `ran(M'(d))` already appears in `ran(M(d))`, while DEL-REMOVE
+drops the deleted block and DEL-DOM fixes the surviving domain to `L ∪ σ(R)`. (We
+do *not* appeal to LP10 (ContractionMonotonicity, ASN-0098): LP10's premise is a
+K.μ⁻ prefix-retention truncation, in which survivors keep their V-positions
+unshifted, whereas DELETE left-shifts the suffix; and LP10's conclusion is a
+V-position–level *projection* inclusion `project(e, d, Σ') ⊆ project(e, d, Σ)`,
+which is false for DELETE — the post-state projection contains shifted slots
+`q_{k−c}` absent before. The range inclusion we need is the I-address fact above,
+which DELETE's clauses give outright.) If the
 deletion removes the *last* V-position of `d` mapping into a link's coverage,
 that link becomes *undiscoverable from `d`*: an orphaned reference in the sense
 of **LP17 (GhostProjection)** (ASN-0098). But three things remain true, and they
@@ -390,8 +409,8 @@ are exactly Nelson's design intent:
   one-way door at the content layer.
 
 **P4 (LinkSurvival).** *For every endset `e` existing in `Σ`,
-`coverage_{Σ'}(e) = coverage_{Σ}(e)` (L12 + LP3) — no link's designated content
-changes, and the link store is untouched. A link discoverable from `d` before
+`coverage_{Σ'}(e) = coverage_{Σ}(e)` (DEL-LIMM + LP3) — no link's designated
+content changes, and the link store is untouched (`Σ'.L = Σ.L`). A link discoverable from `d` before
 the deletion remains discoverable from `d` iff some surviving V-position of `d`
 still maps into its coverage; otherwise it is orphaned from `d` (LP17) yet
 persists (L12), remains discoverable from every other document that still
@@ -422,7 +441,12 @@ where `A_del^{excl} = A_del \ M(d)(L ∪ R)` is the set of deleted I-addresses
 that *no surviving position of `d` also maps* — the addresses `d` loses from its
 range entirely. (If a deleted I-address is also arranged elsewhere in `d` — the
 within-document sharing that S5/M13 of the arrangement model permit — it does
-not leave the range.) Substituting into LP12, for every prior link `a`,
+not leave the range.) The link store is fixed throughout — `dom(Σ'.L) = dom(Σ.L)`
+(DEL-LIMM) — so `D(d, ·)` is computed over the *same* index set before and after,
+and the quantification "for every prior link `a ∈ dom(Σ.L)`" below exhausts
+`dom(Σ'.L)` as well; were DELETE permitted to add a link, `D(d, Σ')` could acquire
+a member with no pre-image and the identity `D(d, Σ') = D(d, Σ)` would fail.
+Substituting into LP12, for every prior link `a`,
 
 ```
   discoverable_from(a, d, Σ')
@@ -538,13 +562,14 @@ endure, only their placement in this one document's present view is withdrawn.
 | P1 (ArrangementContraction) | The deleted span's `c` V→I mappings are removed from the arrangement only; no content is removed | introduced |
 | P2 (GapClosure) | Survivors close into the dense run `{q_1, …, q_{N−c}}`; prefix fixed, suffix shifts left by `c` carrying I-addresses unchanged, gap closes exactly, order and density preserved | introduced |
 | P3 (AddressPermanence) | No I-address is removed or rebound; DELETE allocates and frees nothing — the content layer is invariant | introduced |
-| P4 (LinkSurvival) | Every endset's coverage is unchanged and the link store untouched (L12 + LP3); a link orphaned from `d` (LP17) still persists, stays discoverable from other documents arranging it (LP16), and is re-discoverable on re-arrangement (LP18) | introduced |
+| P4 (LinkSurvival) | Every endset's coverage is unchanged and the link store untouched, `Σ'.L = Σ.L` (DEL-LIMM + LP3); a link orphaned from `d` (LP17) still persists, stays discoverable from other documents arranging it (LP16), and is re-discoverable on re-arrangement (LP18) | introduced |
 | P5 (DocumentIsolation) | Every other document's arrangement and resolved content — including transcluders of the deleted I-addresses — are invariant under DELETE on `d` | introduced |
 | DEL-REMOVE | The deleted block `{q_J, …, q_{J+c−1}}` leaves `dom(M'(d))`; its I-addresses persist in `C` | introduced |
 | DEL-SHIFT | Suffix positions `v ∈ R` move to `σ(v) = q_{k−c}`, carrying their I-address (ASN-0082 D-SHIFT) | introduced |
 | DEL-LEFT | Prefix positions `v < p` are unchanged (ASN-0082 D-L) | introduced |
 | DEL-DOM | `V_S(d')` is the dense run `{q_1, …, q_{N−c}}` with the gap closed (ASN-0082 D-DOM, D-SEP) | introduced |
 | DEL-CIMM | `Σ'.C = Σ.C` — the content store is a strict frame (ASN-0082 D-I) | introduced |
+| DEL-LIMM | `Σ'.L = Σ.L` — the link store is a strict frame, domain and value (stronger than L12) | introduced |
 | DEL-FSUB | Positions in subspaces `S' ≠ S` (notably links) are unchanged (ASN-0082 D-CS) | introduced |
 | DEL-FDOC | Arrangements of all documents `d' ≠ d` are unchanged (ASN-0082 D-CD) | introduced |
 
