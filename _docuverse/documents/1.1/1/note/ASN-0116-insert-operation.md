@@ -286,9 +286,6 @@ To license the appeal to ASN-0047's reachable-state machinery —
 rather than restate): a finite sequence of atomic transitions whose (clause 1) per-step
 preconditions each hold at the intermediate state that step acts on, and whose (clause 2)
 coupling constraints J0, J1★, J1'★ hold between the composite's initial and final states.
-We discharge both clauses here, self-contained: every prerequisite is either fixed in the
-Effect above (the block-disjointness fact, RAN, I-NEW, I-PROV) or derived inline in this
-section, so the validity conclusion rests on nothing proved in a later section.
 
 INSERT sequences just four of the
 atomics — `K.α`, `K.μ⁻`, `K.μ⁺`, `K.ρ`. The arrangement change is *not*
@@ -380,9 +377,7 @@ exactly `A_new`, and I-PROV records `(shift(a, k), d)` for each. **J1'★
 (ProvenanceRequiresExtension)** — every new entry `(a, d) ∈ R' ∖ R` is range-new: I-PROV
 adds only `A_new` records, each range-new, and recording a range-old (shifted-suffix)
 address would manufacture an entry with no range-new witness. So clause 2 holds between
-the composite's initial and final states. (The provenance section records this discharge
-as the named claim PROV and, separately from clause 2, establishes the composite-boundary
-coverage properties P7a/P7.)
+the composite's initial and final states.
 
 With clause 1 verified step-by-step and clause 2 discharged just above, INSERT is a
 valid composite; since `Σ` is reachable from `Σ₀`
@@ -494,13 +489,11 @@ inserting document's identity is minted into the address as content enters
 (4/11), and the implementation writes a DOCISPAN provenance record per inserted
 I-span; I-PROV is the abstract counterpart of that record.
 
-The three couplings J0 (AllocationPlacementCoupling), J1★ (ExtensionRecordsProvenance),
-and J1'★ (ProvenanceRequiresExtension) were discharged in the valid-composite argument
-above, all driven by the range identity RAN — the I-addresses *new to the
-content-subspace range* of `M'(d)` are precisely `A_new = {shift(a, k) : 0 ≤ k < n}`,
-the shifted-suffix addresses being range-old, which is why I-PROV records *only* `A_new`
-and not the shifted suffix. Here we record that discharge as the named claim PROV and,
-separately from clause 2, establish the composite-boundary coverage properties P7a/P7.
+It remains to establish the composite-boundary coverage properties P7a and P7. (The
+three couplings J0, J1★, J1'★ are discharged with the valid composite above, all driven
+by the range identity RAN — the I-addresses *new to the content-subspace range* of
+`M'(d)` are precisely `A_new = {shift(a, k) : 0 ≤ k < n}`, the shifted-suffix addresses
+being range-old, which is why I-PROV records *only* `A_new` and not the shifted suffix.)
 
 The post-state is a composite boundary, so it must also satisfy **P7a
 (ProvenanceCoverage, ASN-0047)**: every `a ∈ dom(C')` carries some record `(a, d') ∈ R'`. Split
@@ -845,16 +838,31 @@ moves. ✓ I-DOM, I-NEW, IP1.
 **Boundary — empty subspace (`V_S(d) = ∅`).** The first insertion fixes the
 depth. Choose `m = 2` and `p = q_1 = [s_C, 1]`, so
 `ValidFirstInsertionPosition(d, p, 2)` holds. Insert `XY` (`n = 2`): no prefix,
-no suffix; the new block `{q_1, q_2}` receives `A_new`. Because `d`'s content
-region is empty here (`{a' ∈ dom(C) : origin(a') = d} = ∅`), the start address is
-the *first* emission `a = [d.0.s_C.1]`, whose freshness is discharged by
-FirstEmissionFreshness; the second allocation `[d.0.s_C.2]` is then a subsequent
-emission (the region is now non-empty), discharged by SubsequentEmissionFreshness —
-exactly the `k = 0` first-emission / `k ≥ 1` subsequent-emission split the composite
-verification's K.α step makes. So `A_new = {[d.0.s_C.1], [d.0.s_C.2]}`,
-`V_S(d') = {q_1, q_2}`, `N' = 0 + 2 = 2`, and the subspace depth is now pinned at
-`m = 2` for every later insertion. ✓ I-DOM (with `J = 1`, prefix and suffix
-intervals empty), I-NEW, IP1.
+no suffix; the new block `{q_1, q_2}` receives `A_new`. The empty *arrangement*
+`V_S(d) = ∅` does *not* by itself fix the K.α start address: that is selected by
+the *content region* `{a' ∈ dom(C) : origin(a') = d}`, a distinct condition,
+because content is append-only (IP2) and persists through arrangement
+contraction. We work both sub-cases.
+
+*Sub-case (a) — fresh document, content region empty.* Here additionally
+`{a' ∈ dom(C) : origin(a') = d} = ∅`, so `k = 0` is a *first* emission
+`a = [d.0.s_C.1]`, freshness by FirstEmissionFreshness; the second allocation
+`[d.0.s_C.2]` is then a subsequent emission (the region is now non-empty), by
+SubsequentEmissionFreshness. So `A_new = {[d.0.s_C.1], [d.0.s_C.2]}`,
+`V_S(d') = {q_1, q_2}`, `N' = 0 + 2 = 2`, depth pinned at `m = 2`.
+
+*Sub-case (b) — re-insertion after full contraction.* Suppose `d` previously held
+text later fully removed by `K.μ⁻` to `V_S(d) = ∅`, leaving the content region
+non-empty — say greatest origin-`d` address `[d.0.s_C.6]`. Now `V_S(d) = ∅` while
+`{a' ∈ dom(C) : origin(a') = d} ≠ ∅`, so even `k = 0` is a *subsequent* emission:
+the start is `a = inc([d.0.s_C.6], 0) = [d.0.s_C.7]` (SubsequentEmissionFreshness),
+and `A_new = {[d.0.s_C.7], [d.0.s_C.8]}`. The arrangement nevertheless starts
+fresh — `p = q_1 = [s_C, 1]` re-establishes `min(V_S(d')) = q_1` (D-MIN★), and the
+depth `m` is re-pinned freely (here `m = 2`) by this first insertion, independent
+of the now-distinct content-address ordinals. So `V_S(d') = {q_1, q_2}`, `N' = 2`.
+
+Either sub-case: the subspace depth is now pinned at `m = 2` for every later
+insertion. ✓ I-DOM (with `J = 1`, prefix and suffix intervals empty), I-NEW, IP1.
 
 **Boundary — front insertion into a non-empty document (`J = 1`).** Return to the
 `N = 5` document `V_S(d) = {q_1, …, q_5}` and insert `XY` (`n = 2`) at `p = q_1`. Here
