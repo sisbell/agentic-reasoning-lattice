@@ -179,7 +179,24 @@ and R-S1/R-S2/R-S3 (swap) tile the affected interval *disjointly* (R-PIV/R-SWP),
 so no V-position receives two I-addresses. *Referential integrity* is preserved —
 `ran(M'(d)) ⊆ dom(C)` (ASN-0036, **S3**) — because by P1
 `ran(M'(d)) = ran(M(d))`, and `ran(M(d)) ⊆ dom(C)` held in the pre-state, so the
-inclusion is inherited verbatim. We may now read off the remaining obligations.
+inclusion is inherited verbatim.
+
+The contiguity and tiling invariants of the text subspace — the ones a future
+operation will lean on to name cuts — ride along on a single observation, and we
+discharge them so no load-bearing conjunct is skipped. Because
+`dom(M'(d)) = dom(M(d))` (P2) and `π` fixes the exterior while permuting the
+affected interval onto itself, the active text-position set
+`V_{s_C}(d) = { v ∈ dom(M(d)) : subspace(v) = s_C }` is *literally unchanged as a
+set*: `π` only reassigns the I-address *value* filed at each `v`, never the set of
+keys. Every reachable-state invariant that constrains this set alone is therefore
+inherited verbatim from the pre-state, none of them mentioning the values
+`M(d)(v)` that `π` reshuffles. Concretely: per-subspace contiguity
+(ASN-0047, **D-CTG★**), sequentiality (**D-SEQ★**), the minimum position
+(**D-MIN★**), V-position well-formedness (ASN-0036, **S8a**), uniform per-subspace
+depth (**S8-depth**), and finiteness (**S8-fin**) all held for `V_{s_C}(d)` before
+the rearrangement and so hold after it. These are exactly the "hardest to
+maintain" tiling conjuncts; here they are the *easiest*, precisely because
+REARRANGE touches no key. We may now read off the remaining obligations.
 
 ## The intervening content
 
@@ -266,13 +283,29 @@ The footprint is carried *through* `π`: it is neither lost nor enlarged, only
 relocated to where the content now sits.
 
 *A link spanning both moved regions, or running from a moved region into
-stationary content* (Question 5). Here the footprint is split by a cut. Before the
-operation the footprint may be a single contiguous run of V-positions; after it,
-P7a relocates each part by whatever branch of `π` governs the region it fell in,
-and those branches apply *different* displacements. The two halves therefore
-generally land at non-adjacent V-positions, and the endset, when resolved against
-the new arrangement, becomes a *discontiguous span-set*. This is exactly the
-behaviour Nelson describes — "a link end that was a single contiguous span before
+stationary content* (Question 5). Here the footprint is split by a cut, and we can
+say *precisely* when this costs contiguity rather than hedging it. The key is that
+within each region `π` acts as a *uniform ordinal shift* — a constant displacement.
+In the pivot, every position of `β` moves by `−w_α` (R-P1: `π(c₁+j) = c₀+j`), every
+position of `α` by `+w_β` (R-P2: `π(c₀+j) = c₀+w_β+j`), and the exterior by `0`
+(R-EXT); in the swap the four constant displacements are `−(w_α+w_μ)`, `w_β−w_α`,
+`w_β+w_μ`, and `0` for `β`, `μ`, `α`, and the exterior respectively. A rigid shift
+preserves both order and adjacency, so a footprint *confined to a single region* is
+relocated as one contiguous run — its picture in the new order is still a single
+span. A footprint that *straddles a cut* has its parts carried by different
+branches, hence by different displacements; those parts move by different amounts
+and so land non-adjacently, leaving the endset a *discontiguous span-set* when
+resolved against the new arrangement. This is the operation's one non-trivial
+weakest precondition — every other postcondition here has `wp = true` — and it is
+exact:
+
+      wp(REARRANGE_K, "footprint of (a,i) resolves to a contiguous span")
+        ≡  project(a, i, d, Σ) ⊆ one region (exterior, α, μ, or β).   **(P7c)**
+
+Equivalently: contiguity is preserved iff the footprint meets at most one region,
+and fragments exactly when it meets two or more. This turns Question 5's
+qualitative claim into a proven boundary. It is also exactly the behaviour Nelson
+describes — "a link end that was a single contiguous span before
 the rearrange may become discontiguous afterward, because the bytes it holds onto
 have moved to new virtual positions" (Question 5) — and which Gregory observes
 directly as endset fragmentation (Question 16). The link still connects precisely
@@ -462,6 +495,7 @@ the regions tile, not merely shift each by a local offset.
 | P5 (Discoverability) | Moved content is discoverable under its new V-position `π(v)` and resolves to its original I-address `M(d)(v)` | introduced |
 | P6 (LinkStoreFrame) | `Σ'.L = Σ.L` — links are untouched; a link anchored in a moved region survives and travels with its content because endsets reference unchanged I-addresses | introduced |
 | P7a (FootprintTransport) | `project(a, i, d, Σ') = π(project(a, i, d, Σ))` — a link's V-footprint is relocated through `π`; footprints split by a cut become discontiguous span-sets | introduced |
+| P7c (ContiguityWP) | `wp(REARRANGE_K, "footprint resolves to a contiguous span") ≡ project(a, i, d, Σ) ⊆ one region` — within each region `π` is a uniform ordinal shift, so a footprint stays contiguous iff confined to a single region and fragments iff it straddles a cut | introduced |
 | P7b (DiscoverabilityPreserved) | `project(a, i, d, Σ') ≠ ∅ ⟺ project(a, i, d, Σ) ≠ ∅` — fragmentation never costs discoverability | introduced |
 | P8a (FinalStateInvariance) | The atomic transposition and any two-move composite achieving the same net `π` reach the same final arrangement | introduced |
 | P8b (IntermediateDivergence) | A two-move composite passes through an observable intermediate arrangement (exhibited: `A C D B E` for the worked pivot) realized by neither endpoint of the atomic transposition | introduced |
