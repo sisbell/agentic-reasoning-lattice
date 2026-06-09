@@ -121,8 +121,12 @@ remaining in canonical order" (1/34): the Vstream is dense, with no holes.
 Let `S = subspace(p) = s_C`, `p = q_J` the first deleted position, `w` the
 deletion width with `w₁ = 0`, `#w = #p = 2`, `Pos(w)`, and write `c = ord(w)`
 for the count of deleted slots, so the deleted block is `{q_J, …, q_{J+c−1}}`
-and `r = p ⊕ w = q_{J+c}` is the first surviving position past the gap. The
-three regions partition `V_S(d)` by trichotomy of T1:
+and `r = p ⊕ w = q_{J+c}` is the first surviving position past the gap. By the
+foundation SubspaceConventionAxiom (ASN-0047/ASN-0093) the text subspace
+identifier is `s_C = 1`, so `V_S(d) = V_1(d)` and ASN-0082's contraction —
+stated literally for `S = 1` on `V_1(d)` — applies here verbatim, licensing every
+D-clause we cite below at `S = s_C`. The three regions partition `V_S(d)` by
+trichotomy of T1:
 
 - `L = {v ∈ V_S(d) : v < p}` — the prefix, untouched;
 - `X = {v ∈ V_S(d) : p ≤ v < r}` — the deleted block, `|X| = c`;
@@ -184,9 +188,14 @@ leaving `R = ∅`). This is exactly the foundation contraction's precondition
 displacement family, with the content store held in frame. We name its clauses
 but derive them by citation:
 
-- (DEL-REMOVE) `(A k : J ≤ k < J + c : q_k ∉ dom(M'(d)))` — the deleted block's
-  V-positions leave the arrangement. Their I-addresses `A_del` are *not* removed
-  from anything else; they persist in `C` (P0) and may be mapped by other
+- (DEL-REMOVE) The deleted block's `c` V→I correspondences leave the arrangement,
+  `(A k : J ≤ k < J + c : (q_k, M(d)(q_k)) ∉ M'(d))`, and the top `c` position
+  *labels* leave the domain, `(A k : N − c < k ≤ N : q_k ∉ dom(M'(d)))`. These are
+  distinct facts: a deleted-span label `q_k` with `k ≤ N − c` remains in
+  `dom(M'(d))` but is reoccupied by a shifted survivor (DEL-SHIFT), so it now binds
+  a *different* I-address than before — it is the top `c` labels, not the deleted-
+  span labels, that vacate the domain. The deleted I-addresses `A_del` are *not*
+  removed from anything else; they persist in `C` (P0) and may be mapped by other
   positions of `d` or by other documents.
 - (DEL-SHIFT) `(A v : v ∈ R : σ(v) ∈ dom(M'(d)) ∧ M'(d)(σ(v)) = M(d)(v))` —
   verbatim ASN-0082 **D-SHIFT**, with `σ(q_k) = q_{k−c}`.
@@ -260,10 +269,11 @@ no hole, no overlap, no degenerate position.*
 
 And the dual fact, the arrangement-side removal:
 
-**P1 (ArrangementContraction).** *The deleted span's `c` mappings are removed
-from the arrangement only: `(A k : J ≤ k < J+c : q_k ∉ dom(M'(d)))`, while every
-deleted I-address persists in `C` (P0). The deletion subtracts a V→I
-correspondence; it subtracts no content.*
+**P1 (ArrangementContraction).** *The deleted span's `c` V→I correspondences are
+removed from the arrangement only: `(A k : J ≤ k < J+c : (q_k, M(d)(q_k)) ∉ M'(d))`;
+the top `c` position labels leave the domain,
+`(A k : N − c < k ≤ N : q_k ∉ dom(M'(d)))`; and every deleted I-address persists in
+`C` (P0). The deletion subtracts V→I correspondences; it subtracts no content.*
 
 ## A span, not a position: binding versus being
 
@@ -284,7 +294,7 @@ first and last point" (4/25, Q4). Deleting the span is the operation that pulls
 the two aspects apart.
 
 In our model the separation is two disjoint facts. DEL-REMOVE strips the span's
-V-extent from `dom(M'(d))` — the *arrangement* ceases to bind that content.
+V→I correspondences from `M'(d)` — the *arrangement* ceases to bind that content.
 DEL-CIMM leaves `A_del ⊆ dom(C')` with values intact — the *content* does not
 cease to exist. Nelson's three-clause annotation (4/9) is precisely these two
 facts plus their consequence: "not currently addressable" is DEL-REMOVE (the
@@ -377,7 +387,8 @@ shrinks `d`'s range — `ran(M'(d)) ⊆ ran(M(d))` — directly from its own cla
 DEL-LEFT and DEL-SHIFT preserve every surviving position's I-address value
 (`M'(d)(v) = M(d)(v)` on `L`, `M'(d)(σ(v)) = M(d)(v)` on the image of `R`), so
 every I-address in `ran(M'(d))` already appears in `ran(M(d))`, while DEL-REMOVE
-drops the deleted block and DEL-DOM fixes the surviving domain to `L ∪ σ(R)`. (We
+drops the deleted correspondences and DEL-DOM fixes the surviving domain to
+`L ∪ σ(R)`. (We
 do *not* appeal to LP10 (ContractionMonotonicity, ASN-0098): LP10's premise is a
 K.μ⁻ prefix-retention truncation, in which survivors keep their V-positions
 unshifted, whereas DELETE left-shifts the suffix; and LP10's conclusion is a
@@ -489,8 +500,11 @@ is a permanent I-address in `dom(C)`.
 `A_del = {a_3, a_4}` remain in `dom(C')` with their bytes intact. Nothing is
 allocated or freed. ✓ P0, P3.
 
-*Removal (DEL-REMOVE, P1).* `q_3, q_4 ∉ dom(M'(d))` — the two mappings
-`q_3 ↦ a_3`, `q_4 ↦ a_4` leave the arrangement. ✓ P1.
+*Removal (DEL-REMOVE, P1).* The two correspondences `q_3 ↦ a_3` and `q_4 ↦ a_4`
+leave the arrangement. The position labels that actually vacate the domain are the
+top `c = 2`, namely `q_4, q_5`; the deleted-span label `q_3` stays in `dom(M'(d))`
+but is reoccupied by the shifted survivor `q_5 → q_3`, so `M'(d)(q_3) = a_5`
+(DEL-SHIFT). The surviving domain is `{q_1, q_2, q_3}` (DEL-DOM). ✓ P1.
 
 *Shift (DEL-SHIFT, DEL-LEFT).* Prefix `q_1, q_2` unchanged (DEL-LEFT). The lone
 suffix position shifts left by `c = 2`:
@@ -564,7 +578,7 @@ endure, only their placement in this one document's present view is withdrawn.
 | P3 (AddressPermanence) | No I-address is removed or rebound; DELETE allocates and frees nothing — the content layer is invariant | introduced |
 | P4 (LinkSurvival) | Every endset's coverage is unchanged and the link store untouched, `Σ'.L = Σ.L` (DEL-LIMM + LP3); a link orphaned from `d` (LP17) still persists, stays discoverable from other documents arranging it (LP16), and is re-discoverable on re-arrangement (LP18) | introduced |
 | P5 (DocumentIsolation) | Every other document's arrangement and resolved content — including transcluders of the deleted I-addresses — are invariant under DELETE on `d` | introduced |
-| DEL-REMOVE | The deleted block `{q_J, …, q_{J+c−1}}` leaves `dom(M'(d))`; its I-addresses persist in `C` | introduced |
+| DEL-REMOVE | The deleted block's `c` V→I correspondences leave `M'(d)` and the top `c` labels `{q_{N−c+1}, …, q_N}` leave `dom(M'(d))`; the deleted I-addresses persist in `C` | introduced |
 | DEL-SHIFT | Suffix positions `v ∈ R` move to `σ(v) = q_{k−c}`, carrying their I-address (ASN-0082 D-SHIFT) | introduced |
 | DEL-LEFT | Prefix positions `v < p` are unchanged (ASN-0082 D-L) | introduced |
 | DEL-DOM | `V_S(d')` is the dense run `{q_1, …, q_{N−c}}` with the gap closed (ASN-0082 D-DOM, D-SEP) | introduced |
