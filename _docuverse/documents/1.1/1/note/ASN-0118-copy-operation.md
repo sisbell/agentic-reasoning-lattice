@@ -150,23 +150,15 @@ We restrict attention to *content* spec-sets: COPY's content-residence precondit
 subspace, `subspace(vⱼ) = s_C`, so by referential integrity (S3★) each resolves to
 a content address `Σ.M(d_s)(vⱼ) ∈ dom(Σ.C)`. This precondition does the work the
 discarded full-binding hypothesis would otherwise have done, and does it without
-appeal to binding. It confines the resolved domain
-`act(ρ, Σ) = dom(Σ.M(d_s)) ∩ ⟦σ⟧` to a single subspace —
-`act(ρ, Σ) ⊆ V_{s_C}(d_s)` — directly, and it grounds resolution integrity in S3★
-over exactly the bound positions COPY acts on, rather than in ASN-0058's C1 (whose
-stated precondition is the full binding we drop). The structural facts COPY
-actually leans on are arrangement-side, not span-shape: content-residence confines
-the resolved domain to a single subspace and S8-depth fixes its common depth, and
-these two alone supply every premise the resolution and placement arithmetic
-needs. We do *not* lean on the span's ordinal-level form — as argued above, the
-operation routes around it — nor on the prefix/subspace confinement of `⟦σ⟧`'s
-depth-`m` positions that ordinal-level would supply; the bound active set is
-single-subspace and single-depth whether or not `ℓ` acts at the last component.
-Resolution integrity rests on S3★ over the bound positions, which does not consult
-the arrangement's binding extent, so it does not rest on the full-binding
-hypothesis either. The one ASN-0058 property that genuinely does *not* survive
-partial binding — its width-preservation C2 — COPY never uses; we record its loss
-as an open question.
+appeal to binding: it confines the resolved domain `act(ρ, Σ) ⊆ V_{s_C}(d_s)` to a
+single subspace directly, and grounds resolution integrity in S3★ over exactly the
+bound positions COPY acts on — rather than in ASN-0058's C1, whose stated
+precondition is the full binding we drop. As already argued, these arrangement-side
+facts (single subspace, plus the common depth S8-depth fixes) are the only premises
+the resolution and placement arithmetic needs; the span's ordinal-level form is not
+among them. The one ASN-0058 property that genuinely does *not* survive partial
+binding — its width-preservation C2 — COPY never uses; we record its loss as an open
+question.
 
 We define **resolution** as the flat I-address sequence obtained by expanding
 ASN-0058's `resolve` (Resolution). ASN-0058 resolves a content reference
