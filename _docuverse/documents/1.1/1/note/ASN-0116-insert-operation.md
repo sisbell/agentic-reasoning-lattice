@@ -645,14 +645,10 @@ prior set onto (left ∪ shifted-suffix ∪ cross-subspace). Hence the witness
 arranges some of the same content `d` does — `ran(M(d')) ∩ ran(M(d)) ≠ ∅`. The
 question is whether inserting into `d` can perturb `d'`. It cannot, and the
 proof is the conjunction of three facts already in hand. By F-DOC,
-`M'(d') = M(d')` — `d'`'s arrangement is untouched. By IP2, the shared
-content I-addresses retain their content — the bytes `d'` reads are immutable
-(and by F-LINK any link-subspace images retain their link values). And the
-fresh addresses `A_new` cannot already inhabit `ran(M(d'))`: every arrangement
-obeys generalized referential integrity, `ran(M(d')) ⊆ dom(C) ∪ dom(L)` (S3★),
-while `A_new ∩ (dom(C) ∪ dom(L)) = ∅` by K.α's whole-store freshness
-(FirstEmissionFreshness/SubsequentEmissionFreshness, ASN-0093), so
-`A_new ∩ ran(M(d')) = ∅`. Therefore `d'` resolves
+`M'(d') = M(d')` — `d'`'s arrangement is untouched. By IP2, the
+content I-addresses `d'` references retain their content — the bytes `d'` reads
+are immutable (and by F-LINK any link-subspace images retain their link values).
+Therefore `d'` resolves
 every one of its V-positions to the same content, in the same order, before and
 after: its arrangement *and its reader's experience* are identical (Q8). The isolation is a structural consequence of the two-layer split: INSERT
 writes the arrangement of exactly one document (F-DOC) and appends to the global
@@ -822,9 +818,8 @@ D(d, Σ)` — a real change to the discoverable set, and a **resurrection in LP1
 sense** because `ℓ'` was orphaned. ✓ IP4 new-block, IP6 escape branch.
 
 *Isolation (IP5).* Suppose `d'` also arranges `a_3`: `M(d')(q'_1) = a_3`. INSERT on
-`d` leaves `M'(d') = M(d')` (F-DOC), and `a_3 ∈ dom(C)` retains its value (IP2),
-while `A_new ∩ ran(M(d')) = ∅` because `ran(M(d')) ⊆ dom(C) ∪ dom(L)` (S3★) and
-`A_new ∩ (dom(C) ∪ dom(L)) = ∅` (K.α whole-store freshness). So `d'` resolves
+`d` leaves `M'(d') = M(d')` (F-DOC), and `a_3 ∈ dom(C)` retains its value (IP2).
+So `d'` resolves
 `q'_1` to `a_3`'s content exactly as
 before — untouched by the insertion into `d`. ✓ IP5.
 
