@@ -41,11 +41,7 @@ allocated documents. The consultation is emphatic that this
 coupling is *not* a separately-maintained relation but is established by the
 act of insertion itself — "the origin IS the address," minted as content
 enters the document (4/11, theory answer). INSERT therefore carries an
-obligation to grow `R` in lockstep with allocation; we discharge it below
-rather than defer it, so that the post-state satisfies the coupling
-invariants J0, J1★, J1'★ and the coverage property P7a that
-ExtendedReachableStateInvariants (ASN-0047) demands of every composite
-boundary.
+obligation to grow `R` in lockstep with allocation.
 
 The standing well-formedness facts we will lean on, all inherited from the
 arrangement model: every active V-position is zero-free of depth `m ≥ 2` with
@@ -221,8 +217,7 @@ with `A_new ∩ dom(C) = ∅`.
 arrangement contraction–extension pair `K.μ⁻` then `K.μ⁺` (degenerating to a single
 `K.μ⁺` when no suffix moves) whose net effect realises the post-insertion shift of
 ASN-0082's I3 family, and `n` provenance recordings (K.ρ, ASN-0047) that couple each
-allocated address to `d`. The explicit step sequence and the discharge of each
-intermediate precondition are given in the next subsection. One arithmetic fact,
+allocated address to `d`. One arithmetic fact,
 consumed by the value clauses below, we record first — the **block-disjointness
 fact**: as ordinals `q`, the three index intervals `{1, …, J-1}` (left),
 `{J, …, J+n-1}` (block), and `{J+n, …, N+n}` (shifted suffix) are consecutive and
@@ -279,13 +274,8 @@ scratch:
   (PostInsertionCrossDocumentFrame)**.
 - (F-LINK) `Σ'.L = Σ.L` — the link store is untouched. INSERT's only K-atomics are
   K.α (content), K.μ⁻/K.μ⁺ (arrangement), and K.ρ (provenance); none touches `Σ.L`.
-  This is the stated premise on which the post-state inherits the per-state link
-  invariants (L0, L1, L1a, L1c, L3, L14, L-fin, CL-OWN, CL-UNIQ) of
-  ExtendedReachableStateInvariants (ASN-0047), and on which P5 and the P4
-  link-survival argument lean.
 - (F-ENT) `Σ'.E = Σ.E` — the entity set is untouched. INSERT registers no entity
-  (it requires `d ∈ dom(M) = E_doc` already), so the post-state inherits the entity
-  invariants (S7d, NodeLineage, ActivatedEmission) by frame.
+  (it requires `d ∈ dom(M) = E_doc` already).
 
 We derive once, from these clauses, the range identity that both the provenance
 discharge and the discoverability weakest precondition consume:
