@@ -302,9 +302,17 @@ predecessors leave, is
 
 > `K.α₁, …, K.αₙ`  →  `K.μ⁻`  →  `K.μ⁺`  →  `K.ρ₁, …, K.ρₙ`.
 
-- *`K.α₁, …, K.αₙ` (allocate).* Each commits one fresh content address along `A_C(d)`;
-  the `k`-th acts on a store already holding `{shift(a, 0), …, shift(a, k−1)}`, against
-  which **SubsequentEmissionFreshness** gives `shift(a, k) ∉ dom(C) ∪ dom(L)`. The
+- *`K.α₁, …, K.αₙ` (allocate).* Each commits one fresh content address along `A_C(d)`.
+  Freshness splits by branch. For `k = 0` the start address `a = shift(a, 0)` is a
+  *first* emission exactly when `d`'s content region is empty
+  (`{a' ∈ dom(C) : origin(a') = d} = ∅`); there `a = [d.0.s_C.1]` and freshness is
+  discharged by **FirstEmissionFreshness** — not SubsequentEmissionFreshness, whose
+  precondition (the subsequent-emit predicate `{a' ∈ dom(C) : origin(a') = d} ≠ ∅`)
+  fails on this case. When the region is non-empty, `k = 0` is itself a subsequent
+  emission and **SubsequentEmissionFreshness** applies. For every `k ≥ 1` the prior
+  in-insert allocation `shift(a, k−1)` has already made the region non-empty, so the
+  `k`-th step acts on a store already holding `{shift(a, 0), …, shift(a, k−1)}` and
+  **SubsequentEmissionFreshness** gives `shift(a, k) ∉ dom(C) ∪ dom(L)`. The
   precondition `d ∈ dom(M)` holds throughout — no K.α step touches `M`. After these `n`
   steps `dom(C)` has grown by `A_new` and `M(d)` is still the original `{q_1, …, q_N}`.
 - *`K.μ⁻` (vacate the suffix).* Acting on `d ∈ E_doc`, retain the content-subspace
@@ -825,9 +833,16 @@ moves. ✓ I-DOM, I-NEW, IP1.
 **Boundary — empty subspace (`V_S(d) = ∅`).** The first insertion fixes the
 depth. Choose `m = 2` and `p = q_1 = [s_C, 1]`, so
 `ValidFirstInsertionPosition(d, p, 2)` holds. Insert `XY` (`n = 2`): no prefix,
-no suffix; the new block `{q_1, q_2}` receives `A_new`. `V_S(d') = {q_1, q_2}`,
-`N' = 0 + 2 = 2`, and the subspace depth is now pinned at `m = 2` for every later
-insertion. ✓ I-DOM (with `J = 1`, prefix and suffix intervals empty), I-NEW, IP1.
+no suffix; the new block `{q_1, q_2}` receives `A_new`. Because `d`'s content
+region is empty here (`{a' ∈ dom(C) : origin(a') = d} = ∅`), the start address is
+the *first* emission `a = [d.0.s_C.1]`, whose freshness is discharged by
+FirstEmissionFreshness; the second allocation `[d.0.s_C.2]` is then a subsequent
+emission (the region is now non-empty), discharged by SubsequentEmissionFreshness —
+exactly the `k = 0` first-emission / `k ≥ 1` subsequent-emission split the composite
+verification's K.α step makes. So `A_new = {[d.0.s_C.1], [d.0.s_C.2]}`,
+`V_S(d') = {q_1, q_2}`, `N' = 0 + 2 = 2`, and the subspace depth is now pinned at
+`m = 2` for every later insertion. ✓ I-DOM (with `J = 1`, prefix and suffix
+intervals empty), I-NEW, IP1.
 
 **Boundary — front insertion into a non-empty document (`J = 1`).** Return to the
 `N = 5` document `V_S(d) = {q_1, …, q_5}` and insert `XY` (`n = 2`) at `p = q_1`. Here
