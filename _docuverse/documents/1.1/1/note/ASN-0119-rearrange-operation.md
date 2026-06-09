@@ -342,24 +342,47 @@ healing fragmentation.
 
 *Fragmentation requires straddling, but straddling does not force it.* The
 behaviour Nelson and Gregory describe — a single contiguous endset becoming
-discontiguous — occurs *only when* a single pre-run straddles a cut. The necessity
-is P7c read contrapositively: a footprint confined to one region keeps its run
-structure, so a contiguous run that fragments cannot have been confined and must
-therefore cross a cut. The converse fails. Straddling a cut does *not* force
-fragmentation, because the relocated region blocks re-tile `[c₀, c_{n-1})` so as to
-abut, and a run that covers one or more *complete* relocated blocks lands as an
-interval again. Take the worked pivot below (`A B C D E ↦ A C D E B`) and a link
-covering all of `α ∪ β = {B, C, D, E} = {a₂, a₃, a₄, a₅}`. The pre-footprint
-`{ord 2, 3, 4, 5}` is a single contiguous run straddling the cut `c₁ = ord 3`, yet
-`π` sends `ord 2 ↦ ord 5`, `ord 3 ↦ ord 2`, `ord 4 ↦ ord 3`, `ord 5 ↦ ord 4`, so
-the post-footprint is again `{ord 2, 3, 4, 5}` — one contiguous run, no
-fragmentation. The exact characterization is therefore geometric, not "straddles a
-cut": a contiguous footprint survives as contiguous precisely when its image under
-`π` is again an interval, which holds both for within-region confinement (P7c) *and*
-for runs that span complete relocated blocks.
+discontiguous — occurs *only when* a single pre-run straddles a cut. This is all
+the structure entitles us to claim, and it is exactly P7c read contrapositively: a
+footprint confined to one region keeps its run structure, so a contiguous run that
+fragments cannot have been confined and must therefore cross a cut. We claim
+nothing stronger about the *kind* of straddle — in particular *not* that the run
+must cover a partial block. The converse of "straddles ⟹ fragments" fails, but so
+does any sharper necessity condition: straddling can both preserve and break
+contiguity, and which one occurs is a geometric fact about `π`, not a fact about
+partial coverage.
 
-*A genuine fragmentation.* Fragmentation does occur when a straddling run covers
-only *part* of a relocated block. In the worked pivot, a link covering
+The exact characterization is therefore geometric: a contiguous footprint survives
+as contiguous precisely when its image under `π` is again an interval. This holds
+for within-region confinement (P7c) and for runs spanning two or more *relocated*
+regions that `π` lays down adjacently — but it can fail whenever the run mixes the
+*fixed exterior* with a relocated region, because the exterior stays put while the
+region moves away from it. We exhibit all three behaviours on the worked pivot
+below (`A B C D E ↦ A C D E B`, cuts `c₀,c₁,c₂ = ord 2,3,6`).
+
+*Straddling, contiguity preserved (relocated blocks re-abut).* A link covering all
+of `α ∪ β = {B, C, D, E} = {a₂, a₃, a₄, a₅}` has pre-footprint `{ord 2, 3, 4, 5}`,
+a single contiguous run straddling the cut `c₁ = ord 3`. `π` sends `ord 2 ↦ ord 5`,
+`ord 3 ↦ ord 2`, `ord 4 ↦ ord 3`, `ord 5 ↦ ord 4`, so the post-footprint is again
+`{ord 2, 3, 4, 5}` — one contiguous run. The relocated `β` and relocated `α` re-tile
+the interval and re-abut, so the image is again an interval. Note that *both* spanned
+blocks relocate; the exterior is not involved.
+
+*Straddling, contiguity broken (exterior meets a relocated region).* This is the
+"running from a moved region into stationary content" case (Question 5). A link
+covering `{A, B} = {a₁, a₂}` — the complete fixed exterior byte `A` together with the
+complete moved region `α = {B}` — has the *contiguous* pre-footprint `{ord 1, ord 2}`,
+straddling the cut `c₀ = ord 2`. `π` fixes the exterior (`ord 1 ↦ ord 1`, R-EXT) but
+sends `α` to the back (`ord 2 ↦ ord 5`, R-P2), giving the *discontiguous*
+post-footprint `{ord 1, ord 5}`. Here the run covers only *complete* blocks — no
+partial block is involved — yet it fragments, because the fixed exterior `A` and the
+relocated `α = {B}` separate. This is precisely why the necessity condition is just
+"straddles a cut," with no qualification about partial coverage: covering complete
+blocks does not save a run whose blocks `π` pulls apart.
+
+*Fragmentation from partial coverage.* A second, distinct route to fragmentation —
+beyond the exterior-meets-region case above — is a straddling run that covers only
+*part* of a relocated block. In the worked pivot, a link covering
 `{B, C} = {a₂, a₃}` straddles the cut at `c₁ = ord 3` while covering all of `α` but
 only the first byte of `β` — a partial block. Its *contiguous* pre-footprint
 `{ord 2, ord 3}` is sent by `π` (`ord 2 ↦ ord 5`, `ord 3 ↦ ord 2`) to the
@@ -568,8 +591,8 @@ the regions tile, not merely shift each by a local offset.
 | P3 (VExtentConservation) | `\|dom(M'(d))\| = \|dom(M(d))\|`, and the active run's endpoints are fixed — the document's total extent is conserved | introduced |
 | P5 (Discoverability) | Moved content is discoverable under its new V-position `π(v)` and resolves to its original I-address `M(d)(v)` | introduced |
 | P6 (LinkStoreFrame) | `Σ'.L = Σ.L` — links are untouched; a link anchored in a moved region survives and travels with its content because endsets reference unchanged I-addresses | introduced |
-| P7a (FootprintTransport) | `project(a, i, d, Σ') = π(project(a, i, d, Σ))` — a link's V-footprint is relocated through `π`; a contiguous footprint stays contiguous iff its `π`-image is again an interval (within-region confinement, or coverage of complete relocated blocks), so fragmentation of a contiguous run occurs *only when* it straddles a cut covering a partial block — straddling alone does not force it | introduced |
-| P7c (FootprintRunStructure) | `project(a, i, d, Σ) ⊆ one region ⟹ π preserves the footprint's run structure` — within each region `π` is a uniform ordinal shift, so confinement to one region is *sufficient* (not necessary) for contiguity-preservation; this is not a weakest precondition, since relocating the region blocks creates new seams (a straddling footprint may stay contiguous; a within-region gap stays fragmented) | introduced |
+| P7a (FootprintTransport) | `project(a, i, d, Σ') = π(project(a, i, d, Σ))` — a link's V-footprint is relocated through `π`; a contiguous footprint stays contiguous iff its `π`-image is again an interval (e.g. within-region confinement, or coverage of two or more relocated regions that `π` re-abuts), so fragmentation of a contiguous run occurs *only when* it straddles a cut — straddling alone does not force it, and conversely a straddle that mixes the fixed exterior with a relocated region can fragment even when every block it covers is complete | introduced |
+| P7c (FootprintRunStructure) | `project(a, i, d, Σ) ⊆ one region ⟹ π preserves the footprint's run structure` — within each region `π` is a uniform ordinal shift, so confinement to one region is *sufficient* (not necessary) for contiguity-preservation; this is not a weakest precondition, since relocating the region blocks creates new seams (a straddle across two relocated regions that re-abut may stay contiguous; a straddle mixing the fixed exterior with a relocated region may fragment even with complete-block coverage; a within-region gap stays fragmented) | introduced |
 | P7b (DiscoverabilityPreserved) | `project(a, i, d, Σ') ≠ ∅ ⟺ project(a, i, d, Σ) ≠ ∅` — fragmentation never costs discoverability | introduced |
 | P8a (FinalStateInvariance) | The atomic transposition and any two-move composite achieving the same net `π` reach the same final arrangement | introduced |
 | P8b (IntermediateDivergence) | A two-move composite passes through an observable intermediate arrangement (exhibited: `A C D B E` for the worked pivot) realized by neither endpoint of the atomic transposition | introduced |
