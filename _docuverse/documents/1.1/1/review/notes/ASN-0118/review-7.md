@@ -1,0 +1,30 @@
+# Review of ASN-0118
+
+## REVISE
+
+### Issue 1: COPY drops ASN-0058's well-formedness (full-binding) hypothesis but then relies on ASN-0058 claims that are stated only for well-formed content references
+
+**ASN-0118, "What a spec-set names…"**: "We deliberately do *not* adopt ASN-0058's optional *well-formedness* condition (full binding, `{v : u ≤ v < reach(σ) ∧ #v = m} ⊆ dom(M(d_s))`); a partially-bound — or even empty — span is a well-formed request…"
+
+and immediately after: "the span is moreover *ordinal-level* — the action point sits at the deepest component, `actionPoint(ℓ) = #ℓ`, which ASN-0058 *derives* for content references (C0, OrdinalDisplacementNecessity)…"
+
+and **CP0(a)**: "This is ASN-0058 C1 (ResolutionIntegrity)…"; **CP0(c)**: "ASN-0058's decomposition returns several run-pairs in V-start order (C1b, ResolutionSequenceOrder)".
+
+**Problem**: In ASN-0058 the claims this section leans on — C0 (OrdinalDisplacementNecessity), C0a (PrefixConfinement), C1 (ResolutionIntegrity), C1b (ResolutionSequenceOrder), C2 (ResolutionWidthPreservation) — are each stated "*for a well-formed content reference*," and ASN-0058's "well-formed" is *exactly* the full-binding condition COPY has just discarded. The ASN therefore invokes foundation claims whose stated precondition is not met by the partially-bound (or empty) references it admits. Two of the dependencies are load-bearing, not cosmetic:
+
+- *Ordinal-level.* The placement arithmetic (CP2, CP3a) and the single-subspace confinement of `dom(M(d_s)|⟦σ⟧)` both depend on `actionPoint(ℓ) = #ℓ`. The ASN says this "is derived for content references (C0)" — but C0's derivation carries the full-binding hypothesis. For a partially-bound reference the cited derivation does not apply, so ordinal-level is asserted, not established.
+- *Single-subspace confinement.* ASN-0058's `resolve` is well-defined via C1a, whose third precondition (every position in `dom(f)` has first component `u₁`) is discharged "by C0a" — again stated for well-formed references. Without it the decomposition `resolve` rests on is not licensed for the inputs COPY accepts.
+
+CP0(a)'s fact (`cᵢ ∈ dom(Σ.C)`) is in fact independently recoverable from S3★ (the ASN even states this route: "by referential integrity (S3★) each resolves to a content address"), but the ordinal-level and single-subspace dependencies are not so recovered.
+
+**Required**: Either (a) establish explicitly that the ASN-0058 properties COPY uses — ordinal-level (C0), prefix/subspace confinement (C0a), resolution integrity (C1), and run-ordering (C1b) — are independent of the full-binding hypothesis and hence survive its removal; or (b) promote the binding-independent structural facts (ordinal-level span, single-subspace denotation) to explicit input preconditions of COPY and re-derive resolution integrity from S3★ over the bound subset `act(ρ, Σ)` directly, rather than citing claims whose stated preconditions the operation deliberately violates.
+
+## OUT_OF_SCOPE
+
+### Topic 1: The deferred Open Questions
+
+The five Open Questions (partial-binding width shortfall vs. C2; placement order for overlapping/repeated source spans; level-uniformity across differing element-field depths; later removal of transcluded positions and link re-orphaning; correspondence relation across appearances; transclusion into the link subspace) are correctly future territory. The operation is fully determined without them — `W = |resolve(R, Σ)|` and the sequence order fix the placement — so these are genuinely new ASNs, not gaps in COPY.
+
+**Why out of scope**: Each names a relation or operation COPY does not need to specify to be a well-defined state transition; none is a defect in the present claims.
+
+VERDICT: REVISE
