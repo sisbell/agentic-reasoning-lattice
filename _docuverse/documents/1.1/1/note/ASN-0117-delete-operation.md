@@ -51,7 +51,7 @@ contiguous, gap-free run of ordinals from the canonical first position. We
 abbreviate the `k`-th slot of this run `q_k = [S, 1, …, 1, k]` of depth `m`,
 and carry the depth-2 text case `m = 2` of the foundation displacement work,
 so `q_k = [S, k]` and `ord(q_k) = [k]`. The single arithmetic fact that does
-all the work below is the mirror of insertion's:
+all the work below:
 
 > `σ(q_k) = q_{k−c}` for `k ≥ J + c` — *left*-shifting the last component by
 > the deletion width `c` carries the `k`-th slot to the `(k−c)`-th, leaving the
@@ -308,30 +308,20 @@ place. We name DELETE's clauses but derive them by citation:
   ASN-0082 **D-CS**. In particular the document's *links* (subspace `s_L`) are
   not moved by a text deletion.
 - (DEL-FDOC) `(A d' : d' ≠ d : M'(d') = M(d'))` — ASN-0082 **D-CD**.
-- (DEL-FENT) `Σ'.E = Σ.E` — the entity set is held fixed. Two independent
-  arguments converge. *Directly:* DELETE baptizes no fresh node, account, or
-  document and removes none — it edits one document's arrangement, an act that
-  names no entity-set member, and entity permanence (P1, EntityPermanence,
-  ASN-0047: `E ⊆ E'`) forbids removal regardless, so `E = E'`. *By composition:*
-  both component steps carry an entity frame `E' = E` (K.μ⁻'s frame and K.μ⁺'s
-  frame, ASN-0047), so their composite fixes `E`. Either way, P1 (EntityPermanence)
-  and P8 (EntityHierarchy) survive DELETE trivially.
-- (DEL-FPROV) `Σ'.R = Σ.R` — the provenance relation is held fixed. Two
-  independent arguments converge. *Directly:* DELETE records no new
-  document-content association and retracts none; provenance permanence (P2,
-  ProvenancePermanence, ASN-0047: `R ⊆ R'`) forbids retraction, giving `R ⊆ R'`,
-  and DELETE adds no record, giving `R' ⊆ R`, so `R = R'`. *By composition:* both
+- (DEL-FENT) `Σ'.E = Σ.E` — the entity set is held fixed. Both component steps
+  carry an entity frame `E' = E` (K.μ⁻'s frame and K.μ⁺'s frame, ASN-0047), so
+  their composite fixes `E`. P1 (EntityPermanence) and P8 (EntityHierarchy)
+  survive DELETE trivially.
+- (DEL-FPROV) `Σ'.R = Σ.R` — the provenance relation is held fixed. Both
   component steps carry a provenance frame `R' = R` (K.μ⁻'s frame and K.μ⁺'s
   frame, ASN-0047), so their composite fixes `R`. Together with `dom(C') = dom(C)`
   (P0) this preserves P4★ (`Contains_C(Σ') ⊆ R'`, since the content-containment
   `Contains_C` only shrinks under the net contraction) and P7a (every content
   address retains its provenance record).
 
-The asymmetry with insertion is the heart of the matter. INSERT mints fresh
-I-addresses and shifts right; DELETE allocates nothing, frees nothing, and
-shifts left. The content layer sees an insertion as a monotone append; it sees
-a deletion as *no change whatsoever* (DEL-CIMM). All of DELETE's work is in the
-arrangement layer.
+DELETE allocates nothing and frees nothing: the content layer sees *no change
+whatsoever* (DEL-CIMM). All of DELETE's work is in the arrangement layer, where
+it shifts the surviving suffix left to close the gap.
 
 ## The document remains one coherent sequence
 
@@ -517,17 +507,7 @@ preserve every surviving position's I-address value (`M'(d)(v) = M(d)(v)` on `L`
 `M'(d)(σ(v)) = M(d)(v)` on the image of `R`), and the link summand because
 DEL-FSUB holds the `s_L` positions and their images fixed. DEL-REMOVE drops the
 deleted correspondences, contributing nothing new. Hence
-`ran(M'(d)) ⊆ ran(M(d))`. (We
-do *not* appeal to LP10 (ContractionMonotonicity, ASN-0098) for the *net* DELETE
-effect. LP10 is a per-K.μ⁻-step fact, and although DELETE's first component step
-*is* a K.μ⁻ prefix-retention truncation — in which survivors keep their
-V-positions unshifted — the K.μ⁻ + K.μ⁺ *composite* left-shifts the suffix, so the
-single-step picture does not describe the net transition. Moreover LP10's
-conclusion is a V-position–level *projection* inclusion
-`project(e, d, Σ') ⊆ project(e, d, Σ)`, which is false for the DELETE composite —
-the post-state projection contains shifted slots `q_{k−c}` absent before. The
-range inclusion we need is the I-address fact above, which DELETE's clauses give
-outright.) If the
+`ran(M'(d)) ⊆ ran(M(d))`. If the
 deletion removes the *last* V-position of `d` mapping into a link's coverage,
 that link becomes *undiscoverable from `d`*: an orphaned reference in the sense
 of **LP17 (GhostProjection)** (ASN-0098). But three things remain true, and they
@@ -564,10 +544,8 @@ be re-arranged (LP18).*
 
 P4 leaves one question pointed but unanswered: under what condition does DELETE
 *preserve*, rather than possibly shrink, the set of links discoverable from `d`?
-For insertion the analogous wp turned out to be conditional in the *enlarging*
-direction (resurrection of ghost references). For deletion it is conditional in
-the *shrinking* direction, and the place it fails is exactly the orphaning P4
-records. The two operations are mirror images here too.
+The wp below is conditional in the *shrinking* direction, and the place it fails
+is exactly the orphaning P4 records.
 
 Write `D(d, Σ) = {a ∈ dom(Σ.L) : discoverable_from(a, d, Σ)}`. We seek
 
@@ -635,9 +613,8 @@ preservation of discoverability, this computation would have refuted it: the
 escape branch — every slot of `a` whose coverage met `ran(M(d))` has that meeting
 contained in `A_del^{excl}`, so no slot retains a witness — is realised exactly in
 the last-witness case. The wp is the formal witness that "deletion preserves
-discoverability" is a *conditional*, not a theorem — and, dually to insertion's
-resurrection branch, deletion can only orphan, never resurrect, discoverability
-from `d`.
+discoverability" is a *conditional*, not a theorem: deletion can only orphan,
+never resurrect, discoverability from `d`.
 
 ## A worked deletion
 
@@ -708,6 +685,44 @@ suffix) = `{1, 2, 3, 4}`, consecutive and gap-free. So `V_S(d') = {q_1, …, q_4
 the dense run with `N' = N − c = 4`. Reading end to end yields `a_1, a_3, a_4, a_5`
 — the second unit omitted, the remaining three re-closed in their original
 relative order. ✓ DEL-SHIFT, D-BJ, P2.
+
+**Boundary — leading-span delete (`J = 1`, `R ≠ ∅`).** None of the cases above
+exercises the most delicate composite interaction: step-1 K.μ⁻ *emptying* the
+text subspace and step-2 K.μ⁺ re-adding survivors *into the emptied subspace*,
+re-pinning S8-depth from scratch. This is exactly the first-position-with-
+survivors case. Take the same `N = 5` document and **delete the opening span at
+`p = q_1` of width `c = 1`** (removing `q_1`). Here `J = 1`, `w = [0, 1]`,
+`r = p ⊕ w = q_2`, `L = ∅`, `X = {q_1}`, `R = {q_2, q_3, q_4, q_5}`. Containment
+holds: `J = 1 ≥ 1` and `J + c = 2 ≤ N + 1 = 6`. Since `R ≠ ∅`, DELETE is the
+K.μ⁻ + K.μ⁺ composite.
+
+*Step 1 (K.μ⁻ to empty).* The text subspace contracts to its surviving prefix
+`L = ∅` — retention count `n'_{s_C} = J − 1 = 0` — while the link subspace holds
+at full retention. After this step `d`'s text arrangement is *empty*:
+`V_{s_C}(d) = ∅`. The strict-contraction obligation is met (`0 < N = 5`).
+
+*Step 2 (K.μ⁺ from empty).* The `N − c − (J − 1) = 4` survivors are re-placed at
+the closed-up text positions `{q_1, q_2, q_3, q_4}`, each carrying the I-address
+it held before — the former images of `q_2, q_3, q_4, q_5`:
+
+```
+  q_1 ↦ a_2     q_2 ↦ a_3     q_3 ↦ a_4     q_4 ↦ a_5
+```
+
+Because step 1 emptied the text subspace, this K.μ⁺ inserts into an *empty*
+subspace and re-pins S8-depth from scratch at `m = 2` (S8a, S8-depth), seating
+the canonical first position `min(V_{s_C}(d')) = q_1` (D-MIN) and the dense run
+`{q_1, …, q_4}` (D-CTG). Each placed I-address is in `dom(C)` (P0), so K.μ⁺'s
+placement precondition is met, and four mappings are added — the strict-extension
+precondition is satisfied. Equivalently `σ(q_k) = q_{k−1}` carries each `v ∈ R`
+left by `c = 1` with its content (DEL-SHIFT).
+
+*Net effect.* `V_S(d') = {q_1, …, q_4} = {q_1, …, q_{N−1}}`, the dense run with
+`N' = N − c = 4`, every survivor's I-address carried unchanged from its pre-state
+slot. The gap closes exactly: `σ(r) = σ(q_2) = q_1 = q_J` (D-SEP). Reading end to
+end yields `a_2, a_3, a_4, a_5` — the opening unit omitted, the rest re-closed in
+order. The deleted `a_1` persists in `C` (P0). ✓ DEL-SHIFT, D-BJ, D-SEP, P2,
+D-SEQ-post.
 
 **Boundary — suffix delete (`J + c = N + 1`).** Take `p = q_4`, `c = 2`, so
 `r = q_6`, `R = ∅`. This is the `R = ∅` case, realised as a *single* K.μ⁻ step (no
@@ -823,8 +838,8 @@ endure, only their placement in this one document's present view is withdrawn.
 | DEL-LIMM | `Σ'.L = Σ.L` — the link store is a strict frame, domain and value (stronger than L12) | introduced |
 | DEL-FSUB | Positions in subspaces `S' ≠ S` (notably links) are unchanged (ASN-0082 D-CS) | introduced |
 | DEL-FDOC | Arrangements of all documents `d' ≠ d` are unchanged (ASN-0082 D-CD) | introduced |
-| DEL-FENT | `Σ'.E = Σ.E` — the entity set is a strict frame (direct: DELETE baptizes/removes no entity, P1; and the K.μ⁻+K.μ⁺ composite entity frames, ASN-0047); P1/P8 preserved | introduced |
-| DEL-FPROV | `Σ'.R = Σ.R` — the provenance relation is a strict frame (direct: DELETE records/retracts no provenance, P2; and the K.μ⁻+K.μ⁺ composite provenance frames, ASN-0047); P4★/P7a preserved | introduced |
+| DEL-FENT | `Σ'.E = Σ.E` — the entity set is a strict frame (the K.μ⁻+K.μ⁺ composite entity frames, ASN-0047); P1/P8 preserved | introduced |
+| DEL-FPROV | `Σ'.R = Σ.R` — the provenance relation is a strict frame (the K.μ⁻+K.μ⁺ composite provenance frames, ASN-0047); P4★/P7a preserved | introduced |
 
 ## Open Questions
 
