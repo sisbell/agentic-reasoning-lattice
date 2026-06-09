@@ -41,8 +41,11 @@ the permanent record of *what content exists*. The *arrangement*
 Vstream, the record of *how content is currently ordered* in `d`. The *link
 store* `Σ.L : T ⇀ Link` (ASN-0043) records typed associations whose endsets
 reference content by address. V-positions and I-addresses are tumblers ordered
-by T1 (ASN-0034); within a subspace the active V-positions are contiguous and
-share a common depth (ASN-0036, D-CTG, D-SEQ, S8-depth).
+by T1 (ASN-0034); within the text subspace the active V-positions are contiguous
+and share a common depth (ASN-0036, D-CTG, D-SEQ, S8-depth). These contiguity
+invariants hold for the text subspace `s_C` and *not* in general for other
+subspaces — the link subspace `s_L`, in particular, is exempt — which is why the
+operation's scope is confined to text below.
 
 The distinction the operation turns on is the one ASN-0034's T6 already records:
 *address versus position*. An I-address is permanent content identity; a
@@ -52,23 +55,29 @@ that position `v` currently denotes, and we will be watching, throughout, for th
 property that this *value* is carried intact while the *key* under which it is
 filed is permuted.
 
-We confine the operation to a single subspace `S` of one document — the text
-subspace `s_C` is the case of interest — and adopt ASN-0058's ordinal-shift
-convention: for a V-position `v` and natural `k`, `v + k` abbreviates
-`shift(v, k)` (ASN-0034) at `v`'s depth, with `v + 0 = v`. Because the active
-text positions are contiguous and densely indexed (D-SEQ), a *cut* may be named
-by the V-position at which it falls, and the width of an interval between two
-cuts is the ordinal difference of their positions.
+We confine the operation to the text subspace `s_C` of one document, at the
+working V-position depth 2 (`#v = 2`). This is the precise scope at which
+ASN-0036's contiguity invariants and ASN-0084's closed-form rearrangement
+permutations are established; we make no claim about other subspaces or other
+depths, and in particular the link subspace — lacking D-CTG/D-SEQ/D-MIN — does
+not admit the cut-naming this operation relies on. We adopt ASN-0058's
+ordinal-shift convention: for a V-position `v` and natural `k`, `v + k`
+abbreviates `shift(v, k)` (ASN-0034) at `v`'s depth, with `v + 0 = v`; at depth 2
+a text position has the form `[s_C, k]` and `ord(v) = k`. Because the active text
+positions are contiguous and densely indexed (D-SEQ), a *cut* may be named by the
+V-position at which it falls, and the width of an interval between two cuts is the
+ordinal difference of their positions.
 
 ## Cuts and regions
 
 A *cut sequence* is a strictly ascending list of V-positions
-`c₀ < c₁ < ... < c_{n-1}` in subspace `S`, with `n ∈ {3, 4}` and every cut
-landing on a boundary of the current arrangement (ASN-0084, CutSequence). Three
-cuts specify a *pivot*; four cuts specify a *swap*. We require that the affected
-interval lie entirely within the arrangement — every depth-`S` position from
-`c₀` up to the last cut is active (ASN-0084, R-PRE) — so the cuts genuinely
-partition existing content rather than naming holes.
+`c₀ < c₁ < ... < c_{n-1}` in the text subspace `s_C` at depth 2, with
+`n ∈ {3, 4}` and every cut landing on a boundary of the current arrangement
+(ASN-0084, CutSequence — its conditions CS3/CS4 fix exactly this subspace and
+depth). Three cuts specify a *pivot*; four cuts specify a *swap*. We require that
+the affected interval lie entirely within the arrangement — every depth-2 text
+position from `c₀` up to the last cut is active (ASN-0084, R-PRE) — so the cuts
+genuinely partition existing content rather than naming holes.
 
 For three cuts the affected interval `[c₀, c₂)` splits into two regions
 
@@ -92,55 +101,44 @@ consequences in the section on atomicity.
 
 ## The transposition as a permutation
 
-The pivot exchanges `α` and `β`. We specify the post-state `M'(d)` directly. The
-exterior is frozen,
+REARRANGE is the operation **REARRANGE_K** of ASN-0084, applied to the text
+subspace at depth 2. We do not redefine it; we import its specification and erect
+the system-level guarantees on top. For a 3- or 4-cut sequence `K` satisfying the
+preconditions R-PRE, `REARRANGE_K(Σ, d)` produces the post-state `M'(d)` fixed by
+ASN-0084's **PivotPostcondition** (`n = 3`) or **SwapPostcondition** (`n = 4`),
+together with the frame conditions R-FRAME-P / R-FRAME-S. For the reader's
+convenience we recall the destination equations — they are ASN-0084's, cited, not
+introduced here. The pivot freezes the exterior, slides `β` to the front of the
+interval, and lets `α` follow:
 
-      v < c₀  ∨  v ≥ c₂   ⟹   M'(d)(v) = M(d)(v),                  (R-EXT)
-
-the block `β` slides to the front of the interval,
-
-      M'(d)(c₀ + j)        = M(d)(c₁ + j),    0 ≤ j < w_β,          (R-P1)
-
-and `α` follows it,
-
-      M'(d)(c₀ + w_β + j)  = M(d)(c₀ + j),    0 ≤ j < w_α.          (R-P2)
+      v < c₀ ∨ v ≥ c₂  ⟹  M'(d)(v) = M(d)(v),                  (ASN-0084 R-EXT)
+      M'(d)(c₀ + j)       = M(d)(c₁ + j),   0 ≤ j < w_β,        (ASN-0084 R-P1)
+      M'(d)(c₀ + w_β + j) = M(d)(c₀ + j),   0 ≤ j < w_α.        (ASN-0084 R-P2)
 
 The swap (four cuts) is the same shape with the middle region threaded between:
 
-      v < c₀  ∨  v ≥ c₃   ⟹   M'(d)(v) = M(d)(v),                  (R-EXT)
-      M'(d)(c₀ + j)               = M(d)(c₂ + j),  0 ≤ j < w_β,     (R-S1)
-      M'(d)(c₀ + w_β + j)         = M(d)(c₁ + j),  0 ≤ j < w_μ,     (R-S2)
-      M'(d)(c₀ + w_β + w_μ + j)   = M(d)(c₀ + j),  0 ≤ j < w_α.     (R-S3)
+      v < c₀ ∨ v ≥ c₃  ⟹  M'(d)(v) = M(d)(v),                  (ASN-0084 R-EXT)
+      M'(d)(c₀ + j)             = M(d)(c₂ + j),  0 ≤ j < w_β,   (ASN-0084 R-S1)
+      M'(d)(c₀ + w_β + j)       = M(d)(c₁ + j),  0 ≤ j < w_μ,   (ASN-0084 R-S2)
+      M'(d)(c₀ + w_β + w_μ + j) = M(d)(c₀ + j),  0 ≤ j < w_α.   (ASN-0084 R-S3)
 
-These equations are the specification of REARRANGE. Everything else in this note
-is a property derived from them.
-
-The first thing to verify is that they describe a *function* on a fixed domain,
-and indeed a bijection of the document's V-positions onto themselves. In the
-pivot, the destination ordinals of R-P1 occupy `[ord(c₀), ord(c₀)+w_β)` and those
-of R-P2 occupy `[ord(c₀)+w_β, ord(c₀)+w_β+w_α)`; these are disjoint, abut exactly,
-and together tile `[ord(c₀), ord(c₂))` — the very interval the two regions
-occupied before. With R-EXT covering the complement, every position is assigned
-exactly once. The map
+ASN-0084 proves these define a total function whose induced map
 
       π : dom(M(d)) → dom(M(d)),   defined by   M'(d)(π(v)) = M(d)(v),
 
-is therefore a bijection that fixes the exterior and permutes the affected
-interval; in closed form, for the pivot,
+is a bijection that fixes the exterior and permutes the affected interval. Its
+closed form is **R-PPERM** (pivot) and **R-SPERM** (swap); its totality and
+bijectivity, together with the domain identity `dom(M'(d)) = dom(M(d))`, are
+**R-PIV** and **R-SWP**. The destinations tile `[ord(c₀), ord(c_{n-1}))` exactly:
+in the pivot, R-P1's destination ordinals occupy `[ord(c₀), ord(c₀)+w_β)` and
+R-P2's occupy `[ord(c₀)+w_β, ord(c₀)+w_β+w_α)`, which abut and exhaust the
+interval the two regions occupied before; with R-EXT covering the complement,
+every position is assigned exactly once. We take these results as given and write
 
-      π(v) = v                        (exterior),
-      π(c₀ + j) = c₀ + w_β + j        (0 ≤ j < w_α, region α),
-      π(c₁ + j) = c₀ + j              (0 ≤ j < w_β, region β),
+      dom(M'(d)) = dom(M(d))               **(P2, = ASN-0084 R-PIV / R-SWP)**
 
-and analogously for the swap with the three branches `α ↦ c₀+w_β+w_μ+·`,
-`μ ↦ c₀+w_β+·`, `β ↦ c₀+·` (ASN-0084, R-PPERM, R-SPERM). Because `dom(M(d))` is
-finite (S8-fin) and `π` is an injection of it into itself, `π` is onto, and the
-post-state domain is unchanged:
-
-      dom(M'(d)) = dom(M(d)).                                       **(P2)**
-
-This is the formal content of *transposition*: a reassignment of positions that
-loses none and invents none.
+for the domain-preservation fact we lean on below. This is the formal content of
+*transposition*: a reassignment of positions that loses none and invents none.
 
 ## What is preserved: I-address correspondence
 
@@ -169,8 +167,19 @@ references is invariant. Since `π` is a bijection,
                  = { M(d)(v)     : v ∈ dom(M(d)) }
                  = ran(M(d)).                                       **(P1)**
 
-The document points at the same content after the rearrangement as before — only
-the order of pointing has changed. We may now read off the remaining obligations.
+This is ASN-0084's range invariance R-RI restated; we label it **P1** for use
+below. The document points at the same content after the rearrangement as before
+— only the order of pointing has changed.
+
+Two foundation invariants ride along on the same structural facts, and we
+discharge them explicitly so that the hardest-to-maintain conjuncts of a
+rearrangement are not left implicit. *Functionality* is preserved — `M'(d)` is
+single-valued (ASN-0036, **S2**) — because the destinations of R-P1/R-P2 (pivot)
+and R-S1/R-S2/R-S3 (swap) tile the affected interval *disjointly* (R-PIV/R-SWP),
+so no V-position receives two I-addresses. *Referential integrity* is preserved —
+`ran(M'(d)) ⊆ dom(C)` (ASN-0036, **S3**) — because by P1
+`ran(M'(d)) = ran(M(d))`, and `ran(M(d)) ⊆ dom(C)` held in the pre-state, so the
+inclusion is inherited verbatim. We may now read off the remaining obligations.
 
 ## The intervening content
 
@@ -205,9 +214,9 @@ around it.
 
 The document's total extent must be unchanged: "the same bytes are present, in
 the same quantity, merely permuted into a different order" (Question 7).
-Conservation is immediate from P2. The active V-positions of subspace `S` form a
-contiguous run by D-CTG, and `π` permutes that run onto itself, so the run's
-cardinality and its endpoints are invariant:
+Conservation is immediate from P2. The active V-positions of the text subspace
+`s_C` form a contiguous run by D-CTG, and `π` permutes that run onto itself, so
+the run's cardinality and its endpoints are invariant:
 
       | dom(M'(d)) | = | dom(M(d)) |,    min and max V-position fixed.   **(P3)**
 
@@ -299,6 +308,49 @@ relocation" (Question 8). We record the consequence:
       moved content is discoverable under its new V-position,
       and resolves to its original I-address.                      **(P5)**
 
+## A worked transposition
+
+We check the postconditions against explicit ordinals. Take a document `d` whose
+text subspace holds five bytes "ABCDE" at the contiguous depth-2 positions
+`[s_C, 1], …, [s_C, 5]`; write `a_k = M(d)([s_C, k])` for the I-address of the
+k-th byte, so `ord([s_C, k]) = k`.
+
+*Pivot.* Transpose the single-byte region `α = {B}` with the three-byte region
+`β = {C, D, E}`: cuts `c₀ = [s_C, 2]`, `c₁ = [s_C, 3]`, `c₂ = [s_C, 6]`, giving
+`w_α = ord(c₁) − ord(c₀) = 1` and `w_β = ord(c₂) − ord(c₁) = 3`. R-P1 fills the
+front of the interval with `β` — `M'([s_C,2]) = a₃`, `M'([s_C,3]) = a₄`,
+`M'([s_C,4]) = a₅`; R-P2 places `α` behind it — `M'([s_C,5]) = a₂`; R-EXT keeps
+`M'([s_C,1]) = a₁`. The new reading order is
+
+      A C D E B.
+
+The postconditions check out numerically. The destination ordinals are `{2,3,4}`
+(R-P1), `{5}` (R-P2), and `{1}` (R-EXT): pairwise disjoint and tiling `{1..5}`
+exactly, so `π` is a bijection and `dom(M'(d)) = dom(M(d))` (**P2**). The range is
+`{a₃, a₄, a₅, a₂, a₁} = {a₁, …, a₅} = ran(M(d))` (**P1**). The count is 5 and the
+endpoints `ord 1`, `ord 5` are fixed (**P3**). Now a sample link footprint: let
+`a*` be a link whose coverage holds the "C" byte `a₃`. Before the move its
+footprint is `{[s_C,3]}`; since `[s_C,3] = c₁ + 0`, the pivot branch of `π` gives
+`π([s_C,3]) = c₀ + 0 = [s_C,2]`, and indeed `M'([s_C,2]) = a₃`. The footprint
+travels through `π` to `{[s_C,2]}` (**P7a**) — relocated, not lost.
+
+*Swap.* Take "ABCDEF" at `[s_C,1..6]` and exchange `α = {B}` with `β = {E, F}`,
+leaving the middle `μ = {C, D}` between them: cuts `c₀=[s_C,2]`, `c₁=[s_C,3]`,
+`c₂=[s_C,5]`, `c₃=[s_C,7]`, so `w_α = 1`, `w_μ = 2`, `w_β = 2`. R-S1 brings `β`
+to the front (`M'([s_C,2]) = a₅`, `M'([s_C,3]) = a₆`); R-S2 reseats `μ`
+(`M'([s_C,4]) = a₃`, `M'([s_C,5]) = a₄`); R-S3 sends `α` to the back
+(`M'([s_C,6]) = a₂`); R-EXT keeps `a₁`. The reading order is
+
+      A E F C D B.
+
+The middle departs `ord(c₁) = 3` and arrives `ord(c₀) + w_β = 4`, a net
+displacement of `+1`, which is exactly `w_β − w_α = 2 − 1` — Gregory's `diff[2]`
+(Question 11). Because `w_β > w_α`, the middle slides *forward* by precisely the
+width imbalance, the unique shift that keeps `μ` contiguous between the relocated
+`β` and `α`. Once more the destination ordinals `{2,3}`, `{4,5}`, `{6}`, `{1}`
+tile `{1..6}` (**P2**), the range `{a₁, …, a₆}` is unchanged (**P1**), and the
+extent is conserved (**P3**).
+
 ## Atomicity: two cuts at once
 
 Why transpose *together* rather than move one region and later the other? The
@@ -307,25 +359,35 @@ three ordering invariants (Question 6).
 
 First, the document passes from one canonical total order directly to another. A
 move-then-move realization manufactures an intermediate arrangement that is itself
-a real, addressable, observable document state — "not a neutral scratch step."
-The two realizations can agree on the final mapping while differing on what is
-observable in between: a RETRIEVE issued after the first move but before the
-second returns a partially-rearranged order that has no counterpart during the
-atomic transposition (Question 19). We state the equality and the difference
-together. Let `T` be the atomic transposition `Σ → Σ'`, and let `T₁ ; T₂` be any
-two-move composite achieving the same net permutation. Then their final
-arrangements coincide,
+a real, addressable, observable document state — "not a neutral scratch step." We
+make this concrete on the worked pivot, whose net permutation carries
+`A B C D E ↦ A C D E B` (atomic cuts `ord 2,3,6`). Realize the same `π` by two
+successive pivots, each itself a legal `REARRANGE_K`:
+
+      Move 1 (cuts ord 2,3,5):  A B C D E  ↦  A C D B E   = Σ_mid
+      Move 2 (cuts ord 4,5,6):  A C D B E  ↦  A C D E B   = Σ'
+
+We verify these arithmetically. Move 1 is a pivot of `α₁ = {B}` (ord 2) against
+`β₁ = {C, D}` (ord 3,4): R-P1 gives `M_mid([s_C,2]) = a₃`, `M_mid([s_C,3]) = a₄`;
+R-P2 gives `M_mid([s_C,4]) = a₂`; the exterior is frozen — order `A C D B E`.
+Move 2 is a pivot of `{B}` (now ord 4) against `{E}` (ord 5): it exchanges those
+two, yielding `A C D E B`. The composite reaches the same final arrangement as
+the atomic pivot,
 
       M'(d) under T   =   M(d) under (T₁ ; T₂),                    **(P8a)**
 
-because both realize the same `π` and the arrangement is determined by `π`
-applied to the same content (P1); but the intermediate state of `T₁ ; T₂` is a
-distinct, observable arrangement absent from `T`,
+because both realize the same `π` and the arrangement is determined by `π` applied
+to the same content (P1). But the intermediate `Σ_mid = A C D B E` is a distinct,
+observable arrangement realized by *neither* endpoint — concretely
+`M_mid([s_C,4]) = a₂`, while `M([s_C,4]) = a₄` and `M'([s_C,4]) = a₅`, so
 
-      ∃ observable Σ_mid with  M_mid(d) ≠ M(d) ∧ M_mid(d) ≠ M'(d). **(P8b)**
+      M_mid(d) ≠ M(d)  ∧  M_mid(d) ≠ M'(d).                       **(P8b)**
 
-The logical content of the final state is path-independent; the *visible history*
-is not.
+A RETRIEVE issued between the two moves returns the order `A C D B E`, which has
+no counterpart during the atomic transposition (Question 19). The existence of an
+observable divergent intermediate is thus exhibited, not merely asserted: the
+logical content of the final state is path-independent; the *visible history* is
+not.
 
 Second, the cut coordinates resolve against a single, unshifted frame. All of
 `c₀, …, c_{n-1}` are coordinates in one `M(d)`, so the regions' boundaries cannot
@@ -364,12 +426,13 @@ runs over a single document's arrangement tree, and a second document's tree is
 
 ## Well-definedness, and a caveat on the arithmetic
 
-The equations specify the post-state by naming each destination directly, and we
-proved above that those destinations tile the affected interval exactly, so `π` is
-a bijection and the result is a legal arrangement. We elevate this to a
-requirement on the operation: REARRANGE is well-defined only when the induced map
-is a bijection of `dom(M(d))` onto itself preserving the domain (P2). An
-alternative implementation must satisfy this no matter how it computes positions.
+The post-state is fixed by naming each destination directly, and ASN-0084's
+R-PIV (pivot) and R-SWP (swap) establish that those destinations tile the
+affected interval exactly, so `π` is a bijection and the result is a legal
+arrangement. We elevate this to a requirement on the operation: REARRANGE is
+well-defined only when the induced map is a bijection of `dom(M(d))` onto itself
+preserving the domain (P2). An alternative implementation must satisfy this no
+matter how it computes positions.
 
 We flag, as an observation rather than a claim, that computing destinations by a
 *uniform displacement formula* per region — rather than by the tiling above — is
@@ -389,20 +452,19 @@ the regions tile, not merely shift each by a local offset.
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| REARRANGE | Operation: given a 3- or 4-cut sequence in subspace `S` of document `d`, transpose the two named regions by reassigning their V-positions; specified by R-EXT and R-P1/R-P2 (pivot) or R-S1/R-S2/R-S3 (swap) | introduced |
-| R-EXT | Exterior frame: positions below `c₀` or at/above the last cut keep their mapping, `M'(d)(v) = M(d)(v)` | introduced |
-| R-P1, R-P2 | Pivot postcondition: `β` slides to the front of `[c₀, c₂)`, `α` follows; the two tile the interval exactly | introduced |
-| R-S1, R-S2, R-S3 | Swap postcondition: `β` to front, intervening `μ` next (net displacement `w_β − w_α`), `α` last; the three tile `[c₀, c₃)` exactly | introduced |
-| P0 (ContentPermanence) | `Σ'.C = Σ.C` — the content store is a verbatim frame; no I-address is created, destroyed, or rebound | introduced |
-| P1 (IdentityCorrespondence) | `M'(d)(π(v)) = M(d)(v)`; I-addresses are carried across the reassignment, and `ran(M'(d)) = ran(M(d))` | introduced |
-| P2 (Permutation) | The induced `π` is a bijection of `dom(M(d))` onto itself; `dom(M'(d)) = dom(M(d))` — a required well-definedness condition | introduced |
+| REARRANGE_K | Operation imported from ASN-0084: 3-/4-cut transposition in the text subspace at depth 2, specified by PivotPostcondition (R-EXT, R-P1, R-P2) or SwapPostcondition (R-EXT, R-S1, R-S2, R-S3) with frame R-FRAME-P/R-FRAME-S; this note builds the system-level guarantees below on top of it | imported (ASN-0084) |
+| P0 (ContentPermanence) | `Σ'.C = Σ.C` — the content store is a verbatim frame; no I-address is created, destroyed, or rebound | imported (ASN-0084 R-FRAME-P/S) |
+| P1 (IdentityCorrespondence) | `M'(d)(π(v)) = M(d)(v)`, hence `ran(M'(d)) = ran(M(d))` — I-addresses carried across the reassignment | imported (ASN-0084 R-RI) |
+| P2 (Permutation) | The induced `π` (R-PPERM/R-SPERM) is a bijection of `dom(M(d))` onto itself; `dom(M'(d)) = dom(M(d))` | imported (ASN-0084 R-PIV/R-SWP) |
+| S2 (FunctionalityPreserved) | `M'(d)` is single-valued — the disjoint tiling of destinations (R-PIV/R-SWP) gives each V-position one I-address (ASN-0036 S2) | preserved |
+| S3 (ReferentialIntegrityPreserved) | `ran(M'(d)) ⊆ dom(C)` — by P1, `ran(M'(d)) = ran(M(d)) ⊆ dom(C)` (ASN-0036 S3) | preserved |
 | P3 (VExtentConservation) | `\|dom(M'(d))\| = \|dom(M(d))\|`, and the active run's endpoints are fixed — the document's total extent is conserved | introduced |
 | P5 (Discoverability) | Moved content is discoverable under its new V-position `π(v)` and resolves to its original I-address `M(d)(v)` | introduced |
 | P6 (LinkStoreFrame) | `Σ'.L = Σ.L` — links are untouched; a link anchored in a moved region survives and travels with its content because endsets reference unchanged I-addresses | introduced |
 | P7a (FootprintTransport) | `project(a, i, d, Σ') = π(project(a, i, d, Σ))` — a link's V-footprint is relocated through `π`; footprints split by a cut become discontiguous span-sets | introduced |
 | P7b (DiscoverabilityPreserved) | `project(a, i, d, Σ') ≠ ∅ ⟺ project(a, i, d, Σ) ≠ ∅` — fragmentation never costs discoverability | introduced |
 | P8a (FinalStateInvariance) | The atomic transposition and any two-move composite achieving the same net `π` reach the same final arrangement | introduced |
-| P8b (IntermediateDivergence) | A two-move composite passes through an observable intermediate arrangement that the atomic transposition does not realize | introduced |
+| P8b (IntermediateDivergence) | A two-move composite passes through an observable intermediate arrangement (exhibited: `A C D B E` for the worked pivot) realized by neither endpoint of the atomic transposition | introduced |
 | P9 (DocumentIsolation) | `(∀ d' ≠ d :: M'(d') = M(d'))` together with P0, P6 — every other document, including transcluders of the rearranged I-addresses, is invariant | introduced |
 
 ## Open Questions
