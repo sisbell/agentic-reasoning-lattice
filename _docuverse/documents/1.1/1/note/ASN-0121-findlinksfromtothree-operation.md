@@ -47,8 +47,14 @@ A request is a four-tuple
 
 where each component is either an *endset* (ASN-0043's `Endset = 𝒫_fin(Span)`) or the
 distinguished *wildcard* `∗` (Nelson's NOSPECS — "no specification"). The home-component
-`H` ranges over document-address space; the three endset-components `F, G, Θ` range over
-I-address space. Every request the grammar admits is thus phrased entirely over addresses —
+`H` ranges over the *organizational-prefix* axis: its spans are rooted at node-, account-,
+or document-level addresses, each denoting (PrefixSpanCoverage, ASN-0043) the corresponding
+subtree `{t : p ≼ t}`, which is order-convex under T5 (ASN-0034). The three endset-components
+`F, G, Θ` range over the *element-level I-address* axis. (Note `home(a)` itself is always
+document-level — the field projection `N(a).0.U(a).0.D(a)` — but the *request component* `H`
+is not so confined: a node- or account-rooted span tests `home(a)`'s membership in the
+broader subtree it denotes, the residence bounding exercised at node granularity in Trace 6.)
+Every request the grammar admits is thus phrased entirely over addresses —
 all of its components denote sets of tumbler addresses — and we call it an *I-address
 request*. There is exactly one kind of request in this grammar; the arrangement-mediated
 *V-spec* phrasing discussed later (under editing stability) is a separable front-end
