@@ -160,13 +160,11 @@ content — the only content addresses in `coverage(e)` are the resolved ones:
 > `coverage(e_j) ⊇ ρ(R_j, Σ)` and `coverage(e_j) ∩ dom(Σ.C) = ρ(R_j, Σ)`.
 
 The extra coverage points — the tumblers lying in a resolved address's subtree but
-strictly below it — are never content: every content address lies on some
-sub-allocator chain `A_C(d)` of its origin (ASN-0093, ChainMembershipForOrigin),
-whose first emission `[d.0.s_C.1]` has element-field depth `#E = 2` (FirstEmission)
-and whose successors advance by `inc(·, 0)`, which preserves length (ChainDiscipline,
-TA5(c)) — so *every* content address has `#E = 2` *exactly*, not merely `#E ≥ 2`
-(the bound C1b alone supplies). A proper descendant of such an address has `#E ≥ 3`,
-so it lies on no content chain and is not in `dom(Σ.C)`. This exact bound is
+strictly below it — are never content: every store address has the structural form
+`[d.0.s.k]`, hence element-field depth `#E = 2` *exactly* (ASN-0098, LP-Sub, which
+fixes this form for all of `dom(Σ.C) ∪ dom(Σ.L)`), not merely the `#E ≥ 2` that C1b
+alone supplies. A proper descendant of such an address has `#E ≥ 3`, so it is no
+store address and in particular not in `dom(Σ.C)`. This exact bound is
 load-bearing twice over: it is what makes the creation-state equality
 `coverage(e_j) ∩ dom(Σ.C) = ρ(R_j, Σ)` (ML1, ML2) hold — with only `#E ≥ 2` a
 `#E = 3` descendant could itself be content and slip into the surplus — and it is
@@ -378,13 +376,13 @@ membership, not over the value of `subspace_I` at arbitrary covered tumblers (wh
 it need not be defined: a covering-surplus descendant formed by a zero extension has
 `zeros = 4` and is not T4-valid, so `subspace_I` does not apply to it). The content
 half is ML2: `coverage(eᵢ) ∩ dom(Σ.C) = ρ(R_i, Σ)`. The link half is empty,
-`coverage(eᵢ) ∩ dom(Σ.L) = ∅`: suppose `ℓ ∈ coverage(eᵢ) ∩ dom(Σ.L)`; then `ℓ` lies
-in some resolved address's subtree, `aₖ ≼ ℓ` with `aₖ ∈ ρ(R_i, Σ) ⊆ dom(Σ.C)`
-(unit-depth spans, ASN-0043 PrefixSpanCoverage), and since `ℓ ∈ dom(Σ.L)` is a
-genuine link address it is T4-valid with `zeros(ℓ) = 3`, so `subspace_I(ℓ)` *is*
-defined and the prefix `aₖ ≼ ℓ` forces `E(ℓ)₁ = E(aₖ)₁ = s_C`; but L0 (ASN-0093)
-gives `E(ℓ)₁ = s_L`, and `s_C ≠ s_L` — contradiction. So no covered tumbler is a
-link address, and `coverage(eᵢ) ∩ ran(Σ'.M(d')) = ρ(R_i, Σ) ∩ ran(Σ'.M(d'))`. The
+`coverage(eᵢ) ∩ dom(Σ.L) = ∅`: each `eᵢ` is a union of canonical unit-depth spans
+rooted at resolved content addresses `aₖ ∈ ρ(R_i, Σ) ⊆ dom(Σ.C)` (of form
+`[d.0.s_C.k]`), so by ASN-0098 (LP-Fin Corollary, with `dom(Σ.L) ⊆ F` from LP-Sub)
+every store address in `coverage(eᵢ)` carries `subspace_I = s_C`; but every link
+address carries `subspace_I = s_L` (L0, ASN-0093), and `s_C ≠ s_L` — so no covered
+tumbler is a link address, and
+`coverage(eᵢ) ∩ ran(Σ'.M(d')) = ρ(R_i, Σ) ∩ ran(Σ'.M(d'))`. The
 covering surplus — the non-store descendants in `coverage(eᵢ)` — cannot meet an
 arrangement range and so drops out.
 
@@ -394,9 +392,9 @@ arrangement range and so drops out.
 `d' = d` — the home document itself, exactly the case ML4 highlights — `K.μ⁺_L`
 extends the arrangement by the single binding `v_a ↦ a`, so
 `ran(Σ'.M(d)) = ran(Σ.M(d)) ∪ {a}`; but the added address `a` is itself a link
-address (`a ∈ dom(Σ'.L)`, `E(a)₁ = s_L` by L0), so Fact (a)'s link-half argument
-applies to `a` verbatim — were `a ∈ coverage(eᵢ)` it would extend a resolved content
-address `aₖ ≼ a` and inherit `E(a)₁ = E(aₖ)₁ = s_C ≠ s_L` — hence `a ∉ coverage(eᵢ)`
+address (`a ∈ dom(Σ'.L) ⊆ F`, `subspace_I(a) = s_L` by L0), so Fact (a)'s link-half
+conclusion applies to `a` verbatim — every store address in `coverage(eᵢ)` carries
+`subspace_I = s_C ≠ s_L` — hence `a ∉ coverage(eᵢ)`
 and the added point is inert:
 `coverage(eᵢ) ∩ ran(Σ'.M(d)) = coverage(eᵢ) ∩ ran(Σ.M(d))`. In both cases the test
 reads against the pre-state range.
