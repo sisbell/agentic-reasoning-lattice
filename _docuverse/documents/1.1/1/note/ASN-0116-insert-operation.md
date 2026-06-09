@@ -771,6 +771,24 @@ So `V_S(d') = {q_1, …, q_7}`, the dense run with `N' = N + n = 7`. ✓ I-DOM.
 content with `XY` interleaved between the second and third units, exactly
 Nelson's promise (Q10).
 
+*Provenance (I-PROV, J0/J1★/J1'★).* The two freshly allocated addresses each
+acquire a record: `R' = R ∪ {([d.0.s_C.7], d), ([d.0.s_C.8], d)}`. Trace the
+three coupling constraints against this concrete shift. **J0** — every freshly
+allocated I-address appears in `M'(d)`: `[d.0.s_C.7]` sits at `q_3` and
+`[d.0.s_C.8]` at `q_4` (the new block above), both with `d ∈ E_doc`. ✓ **J1★** —
+the addresses *new to the content-subspace range* of `M'(d)` are exactly
+`A_new = {[d.0.s_C.7], [d.0.s_C.8]}` (the shifted suffix `a_3, a_4, a_5` was
+already in `ran(M(d))`, hence range-old), and `R'` carries a record for each. ✓
+**J1'★** — the only entries in `R' ∖ R` are these two, both range-new. The
+subtle case is the shifted suffix: `a_3, a_4, a_5` now occupy the *new* slots
+`q_5, q_6, q_7`, yet they are range-old — already resolved before the insert —
+and so receive **no** new record. A position-based reader who recorded them
+(because their V-positions changed) would manufacture entries with no range-new
+witness, violating J1'★; the range-based coupling records only `A_new`. ✓
+Finally **P7a** at the post-state for a prior address: `a_1` carried some
+`(a_1, d) ∈ R` at the pre-state (P7a there), and `R ⊆ R'` preserves it, so `a_1`
+remains covered; the two fresh addresses are covered by the records just added. ✓
+
 **Links over the insertion (IP4, IP5, IP6).** Equip `d` with two links to drive the
 link claims against this concrete shift.
 
