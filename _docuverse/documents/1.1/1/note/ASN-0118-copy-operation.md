@@ -89,18 +89,29 @@ It is *well-formed* in the sense of T12 (ASN-0058 condition (ii); ASN-0034):
 `Pos(ℓ)` and `actionPoint(ℓ) ≤ #s`, so its denotation
 `⟦σ⟧ = {t ∈ T : s ≤ t < s ⊕ ℓ}` is a well-defined order-convex set of tumblers.
 It draws from a non-empty source subspace (ASN-0058 condition (i)):
-`V_{subspace(s)}(d_s) ≠ ∅`. For the content spec-sets COPY consumes we require, as
-input discipline, that the span be *ordinal-level* — the action point sits at the
-deepest component, `actionPoint(ℓ) = #ℓ`. This is a property of the displacement
-`ℓ` alone: its components fix `actionPoint(ℓ)`, and it is what makes the span
-advance along the last component alone. ASN-0058 shows ordinal-level *automatic*
-for a fully-bound content reference (C0, OrdinalDisplacementNecessity, a necessity
-result stated under that ASN's *well-formed* refinement); because COPY deliberately
-admits partially-bound spans (below), where C0's full-binding hypothesis is not
-met, we do *not* inherit ordinal-level from C0 but require it directly — a
-condition on `ℓ`, independent of how much of `⟦σ⟧` the arrangement binds. Its start
-is then a well-formed V-position (ASN-0036, S8a): `zeros(s) = 0`, `#s ≥ 2`, every
-component of `s` positive. We reuse ASN-0058's construct rather than reinvent it. A *spec-set* is an ASN-0058 *ContentReferenceSequence*
+`V_{subspace(s)}(d_s) ≠ ∅`. A content span may, but need not, be *ordinal-level* —
+the action point at the deepest component, `actionPoint(ℓ) = #ℓ`, so the span
+advances along the last component alone. We flag this as a *normalizing
+convention*, not a load-bearing precondition, and the distinction matters because
+the operation never consumes it. ASN-0058 shows ordinal-level *automatic* for a
+fully-bound content reference (C0, OrdinalDisplacementNecessity, a necessity result
+stated under that ASN's *well-formed* refinement); but COPY deliberately admits
+partially-bound spans (below), where C0's full-binding hypothesis is not met, and
+COPY's reasoning routes around the one place ordinal-level would be consumed. The
+bound active set `act(ρ, Σ) = dom(Σ.M(d_s)) ∩ ⟦σ⟧` is single-subspace by
+content-residence (`act(ρ, Σ) ⊆ V_{s_C}(d_s)`, the operation's precondition below)
+and single-depth by S8-depth (ASN-0036), *regardless* of where `ℓ`'s action point
+falls; resolution integrity (CP0(a)) rests on S3★ over the bound positions and the
+run-decomposition (CP0(c)) on the single-subspace premise so obtained — neither on
+`actionPoint(ℓ)`. So we impose no ordinal-level requirement on the input: a caller
+that supplies one buys nothing the placement or resolution arithmetic needs.
+Gregory's udanax-green confirms the design is parametric in depth rather than
+normalizing — `acceptablevsa` is an unconditional pass, and the supplied action
+point is used as-is (its depth parametrically setting the inserted V-span's
+resolution), never promoted to the ordinal level. Whatever depth `ℓ` has, the
+span's start `s` is a well-formed V-position (ASN-0036, S8a): `zeros(s) = 0`,
+`#s ≥ 2`, every component of `s` positive. We reuse ASN-0058's construct rather
+than reinvent it. A *spec-set* is an ASN-0058 *ContentReferenceSequence*
 `R = ⟨ρ₁, …, ρ_q⟩` (ContentReferenceSequence), a finite ordered sequence of V-specs
 with `q ≥ 1` (we write the spec-set length as `q`, reserving `p` for the insertion
 position introduced with the operation below). The ordering is part of the request — Nelson is explicit that "if you
@@ -143,15 +154,19 @@ appeal to binding. It confines the resolved domain
 `act(ρ, Σ) = dom(Σ.M(d_s)) ∩ ⟦σ⟧` to a single subspace —
 `act(ρ, Σ) ⊆ V_{s_C}(d_s)` — directly, and it grounds resolution integrity in S3★
 over exactly the bound positions COPY acts on, rather than in ASN-0058's C1 (whose
-stated precondition is the full binding we drop). The remaining structural facts
-COPY leans on — the span's ordinal-level form and the confinement of every depth-`m`
-position of `⟦σ⟧` to `s`'s prefix and subspace — are properties of the span object
-`(s, ℓ)`: ordinal-level is required of `ℓ` as input discipline (above), and
-prefix/subspace confinement of the depth-`m` positions then follows from the
-half-open interval `[s, s ⊕ ℓ)` with `ℓ` acting at the last component alone. Neither
-consults the arrangement, so neither rests on the full-binding hypothesis. The one
-ASN-0058 property that genuinely does *not* survive partial binding — its
-width-preservation C2 — COPY never uses; we record its loss as an open question.
+stated precondition is the full binding we drop). The structural facts COPY
+actually leans on are arrangement-side, not span-shape: content-residence confines
+the resolved domain to a single subspace and S8-depth fixes its common depth, and
+these two alone supply every premise the resolution and placement arithmetic
+needs. We do *not* lean on the span's ordinal-level form — as argued above, the
+operation routes around it — nor on the prefix/subspace confinement of `⟦σ⟧`'s
+depth-`m` positions that ordinal-level would supply; the bound active set is
+single-subspace and single-depth whether or not `ℓ` acts at the last component.
+Resolution integrity rests on S3★ over the bound positions, which does not consult
+the arrangement's binding extent, so it does not rest on the full-binding
+hypothesis either. The one ASN-0058 property that genuinely does *not* survive
+partial binding — its width-preservation C2 — COPY never uses; we record its loss
+as an open question.
 
 We define **resolution** as the flat I-address sequence obtained by expanding
 ASN-0058's `resolve` (Resolution). ASN-0058 resolves a content reference
@@ -322,25 +337,41 @@ set. The remaining two couplings carry the provenance obligation. The provenance
 obligation is read off these couplings, which ValidComposite evaluates
 *initial-to-final* (`Σ` to `Σ'`) — so the intermediate removal and re-addition of
 the displaced positions across steps (i)–(ii) is invisible to the coupling check,
-and only the net change in `d`'s content-subspace range matters. The discharge then
-splits on whether `cᵢ` is new to that range. For
-each `cᵢ` that is *range-new* — not already in the content-subspace range of
-`M(d)` — the placement (CP2) makes it range-new in `Σ'`, so ASN-0047's coupling
-J1★ (ExtensionRecordsProvenance) is an *obligation* on the composite: a valid COPY
-must include a K.ρ step recording `(cᵢ, d)`, and J1'★ (ProvenanceRequiresExtension)
-constrains that step's admissibility — no provenance record without a corresponding
-range extension — so the K.ρ steps record exactly the range-new addresses and
-produce `(cᵢ, d) ∈ Σ'.R` for each. For each `cᵢ` *already* referenced by `d`
-(already transcluded into `d`, or, in self-transclusion CP9, already bound by one
-of `d`'s own pre-state content positions), no K.ρ step is needed: `cᵢ` already lies
-in the content-subspace range of `M(d)` in the pre-state, so by P4★
-(`Contains_C(Σ) ⊆ R`, ASN-0047) `(cᵢ, d) ∈ Σ.R` already holds, and provenance
-permanence (P2) carries it into `Σ'`. The appeal to P4★ here is licensed precisely
-because COPY's pre-state `Σ` is a composite boundary (standing precondition): P4★
-is one of ASN-0047's composite-boundary properties, not a per-state invariant, and
-would not be available at a state reached mid-composite. P2, by contrast, is a
-genuine per-state invariant and needs no such scoping. Either way the membership
-holds in `Σ'`; fresh recording occurs exactly for the range-new addresses.
+and only the net change in `d`'s content-subspace range matters. The discharge
+turns on a single *membership* obligation, which we must read off J1★ exactly. For
+each `cᵢ` that is *range-new* — newly in the content-subspace range of `M(d)` at
+`Σ'`, which the placement (CP2) makes every placed address not already in that
+range — ASN-0047's coupling J1★ (ExtensionRecordsProvenance) demands the membership
+`(cᵢ, d) ∈ Σ'.R`. J1★ is stated as a requirement on the *final* relation `Σ'.R`,
+not as a demand for any particular atomic step, so it is satisfiable two ways, and
+the range-new case splits accordingly:
+
+- **Range-new and not previously recorded** (`(cᵢ, d) ∉ Σ.R`). Here permanence has
+  nothing to carry, so the membership can only be produced by a fresh K.ρ step
+  recording `(cᵢ, d)`. J1'★ (ProvenanceRequiresExtension) admits that step — its
+  admissibility condition is exactly that `cᵢ` be range-new — so the composite
+  includes one K.ρ per such address, producing `(cᵢ, d) ∈ Σ'.R`.
+- **Range-new yet already recorded** (`(cᵢ, d) ∈ Σ.R`). This configuration is
+  reachable: `d` referenced `cᵢ` earlier and then contracted those V-positions away
+  (K.μ⁻ removes from the range; P2 keeps the provenance pair forever), so `cᵢ` is
+  absent from the *current* range yet present in `Σ.R` — exactly a re-COPY of
+  previously-deleted transcluded content. J1★'s membership `(cᵢ, d) ∈ Σ'.R` is then
+  already discharged by provenance permanence P2 carrying the pre-state pair
+  forward; *no K.ρ step is required*. A redundant K.ρ would be J1'★-admissible (the
+  address is range-new) but is unnecessary, since the membership holds regardless.
+
+For each `cᵢ` that is *not* range-new — already in the content-subspace range of
+`M(d)` in the pre-state (already transcluded into `d`, or, in self-transclusion
+CP9, already bound by one of `d`'s own pre-state content positions) — J1★ does not
+fire at all. The membership still holds: by P4★ (`Contains_C(Σ) ⊆ R`, ASN-0047)
+`(cᵢ, d) ∈ Σ.R` already, and provenance permanence (P2) carries it into `Σ'`. The
+appeal to P4★ here is licensed precisely because COPY's pre-state `Σ` is a
+composite boundary (standing precondition): P4★ is one of ASN-0047's
+composite-boundary properties, not a per-state invariant, and would not be
+available at a state reached mid-composite. P2, by contrast, is a genuine per-state
+invariant and needs no such scoping. Across all three branches the membership
+`(cᵢ, d) ∈ Σ'.R` holds; fresh recording occurs exactly for the range-new addresses
+*not already in `Σ.R`*.
 
 *Frame — left of the insertion point.*
 
@@ -727,7 +758,7 @@ sources.
 | CP5 | OriginInvariance: `origin(cᵢ)` is unchanged by COPY and equals the source document that allocated `cᵢ`, never `d`; attribution and ownership remain the source's | introduced |
 | CP6 | SourceIsolation: `(A d' ≠ d : Σ'.M(d') = Σ.M(d'))` and cross-subspace frame — every source and every other document is unmodified; the source's connectedness nonetheless grows (shared identity + provenance) | introduced |
 | CP7 | Links: (a) `Σ'.L = Σ.L`; (b) LinkSurvivalUnderReuse — any link whose endset coverage meets `{c₀,…,c_{W−1}}` becomes discoverable from `d` in `Σ'`; links to the destination's prior content survive (I-addresses unchanged) | introduced |
-| CP8 | ProvenanceRecording: `(A i : 0 ≤ i < W : (cᵢ, d) ∈ Σ'.R)` — produced by COPY's K.ρ steps for range-new addresses (J1★ obligation, J1'★ uniqueness) and supplied by P4★ + permanence P2 for addresses `d` already referenced | introduced |
+| CP8 | ProvenanceRecording: `(A i : 0 ≤ i < W : (cᵢ, d) ∈ Σ'.R)` — J1★ demands the *membership* in `Σ'.R`, satisfied by a fresh K.ρ step for range-new addresses not already in `Σ.R` (J1'★-admissible), by permanence P2 for range-new addresses already in `Σ.R` (re-COPY of deleted content, K.ρ optional), and by P4★ + P2 for addresses already in `d`'s current range | introduced |
 | CP9 | SelfTransclusionAdmissibility: when `d_s = d`, resolution reads the pre-state, so placement adds independent V-positions of `d` referring to addresses `d` already bound; no content is duplicated | introduced |
 | CP10 | ImmutabilityPreservation: S0 preserved across COPY (corollary of CP1); reused content carries identical bytes into the destination because they are the same bytes | introduced |
 | CP11 | OriginMultisetPreservation: `{origin(cᵢ) : 0 ≤ i < W}` is preserved into the destination's arrangement; cross-origin blocks cannot merge (M16). Replication would collapse it to `{d,…,d}` — the reveal that separates reuse from replication | introduced |
