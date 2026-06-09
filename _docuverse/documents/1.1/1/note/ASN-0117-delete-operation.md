@@ -315,9 +315,8 @@ place. We name DELETE's clauses but derive them by citation:
 - (DEL-FPROV) `Σ'.R = Σ.R` — the provenance relation is held fixed. Both
   component steps carry a provenance frame `R' = R` (K.μ⁻'s frame and K.μ⁺'s
   frame, ASN-0047), so their composite fixes `R`. Together with `dom(C') = dom(C)`
-  (P0) this preserves P4★ (`Contains_C(Σ') ⊆ R'`, since the content-containment
-  `Contains_C` only shrinks under the net contraction) and P7a (every content
-  address retains its provenance record).
+  (P0) this preserves P4★ and P7a, by the preservation argument given in the
+  Effect section above.
 
 DELETE allocates nothing and frees nothing: the content layer sees *no change
 whatsoever* (DEL-CIMM). All of DELETE's work is in the arrangement layer, where
@@ -455,12 +454,7 @@ surviving positions genuinely lie past the deleted width — which the
 containment precondition (`p = q_J`, `r = q_{J+c}`, `J ≥ 1`) guarantees, via
 the foundation lemma **OrdinalExceedsDisplacement** (ASN-0082): for every
 `v ∈ R`, `ord(v) ⊖ w_ord` is well-defined, positive, and equal to `ord(p)` at
-`v = r`. Drop the containment precondition — delete a span beginning before the
-document's first arranged position — and the subtraction underflows, producing
-a V-position below the document's origin that no positive query can reach (Q13,
-Q14). The precondition is not decoration; it is exactly the domain condition
-that keeps every survivor at a legal, reachable address. An implementation that
-omits the bound admits leaked, unreachable arrangement state.
+`v = r`.
 
 **Cross-document arrangement isolation.** Suppose another document `d'` arranges
 some of the same content `d` does — `ran(M(d')) ∩ A_del ≠ ∅`, the transclusion
@@ -734,8 +728,7 @@ original positions, already the closed-up dense run, so `V_S(d') = {q_1, q_2, q_
 the frames directly: `Σ'.C = Σ.C` (P0, DEL-CIMM), `Σ'.E = Σ.E` (DEL-FENT),
 `Σ'.R = Σ.R` (DEL-FPROV), and the link store fixed (DEL-LIMM). S3★ holds because
 every surviving text image is unchanged with `C' = C`, and the link positions are
-untouched; P4★ holds because `Contains_C(Σ')` only shrinks while `R' = R`, and P7a
-because `dom(C') = dom(C)` with `R' = R` leaves every provenance record in place.
+untouched; P4★ and P7a hold by the Effect-section preservation argument.
 ✓ DEL-DOM, P2, S3★, DEL-FENT, DEL-FPROV, P4★, P7a.
 
 **Boundary — delete everything (`J = 1`, `c = N`).** Take `p = q_1`, `c = 5`,
@@ -745,9 +738,8 @@ five mappings are removed; `R = ∅`; `V_S(d') = ∅`, the empty arrangement. By
 frames hold directly: the content store is still `Σ.C` — every `a_k` survives
 (P0, DEL-CIMM) — the entity set and provenance relation are fixed (DEL-FENT,
 DEL-FPROV), and the link store is untouched (DEL-LIMM). S3★ is vacuous over the
-now-empty text arrangement and verbatim on the untouched link positions; P4★ holds
-since `Contains_C(Σ')` only shrinks while `R' = R`, and P7a since `dom(C') = dom(C)`
-with `R' = R` preserves every record. The document now arranges no text, yet all of
+now-empty text arrangement and verbatim on the untouched link positions; P4★ and
+P7a hold by the Effect-section preservation argument. The document now arranges no text, yet all of
 its former content remains permanent and reconstructible (Q20). *(We note only as
 an observation, not an abstract claim, that an implementation's internal index
 structure may retain shape after full deletion that a freshly-created empty
