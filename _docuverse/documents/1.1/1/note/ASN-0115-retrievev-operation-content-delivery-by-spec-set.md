@@ -542,9 +542,7 @@ documents. What must delivery guarantee about presenting that material?
 > so its home `home(a)` is recoverable from the delivered output; a **content**
 > item carries only the value `Σ.C(a)` (R1), so its origin `origin(a)` is *not*
 > recoverable from the output — it is determinate only through the resolution
-> mapping `v ↦ a`, an internal artifact of computing `deliver`. Co-assembly thus
-> preserves link home in the stream while collapsing content origin out of it;
-> whether content origin must instead travel inline is deferred (Open Question 1).
+> mapping `v ↦ a`, an internal artifact of computing `deliver`.
 
 Two obligations sit in this co-assembly, and they differ in how much they
 constrain the output. The material must be *coherent* — one ordered stream the
@@ -617,12 +615,7 @@ boundary that a single text-subspace span could never reveal. Gregory's
 realization discriminates exactly this way — a resolved position whose stored
 crum is content yields a text item, one whose crum is a link-organizer yields an
 address item — so the wire stream carries content fragments and link-address
-references intermixed, with the boundary visible in the tagging. We record as an
-out-of-band hazard, not an abstract claim, that an implementation which lets a
-caller inject already-resolved I-addresses *bypassing* the arrangement (and thus
-bypassing S3★'s subspace discipline) can dereference a link address as if it were
-content and deliver meaningless bytes; the abstract precondition that positions
-are resolved *through* the arrangement is exactly what rules this out.
+references intermixed, with the boundary visible in the tagging.
 
 *Worked instance.* Let document `d` bind a content position
 `v_C` (`subspace(v_C) = s_C`) to a content address `a_C ∈ dom(Σ.C)`, and a link
