@@ -117,9 +117,11 @@ split on this predicate:
 In the depth-compatible branch the active positions are the V-positions the span
 names that the document's arrangement actually binds. In the override branch —
 any consulting-state depth mismatch, `V_S(d) ≠ ∅ ∧ #s ≠ m_S(d)` — the active set
-is forced empty, *overriding* the geometric `dom(Σ.M(d)) ∩ ⟦σ⟧`. In either
-branch `act(ρ, Σ)` is finite — it is `∅`, or a subset of `dom(Σ.M(d))`, which is
-finite (ASN-0036, S8-fin) — and totally ordered, being a subset of the totally
+is forced empty, *overriding* the geometric `dom(Σ.M(d)) ∩ ⟦σ⟧`. The override
+only *bites* when the start has gone too shallow (`#s < m_S(d)`), lest it capture
+deeper content the citation never named. In either branch `act(ρ, Σ)` is finite —
+it is `∅`, or a subset of `dom(Σ.M(d))`, which is finite (ASN-0036, S8-fin) — and
+totally ordered, being a subset of the totally
 ordered carrier `T` (ASN-0034, T1).
 Finiteness and total order together give it a unique ascending enumeration
 `v₁ < v₂ < … < v_{k}` where `k = |act(ρ, Σ)|`.
