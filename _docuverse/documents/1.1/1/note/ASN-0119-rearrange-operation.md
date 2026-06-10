@@ -288,13 +288,12 @@ witness. A valid trace to `Σ'` is a valid trace to `Σ` extended by the single
 REARRANGE step `Σ → Σ'`. Fix any `(a, d) ∈ R'`; since `R' = R` it already lies in
 `R`, and `Σ` is a composite boundary at which P4a held, so every trace to `Σ`
 exhibits a trace state `Σ_k` in its prefix at which `a` sat in `d`'s
-content-subspace range. That witness `Σ_k` persists unchanged into the extended
-trace to `Σ'`, witnessing `(a, d)` there as well; and the content-subspace-range
-invariance `{ M'(d)(v) : subspace(v) = s_C } = { M(d)(u) : subspace(u) = s_C }`
-keeps `Σ` itself an admissible witness across the appended step. P4a is thus
-discharged by the `R` frame *together with* content-subspace-range invariance and
-the persistence of the pre-state's trace witnesses along the prefix — not by frame
-alone. The genuinely per-state ExtendedReachableStateInvariants conjuncts that
+content-subspace range. That witness `Σ_k` is an earlier trace state in the
+prefix, whose arrangement `M_k(d)` the appended REARRANGE step does not touch, so
+it persists unchanged into the extended trace to `Σ'`, witnessing `(a, d)` there as
+well. P4a is thus discharged by `R' = R` together with P4a at `Σ` applied to the
+prefix — the pre-state's trace witness persists, and the appended step is never
+consulted. The genuinely per-state ExtendedReachableStateInvariants conjuncts that
 remain (P6, P7, P8, the E-family NodeLineage/ActivatedEmission, the L-family, the
 C-family) are preserved by the `C`/`E`/`R`/`L` frame. ASN-0047's second transition theorem,
 **ExtendedTransitionInvariants** (its sole conjunct **P3**,
@@ -482,7 +481,8 @@ between them, are exactly the same before and after. In particular a footprint t
 inside one region remains a single contiguous run. We record this as a *sufficient*
 condition for contiguity-preservation — not as a weakest precondition:
 
-      project(a, i, d, Σ) ⊆ one region (exterior, α, μ, or β)
+      project(a, i, d, Σ) ⊆ one region
+        (the `s_C` exterior, α, μ, β, or the frozen link subspace `s_L`)
         ⟹  π preserves the footprint's run structure
             (in particular, a single run stays a single run).        **(RA7c)**
 
@@ -696,7 +696,7 @@ the regions tile, not merely shift each by a local offset.
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| REARRANGE_K | Operation imported from ASN-0084: 3-/4-cut transposition in the text subspace at depth 2, specified by PivotPostcondition (R-EXT, R-P1, R-P2) or SwapPostcondition (R-EXT, R-S1, R-S2, R-S3) with frame R-FRAME-P/R-FRAME-S; this note builds the system-level guarantees below on top of it | imported (ASN-0084) |
+| REARRANGE_K | Operation imported from ASN-0084: 3-/4-cut transposition in the text subspace at depth 2, specified by PivotPostcondition (R-EXT, R-P1, R-P2) or SwapPostcondition (R-EXT, R-S1, R-S2, R-S3) with frame R-FRAME-P/R-FRAME-S | imported (ASN-0084) |
 | RA0 (ContentStoreFrame) | `Σ'.C = Σ.C` — the content store is a verbatim frame; no I-address is created, destroyed, or rebound | imported (ASN-0084 R-FRAME-P/S) |
 | RA1 (IdentityCorrespondence) | `M'(d)(π(v)) = M(d)(v)` (ASN-0084 ArrangementRearrangement / R-PPERM / R-SPERM, = RA2's source), hence `ran(M'(d)) = ran(M(d))` (ASN-0084 R-RI) — I-addresses carried across the reassignment | imported (ASN-0084) |
 | RA2 (Permutation) | The induced `π` (R-PPERM/R-SPERM) is a bijection of `dom(M(d))` onto itself; `dom(M'(d)) = dom(M(d))` | imported (ASN-0084 R-PIV/R-SWP) |
