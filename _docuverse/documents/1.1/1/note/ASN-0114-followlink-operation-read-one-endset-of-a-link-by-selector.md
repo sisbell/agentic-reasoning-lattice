@@ -118,8 +118,8 @@ when the call is undefined, F0 fixes the value at the distinguished `⊥`. (ii)
 `coverage(R) = ∅`, whence the first collapse gives `R = ⟨⟩` uniquely.
 
 Three independent commitments remain — F1, F4, F7 — which we take in turn; the
-remaining properties F2, F3, F5, F6, and F8 emerge alongside them as corollaries
-(F2, F3, F6 from F1; F5 from F1 and link immutability; F8 from F0 and F1).
+remaining properties F2, F3, F5, F6, and F8 emerge alongside them as corollaries,
+each traced to its source as it is derived below.
 
 ## What the result must be: exact coverage, no more and no less
 
