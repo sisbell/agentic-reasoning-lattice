@@ -158,11 +158,9 @@ The empty-request boundary is settled by the definition: when `p = 0`
 the concatenation in R0 has no factors, so `deliver(⟨⟩, Σ) = ⟨⟩` — the empty
 spec-set is a valid request whose delivery succeeds and returns nothing.
 
-RETRIEVEV is a *pure query*. `deliver(R, Σ)` reads the state and produces no
-transition: no component of `Σ` is modified — neither the content store `Σ.C`,
-nor the link store `Σ.L`, nor any arrangement `Σ.M(d)`, nor any other component.
-The operation does not appear in the substrate's transition vocabulary at all;
-it is a function of state, not a state transition (cf. ASN-0086, Observe).
+RETRIEVEV is a *pure query*: `deliver(R, Σ)` is a function of state that modifies
+no component of `Σ` and appears in no transition of the substrate's vocabulary
+(cf. ASN-0086, Observe).
 
 ## Delivery returns material, not location
 
@@ -445,7 +443,13 @@ branch reads the *whole* subspace state of `dⱼ`, not just the restriction to
 position `v ∈ ⟦σⱼ⟧ ∩ dom(M(dⱼ))` lies in subspace `S = s₁` (Confinement), so
 `v ∈ V_S(dⱼ)` at both states and S8-depth pins `m_S(dⱼ) = #v` equally at each;
 depth-compatibility then holds-or-fails identically, and where it holds `act` is
-the equal restriction's (equal, non-empty) domain. If `Σ.M(dⱼ)|⟦σⱼ⟧` is empty,
+the equal restriction's (equal, non-empty) domain at both. Where it fails
+identically at the two states, both take the override and
+`act(ρⱼ, Σ) = ∅ = act(ρⱼ, Σ')`, so the active sets still agree despite the
+non-empty restriction — the override discards it at both. (This is the operative
+sub-case for the override: the restriction `Σ.M(dⱼ)|⟦σⱼ⟧` is exactly the geometric
+intersection `dom(M(dⱼ)) ∩ ⟦σⱼ⟧`, which is non-empty in the too-shallow case
+`#s < m_S` the override exists to handle, yet `act = ∅` at each via the override.) If `Σ.M(dⱼ)|⟦σⱼ⟧` is empty,
 then `⟦σⱼ⟧ ∩ dom(M(dⱼ)) = ∅` at both states, so `act(ρⱼ, Σ) = ∅ = act(ρⱼ, Σ')`
 whichever branch each state takes (the depth-compatible branch yields the empty
 intersection, the override branch yields `∅` directly). Either way the active sets
@@ -538,12 +542,7 @@ dereferences the one address `a` twice, so both items are the one content
 delivered twice, not two independent reproductions of it.
 
 Each position resolves through `a` independently — whether delivered alone or
-alongside the other — so the shared home is established per-position, not jointly;
-and `deliver` performs no comparison of the two resolutions, it concatenates two
-independently computed items (R0). Nelson's promise that the system
-"will also reveal and clarify commonalities between documents and among
-versions" (3/4) is kept by operations that compare addresses, not by RETRIEVEV,
-whose content payload is value-only.
+alongside the other — so the shared home is established per-position, not jointly.
 
 Nor does the operation merge the two items into one. This is forced abstractly —
 two distinct V-positions are two distinct entries, and a delivery that dropped
