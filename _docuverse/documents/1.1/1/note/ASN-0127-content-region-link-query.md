@@ -30,11 +30,17 @@ When `R` is a contiguous V-span in some subspace `S`, ASN-0058's mapping-block d
 
 > `image(R, d, Σ) ⊆ image(R, d, Σ')`.
 
+*Derivation. The extension frame (K.μ⁺/K.μ⁺_L, ASN-0047) gives `dom(Σ.M(d)) ⊆ dom(Σ'.M(d))` with `Σ'.M(d)(v) = Σ.M(d)(v)` for every `v ∈ dom(Σ.M(d))`. Take any `b ∈ image(R, d, Σ)`; by F-IMG, `b = Σ.M(d)(v)` for some `v ∈ R ∩ dom(Σ.M(d))`. Then `v ∈ R ∩ dom(Σ'.M(d))` (prior domain is included) and `Σ'.M(d)(v) = Σ.M(d)(v) = b` (agreement on the prior domain), so `b ∈ image(R, d, Σ')`.*
+
 **F-IMG-CONTR (ImageContractionUnderArrangementContraction).** *If `Σ → Σ'` contracts `Σ.M(d)` (a K.μ⁻ step), then:*
 
 > `image(R, d, Σ') ⊆ image(R, d, Σ)`.
 
+*Derivation. Symmetric to F-IMG-MONO. The contraction frame (K.μ⁻, ASN-0047) gives `dom(Σ'.M(d)) ⊆ dom(Σ.M(d))` with `Σ'.M(d)(v) = Σ.M(d)(v)` for every `v ∈ dom(Σ'.M(d))` (retained-domain agreement). Take any `b ∈ image(R, d, Σ')`; then `b = Σ'.M(d)(v)` for some `v ∈ R ∩ dom(Σ'.M(d))`, whence `v ∈ R ∩ dom(Σ.M(d))` and `Σ.M(d)(v) = Σ'.M(d)(v) = b`, so `b ∈ image(R, d, Σ)`.*
+
 **F-IMG-SWING (ImageSwingUnderReorder).** *If `Σ → Σ'` is a K.μ~ reorder of `d`'s arrangement with witnessing bijection `π`, then `image(R, d, Σ') = {Σ.M(d)(u) : u ∈ π⁻¹(R) ∩ dom(Σ.M(d))}`. The total range is preserved (LP11, ASN-0098: `ran(Σ'.M(d)) = ran(Σ.M(d))`) but the forward image of a fixed sub-region `R` may differ — gain, lose, or change membership.*
+
+*Derivation. K.μ~-FIX (ASN-0047) gives `dom(Σ'.M(d)) = dom(Σ.M(d))`, so the witness `π : dom(Σ.M(d)) → dom(Σ'.M(d))` is a bijection of `dom(Σ.M(d))` onto itself, satisfying the bijection equation `Σ'.M(d)(π(u)) = Σ.M(d)(u)` for every `u ∈ dom(Σ.M(d))`. Unfolding F-IMG at `Σ'` and reindexing each `v = π(u)`: since `π` ranges over all of `dom(Σ'.M(d))`, `v ∈ R ⟺ u ∈ π⁻¹(R)`, and `Σ'.M(d)(v) = Σ'.M(d)(π(u)) = Σ.M(d)(u)`, whence `image(R, d, Σ') = {Σ'.M(d)(v) : v ∈ R ∩ dom(Σ'.M(d))} = {Σ.M(d)(u) : u ∈ π⁻¹(R) ∩ dom(Σ.M(d))}`. That `π` need not fix `R` setwise is exactly why a fixed sub-region's image may gain, lose, or change membership even though the total range is preserved.*
 
 ## Phase 2: Per-link matching
 
@@ -50,11 +56,11 @@ A link matches the I-address set when *some* slot's coverage meets it. The exist
 
 > `findlinks(I, Σ) ≡ {a ∈ dom(Σ.L) : matches(a, I, Σ)}`.
 
-**F-ADD (SetAdditive).** *For disjoint I-address sets `I₁, I₂ ⊆ T`:*
+**F-UDIST (UnionDistributivity).** *For all I-address sets `I₁, I₂ ⊆ T` — no disjointness required:*
 
 > `findlinks(I₁ ∪ I₂, Σ) = findlinks(I₁, Σ) ∪ findlinks(I₂, Σ)`.
 
-The match predicate's coverage intersection is set-additive in its second argument; the comprehension's set-builder distributes over the disjunction, and the union of the two pieces is exactly the comprehension over the union of the I-arguments.
+*Derivation. Fix `a ∈ dom(Σ.L)` and unfold the match predicate at `I₁ ∪ I₂`: `matches(a, I₁ ∪ I₂, Σ) ≡ (E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ∩ (I₁ ∪ I₂) ≠ ∅)`. Intersection distributes over union — `coverage(Σ.L(a).eᵢ) ∩ (I₁ ∪ I₂) = (coverage(Σ.L(a).eᵢ) ∩ I₁) ∪ (coverage(Σ.L(a).eᵢ) ∩ I₂)` — and a union is non-empty iff one of its parts is, so the slot test becomes `coverage(Σ.L(a).eᵢ) ∩ I₁ ≠ ∅ ∨ coverage(Σ.L(a).eᵢ) ∩ I₂ ≠ ∅`. The existential distributes over this disjunction, giving `matches(a, I₁, Σ) ∨ matches(a, I₂, Σ)`. None of these steps consults `I₁ ∩ I₂`, so the law holds for arbitrary `I₁, I₂` — this is union-distribution of a set-valued operation, not a measure-style additive law over disjoint pieces. Set-builder over the disjunction splits the comprehension into `findlinks(I₁, Σ) ∪ findlinks(I₂, Σ)`. The unrestricted form is what Phase 1 needs: images of two disjoint V-regions need not be disjoint I-sets, since distinct V-positions may resolve to a shared I-address under content sharing (M13/M14, ASN-0058).*
 
 ## The two-phase composite
 
@@ -121,7 +127,9 @@ The request is given directly as a fixed I-address set `I ⊆ T` in the permanen
 
 *The store grows across the transitive closure (Store Monotonicity, ASN-0098), coverage is invariant (E-INV), so the matching set only gains members.*
 
-**E-CONS (CreationConservation).** *For fixed `I`, the set difference `findlinks(I, Σ') ∖ findlinks(I, Σ)` over `Σ →* Σ'` consists of exactly those links created on that path whose stored value matches `I`. Creation is the sole source of change.*
+**E-CONS (CreationConservation).** *For fixed `I`, the set difference `findlinks(I, Σ') ∖ findlinks(I, Σ)` over `Σ →* Σ'` consists of exactly those links created on that path whose stored value matches `I`.*
+
+*The "exactly" is a two-direction claim, and the exclusion direction is the one that needs E-INV. Take any `a ∈ findlinks(I, Σ') ∖ findlinks(I, Σ)`. Either `a ∉ dom(Σ.L)` or `a ∈ dom(Σ.L)`. Suppose `a ∈ dom(Σ.L)`: then E-INV gives `matches(a, I, Σ) ⟺ matches(a, I, Σ')`; from `a ∈ findlinks(I, Σ')` we have `matches(a, I, Σ')`, hence `matches(a, I, Σ)`, and together with `a ∈ dom(Σ.L)` this places `a ∈ findlinks(I, Σ)` — contradicting `a ∉ findlinks(I, Σ)`. So the second case is impossible: only `a ∉ dom(Σ.L)` survives, and such an `a` is a link created somewhere on the path `Σ →* Σ'` (it entered `dom(Σ'.L)` after `Σ`), matching at `Σ'` by its membership in `findlinks(I, Σ')`. Conversely, any link created on the path whose value matches `I` at `Σ'` lies in `findlinks(I, Σ')` and not in `findlinks(I, Σ)` (it was not yet a key at `Σ`), so it sits in the difference. Creation is therefore the sole source of change.*
 
 ### Discovery anchoring
 
@@ -144,17 +152,17 @@ The request is resolved through a querying document's current arrangement. Given
 
 ## Worked illustration
 
-Take a single document `d` with three text positions `v_1, v_2, v_3` mapping to `a_1, a_2, a_3` respectively, and two stored links: `L_1` with `e₁ = {a_1}, e₂ = {a_3}`, and `L_2` with `e₁ = {a_2}, e₂ = {a_3}`.
+Take a single document `d` with three text positions `v_1, v_2, v_3` mapping to `a_1, a_2, a_3` respectively, and two stored links, each a conforming triple (L3) with a non-empty type endset at slot 3: `L_1 = ({a_1}, {a_3}, Θ)` and `L_2 = ({a_2}, {a_3}, Θ)`, where the type endset `Θ = {a_θ}` references a type address `a_θ ∉ {a_1, a_2, a_3}`.
 
 *Phase 1.* `R = {v_1, v_2}` yields `image(R, d, Σ) = {a_1, a_2}`.
 
-*Phase 2.* `findlinks({a_1, a_2}, Σ)` — both links match (`L_1` via `e₁ ∩ {a_1} = {a_1}`; `L_2` via `e₁ ∩ {a_2} = {a_2}`) — so the result is `{L_1, L_2}`.
+*Phase 2.* `findlinks({a_1, a_2}, Σ)` — both links match via slot 1 (`L_1` via `e₁ ∩ {a_1} = {a_1}`; `L_2` via `e₁ ∩ {a_2} = {a_2}`). The other slots do not fire on this query: `e₂ ∩ {a_1, a_2} = {a_3} ∩ {a_1, a_2} = ∅`, and the type slot `e₃ ∩ {a_1, a_2} = {a_θ} ∩ {a_1, a_2} = ∅` since `a_θ ∉ {a_1, a_2, a_3}`. The match is carried entirely by slot 1, and the result is `{L_1, L_2}`.
 
 *Stability under K.α* — allocating fresh content `a_4` adds nothing to `image(R, d, Σ)` (V-positions in `R` are unchanged); F-INERT carries the result. ✓
 
-*Stability under K.μ⁻* — contracting `d` to remove `v_2` shrinks `image(R, d, Σ')` to `{a_1}`; `findlinks_disc(R, d, Σ')` shrinks to `{L_1}`. ✓ D-NONMONO contraction clause.
+*Stability under K.μ⁻* — with `v_1 = [1,1], v_2 = [1,2], v_3 = [1,3]`, K.μ⁻ retains an initial segment `{[s_C, 1, …, 1, k] : 1 ≤ k ≤ n'_{s_C}}` of the sequential positions (D-SEQ★), never a mid-sequence position. Retaining `n'_{s_C} = 1` keeps only the prefix `{v_1}`, removing both `v_2` and `v_3`. Then `R ∩ dom(Σ'.M(d)) = {v_1, v_2} ∩ {v_1} = {v_1}`, so `image(R, d, Σ')` shrinks to `{a_1}` and `findlinks_disc(R, d, Σ')` shrinks to `{L_1}`. ✓ D-NONMONO contraction clause.
 
-*K.λ adding L_3* with `e₁ = {a_1}`: F-LAMBDA gives `findlinks({a_1, a_2}, Σ') = {L_1, L_2, L_3}` — the prior result plus the new link's match.
+*K.λ adding L_3* `= ({a_1}, ∅, Θ)` (a conforming triple; the empty to-endset is admissible, the type slot `Θ = {a_θ} ≠ ∅` is mandatory): F-LAMBDA gives `findlinks({a_1, a_2}, Σ') = {L_1, L_2, L_3}` — the prior result plus the new link's match, which fires via slot 1 (`e₁ ∩ {a_1} = {a_1}`).
 
 *Existence vs discovery zero.* Suppose K.μ⁻ removes all of `v_1, v_2, v_3`. Then `image(R, d, Σ') = ∅`, `findlinks_disc(R, d, Σ') = ∅` (discovery zero — present absence). But `findlinks({a_1, a_2}, Σ') = {L_1, L_2}` (existence non-zero — the links persist in the store, their coverage unchanged by D-NONMONO and F-PRES).
 
@@ -168,7 +176,7 @@ Take a single document `d` with three text positions `v_1, v_2, v_3` mapping to 
 | F-IMG-SWING | image may move under K.μ~ | image instability |
 | F-MATCH | match predicate (existential over slots) | Phase 2 primitive |
 | F-FIND | comprehension primitive `findlinks(I, Σ)` | Phase 2 primitive |
-| F-ADD | `findlinks` is set-additive in `I` | Phase 2 algebra |
+| F-UDIST | `findlinks(I₁ ∪ I₂) = findlinks(I₁) ∪ findlinks(I₂)` for all `I₁, I₂` | Phase 2 algebra |
 | F-V | `findlinks_V(R, d, Σ) = findlinks(image(R, d, Σ), Σ)` | two-phase combinator (definition) |
 | F-CIL | comprehension over `dom(Σ.L)` with `Σ.L`-only predicate is `Σ.L`-stable | keystone meta-lemma |
 | F-CIL-perlink | per-link version under per-link value preservation | sub-lemma |
@@ -186,7 +194,7 @@ Take a single document `d` with three text positions `v_1, v_2, v_3` mapping to 
 
 What is the relationship between `findlinks_V` and a content-keyed query that names addresses through `Σ.C` rather than `Σ.M`? Both are content-region queries in a broad sense; this note treats only the arrangement-mediated case.
 
-Under what filter-set constraints over `findlinks` does set-additivity (F-ADD) preserve into the filtered form, and where does the per-slot universal vs the per-link existential distinction matter for compositional reasoning?
+Under what filter-set constraints over `findlinks` does union-distributivity (F-UDIST) preserve into the filtered form, and where does the per-slot universal vs the per-link existential distinction matter for compositional reasoning?
 
 What conditions on `R` and on a transition `Σ → Σ'` are jointly sufficient to preserve `findlinks_V(R, d, Σ) = findlinks_V(R, d, Σ')` — i.e., the weakest precondition for discovery-anchored stability under a specific transition?
 
