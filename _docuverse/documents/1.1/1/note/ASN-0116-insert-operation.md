@@ -250,8 +250,7 @@ left and shifted-suffix alike — unchanged. We name the clauses:
   (PostInsertionCrossSubspaceFrame)**; and INSERT adds no cross-subspace position
   (the reverse inclusion `{v ∈ dom(M'(d)) : subspace(v) = S'} ⊆
   {v ∈ dom(M(d)) : subspace(v) = S'}`) by ASN-0082 **I3-CX
-  (PostInsertionCrossSubspaceClosure)**. The `⊆` half is load-bearing for RAN below,
-  which reads the cross-subspace image equality off this position-set equality.
+  (PostInsertionCrossSubspaceClosure)**.
 - (F-DOC) `(A d' : d' ≠ d : M'(d') = M(d'))` — ASN-0082 **I3-D
   (PostInsertionCrossDocumentFrame)**.
 - (F-LINK) `Σ'.L = Σ.L` — the link store is untouched. INSERT's only K-atomics are
@@ -392,7 +391,7 @@ regions. **ExtendedReachableStateInvariants (ASN-0047)** therefore delivers
 the *entire* post-state invariant set at once — the per-state invariants S2
 (single-valuedness), S3★ (referential integrity), S8a, S8-depth, S8★, D-CTG★,
 D-MIN★, D-SEQ★, and the content-store validity S7b/C1/C1b/C1c of the freshly
-allocated run, together with the composite-boundary properties P7 and P7a. The final
+allocated run, together with P7 (per-state) and the composite-boundary property P7a. The final
 post-state has the same arrangement as the K.μ⁺ post-state — K.ρ does not touch `M` —
 so the arrangement invariants the theorem returns there are the ones K.μ⁺ established.
 
