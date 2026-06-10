@@ -42,8 +42,13 @@ The model lifts the strand model (ASN-0036) and the link model
 text subspace `s_C` and the link subspace `s_L` (ASN-0047, S3★-aux). REARRANGE
 mutates only the arrangement family `M`; the content store `C` and the link store
 `L` are frames (`Σ'.C = Σ.C` and `Σ'.L = Σ.L` **(RA6)**), and the entity set `E` and the
-provenance relation `R` are inert under it, so we suppress `E` and `R` from the
-state-tuple notation and write `Σ = (C, M, L)` for the active components. The
+provenance relation `R` are frozen alongside them (`Σ'.E = Σ.E` and `Σ'.R = Σ.R`
+**(RA4)**). ASN-0084's frame names only the content store and the arrangement; lifting
+the operation into the extended `(C, L, E, M, R)` state, we extend that frame with an
+explicit clause for each component it does not name — RA6 for the link store `L`, and
+RA4 for `E` and `R` — by the same discipline. Because `E` and `R` are inert under the
+operation, we suppress them from the state-tuple notation and write `Σ = (C, M, L)`
+for the active components. The
 *content store* `Σ.C : T ⇀ Val` (ASN-0036, S0) is append-only and immutable; an
 address `a ∈ dom(C)`, once allocated, denotes its value forever. This is the
 Istream: the permanent record of *what content exists*. The *arrangement*
@@ -267,7 +272,7 @@ The three coupling obligations then hold vacuously, each by its own empty
 antecedent. J0 (every freshly allocated I-address is placed in some arrangement) is
 vacuous because `dom(C') = dom(C)` by RA0 — REARRANGE allocates no content, so no
 I-address is fresh. J1'★ (every new provenance entry answers to a range-new content
-address) is vacuous because `R' = R` under the inert `R` frame — no provenance entry
+address) is vacuous because `R' = R` by RA4 — no provenance entry
 is new. J1★ (every content address newly entering the content-subspace range is
 recorded in provenance) is the obligation that genuinely reads the arrangement: it
 fires for an I-address that lies in `{ M'(d)(v) : subspace(v) = s_C }` but not in
@@ -280,46 +285,26 @@ composite-boundary properties are next. P4★ (`Contains_C(Σ) ⊆ R`) is the on
 reads the mutated arrangement, and it is preserved by the same invariance:
 `Contains_C(Σ') = Contains_C(Σ) ⊆ R = R'`. P7a (every content address carries a
 provenance record) is trivial by frame — `dom(C)` and `R` are both frozen (RA0 and
-the inert `R`), so its quantifier and its witnessing set are pointwise unchanged.
+RA4), so its quantifier and its witnessing set are pointwise unchanged.
 P4a (TraceWitnessing) is the one that needs more than a frame: it quantifies over
-valid *traces* to the state, not over the state alone, so `R' = R` gives that the
-*set* of provenance entries is unchanged but does not by itself supply each entry's
-witness. We discharge it by induction on the number `n` of valid composites in a
-trace, over the *extended* vocabulary `{ASN-0047's composites} ∪ {REARRANGE}`. Let
-`U(n)` be the claim: for every valid trace of exactly `n` composites, with final
-state `Σ_T` and any `(a, d) ∈ Σ_T.R`, some state in the trace's history exhibits
-`a` in `d`'s content-subspace range. The measure is well-founded because every
-trace is finite (ASN-0047, P4a).
-
-*Base* (`n = 0`): the only zero-composite trace is the bare initial state `Σ₀`,
-where `R₀ = ∅` (ASN-0047, `Σ₀`); P4a's quantifier over `(a, d) ∈ R` is vacuous, so
-`U(0)` holds.
-
-*Step* (`n → n+1`): an `(n+1)`-composite trace `T` factors as an `n`-composite
-prefix `T⁻` to a pre-state `Σ⁻` extended by a final composite `C : Σ⁻ →* Σ⁺`, with
-`Σ⁺` the trace's final state. Fix any `(a, d) ∈ Σ⁺.R` and split on whether the entry
-is new across `C`.
-
-*New entry* (`(a, d) ∈ Σ⁺.R \ Σ⁻.R`): the coupling J1'★, which holds
-initial-to-final for the valid composite `C` (and for REARRANGE, declared a one-step
-valid composite, holds vacuously since `Σ⁺.R = Σ⁻.R`), places `a` in `d`'s
-content-subspace range at `Σ⁺` itself. `Σ⁺` is the trace's own final boundary, hence
-a state in `T`'s history, and it witnesses `(a, d)`.
-
-*Pre-existing entry* (`(a, d) ∈ Σ⁻.R`): the inductive hypothesis `U(n)`, applied to
-the strictly shorter prefix `T⁻`, supplies a boundary state `Σ_k` in `T⁻`'s history
-at which `a` sat in `d`'s content-subspace range. `Σ_k` is a state of the prefix and
-persists into `T`'s history, witnessing `(a, d)` there as well.
-
-The split is exhaustive, so `U(n+1)` holds; by induction every reachable composite
-boundary satisfies P4a — `Σ'` among them. The argument rests only on J1'★ and `U(n)`,
-and is uniform in `C`: REARRANGE is simply the `Σ⁺.R = Σ⁻.R` instance, in which the
-new-entry branch is empty and every entry discharges through `U(n)`. The genuinely per-state
+valid *traces* to the state, not over the state alone, so `R' = R` (RA4) gives that
+the *set* of provenance entries is unchanged but does not by itself supply each
+entry's witness. ASN-0047 already establishes P4a by induction on the number of
+valid composites in a trace, its step witnessing an entry new across the final
+composite through the coupling J1'★ and a pre-existing entry through the inductive
+hypothesis on the prefix. That induction is generic in the final composite, so
+admitting REARRANGE to the vocabulary `{ASN-0047's composites} ∪ {REARRANGE}` leaves
+it intact; only the new final-composite case needs checking. The final REARRANGE
+step `Σ → Σ'`, declared a one-step valid composite, has `Σ'.R = Σ.R` (RA4): its
+new-entry branch `Σ'.R \ Σ.R` is empty, so every `(a, d) ∈ Σ'.R` is pre-existing and
+is witnessed through the inductive hypothesis on the prefix unchanged. The induction
+therefore extends to the augmented vocabulary without modification, and every
+reachable composite boundary — `Σ'` among them — satisfies P4a. The genuinely per-state
 ExtendedReachableStateInvariants conjuncts that remain fall under a single closure
 rule: every conjunct keyed only on frame-frozen components — `dom(C)` and its
-values by RA0, `E` and `R` inert, `dom(L)` and its values by RA6 — is preserved by
+values by RA0, `E` and `R` by RA4, `dom(L)` and its values by RA6 — is preserved by
 those frames. This covers S4, S7a, S7b (all `dom(C)` properties, frozen verbatim by
-RA0), S7d (a document-tumbler property, frozen with the inert `E`), the C-family
+RA0), S7d (a document-tumbler property, frozen with `E` by RA4), the C-family
 (C1b, C1c, C-fin), the E-family (NodeLineage, ActivatedEmission), the L-family (L0,
 L1, L1a, L1b, L1c, L3, L14, L-fin), and P6, P7, P8 — the only conjuncts not so keyed
 being the value-dependent CL-OWN and CL-UNIQ.
@@ -327,8 +312,8 @@ ASN-0047's second transition theorem,
 **ExtendedTransitionInvariants** (its sole conjunct **P3**,
 ArrangementMutabilityOnly), holds with every conjunct at equality: `dom(C) =
 dom(C')` with `C'(a) = C(a)` by RA0, `dom(L) = dom(L')` with `L'(ℓ) = L(ℓ)` by the
-frozen link store (`Σ'.L = Σ.L`), and `E = E'`, `R = R'` by the inert `E`/`R`
-frame — so the only component P3 permits to lose information, `M`, is the only one
+frozen link store (`Σ'.L = Σ.L`), and `E = E'`, `R = R'` by the `E`/`R` frame
+RA4 — so the only component P3 permits to lose information, `M`, is the only one
 REARRANGE rewrites. With both of ASN-0047's invariant theorems discharged, the
 invariant package REARRANGE joins is fully accounted for.
 
@@ -722,6 +707,7 @@ the regions tile, not merely shift each by a local offset.
 | S3★ (ReferentialIntegrityPreserved) | per-subspace: `subspace(v) = s_C ⟹ M'(d)(v) ∈ dom(C)` and `subspace(v) = s_L ⟹ M'(d)(v) ∈ dom(L)` (ASN-0047 S3★; derivation in the body) | preserved |
 | S8★ (SpanDecompositionPreserved) | `M'(d)` admits the unique maximal correspondence-run decomposition S8 guarantees — content subspace by ASN-0084 R-BLK + R-CANON, link subspace by the frozen frame (ASN-0047 S8★) | preserved |
 | RA3 (VExtentConservation) | `\|dom(M'(d))\| = \|dom(M(d))\|`, and the active run's endpoints are fixed — the document's total extent is conserved | introduced |
+| RA4 (EntityProvenanceFrame) | `Σ'.E = Σ.E ∧ Σ'.R = Σ.R` — the entity set and provenance relation are verbatim frames; REARRANGE writes only `M(d)` and touches neither (the `E`/`R` components of the lifted `K.μ~` frame) | introduced |
 | RA5 (Discoverability) | Moved content is discoverable under its new V-position `π(v)` and resolves to its original I-address `M(d)(v)` | introduced |
 | RA6 (LinkStoreFrame) | `Σ'.L = Σ.L` — links are untouched; a link anchored in a moved region survives and travels with its content because endsets reference unchanged I-addresses | introduced |
 | RA7a (FootprintTransport) | `project(a, i, d, Σ') = π(project(a, i, d, Σ))` — a link's V-footprint is relocated through `π`, neither lost nor enlarged | introduced |
