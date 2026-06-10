@@ -90,12 +90,8 @@ discipline that keeps a span within a single subspace:
 > **Confinement (lemma).** For an ordinal-level, level-uniform span `σ = (s, ℓ)`
 > with `#s = #ℓ = m ≥ 2`, every `t ∈ ⟦σ⟧` agrees with `s` on its first `m − 1`
 > components — `tⱼ = sⱼ` for `1 ≤ j < m`. In particular `t₁ = s₁`, so `⟦σ⟧` lies
-> wholly in subspace `s₁` and cannot cross the subspace boundary. For a populated
-> named subspace (`V_{s₁}(d) ≠ ∅`) this is ASN-0058's C0a (PrefixConfinement),
-> established there for a content reference; the proof below extends it to the
-> case the V-spec definition also admits — `V_{s₁}(d) = ∅`, where C0a's
-> `V_{u₁}(d_s) ≠ ∅` precondition fails — and rests only on the span's structure,
-> not on which positions `d` binds.
+> wholly in subspace `s₁` and cannot cross the subspace boundary (generalizes
+> ASN-0058's C0a, PrefixConfinement).
 >
 > *Proof.* Ordinal-level width acts only at position `m` (`actionPoint(ℓ) = m`),
 > so the length-`(m − 1)` prefix `p = [s₁, …, s_{m−1}]` satisfies `p ≼ s`, and the
@@ -341,13 +337,9 @@ To name those components we appeal to `act ≠ ∅`, the substantive case: pick 
 start `s = [S, 1, …, 1, s_{m_S}]`. Hence the depth-`m_S` slice of `⟦σ⟧` is exactly
 `{[S, 1, …, 1, k] : s_{m_S} ≤ k < s_{m_S} + ℓ_{m_S}}` — with `ℓ_{m_S}` the width's
 deepest component — the only free coordinate being `k`. (If instead `act = ∅`
-while `V_S(d) ≠ ∅`, the active range is present but unreached: the depth-`m_S`
-slice of `⟦σ⟧` is disjoint from `V_S(d)` — either the start's prefix differs from
-`[S, 1, …, 1]`, putting the slice wholly under an unrelated prefix, or the prefix
-is canonical but `s_{m_S} > n_S`, putting the slice past the frontier. Only the
-latter is a terminal overrun past the frontier in the stated sense; but in both
-the load-bearing negative property holds — the slice meets no bound position, so
-the span punches no interior hole within the active range.)
+while `V_S(d) ≠ ∅`, the depth-`m_S` slice of `⟦σ⟧` is disjoint from `V_S(d)`, so
+it meets no bound position and punches no interior hole within the active range;
+the terminal-overrun half of R6 is then vacuously satisfied.)
 
 A depth-`m_S` named position `[S, 1, …, 1, k]` is bound iff `k ≤ n_S` — exactly
 the D-SEQ★ frontier. Therefore the unbound members of the bindable slice are
@@ -521,9 +513,7 @@ jointly; and `deliver` performs no comparison of the two resolutions, it
 concatenates two independently computed items (R0). Co-delivery therefore
 establishes nothing about the relation between the two that two separate
 single-span deliveries would not: it carries no information a pair of isolated
-requests lacks. The box already records the complementary half — that the output
-itself, carrying values not addresses (R1), is byte-indistinguishable from
-coincidental value-equality (S4) and so discloses nothing. Nelson's promise that
+requests lacks. Nelson's promise that
 the system "will also reveal and clarify commonalities between documents and
 among versions" (3/4) is kept by operations
 that compare addresses, not by RETRIEVEV, whose content payload is value-only.
@@ -722,10 +712,9 @@ is the only mutable input and the stores never alter what they hold.
 
 Delivering a whole spec-set together exceeds delivering its spans separately in
 some respects but not all. For transclusion it does *not*: content positions
-sharing a resolved address deliver identical material with no deduplication (R8),
-but co-delivery discloses nothing about the sharing that two isolated single-span
-deliveries would not — the shared address is a fact of resolution, not of the
-output (R8). Genuine transclusion is a content phenomenon, since CL-OWN and
+sharing a resolved address deliver identical material with no deduplication, yet
+co-delivery discloses nothing about the sharing (R8). Genuine transclusion is a
+content phenomenon, since CL-OWN and
 CL-UNIQ make distinct link positions sharing an address unreachable, so the link
 sub-case is vacuous (R8). Where co-delivery does
 exceed the sum of its parts is assembly and crossing: it assembles multi-origin
