@@ -407,8 +407,16 @@ case, where `q_N` already holds the greatest address — and more generally afte
 K.μ~ reordering (ASN-0047) places `a_prev` at `q_{J-1}` for interior `J`), the fresh
 start `a = inc(a_prev, 0) = shift(M(d)(q_{J-1}), 1)` is I-adjacent to the left run, so
 the block I-merges backward into it and is not a standalone element of the maximal-run
-partition S8★ delivers. Forward I-merging with the shifted suffix never happens —
-those addresses all lie strictly below the fresh `a`.
+partition S8★ delivers. Forward I-merging with the shifted suffix, by contrast, never
+happens in *any* reachable state — including the IP5 regime where a suffix slot holds
+content transcluded from another document, whose I-address need not lie below the fresh
+`a`. A forward merge would require the block's I-terminus `shift(a, n−1)` to be
+I-adjacent to the shifted-suffix head `M'(d)(q_{J+n}) = M(d)(q_J)`, i.e.
+`M(d)(q_J) = shift(a, n)`. But `shift(a, n)` is the address immediately following the
+allocated run `A_new` on the content chain `A_C(d)`, beyond the post-allocation frontier,
+so `shift(a, n) ∉ dom(C')` — a fortiori `∉ dom(C)` — whereas `M(d)(q_J) ∈ dom(C)` by
+**S3★** (the suffix head is a content-subspace image). The two I-addresses cannot
+coincide, whatever the origin of `M(d)(q_J)` and however it orders against `a`.
 
 The new region is *seamless in arrangement yet distinguishable in identity* (Q9): in
 the V-stream there is no marker at the boundary `q_{J-1} | q_J | q_{J+n}` — reading
