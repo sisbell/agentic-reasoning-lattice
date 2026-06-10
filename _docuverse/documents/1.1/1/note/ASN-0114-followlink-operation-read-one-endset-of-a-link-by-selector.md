@@ -93,10 +93,10 @@ endset is thus its own F1-witness, and F1 is satisfiable. What F0 does *not*
 assert is uniqueness: F3 below shows the result is pinned only at the level of
 coverage, so distinct F1-witnesses may differ as span-sets. We therefore read
 `followlink(Σ, a, i)` as a *relation* — standing for any span-set `R` satisfying
-F1 — and, wherever it appears as a single term inside `coverage(·)` (F5, F6, F8),
-that term is well-defined because F3 makes coverage independent of which witness
-is chosen. The one case in which the witness is forced to a unique span-set is
-the empty end, treated in F7.
+F1 — and, wherever it appears as a single term inside `coverage(·)`, that term is
+well-defined because F3 makes coverage independent of which witness is chosen. The
+one case in which the witness is forced to a unique span-set is the empty end,
+treated in F7.
 
 We must justify each of the three clauses of this definition — the coverage
 relationship, the frame, the error case — and extract their consequences. We do
@@ -134,7 +134,10 @@ discontiguous set of bytes" (Q1, 4/42). We observe this is not an independent
 requirement — it follows from F1. Suppose `coverage(Σ.L(a).eᵢ)` is
 *disconnected*: there exist `p < q < r` in `T` with `p, r ∈ coverage(eᵢ)` but
 `q ∉ coverage(eᵢ)`. A single span `σ` is order-convex — `⟦σ⟧` contains every
-position between any two of its members (ASN-0053, S0). So if `R` were the
+position between any two of its members (ASN-0053, S0). First, `R ≠ ⟨⟩`:
+disconnectedness supplies `p, r ∈ coverage(eᵢ)`, so `coverage(eᵢ) ≠ ∅`, and by F1
+`coverage(R) ≠ ∅`, which forces `R ≠ ⟨⟩` because `⟨⟩` is the only span-set with
+empty coverage (ASN-0053, S2); hence `|R| ≥ 1`. Next, `|R| ≠ 1`: if `R` were the
 singleton `⟨σ⟩` with `⟦σ⟧ ⊇ {p, r}`, then `q ∈ ⟦σ⟧ = coverage(R)`, yet
 `q ∉ coverage(eᵢ)` — contradicting F1. Hence a faithful `R` over a disconnected
 end must comprise two or more spans. We record:
@@ -232,22 +235,13 @@ the coverages of the two results. ∎
 
 F5 as stated is a *coverage*-permanence claim, and exactly one fact carries it:
 *link immutability* (L12). Because `Σ'.L(a) = Σ.L(a)`, the recorded spans — and
-hence their coverage — are fixed, whatever those spans happen to denote. We must
-not overstate what is load-bearing here. Were ends bound to V-positions rather
-than to I-addresses, L12 would *still* freeze the recorded spans, so
-coverage-permanence — and F5 exactly as written — would still hold; only the
-*meaning* of "the same coverage" would change. Content-identity addressing is
-therefore not load-bearing for F5's coverage equality. What it is load-bearing
-for is a separate, stronger reading: that the recorded addresses are addresses of
-permanent content identity, not mutable positions (Q3, Q7, Q8), is what upgrades
-coverage-permanence to *material*-permanence — what makes "the same addresses"
-mean "the same material" even after the surrounding documents are edited.
-Nelson's strap-between-bytes image (4/42) and the survivability annotation (4/43)
-are precisely that stronger guarantee: editing reshuffles where the targeted
-material sits without changing which material the end names. So L12 is what F5
-needs; content-identity addressing is what makes F5's coverage-permanence mean
-material-permanence — a reading F5 does not formally state. Either way, the
-result's coverage is permanently tied to the same link and the same selector.
+hence their coverage — are fixed, whatever those spans happen to denote. That the
+recorded addresses are addresses of permanent content identity rather than mutable
+positions (Q3, Q7, Q8) — Nelson's strap-between-bytes image (4/42) and the
+survivability annotation (4/43) — is what upgrades coverage-permanence to
+*material*-permanence, making "the same coverage" mean "the same material" even
+after the surrounding documents are edited; F5 does not formally claim that
+stronger reading.
 
 We note the one careful qualification Nelson and Gregory both flag. "Same
 material" means same *content identity*, not same *coordinates in some document's
@@ -496,7 +490,7 @@ What normal form, if any, must the returned span-set satisfy, given that coverag
 
 Under what conditions may resolving the returned endset against a particular document's arrangement legitimately report fewer positions than the recorded end covers?
 
-What invariant must distinguish, to a caller, a valid empty endset from an absent link, when both yield no positions?
+Across a serialization or protocol boundary — where F7's abstract `⟨⟩`/`⊥` distinction must be re-encoded as wire-level signals — what must the encoding guarantee so that a valid empty endset and an absent link remain distinguishable to a remote caller?
 
 Must a selector naming a non-existent higher slot be observationally distinct from one naming an existing but empty slot, beyond both being errors versus successes?
 
