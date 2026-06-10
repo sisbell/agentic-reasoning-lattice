@@ -117,7 +117,9 @@ when the call is undefined, F0 fixes the value at the distinguished `⊥`. (ii)
 *Empty end:* when `coverage(Σ.L(a).eᵢ) = ∅`, the postcondition forces
 `coverage(R) = ∅`, whence the first collapse gives `R = ⟨⟩` uniquely.
 
-Three commitments remain — F1, F4, F7. We take them in turn.
+Three independent commitments remain — F1, F4, F7 — which we take in turn; the
+remaining properties F2, F3, F5, F6, and F8 emerge alongside them as corollaries
+(F2, F3, F6 from F1; F5 from F1 and link immutability; F8 from F0 and F1).
 
 ## What the result must be: exact coverage, no more and no less
 
@@ -238,13 +240,10 @@ intervening operations on the system, must therefore denote the same positions.
 *Derivation.* L12 (LinkImmutability) fixes a link's address and value across a
 *single* transition `Σ → Σ'`; F5 quantifies over the reflexive-transitive
 closure `Σ →* Σ'`, so the single-step fact must be composed along the sequence.
-This composition is exactly LP13 (UnconditionalLinkPersistence, ASN-0098) — "for
+LP13 (UnconditionalLinkPersistence, ASN-0098) supplies that composition: "for
 every reachable state sequence `Σ →* Σ'` and every `a ∈ dom(Σ.L)`: `a ∈
-dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)`" — which ASN-0098 obtains from L12 via its closure
-schema (★). We invoke that closure as established rather than re-running it here.
-Hence `a ∈ dom(Σ'.L)` and `Σ'.L(a) = Σ.L(a)`, so `Σ'.L(a).eᵢ =
-Σ.L(a).eᵢ` and their coverages are equal. F1 applied at each state then equates
-the coverages of the two results. ∎
+dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)`." Hence `Σ'.L(a).eᵢ = Σ.L(a).eᵢ`, and F1 applied at
+each state equates the coverages of the two results. ∎
 
 ## Confinement: one end tells nothing of the others
 
@@ -481,9 +480,10 @@ second, the very conflation F7 forbids.
 ## Synthesis
 
 FOLLOWLINK is, abstractly, a projection. Given a link address and a slot
-selector, it returns that slot's endset, measured by coverage, under five
-primary constraints — F1, F4, F5, F7, F8 — with F2, F3, and F6 following as
-corollaries of F1. It returns *exactly* the recorded end — no more, no less (F1) —
+selector, it returns that slot's endset, measured by coverage, under three
+primary commitments — F1, F4, F7 — atop the F0 definedness precondition, with
+F2, F3, F5, F6, and F8 following as corollaries (F2, F3, F6 from F1; F5 from F1
+and link immutability; F8 from F0 and F1). It returns *exactly* the recorded end — no more, no less (F1) —
 preserving its discontiguous shape as a corollary (F2), with representation free
 but coverage bound (F3). It changes nothing (F4) and answers the same
 question the same way for all time (F5). It reads one end and discloses only that
@@ -503,12 +503,12 @@ abstract specification exists to make visible.
 | F0 | `followlink(Σ, a, i)` is defined (returns a span-set) iff `a ∈ dom(Σ.L) ∧ 1 ≤ i ≤ \|Σ.L(a)\|`; else returns `⊥` | introduced |
 | F1 | CoverageExactness: `coverage(followlink(Σ, a, i)) = coverage(Σ.L(a).eᵢ)` — neither over- nor under-coverage | introduced |
 | F2 | DiscontiguityFaithfulness: if `coverage(Σ.L(a).eᵢ)` is disconnected, any F1-result has `≥ 2` spans (corollary of F1 and span convexity) | introduced |
-| F3 | RepresentationInvariance: any two F1-results for the same `(Σ, a, i)` are denotationally equal; the contract binds coverage, not span decomposition or order | introduced |
+| F3 | RepresentationInvariance: any two F1-results for the same `(Σ, a, i)` are denotationally equal; the contract binds coverage, not span decomposition or order (corollary of F1) | introduced |
 | F4 | PureRead frame: `followlink` induces no state transition; `Σ.C`, `Σ.L`, every `Σ.M(d)`, and every slot `j ≠ i` are unchanged | introduced |
 | F5 | TemporalDeterminism: for `Σ →* Σ'` with `a ∈ dom(Σ.L)`, results at the two states are coverage-equal (from F1 and L12 immutability, the latter composed by LP13) | introduced |
 | F6 | SlotConfinement: the result's *coverage* is a function of `coverage(Σ.L(a).eᵢ)` alone, turning on no `eⱼ`, `j ≠ i` (corollary of F1); representation-level non-exposure of other ends is an implementation property, not a contract guarantee | introduced |
 | F7 | EmptyVersusInvalid: `⟨⟩ ≠ ⊥`; a valid selector over an empty end returns `⟨⟩` (success); an invalid selector returns `⊥` (error); collapsing them is incorrect | introduced |
-| F8 | ContentIndependence: defined and exact whenever the link and slot exist, regardless of whether covered addresses currently hold content or links | introduced |
+| F8 | ContentIndependence: defined and exact whenever the link and slot exist, regardless of whether covered addresses currently hold content or links (corollary of F0 and F1) | introduced |
 
 ## Open Questions
 
