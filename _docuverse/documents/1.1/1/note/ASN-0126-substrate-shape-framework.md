@@ -30,7 +30,7 @@ The registry records, for each type an app declares, the shape its tuples must t
 
 The registry value is the shape alone — *not* a type name; any human-readable label a type bears ("citation," "comment," "counterpart") is an app-side convention over addresses, not substrate state.
 
-Registration is confined to the construction of `Σ_init`: an app *declares* a type by placing its `[K_j] ↦ shape` entry in `Σ_init.registry` before the dynamics begin. The framework supplies **no** runtime registration operation — the operation set is the inherited `{Emit_K, Observe_K, Nullify}` (ASN-0086) together with the refined `K.λ_sh` (The shape-gated emit), and none of these writes the registry. The registry is therefore a fixed *input* to the dynamics: though carried as a component of `Σ`, no reachable state revises it (P1, Registry permanence). Every mention below of an app "declaring" or "registering" a type refers to this construction-time act, never to a runtime event.
+An app *declares* a type by placing its `[K_j] ↦ shape` entry in `Σ_init.registry` before the dynamics begin — the construction of `Σ_init` is the only act that writes the registry. The operation set is the inherited `{Emit_K, Observe_K, Nullify}` (ASN-0086) together with the refined `K.λ_sh` (The shape-gated emit), none of which writes the registry; though carried as a component of `Σ`, it is therefore a fixed *input* that no reachable state revises (P1, Registry permanence).
 
 A registry is well-formed when shape values lie in `{Unary, Binary, Multi}` and — the condition the shape function's well-definedness actually rests on — *coverage-class keys are unique*: no two entries have `~`-equal keys.
 
