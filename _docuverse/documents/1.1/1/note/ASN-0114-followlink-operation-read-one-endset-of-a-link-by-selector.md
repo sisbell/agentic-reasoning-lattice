@@ -48,7 +48,15 @@ For each endset we have its *coverage*, the set of addresses it designates:
 endset's spans; it consults no other component of state. A *span-set* (ASN-0053)
 is a finite sequence of spans denoting the union of its spans' position sets,
 `⟦Σ⟧`, with two span-sets equivalent when they denote the same set. We will
-write the result of FOLLOWLINK as a span-set and measure it by its coverage.
+write the result of FOLLOWLINK as a span-set and measure it by its coverage,
+extending `coverage` to a span-set `R` by the bridging definition `coverage(R)
+:= ⟦R⟧`. The extension is faithful: `coverage(e)` unions the position sets over
+the spans of an endset (a set), `⟦R⟧` unions them over the spans of a span-set (a
+sequence), and both reduce to the *same* union over the *same* spans — so the
+set-versus-sequence form and the order of spans within `R` are alike immaterial.
+An equality `coverage(R) = coverage(eᵢ)` is then well-typed — a span-set
+denotation on the left, an endset coverage on the right — and means exactly
+`⟦R⟧ = coverage(eᵢ)`.
 
 These are the only ingredients. Everything below is derived from them together
 with the consultation evidence.
@@ -197,9 +205,9 @@ what does *not* change:
 > requesting end `i` of link `a` changes neither `Σ.L(a)` itself, nor any
 > `Σ.L(a).eⱼ` for `j ≠ i`, nor any document the selected end points into.
 
-The frame is as much a part of the specification as the effect. An
-implementation that satisfied F1 but, say, advanced an arrangement or perturbed
-a referenced document as a side effect would not have implemented FOLLOWLINK.
+An implementation that satisfied F1 but, say, advanced an arrangement or
+perturbed a referenced document as a side effect would not have implemented
+FOLLOWLINK.
 
 ## Determinism over time
 
@@ -293,7 +301,10 @@ part of any other.
 
 A subtle but decisive distinction remains. Slots `1` and `2` (and any slot
 beyond `3`) may legitimately be empty — a link may record no spans at a given
-end. The empty endset's coverage is the empty set, and by F1 any faithful result
+end. Slot `3` is the lone exception: L3 (ASN-0043; ASN-0093) mandates
+`Σ.L(a).e₃ ≠ ∅` for every stored link, so the type end is never empty — a
+consequence discharged precisely once the two collapses below are in hand. The
+empty endset's coverage is the empty set, and by F1 any faithful result
 has coverage `∅`. Here — unlike the non-empty case — the result is forced to a
 *unique* span-set. A single fact from ASN-0053 S2 drives this: every well-formed
 span denotes a non-empty set. Two collapses follow, and we reuse both below.
@@ -301,8 +312,13 @@ span denotes a non-empty set. Two collapses follow, and we reuse both below.
 the empty span-set `⟨⟩` is the *only* span-set whose coverage is `∅` —
 equivalently `R = ⟨⟩ ⟺ coverage(R) = ∅`. *Second collapse:* likewise no endset
 holding one or more spans has empty coverage, so an endset's coverage vanishes
-exactly when the endset is empty — `coverage(eᵢ) = ∅ ⟺ eᵢ = ∅`. The first
-collapse is what licenses writing `followlink(Σ, a, i) = ⟨⟩` as a literal
+exactly when the endset is empty — `coverage(eᵢ) = ∅ ⟺ eᵢ = ∅`. Combining
+this second collapse with L3's `Σ.L(a).e₃ ≠ ∅` discharges the slot-`3` guarantee
+at once: `coverage(Σ.L(a).e₃) ≠ ∅` for every `a ∈ dom(Σ.L)`, whence the first
+collapse gives `followlink(Σ, a, 3) ≠ ⟨⟩`. The type selector thus never yields
+the empty-success `⟨⟩`; the empty-versus-invalid collision this section forbids
+is reachable only at the non-type slots — `1`, `2`, and any slot beyond `3`. The
+first collapse is what licenses writing `followlink(Σ, a, i) = ⟨⟩` as a literal
 value-equality in F7, whereas for a non-empty end we could assert only an
 equality of coverage. Nelson is firm that this is a *successful* answer, not a
 failure: emptiness is "a first-class, valid state," the correct answer to a
