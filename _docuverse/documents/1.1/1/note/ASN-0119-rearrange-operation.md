@@ -191,8 +191,9 @@ images are link addresses in `dom(L)`, not content addresses in `dom(C)`. Both
 inclusions are inherited, but the inheritance runs through the inverse
 permutation, not through any claim that a position keeps its image — inside the
 affected interval the image filed at a key generally *does* change
-(`M'(d)(v) ≠ M(d)(v)`; in the worked pivot below `M'([s_C,2]) = a₃` while
-`M([s_C,2]) = a₂`). What `π` preserves is that it maps each subspace onto itself.
+(`M'(d)(v) ≠ M(d)(v)`: a pivot's R-P1 branch refiles the front position `c₀` from
+`M(d)(c₀)` to `M(d)(c₁)`). What `π` preserves is that it maps each subspace onto
+itself.
 Take a text position `v ∈ dom(M'(d))` with `subspace(v) = s_C`. Then
 `M'(d)(v) = M(d)(π⁻¹(v))`, and `π⁻¹(v)` is again a text position (`π` permutes the
 text subspace onto itself); pre-state S3★ applied at `π⁻¹(v)` gives
@@ -266,6 +267,57 @@ as a defensive no-op precisely because the extent cannot have changed
 (Questions 7, 13). The boundaries of the affected interval are themselves fixed:
 the regions tile `[c₀, c_{n-1})` before and after, so the exterior never moves and
 the document neither grows nor shrinks.
+
+## A worked transposition
+
+We fix a concrete instance, to be cited by the sections that follow, and check
+the postconditions against explicit ordinals. Take a document `d` whose text
+subspace holds five bytes "ABCDE" at the contiguous depth-2 positions
+`[s_C, 1], …, [s_C, 5]`; write `a_k = M(d)([s_C, k])` for the I-address of the
+k-th byte, so `ord([s_C, k]) = k`.
+
+*Pivot.* Transpose the single-byte region `α = {B}` with the three-byte region
+`β = {C, D, E}`: cuts `c₀ = [s_C, 2]`, `c₁ = [s_C, 3]`, `c₂ = [s_C, 6]`, giving
+`w_α = ord(c₁) − ord(c₀) = 1` and `w_β = ord(c₂) − ord(c₁) = 3`. R-P1 fills the
+front of the interval with `β` — `M'([s_C,2]) = a₃`, `M'([s_C,3]) = a₄`,
+`M'([s_C,4]) = a₅`; R-P2 places `α` behind it — `M'([s_C,5]) = a₂`; R-EXT keeps
+`M'([s_C,1]) = a₁`. The new reading order is
+
+      A C D E B.
+
+The induced permutation `π`, which the sections below refer back to, reads off
+these destination equations:
+
+      π:  ord 1 ↦ ord 1,   ord 2 ↦ ord 5,   ord 3 ↦ ord 2,
+          ord 4 ↦ ord 3,   ord 5 ↦ ord 4.
+
+The postconditions check out numerically. The destination ordinals are `{2,3,4}`
+(R-P1), `{5}` (R-P2), and `{1}` (R-EXT): pairwise disjoint and tiling `{1..5}`
+exactly, so `π` is a bijection and `dom(M'(d)) = dom(M(d))` (**P2**). The range is
+`{a₃, a₄, a₅, a₂, a₁} = {a₁, …, a₅} = ran(M(d))` (**P1**). The count is 5 and the
+endpoints `ord 1`, `ord 5` are fixed (**P3**). Now a sample link footprint: let
+`a*` be a link whose coverage holds the "C" byte `a₃`. Before the move its
+footprint is `{[s_C,3]}`; since `[s_C,3] = c₁ + 0`, the pivot branch of `π` gives
+`π([s_C,3]) = c₀ + 0 = [s_C,2]`, and indeed `M'([s_C,2]) = a₃`. The footprint
+travels through `π` to `{[s_C,2]}` — relocated, not lost; the Links section next
+formalizes this transport as **P7a**.
+
+*Swap.* Take "ABCDEF" at `[s_C,1..6]` and exchange `α = {B}` with `β = {E, F}`,
+leaving the middle `μ = {C, D}` between them: cuts `c₀=[s_C,2]`, `c₁=[s_C,3]`,
+`c₂=[s_C,5]`, `c₃=[s_C,7]`, so `w_α = 1`, `w_μ = 2`, `w_β = 2`. R-S1 brings `β`
+to the front (`M'([s_C,2]) = a₅`, `M'([s_C,3]) = a₆`); R-S2 reseats `μ`
+(`M'([s_C,4]) = a₃`, `M'([s_C,5]) = a₄`); R-S3 sends `α` to the back
+(`M'([s_C,6]) = a₂`); R-EXT keeps `a₁`. The reading order is
+
+      A E F C D B.
+
+The middle departs `ord(c₁) = 3` and arrives `ord(c₀) + w_β = 4`, a net
+displacement of `+1`, which is exactly `w_β − w_α = 2 − 1` — Gregory's `diff[2]`
+(Question 11). Because `w_β > w_α`, the middle slides *forward* by precisely the
+width imbalance, the unique shift that keeps `μ` contiguous between the relocated
+`β` and `α`. Once more the destination ordinals `{2,3}`, `{4,5}`, `{6}`, `{1}`
+tile `{1..6}` (**P2**), the range `{a₁, …, a₆}` is unchanged (**P1**), and the
+extent is conserved (**P3**).
 
 ## Links
 
@@ -356,7 +408,7 @@ contiguity *across* regions.
 
 *Confinement is not necessary (a straddling footprint can stay contiguous).* A
 footprint straddling a cut may land contiguously precisely when its parts meet at a
-relocated seam. In the worked pivot below (`A B C D E ↦ A C D E B`), a link
+relocated seam. In the worked pivot above (`A B C D E ↦ A C D E B`), a link
 covering `{B, E} = {a₂, a₅}` has the *discontiguous* pre-footprint `{ord 2, ord 5}`
 — `B` in `α`, `E` at the tail of `β` — yet `π` sends `ord 2 ↦ ord 5` and
 `ord 5 ↦ ord 4`, giving the *contiguous* post-footprint `{ord 4, ord 5}`: the
@@ -374,30 +426,18 @@ stated as run-structure preservation, not as "the result is one span": confineme
 preserves *whatever* contiguity the footprint already had, neither creating nor
 healing fragmentation.
 
-*Fragmentation requires straddling, but straddling does not force it.* The
-behaviour Nelson and Gregory describe — a single contiguous endset becoming
-discontiguous — occurs *only when* a single pre-run straddles a cut. This is all
-the structure entitles us to claim, and it is exactly P7c read contrapositively: a
-footprint confined to one region keeps its run structure, so a contiguous run that
-fragments cannot have been confined and must therefore cross a cut. We claim
-nothing stronger about the *kind* of straddle — in particular *not* that the run
-must cover a partial block. The converse of "straddles ⟹ fragments" fails, but so
-does any sharper necessity condition: straddling can both preserve and break
-contiguity, and which one occurs is a geometric fact about `π`, not a fact about
-partial coverage.
-
-The exact characterization is therefore geometric: a contiguous footprint survives
-as contiguous precisely when its image under `π` is again an interval. This holds
-for within-region confinement (P7c) and for runs spanning two or more *relocated*
-regions that `π` lays down adjacently — but it can fail whenever the run mixes the
-*fixed exterior* with a relocated region, because the exterior stays put while the
-region moves away from it. We exhibit all three behaviours on the worked pivot
-below (`A B C D E ↦ A C D E B`, cuts `c₀,c₁,c₂ = ord 2,3,6`).
+A contiguous footprint survives as contiguous exactly when `π` lays its
+region-pieces down adjacently. This holds when the footprint lies within a single
+region (P7c) and when it spans two or more *relocated* regions that `π` re-abuts;
+it fails when a *fixed-exterior* position sits beside a relocated one, because the
+exterior stays put while the region slides away from it. We exhibit all three
+behaviours on the worked pivot above (`A B C D E ↦ A C D E B`, cuts
+`c₀,c₁,c₂ = ord 2,3,6`).
 
 *Straddling, contiguity preserved (relocated blocks re-abut).* A link covering all
 of `α ∪ β = {B, C, D, E} = {a₂, a₃, a₄, a₅}` has pre-footprint `{ord 2, 3, 4, 5}`,
-a single contiguous run straddling the cut `c₁ = ord 3`. `π` sends `ord 2 ↦ ord 5`,
-`ord 3 ↦ ord 2`, `ord 4 ↦ ord 3`, `ord 5 ↦ ord 4`, so the post-footprint is again
+a single contiguous run straddling the cut `c₁ = ord 3`. The `π` table above carries
+this run `{ord 2, 3, 4, 5} ↦ {ord 5, 2, 3, 4}`, so the post-footprint is again
 `{ord 2, 3, 4, 5}` — one contiguous run. The relocated `β` and relocated `α` re-tile
 the interval and re-abut, so the image is again an interval. Note that *both* spanned
 blocks relocate; the exterior is not involved.
@@ -458,54 +498,11 @@ relocation" (Question 8). We record the consequence:
       moved content is discoverable under its new V-position,
       and resolves to its original I-address.                      **(P5)**
 
-## A worked transposition
-
-We check the postconditions against explicit ordinals. Take a document `d` whose
-text subspace holds five bytes "ABCDE" at the contiguous depth-2 positions
-`[s_C, 1], …, [s_C, 5]`; write `a_k = M(d)([s_C, k])` for the I-address of the
-k-th byte, so `ord([s_C, k]) = k`.
-
-*Pivot.* Transpose the single-byte region `α = {B}` with the three-byte region
-`β = {C, D, E}`: cuts `c₀ = [s_C, 2]`, `c₁ = [s_C, 3]`, `c₂ = [s_C, 6]`, giving
-`w_α = ord(c₁) − ord(c₀) = 1` and `w_β = ord(c₂) − ord(c₁) = 3`. R-P1 fills the
-front of the interval with `β` — `M'([s_C,2]) = a₃`, `M'([s_C,3]) = a₄`,
-`M'([s_C,4]) = a₅`; R-P2 places `α` behind it — `M'([s_C,5]) = a₂`; R-EXT keeps
-`M'([s_C,1]) = a₁`. The new reading order is
-
-      A C D E B.
-
-The postconditions check out numerically. The destination ordinals are `{2,3,4}`
-(R-P1), `{5}` (R-P2), and `{1}` (R-EXT): pairwise disjoint and tiling `{1..5}`
-exactly, so `π` is a bijection and `dom(M'(d)) = dom(M(d))` (**P2**). The range is
-`{a₃, a₄, a₅, a₂, a₁} = {a₁, …, a₅} = ran(M(d))` (**P1**). The count is 5 and the
-endpoints `ord 1`, `ord 5` are fixed (**P3**). Now a sample link footprint: let
-`a*` be a link whose coverage holds the "C" byte `a₃`. Before the move its
-footprint is `{[s_C,3]}`; since `[s_C,3] = c₁ + 0`, the pivot branch of `π` gives
-`π([s_C,3]) = c₀ + 0 = [s_C,2]`, and indeed `M'([s_C,2]) = a₃`. The footprint
-travels through `π` to `{[s_C,2]}` (**P7a**) — relocated, not lost.
-
-*Swap.* Take "ABCDEF" at `[s_C,1..6]` and exchange `α = {B}` with `β = {E, F}`,
-leaving the middle `μ = {C, D}` between them: cuts `c₀=[s_C,2]`, `c₁=[s_C,3]`,
-`c₂=[s_C,5]`, `c₃=[s_C,7]`, so `w_α = 1`, `w_μ = 2`, `w_β = 2`. R-S1 brings `β`
-to the front (`M'([s_C,2]) = a₅`, `M'([s_C,3]) = a₆`); R-S2 reseats `μ`
-(`M'([s_C,4]) = a₃`, `M'([s_C,5]) = a₄`); R-S3 sends `α` to the back
-(`M'([s_C,6]) = a₂`); R-EXT keeps `a₁`. The reading order is
-
-      A E F C D B.
-
-The middle departs `ord(c₁) = 3` and arrives `ord(c₀) + w_β = 4`, a net
-displacement of `+1`, which is exactly `w_β − w_α = 2 − 1` — Gregory's `diff[2]`
-(Question 11). Because `w_β > w_α`, the middle slides *forward* by precisely the
-width imbalance, the unique shift that keeps `μ` contiguous between the relocated
-`β` and `α`. Once more the destination ordinals `{2,3}`, `{4,5}`, `{6}`, `{1}`
-tile `{1..6}` (**P2**), the range `{a₁, …, a₆}` is unchanged (**P1**), and the
-extent is conserved (**P3**).
-
 ## Atomicity: two cuts at once
 
 Why transpose *together* rather than move one region and later the other? The
 single-operation form is interpreted against one arrangement, and this exposes
-three ordering invariants (Question 6).
+two ordering invariants (Question 6).
 
 First, the document passes from one canonical total order directly to another. A
 move-then-move realization manufactures an intermediate arrangement that is itself
@@ -546,11 +543,6 @@ to recompute the second move's cuts in a coordinate frame the first move already
 perturbed; the atomic form fixes the frame so every cut is valid simultaneously
 (Question 6). This is why the equations of the operation may use `c₀, …, c_{n-1}`
 as if they were all meaningful at once: they are.
-
-Third, the operation treats both regions as moving relative to each other. There
-is no privileged stationary block; position is relational, defined by neighbours
-rather than by an absolute index, and what survives the swap is connectivity (P6),
-not any region's claim to have stayed put.
 
 ## Document isolation
 
