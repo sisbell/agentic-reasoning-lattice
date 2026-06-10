@@ -112,8 +112,8 @@ I-addresses, with the content values written there.
 ASN-0036)**: I-addresses from distinct allocation events are distinct regardless of
 stored value).* *For each `k` with
 `0 ≤ k < n`, `shift(a, k) ∉ dom(C)`, and `shift(a, k)` is distinct from every
-I-address in `dom(C)` regardless of whether `C(shift(a, k))` equals the content
-stored at any existing address.*
+I-address in `dom(C)` regardless of whether the freshly written value
+`C'(shift(a, k)) = w_k` equals `C(b)` for any existing `b ∈ dom(C)`.*
 
 Identity is intensional (by origin), not extensional (by value). Were two
 equal-valued insertions to share an address, a link to one would silently
