@@ -290,10 +290,8 @@ versions," 4/29), distinct versions are distinct document tumblers with distinct
 arrangements (ASN-0036, S7d), and there is no privileged "basic" version the
 system could silently substitute ("there is thus no 'basic' version of a document
 set apart from other versions," 2/19). Naming `dⱼ` does *not* freeze that
-arrangement, however: `Σ.M(dⱼ)` is mutable (K.μ⁻/K.μ⁺/K.μ~, ASN-0047; P3), so
-"as it stood" coincides with "current" only for a version whose arrangement is not
-subsequently edited — a discipline the caller keeps by citing-and-not-editing,
-not an invariant the address enforces.
+arrangement, however: resolution is against the *current* `Σ.M(dⱼ)`, which is
+mutable (K.μ⁻/K.μ⁺/K.μ~, ASN-0047; P3), so naming a version does not freeze it.
 
 ## Order and boundaries
 
