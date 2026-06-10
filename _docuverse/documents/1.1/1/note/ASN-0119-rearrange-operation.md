@@ -64,9 +64,8 @@ The distinction the operation turns on is the one ASN-0034's T6 already records:
 *address versus position*. An I-address is permanent content identity; a
 V-position is a mutable coordinate in one document's current order. REARRANGE
 lives entirely in the second of these. We will write `M(d)(v)` for the I-address
-that position `v` currently denotes, and we will be watching, throughout, for the
-property that this *value* is carried intact while the *key* under which it is
-filed is permuted.
+that position `v` currently denotes. REARRANGE carries this *value* intact while
+permuting the *key* under which it is filed.
 
 We confine the operation to the text subspace `s_C` of one document, at the
 working V-position depth 2 (`#v = 2`). This is the precise scope at which
@@ -112,10 +111,8 @@ ASN-0084's RegionPartition (its widths read off the R-PRE consequences); both
 moved-block widths are strictly positive (a cut sequence with a zero-width region
 is degenerate), and in the four-cut case `w_μ ≥ 1` as well.
 
-The cuts are interpreted against *one* arrangement. This is the first thing the
-"two cuts at once" formulation reveals, and we record it before going further:
-all of `c₀, …, c_{n-1}` are coordinates in the same `M(d)`, so the geometry of
-the regions is fixed before any reassignment occurs.
+The cuts are coordinates in a single arrangement `M(d)`, so the geometry of the
+regions is fixed before any reassignment occurs.
 
 ## The transposition as a permutation
 
@@ -175,8 +172,8 @@ same byte before the move" (Question 2). What changes is the V-position; what is
 preserved is the I-address, and with it the origin, the attribution, and every
 relationship anchored to that address.
 
-A consequence we will lean on repeatedly: the *set* of I-addresses the document
-references is invariant. Since `π` is a bijection,
+A consequence: the *set* of I-addresses the document references is invariant.
+Since `π` is a bijection,
 
       ran(M'(d)) = { M'(d)(π(v)) : v ∈ dom(M(d)) }
                  = { M(d)(v)     : v ∈ dom(M(d)) }
@@ -226,7 +223,10 @@ inherited verbatim from the pre-state, none of them mentioning the values
 (ASN-0047, **D-CTG★**), sequentiality (**D-SEQ★**), the minimum position
 (**D-MIN★**), V-position well-formedness (**S8a**), uniform per-subspace
 depth (**S8-depth**), and finiteness (**S8-fin**) all held for `V_{s_C}(d)` before
-the rearrangement and so hold after it.
+the rearrangement and so hold after it. Subspace exhaustiveness (**S3★-aux**) —
+every V-position carries subspace `s_C` or `s_L` — constrains the full key set
+`V_{s_C}(d) ∪ V_{s_L}(d) = dom(M(d))`, equally unchanged by RA2, and is inherited
+the same way.
 
 One per-state invariant does turn on the values `π` reshuffles, so it cannot be
 inherited this way and needs a positive argument: S8★ (ASN-0047, **S8★**,
@@ -402,9 +402,10 @@ because the content-subspace value set is invariant: `π` permutes the text
 subspace onto itself, so
 `{ M'(d)(v) : subspace(v) = s_C } = { M(d)(u) : subspace(u) = s_C }`, whence
 `Contains_C(Σ') = Contains_C(Σ) ⊆ R = R'`. The remaining
-ExtendedReachableStateInvariants conjuncts (P6, P7, P8, P7a, P4a, the L-family,
-the C-family) are preserved by the `C`/`E`/`R`/`L` frame, so the invariant package
-REARRANGE joins is fully accounted for.
+ExtendedReachableStateInvariants conjuncts (P6, P7, P8, P7a, P4a, the E-family
+NodeLineage/ActivatedEmission, the L-family, the C-family) are preserved by the
+`C`/`E`/`R`/`L` frame, so the invariant package REARRANGE joins is fully accounted
+for.
 
 *A link spanning both moved regions, or running from a moved region into
 stationary content* (Question 5). Here the footprint may be split by a cut, and we
