@@ -71,14 +71,14 @@ for the subspace the start designates, when `S` is already populated in `d`
 (`V_S(d) ≠ ∅`) the start
 must match that subspace's common depth, `#s = m_S(d)` (the depth S8-depth
 (ASN-0036) fixes uniformly on `V_S(d)`). When `V_S(d) = ∅` the constraint is
-vacuous — any well-formed start of depth `≥ 2` is admissible. Because `m_S(d)`
-is itself mutable — ASN-0047 re-pins a fully-cleared subspace's depth from
-scratch on its next insertion — a V-spec well-formed when minted may later, at a
-downstream state of the *same* document, fail `#s = m_S(d)`; by R6's discipline
-we take such a depth-incompatible spec to have empty active set
-(`act(ρ, Σ) = ∅`, overriding the geometric `dom(Σ.M(d)) ∩ ⟦σ⟧` lest a
-now-too-shallow start capture deeper content the citation never named), so it
-delivers nothing and the request still succeeds rather than failing the whole.
+vacuous — any well-formed start of depth `≥ 2` is admissible. This depth match is a *minting-time* requirement on a well-formed V-spec. But
+`m_S(d)` is itself mutable — ASN-0047 re-pins a fully-cleared subspace's depth from
+scratch on its next insertion — so a V-spec well-formed when minted may later, at a
+downstream consulting state of the *same* document, fail `#s = m_S(d)`. The
+definition of `act` below makes that state-relative failure operative — forcing an
+empty active set at any consulting state where the spec is depth-incompatible — so
+a stale spec delivers nothing and the request still succeeds rather than failing
+the whole.
 Ordinal-level means the width acts at the deepest component,
 `actionPoint(ℓ) = #ℓ` (ASN-0082, OrdinalLevel). This is the deepest-action-point
 discipline that keeps a span within a single subspace:
@@ -110,17 +110,33 @@ exactly, including nothing else, you do this by a span-set, which is a series of
 spans" (4/25) tells us a spec-set is a *sequence*, not a set — its order carries
 meaning, and it designates content *exactly*.
 
-For a V-spec `ρ = (d, σ)` we define its *active positions* at state `Σ`:
+For a V-spec `ρ = (d, σ)`, write `S = s₁` for the subspace its start designates.
+Call `ρ` *depth-compatible at `Σ`* — `depthcompat(ρ, Σ)` — when the named subspace
+is empty or the start sits at its current common depth:
 
-> `act(ρ, Σ) = dom(Σ.M(d)) ∩ ⟦σ⟧`
+> `depthcompat(ρ, Σ) ≡ V_S(d) = ∅ ∨ #s = m_S(d)`
 
-— the V-positions the span names that the document's arrangement actually binds.
-Silent filtering is built into this definition: a named position that the
-arrangement does not bind simply is not in `act`. The set `act(ρ, Σ)` is finite
-because it is a subset of `dom(Σ.M(d))`, which is finite (ASN-0036, S8-fin); it is
-totally ordered because it is a subset of the totally ordered carrier `T`
-(ASN-0034, T1). Finiteness and total order together give it a unique ascending
-enumeration `v₁ < v₂ < … < v_{k}` where `k = |act(ρ, Σ)|`.
+(well-formed because the disjunction guards `m_S(d)`, which ASN-0047 defines only
+while `V_S(d) ≠ ∅`). We define `ρ`'s *active positions* at state `Σ` by a case
+split on this predicate:
+
+> `act(ρ, Σ) = dom(Σ.M(d)) ∩ ⟦σ⟧`  when `depthcompat(ρ, Σ)`
+> `act(ρ, Σ) = ∅`  otherwise
+
+In the depth-compatible branch the active positions are the V-positions the span
+names that the document's arrangement actually binds; silent filtering is built in,
+since a named position the arrangement does not bind is simply absent from the
+intersection. In the override branch — a once-valid start gone too shallow for the
+subspace's current depth — the active set is forced empty, *overriding* the
+geometric `dom(Σ.M(d)) ∩ ⟦σ⟧` lest a now-too-shallow start capture deeper content
+the citation never named; the spec then delivers nothing and the request still
+succeeds rather than failing the whole. This case-split is the single operative
+definition of `act`; every later use — R0's `deliver`, `item` totality, R3, R6,
+R7 — reads it, the override included. In either branch `act(ρ, Σ)` is finite — it
+is `∅`, or a subset of `dom(Σ.M(d))`, which is finite (ASN-0036, S8-fin) — and
+totally ordered, being a subset of the totally ordered carrier `T` (ASN-0034, T1).
+Finiteness and total order together give it a unique ascending enumeration
+`v₁ < v₂ < … < v_{k}` where `k = |act(ρ, Σ)|`.
 
 Each active position is resolved through the arrangement to a single address
 `a = Σ.M(d)(v)` (well-defined and single-valued by S2), and the *delivery item*
@@ -219,20 +235,25 @@ extra, nothing requested-and-present silently omitted? Yes, and the two halves
 are visible directly in R0.
 
 > **R3 (SpecSetExactness).** The delivery contains an item for *exactly* the
-> active positions of each span, and no others: every item arises from some
-> `v ∈ ⟦σⱼ⟧ ∩ dom(Σ.M(dⱼ))` (nothing extra — every delivered item is named by a
-> span), and every such `v` contributes an item (nothing present-and-named is
-> omitted).
+> active positions `act(ρⱼ, Σ)` of each spec, and no others: every delivered item
+> arises from some `v ∈ act(ρⱼ, Σ)` (nothing extra), and every `v ∈ act(ρⱼ, Σ)`
+> contributes an item (nothing active omitted). For a spec depth-compatible at `Σ`
+> this reads as span-for-span exactness, `act(ρⱼ, Σ) = ⟦σⱼ⟧ ∩ dom(Σ.M(dⱼ))` —
+> every position the span names and the arrangement binds, and no other; for a spec
+> depth-incompatible at `Σ`, `act(ρⱼ, Σ) = ∅`, so that spec contributes nothing.
 
-The upper bound holds because `act(ρ, Σ) ⊆ ⟦σ⟧`: the half-open interval is the
-exact extent the span designates, and "there is no choice as to what lies
-between; this is implicit in the choice of first and last point" (4/25). The
-lower bound holds because `act` includes *all* of `⟦σ⟧ ∩ dom(Σ.M(d))`. We stress
+The upper bound holds because `act(ρ, Σ) ⊆ ⟦σ⟧` in either branch of the `act`
+definition: the half-open interval is the exact extent the span designates, and
+"there is no choice as to what lies between; this is implicit in the choice of
+first and last point" (4/25). The lower bound holds because the delivery realizes
+*all* of `act` (R0), and `act` is by definition `⟦σ⟧ ∩ dom(Σ.M(d))` for a
+depth-compatible spec — so every named-and-bound position contributes — and `∅`
+for a depth-incompatible one, where nothing is active to omit. We stress
 that the span width `ℓ` is a tumbler boundary, not a count — "a tumbler-span …
 does not designate the number of bytes contained" (Nelson, 4/25; ASN-0034) — so
-the delivered quantity equals `|act(ρ, Σ)|`, the number of *bound* positions in
-the interval, which equals the nominal extent only when no position in the
-interval is unbound. Where a requested boundary falls between stored positions,
+the delivered quantity equals `|act(ρ, Σ)|`, the number of *active* positions,
+which equals the nominal extent only when the spec is depth-compatible and no
+position in the interval is unbound. Where a requested boundary falls between stored positions,
 an implementation must clip to the interval exactly (Gregory's `whereoncrum`
 classification and `context2vtext` boundary clip realize this); the clip changes
 no abstract content, it merely realizes the half-open interval precisely.
@@ -283,27 +304,39 @@ What if part of the spec-set names content that no longer exists in the named
 arrangement, or was never established there? The architecture answers: deliver
 what can be delivered, signal the gap by absence, and never fail the whole.
 
-> **R6 (SilentGapFiltering).** A named position with no binding in the consulted
-> arrangement — `v ∈ ⟦σⱼ⟧ \ dom(Σ.M(dⱼ))` — contributes nothing to the delivery
-> and causes no failure. Delivery succeeds and returns the items for the bound
-> positions; the unbound positions are represented by their absence. Moreover,
-> restricted to the depth-`m_S`, subspace-`S` slice of `⟦σⱼ⟧` — the only named
-> positions the arrangement can bind — the unbound portion never falls as an
-> interior hole within the subspace's contiguous active range; and whenever that
-> slice meets the active range, the unbound portion is exactly a *terminal
-> overrun* past the bound frontier. The no-interior-hole guarantee is a claim
-> about the bindable slice, not about every named tumbler in the interval.
+> **R6 (SilentGapFiltering).** A named position the consulted arrangement does not
+> make active — one outside `act(ρⱼ, Σ)` — contributes nothing to the delivery and
+> causes no failure; delivery succeeds and returns the items for exactly the active
+> positions `act(ρⱼ, Σ)`, the rest represented by their absence. When `ρⱼ` is
+> depth-compatible at `Σ`, `act(ρⱼ, Σ) = dom(Σ.M(dⱼ)) ∩ ⟦σⱼ⟧`, so the filtered
+> positions are precisely the geometrically unbound ones,
+> `v ∈ ⟦σⱼ⟧ \ dom(Σ.M(dⱼ))`; when `ρⱼ` is depth-incompatible at `Σ`,
+> `act(ρⱼ, Σ) = ∅` and the whole span is filtered, still without failure. Moreover,
+> for a depth-compatible `ρⱼ`, restricted to the depth-`m_S`, subspace-`S` slice of
+> `⟦σⱼ⟧` — the only named positions the arrangement can bind — the unbound portion
+> never falls as an interior hole within the subspace's contiguous active range;
+> and whenever that slice meets the active range, the unbound portion is exactly a
+> *terminal overrun* past the bound frontier. The no-interior-hole guarantee is a
+> claim about the bindable slice, not about every named tumbler in the interval.
 
-This is forced by the model: `act(ρ, Σ)` is an intersection, so an unbound
-position is simply not enumerated.
+This is forced by the model. For a depth-compatible `ρ` the active set is the
+intersection `dom(Σ.M(d)) ∩ ⟦σ⟧`, so a named position the arrangement does not
+bind is simply not enumerated; for a depth-incompatible `ρ` the active set is `∅`
+outright (the `act` override), so every named position — bound or not — is dropped.
+Either way a non-active position contributes nothing and no failure arises.
 
-The substrate sharpens *where* such a gap can fall. Fix a V-spec `(d, σ)` rooted in
-subspace `S = s₁`. If `V_S(d) = ∅` the sharpening is trivial: `act = ∅`, every
-named position is an unbound terminal overrun of the empty active range, and there
-is no interior range for a hole to fall in. Otherwise `V_S(d) ≠ ∅`, and the V-spec
-definition's depth-compatibility conjunct gives `#s = m_S(d)` — the span is rooted
-at exactly the subspace's common depth `m_S`, which is the case the remainder of
-this argument analyses. By
+The substrate sharpens *where* such a gap can fall, and we take the cases of the
+`act` definition in turn. Fix a V-spec `(d, σ)` rooted in subspace `S = s₁`.
+*Depth-incompatible at `Σ`* (`V_S(d) ≠ ∅ ∧ #s ≠ m_S(d)`): the override gives
+`act = ∅`, so the active range is empty — there is no interior range for a hole to
+fall in, and every named position is, vacuously, a terminal overrun of the empty
+active range. *Depth-compatible at `Σ`*: either `V_S(d) = ∅` or `#s = m_S(d)`. If
+`V_S(d) = ∅`, then `⟦σ⟧` lies wholly in subspace `S` (Confinement) while `d` binds
+no subspace-`S` position, so `act = dom(Σ.M(d)) ∩ ⟦σ⟧ = ∅`; again every named
+position is an unbound terminal overrun of the empty active range, with no interior
+range for a hole. Otherwise `V_S(d) ≠ ∅` and `#s = m_S(d)` — the span is rooted at
+exactly the subspace's common depth `m_S`, which is the case the remainder of this
+argument analyses. By
 D-SEQ★ (ASN-0047) — the content-subspace instance being D-SEQ (ASN-0036) — the
 active positions of `d` in subspace `S` are the contiguous prefix
 `V_S(d) = {[S, 1, …, 1, k] : 1 ≤ k ≤ n_S}`, varying only in the last component.
@@ -368,8 +401,9 @@ to but not including `[1,7]`. Its depth-2 slice is
 denotation `⟦σ⟧ = {t ∈ T : [1,2] ≤ t < [1,7]}` also contains deeper tumblers such
 as `[1,2,1]` (a proper extension of `[1,2]`, hence `> [1,2]` by T1 case (ii), and
 `< [1,7]` by T1 case (i) at position 2), but the arrangement here binds only
-depth-2 positions, so only the slice meets `dom(Σ.M(d))`. Intersecting with the
-arrangement,
+depth-2 positions, so only the slice meets `dom(Σ.M(d))`. The spec is
+depth-compatible (`#s = 2 = m_1(d)`), so `act` takes its geometric branch;
+intersecting with the arrangement,
 `act((d, σ), Σ) = dom(Σ.M(d)) ∩ ⟦σ⟧ = {[1, 2], [1, 3], [1, 4]}`, so the delivery is
 `deliver(R, Σ) = ⟨⟨content, Σ.C(Σ.M(d)([1,2]))⟩, ⟨content, Σ.C(Σ.M(d)([1,3]))⟩,
 ⟨content, Σ.C(Σ.M(d)([1,4]))⟩⟩`. Check the four claims against this result. R1:
@@ -401,8 +435,18 @@ delivered material be identical?
 
 The proof is short and exposes which input is the variable one. `deliver` is a
 function of two things: the consulted arrangement restrictions, and the stores
-the resolved values are drawn from. The restrictions are equal by hypothesis, so
-`act` and the resolved addresses agree position-for-position. Fix any resolved
+the resolved values are drawn from. We first show the active sets agree,
+`act(ρⱼ, Σ) = act(ρⱼ, Σ')` — non-trivial because `act`'s depth-compatibility
+branch reads the *whole* subspace state of `dⱼ`, not just the restriction to
+`⟦σⱼ⟧` the hypothesis equates. If `Σ.M(dⱼ)|⟦σⱼ⟧` is non-empty, a shared bound
+position `v ∈ ⟦σⱼ⟧ ∩ dom(M(dⱼ))` lies in subspace `S = s₁` (Confinement), so
+`v ∈ V_S(dⱼ)` at both states and S8-depth pins `m_S(dⱼ) = #v` equally at each;
+depth-compatibility then holds-or-fails identically, and where it holds `act` is
+the equal restriction's (equal, non-empty) domain. If `Σ.M(dⱼ)|⟦σⱼ⟧` is empty,
+then `⟦σⱼ⟧ ∩ dom(M(dⱼ)) = ∅` at both states, so `act(ρⱼ, Σ) = ∅ = act(ρⱼ, Σ')`
+whichever branch each state takes (the depth-compatible branch yields the empty
+intersection, the override branch yields `∅` directly). Either way the active sets
+and the resolved addresses agree position-for-position. Fix any resolved
 address `a`, the same at both states by that agreement. The two item kinds now
 conclude by different routes, and the asymmetry is the point. For a **link
 position** the delivered item is `⟨ref, a⟩` — it carries the resolved *address*,
@@ -490,13 +534,10 @@ construction — in computing the delivery the operation never copies, it
 dereferences the one address `a` twice, so both items are the one content
 delivered twice, not two independent reproductions of it.
 
-Co-delivery therefore establishes nothing about the relation between the two
-that two separate single-span deliveries would not: it carries no information a
-pair of isolated requests lacks. Each position resolves through `a`
-independently — whether delivered alone or alongside the other — so the shared
-home is established per-position, not jointly; and `deliver` performs no
-comparison of the two resolutions, it concatenates two independently computed
-items (R0). Nelson's promise that the system
+Each position resolves through `a` independently — whether delivered alone or
+alongside the other — so the shared home is established per-position, not jointly;
+and `deliver` performs no comparison of the two resolutions, it concatenates two
+independently computed items (R0). Nelson's promise that the system
 "will also reveal and clarify commonalities between documents and among
 versions" (3/4) is kept by operations that compare addresses, not by RETRIEVEV,
 whose content payload is value-only.
@@ -713,13 +754,13 @@ absent consolidation step realizing the no-deduplication corollary of R3 and R8.
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| R0 | `deliver(R, Σ)` = per-spec deliveries concatenated in spec-set order; `deliver₁(ρ,Σ)` = items of `act(ρ,Σ) = dom(Σ.M(d)) ∩ ⟦σ⟧` in ascending T1 order; `item` carries `Σ.C(a)` for content positions, the reference `a` for link positions | introduced |
+| R0 | `deliver(R, Σ)` = per-spec deliveries concatenated in spec-set order; `deliver₁(ρ,Σ)` = items of `act(ρ,Σ)` in ascending T1 order, where `act(ρ,Σ) = dom(Σ.M(d)) ∩ ⟦σ⟧` when `ρ` is depth-compatible at `Σ` (`V_S(d) = ∅ ∨ #s = m_S(d)`) and `∅` otherwise; `item` carries `Σ.C(a)` for content positions, the reference `a` for link positions | introduced |
 | R1 | MaterialDelivery: a content item carries the bound value `Σ.C(Σ.M(d)(v))`, not a description of its location | introduced |
 | R2 | Faithfulness: every content item equals `Σ.C(Σ.M(d)(v))` (from S2 + S0); no value may be substituted. Frame limit: this governs the denotation of delivery, not any transmission channel | introduced |
-| R3 | SpecSetExactness: items arise for exactly `⟦σⱼ⟧ ∩ dom(Σ.M(dⱼ))` — nothing outside the spans, nothing named-and-bound omitted | introduced |
+| R3 | SpecSetExactness: items arise for exactly `act(ρⱼ, Σ)` — for a depth-compatible spec this is `⟦σⱼ⟧ ∩ dom(Σ.M(dⱼ))` (nothing outside the spans, nothing named-and-bound omitted), for a depth-incompatible spec it is `∅` | introduced |
 | R4 | ArrangementRelativity: each V-spec is resolved through `Σ.M(dⱼ)` alone; the version named by `dⱼ` fixes the binding, so current and as-it-stood coincide | introduced |
 | R5 | OrderFidelity: spec-set sequence order across specs (no global V re-sort); ascending V-order within a spec; boundaries implicit in spans | introduced |
-| R6 | SilentGapFiltering: a named position unbound in the consulted arrangement contributes nothing and causes no failure; the gap is signalled by absence | introduced |
+| R6 | SilentGapFiltering: a position outside `act(ρⱼ, Σ)` contributes nothing and causes no failure (gap signalled by absence); for a depth-compatible spec the gap is a terminal overrun past the bound frontier, never an interior hole in the bindable slice; a depth-incompatible spec has `act = ∅` | introduced |
 | R7 | Repeatability: equal consulted arrangement restrictions ⟹ identical delivery; the arrangement is the sole mutable input | introduced |
 | R8 | TransclusionCoResolution: content positions sharing a resolved address deliver identical material via identity-preserving co-resolution through the one shared address, with no deduplication (one item per V-position); the sharing is internal to resolution and not disclosed by the output, which carries values not addresses (R1) and is byte-indistinguishable from coincidental value-equality (S4, R9); the link sub-case is vacuous (CL-OWN + CL-UNIQ forbid distinct link positions sharing an address), so genuine transclusion is confined to content | introduced |
 | R9 | CoherentMultiOriginAssembly: multi-origin spec-sets deliver as one ordered stream (R5), resolved per document (R4); output-recoverable provenance is kind-asymmetric — a link item carries `a`, so `home(a)` is recoverable from the delivered output (R10; L1a, HomeOriginCoincidence), while a content item carries only `Σ.C(a)`, so `origin(a)` (S7) is determinate only through the resolution mapping, not the output | introduced |
