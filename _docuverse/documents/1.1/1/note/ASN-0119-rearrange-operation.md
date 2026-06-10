@@ -513,10 +513,7 @@ blocks*, laying `β` before `α` (pivot) or `β, μ, α` (swap), and so manufact
 new *seams* where two formerly separated blocks now abut. Run structure is
 preserved *within* a region; *across* regions a seam can heal contiguity — two
 relocated blocks re-abut — or break it — a block pulls away from what sat beside
-it. The contiguity outcome is thus binary — preserved or broken. The
-configurations below are representative illustrations of these two outcomes, not a
-closed enumeration: a footprint spanning three or more regions falls under none of
-them, yet still resolves to one of the same two. We draw each from the worked
+it. The configurations below illustrate both effects, each drawn from the worked
 pivot above (`A B C D E ↦ A C D E B`, cuts `c₀,c₁,c₂ = ord 2,3,6`, with the `π`
 table from that section).
 
@@ -672,19 +669,17 @@ matter how it computes positions.
 
 REARRANGE is therefore a *partial* operation: it is defined exactly where its
 preconditions R-PRE hold against `M(d)` (ASN-0084 states that REARRANGE_K "is
-partial, defined exactly where R-PRE(K) holds"). R-PRE demands a strictly ascending
+partial, defined exactly where R-PRE(K) holds"), and on any input outside that
+domain it names no post-state. R-PRE demands a strictly ascending
 cut sequence whose affected interval `[c₀, c_{n-1})` lies wholly within the active
 text subspace (R-PRE(iv)) and whose two moved-region widths are each `≥ 1` (a
-zero-width moved region is degenerate). The degenerate document sizes admit no such
-sequence and so fall outside the domain of definition; on them there is no
-transition. An empty text subspace (`V_{s_C}(d) = ∅`) offers no active positions to
+zero-width moved region is degenerate). The degenerate document sizes are instances
+of this exclusion. An empty text subspace (`V_{s_C}(d) = ∅`) offers no active positions to
 cut. A single active position cannot furnish an affected interval of the minimum
 width — two positions for a pivot (`w_α, w_β ≥ 1`), three for a swap
 (`w_α, w_μ, w_β ≥ 1`) — that strict ascent together with R-PRE(iv) require. More
 generally, any document whose active run is shorter than that minimum interval
-cannot satisfy R-PRE(iv) and strict ascent simultaneously. In each such case there
-is no valid cut sequence: REARRANGE does not apply, and the operation is simply
-silent on inputs outside its domain — it names no post-state.
+cannot satisfy R-PRE(iv) and strict ascent simultaneously.
 
 The opposite extreme stays *inside* the domain. When `c₀ = min(V_{s_C}(d)) =
 [s_C, 1]` the left exterior `{v : v < c₀}` is empty and R-EXT's `v < c₀` branch is a
@@ -736,6 +731,8 @@ What must REARRANGE guarantee about boundary-hood when a cut in one document's a
 Under what conditions may two rearrangements on the same document's content scope be applied without a serializing authority while leaving the final arrangement independent of their order?
 
 What invariant must relate a content-based discovery index to the arrangement after a rearrangement, given that a link's footprint may fragment into arbitrarily many V-spans while its coverage is unchanged?
+
+What run-structure guarantee must REARRANGE provide for a link footprint that spans three or more regions, given that within-region confinement (RA7c) is sufficient but not necessary for contiguity preservation?
 
 What must the operation guarantee about the recoverability of a prior arrangement from the permanent content store, given that REARRANGE records only the new V→I mapping and the old order is no longer expressed?
 
