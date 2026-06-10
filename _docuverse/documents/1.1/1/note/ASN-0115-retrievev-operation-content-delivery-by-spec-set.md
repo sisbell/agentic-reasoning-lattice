@@ -75,9 +75,7 @@ vacuous — any well-formed start of depth `≥ 2` is admissible. This depth mat
 `m_S(d)` is itself mutable — ASN-0047 re-pins a fully-cleared subspace's depth from
 scratch on its next insertion — so a V-spec well-formed when minted may later, at a
 downstream consulting state of the *same* document, fail `#s = m_S(d)`. The depth
-conjunct is therefore re-evaluated at each consulting state, not fixed at mint;
-how that re-evaluation bears on delivery is settled where `act` is defined (below)
-and by its R6 consequence.
+conjunct is therefore re-evaluated at each consulting state, not fixed at mint.
 Ordinal-level means the width acts at the deepest component,
 `actionPoint(ℓ) = #ℓ` (ASN-0082, OrdinalLevel). This is the deepest-action-point
 discipline that keeps a span within a single subspace:
@@ -126,9 +124,7 @@ In the depth-compatible branch the active positions are the V-positions the span
 names that the document's arrangement actually binds; silent filtering is built in,
 since a named position the arrangement does not bind is simply absent from the
 intersection. In the override branch — any consulting-state depth mismatch,
-`V_S(d) ≠ ∅ ∧ #s ≠ m_S(d)`, whatever its provenance (a start depth-matched at mint
-but whose subspace has since been re-pinned to a different depth, or one minted
-against an empty subspace and never depth-matched) — the active set is forced
+`V_S(d) ≠ ∅ ∧ #s ≠ m_S(d)` — the active set is forced
 empty, *overriding* the geometric `dom(Σ.M(d)) ∩ ⟦σ⟧`. The override only *bites*
 when the start has gone too shallow (`#s < m_S(d)`), lest it capture deeper content
 the citation never named; when the start is too deep (`#s > m_S(d)`) the geometric
@@ -209,11 +205,17 @@ must be the content itself — no character altered, fabricated, or dropped.
 > `item(v, ρ, Σ).val = Σ.C(Σ.M(d)(v))`. No other value may be substituted.
 
 The justification is structural, and it is worth seeing exactly which invariants
-carry it. Resolution is deterministic because `Σ.M(d)` is a function (S2). The
-value at the resolved address is fixed for all time because `Σ.C` is immutable
-(S0): the byte at an I-address never changes after creation. A span names an
-I-address by way of the arrangement; the arrangement may be re-edited, but the
-*content* the resolved address denotes is permanent. This is precisely the
+carry it. R2 is a *single-state* denotational equality, and the invariants it
+needs are correspondingly few. Resolution is single-valued because `Σ.M(d)` is a
+function (S2), so the resolved address `a = Σ.M(d)(v)` is determinate; S3★ places
+`a` in the content store, so `Σ.C(a)` is defined; and the `item` definition *sets*
+the delivered content value to exactly `Σ.C(a)`. No other value may be
+substituted, because the delivered value simply *is* the store's value at the
+resolved address — that is the whole of R2. Permanence *across* states — that the
+byte at an I-address never changes after creation, so the same resolution yields
+the same value at a later state — is a distinct guarantee that R2 does not invoke;
+it is carried by content immutability (S0) and made load-bearing in R7
+(Repeatability) and R11 (PermanentSourcing). That cross-state permanence is the
 storage-layer invariant Nelson's design rests on — content lives permanently at
 its address, and "you always know where you are, and can at once ascertain the
 home document of any specific word or character" (2/40).
@@ -765,7 +767,7 @@ absent consolidation step realizing the no-deduplication corollary of R3 and R8.
 |-------|-----------|--------|
 | R0 | `deliver(R, Σ)` = per-spec deliveries concatenated in spec-set order; `deliver₁(ρ,Σ)` = items of `act(ρ,Σ)` in ascending T1 order, where `act(ρ,Σ) = dom(Σ.M(d)) ∩ ⟦σ⟧` when `ρ` is depth-compatible at `Σ` (`V_S(d) = ∅ ∨ #s = m_S(d)`) and `∅` otherwise; `item` carries `Σ.C(a)` for content positions, the reference `a` for link positions | introduced |
 | R1 | MaterialDelivery: a content item carries the bound value `Σ.C(Σ.M(d)(v))`, not a description of its location | introduced |
-| R2 | Faithfulness: every content item equals `Σ.C(Σ.M(d)(v))` (from S2 + S0); no value may be substituted. Frame limit: this governs the denotation of delivery, not any transmission channel | introduced |
+| R2 | Faithfulness: every content item equals `Σ.C(Σ.M(d)(v))` (from S2 + S3★ and the `item` definition; permanence-across-time belongs to R7/R11, via S0); no value may be substituted. Frame limit: this governs the denotation of delivery, not any transmission channel | introduced |
 | R3 | SpecSetExactness: items arise for exactly `act(ρⱼ, Σ)` — for a depth-compatible spec this is `⟦σⱼ⟧ ∩ dom(Σ.M(dⱼ))` (nothing outside the spans, nothing named-and-bound omitted), for a depth-incompatible spec it is `∅` | introduced |
 | R4 | ArrangementRelativity: each V-spec is resolved through `Σ.M(dⱼ)` alone; the version named by `dⱼ` fixes the binding, so current and as-it-stood coincide | introduced |
 | R5 | OrderFidelity: spec-set sequence order across specs (no global V re-sort); ascending V-order within a spec; boundaries implicit in spans | introduced |
