@@ -117,9 +117,16 @@ split on this predicate:
 In the depth-compatible branch the active positions are the V-positions the span
 names that the document's arrangement actually binds. In the override branch —
 any consulting-state depth mismatch, `V_S(d) ≠ ∅ ∧ #s ≠ m_S(d)` — the active set
-is forced empty, *overriding* the geometric `dom(Σ.M(d)) ∩ ⟦σ⟧`. The override
-only *bites* when the start has gone too shallow (`#s < m_S(d)`), lest it capture
-deeper content the citation never named. In either branch `act(ρ, Σ)` is finite —
+is forced empty, *overriding* the geometric `dom(Σ.M(d)) ∩ ⟦σ⟧`. Force-empty is
+chosen over the geometric intersection because that intersection is discontinuous
+in the start's depth: with `m_S(d) = 3` (so `V_S(d) = {[S, 1, k] : 1 ≤ k ≤ n_S}`
+by D-SEQ★), a too-shallow depth-2 start `[S, 1]` has `V_S(d) ⊆ ⟦σ⟧` and would
+vacuum the *entire* subspace, while the neighbouring depth-2 start `[S, 2]`
+captures nothing — all-or-nothing on where the shallow start happened to fall. A
+spec stale against a re-pinned subspace should deliver nothing rather than vacuum
+its re-pinned content; so the override only *bites* when the start has gone too
+shallow (`#s < m_S(d)`), forcing empty lest the intersection capture deeper
+content the citation never named. In either branch `act(ρ, Σ)` is finite —
 it is `∅`, or a subset of `dom(Σ.M(d))`, which is finite (ASN-0036, S8-fin) — and
 totally ordered, being a subset of the totally
 ordered carrier `T` (ASN-0034, T1).
