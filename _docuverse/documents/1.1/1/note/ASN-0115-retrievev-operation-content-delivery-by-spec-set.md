@@ -560,18 +560,12 @@ it is the document-level prefix `origin(a)` (S7); for a link position
 L1a), which coincides with `origin` on link addresses (ASN-0086,
 HomeOriginCoincidence). Determinacy, though, is automatic — `origin` and `home`
 are functions of the resolved address, so no faithful resolution could lose it.
-Where the two kinds genuinely part is *output-recoverability*, and that is the
-asymmetry R9 records: a link item carries the address `a`, so its `home(a)` is
-recoverable from the delivered stream itself; a content item carries only
-`Σ.C(a)`, so its `origin(a)` survives only in the resolution mapping `v ↦ a`, an
-internal artifact of computing `deliver`. Co-assembly preserves link home in the
-output and collapses content origin out of it, with inline content provenance
-deferred (Open Question 1).
-Because each spec is resolved against its own
-arrangement (R4), cross-document spec-sets are resolved per document and then
-concatenated — Gregory's `specset2ispanset` loop calls the per-document lookup
-once per spec, reading each document's arrangement in isolation, exactly the
-independence R9 requires.
+Output-recoverability is where the two kinds genuinely part, and the box records
+that asymmetry as R9's substantive content. Because each spec is resolved against
+its own arrangement (R4), cross-document spec-sets are resolved per document and
+then concatenated — Gregory's `specset2ispanset` loop calls the per-document
+lookup once per spec, reading each document's arrangement in isolation, exactly
+the independence R9 requires.
 
 *Worked instance.* Let two **distinct** documents `d₁ ≠ d₂` (distinct
 document-level tumblers, `zeros(dⱼ) = 2`, with distinct allocation events,
