@@ -155,9 +155,7 @@ RETRIEVEV is a *pure query*. `deliver(R, Σ)` reads the state and produces no
 transition: no component of `Σ` is modified — neither the content store `Σ.C`,
 nor the link store `Σ.L`, nor any arrangement `Σ.M(d)`, nor any other component.
 The operation does not appear in the substrate's transition vocabulary at all;
-it is a function of state, not a state transition. We record this as a frame
-rather than leave it implicit in the functional notation (cf. ASN-0086,
-Observe).
+it is a function of state, not a state transition (cf. ASN-0086, Observe).
 
 ## Delivery returns material, not location
 
