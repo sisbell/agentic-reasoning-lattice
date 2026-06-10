@@ -487,38 +487,36 @@ V-position named by two overlapping specs — which delivers the identical refer
 *not* transclusion (it is one position, not two). The substantive co-delivery
 guarantee of R8 is thus confined to content.
 
-Three points deserve emphasis. First, *identity is structural, not incidental*.
-Content identity in Xanadu is by creation, not by value: two independently
-created identical strings get distinct addresses, while transcluded content
-shares one address (S4). So delivering both positions by way of the same `a` is
-identity-preserving by construction — it is reference, not copy, and "any
-detached copy someone keeps is frozen and dead" precisely because copying severs
-this. In computing the delivery the operation never copies — it dereferences the
-one address `a` twice — so both items are the one content delivered twice, not
-two independent reproductions of it. That identity is a property of *how the
-delivery is computed*, not of the delivered bytes, as the next point makes
-precise.
+Within content, identity is structural, not incidental. Content identity in
+Xanadu is by creation, not by value: two independently created identical strings
+get distinct addresses, while transcluded content shares one address (S4). So
+delivering both positions by way of the same `a` is identity-preserving by
+construction — in computing the delivery the operation never copies, it
+dereferences the one address `a` twice, so both items are the one content
+delivered twice, not two independent reproductions of it. That makes the shared
+identity a property of *how the delivery is computed*, not of the delivered
+bytes.
 
-Second, *the sharing is internal to resolution, not disclosed by the output*.
-Each position resolves through `a` independently — whether delivered alone or
-alongside the other — so the shared home is established per-position, not
-jointly; and `deliver` performs no comparison of the two resolutions, it
-concatenates two independently computed items (R0). Co-delivery therefore
-establishes nothing about the relation between the two that two separate
-single-span deliveries would not: it carries no information a pair of isolated
-requests lacks. Nelson's promise that
-the system "will also reveal and clarify commonalities between documents and
-among versions" (3/4) is kept by operations
-that compare addresses, not by RETRIEVEV, whose content payload is value-only.
+Because the identity lives in the computation, the sharing is internal to
+resolution, not disclosed by the output. Each position resolves through `a`
+independently — whether delivered alone or alongside the other — so the shared
+home is established per-position, not jointly; and `deliver` performs no
+comparison of the two resolutions, it concatenates two independently computed
+items (R0). Co-delivery therefore establishes nothing about the relation between
+the two that two separate single-span deliveries would not: it carries no
+information a pair of isolated requests lacks. Nelson's promise that the system
+"will also reveal and clarify commonalities between documents and among
+versions" (3/4) is kept by operations that compare addresses, not by RETRIEVEV,
+whose content payload is value-only.
 
-Third, *no merge*. The two items are not collapsed into one. This is forced
-abstractly — two distinct V-positions are two distinct entries, and a delivery
-that dropped one would violate R3 (it would silently omit a named, bound
-position). It is also exactly Gregory's behavior: the consolidation step that
-would merge co-referent spans is absent (the `consolidatespans` call is
-commented out), so identical bytes are delivered once per V-position. An
-alternative implementation is *required* to deliver both, by R3 — the absence of
-deduplication is not an implementation accident but a consequence of exactness.
+Nor does the operation merge the two items into one. This is forced abstractly —
+two distinct V-positions are two distinct entries, and a delivery that dropped
+one would violate R3 (it would silently omit a named, bound position). It is also
+exactly Gregory's behavior: the consolidation step that would merge co-referent
+spans is absent (the `consolidatespans` call is commented out), so identical
+bytes are delivered once per V-position. An alternative implementation is
+*required* to deliver both, by R3 — the absence of deduplication is not an
+implementation accident but a consequence of exactness.
 
 *Worked instance.* Let document `d` transclude one stretch of content twice: V-positions `u`
 and `w` (with `u < w`, both in subspace `s_C`) both map to the same content
