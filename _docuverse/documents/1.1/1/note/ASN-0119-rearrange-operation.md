@@ -293,14 +293,11 @@ REARRANGE step does not touch, so it persists unchanged into the extended trace 
 `Σ'`, witnessing `(a, d)` there as well — the pre-state's trace witness persists,
 and the appended step is never consulted. A trace reaching `Σ'` by any *other*
 final composite has that composite drawn from ASN-0047's vocabulary; it does not
-factor through `Σ` via REARRANGE, and need not. The non-atomic `K.μ~` composite
-(`K.μ⁻ + K.μ⁺`) realizes the same net `π` and reaches the same `Σ'`, ending in its
-`K.μ⁺` half — but it is only one such route (a standalone `K.μ⁺` adding a single
-content position reaches `Σ'` as well), an illustration rather than a
-characterization of the alternatives. For *any* such final composite `Σ'' →* Σ'`,
-ASN-0047's P4a argument for that composite discharges the obligation at `Σ'` from
-the single hypothesis that P4a holds at its pre-state `Σ''`; that argument reads
-only the pre-state, never how `Σ''` was reached, so it transfers verbatim when the
+factor through `Σ` via REARRANGE, and need not. For *any* such final composite
+`Σ'' →* Σ'`, ASN-0047's P4a argument for that composite discharges the obligation
+at `Σ'` from the single hypothesis that P4a holds at its pre-state `Σ''`; that
+argument reads only the pre-state, never how `Σ''` was reached, so it transfers
+verbatim when the
 prefix `Σ₀ →* Σ''` interleaves REARRANGE steps. The hypothesis itself — P4a at
 `Σ''` — is supplied not by ASN-0047's induction alone (which ranges only over its
 own atomic vocabulary, not REARRANGE-interleaved traces) but by the *combined*
