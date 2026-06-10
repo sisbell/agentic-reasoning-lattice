@@ -87,10 +87,8 @@ the action point at the deepest component, `actionPoint(ℓ) = #ℓ`, so the spa
 advances along the last component alone. The bound active set
 `act(ρ, Σ) = dom(Σ.M(d_s)) ∩ ⟦σ⟧` is single-subspace by content-residence
 (`act(ρ, Σ) ⊆ V_{s_C}(d_s)`, the operation's precondition below) and single-depth
-by S8-depth (ASN-0036), *regardless* of where `ℓ`'s action point falls; so
-resolution integrity (CP0(a)) rests on S3★ over the bound positions, and the
-run-decomposition (CP0(c)) on the single-subspace premise so obtained — neither on
-`actionPoint(ℓ)`. Gregory's udanax-green confirms the design is parametric in
+by S8-depth (ASN-0036), *regardless* of where `ℓ`'s action point falls. Gregory's
+udanax-green confirms the design is parametric in
 depth: `acceptablevsa` is an unconditional pass, the supplied action point used
 as-is. Whatever depth `ℓ` has, the
 span's start `s` is a well-formed V-position (ASN-0036, S8a): `zeros(s) = 0`,
@@ -127,16 +125,18 @@ We restrict attention to *content* spec-sets: COPY's content-residence precondit
 (stated with the operation below) requires every active position to be in the text
 subspace, `subspace(vⱼ) = s_C`, so by referential integrity (S3★) each resolves to
 a content address `Σ.M(d_s)(vⱼ) ∈ dom(Σ.C)`. This precondition does the work the
-discarded full-binding hypothesis would otherwise have done, and does it without
-appeal to binding: it confines the resolved domain `act(ρ, Σ) ⊆ V_{s_C}(d_s)` to a
-single subspace directly, and grounds resolution integrity in S3★ over exactly the
-bound positions COPY acts on — rather than in ASN-0058's C1, whose stated
-precondition is the full binding we drop. As already argued, these arrangement-side
-facts (single subspace, plus the common depth S8-depth fixes) are the only premises
-the resolution and placement arithmetic needs; the span's ordinal-level form is not
-among them. The one ASN-0058 property that genuinely does *not* survive partial
-binding — its width-preservation C2 — COPY never uses; we record its loss as an open
-question.
+discarded full-binding hypothesis would otherwise have done, and we fix here, once,
+the basis on which COPY's whole resolution and placement arithmetic stands. The
+precondition confines the resolved domain `act(ρ, Σ) ⊆ V_{s_C}(d_s)` to a *single
+subspace* directly, and S8-depth (ASN-0036) gives that subspace a *common depth*;
+these two arrangement-side facts are the only premises the arithmetic needs.
+Resolution integrity (CP0(a)) rests on S3★ over exactly the bound positions COPY
+acts on, and the run-decomposition (CP0(c)) on the single-subspace premise so
+obtained — *not* on ASN-0058's C1 or C0a, whose stated preconditions are the full
+binding COPY drops, and *not* on the span's ordinal-level form, since
+`actionPoint(ℓ)` may fall anywhere. The one ASN-0058 property that genuinely does
+*not* survive partial binding — its width-preservation C2 — COPY never uses; we
+record its loss as an open question.
 
 We define **resolution** as the flat I-address sequence obtained by expanding
 ASN-0058's `resolve` (Resolution). ASN-0058 resolves a content reference
@@ -180,11 +180,10 @@ object we record as the *resolution integrity* claim CP0:
   The interior addresses `aⱼ + k` are covered because the bridge identifies each
   with the image of the bound position `vⱼ + k`, not left as bare arithmetic on
   `aⱼ`. The conclusion coincides with ASN-0058 C1
-  (ResolutionIntegrity), but we derive it from S3★ over the bound subset rather than
-  cite C1, whose stated precondition is the full binding COPY discards — S3★ holds
-  of every bound position whether or not `⟦σ⟧` is fully bound. *Nothing named by the
-  spec-set is invented; it is all found.* This is the precondition that the
-  placement to come will require, met by the source arrangements alone.
+  (ResolutionIntegrity); here it is grounded in S3★ over the bound subset, per the
+  resolution basis fixed above. *Nothing named by the spec-set is invented; it is
+  all found.* This is the precondition that the placement to come will require, met
+  by the source arrangements alone.
 - **(b) Resolution is a pure read.** `resolve` is a function of `Σ`; it modifies no
   component — not `Σ.C`, not any `Σ.M(d)`, not `Σ.L`, not `Σ.R`. The source
   document is consulted, never altered, by the act of resolving a spec-set against
@@ -265,22 +264,27 @@ shifted positions — and *nothing else*; in particular the pre-shift positions 
 > `{v ∈ dom(Σ'.M(d)) : subspace(v) = s_C} =`
 > `  {v ∈ V_{s_C}(d) : v < p} ∪ {p + i : 0 ≤ i < W} ∪ {v + W : v ∈ V_{s_C}(d) ∧ v ≥ p}`     (CP3c)
 
-CP3c is load-bearing: without it the effect clauses CP2/CP3a/CP3b *underdetermine*
-the post-state in the displacing case. CP3a asserts a *new* binding at `v + W` but
-does not by itself remove the pre-state binding at `v`; CP3b frames only `v < p`
-and CP6 only `subspace(v) ≠ s_C`. So nothing among CP2/CP3a/CP3b/CP6 vacates the
-pre-state binding at `p`, and a reader could admit a post-state in which `p` is
-bound both to `c₀` (CP2) and to the un-vacated `Σ.M(d)(p)` — a double binding that
-falsifies S2 (ArrangementFunctionality). CP3c closes the text-subspace domain to
-the three disjoint, abutting ordinal ranges (left, placement, shifted; their
-disjointness is the tiling argument given later under prior-arrangement
-preservation), so each text V-position carries exactly one binding and S2 is
-dischargeable *from the postconditions alone*, not only from the exhibited
-composite. The clause is in exact step with that composite: the K.μ⁻ of step (i)
-below is precisely what removes the `≥ p` positions before step (ii)'s K.μ⁺ re-adds
-the shifted and placement positions. CP3c is the COPY analogue of ASN-0082's I3-V
-(PostInsertionVacating) and D-DOM (domain characterization), which COPY's
-displacement otherwise borrows wholesale.
+CP3c is a *domain-closure* postcondition. COPY needs one wherever its other clauses
+fix individual bindings but leave the *extent* of some subspace's domain in
+`dom(Σ'.M(d))` underdetermined: absent an explicit closure, a model may admit
+spurious extra positions there, and `d`'s per-state invariants would be
+dischargeable only through the exhibited composite, not from the postconditions
+alone. We therefore close each subspace's domain explicitly — CP3c here for the text
+subspace, CP6's domain-equality conjunct below for the rest — and the
+contraction-then-extension composite exhibited later realizes both.
+
+For the text subspace the gap is concrete. In the displacing case CP3a asserts a
+*new* binding at `v + W` but does not by itself remove the pre-state binding at `v`;
+CP3b frames only `v < p` and CP6 only `subspace(v) ≠ s_C`. So nothing among
+CP2/CP3a/CP3b/CP6 vacates the pre-state binding at `p`, and a reader could admit a
+post-state in which `p` is bound both to `c₀` (CP2) and to the un-vacated
+`Σ.M(d)(p)` — a double binding that falsifies S2 (ArrangementFunctionality). CP3c
+closes the text-subspace domain to the three disjoint, abutting ordinal ranges
+(left, placement, shifted; their disjointness is the tiling argument given later
+under prior-arrangement preservation), so each text V-position carries exactly one
+binding and S2 is dischargeable from the postconditions alone. CP3c is the COPY
+analogue of ASN-0082's I3-V (PostInsertionVacating) and D-DOM (domain
+characterization), which COPY's displacement otherwise borrows wholesale.
 
 *Effect — provenance.* Each resolved address is referenced by `d` in the
 post-state:
@@ -362,9 +366,14 @@ discharging K.μ⁺'s D-CTG★/D-MIN★ precondition. Steps (i)–(ii) together 
 (the left prefix is retained by (i) and untouched by (ii)).
 
 To these arrangement steps the composite appends one K.ρ provenance step per
-range-new address; it is these K.ρ steps that put pairs into `Σ.R`. ASN-0047's
-ValidComposite requires all three couplings — J0, J1★, and J1'★ — to hold
-initial-to-final. J0 (AllocationPlacementCoupling), which demands that every
+range-new address; it is these K.ρ steps that put pairs into `Σ.R`. Each fires its
+elementary precondition (ASN-0047, K.ρ: `a ∈ dom(C) ∧ d ∈ E_doc`) at the
+intermediate state where it runs: `cᵢ ∈ dom(Σ.C)` by CP0(a), held across the
+arrangement steps by the content frame CP1 (no K.α runs, so `dom(C)` does not
+move), and `d ∈ dom(Σ.M) = E_doc` by hypothesis — so ValidComposite clause 1 (each
+step's elementary precondition at its intermediate state) is discharged uniformly
+across the K.μ⁻, K.μ⁺, and K.ρ steps alike. ASN-0047's ValidComposite further
+requires all three couplings — J0, J1★, and J1'★ — to hold initial-to-final. J0 (AllocationPlacementCoupling), which demands that every
 freshly allocated I-address appear in some arrangement, is discharged *vacuously*:
 COPY runs no K.α step (CP1 gives `dom(Σ'.C) = dom(Σ.C)`), so
 `dom(Σ'.C) ∖ dom(Σ.C) = ∅` and J0's universal quantifier ranges over the empty
@@ -428,22 +437,13 @@ invariant and needs no such scoping. Across all three branches the membership
 >
 > `(A d' : d' ≠ d : Σ'.M(d') = Σ.M(d'))`     (CP6)
 
-The middle clause has two conjuncts, and the first is load-bearing for the same
-reason CP3c is. The pointwise conjunct preserves the *pre-state* non-text bindings
-of `d`, but does not by itself assert that those are the *only* non-text bindings
-in the post-state; without the domain-equality conjunct, `Σ'.M(d)` is left
-underdetermined on subspaces `≠ s_C`, and a model could satisfy every other stated
-postcondition while introducing a spurious fresh link-subspace position (say
-`v* ↦ ℓ*` with `ℓ* ∈ dom(Σ.L)`, `origin(ℓ*) = d`), violating none of CP1, CP2,
-CP3a–c, CP7a, CP8 yet defeating the standard CP3c sets — that `d`'s per-state
-invariants (S2, S3★, CL-OWN, CL-UNIQ) be dischargeable from the postconditions
-alone. The domain-equality conjunct is the non-text analogue of CP3c's text-domain
-closure: it pins `d`'s non-`s_C` domain to exactly its pre-state value, closing the
-third underdetermination of precisely the kind the text-domain closure repairs. It
-is in exact step with the exhibited composite: the K.μ⁻ of step (i) retains `d`'s
-link subspace *in full* and step (ii)'s K.μ⁺ adds only `s_C` positions, so `d`'s
-non-text arrangement is carried through both steps unchanged — exactly the
-domain-and-value equality the conjunct asserts.
+The middle clause has two conjuncts. The pointwise conjunct preserves `d`'s
+*pre-state* non-text bindings; the domain-equality conjunct pins `d`'s non-`s_C`
+domain to exactly its pre-state value — the non-text instance of CP3c's closure
+principle, making `d`'s non-text invariants (S2, S3★, CL-OWN, CL-UNIQ)
+dischargeable from the postconditions alone rather than only through the exhibited
+composite (whose step (i) K.μ⁻ retains `d`'s link subspace in full, as shown
+above).
 
 The last clause includes every source document `d_s ≠ d` and every other document
 in the docuverse. The single self-reference case `d_s = d` — *self-transclusion* —
