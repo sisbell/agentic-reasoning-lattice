@@ -38,7 +38,14 @@ with REARRANGE imported as an atomic arrangement-rearrangement primitive
 (ASN-0084), distinct from and not reducible to ASN-0047's own non-atomic `K.μ~`
 composite (a `K.μ⁻ + K.μ⁺` pair that necessarily passes through a content-removed
 intermediate), even though REARRANGE realizes the same *net* arrangement change as
-that composite without ever vacating content. The model lifts the strand model (ASN-0036) and the link model
+that composite without ever vacating content. Because REARRANGE_K sits outside
+ASN-0047's transition vocabulary, ASN-0098's link-projection lemmas about
+*transitions* — coverage invariance (LP3) and the reordering bijection (LP11) —
+are proved by case analysis over that vocabulary and do not cover it; where this
+note needs their conclusions for REARRANGE it re-derives them inline rather than
+cites them. (ASN-0098's single-state characterisations — properties of one `Σ`
+rather than of a transition — carry over directly and are cited as usual.)
+The model lifts the strand model (ASN-0036) and the link model
 (ASN-0043) into a single arrangement whose V-positions inhabit two subspaces — the
 text subspace `s_C` and the link subspace `s_L` (ASN-0047, S3★-aux). REARRANGE
 mutates only the arrangement family `M`; the content store `C` and the link store
@@ -239,8 +246,29 @@ pre-state run partition to a disjoint, covering run partition of `M'(d)`, and
 **R-CANON** (CanonicalityOfMergeNormalForm) shows that partition's merge-normal
 form is the unique maximal-run decomposition S8 guarantees — exactly S8★ on the
 content subspace. On the link subspace, S8★'s trivial length-1 decomposition and
-the value-dependent CL-OWN/CL-UNIQ ride untouched on the frozen `s_L` frame. We
-may now read off the remaining obligations.
+the value-dependent CL-OWN/CL-UNIQ ride untouched on the frozen `s_L` frame.
+
+The remaining ASN-0047 obligations are general transition invariants — couplings,
+permanence, and hierarchy — discharged here so the invariant accounting lives in
+one place. As a transition in ASN-0047's model REARRANGE allocates no content and
+records no provenance, with `ran(M'(d)) = ran(M(d))` by RA1, so the model's
+coupling obligations J0, J1★, and J1'★ hold vacuously. The one composite-boundary
+invariant that reads the mutated arrangement, P4★ (`Contains_C(Σ) ⊆ R`), is
+preserved because the content-subspace value set is invariant: `π` permutes the
+text subspace onto itself, so
+`{ M'(d)(v) : subspace(v) = s_C } = { M(d)(u) : subspace(u) = s_C }`, whence
+`Contains_C(Σ') = Contains_C(Σ) ⊆ R = R'`. The remaining
+ExtendedReachableStateInvariants conjuncts (P6, P7, P8, P7a, P4a, the E-family
+NodeLineage/ActivatedEmission, the L-family, the C-family) are preserved by the
+`C`/`E`/`R`/`L` frame. ASN-0047's second transition theorem,
+**ExtendedTransitionInvariants** (its sole conjunct **P3**,
+ArrangementMutabilityOnly), holds with every conjunct at equality: `dom(C) =
+dom(C')` with `C'(a) = C(a)` by RA0, `dom(L) = dom(L')` with `L'(ℓ) = L(ℓ)` by the
+frozen link store (`Σ'.L = Σ.L`), and `E = E'`, `R = R'` by the inert `E`/`R`
+frame — so the only component P3 permits to lose information, `M`, is the only one
+REARRANGE rewrites. With both of ASN-0047's invariant theorems discharged, the
+invariant package REARRANGE joins is fully accounted for. We may now read off the
+remaining obligations.
 
 ## The intervening content
 
@@ -380,11 +408,8 @@ Coverage* fixes it as a purely combinatorial function of the endset that consult
 no state component — and the operation freezes the link store (RA6: `Σ'.L = Σ.L`).
 The two combine directly: `Σ'.L = Σ.L ⟹ Σ'.L(a).eᵢ = Σ.L(a).eᵢ ⟹
 coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)`, so `coverage(a, i)` is one fixed
-address set across the transition. We carry this through RA6 rather than cite
-ASN-0098's LP3 (coverage invariance): LP3 is established by case analysis over a
-transition vocabulary that does not include REARRANGE_K — the same reason we
-decline LP11 just below. The footprint then
-transports through `π` by the bijection equation alone. For any `v ∈ dom(M(d))`,
+address set across the transition. The footprint then transports through `π` by
+the bijection equation alone. For any `v ∈ dom(M(d))`,
 
       v ∈ project(a, i, d, Σ)
         ⟺ M(d)(v) ∈ coverage(a, i)            (definition of project)
@@ -395,29 +420,8 @@ and since `π` is a bijection of `dom(M(d))` (RA2), this is exactly
 
       project(a, i, d, Σ') = π( project(a, i, d, Σ) ).             **(RA7a)**
 
-We derive RA7a inline from RA1 rather than cite ASN-0098's **LP11**
-(ReorderingBijection): REARRANGE_K is not K.μ~, and LP11 is a lemma about K.μ~
-transitions. The footprint is carried *through* `π`:
-neither lost nor enlarged, only relocated to where the content now sits.
-
-As a transition in ASN-0047's model REARRANGE allocates no content and records no
-provenance, with `ran(M'(d)) = ran(M(d))` by RA1, so the model's coupling
-obligations J0, J1★, and J1'★ hold vacuously. The one composite-boundary invariant
-that reads the mutated arrangement, P4★ (`Contains_C(Σ) ⊆ R`), is preserved
-because the content-subspace value set is invariant: `π` permutes the text
-subspace onto itself, so
-`{ M'(d)(v) : subspace(v) = s_C } = { M(d)(u) : subspace(u) = s_C }`, whence
-`Contains_C(Σ') = Contains_C(Σ) ⊆ R = R'`. The remaining
-ExtendedReachableStateInvariants conjuncts (P6, P7, P8, P7a, P4a, the E-family
-NodeLineage/ActivatedEmission, the L-family, the C-family) are preserved by the
-`C`/`E`/`R`/`L` frame. ASN-0047's second transition theorem,
-**ExtendedTransitionInvariants** (its sole conjunct **P3**,
-ArrangementMutabilityOnly), holds with every conjunct at equality: `dom(C) =
-dom(C')` with `C'(a) = C(a)` by RA0, `dom(L) = dom(L')` with `L'(ℓ) = L(ℓ)` by
-RA6, and `E = E'`, `R = R'` by the inert `E`/`R` frame — so the only component P3
-permits to lose information, `M`, is the only one REARRANGE rewrites. With both of
-ASN-0047's invariant theorems discharged, the invariant package REARRANGE joins is
-fully accounted for.
+The footprint is carried *through* `π`: neither lost nor enlarged, only relocated
+to where the content now sits.
 
 *A link spanning both moved regions, or running from a moved region into
 stationary content* (Question 5). Here the footprint may be split by a cut, and we
@@ -444,23 +448,23 @@ condition for contiguity-preservation — not as a weakest precondition:
         ⟹  π preserves the footprint's run structure
             (in particular, a single run stays a single run).        **(RA7c)**
 
-Every other postcondition of this note holds unconditionally (`wp = true`); the
-footprint's contiguity is the single property REARRANGE does not preserve in
-general, and so the one that needs a precondition. That precondition is
-*sufficient, not necessary*, and what it controls is *run structure*, not a
-single-span result: confinement neither heals existing gaps nor is required for a
-straddling footprint to land contiguous on its own. The reason is that REARRANGE
-does not merely shift each region — it *relocates the region blocks*, laying `β`
-before `α` (pivot) or `β, μ, α` (swap), and so manufactures new *seams* where two
-formerly separated blocks now abut. Run structure is preserved *within* a region;
-*across* regions a seam can heal contiguity — two relocated blocks re-abut — or
-break it — a block pulls away from what sat beside it. The contiguity outcome is
-thus binary — preserved or broken. The configurations below are representative
-illustrations of these two outcomes, not a closed enumeration: a footprint
-spanning three or more regions falls under none of them, yet still resolves to one
-of the same two. We draw each from the worked pivot above
-(`A B C D E ↦ A C D E B`, cuts `c₀,c₁,c₂ = ord 2,3,6`, with the `π` table from
-that section).
+Every other postcondition of this note holds wherever the operation is defined
+(`wp = R-PRE`); the footprint's contiguity is the single property REARRANGE does
+not preserve in general, and so the one that needs a precondition *beyond* R-PRE.
+That precondition is *sufficient, not necessary*, and what it controls is *run
+structure*, not a single-span result: confinement neither heals existing gaps nor
+is required for a straddling footprint to land contiguous on its own. The reason
+is that REARRANGE does not merely shift each region — it *relocates the region
+blocks*, laying `β` before `α` (pivot) or `β, μ, α` (swap), and so manufactures
+new *seams* where two formerly separated blocks now abut. Run structure is
+preserved *within* a region; *across* regions a seam can heal contiguity — two
+relocated blocks re-abut — or break it — a block pulls away from what sat beside
+it. The contiguity outcome is thus binary — preserved or broken. The
+configurations below are representative illustrations of these two outcomes, not a
+closed enumeration: a footprint spanning three or more regions falls under none of
+them, yet still resolves to one of the same two. We draw each from the worked
+pivot above (`A B C D E ↦ A C D E B`, cuts `c₀,c₁,c₂ = ord 2,3,6`, with the `π`
+table from that section).
 
 *Within a region: run structure preserved (RA7c).* A footprint covering
 `{C, E} = {a₃, a₅}` lies wholly inside `β`, with the *discontiguous* pre-footprint
