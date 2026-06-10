@@ -37,24 +37,17 @@ destination owns its arrangement but not the content it arranges.
 
 **Standing precondition (reachability).** Throughout, every state `Σ` ranges over
 states reachable from the initial state `Σ₀` under the sequential transition order
-(ASN-0047, SequentialTransitionAxiom). This is what licenses the per-state
-invariant citations below — S0/S1 (content permanence), S2/S3★ (arrangement
-functionality and referential integrity), S7 (structural attribution), S8-fin and
-D-SEQ (finite, contiguous, sequential arrangements), L12 (link permanence) — each
-of which ASN-0047 collects in `ExtendedReachableStateInvariants` and guarantees
-only of reachable states. At a non-reachable state these may fail, and so the
-scoping is load-bearing, not decorative; the project's foundation ASNs scope the
-same way (ASN-0086, ASN-0098).
+(ASN-0047, SequentialTransitionAxiom). This licenses the per-state invariant
+citations below, which ASN-0047 collects in `ExtendedReachableStateInvariants` and
+guarantees only of reachable states.
 
 **Standing precondition (composite boundary).** COPY is itself an ASN-0047
 composite (we exhibit its decomposition below), so it is invoked *at a composite
 boundary*: its pre-state `Σ` is the final state of a completed composite, never a
-state reached mid-composite. This licenses the *composite-boundary properties*
-that ASN-0047 collects separately from the per-state invariants — in particular
-P4★ (`Contains_C(Σ) ⊆ R`), which holds at composite boundaries but may fail at an
-intermediate atomic state. We use P4★ exactly once, in the CP8 derivation, and the
-boundary scoping is what makes that use sound; the per-state invariants above
-require only reachability and are unaffected by it.
+state reached mid-composite. This licenses the *composite-boundary properties* that
+ASN-0047 collects separately from the per-state invariants — in particular P4★
+(`Contains_C(Σ) ⊆ R`), which holds at composite boundaries but may fail at an
+intermediate atomic state.
 
 We take the strand model as given. The *content store* `Σ.C : T ⇀ Val`
 (ASN-0036) binds content addresses — *I-addresses* — to values. It is append-only
@@ -91,24 +84,15 @@ It is *well-formed* in the sense of T12 (ASN-0058 condition (ii); ASN-0034):
 It draws from a non-empty source subspace (ASN-0058 condition (i)):
 `V_{subspace(s)}(d_s) ≠ ∅`. A content span may, but need not, be *ordinal-level* —
 the action point at the deepest component, `actionPoint(ℓ) = #ℓ`, so the span
-advances along the last component alone. We flag this as a *normalizing
-convention*, not a load-bearing precondition, and the distinction matters because
-the operation never consumes it. ASN-0058 shows ordinal-level *automatic* for a
-fully-bound content reference (C0, OrdinalDisplacementNecessity, a necessity result
-stated under that ASN's *well-formed* refinement); but COPY deliberately admits
-partially-bound spans (below), where C0's full-binding hypothesis is not met, and
-COPY's reasoning routes around the one place ordinal-level would be consumed. The
-bound active set `act(ρ, Σ) = dom(Σ.M(d_s)) ∩ ⟦σ⟧` is single-subspace by
-content-residence (`act(ρ, Σ) ⊆ V_{s_C}(d_s)`, the operation's precondition below)
-and single-depth by S8-depth (ASN-0036), *regardless* of where `ℓ`'s action point
-falls; resolution integrity (CP0(a)) rests on S3★ over the bound positions and the
+advances along the last component alone. The bound active set
+`act(ρ, Σ) = dom(Σ.M(d_s)) ∩ ⟦σ⟧` is single-subspace by content-residence
+(`act(ρ, Σ) ⊆ V_{s_C}(d_s)`, the operation's precondition below) and single-depth
+by S8-depth (ASN-0036), *regardless* of where `ℓ`'s action point falls; so
+resolution integrity (CP0(a)) rests on S3★ over the bound positions, and the
 run-decomposition (CP0(c)) on the single-subspace premise so obtained — neither on
-`actionPoint(ℓ)`. So we impose no ordinal-level requirement on the input: a caller
-that supplies one buys nothing the placement or resolution arithmetic needs.
-Gregory's udanax-green confirms the design is parametric in depth rather than
-normalizing — `acceptablevsa` is an unconditional pass, and the supplied action
-point is used as-is (its depth parametrically setting the inserted V-span's
-resolution), never promoted to the ordinal level. Whatever depth `ℓ` has, the
+`actionPoint(ℓ)`. Gregory's udanax-green confirms the design is parametric in
+depth: `acceptablevsa` is an unconditional pass, the supplied action point used
+as-is. Whatever depth `ℓ` has, the
 span's start `s` is a well-formed V-position (ASN-0036, S8a): `zeros(s) = 0`,
 `#s ≥ 2`, every component of `s` positive. We reuse ASN-0058's construct rather
 than reinvent it. A *spec-set* is an ASN-0058 *ContentReferenceSequence*
@@ -130,20 +114,14 @@ finite `dom(Σ.M(d_s))`, S8-fin) and totally ordered (subset of the totally orde
 carrier `T`, T1), hence has a unique ascending enumeration `v₁ < … < v_k`.
 
 Because `act` intersects the denotation with the *bound* positions, a V-spec whose
-span names positions the source does not bind is admitted, and resolution silently
-restricts to the bound subset. We deliberately do *not* adopt ASN-0058's optional
-*well-formedness* condition (full binding,
-`{v : u ≤ v < reach(σ) ∧ #v = m} ⊆ dom(M(d_s))`); a partially-bound — or even
-empty — span is a well-formed request, and COPY acts on whatever the boundaries
-actually determine. This is Nelson's span semantics: content is designated by its
+span names positions the source does not bind is admitted, and `act` resolves it by
+restriction to the bound subset. COPY thus does not require ASN-0058's optional
+full-binding well-formedness condition
+(`{v : u ≤ v < reach(σ) ∧ #v = m} ⊆ dom(M(d_s))`); it acts on whatever the
+boundaries determine. This is Nelson's span semantics: content is designated by its
 boundaries, "what lies between... is implicit in the choice of first and last
 point," and "a span that contains nothing today may at a later time contain a
-million documents" (4/25) — partial binding was never a well-formedness violation.
-Gregory's udanax-green realizes the same decision operationally: a COPY spec whose
-V-positions are unbound is neither rejected nor errored; `retrieverestricted`
-returns nothing for the unbound range and those positions are silently dropped,
-transcluding only the bound portion. So `act` *resolves* partial binding by
-restriction — a settled part of the operation, not a deferred question.
+million documents" (4/25).
 
 We restrict attention to *content* spec-sets: COPY's content-residence precondition
 (stated with the operation below) requires every active position to be in the text
@@ -267,13 +245,17 @@ V-positions starting at `p`:
 > `(A v : v ∈ V_{s_C}(d) ∧ v ≥ p : Σ'.M(d)(v + W) = Σ.M(d)(v))`     (CP3a)
 
 This is the post-insertion shift of ASN-0082 (I3, PostInsertionShift) instantiated
-at width `W`; we borrow its arithmetic and its preservation lemmas wholesale —
-that the shifted positions remain well-formed (I3-VP), preserve depth (I3-VD),
-keep the arrangement a function (I3-S2) and finite (I3-fin), and that the
-post-state remains contiguous and sequential (D-CTG, D-SEQ preserved). The
-placement positions `p, p+1, …, p+(W−1)` occupy exactly the ordinal gap that the
-shift vacates, and the two ranges are disjoint by the order-preservation of shift
-(ASN-0034, TS4).
+at width `W`; from it we borrow, *for the shifted positions*, that they remain
+well-formed (I3-VP), preserve depth (I3-VD), and stay finite (I3-fin). I3 does *not*
+establish the function-ness, no-holes, contiguity, and sequentiality of COPY's
+actual `Σ'.M(d)`: it describes only the shift, leaving the gap `[p, p+W)` empty in
+its `M'(d)`, whereas COPY fills that gap with the placement positions (CP2). Those
+properties rest instead on the tiling argument given later under prior-arrangement
+preservation — placement, shift, and left ranges occupy disjoint, abutting ordinal
+intervals — together with CP3c's domain closure and K.μ⁺'s strict-extension
+contract. The placement positions `p, p+1, …, p+(W−1)` occupy exactly the ordinal
+gap that the shift vacates, and the two ranges are disjoint by the
+order-preservation of shift (ASN-0034, TS4).
 
 *Effect — domain closure (text subspace).* The text-subspace V-positions of the
 post-state are exactly the left-frame positions, the placement positions, and the
