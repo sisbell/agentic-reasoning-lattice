@@ -69,7 +69,7 @@ constraint on the span's start, whether or not that start is itself bound. Depth
 compatibility is deliberately *not* a well-formedness condition: `m_S(d)` is
 mutable — ASN-0047 re-pins a cleared subspace on its next insertion, so
 `#s = m_S(d)` need not persist — so it is a *consulting-state* predicate
-`depthcompat(ρ, Σ)`, defined below and applied inside `act`.
+`depthcompat(ρ, Σ)`.
 Ordinal-level means the width acts at the deepest component,
 `actionPoint(ℓ) = #ℓ` (ASN-0082, OrdinalLevel). This is the deepest-action-point
 discipline that keeps a span within a single subspace:
@@ -119,11 +119,7 @@ names that the document's arrangement actually binds; silent filtering is built 
 since a named position the arrangement does not bind is simply absent from the
 intersection. In the override branch — any consulting-state depth mismatch,
 `V_S(d) ≠ ∅ ∧ #s ≠ m_S(d)` — the active set is forced
-empty, *overriding* the geometric `dom(Σ.M(d)) ∩ ⟦σ⟧`. The override only *bites*
-when the start has gone too shallow (`#s < m_S(d)`), lest it capture deeper content
-the citation never named; when the start is too deep (`#s > m_S(d)`) the geometric
-intersection is already empty by Confinement, so the override is a vacuous no-op
-there. In either branch `act(ρ, Σ)` is finite — it
+empty, *overriding* the geometric `dom(Σ.M(d)) ∩ ⟦σ⟧`. In either branch `act(ρ, Σ)` is finite — it
 is `∅`, or a subset of `dom(Σ.M(d))`, which is finite (ASN-0036, S8-fin) — and
 totally ordered, being a subset of the totally ordered carrier `T` (ASN-0034, T1).
 Finiteness and total order together give it a unique ascending enumeration
@@ -136,9 +132,7 @@ every active V-position lies in `s_C` or `s_L`, so `V_S(d) = ∅` for any
 `S ∉ {s_C, s_L}` at every reachable state; `depthcompat` then holds by its first
 disjunct, `act = dom(Σ.M(d)) ∩ ⟦σ⟧`, and Confinement places `⟦σ⟧` wholly in the
 unused subspace `S`, disjoint from `dom(Σ.M(d))` — so `act = ∅` and the spec
-delivers nothing. Every spec that contributes material therefore has
-`S ∈ {s_C, s_L}`, the assumption the depth and `item` reasoning below tacitly rely
-on.
+delivers nothing.
 
 Each active position is resolved through the arrangement to a single address
 `a = Σ.M(d)(v)` (well-defined and single-valued by S2), and the *delivery item*
