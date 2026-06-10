@@ -89,14 +89,10 @@ satisfying `R` exists; we must exhibit one. This is immediate: `Σ.L(a).eᵢ ∈
 Endset = 𝒫_fin(Span)` is *already* a finite set of well-formed spans, so any
 sequencing of its members is a span-set whose coverage is `coverage(Σ.L(a).eᵢ)`
 by the definition of `coverage` as a union over the endset's spans. The recorded
-endset is thus its own F1-witness, and F1 is satisfiable. What F0 does *not*
-assert is uniqueness: F3 below shows the result is pinned only at the level of
-coverage, so distinct F1-witnesses may differ as span-sets. We therefore read
-`followlink(Σ, a, i)` as a *relation* — standing for any span-set `R` satisfying
-F1 — and, wherever it appears as a single term inside `coverage(·)`, that term is
-well-defined because F3 makes coverage independent of which witness is chosen. The
-one case in which the witness is forced to a unique span-set is the empty end,
-treated in F7.
+endset is thus its own witness, and F0 is satisfiable. Since F0 fixes the coverage
+of every satisfying `R` to `coverage(Σ.L(a).eᵢ)`, we read `followlink(Σ, a, i)` as
+a *relation* standing for any such span-set; wherever it appears as a single term
+inside `coverage(·)`, that term is well-defined.
 
 We must justify each of the three clauses of this definition — the coverage
 relationship, the frame, the error case — and extract their consequences. We do
@@ -244,13 +240,13 @@ confidentiality. It is *operational confinement*: this particular operation,
 given selector `i`, reads and returns slot `i` and nothing else. The other ends
 are not withheld by policy; they are simply not what this request computes.
 
-Gregory's evidence makes the confinement structural rather than incidental. The
-selector is turned into a width-one query positioned at exactly the requested
-slot; the retrieval traverses only that slot's stored region and never visits
-the others (Q12, Q18). The from-, to-, and type-ends are physically co-resident
-in one link object, yet "requesting endset N cannot expose the content of
-endsets at N ± k" because the query is bounded to slot N alone (Q18). We lift
-this to an abstract independence claim:
+This confinement is already forced by F1, in one step. F1 fixes
+`coverage(followlink(Σ, a, i))` to `coverage(Σ.L(a).eᵢ)` — a function of slot `i`
+alone. So for any two links `a, a'` agreeing on slot `i`'s coverage,
+`coverage(followlink(Σ, a, i)) = coverage(Σ.L(a).eᵢ) = coverage(Σ.L(a').eᵢ) =
+coverage(followlink(Σ, a', i))`, whatever the other slots hold: the contents at
+`j ≠ i` never enter F1's right-hand side, so they cannot reach the result. We
+isolate this consequence:
 
 > **F6 (SlotConfinement).** `followlink(Σ, a, i)` is a function of the single
 > endset `Σ.L(a).eᵢ` (up to coverage). Formally, for links `a, a'` with
@@ -258,6 +254,15 @@ this to an abstract independence claim:
 > slots `j ≠ i`, the results satisfy `coverage(followlink(Σ, a, i)) =
 > coverage(followlink(Σ, a', i))`. The result neither depends on nor returns any
 > `eⱼ` with `j ≠ i`.
+
+Gregory's evidence corroborates this F1-forced property at the mechanical level,
+showing the confinement to be structural rather than incidental. The selector is
+turned into a width-one query positioned at exactly the requested slot; the
+retrieval traverses only that slot's stored region and never visits the others
+(Q12, Q18). The from-, to-, and type-ends are physically co-resident in one link
+object, yet "requesting endset N cannot expose the content of endsets at N ± k"
+because the query is bounded to slot N alone (Q18). The implementation thereby
+realizes the slot-independence F1 already mandates.
 
 What, then, *does* the result expose? Exactly `coverage(Σ.L(a).eᵢ)` — the set of
 addresses the selected end targets — and, derivable from it, two further facts.
@@ -290,12 +295,16 @@ A subtle but decisive distinction remains. Slots `1` and `2` (and any slot
 beyond `3`) may legitimately be empty — a link may record no spans at a given
 end. The empty endset's coverage is the empty set, and by F1 any faithful result
 has coverage `∅`. Here — unlike the non-empty case — the result is forced to a
-*unique* span-set. By ASN-0053 S2, every well-formed span denotes a non-empty
-set; hence no span-set with one or more spans can have empty coverage, and the
-empty span-set `⟨⟩` is the *only* span-set whose coverage is `∅`. This is what
-licenses writing `followlink(Σ, a, i) = ⟨⟩` as a literal value-equality in F7,
-whereas for a non-empty end we could assert only an equality of coverage. Nelson
-is firm that this is a *successful* answer, not a
+*unique* span-set. A single fact from ASN-0053 S2 drives this: every well-formed
+span denotes a non-empty set. Two collapses follow, and we reuse both below.
+*First collapse:* no span-set with one or more spans can have empty coverage, so
+the empty span-set `⟨⟩` is the *only* span-set whose coverage is `∅` —
+equivalently `R = ⟨⟩ ⟺ coverage(R) = ∅`. *Second collapse:* likewise no endset
+holding one or more spans has empty coverage, so an endset's coverage vanishes
+exactly when the endset is empty — `coverage(eᵢ) = ∅ ⟺ eᵢ = ∅`. The first
+collapse is what licenses writing `followlink(Σ, a, i) = ⟨⟩` as a literal
+value-equality in F7, whereas for a non-empty end we could assert only an
+equality of coverage. Nelson is firm that this is a *successful* answer, not a
 failure: emptiness is "a first-class, valid state," the correct answer to a
 valid question, and "a span that contains nothing today may at a later time
 contain a million documents" (Q6, 4/25). An invalid selector — one naming no
@@ -343,11 +352,9 @@ That boundary wp only restates F0's domain; no backward reasoning is exercised.
 The wp that actually probes F7's empty/non-empty split is the one asking when the
 result *is* the empty span-set. Working backward from `R = ⟨⟩`: the call must
 first be defined, else the result is `⊥ ≠ ⟨⟩`, supplying the two domain conjuncts;
-when defined, F1 gives `coverage(R) = coverage(Σ.L(a).eᵢ)`, and since `⟨⟩` is the
-*unique* span-set of empty coverage (ASN-0053, S2), `R = ⟨⟩ ⟺
-coverage(Σ.L(a).eᵢ) = ∅`. S2 then collapses that coverage condition to an endset
-condition: every well-formed span denotes a non-empty set, so any endset holding
-one or more spans has non-empty coverage, whence `coverage(Σ.L(a).eᵢ) = ∅ ⟺
+when defined, F1 gives `coverage(R) = coverage(Σ.L(a).eᵢ)`. F7's two S2 collapses
+close the chain: the first, composed with F1, gives `R = ⟨⟩ ⟺
+coverage(Σ.L(a).eᵢ) = ∅`, and the second gives `coverage(Σ.L(a).eᵢ) = ∅ ⟺
 Σ.L(a).eᵢ = ∅`. Hence
 
 > `wp(followlink(a, i), R = ⟨⟩) ≡ a ∈ dom(Σ.L) ∧ 1 ≤ i ≤ |Σ.L(a)| ∧ Σ.L(a).eᵢ = ∅`.
@@ -440,9 +447,8 @@ precisely the multi-region preservation Gregory's evidence records at
 
 *Checking F7 on the to-end and on a bad selector.* The request
 `followlink(Σ, a, 2)` names a valid slot (`1 ≤ 2 ≤ 3`) whose end is empty;
-`coverage(e₂) = ∅`, and by the uniqueness argument of the previous section `⟨⟩`
-is the only span-set with empty coverage (ASN-0053 S2), so
-`followlink(Σ, a, 2) = ⟨⟩` — a *success* denoting nothing. By contrast
+`coverage(e₂) = ∅`, so by F7's first S2 collapse `followlink(Σ, a, 2) = ⟨⟩` — a
+*success* denoting nothing. By contrast
 `followlink(Σ, a, 4)` names no slot (`4 > |Σ.L(a)| = 3`) and returns `⊥`;
 similarly `followlink(Σ, a, 0)` (with `0 < 1`) returns `⊥`, as does
 `followlink(Σ, a'', i)` for any `a'' ∉ dom(Σ.L)`. The two outcomes are distinct
@@ -479,7 +485,7 @@ abstract specification exists to make visible.
 | F3 | RepresentationInvariance: any two F1-results for the same `(Σ, a, i)` are denotationally equal; the contract binds coverage, not span decomposition or order | introduced |
 | F4 | PureRead frame: `followlink` induces no state transition; `Σ.C`, `Σ.L`, every `Σ.M(d)`, and every slot `j ≠ i` are unchanged | introduced |
 | F5 | TemporalDeterminism: for `Σ →* Σ'` with `a ∈ dom(Σ.L)`, results at the two states are coverage-equal (from L12 immutability alone, composed by LP13) | introduced |
-| F6 | SlotConfinement: the result is a function of `Σ.L(a).eᵢ` alone (up to coverage); independent of and non-disclosing of all `eⱼ`, `j ≠ i` | introduced |
+| F6 | SlotConfinement: the result is a function of `Σ.L(a).eᵢ` alone (up to coverage); independent of and non-disclosing of all `eⱼ`, `j ≠ i` (corollary of F1) | introduced |
 | F7 | EmptyVersusInvalid: `⟨⟩ ≠ ⊥`; a valid selector over an empty end returns `⟨⟩` (success); an invalid selector returns `⊥` (error); collapsing them is incorrect | introduced |
 | F8 | ContentIndependence: defined and exact whenever the link and slot exist, regardless of whether covered addresses currently hold content or links | introduced |
 
