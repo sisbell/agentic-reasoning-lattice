@@ -35,10 +35,8 @@ REARRANGE rewrites only the arrangement and never touches an I-address.
 
 We work in the extended state `Σ = (C, L, E, M, R)` of ASN-0047 — its *state*,
 with REARRANGE imported as an atomic arrangement-rearrangement primitive
-(ASN-0084), distinct from and not reducible to ASN-0047's own non-atomic `K.μ~`
-composite (a `K.μ⁻ + K.μ⁺` pair that necessarily passes through a content-removed
-intermediate), even though REARRANGE realizes the same *net* arrangement change as
-that composite without ever vacating content.
+(ASN-0084) that realizes the same *net* arrangement change as ASN-0047's own
+non-atomic `K.μ~` composite without ever vacating content.
 The model lifts the strand model (ASN-0036) and the link model
 (ASN-0043) into a single arrangement whose V-positions inhabit two subspaces — the
 text subspace `s_C` and the link subspace `s_L` (ASN-0047, S3★-aux). REARRANGE
@@ -199,16 +197,11 @@ in its per-subspace form (ASN-0047, **S3★**) — a content V-position maps int
       v ∈ dom(M'(d)) ∧ subspace(v) = s_C  ⟹  M'(d)(v) ∈ dom(C),
       v ∈ dom(M'(d)) ∧ subspace(v) = s_L  ⟹  M'(d)(v) ∈ dom(L).
 
-We state it per-subspace rather than as the plain `ran(M'(d)) ⊆ dom(C)` because a
-document's arrangement carries link-subspace V-positions as well — these are
-exactly the positions the operation leaves untouched in the frame, and their
-images are link addresses in `dom(L)`, not content addresses in `dom(C)`. Both
-inclusions are inherited, but the inheritance runs through the inverse
-permutation, not through any claim that a position keeps its image — inside the
+A document's arrangement carries link-subspace V-positions as well, whose images
+are link addresses in `dom(L)`, not content addresses in `dom(C)`; and inside the
 affected interval the image filed at a key generally *does* change
 (`M'(d)(v) ≠ M(d)(v)`: a pivot's R-P1 branch refiles the front position `c₀` from
-`M(d)(c₀)` to `M(d)(c₁)`). What `π` preserves is that it maps each subspace onto
-itself.
+`M(d)(c₀)` to `M(d)(c₁)`).
 Take a text position `v ∈ dom(M'(d))` with `subspace(v) = s_C`. Then
 `M'(d)(v) = M(d)(π⁻¹(v))`, and `π⁻¹(v)` is again a text position (`π` permutes the
 text subspace onto itself); pre-state S3★ applied at `π⁻¹(v)` gives
@@ -470,8 +463,7 @@ and since `π` is a bijection of `dom(M(d))` (RA2), this is exactly
       project(a, i, d, Σ') = π( project(a, i, d, Σ) ).             **(RA7a)**
 
 The footprint is carried *through* `π`: neither lost nor enlarged, only relocated
-to where the content now sits. (This derivation re-proves inline, for REARRANGE,
-ASN-0098's coverage invariance LP3 and reordering bijection LP11.)
+to where the content now sits.
 
 *A link spanning both moved regions, or running from a moved region into
 stationary content* (Question 5). Here the footprint may be split by a cut, and we
