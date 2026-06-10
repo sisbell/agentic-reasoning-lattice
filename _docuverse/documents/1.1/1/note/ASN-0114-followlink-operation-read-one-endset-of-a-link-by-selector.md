@@ -43,10 +43,7 @@ carries no meaning — an endset is an unordered set (L5).
 The ambient state `Σ` is the five-tuple of ASN-0047,
 `Σ = (Σ.C, Σ.L, Σ.E, Σ.M, Σ.R)` — content store, link store, entity set,
 arrangement family, and provenance relation — and `Σ →* Σ'` is its reachability
-relation, over which the persistence results we invoke (ASN-0098's LP13 and
-LP-Fin) are stated. FOLLOWLINK consults only the link store `Σ.L`; the remaining
-four components enter this note solely as the frame the operation must leave
-untouched (F4) and as the substrate over which permanence is composed (F5).
+relation. FOLLOWLINK consults only the link store `Σ.L`.
 
 For each endset we have its *coverage*, the set of addresses it designates:
 
