@@ -44,8 +44,7 @@ reference content by address. V-positions and I-addresses are tumblers ordered
 by T1 (ASN-0034); within the text subspace the active V-positions are contiguous
 and share a common depth (ASN-0036, D-CTG, D-SEQ, S8-depth). These contiguity
 invariants are the text-subspace ones of ASN-0036; the link subspace `s_L` is
-carried untouched in the frame. The grounds for confining the operation to the
-text subspace are stated where we fix the scope.
+carried untouched in the frame.
 
 The distinction the operation turns on is the one ASN-0034's T6 already records:
 *address versus position*. An I-address is permanent content identity; a
@@ -102,8 +101,7 @@ is degenerate), and in the four-cut case `w_μ ≥ 1` as well.
 The cuts are interpreted against *one* arrangement. This is the first thing the
 "two cuts at once" formulation reveals, and we record it before going further:
 all of `c₀, …, c_{n-1}` are coordinates in the same `M(d)`, so the geometry of
-the regions is fixed before any reassignment occurs. We return to its
-consequences in the section on atomicity.
+the regions is fixed before any reassignment occurs.
 
 ## The transposition as a permutation
 
@@ -112,10 +110,8 @@ subspace at depth 2. We do not redefine it; we import its specification and erec
 the system-level guarantees on top. For a 3- or 4-cut sequence `K` satisfying the
 preconditions R-PRE, `REARRANGE_K(Σ, d)` produces the post-state `M'(d)` fixed by
 ASN-0084's **PivotPostcondition** (`n = 3`) or **SwapPostcondition** (`n = 4`),
-together with the frame conditions R-FRAME-P / R-FRAME-S. For the reader's
-convenience we recall the destination equations — they are ASN-0084's, cited, not
-introduced here. The pivot freezes the exterior, slides `β` to the front of the
-interval, and lets `α` follow:
+together with the frame conditions R-FRAME-P / R-FRAME-S. The pivot freezes the
+exterior, slides `β` to the front of the interval, and lets `α` follow:
 
       v < c₀ ∨ v ≥ c₂  ⟹  M'(d)(v) = M(d)(v),                  (ASN-0084 R-EXT)
       M'(d)(c₀ + j)       = M(d)(c₁ + j),   0 ≤ j < w_β,        (ASN-0084 R-P1)
@@ -304,17 +300,28 @@ V-positions that resolve to those addresses,
 — both imported (ASN-0098, Definition — Coverage and Definition — Project), not
 introduced here.
 
-Coverage is a property of the endset's spans alone and is untouched by the
-operation (ASN-0098, LP3 — coverage invariance). The footprint therefore
-transports through `π` by ASN-0098's **LP11** (ReorderingBijection); LP11's only
-hypotheses — a domain-preserving reordering whose bijection satisfies
-`M'(d)(π(v)) = M(d)(v)` — are exactly what P2 (R-PPERM/R-SPERM) supplies, so it
-applies directly:
+Coverage is a property of the endset's spans alone (ASN-0098, LP3 — coverage
+invariance), and the operation freezes the link store (P6: `Σ'.L = Σ.L`), so
+`coverage(a, i)` is one fixed address set across the transition. The footprint then
+transports through `π` by the bijection equation alone. For any `v ∈ dom(M(d))`,
 
-      project(a, i, d, Σ') = π( project(a, i, d, Σ) ).      **(P7a, = ASN-0098 LP11)**
+      v ∈ project(a, i, d, Σ)
+        ⟺ M(d)(v) ∈ coverage(a, i)            (definition of project)
+        ⟺ M'(d)(π(v)) ∈ coverage(a, i)        (P1: M'(d)(π(v)) = M(d)(v))
+        ⟺ π(v) ∈ project(a, i, d, Σ'),        (definition of project; π(v) ∈ dom(M'(d)) by P2)
 
-The footprint is carried *through* `π`: it is neither lost nor enlarged, only
-relocated to where the content now sits.
+and since `π` is a bijection of `dom(M(d))` (P2), this is exactly
+
+      project(a, i, d, Σ') = π( project(a, i, d, Σ) ).             **(P7a)**
+
+We discharge this inline rather than cite ASN-0098's **LP11** (ReorderingBijection),
+whose three lines are the ones above. LP11 is *stated* for a K.μ~ transition, and
+REARRANGE_K is fixed by its destination equations, not as a K.μ~ composite — on
+symmetric content it yields `M'(d) = M(d)`, which fails K.μ~'s non-triviality
+clause, so LP11's stated hypothesis is not available for every REARRANGE. The
+bijection equation P1 is what the transport actually rests on, and it holds
+unconditionally. The footprint is carried *through* `π`: it is neither lost nor
+enlarged, only relocated to where the content now sits.
 
 *A link spanning both moved regions, or running from a moved region into
 stationary content* (Question 5). Here the footprint may be split by a cut, and we
@@ -594,6 +601,14 @@ cannot satisfy R-PRE(iv) and strict ascent simultaneously. In each such case the
 is no valid cut sequence: REARRANGE does not apply, and the operation is simply
 silent on inputs outside its domain — it names no post-state.
 
+The opposite extreme stays *inside* the domain. When `c₀ = min(V_{s_C}(d)) =
+[s_C, 1]` the left exterior `{v : v < c₀}` is empty and R-EXT's `v < c₀` branch is a
+vacuous quantifier; when the affected interval covers the whole active run, both
+exteriors vanish. In each case the destinations still tile `[ord(c₀), ord(c_{n-1}))`
+disjointly and exhaustively, so `π` remains a bijection of `dom(M(d))` (P2) and the
+extent is conserved (P3). An empty exterior is a degenerate *branch*, not a
+degenerate *input*.
+
 We flag, as an observation rather than a claim, that computing destinations by a
 *uniform displacement formula* per region — rather than by the tiling above — is
 correct only when the two moved regions have equal width. Gregory's analysis shows
@@ -621,8 +636,8 @@ the regions tile, not merely shift each by a local offset.
 | P3 (VExtentConservation) | `\|dom(M'(d))\| = \|dom(M(d))\|`, and the active run's endpoints are fixed — the document's total extent is conserved | introduced |
 | P5 (Discoverability) | Moved content is discoverable under its new V-position `π(v)` and resolves to its original I-address `M(d)(v)` | introduced |
 | P6 (LinkStoreFrame) | `Σ'.L = Σ.L` — links are untouched; a link anchored in a moved region survives and travels with its content because endsets reference unchanged I-addresses | introduced |
-| P7a (FootprintTransport) | `project(a, i, d, Σ') = π(project(a, i, d, Σ))` (ASN-0098 LP11, instantiated at REARRANGE's `π`) — a link's V-footprint is relocated through `π`; a contiguous footprint stays contiguous iff its `π`-image is again an interval (e.g. within-region confinement, or coverage of two or more relocated regions that `π` re-abuts), so fragmentation of a contiguous run occurs *only when* it straddles a cut — straddling alone does not force it, and conversely a straddle that mixes the fixed exterior with a relocated region can fragment even when every block it covers is complete | imported (ASN-0098 LP11) |
-| P7c (FootprintRunStructure) | `project(a, i, d, Σ) ⊆ one region ⟹ π preserves the footprint's run structure` — within each region `π` is a uniform ordinal shift (ASN-0084 R-COMM), so confinement to one region is *sufficient* (not necessary) for contiguity-preservation; this is not a weakest precondition, since relocating the region blocks creates new seams (a straddle across two relocated regions that re-abut may stay contiguous; a straddle mixing the fixed exterior with a relocated region may fragment even with complete-block coverage; a within-region gap stays fragmented) | introduced |
+| P7a (FootprintTransport) | `project(a, i, d, Σ') = π(project(a, i, d, Σ))` — a link's V-footprint is relocated through `π`, neither lost nor enlarged | introduced |
+| P7c (FootprintRunStructure) | `project(a, i, d, Σ) ⊆ one region ⟹ π preserves the footprint's run structure` — within-region confinement is sufficient (not necessary) for contiguity-preservation | introduced |
 | P7b (DiscoverabilityPreserved) | `project(a, i, d, Σ') ≠ ∅ ⟺ project(a, i, d, Σ) ≠ ∅` — fragmentation never costs discoverability; corollary of P7a (`π` a bijection), with discoverability reduced to `coverage ∩ ran ≠ ∅` by ASN-0098 LP12 | introduced |
 | P8a (FinalStateInvariance) | The atomic transposition and any two-move composite achieving the same net `π` reach the same final arrangement | introduced |
 | P8b (IntermediateDivergence) | A two-move composite passes through an observable intermediate arrangement (exhibited: `A C D B E` for the worked pivot) realized by neither endpoint of the atomic transposition | introduced |
