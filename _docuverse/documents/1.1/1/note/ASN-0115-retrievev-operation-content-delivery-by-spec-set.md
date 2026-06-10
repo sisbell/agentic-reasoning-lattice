@@ -553,19 +553,14 @@ regardless of where they physically originate ("the virtual byte stream of a
 document may include bytes from any other document," 4/10; non-native bytes have
 "an ordinal position … just as if they were native," 4/11). And each fragment's
 origin must stay *determinate* — co-assembly must not fuse distinct origins into
-an anonymous blob. That home document is fixed per position by the resolved
-address's subspace: for a content position (`subspace(v) = s_C`, `a ∈ dom(Σ.C)`)
-it is the document-level prefix `origin(a)` (S7); for a link position
-(`subspace(v) = s_L`, `a ∈ dom(Σ.L)`) it is the link's home `home(a)` (ASN-0043,
-L1a), which coincides with `origin` on link addresses (ASN-0086,
-HomeOriginCoincidence). Determinacy, though, is automatic — `origin` and `home`
-are functions of the resolved address, so no faithful resolution could lose it.
-Output-recoverability is where the two kinds genuinely part, and the box records
-that asymmetry as R9's substantive content. Because each spec is resolved against
-its own arrangement (R4), cross-document spec-sets are resolved per document and
-then concatenated — Gregory's `specset2ispanset` loop calls the per-document
-lookup once per spec, reading each document's arrangement in isolation, exactly
-the independence R9 requires.
+an anonymous blob. This second obligation is met automatically: `origin` and
+`home` are functions of the resolved address, so no faithful resolution could
+lose a fragment's home document. Output-recoverability — whether that home
+survives into the delivered output — is where the two item kinds genuinely part.
+Because each spec is resolved against its own arrangement (R4), cross-document
+spec-sets are resolved per document and then concatenated — Gregory's
+`specset2ispanset` loop calls the per-document lookup once per spec, reading each
+document's arrangement in isolation, exactly the independence R9 requires.
 
 *Worked instance.* Let two **distinct** documents `d₁ ≠ d₂` (distinct
 document-level tumblers, `zeros(dⱼ) = 2`, with distinct allocation events,
