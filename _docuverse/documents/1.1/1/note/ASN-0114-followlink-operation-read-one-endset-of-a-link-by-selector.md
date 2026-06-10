@@ -470,8 +470,9 @@ second, the very conflation F7 forbids.
 ## Synthesis
 
 FOLLOWLINK is, abstractly, a projection. Given a link address and a slot
-selector, it returns that slot's endset, measured by coverage, under five tight
-constraints. It returns *exactly* the recorded end — no more, no less (F1) —
+selector, it returns that slot's endset, measured by coverage, under five
+primary constraints — F1, F4, F5, F7, F8 — with F2, F3, and F6 following as
+corollaries of F1. It returns *exactly* the recorded end — no more, no less (F1) —
 preserving its discontiguous shape as a corollary (F2), with representation free
 but coverage bound (F3). It changes nothing (F4) and answers the same
 question the same way for all time (F5). It reads one end and discloses only that
