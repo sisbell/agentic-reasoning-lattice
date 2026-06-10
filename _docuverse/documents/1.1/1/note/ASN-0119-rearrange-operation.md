@@ -303,9 +303,16 @@ own atomic vocabulary, not REARRANGE-interleaved traces) but by the *combined*
 induction over the extended vocabulary: ASN-0047's arguments establish that each of
 its composites preserves the invariant package, this ASN establishes that REARRANGE
 preserves it, and so every reachable composite boundary — REARRANGE-interleaved or
-not — satisfies P4a, `Σ''` among them. The genuinely per-state ExtendedReachableStateInvariants conjuncts that
-remain (P6, P7, P8, the E-family NodeLineage/ActivatedEmission, the L-family, the
-C-family) are preserved by the `C`/`E`/`R`/`L` frame. ASN-0047's second transition theorem,
+not — satisfies P4a, `Σ''` among them. The genuinely per-state
+ExtendedReachableStateInvariants conjuncts that remain fall under a single closure
+rule: every conjunct keyed only on frame-frozen components — `dom(C)` and its
+values by RA0, `E` and `R` inert, `dom(L)` and its values by RA6 — is preserved by
+those frames. This covers S4, S7a, S7b (all `dom(C)` properties, frozen verbatim by
+RA0), S7d (a document-tumbler property, frozen with the inert `E`), the C-family
+(C1b, C1c, C-fin), the E-family (NodeLineage, ActivatedEmission), the L-family (L0,
+L1, L1a, L1b, L1c, L3, L14, L-fin), and P6, P7, P8 — the only conjuncts not so keyed
+being CL-OWN and CL-UNIQ, already discharged above on the frozen `s_L` frame.
+ASN-0047's second transition theorem,
 **ExtendedTransitionInvariants** (its sole conjunct **P3**,
 ArrangementMutabilityOnly), holds with every conjunct at equality: `dom(C) =
 dom(C')` with `C'(a) = C(a)` by RA0, `dom(L) = dom(L')` with `L'(ℓ) = L(ℓ)` by the
