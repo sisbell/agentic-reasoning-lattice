@@ -1,0 +1,22 @@
+# Review of ASN-0119
+
+This note imports REARRANGE_K from ASN-0084 and lifts it into ASN-0047's extended state, erecting system-level guarantees. I checked the imported claims (RA0–RA2) against ASN-0084, verified both worked examples (pivot and swap) arithmetically against the destination equations and π-tables, traced the footprint-transport derivation (RA7a) and its four contiguity configurations, confirmed the displacement formula `w_β − w_α`, the atomicity two-move composite (RA8a/RA8b reach `A C D E B` with observable intermediate `A C D B E`), the partiality boundary analysis, and the J0/J1★/J1'★/P4★/P7a/P3 discharge plus the P4a trace-induction. These all hold. One completeness gap remains in the invariant accounting.
+
+## REVISE
+
+### Issue 1: Link-subspace per-subspace arrangement invariants are not discharged
+
+**ASN-0119, "What is preserved: I-address correspondence" (contiguity paragraph) and the S8★/closure paragraphs**: "Concretely: text-subspace contiguity (ASN-0047, D-CTG★), sequentiality (D-SEQ★), the minimum position (D-MIN★), V-position well-formedness (S8a), uniform per-subspace depth (S8-depth), and finiteness (S8-fin) all held for V_{s_C}(d) before the rearrangement and so hold after it." — and, separately, "On the link subspace, S8★'s trivial length-1 decomposition and the value-dependent CL-OWN/CL-UNIQ ride untouched on the frozen s_L frame."
+
+**Problem**: D-CTG★, D-SEQ★, D-MIN★, and S8-depth are *per-subspace* conjuncts of `ExtendedReachableStateInvariants` — each quantifies over every subspace `S`, the link subspace `s_L` included (D-CTG★ for `s_L` requires `V_{s_L}(d)` contiguous when non-empty, etc.). The contiguity paragraph discharges them only for the text subspace `V_{s_C}(d)`; the S8★ paragraph names only S8★/CL-OWN/CL-UNIQ as riding on the frozen `s_L` frame; and the closure rule explicitly covers only conjuncts keyed on the *non-M* frame-frozen components (dom(C), E, R, dom(L)). The link-subspace instances — D-CTG★/D-SEQ★/D-MIN★/S8-depth on `V_{s_L}(d)` — therefore fall through every explicit branch of the accounting and are nowhere shown preserved. (Relatedly, S8a and S8-fin are whole-arrangement invariants over all of `dom(M(d))`, not text-only; stating them "for `V_{s_C}(d)`" under-scopes them.) The scope-paragraph remark that REARRANGE "never has to honour the placement disciplines that govern where a document's links sit" is about *applicability when placing content*, not *preservation of the conjuncts after acting* — so it does not close the gap. Given that the rest of the note is meticulously conjunct-by-conjunct (the closure rule enumerates every non-M invariant, and the link-subspace S8★/CL-OWN/CL-UNIQ are named explicitly), this asymmetry is conspicuous: a reader checking "is D-CTG★ fully discharged?" finds only the text half.
+
+These invariants *are* preserved — the same set-invariance argument that handles `V_{s_C}(d)` applies verbatim to `V_{s_L}(d)`, and the link subspace is in fact more strongly frozen (R-NS gives `M'(d)(v) = M(d)(v)` for `subspace(v) = s_L`, and RA2 leaves `V_{s_L}(d)` unchanged as a key set). The defect is in the proof's coverage, not in the result.
+
+**Required**: Add an explicit statement that the link-subspace instances of the per-subspace arrangement invariants (D-CTG★, D-SEQ★, D-MIN★, S8-depth on `V_{s_L}(d)`) and the link-position coverage of the whole-arrangement S8a/S8-fin are inherited via the frozen `s_L` frame: `V_{s_L}(d)` is unchanged as a key set (RA2) with its values frozen (R-NS), so every link-subspace per-state arrangement invariant holds verbatim. Cleanest fix: recast the contiguity paragraph to cover both subspaces at once (the set-invariance argument is identical for each), reserving only the additional R-NS value-freeze remark for the link subspace.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Generalization beyond depth-2 text positions
+**Why out of scope**: REARRANGE is scoped to the text subspace at V-position depth 2 (inherited from ASN-0084's CS4), and the note explicitly disclaims other depths ("We make no claim about other subspaces or other depths"). Extending the transposition to text subspaces of depth `m > 2` is genuinely new territory for a future ASN, not an error here. The note's own open questions already enumerate the substantive deferrals (cross-document boundary-hood under transclusion, concurrent rearrangement serialization, content-index relation, 3+-region run structure, prior-arrangement recoverability, closed-form arithmetic boundary guard).
+
+VERDICT: REVISE
