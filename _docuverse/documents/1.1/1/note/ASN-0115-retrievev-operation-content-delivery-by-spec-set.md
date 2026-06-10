@@ -65,16 +65,11 @@ tumbler with `zeros(d) = 2` (ASN-0045) that is present in the arrangement family
 depth at least 2 with positive components,
 `zeros(s) = 0 ∧ #s ≥ 2 ∧ (A i : 1 ≤ i ≤ #s : sᵢ > 0)`. This is the shape
 ASN-0036's S8a requires of every *bound* position; we impose it here directly as a
-constraint on the span's start, whether or not that start is itself bound. Each
-condition defining a V-spec is *stable*: the structural conditions — the shape of
-`s`, the level-uniformity and ordinal-level of `σ` — make no reference to state at
-all, and the one state-dependent conjunct, `d ∈ dom(Σ.M)`, is monotone (ASN-0047,
-M1 ArrangementMonotonicity), so once `d` is allocated it stays allocated and the
-conjunct, once true, never lapses. Depth compatibility is therefore a
-*consulting-state* predicate `depthcompat(ρ, Σ)` — consulting-state because
-`m_S(d)` is mutable (ASN-0047 re-pins a cleared subspace, so `#s = m_S(d)` need
-not persist) — defined below and applied inside `act`, where it is the sole depth
-check.
+constraint on the span's start, whether or not that start is itself bound. Depth
+compatibility is deliberately *not* a well-formedness condition: `m_S(d)` is
+mutable — ASN-0047 re-pins a cleared subspace on its next insertion, so
+`#s = m_S(d)` need not persist — so it is a *consulting-state* predicate
+`depthcompat(ρ, Σ)`, defined below and applied inside `act`.
 Ordinal-level means the width acts at the deepest component,
 `actionPoint(ℓ) = #ℓ` (ASN-0082, OrdinalLevel). This is the deepest-action-point
 discipline that keeps a span within a single subspace:
@@ -443,10 +438,9 @@ delivered material be identical?
 > agree, `Σ.M(dⱼ)|⟦σⱼ⟧ = Σ'.M(dⱼ)|⟦σⱼ⟧` for every `j`. Then
 > `deliver(R, Σ) = deliver(R, Σ')`.
 
-The proof is short and exposes which input is the variable one. `deliver` is a
-function of two things: the consulted arrangement restrictions, and the stores
-the resolved values are drawn from. We first show the active sets agree,
-`act(ρⱼ, Σ) = act(ρⱼ, Σ')` — non-trivial because `act`'s depth-compatibility
+`deliver` is a function of two things: the consulted arrangement restrictions,
+and the stores the resolved values are drawn from. We first show the active sets
+agree, `act(ρⱼ, Σ) = act(ρⱼ, Σ')` — non-trivial because `act`'s depth-compatibility
 branch reads the *whole* subspace state of `dⱼ`, not just the restriction to
 `⟦σⱼ⟧` the hypothesis equates. If `Σ.M(dⱼ)|⟦σⱼ⟧` is non-empty, a shared bound
 position `v ∈ ⟦σⱼ⟧ ∩ dom(M(dⱼ))` lies in subspace `S = s₁` (Confinement), so
@@ -455,17 +449,13 @@ depth-compatibility then holds-or-fails identically, and where it holds `act` is
 the equal restriction's (equal, non-empty) domain at both. Where it fails
 identically at the two states, both take the override and
 `act(ρⱼ, Σ) = ∅ = act(ρⱼ, Σ')`, so the active sets still agree despite the
-non-empty restriction — the override discards it at both. (This is the operative
-sub-case for the override: the restriction `Σ.M(dⱼ)|⟦σⱼ⟧` is exactly the geometric
-intersection `dom(M(dⱼ)) ∩ ⟦σⱼ⟧`, which is non-empty in the too-shallow case
-`#s < m_S` the override exists to handle, yet `act = ∅` at each via the override.) If `Σ.M(dⱼ)|⟦σⱼ⟧` is empty,
-then `⟦σⱼ⟧ ∩ dom(M(dⱼ)) = ∅` at both states, so `act(ρⱼ, Σ) = ∅ = act(ρⱼ, Σ')`
+non-empty restriction — the override discards it at both. If `Σ.M(dⱼ)|⟦σⱼ⟧` is
+empty, then `⟦σⱼ⟧ ∩ dom(M(dⱼ)) = ∅` at both states, so `act(ρⱼ, Σ) = ∅ = act(ρⱼ, Σ')`
 whichever branch each state takes (the depth-compatible branch yields the empty
 intersection, the override branch yields `∅` directly). Either way the active sets
 and the resolved addresses agree position-for-position. Fix any resolved
-address `a`, the same at both states by that agreement. The two item kinds now
-conclude by different routes, and the asymmetry is the point. For a **link
-position** the delivered item is `⟨ref, a⟩` — it carries the resolved *address*,
+address `a`, the same at both states by that agreement. For a **link position**
+the delivered item is `⟨ref, a⟩` — it carries the resolved *address*,
 never the link value `Σ.L(a)` — so its stability is already settled: equal
 resolved addresses give the identical reference item `⟨ref, a⟩` at both states,
 with no appeal to any store invariant. For a **content position** the item carries
@@ -477,14 +467,10 @@ across them a freshly allocated address could carry different values, so
 comparability is required, not derived. Because the consulted restriction binds
 `a` at both states, S3★ places it in the content store at each,
 `a ∈ dom(Σ.C) ∩ dom(Σ'.C)`; over the intervening transitions `Σ →* Σ'`, content
-immutability (S0) holds the stored entry fixed, giving `Σ.C(a) = Σ'.C(a)`. The
-labelling of the two states is immaterial — value-equality is symmetric — so
-naming the descendant `Σ'` costs no generality. Hence for every resolved address
-the delivered value or reference is the same at both states, and the two
-deliveries are identical. The only mutable input to a
-content delivery is the arrangement; this is exactly why repeatability is
-conditioned on "unchanged arrangements" and on nothing else. Editing produces a
-*new* version (a new document tumbler with its own arrangement) rather than
+immutability (S0) holds the stored entry fixed, giving `Σ.C(a) = Σ'.C(a)`. Hence
+for every resolved address the delivered value or reference is the same at both
+states, and the two deliveries are identical. Editing produces a *new* version
+(a new document tumbler with its own arrangement) rather than
 mutating an existing one, so "the same spec-set against the same version" is
 always a well-defined, reproducible request — the foundation of permanent
 citation: "any address … may be specified by a permanent tumbler address" (4/19).
