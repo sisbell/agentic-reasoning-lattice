@@ -121,13 +121,11 @@ boundaries, "what lies between... is implicit in the choice of first and last
 point," and "a span that contains nothing today may at a later time contain a
 million documents" (4/25).
 
-We restrict attention to *content* spec-sets: COPY's content-residence precondition
-(stated with the operation below) requires every active position to be in the text
-subspace, `subspace(vⱼ) = s_C`, so by referential integrity (S3★) each resolves to
-a content address `Σ.M(d_s)(vⱼ) ∈ dom(Σ.C)`. It confines the
-resolved domain `act(ρ, Σ) ⊆ V_{s_C}(d_s)` to a *single subspace* directly, and
-S8-depth (ASN-0036) gives that subspace a *common depth*; these two
-arrangement-side facts are the only premises the arithmetic needs.
+We restrict attention to *content* spec-sets: under content-residence every active
+position is in the text subspace, `subspace(vⱼ) = s_C`, so by referential integrity
+(S3★) each resolves to a content address `Σ.M(d_s)(vⱼ) ∈ dom(Σ.C)`. The
+single-subspace confinement and common depth noted above are the only
+arrangement-side premises the arithmetic needs.
 
 We define **resolution** as the flat I-address sequence obtained by expanding
 ASN-0058's `resolve` (Resolution). ASN-0058 resolves a content reference
@@ -142,11 +140,9 @@ we use is the address-by-address expansion of those run-pairs:
 
 This is not a new object — it is ASN-0058's resolution listed one address at a
 time rather than run-by-run, and every address it lists is the image
-`Σ.M(d_s)(v)` of a bound active position `v ∈ act(ρ, Σ)`. That per-position
-grounding is the bridge CP0(a) leans on — it must reach the *interior*
-addresses `aⱼ+1, …, aⱼ+(nⱼ−1)` that `expand` produces, not only the run-leading
-`aⱼ` — so we exhibit it rather than assert it. Fix one V-spec `ρ = (d_s, σ)`. Its
-runs `(vⱼ, aⱼ, nⱼ)` partition `act(ρ, Σ)` — the domain `dom(M(d_s)|⟦σ⟧)` — into
+`Σ.M(d_s)(v)` of a bound active position `v ∈ act(ρ, Σ)`. Fix one V-spec
+`ρ = (d_s, σ)`. Its runs `(vⱼ, aⱼ, nⱼ)` partition `act(ρ, Σ)` — the domain
+`dom(M(d_s)|⟦σ⟧)` — into
 disjoint maximal runs (ASN-0058, C1a), and the maximal-run lockstep property
 (ASN-0036, S8) fixes each run's images in step with its bound positions:
 `Σ.M(d_s)(vⱼ + k) = aⱼ + k` for every `0 ≤ k < nⱼ`. Hence the address `aⱼ + k`
@@ -166,9 +162,9 @@ object we record as the *resolution integrity* claim CP0:
   each `cᵢ` — run-leading or run-interior alike — is `Σ.M(d_s)(v)` for some active
   position `v ∈ act(ρ, Σ) ⊆ dom(Σ.M(d_s))` with `subspace(v) = s_C`
   (content-residence), so referential integrity S3★ gives `Σ.M(d_s)(v) ∈ dom(Σ.C)`.
-  The interior addresses `aⱼ + k` are covered because the bridge identifies each
-  with the image of the bound position `vⱼ + k`, not left as bare arithmetic on
-  `aⱼ`. The conclusion coincides with ASN-0058 C1
+  The interior addresses `aⱼ + k` are covered because that grounding identifies
+  each with the image of the bound position `vⱼ + k`, not left as bare arithmetic
+  on `aⱼ`. The conclusion coincides with ASN-0058 C1
   (ResolutionIntegrity); here it is grounded in S3★ over the bound subset, per the
   resolution basis fixed above. *Nothing named by the spec-set is invented; it is
   all found.* This is the precondition that the placement to come will require, met
@@ -227,10 +223,7 @@ V-positions starting at `p`:
 > `(A v : v ∈ V_{s_C}(d) ∧ v ≥ p : Σ'.M(d)(v + W) = Σ.M(d)(v))`     (CP3a)
 
 This is the post-insertion shift of ASN-0082 (I3, PostInsertionShift) instantiated
-at width `W`; from it we borrow, *for the shifted positions*, that they remain
-well-formed (I3-VP), preserve depth (I3-VD), and stay finite (I3-fin). The
-function-ness, no-holes, contiguity, and sequentiality of COPY's actual `Σ'.M(d)`
-rest instead on CP3c's domain closure and K.μ⁺'s strict-extension contract.
+at width `W`.
 
 *Effect — domain closure (text subspace).* The text-subspace V-positions of the
 post-state are exactly the left-frame positions, the placement positions, and the
@@ -240,15 +233,14 @@ shifted positions — and *nothing else*; in particular the pre-shift positions 
 > `{v ∈ dom(Σ'.M(d)) : subspace(v) = s_C} =`
 > `  {v ∈ V_{s_C}(d) : v < p} ∪ {p + i : 0 ≤ i < W} ∪ {v + W : v ∈ V_{s_C}(d) ∧ v ≥ p}`     (CP3c)
 
-CP3c is a *domain-closure* postcondition: it pins the extent of `d`'s text-subspace
-domain so that `d`'s per-state invariants are dischargeable from the postconditions
-alone, not only through the exhibited composite (CP6's domain-equality conjunct
-does the same for the non-text subspaces). CP3c
-closes the text-subspace domain to the three disjoint, abutting ordinal ranges
-(left, placement, shifted; their disjointness is the tiling argument given later
-under prior-arrangement preservation), so each text V-position carries exactly one
-binding and S2 is dischargeable from the postconditions alone. CP3c is the COPY
-analogue of ASN-0082's I3-V (PostInsertionVacating) and D-DOM (domain
+CP3c is a *domain-closure* postcondition: it closes `d`'s text-subspace domain to
+the three disjoint, abutting ordinal ranges (left, placement, shifted; their
+disjointness is the tiling argument given later under prior-arrangement
+preservation), so each text V-position carries exactly one binding and `d`'s
+per-state invariants — S2 functionality among them — are dischargeable from the
+postconditions alone, not only through the exhibited composite (CP6's
+domain-equality conjunct does the same for the non-text subspaces). CP3c is the
+COPY analogue of ASN-0082's I3-V (PostInsertionVacating) and D-DOM (domain
 characterization), which COPY's displacement otherwise borrows wholesale.
 
 *Effect — provenance.* Each resolved address is referenced by `d` in the
@@ -312,9 +304,10 @@ K.μ⁻ frames the content store, link store, and provenance unchanged
 (`Σ₁.C = Σ.C`, `Σ₁.L = Σ.L`, `Σ₁.R = Σ.R`). **(ii)** A K.μ⁺ step then re-adds, on
 top of the retained prefix, both the `W` placement positions `[p, p+W)` bound to
 `c₀,…,c_{W−1}` (CP2) and the displaced trailing positions
-`{(min+i)+W : j ≤ i < N} = [p+W, max+W]` bound to their original images
-`Σ.M(d)(min+i)` (CP3a). Each retained mapping is left intact — K.μ⁺'s
-strict-extension frame. The freshly added V-positions are well-formed (S8a), and
+`{(min+i)+W : j ≤ i < N} = [p+W, max+W]` — the equality by shift composition
+(ASN-0034, TS3; ASN-0084, Extended Associativity), `(min+i)+W = min+(i+W)` —
+bound to their original images `Σ.M(d)(min+i)` (CP3a). Each retained mapping is
+left intact — K.μ⁺'s strict-extension frame. The freshly added V-positions are well-formed (S8a), and
 the two kinds discharge that obligation by distinct routes: the displaced trailing
 positions `{(min+i)+W : j ≤ i < N}` are *shifted* content, so I3-VP
 (PostInsertionWellFormedness, ASN-0082) applies; the placement positions
@@ -497,13 +490,9 @@ Two consequences matter beyond bookkeeping. First, because the prior content's
 *I-addresses* are unchanged — only its V-positions move — anything anchored to
 those I-addresses survives the placement unmoved; links attach to content
 identity, not arrangement position (CP7 below). Second, the post-state arrangement
-is again a well-formed, contiguous, sequential text subspace. As CP3a noted, I3
-establishes only the *shifted* positions' well-formedness, depth, and finiteness;
-the function-ness and no-holes of COPY's actual `Σ'.M(d)` — which fills I3's empty
-gap `[p, p+W)` with the placement positions (CP2) — rest instead on CP3c's domain
-closure (the tiling below) and K.μ⁺'s strict extension. We derive the no-holes
-tiling explicitly from ordinal arithmetic, splitting on whether the destination's
-text subspace is already populated.
+is again a well-formed, contiguous, sequential text subspace. We derive the
+no-holes tiling explicitly from ordinal arithmetic, splitting on whether the
+destination's text subspace is already populated.
 
 *Empty destination* (`V_{s_C}(d) = ∅`, so `N = 0`). Here COPY establishes the
 document's first content rather than preserving prior content. The valid insertion
@@ -534,8 +523,13 @@ ends just below `p` where the placement begins, and the placement ends just belo
 `p+W` where the shifted run begins. Disjointness is ordinal arithmetic, not I3 —
 shift is strictly order-preserving (ASN-0034, TS1) and a strict advance
 (`v + W > v`, TS4), so no shifted position lands at or below any placement or
-left position, and the half-open intervals abut without gap or overlap. Their
-union is the single contiguous run `[min, max+W] = {min + i : 0 ≤ i < N+W}`. Hence
+left position, and the intervals do not overlap. Nor is there a gap: each
+`v = min + i` with `j ≤ i < N` shifts to `(min + i) + W = min + (i + W)` by shift
+composition (ASN-0034, TS3; ASN-0084, Extended Associativity), so the shifted
+positions are exactly the consecutive ordinals
+`{min + (i+W) : j ≤ i < N} = [p+W, max+W]`, abutting the placement block
+`[p, p+W)` at `p+W` with nothing skipped. Their union is the single contiguous
+run `[min, max+W] = {min + i : 0 ≤ i < N+W}`. Hence
 `V_{s_C}(d)` after COPY has minimum `min` unchanged (D-MIN preserved), is the
 sequential block of `N+W` positions from `min` (D-SEQ preserved), and has no
 interior hole (D-CTG preserved). The destination's editorial order — "this
