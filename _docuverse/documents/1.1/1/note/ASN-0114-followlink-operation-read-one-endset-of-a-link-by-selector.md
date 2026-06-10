@@ -226,13 +226,11 @@ intervening operations on the system, must therefore denote the same positions.
 > sequence with `a ∈ dom(Σ.L)`. Then `a ∈ dom(Σ'.L)` and `coverage(followlink(
 > Σ', a, i)) = coverage(followlink(Σ, a, i))` for every valid selector `i`.
 
-*Derivation.* L12 (LinkImmutability) fixes a link's address and value across a
-*single* transition `Σ → Σ'`; F5 quantifies over the reflexive-transitive
-closure `Σ →* Σ'`, so the single-step fact must be composed along the sequence.
-LP13 (UnconditionalLinkPersistence, ASN-0098) supplies that composition: "for
-every reachable state sequence `Σ →* Σ'` and every `a ∈ dom(Σ.L)`: `a ∈
-dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)`." Hence `Σ'.L(a).eᵢ = Σ.L(a).eᵢ`, and F1 applied at
-each state equates the coverages of the two results. ∎
+*Derivation.* LP13 (UnconditionalLinkPersistence, ASN-0098) supplies the
+persistence directly: "for every reachable state sequence `Σ →* Σ'` and every
+`a ∈ dom(Σ.L)`: `a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)`." Hence `Σ'.L(a).eᵢ =
+Σ.L(a).eᵢ`, and F1 applied at each state equates the coverages of the two
+results. ∎
 
 ## Confinement: one end tells nothing of the others
 
@@ -292,10 +290,7 @@ of address region alone.
 Second, the mere success of the request at selector `i` exposes that the link
 has at least `i` slots, `|Σ.L(a)| ≥ i`. Beyond these, the result's coverage
 discloses nothing of the other ends — not the from-set when the to-set was
-asked, not the type — and its success reveals no arity beyond the lower bound
-`i`. Confinement is the dual of exactness — exactness says
-the answer covers the whole of the selected end, confinement says it covers no
-part of any other.
+asked, not the type.
 
 ## The empty end versus the invalid selector
 
@@ -464,15 +459,10 @@ second, the very conflation F7 forbids.
 FOLLOWLINK is, abstractly, a projection. Given a link address and a slot
 selector, it returns that slot's endset, measured by coverage, under three
 primary commitments — F1, F4, F7 — atop the F0 definedness precondition, with
-F2, F3, F5, F6, and F8 following as corollaries. It returns *exactly* the recorded end — no more, no less (F1) —
-preserving its discontiguous shape as a corollary (F2), with representation free
-but coverage bound (F3). It changes nothing (F4) and answers the same
-question the same way for all time (F5). It reads one end and discloses only that
-end — the addresses it targets, the documents those addresses structurally name,
-and the fact that the link has at least that many slots — while its coverage
-turns on the selected end alone (F6). It distinguishes a valid-but-empty end from
-an invalid selector (F7), and it succeeds regardless of whether anything is
-stored at the addresses the end names (F8). Each of these is a property any
+F2, F3, F5, F6, and F8 following as corollaries. It reads one end and discloses
+only that end — the addresses it targets, the documents that the
+document-bearing addresses among them structurally name, and the fact that the
+link has at least that many slots. Each of these is a property any
 faithful implementation must satisfy; the one implementation we have evidence for
 satisfies F1–F6 and F8 and *fails* F7, which is exactly the kind of obligation an
 abstract specification exists to make visible.
