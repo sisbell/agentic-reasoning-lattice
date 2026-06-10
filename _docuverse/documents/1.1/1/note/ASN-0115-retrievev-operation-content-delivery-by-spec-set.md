@@ -521,12 +521,11 @@ jointly; and `deliver` performs no comparison of the two resolutions, it
 concatenates two independently computed items (R0). Co-delivery therefore
 establishes nothing about the relation between the two that two separate
 single-span deliveries would not: it carries no information a pair of isolated
-requests lacks. And because each delivered item carries the value `Σ.C(a)`,
-never the address (R1), the output does not disclose the sharing at all — it is
-byte-indistinguishable from the delivery of two coincidentally-equal contents at
-distinct addresses (S4), exactly the non-recoverability R9 records for content
-origin. Nelson's promise that the system "will also reveal and clarify
-commonalities between documents and among versions" (3/4) is kept by operations
+requests lacks. The box already records the complementary half — that the output
+itself, carrying values not addresses (R1), is byte-indistinguishable from
+coincidental value-equality (S4) and so discloses nothing. Nelson's promise that
+the system "will also reveal and clarify commonalities between documents and
+among versions" (3/4) is kept by operations
 that compare addresses, not by RETRIEVEV, whose content payload is value-only.
 
 Third, *no merge*. The two items are not collapsed into one. This is forced
@@ -546,9 +545,9 @@ Then `deliver(R, Σ) = ⟨⟨content, Σ.C(a)⟩, ⟨content, Σ.C(a)⟩⟩`: tw
 *same* value both times (R8.i), in the order the specs were given — `w` before
 `u`, against V-magnitude (R5) — with neither dropped (R8.iii). The two appearances resolve
 through the single address `a` — a fact of the resolution, not of the delivered
-stream, which carries two byte-identical values indistinguishable from two
-coincidentally-equal contents at distinct addresses (S4). Co-delivery adds
-nothing here that two separate single-span deliveries would not.
+stream, which by R8 carries two byte-identical values that disclose nothing about
+the sharing. Co-delivery adds nothing here that two separate single-span
+deliveries would not.
 
 ## What co-delivery reveals: coherent multi-origin assembly
 
@@ -726,10 +725,9 @@ some respects but not all. For transclusion it does *not*: content positions
 sharing a resolved address deliver identical material with no deduplication (R8),
 but co-delivery discloses nothing about the sharing that two isolated single-span
 deliveries would not — the shared address is a fact of resolution, not of the
-output, which carries values, not addresses (R1, R9), and so cannot be told apart
-from coincidental value-equality (S4). Genuine transclusion is a content
-phenomenon, since CL-OWN and CL-UNIQ make distinct link positions sharing an
-address unreachable, so the link sub-case is vacuous (R8). Where co-delivery does
+output (R8). Genuine transclusion is a content phenomenon, since CL-OWN and
+CL-UNIQ make distinct link positions sharing an address unreachable, so the link
+sub-case is vacuous (R8). Where co-delivery does
 exceed the sum of its parts is assembly and crossing: it assembles multi-origin
 material into one coherent stream whose fragments stay attributable to their
 origins through resolution (R9); and it makes the text/link subspace boundary
@@ -753,7 +751,7 @@ absent consolidation step realizing the no-deduplication corollary of R3 and R8.
 | R6 | SilentGapFiltering: a named position unbound in the consulted arrangement contributes nothing and causes no failure; the gap is signalled by absence | introduced |
 | R7 | Repeatability: equal consulted arrangement restrictions ⟹ identical delivery; the arrangement is the sole mutable input | introduced |
 | R8 | TransclusionCoResolution: content positions sharing a resolved address deliver identical material via identity-preserving co-resolution through the one shared address, with no deduplication (one item per V-position); the sharing is internal to resolution and not disclosed by the output, which carries values not addresses (R1) and is byte-indistinguishable from coincidental value-equality (S4, R9); the link sub-case is vacuous (CL-OWN + CL-UNIQ forbid distinct link positions sharing an address), so genuine transclusion is confined to content | introduced |
-| R9 | CoherentMultiOriginAssembly: multi-origin spec-sets deliver as one ordered stream (R5), resolved per document (R4); output-recoverable provenance is kind-asymmetric — a link item carries `a`, so `home(a)` is recoverable from the delivered output (R10; L1a, HomeOriginCoincidence), while a content item carries only `Σ.C(a)`, so `origin(a)` (S7) is determinate only through the resolution mapping, not the output (inline content provenance deferred, Open Question 1) | introduced |
+| R9 | CoherentMultiOriginAssembly: multi-origin spec-sets deliver as one ordered stream (R5), resolved per document (R4); output-recoverable provenance is kind-asymmetric — a link item carries `a`, so `home(a)` is recoverable from the delivered output (R10; L1a, HomeOriginCoincidence), while a content item carries only `Σ.C(a)`, so `origin(a)` (S7) is determinate only through the resolution mapping, not the output (inline content provenance deferred — see the inline-provenance open question below) | introduced |
 | R10 | SubspaceCrossingObservability: link-subspace positions resolve (S3★) to link addresses and deliver as references — kind-distinct from content items — making the subspace crossing observable | introduced |
 | R11 | PermanentSourcing: content is sourced from the immutable store by I-address; an address ever in `dom(Σ.C)` remains deliverable whenever any arrangement binds a position to it, including orphaned-but-referenced content | introduced |
 
