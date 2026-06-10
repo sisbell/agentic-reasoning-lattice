@@ -375,9 +375,15 @@ V-positions that resolve to those addresses,
 — both imported (ASN-0098, Definition — Coverage and Definition — Project), not
 introduced here.
 
-Coverage is a property of the endset's spans alone (ASN-0098, LP3 — coverage
-invariance), and the operation freezes the link store (RA6: `Σ'.L = Σ.L`), so
-`coverage(a, i)` is one fixed address set across the transition. The footprint then
+Coverage is a property of the endset's spans alone — ASN-0098's *Definition —
+Coverage* fixes it as a purely combinatorial function of the endset that consults
+no state component — and the operation freezes the link store (RA6: `Σ'.L = Σ.L`).
+The two combine directly: `Σ'.L = Σ.L ⟹ Σ'.L(a).eᵢ = Σ.L(a).eᵢ ⟹
+coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)`, so `coverage(a, i)` is one fixed
+address set across the transition. We carry this through RA6 rather than cite
+ASN-0098's LP3 (coverage invariance): LP3 is established by case analysis over a
+transition vocabulary that does not include REARRANGE_K — the same reason we
+decline LP11 just below. The footprint then
 transports through `π` by the bijection equation alone. For any `v ∈ dom(M(d))`,
 
       v ∈ project(a, i, d, Σ)
@@ -448,8 +454,11 @@ does not merely shift each region — it *relocates the region blocks*, laying `
 before `α` (pivot) or `β, μ, α` (swap), and so manufactures new *seams* where two
 formerly separated blocks now abut. Run structure is preserved *within* a region;
 *across* regions a seam can heal contiguity — two relocated blocks re-abut — or
-break it — a block pulls away from what sat beside it. The contiguity outcomes are
-therefore four, and we exhibit one of each on the worked pivot above
+break it — a block pulls away from what sat beside it. The contiguity outcome is
+thus binary — preserved or broken. The configurations below are representative
+illustrations of these two outcomes, not a closed enumeration: a footprint
+spanning three or more regions falls under none of them, yet still resolves to one
+of the same two. We draw each from the worked pivot above
 (`A B C D E ↦ A C D E B`, cuts `c₀,c₁,c₂ = ord 2,3,6`, with the `π` table from
 that section).
 
