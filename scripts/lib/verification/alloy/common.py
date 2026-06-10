@@ -20,7 +20,7 @@ ALLOY_JAR_DEFAULT = (
 COMMIT_SCRIPT = WORKSPACE / "scripts" / "commit.py"
 
 
-def invoke_claude(prompt, out_path, model="opus", effort=None,
+def invoke_claude(prompt, out_path, model="fable", effort=None,
                   max_turns=12, write_instruction=None,
                   tools="Read,Write,Bash"):
     """Call claude -p in agent mode to generate a file.

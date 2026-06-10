@@ -224,7 +224,7 @@ def _save_answer(consult_subdir, item, role, answer):
     )
 
 
-def _run_targeted_consultations(items, asn_id, consult_subdir, model="opus"):
+def _run_targeted_consultations(items, asn_id, consult_subdir, model="fable"):
     """Run channel consultations for items with assigned questions.
 
     Theory consultations run in parallel (no tools).

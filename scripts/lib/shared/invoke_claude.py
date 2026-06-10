@@ -26,6 +26,7 @@ from lib.shared.paths import WORKSPACE
 
 
 MODEL_FLAGS = {
+    "fable": "claude-fable-5[1m]",
     "opus": "claude-opus-4-8[1m]",
     "sonnet": "claude-sonnet-4-6",
 }
@@ -395,7 +396,7 @@ def _next_config_dir():
     return picked
 
 
-def invoke_claude(prompt, *, model="opus", effort="max", tools=None,
+def invoke_claude(prompt, *, model="fable", effort="max", tools=None,
                   output_format="json", cwd=None, omit_tools=False):
     """Call claude --print (single-turn, no tools by default). Returns Result.
 
@@ -579,7 +580,7 @@ def _result_from_json(data, elapsed):
     )
 
 
-def invoke_claude_agent(prompt, *, model="opus", effort="max",
+def invoke_claude_agent(prompt, *, model="fable", effort="max",
                         tools="Read,Write,Bash", max_turns=12, cwd=None,
                         enabled_tools=None):
     """Call claude -p (agent mode). Returns Result.

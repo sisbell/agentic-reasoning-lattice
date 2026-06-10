@@ -17,7 +17,7 @@ ALIGN_TEMPLATE = prompt_path("verification/alloy/align-with-contract.md")
 
 
 def align(als_path, errors, formal_contract, syntax_ref="",
-          model="opus", effort="high", max_turns=12):
+          model="fable", effort="high", max_turns=12):
     """Run align-with-contract agent on an Alloy model."""
     alloy_jar = os.environ.get("ALLOY_JAR", ALLOY_JAR_DEFAULT)
     alloy_code = read_file(als_path)
@@ -41,7 +41,7 @@ def align(als_path, errors, formal_contract, syntax_ref="",
 
 
 def align_validate_cycle(als_path, formal_contract, label,
-                          syntax_ref="", model="opus", effort="high",
+                          syntax_ref="", model="fable", effort="high",
                           max_cycles=3):
     """Validate contract, then align -> check -> validate cycle if FLAG.
 

@@ -117,7 +117,7 @@ def _filter_questions(inquiry_text, out_of_scope, questions, covers_text=""):
 
     print(f"  [FILTER] Checking {len(questions)} questions against exclusions...",
           file=sys.stderr)
-    result = invoke_claude(prompt, model="opus",
+    result = invoke_claude(prompt, model="fable",
                            skill="pre-consult:filter",
                            label="filter")
 
@@ -152,7 +152,7 @@ def _filter_questions(inquiry_text, out_of_scope, questions, covers_text=""):
     return filtered
 
 
-def _decompose_inquiry(inquiry_text, num_theory=10, num_evidence=10, model="opus",
+def _decompose_inquiry(inquiry_text, num_theory=10, num_evidence=10, model="fable",
                        out_of_scope="", asn_id=None):
     """Two-pass decompose: theory channel then evidence channel.
 
@@ -231,7 +231,7 @@ def _load_existing_answers(consult_dir, questions):
     return existing
 
 
-def _run_consultations(questions, consult_dir, asn_id, theory_model="opus",
+def _run_consultations(questions, consult_dir, asn_id, theory_model="fable",
                        evidence_model="sonnet", effort="max"):
     """Run all consultations. Theory in parallel, evidence sequential.
 
