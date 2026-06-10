@@ -33,18 +33,28 @@ REARRANGE rewrites only the arrangement and never touches an I-address.
 
 ## The two streams
 
-We work in the state `Σ = (C, M, L)` of the strand and link models. The *content
-store* `Σ.C : T ⇀ Val` (ASN-0036, S0) is append-only and immutable; an address
-`a ∈ dom(C)`, once allocated, denotes its value forever. This is the Istream:
-the permanent record of *what content exists*. The *arrangement*
+We work in the extended state `Σ = (C, L, E, M, R)` of ASN-0047's transition
+model, which lifts the strand model (ASN-0036) and the link model (ASN-0043) into
+a single arrangement whose V-positions inhabit two subspaces — the text subspace
+`s_C` and the link subspace `s_L` (ASN-0047, S3★-aux). REARRANGE writes only the
+content store `C`, the arrangement family `M`, and — in its frame — the link store
+`L`; the entity set `E` and the provenance relation `R` are inert under it, so we
+suppress them and write `Σ = (C, M, L)` for the active components throughout. The
+*content store* `Σ.C : T ⇀ Val` (ASN-0036, S0) is append-only and immutable; an
+address `a ∈ dom(C)`, once allocated, denotes its value forever. This is the
+Istream: the permanent record of *what content exists*. The *arrangement*
 `Σ.M(d) : T ⇀ T` of a document `d` maps V-positions to I-addresses; it is the
-Vstream, the record of *how content is currently ordered* in `d`. The *link
-store* `Σ.L : T ⇀ Link` (ASN-0043) records typed associations whose endsets
-reference content by address. V-positions and I-addresses are tumblers ordered
-by T1 (ASN-0034); within the text subspace the active V-positions are contiguous
-and share a common depth (ASN-0036, D-CTG, D-SEQ, S8-depth). These contiguity
-invariants are the text-subspace ones of ASN-0036; the link subspace `s_L` is
-carried untouched in the frame.
+Vstream, the record of *how content is currently ordered* in `d`. In the extended
+model an arrangement carries both content and link V-positions — a content
+position (`subspace(v) = s_C`) maps into `dom(C)`, a link position
+(`subspace(v) = s_L`) into `dom(L)` (ASN-0047, S3★). The *link store*
+`Σ.L : T ⇀ Link` (ASN-0043) records typed associations whose endsets reference
+content by address. V-positions and I-addresses are tumblers ordered by T1
+(ASN-0034); within the text subspace the active V-positions are contiguous and
+share a common depth (ASN-0047, D-CTG★, D-SEQ★; S8-depth). On `s_C` these starred
+per-subspace invariants coincide with ASN-0036's unstarred D-CTG/D-MIN/D-SEQ; we
+cite the starred forms throughout because the operative model is ASN-0047's. The
+link subspace `s_L` is carried untouched in the frame.
 
 The distinction the operation turns on is the one ASN-0034's T6 already records:
 *address versus position*. An I-address is permanent content identity; a
@@ -67,7 +77,7 @@ ASN-0058's
 ordinal-shift convention: for a V-position `v` and natural `k`, `v + k`
 abbreviates `shift(v, k)` (ASN-0034) at `v`'s depth, with `v + 0 = v`; at depth 2
 a text position has the form `[s_C, k]` and `ord(v) = k`. Because the active text
-positions are contiguous and densely indexed (D-SEQ), a *cut* may be named by the
+positions are contiguous and densely indexed (D-SEQ★), a *cut* may be named by the
 V-position at which it falls, and the width of an interval between two cuts is the
 ordinal difference of their positions.
 
@@ -212,8 +222,8 @@ set*: `π` only reassigns the I-address *value* filed at each `v`, never the set
 keys. Every reachable-state invariant that constrains this set alone is therefore
 inherited verbatim from the pre-state, none of them mentioning the values
 `M(d)(v)` that `π` reshuffles. Concretely: text-subspace contiguity
-(ASN-0036, **D-CTG**), sequentiality (**D-SEQ**), the minimum position
-(**D-MIN**), V-position well-formedness (**S8a**), uniform per-subspace
+(ASN-0047, **D-CTG★**), sequentiality (**D-SEQ★**), the minimum position
+(**D-MIN★**), V-position well-formedness (**S8a**), uniform per-subspace
 depth (**S8-depth**), and finiteness (**S8-fin**) all held for `V_{s_C}(d)` before
 the rearrangement and so hold after it. These are exactly the "hardest to
 maintain" tiling conjuncts; here they are the *easiest*, precisely because
@@ -253,7 +263,7 @@ around it.
 The document's total extent must be unchanged: "the same bytes are present, in
 the same quantity, merely permuted into a different order" (Question 7).
 Conservation is immediate from P2. The active V-positions of the text subspace
-`s_C` form a contiguous run by D-CTG, and `π` permutes that run onto itself, so
+`s_C` form a contiguous run by D-CTG★, and `π` permutes that run onto itself, so
 the run's cardinality and its endpoints are invariant:
 
       | dom(M'(d)) | = | dom(M(d)) |,    min and max V-position fixed.   **(P3)**
@@ -321,9 +331,9 @@ extent is conserved (**P3**).
 
 ## Links
 
-A link's endsets reference content by *address*. ASN-0084's REARRANGE_K is
-specified over a state with no link store, so its frame R-FRAME-P/R-FRAME-S says
-nothing about `L`. Lifting the operation into the `(C, M, L)` state, we extend
+A link's endsets reference content by *address*. ASN-0084's REARRANGE_K
+frames only the content store and the arrangement; its frame R-FRAME-P/R-FRAME-S
+says nothing about the link store `L`. Lifting the operation into the `(C, M, L)` state, we extend
 that frame with an explicit clause — REARRANGE writes only `M(d)`, so
 
       Σ'.L = Σ.L                                                    **(P6)**
@@ -402,79 +412,58 @@ condition for contiguity-preservation — not as a weakest precondition:
 
 Every other postcondition of this note holds unconditionally (`wp = true`); the
 footprint's contiguity is the single property REARRANGE does not preserve in
-general, and so the one that needs a precondition. But that precondition is
-genuinely *only sufficient*, and in two distinct senses, each exhibited by an
-example below: confinement is *not necessary* for a contiguous result — a
-footprint straddling a cut can still land contiguous — and confinement does *not*
-entail a single-span result — a footprint with internal gaps inside one region
-stays fragmented. The reason is that REARRANGE does not merely shift each region —
-it *relocates the region blocks*, laying `β` before `α` (pivot) or `β, μ, α`
-(swap), and so manufactures new *seams* where two formerly separated blocks now
-abut. Run structure is preserved *within* a region, but the seams can both heal
-and break contiguity *across* regions.
+general, and so the one that needs a precondition. That precondition is
+*sufficient, not necessary*, and what it controls is *run structure*, not a
+single-span result: confinement neither heals existing gaps nor is required for a
+straddling footprint to land contiguous on its own. The reason is that REARRANGE
+does not merely shift each region — it *relocates the region blocks*, laying `β`
+before `α` (pivot) or `β, μ, α` (swap), and so manufactures new *seams* where two
+formerly separated blocks now abut. Run structure is preserved *within* a region;
+*across* regions a seam can heal contiguity — two relocated blocks re-abut — or
+break it — a block pulls away from what sat beside it. The contiguity outcomes are
+therefore four, and we exhibit one of each on the worked pivot above
+(`A B C D E ↦ A C D E B`, cuts `c₀,c₁,c₂ = ord 2,3,6`, with the `π` table from
+that section).
 
-*Confinement is not necessary (a straddling footprint can stay contiguous).* A
-footprint straddling a cut may land contiguously precisely when its parts meet at a
-relocated seam. In the worked pivot above (`A B C D E ↦ A C D E B`), a link
-covering `{B, E} = {a₂, a₅}` has the *discontiguous* pre-footprint `{ord 2, ord 5}`
-— `B` in `α`, `E` at the tail of `β` — yet `π` sends `ord 2 ↦ ord 5` and
-`ord 5 ↦ ord 4`, giving the *contiguous* post-footprint `{ord 4, ord 5}`: the
-relocated `E` (last byte of `β`) now abuts the relocated `B` (the whole of `α`).
-The footprint straddles the cut, `project ⊆ one region` is false, and yet
-contiguity is *gained*. So "straddles a cut" does not imply fragmentation, and
-confinement to one region is not necessary for a contiguous result.
+*Within a region: run structure preserved (P7c).* A footprint covering
+`{C, E} = {a₃, a₅}` lies wholly inside `β`, with the *discontiguous* pre-footprint
+`{ord 3, ord 5}` — a gap at `D`. The pivot carries `β` rigidly, `ord 3 ↦ ord 2`
+and `ord 5 ↦ ord 4`, giving `{ord 2, ord 4}`: two singletons with the gap intact
+at `ord 3`. A single run inside one region would likewise stay a single run.
+Confinement preserves *whatever* contiguity the footprint already had — it neither
+heals the gap nor manufactures a single span. (The freedom to carry such a gap is
+real: `coverage` is an arbitrary address set, L4 EndsetGenerality.)
 
-*Confinement is not sufficient for a literal "resolves to one span" either (a
-fragmented footprint stays fragmented).* Because `coverage` is an arbitrary address
-set (L4, EndsetGenerality), a footprint may have internal gaps *within* a single
-region. A rigid shift preserves those gaps, so the post-footprint is still
-discontiguous though `project ⊆ one region` holds. This is exactly why P7c is
-stated as run-structure preservation, not as "the result is one span": confinement
-preserves *whatever* contiguity the footprint already had, neither creating nor
-healing fragmentation.
+*Across relocated blocks that re-abut: contiguity preserved.* A footprint covering
+all of `α ∪ β = {B, C, D, E} = {a₂, a₃, a₄, a₅}` is a single contiguous run
+`{ord 2, 3, 4, 5}` straddling the cut `c₁ = ord 3`. The `π` table carries it
+`{ord 2, 3, 4, 5} ↦ {ord 5, 2, 3, 4}` — again the single run `{ord 2, 3, 4, 5}`,
+because the relocated `β` and relocated `α` re-tile the interval and re-abut. Both
+spanned blocks relocate; the exterior is not involved. The footprint straddles a
+cut, so `project ⊆ one region` is false, yet contiguity survives — confirming that
+confinement is *not necessary* for a contiguous result.
 
-A contiguous footprint survives as contiguous exactly when `π` lays its
-region-pieces down adjacently. This holds when the footprint lies within a single
-region (P7c) and when it spans two or more *relocated* regions that `π` re-abuts;
-it fails when a *fixed-exterior* position sits beside a relocated one, because the
-exterior stays put while the region slides away from it. We exhibit all three
-behaviours on the worked pivot above (`A B C D E ↦ A C D E B`, cuts
-`c₀,c₁,c₂ = ord 2,3,6`).
+*Across a fixed exterior and a relocated block: contiguity broken.* This is the
+"running from a moved region into stationary content" case (Question 5). A footprint
+covering `{A, B} = {a₁, a₂}` — the fixed exterior byte `A` together with the whole
+moved region `α = {B}` — has the *contiguous* pre-footprint `{ord 1, ord 2}`
+straddling the cut `c₀ = ord 2`. `π` fixes the exterior (`ord 1 ↦ ord 1`, R-EXT)
+but sends `α` to the back (`ord 2 ↦ ord 5`, R-P2), giving the *discontiguous*
+`{ord 1, ord 5}`. Both blocks are covered *completely* — no partial block is
+involved — yet the run fragments, because the stationary exterior and the
+relocated `α` separate.
 
-*Straddling, contiguity preserved (relocated blocks re-abut).* A link covering all
-of `α ∪ β = {B, C, D, E} = {a₂, a₃, a₄, a₅}` has pre-footprint `{ord 2, 3, 4, 5}`,
-a single contiguous run straddling the cut `c₁ = ord 3`. The `π` table above carries
-this run `{ord 2, 3, 4, 5} ↦ {ord 5, 2, 3, 4}`, so the post-footprint is again
-`{ord 2, 3, 4, 5}` — one contiguous run. The relocated `β` and relocated `α` re-tile
-the interval and re-abut, so the image is again an interval. Note that *both* spanned
-blocks relocate; the exterior is not involved.
-
-*Straddling, contiguity broken (exterior meets a relocated region).* This is the
-"running from a moved region into stationary content" case (Question 5). A link
-covering `{A, B} = {a₁, a₂}` — the complete fixed exterior byte `A` together with the
-complete moved region `α = {B}` — has the *contiguous* pre-footprint `{ord 1, ord 2}`,
-straddling the cut `c₀ = ord 2`. `π` fixes the exterior (`ord 1 ↦ ord 1`, R-EXT) but
-sends `α` to the back (`ord 2 ↦ ord 5`, R-P2), giving the *discontiguous*
-post-footprint `{ord 1, ord 5}`. Here the run covers only *complete* blocks — no
-partial block is involved — yet it fragments, because the fixed exterior `A` and the
-relocated `α = {B}` separate. This is precisely why the necessity condition is just
-"straddles a cut," with no qualification about partial coverage: covering complete
-blocks does not save a run whose blocks `π` pulls apart.
-
-*Fragmentation from partial coverage.* A second, distinct route to fragmentation —
-beyond the exterior-meets-region case above — is a straddling run that covers only
-*part* of a relocated block. In the worked pivot, a link covering
-`{B, C} = {a₂, a₃}` straddles the cut at `c₁ = ord 3` while covering all of `α` but
-only the first byte of `β` — a partial block. Its *contiguous* pre-footprint
-`{ord 2, ord 3}` is sent by `π` (`ord 2 ↦ ord 5`, `ord 3 ↦ ord 2`) to the
-*discontiguous* post-footprint `{ord 2, ord 5}`. This realizes Nelson's "a link
-end that was a single contiguous span before the rearrange may become discontiguous
-afterward, because the bytes it holds onto have moved to new virtual positions"
-(Question 5) and Gregory's directly-observed endset fragmentation (Question 16).
-The link still connects precisely the same bytes; only its picture in the current
-order has broken into pieces. The operative principle is Nelson's: the link "must"
-do nothing except continue holding its bytes; the system re-expresses the affected
-endset as a span-set in the new ordering.
+*Across a partially covered relocated block: contiguity broken.* A footprint
+covering `{B, C} = {a₂, a₃}` straddles the cut `c₁ = ord 3`, taking all of `α` but
+only the first byte of `β`. Its *contiguous* pre-footprint `{ord 2, ord 3}` is sent
+by `π` (`ord 2 ↦ ord 5`, `ord 3 ↦ ord 2`) to the *discontiguous* `{ord 2, ord 5}`.
+This realizes Nelson's "a link end that was a single contiguous span before the
+rearrange may become discontiguous afterward, because the bytes it holds onto have
+moved to new virtual positions" (Question 5) and Gregory's directly-observed endset
+fragmentation (Question 16). The link still connects precisely the same bytes; only
+its picture in the current order has broken into pieces. The operative principle is
+Nelson's: the link "must" do nothing except continue holding its bytes; the system
+re-expresses the affected endset as a span-set in the new ordering.
 
 *Discoverability under fragmentation.* Because `π` is a bijection, the footprint
 is nonempty after exactly when it was nonempty before (immediate from P7a):
@@ -631,7 +620,7 @@ the regions tile, not merely shift each by a local offset.
 | P1 (IdentityCorrespondence) | `M'(d)(π(v)) = M(d)(v)`, hence `ran(M'(d)) = ran(M(d))` — I-addresses carried across the reassignment | imported (ASN-0084 R-RI) |
 | P2 (Permutation) | The induced `π` (R-PPERM/R-SPERM) is a bijection of `dom(M(d))` onto itself; `dom(M'(d)) = dom(M(d))` | imported (ASN-0084 R-PIV/R-SWP) |
 | S2 (FunctionalityPreserved) | `M'(d)` is single-valued — the disjoint tiling of destinations (R-PIV/R-SWP) gives each V-position one I-address (ASN-0036 S2) | preserved |
-| S3★ (ReferentialIntegrityPreserved) | per-subspace: `subspace(v) = s_C ⟹ M'(d)(v) ∈ dom(C)` and `subspace(v) = s_L ⟹ M'(d)(v) ∈ dom(L)` — for a text position `v`, `M'(d)(v) = M(d)(π⁻¹(v))` with `π⁻¹(v)` again a text position, so pre-state S3★ gives `M(d)(π⁻¹(v)) ∈ dom(C)`; link positions are frame-fixed (ASN-0084 R-NS), so their images stay in `dom(L)`. What is invariant is that `π` maps each subspace onto itself, not the image filed at any individual key (ASN-0047 S3★) | preserved |
+| S3★ (ReferentialIntegrityPreserved) | per-subspace: `subspace(v) = s_C ⟹ M'(d)(v) ∈ dom(C)` and `subspace(v) = s_L ⟹ M'(d)(v) ∈ dom(L)` (ASN-0047 S3★; derivation in the body) | preserved |
 | P3 (VExtentConservation) | `\|dom(M'(d))\| = \|dom(M(d))\|`, and the active run's endpoints are fixed — the document's total extent is conserved | introduced |
 | P5 (Discoverability) | Moved content is discoverable under its new V-position `π(v)` and resolves to its original I-address `M(d)(v)` | introduced |
 | P6 (LinkStoreFrame) | `Σ'.L = Σ.L` — links are untouched; a link anchored in a moved region survives and travels with its content because endsets reference unchanged I-addresses | introduced |
