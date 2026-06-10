@@ -33,10 +33,14 @@ REARRANGE rewrites only the arrangement and never touches an I-address.
 
 ## The two streams
 
-We work in the extended state `Σ = (C, L, E, M, R)` of ASN-0047's transition
-model, which lifts the strand model (ASN-0036) and the link model (ASN-0043) into
-a single arrangement whose V-positions inhabit two subspaces — the text subspace
-`s_C` and the link subspace `s_L` (ASN-0047, S3★-aux). REARRANGE writes only the
+We work in the extended state `Σ = (C, L, E, M, R)` of ASN-0047 — its *state*,
+with REARRANGE imported as an atomic arrangement-rearrangement primitive
+(ASN-0084), distinct from and not reducible to ASN-0047's own non-atomic `K.μ~`
+composite (a `K.μ⁻ + K.μ⁺` pair that necessarily passes through a content-removed
+intermediate), even though a non-trivial REARRANGE realizes the same *net*
+arrangement change. The model lifts the strand model (ASN-0036) and the link model
+(ASN-0043) into a single arrangement whose V-positions inhabit two subspaces — the
+text subspace `s_C` and the link subspace `s_L` (ASN-0047, S3★-aux). REARRANGE writes only the
 content store `C`, the arrangement family `M`, and — in its frame — the link store
 `L`; the entity set `E` and the provenance relation `R` are inert under it, so we
 suppress them and write `Σ = (C, M, L)` for the active components throughout. The
@@ -52,8 +56,7 @@ position (`subspace(v) = s_C`) maps into `dom(C)`, a link position
 content by address. V-positions and I-addresses are tumblers ordered by T1
 (ASN-0034); within the text subspace the active V-positions are contiguous and
 share a common depth (ASN-0047, D-CTG★, D-SEQ★; S8-depth). On `s_C` these starred
-per-subspace invariants coincide with ASN-0036's unstarred D-CTG/D-MIN/D-SEQ; we
-cite the starred forms throughout because the operative model is ASN-0047's. The
+per-subspace invariants coincide with ASN-0036's unstarred D-CTG/D-MIN/D-SEQ. The
 link subspace `s_L` is carried untouched in the frame.
 
 The distinction the operation turns on is the one ASN-0034's T6 already records:
@@ -146,7 +149,7 @@ bijectivity, together with the domain identity `dom(M'(d)) = dom(M(d))`, are
 complement, so every position is assigned exactly once). We take these results as
 given and write
 
-      dom(M'(d)) = dom(M(d))               **(P2, = ASN-0084 R-PIV / R-SWP)**
+      dom(M'(d)) = dom(M(d))               **(RA2, = ASN-0084 R-PIV / R-SWP)**
 
 for the domain-preservation fact we lean on below. This is the formal content of
 *transposition*: a reassignment of positions that loses none and invents none.
@@ -160,7 +163,7 @@ held before — the same bytes with the same permanent Istream identity"
 at the source position; the I-address is copied across the reassignment, never
 recomputed. No operation in the specification reads or writes the content store:
 
-      Σ'.C = Σ.C.                                                   **(P0)**
+      Σ'.C = Σ.C.                                                   **(RA0)**
 
 So content permanence holds in its strongest form — not merely that I-addresses
 survive (Question 9), but that the store is a verbatim frame. The relationship
@@ -176,9 +179,9 @@ references is invariant. Since `π` is a bijection,
 
       ran(M'(d)) = { M'(d)(π(v)) : v ∈ dom(M(d)) }
                  = { M(d)(v)     : v ∈ dom(M(d)) }
-                 = ran(M(d)).                                       **(P1)**
+                 = ran(M(d)).                                       **(RA1)**
 
-This is ASN-0084's range invariance R-RI restated; we label it **P1** for use
+This is ASN-0084's range invariance R-RI restated; we label it **RA1** for use
 below. The document points at the same content after the rearrangement as before
 — only the order of pointing has changed.
 
@@ -215,7 +218,7 @@ pre-state S3★. Each subspace's inclusion thus carries to the post-state.
 The contiguity and tiling invariants of the text subspace — the ones a future
 operation will lean on to name cuts — ride along on a single observation, and we
 discharge them so no load-bearing conjunct is skipped. Because
-`dom(M'(d)) = dom(M(d))` (P2) and `π` fixes the exterior while permuting the
+`dom(M'(d)) = dom(M(d))` (RA2) and `π` fixes the exterior while permuting the
 affected interval onto itself, the active text-position set
 `V_{s_C}(d) = { v ∈ dom(M(d)) : subspace(v) = s_C }` is *literally unchanged as a
 set*: `π` only reassigns the I-address *value* filed at each `v`, never the set of
@@ -225,9 +228,8 @@ inherited verbatim from the pre-state, none of them mentioning the values
 (ASN-0047, **D-CTG★**), sequentiality (**D-SEQ★**), the minimum position
 (**D-MIN★**), V-position well-formedness (**S8a**), uniform per-subspace
 depth (**S8-depth**), and finiteness (**S8-fin**) all held for `V_{s_C}(d)` before
-the rearrangement and so hold after it. These are exactly the "hardest to
-maintain" tiling conjuncts; here they are the *easiest*, precisely because
-REARRANGE touches no key. We may now read off the remaining obligations.
+the rearrangement and so hold after it. We may now read off the remaining
+obligations.
 
 ## The intervening content
 
@@ -238,7 +240,7 @@ cannot stay where it sits. The design must guarantee that this content is
 position of `μ` while preserving its denotation:
 `M'(d)(c₀ + w_β + k) = M(d)(c₁ + k)` for `0 ≤ k < w_μ`. The middle region is
 moved as a block — its internal order is untouched — and its I-addresses are
-carried intact, so it satisfies P0 and P1 exactly as the moved blocks do.
+carried intact, so it satisfies RA0 and RA1 exactly as the moved blocks do.
 
 What is the *net* displacement of the middle? It departs ordinal `ord(c₁)` and
 arrives at ordinal `ord(c₀) + w_β`. The displacement is
@@ -262,11 +264,11 @@ around it.
 
 The document's total extent must be unchanged: "the same bytes are present, in
 the same quantity, merely permuted into a different order" (Question 7).
-Conservation is immediate from P2. The active V-positions of the text subspace
+Conservation is immediate from RA2. The active V-positions of the text subspace
 `s_C` form a contiguous run by D-CTG★, and `π` permutes that run onto itself, so
 the run's cardinality and its endpoints are invariant:
 
-      | dom(M'(d)) | = | dom(M(d)) |,    min and max V-position fixed.   **(P3)**
+      | dom(M'(d)) | = | dom(M(d)) |,    min and max V-position fixed.   **(RA3)**
 
 REARRANGE is, in the language of conservation laws, a permutation of a fixed
 multiset. Gregory's evidence confirms that the extent is conserved structurally
@@ -303,14 +305,14 @@ these destination equations:
 
 The postconditions check out numerically. The destination ordinals are `{2,3,4}`
 (R-P1), `{5}` (R-P2), and `{1}` (R-EXT): pairwise disjoint and tiling `{1..5}`
-exactly, so `π` is a bijection and `dom(M'(d)) = dom(M(d))` (**P2**). The range is
-`{a₃, a₄, a₅, a₂, a₁} = {a₁, …, a₅} = ran(M(d))` (**P1**). The count is 5 and the
-endpoints `ord 1`, `ord 5` are fixed (**P3**). Now a sample link footprint: let
+exactly, so `π` is a bijection and `dom(M'(d)) = dom(M(d))` (**RA2**). The range is
+`{a₃, a₄, a₅, a₂, a₁} = {a₁, …, a₅} = ran(M(d))` (**RA1**). The count is 5 and the
+endpoints `ord 1`, `ord 5` are fixed (**RA3**). Now a sample link footprint: let
 `a*` be a link whose coverage holds the "C" byte `a₃`. Before the move its
 footprint is `{[s_C,3]}`; since `[s_C,3] = c₁ + 0`, the pivot branch of `π` gives
 `π([s_C,3]) = c₀ + 0 = [s_C,2]`, and indeed `M'([s_C,2]) = a₃`. The footprint
 travels through `π` to `{[s_C,2]}` — relocated, not lost; the Links section next
-formalizes this transport as **P7a**.
+formalizes this transport as **RA7a**.
 
 *Swap.* Take "ABCDEF" at `[s_C,1..6]` and exchange `α = {B}` with `β = {E, F}`,
 leaving the middle `μ = {C, D}` between them: cuts `c₀=[s_C,2]`, `c₁=[s_C,3]`,
@@ -326,8 +328,8 @@ displacement of `+1`, which is exactly `w_β − w_α = 2 − 1` — Gregory's `
 (Question 11). Because `w_β > w_α`, the middle slides *forward* by precisely the
 width imbalance, the unique shift that keeps `μ` contiguous between the relocated
 `β` and `α`. Once more the destination ordinals `{2,3}`, `{4,5}`, `{6}`, `{1}`
-tile `{1..6}` (**P2**), the range `{a₁, …, a₆}` is unchanged (**P1**), and the
-extent is conserved (**P3**).
+tile `{1..6}` (**RA2**), the range `{a₁, …, a₆}` is unchanged (**RA1**), and the
+extent is conserved (**RA3**).
 
 ## Links
 
@@ -336,7 +338,7 @@ frames only the content store and the arrangement; its frame R-FRAME-P/R-FRAME-S
 says nothing about the link store `L`. Lifting the operation into the `(C, M, L)` state, we extend
 that frame with an explicit clause — REARRANGE writes only `M(d)`, so
 
-      Σ'.L = Σ.L                                                    **(P6)**
+      Σ'.L = Σ.L                                                    **(RA6)**
 
 — domain and value both frozen. This is a fresh frame commitment of the lifted
 operation, not a consequence inherited from the import. Nothing about a link
@@ -363,26 +365,37 @@ V-positions that resolve to those addresses,
 introduced here.
 
 Coverage is a property of the endset's spans alone (ASN-0098, LP3 — coverage
-invariance), and the operation freezes the link store (P6: `Σ'.L = Σ.L`), so
+invariance), and the operation freezes the link store (RA6: `Σ'.L = Σ.L`), so
 `coverage(a, i)` is one fixed address set across the transition. The footprint then
 transports through `π` by the bijection equation alone. For any `v ∈ dom(M(d))`,
 
       v ∈ project(a, i, d, Σ)
         ⟺ M(d)(v) ∈ coverage(a, i)            (definition of project)
-        ⟺ M'(d)(π(v)) ∈ coverage(a, i)        (P1: M'(d)(π(v)) = M(d)(v))
-        ⟺ π(v) ∈ project(a, i, d, Σ'),        (definition of project; π(v) ∈ dom(M'(d)) by P2)
+        ⟺ M'(d)(π(v)) ∈ coverage(a, i)        (RA1: M'(d)(π(v)) = M(d)(v))
+        ⟺ π(v) ∈ project(a, i, d, Σ'),        (definition of project; π(v) ∈ dom(M'(d)) by RA2)
 
-and since `π` is a bijection of `dom(M(d))` (P2), this is exactly
+and since `π` is a bijection of `dom(M(d))` (RA2), this is exactly
 
-      project(a, i, d, Σ') = π( project(a, i, d, Σ) ).             **(P7a)**
+      project(a, i, d, Σ') = π( project(a, i, d, Σ) ).             **(RA7a)**
 
-We discharge this inline rather than cite ASN-0098's **LP11** (ReorderingBijection),
-whose three lines are the ones above. LP11 is *stated* for a K.μ~ transition, and
-REARRANGE_K is fixed by its destination equations, not as a K.μ~ composite — on
-symmetric content it yields `M'(d) = M(d)`, which fails K.μ~'s non-triviality
-clause, so LP11's stated hypothesis is not available for every REARRANGE. The
-bijection equation P1 is what the transport actually rests on, and it holds
-unconditionally. The footprint is carried *through* `π`: it is neither lost nor
+This inline derivation rests on the bijection equation RA1 and holds for *every*
+REARRANGE, which is why we give it rather than cite ASN-0098's **LP11**
+(ReorderingBijection). The relationship is worth stating precisely. A *non-trivial*
+REARRANGE_K meets all five of K.μ~'s admissibility conditions — post-state shape
+(i), non-triviality (ii), length-preservation (iii), subspace-preservation (iv),
+and link-subspace fixity (v) — together with K.μ~'s precondition that `M(d)`
+restricted to the content subspace take at least two distinct values, so its *net*
+arrangement change is realizable as a K.μ~ and LP11 applies. A *trivial*
+REARRANGE_K — symmetric content, `M'(d) = M(d)` — is a no-op that fails
+non-triviality (ii), hence is no K.μ~ at all and lies outside LP11's hypothesis.
+REARRANGE itself is ASN-0084's *atomic* primitive — a single `π` applied in one
+step — distinct from the non-atomic K.μ~ composite (which would traverse a
+content-removed intermediate) even where the two agree in net effect; the
+RA1-based derivation covers the non-trivial and trivial branches alike, including
+the no-op a bare LP11 citation cannot. As a transition in ASN-0047's model
+REARRANGE allocates no content and records no provenance, with
+`ran(M'(d)) = ran(M(d))` by RA1, so the model's coupling obligations J0, J1★, and
+J1'★ hold vacuously. The footprint is carried *through* `π`: neither lost nor
 enlarged, only relocated to where the content now sits.
 
 *A link spanning both moved regions, or running from a moved region into
@@ -408,7 +421,7 @@ condition for contiguity-preservation — not as a weakest precondition:
 
       project(a, i, d, Σ) ⊆ one region (exterior, α, μ, or β)
         ⟹  π preserves the footprint's run structure
-            (in particular, a single run stays a single run).        **(P7c)**
+            (in particular, a single run stays a single run).        **(RA7c)**
 
 Every other postcondition of this note holds unconditionally (`wp = true`); the
 footprint's contiguity is the single property REARRANGE does not preserve in
@@ -425,7 +438,7 @@ therefore four, and we exhibit one of each on the worked pivot above
 (`A B C D E ↦ A C D E B`, cuts `c₀,c₁,c₂ = ord 2,3,6`, with the `π` table from
 that section).
 
-*Within a region: run structure preserved (P7c).* A footprint covering
+*Within a region: run structure preserved (RA7c).* A footprint covering
 `{C, E} = {a₃, a₅}` lies wholly inside `β`, with the *discontiguous* pre-footprint
 `{ord 3, ord 5}` — a gap at `D`. The pivot carries `β` rigidly, `ord 3 ↦ ord 2`
 and `ord 5 ↦ ord 4`, giving `{ord 2, ord 4}`: two singletons with the gap intact
@@ -466,14 +479,14 @@ Nelson's: the link "must" do nothing except continue holding its bytes; the syst
 re-expresses the affected endset as a span-set in the new ordering.
 
 *Discoverability under fragmentation.* Because `π` is a bijection, the footprint
-is nonempty after exactly when it was nonempty before (immediate from P7a):
+is nonempty after exactly when it was nonempty before (immediate from RA7a):
 
-      project(a, i, d, Σ') ≠ ∅   ⟺   project(a, i, d, Σ) ≠ ∅.      **(P7b)**
+      project(a, i, d, Σ') ≠ ∅   ⟺   project(a, i, d, Σ) ≠ ∅.      **(RA7b)**
 
 A link discoverable from `d` before the rearrangement is discoverable from `d`
 after it. Discovery answers by *address*: ASN-0098's **LP12**
 (DiscoverabilityCharacterisation) reduces discoverability from `d` to
-`coverage(a, i) ∩ ran(M(d)) ≠ ∅`, and by P1 that intersection is invariant — so
+`coverage(a, i) ∩ ran(M(d)) ≠ ∅`, and by RA1 that intersection is invariant — so
 the link surfaces at whatever V-positions the content now occupies (Question 8).
 Fragmentation changes how many spans the footprint comprises; it does not change
 *whether* the link is found.
@@ -481,18 +494,19 @@ Fragmentation changes how many spans the footprint comprises; it does not change
 ## Discoverability of moved content
 
 A user who navigates to a moved region's new position must find the content and
-everything attached to it. This is the dual of P7. To look "under the new
-position" is to evaluate `M'(d)(π(v))`, and that equals `M(d)(v)` by P1 — the same
-I-address the content always had. Position is resolved to identity, and identity
-is what every index, link, and attribution is keyed on. So a navigation to `π(v)`
-recovers exactly the content that lived at `v`, together with its origin (P0
-leaves `origin` invariant) and its links (P7a places their footprints at `π(v)`).
+everything attached to it. This is the dual of the footprint transport RA7a. To
+look "under the new position" is to evaluate `M'(d)(π(v))`, and that equals
+`M(d)(v)` by RA1 — the same I-address the content always had. Position is resolved
+to identity, and identity is what every index, link, and attribution is keyed on.
+So a navigation to `π(v)` recovers exactly the content that lived at `v`, together
+with its origin (RA0 leaves `origin` invariant) and its links (RA7a places their
+footprints at `π(v)`).
 "A user looking under the new position finds the content *and* every link,
 annotation, and attribution it carried before the move — nothing is lost by
 relocation" (Question 8). We record the consequence:
 
       moved content is discoverable under its new V-position,
-      and resolves to its original I-address.                      **(P5)**
+      and resolves to its original I-address.                      **(RA5)**
 
 ## Atomicity: two cuts at once
 
@@ -517,14 +531,14 @@ Move 2 is a pivot of `{B}` (now ord 4) against `{E}` (ord 5): it exchanges those
 two, yielding `A C D E B`. The composite reaches the same final arrangement as
 the atomic pivot,
 
-      M'(d) under T   =   M(d) under (T₁ ; T₂),                    **(P8a)**
+      M'(d) under T   =   M(d) under (T₁ ; T₂),                    **(RA8a)**
 
 because both realize the same `π` and the arrangement is determined by `π` applied
-to the same content (P1). But the intermediate `Σ_mid = A C D B E` is a distinct,
+to the same content (RA1). But the intermediate `Σ_mid = A C D B E` is a distinct,
 observable arrangement realized by *neither* endpoint — concretely
 `M_mid([s_C,4]) = a₂`, while `M([s_C,4]) = a₄` and `M'([s_C,4]) = a₅`, so
 
-      M_mid(d) ≠ M(d)  ∧  M_mid(d) ≠ M'(d).                       **(P8b)**
+      M_mid(d) ≠ M(d)  ∧  M_mid(d) ≠ M'(d).                       **(RA8b)**
 
 A RETRIEVE issued between the two moves returns the order `A C D B E`, which has
 no counterpart during the atomic transposition (Question 19). The existence of an
@@ -545,15 +559,15 @@ as if they were all meaningful at once: they are.
 If the rearranged content is shared with another document by transclusion, that
 document's arrangement must be untouched. Every clause of the operation that
 mutates state writes only `M(d)`; the frame is explicit — its cross-document and
-content clauses are ASN-0084's R-FRAME-P/S(b)/(c), its link clause the lifted P6:
+content clauses are ASN-0084's R-FRAME-P/S(b)/(c), its link clause the lifted RA6:
 
-      (∀ d' ≠ d :: M'(d') = M(d'))   ∧   Σ'.C = Σ.C   ∧   Σ'.L = Σ.L.  **(P9)**
+      (∀ d' ≠ d :: M'(d') = M(d'))   ∧   Σ'.C = Σ.C   ∧   Σ'.L = Σ.L.  **(RA9)**
 
 The isolation is structural, not a courtesy. Sharing in this model is by reference
 to the Istream, not by copy: each document is its own V→I mapping over the common,
 immutable content. REARRANGE rewrites `d`'s mapping. A document `d'` that
 transcludes some of `d`'s content holds an *independent* mapping `M(d')` over the
-same I-addresses, and P0 guarantees those I-addresses are unmoved. Even when
+same I-addresses, and RA0 guarantees those I-addresses are unmoved. Even when
 `ran(M(d)) ∩ ran(M(d')) ≠ ∅` — the two documents genuinely share content —
 permuting `d`'s arrangement reaches nothing in `d'`'s. "The transposition
 reshuffles one document's references; it cannot touch the underlying content or
@@ -570,7 +584,7 @@ R-PIV (pivot) and R-SWP (swap) establish that those destinations tile the
 affected interval exactly, so `π` is a bijection and the result is a legal
 arrangement. We elevate this to a requirement on the operation: REARRANGE is
 well-defined only when the induced map is a bijection of `dom(M(d))` onto itself
-preserving the domain (P2). An alternative implementation must satisfy this no
+preserving the domain (RA2). An alternative implementation must satisfy this no
 matter how it computes positions.
 
 REARRANGE is therefore a *partial* operation: it is defined exactly where its
@@ -593,8 +607,8 @@ The opposite extreme stays *inside* the domain. When `c₀ = min(V_{s_C}(d)) =
 [s_C, 1]` the left exterior `{v : v < c₀}` is empty and R-EXT's `v < c₀` branch is a
 vacuous quantifier; when the affected interval covers the whole active run, both
 exteriors vanish. In each case the destinations still tile `[ord(c₀), ord(c_{n-1}))`
-disjointly and exhaustively, so `π` remains a bijection of `dom(M(d))` (P2) and the
-extent is conserved (P3). An empty exterior is a degenerate *branch*, not a
+disjointly and exhaustively, so `π` remains a bijection of `dom(M(d))` (RA2) and the
+extent is conserved (RA3). An empty exterior is a degenerate *branch*, not a
 degenerate *input*.
 
 We flag, as an observation rather than a claim, that computing destinations by a
@@ -616,24 +630,24 @@ the regions tile, not merely shift each by a local offset.
 | Label | Statement | Status |
 |-------|-----------|--------|
 | REARRANGE_K | Operation imported from ASN-0084: 3-/4-cut transposition in the text subspace at depth 2, specified by PivotPostcondition (R-EXT, R-P1, R-P2) or SwapPostcondition (R-EXT, R-S1, R-S2, R-S3) with frame R-FRAME-P/R-FRAME-S; this note builds the system-level guarantees below on top of it | imported (ASN-0084) |
-| P0 (ContentPermanence) | `Σ'.C = Σ.C` — the content store is a verbatim frame; no I-address is created, destroyed, or rebound | imported (ASN-0084 R-FRAME-P/S) |
-| P1 (IdentityCorrespondence) | `M'(d)(π(v)) = M(d)(v)`, hence `ran(M'(d)) = ran(M(d))` — I-addresses carried across the reassignment | imported (ASN-0084 R-RI) |
-| P2 (Permutation) | The induced `π` (R-PPERM/R-SPERM) is a bijection of `dom(M(d))` onto itself; `dom(M'(d)) = dom(M(d))` | imported (ASN-0084 R-PIV/R-SWP) |
+| RA0 (ContentStoreFrame) | `Σ'.C = Σ.C` — the content store is a verbatim frame; no I-address is created, destroyed, or rebound | imported (ASN-0084 R-FRAME-P/S) |
+| RA1 (IdentityCorrespondence) | `M'(d)(π(v)) = M(d)(v)`, hence `ran(M'(d)) = ran(M(d))` — I-addresses carried across the reassignment | imported (ASN-0084 R-RI) |
+| RA2 (Permutation) | The induced `π` (R-PPERM/R-SPERM) is a bijection of `dom(M(d))` onto itself; `dom(M'(d)) = dom(M(d))` | imported (ASN-0084 R-PIV/R-SWP) |
 | S2 (FunctionalityPreserved) | `M'(d)` is single-valued — the disjoint tiling of destinations (R-PIV/R-SWP) gives each V-position one I-address (ASN-0036 S2) | preserved |
 | S3★ (ReferentialIntegrityPreserved) | per-subspace: `subspace(v) = s_C ⟹ M'(d)(v) ∈ dom(C)` and `subspace(v) = s_L ⟹ M'(d)(v) ∈ dom(L)` (ASN-0047 S3★; derivation in the body) | preserved |
-| P3 (VExtentConservation) | `\|dom(M'(d))\| = \|dom(M(d))\|`, and the active run's endpoints are fixed — the document's total extent is conserved | introduced |
-| P5 (Discoverability) | Moved content is discoverable under its new V-position `π(v)` and resolves to its original I-address `M(d)(v)` | introduced |
-| P6 (LinkStoreFrame) | `Σ'.L = Σ.L` — links are untouched; a link anchored in a moved region survives and travels with its content because endsets reference unchanged I-addresses | introduced |
-| P7a (FootprintTransport) | `project(a, i, d, Σ') = π(project(a, i, d, Σ))` — a link's V-footprint is relocated through `π`, neither lost nor enlarged | introduced |
-| P7c (FootprintRunStructure) | `project(a, i, d, Σ) ⊆ one region ⟹ π preserves the footprint's run structure` — within-region confinement is sufficient (not necessary) for contiguity-preservation | introduced |
-| P7b (DiscoverabilityPreserved) | `project(a, i, d, Σ') ≠ ∅ ⟺ project(a, i, d, Σ) ≠ ∅` — fragmentation never costs discoverability; corollary of P7a (`π` a bijection), with discoverability reduced to `coverage ∩ ran ≠ ∅` by ASN-0098 LP12 | introduced |
-| P8a (FinalStateInvariance) | The atomic transposition and any two-move composite achieving the same net `π` reach the same final arrangement | introduced |
-| P8b (IntermediateDivergence) | A two-move composite passes through an observable intermediate arrangement (exhibited: `A C D B E` for the worked pivot) realized by neither endpoint of the atomic transposition | introduced |
-| P9 (DocumentIsolation) | `(∀ d' ≠ d :: M'(d') = M(d'))` together with P0, P6 — every other document, including transcluders of the rearranged I-addresses, is invariant | introduced |
+| RA3 (VExtentConservation) | `\|dom(M'(d))\| = \|dom(M(d))\|`, and the active run's endpoints are fixed — the document's total extent is conserved | introduced |
+| RA5 (Discoverability) | Moved content is discoverable under its new V-position `π(v)` and resolves to its original I-address `M(d)(v)` | introduced |
+| RA6 (LinkStoreFrame) | `Σ'.L = Σ.L` — links are untouched; a link anchored in a moved region survives and travels with its content because endsets reference unchanged I-addresses | introduced |
+| RA7a (FootprintTransport) | `project(a, i, d, Σ') = π(project(a, i, d, Σ))` — a link's V-footprint is relocated through `π`, neither lost nor enlarged | introduced |
+| RA7b (DiscoverabilityPreserved) | `project(a, i, d, Σ') ≠ ∅ ⟺ project(a, i, d, Σ) ≠ ∅` — fragmentation never costs discoverability; corollary of RA7a (`π` a bijection), with discoverability reduced to `coverage ∩ ran ≠ ∅` by ASN-0098 LP12 | introduced |
+| RA7c (FootprintRunStructure) | `project(a, i, d, Σ) ⊆ one region ⟹ π preserves the footprint's run structure` — within-region confinement is sufficient (not necessary) for contiguity-preservation | introduced |
+| RA8a (FinalStateInvariance) | The atomic transposition and any two-move composite achieving the same net `π` reach the same final arrangement | introduced |
+| RA8b (IntermediateDivergence) | A two-move composite passes through an observable intermediate arrangement (exhibited: `A C D B E` for the worked pivot) realized by neither endpoint of the atomic transposition | introduced |
+| RA9 (DocumentIsolation) | `(∀ d' ≠ d :: M'(d') = M(d'))` together with RA0, RA6 — every other document, including transcluders of the rearranged I-addresses, is invariant | introduced |
 
 ## Open Questions
 
-What must REARRANGE guarantee when a cut falls on a V-position that is shared, through transclusion, by more than one document, so that the cut is a boundary in one arrangement but interior to another?
+What must REARRANGE guarantee about boundary-hood when a cut in one document's arrangement resolves to an I-address that lies interior to a region of another document's independent arrangement of the same transcluded content?
 
 Under what conditions may two rearrangements on the same document's content scope be applied without a serializing authority while leaving the final arrangement independent of their order?
 
