@@ -243,7 +243,17 @@ content subspace. On the link subspace, S8★'s trivial length-1 decomposition a
 the value-dependent CL-OWN/CL-UNIQ ride untouched on the frozen `s_L` frame.
 
 The remaining ASN-0047 obligations are general transition invariants — couplings,
-permanence, and hierarchy. One structural fact underlies several of them: because
+permanence, and hierarchy. ASN-0047 defines its couplings and its
+composite-boundary properties P4★/P4a/P7a only *relative to a valid composite* —
+the J-couplings between a composite's initial and final states, the
+composite-boundary properties at a boundary state — and its `ValidComposite★`
+builds composites from a closed atomic vocabulary
+`{K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.ρ}` that does not contain REARRANGE. We
+therefore extend that vocabulary with REARRANGE as a new atomic primitive: a single
+REARRANGE step is, by fiat, a one-step valid composite, making `Σ → Σ'` a valid
+composite transition and its post-state `Σ'` a composite boundary. The couplings are
+then evaluated between `Σ` and `Σ'`, the composite-boundary properties at `Σ'`,
+exactly as ASN-0047 requires. One structural fact underlies several of them: because
 `π` permutes the text subspace onto itself, the content-subspace value set is
 invariant,
 
@@ -261,13 +271,28 @@ fires for an I-address that lies in `{ M'(d)(v) : subspace(v) = s_C }` but not i
 displayed those two sets coincide, so no such I-address exists and J1★'s antecedent
 is empty as well. Full-range invariance `ran(M'(d)) = ran(M(d))` (RA1) does not by
 itself settle J1★ — J1★ is stated against the content-subspace range, not the full
-range — so the subspace-preserving action of `π` is what closes it. The one
-composite-boundary invariant that reads the mutated arrangement, P4★
-(`Contains_C(Σ) ⊆ R`), is preserved by the same invariance:
-`Contains_C(Σ') = Contains_C(Σ) ⊆ R = R'`. The remaining
-ExtendedReachableStateInvariants conjuncts (P6, P7, P8, P7a, P4a, the E-family
-NodeLineage/ActivatedEmission, the L-family, the C-family) are preserved by the
-`C`/`E`/`R`/`L` frame. ASN-0047's second transition theorem,
+range — so the subspace-preserving action of `π` is what closes it. The three
+composite-boundary properties are next. P4★ (`Contains_C(Σ) ⊆ R`) is the one that
+reads the mutated arrangement, and it is preserved by the same invariance:
+`Contains_C(Σ') = Contains_C(Σ) ⊆ R = R'`. P7a (every content address carries a
+provenance record) is trivial by frame — `dom(C)` and `R` are both frozen (RA0 and
+the inert `R`), so its quantifier and its witnessing set are pointwise unchanged.
+P4a (TraceWitnessing) is the one that needs more than a frame: it quantifies over
+valid *traces* to the state, not over the state alone, so `R' = R` gives that the
+*set* of provenance entries is unchanged but does not by itself supply each entry's
+witness. A valid trace to `Σ'` is a valid trace to `Σ` extended by the single
+REARRANGE step `Σ → Σ'`. Fix any `(a, d) ∈ R'`; since `R' = R` it already lies in
+`R`, and `Σ` is a composite boundary at which P4a held, so every trace to `Σ`
+exhibits a trace state `Σ_k` in its prefix at which `a` sat in `d`'s
+content-subspace range. That witness `Σ_k` persists unchanged into the extended
+trace to `Σ'`, witnessing `(a, d)` there as well; and the content-subspace-range
+invariance `{ M'(d)(v) : subspace(v) = s_C } = { M(d)(u) : subspace(u) = s_C }`
+keeps `Σ` itself an admissible witness across the appended step. P4a is thus
+discharged by the `R` frame *together with* content-subspace-range invariance and
+the persistence of the pre-state's trace witnesses along the prefix — not by frame
+alone. The genuinely per-state ExtendedReachableStateInvariants conjuncts that
+remain (P6, P7, P8, the E-family NodeLineage/ActivatedEmission, the L-family, the
+C-family) are preserved by the `C`/`E`/`R`/`L` frame. ASN-0047's second transition theorem,
 **ExtendedTransitionInvariants** (its sole conjunct **P3**,
 ArrangementMutabilityOnly), holds with every conjunct at equality: `dom(C) =
 dom(C')` with `C'(a) = C(a)` by RA0, `dom(L) = dom(L')` with `L'(ℓ) = L(ℓ)` by the
@@ -386,11 +411,9 @@ that frame with an explicit clause — REARRANGE writes only `M(d)`, so
 
       Σ'.L = Σ.L                                                    **(RA6)**
 
-— domain and value both frozen. This is a fresh frame commitment of the lifted
-operation, not a consequence inherited from the import. Nothing about a link
-changes when content is rearranged; the operation neither reads nor writes `L`.
-This is the whole secret of link survival, and it specializes cleanly to the
-cases the consultation poses.
+— domain and value both frozen. Nothing about a link changes when content is
+rearranged; the operation neither reads nor writes `L`. This is the whole secret
+of link survival, and it specializes cleanly to the cases the consultation poses.
 
 *A link anchored entirely within a moved region* (Question 4). Its endset
 references I-addresses, all of which belong to the moved block. REARRANGE deletes
