@@ -41,7 +41,7 @@ The model lifts the strand model (ASN-0036) and the link model
 (ASN-0043) into a single arrangement whose V-positions inhabit two subspaces — the
 text subspace `s_C` and the link subspace `s_L` (ASN-0047, S3★-aux). REARRANGE
 mutates only the arrangement family `M`; the content store `C` and the link store
-`L` are frames (`Σ'.C = Σ.C`, `Σ'.L = Σ.L`), and the entity set `E` and the
+`L` are frames (`Σ'.C = Σ.C` and `Σ'.L = Σ.L` **(RA6)**), and the entity set `E` and the
 provenance relation `R` are inert under it, so we suppress `E` and `R` from the
 state-tuple notation and write `Σ = (C, M, L)` for the active components. The
 *content store* `Σ.C : T ⇀ Val` (ASN-0036, S0) is append-only and immutable; an
@@ -230,7 +230,7 @@ unchanged key set, so each held before the rearrangement and holds after it, for
 strongly than this set-invariance argument needs: R-NS (ASN-0084) gives
 `M'(d)(v) = M(d)(v)` at every `v` with `subspace(v) = s_L`, pinning its values
 pointwise as well — the freeze on which the *value*-dependent link-subspace
-invariants (S8★, CL-OWN, CL-UNIQ, discharged below) rest. Subspace exhaustiveness
+invariants (S8★, CL-OWN, CL-UNIQ) rest. Subspace exhaustiveness
 (**S3★-aux**) — every V-position carries subspace `s_C` or `s_L` — constrains the
 full key set `V_{s_C}(d) ∪ V_{s_L}(d) = dom(M(d))`, equally unchanged by RA2, and
 is inherited the same way.
@@ -322,7 +322,7 @@ those frames. This covers S4, S7a, S7b (all `dom(C)` properties, frozen verbatim
 RA0), S7d (a document-tumbler property, frozen with the inert `E`), the C-family
 (C1b, C1c, C-fin), the E-family (NodeLineage, ActivatedEmission), the L-family (L0,
 L1, L1a, L1b, L1c, L3, L14, L-fin), and P6, P7, P8 — the only conjuncts not so keyed
-being CL-OWN and CL-UNIQ, already discharged above on the frozen `s_L` frame.
+being the value-dependent CL-OWN and CL-UNIQ.
 ASN-0047's second transition theorem,
 **ExtendedTransitionInvariants** (its sole conjunct **P3**,
 ArrangementMutabilityOnly), holds with every conjunct at equality: `dom(C) =
@@ -434,14 +434,12 @@ extent is conserved (**RA3**).
 
 A link's endsets reference content by *address*. ASN-0084's REARRANGE_K
 frames only the content store and the arrangement; its frame R-FRAME-P/R-FRAME-S
-says nothing about the link store `L`. Lifting the operation into the `(C, M, L)` state, we extend
-that frame with an explicit clause — REARRANGE writes only `M(d)`, so
-
-      Σ'.L = Σ.L                                                    **(RA6)**
-
-— domain and value both frozen. Nothing about a link changes when content is
-rearranged; the operation neither reads nor writes `L`. This is the whole secret
-of link survival, and it specializes cleanly to the cases the consultation poses.
+says nothing about the link store `L`. Lifting the operation into the `(C, M, L)`
+state, we extended that frame at the outset with an explicit clause — RA6,
+`Σ'.L = Σ.L`, domain and value both frozen — because REARRANGE writes only `M(d)`.
+Nothing about a link changes when content is rearranged; the operation neither
+reads nor writes `L`. This is the whole secret of link survival, and it
+specializes cleanly to the cases the consultation poses.
 
 *A link anchored entirely within a moved region* (Question 4). Its endset
 references I-addresses, all of which belong to the moved block. REARRANGE deletes
