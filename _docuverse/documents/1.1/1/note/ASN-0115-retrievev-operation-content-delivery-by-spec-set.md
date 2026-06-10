@@ -74,11 +74,10 @@ must match that subspace's common depth, `#s = m_S(d)` (the depth S8-depth
 vacuous — any well-formed start of depth `≥ 2` is admissible. This depth match is a *minting-time* requirement on a well-formed V-spec. But
 `m_S(d)` is itself mutable — ASN-0047 re-pins a fully-cleared subspace's depth from
 scratch on its next insertion — so a V-spec well-formed when minted may later, at a
-downstream consulting state of the *same* document, fail `#s = m_S(d)`. The
-definition of `act` below makes that state-relative failure operative — forcing an
-empty active set at any consulting state where the spec is depth-incompatible — so
-a stale spec delivers nothing and the request still succeeds rather than failing
-the whole.
+downstream consulting state of the *same* document, fail `#s = m_S(d)`. The depth
+conjunct is therefore re-evaluated at each consulting state, not fixed at mint;
+how that re-evaluation bears on delivery is settled where `act` is defined (below)
+and by its R6 consequence.
 Ordinal-level means the width acts at the deepest component,
 `actionPoint(ℓ) = #ℓ` (ASN-0082, OrdinalLevel). This is the deepest-action-point
 discipline that keeps a span within a single subspace:
@@ -126,10 +125,15 @@ split on this predicate:
 In the depth-compatible branch the active positions are the V-positions the span
 names that the document's arrangement actually binds; silent filtering is built in,
 since a named position the arrangement does not bind is simply absent from the
-intersection. In the override branch — a once-valid start gone too shallow for the
-subspace's current depth — the active set is forced empty, *overriding* the
-geometric `dom(Σ.M(d)) ∩ ⟦σ⟧` lest a now-too-shallow start capture deeper content
-the citation never named. In either branch `act(ρ, Σ)` is finite — it
+intersection. In the override branch — any consulting-state depth mismatch,
+`V_S(d) ≠ ∅ ∧ #s ≠ m_S(d)`, whatever its provenance (a start depth-matched at mint
+but whose subspace has since been re-pinned to a different depth, or one minted
+against an empty subspace and never depth-matched) — the active set is forced
+empty, *overriding* the geometric `dom(Σ.M(d)) ∩ ⟦σ⟧`. The override only *bites*
+when the start has gone too shallow (`#s < m_S(d)`), lest it capture deeper content
+the citation never named; when the start is too deep (`#s > m_S(d)`) the geometric
+intersection is already empty by Confinement, so the override is a vacuous no-op
+there. In either branch `act(ρ, Σ)` is finite — it
 is `∅`, or a subset of `dom(Σ.M(d))`, which is finite (ASN-0036, S8-fin) — and
 totally ordered, being a subset of the totally ordered carrier `T` (ASN-0034, T1).
 Finiteness and total order together give it a unique ascending enumeration
