@@ -58,6 +58,17 @@ An equality `coverage(R) = coverage(eᵢ)` is then well-typed — a span-set
 denotation on the left, an endset coverage on the right — and means exactly
 `⟦R⟧ = coverage(eᵢ)`.
 
+Two consequences of ASN-0053's S2 — every well-formed span denotes a non-empty
+set — recur below, so we name them here. No object assembled from one or more
+spans can have empty coverage; hence coverage vanishes exactly on the empty
+object. For a span-set `R` this is the *first collapse*,
+`R = ⟨⟩ ⟺ coverage(R) = ∅`; for an endset `e` it is the *second collapse*,
+`coverage(e) = ∅ ⟺ e = ∅`. Each `⟸` is immediate — the empty object covers
+nothing — and each `⟹` is the contrapositive of S2. The first collapse also
+fixes the reading of `R = ⟨⟩` when `R` stands for the coverage-relation rather
+than a single span-set: it abbreviates `coverage(R) = ∅`, which is well-defined
+on the relation.
+
 ## The selector and its domain
 
 The first thing FOLLOWLINK needs is a way to name *which* end. Gregory's
@@ -103,20 +114,10 @@ wherever it appears as a single term inside `coverage(·)`, that term is
 well-defined.
 
 In two cases the relation collapses to a *single* value, and there the bare
-equality `followlink(Σ, a, i) = v` — a term standing outside `coverage(·)` — is
-itself well-defined. (i) *Out of domain:* when the call is undefined, F0 fixes the
-value at the distinguished `⊥`. (ii) *Empty end:* when `coverage(Σ.L(a).eᵢ) = ∅`,
-the postcondition forces `coverage(R) = ∅`, and since every well-formed span
-denotes a non-empty set (ASN-0053, S2) the only span-set with empty coverage is
-`⟨⟩`; hence `R = ⟨⟩` uniquely. These are exactly the two cases in which the later
-sections write `followlink` as a bare equality — the `⊥` of an invalid selector
-and the `⟨⟩` of an empty end, in F7 and in the worked instance — and there the
-notation is licensed by this single-valuedness. More generally, any (in)equality
-between `followlink(Σ, a, i)` and `⟨⟩` reduces, by the equivalence
-`R = ⟨⟩ ⟺ coverage(R) = ∅` that S2 supplies (used at F7), to a statement about
-`coverage(followlink(Σ, a, i))`, so it too is well-defined even where the relation
-is otherwise multi-valued. Outside these uses the result is determinate only up to
-coverage, and we keep it inside `coverage(·)`.
+equality `followlink(Σ, a, i) = v` is itself well-defined. (i) *Out of domain:*
+when the call is undefined, F0 fixes the value at the distinguished `⊥`. (ii)
+*Empty end:* when `coverage(Σ.L(a).eᵢ) = ∅`, the postcondition forces
+`coverage(R) = ∅`, whence the first collapse gives `R = ⟨⟩` uniquely.
 
 Three commitments now remain to justify — the coverage relationship (F1), the
 pure-read frame (F4), and the distinction between a valid-but-empty end and an
@@ -157,9 +158,9 @@ requirement — it follows from F1. Suppose `coverage(Σ.L(a).eᵢ)` is
 `q ∉ coverage(eᵢ)`. A single span `σ` is order-convex — `⟦σ⟧` contains every
 position between any two of its members (ASN-0053, S0). First, `R ≠ ⟨⟩`:
 disconnectedness supplies `p, r ∈ coverage(eᵢ)`, so `coverage(eᵢ) ≠ ∅`, and by F1
-`coverage(R) ≠ ∅`, which forces `R ≠ ⟨⟩` because `⟨⟩` is the only span-set with
-empty coverage (ASN-0053, S2); hence `|R| ≥ 1`. Next, `|R| ≠ 1`: if `R` were the
-singleton `⟨σ⟩` with `⟦σ⟧ ⊇ {p, r}`, then `q ∈ ⟦σ⟧ = coverage(R)`, yet
+`coverage(R) ≠ ∅`, which forces `R ≠ ⟨⟩` by the first collapse; hence `|R| ≥ 1`.
+Next, `|R| ≠ 1`: if `R` were the singleton `⟨σ⟩` with `⟦σ⟧ ⊇ {p, r}`, then
+`q ∈ ⟦σ⟧ = coverage(R)`, yet
 `q ∉ coverage(eᵢ)` — contradicting F1. Hence a faithful `R` over a disconnected
 end must comprise two or more spans. We record:
 
@@ -328,18 +329,13 @@ end. Slot `3` is the lone exception: L3 (ASN-0043; ASN-0093) mandates
 `Σ.L(a).e₃ ≠ ∅` for every stored link, so the type end is never empty. The
 empty endset's coverage is the empty set, and by F1 any faithful result
 has coverage `∅`. Here — unlike the non-empty case — the result is forced to a
-*unique* span-set. A single fact from ASN-0053 S2 drives this: every well-formed
-span denotes a non-empty set. Two collapses follow.
-*First collapse:* no span-set with one or more spans can have empty coverage, so
-the empty span-set `⟨⟩` is the *only* span-set whose coverage is `∅` —
-equivalently `R = ⟨⟩ ⟺ coverage(R) = ∅`. *Second collapse:* likewise no endset
-holding one or more spans has empty coverage, so an endset's coverage vanishes
-exactly when the endset is empty — `coverage(eᵢ) = ∅ ⟺ eᵢ = ∅`. Combining
-this second collapse with L3's `Σ.L(a).e₃ ≠ ∅` discharges the slot-`3` guarantee
-at once: `coverage(Σ.L(a).e₃) ≠ ∅` for every `a ∈ dom(Σ.L)`, whence the first
-collapse gives `followlink(Σ, a, 3) ≠ ⟨⟩`. The type selector thus never yields
-the empty-success `⟨⟩`; the empty-versus-invalid collision this section forbids
-is reachable only at the non-type slots — `1`, `2`, and any slot beyond `3`.
+*unique* span-set: by the first collapse, `coverage(R) = ∅` gives `R = ⟨⟩`. The
+two collapses also discharge the slot-`3` guarantee at once: combining the second
+collapse with L3's `Σ.L(a).e₃ ≠ ∅` gives `coverage(Σ.L(a).e₃) ≠ ∅` for every
+`a ∈ dom(Σ.L)`, whence the first collapse gives `followlink(Σ, a, 3) ≠ ⟨⟩`. The
+type selector thus never yields the empty-success `⟨⟩`; the empty-versus-invalid
+collision this section forbids is reachable only at the non-type slots — `1`, `2`,
+and any slot beyond `3`.
 Nelson is firm that this is a *successful* answer, not a
 failure: emptiness is "a first-class, valid state," the correct answer to a
 valid question, and "a span that contains nothing today may at a later time
@@ -387,7 +383,7 @@ negation structure of the precondition F0:
 The wp that actually probes F7's empty/non-empty split asks when the result *is*
 the empty span-set. Working backward from `R = ⟨⟩`: the call must first be
 defined, else the result is `⊥ ≠ ⟨⟩`, supplying the two domain conjuncts; when
-defined, F1 gives `coverage(R) = coverage(Σ.L(a).eᵢ)`. F7's two S2 collapses close
+defined, F1 gives `coverage(R) = coverage(Σ.L(a).eᵢ)`. The two collapses close
 the chain: the first, composed with F1, gives `R = ⟨⟩ ⟺ coverage(Σ.L(a).eᵢ) = ∅`,
 and the second gives `coverage(Σ.L(a).eᵢ) = ∅ ⟺ Σ.L(a).eᵢ = ∅`. Hence
 
@@ -476,7 +472,7 @@ precisely the multi-region preservation Gregory's evidence records at
 
 *Checking F7 on the to-end and on a bad selector.* The request
 `followlink(Σ, a, 2)` names a valid slot (`1 ≤ 2 ≤ 3`) whose end is empty;
-`coverage(e₂) = ∅`, so by F7's first S2 collapse `followlink(Σ, a, 2) = ⟨⟩` — a
+`coverage(e₂) = ∅`, so by the first collapse `followlink(Σ, a, 2) = ⟨⟩` — a
 *success* denoting nothing. By contrast
 `followlink(Σ, a, 4)` names no slot (`4 > |Σ.L(a)| = 3`) and returns `⊥`;
 similarly `followlink(Σ, a, 0)` (with `0 < 1`) returns `⊥`, as does
