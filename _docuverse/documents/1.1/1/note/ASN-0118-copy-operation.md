@@ -124,15 +124,10 @@ million documents" (4/25).
 We restrict attention to *content* spec-sets: COPY's content-residence precondition
 (stated with the operation below) requires every active position to be in the text
 subspace, `subspace(vⱼ) = s_C`, so by referential integrity (S3★) each resolves to
-a content address `Σ.M(d_s)(vⱼ) ∈ dom(Σ.C)`. This precondition does the work the
-discarded full-binding hypothesis would otherwise have done. It confines the
+a content address `Σ.M(d_s)(vⱼ) ∈ dom(Σ.C)`. It confines the
 resolved domain `act(ρ, Σ) ⊆ V_{s_C}(d_s)` to a *single subspace* directly, and
 S8-depth (ASN-0036) gives that subspace a *common depth*; these two
-arrangement-side facts are the only premises the arithmetic needs. Resolution
-integrity (CP0(a)) rests on S3★ over exactly the bound positions COPY acts on, and
-the run-decomposition (CP0(c)) on the single-subspace premise so obtained. The one
-ASN-0058 property that genuinely does *not* survive partial binding — its
-width-preservation C2 — COPY never uses; we record its loss as an open question.
+arrangement-side facts are the only premises the arithmetic needs.
 
 We define **resolution** as the flat I-address sequence obtained by expanding
 ASN-0058's `resolve` (Resolution). ASN-0058 resolves a content reference
@@ -190,17 +185,16 @@ object we record as the *resolution integrity* claim CP0:
   component — not `Σ.C`, not any `Σ.M(d)`, not `Σ.L`, not `Σ.R`. The source
   document is consulted, never altered, by the act of resolving a spec-set against
   it.
-- **(c) Non-contiguity survives resolution.** The decomposition resolution rests on
-  is licensed without the full-binding hypothesis: ASN-0058's C1a
+- **(c) Non-contiguity survives resolution.** ASN-0058's C1a
   (RestrictionDecomposition) supplies the unique maximal-run decomposition of *any*
   restriction `M(d_s)|⟦σ⟧` whose domain lies in a single subspace, and that
   single-subspace precondition is met here by content-residence
-  (`act(ρ, Σ) ⊆ V_{s_C}(d_s)`), not by ASN-0058's C0a stated under well-formedness.
-  When a single V-span covers content the source itself assembled from several
-  disjoint I-regions, that decomposition returns several run-pairs in V-start order
-  (C1b, ResolutionSequenceOrder) — an ordering of whatever runs the bound subset
-  yields, independent of binding — so the expanded sequence is *not* one contiguous
-  run and records as many distinct origins as the source content had homes.
+  (`act(ρ, Σ) ⊆ V_{s_C}(d_s)`). When a single V-span covers content the source
+  itself assembled from several disjoint I-regions, that decomposition returns
+  several run-pairs in V-start order (C1b, ResolutionSequenceOrder) — an ordering
+  of whatever runs the bound subset yields, independent of binding — so the
+  expanded sequence is *not* one contiguous run and records as many distinct
+  origins as the source content had homes.
 
 By the ContentReferenceSequence definition a spec-set has `q ≥ 1`; but even a
 non-empty spec-set may resolve to `W = 0` when partial binding leaves every named
@@ -248,8 +242,7 @@ This is the post-insertion shift of ASN-0082 (I3, PostInsertionShift) instantiat
 at width `W`; from it we borrow, *for the shifted positions*, that they remain
 well-formed (I3-VP), preserve depth (I3-VD), and stay finite (I3-fin). The
 function-ness, no-holes, contiguity, and sequentiality of COPY's actual `Σ'.M(d)`
-rest instead on the tiling argument delivered under prior-arrangement preservation
-below, together with CP3c's domain closure and K.μ⁺'s strict-extension contract.
+rest instead on CP3c's domain closure and K.μ⁺'s strict-extension contract.
 
 *Effect — domain closure (text subspace).* The text-subspace V-positions of the
 post-state are exactly the left-frame positions, the placement positions, and the
@@ -430,10 +423,7 @@ invariant and needs no such scoping. Across all three branches the membership
 The middle clause has two conjuncts. The pointwise conjunct preserves `d`'s
 *pre-state* non-text bindings; the domain-equality conjunct pins `d`'s non-`s_C`
 domain to exactly its pre-state value — the non-text instance of CP3c's closure
-principle, making `d`'s non-text invariants (S2, S3★, CL-OWN, CL-UNIQ)
-dischargeable from the postconditions alone rather than only through the exhibited
-composite (whose step (i) K.μ⁻ retains `d`'s link subspace in full, as shown
-above).
+principle.
 
 The last clause includes every source document `d_s ≠ d` and every other document
 in the docuverse. The single self-reference case `d_s = d` — *self-transclusion* —
@@ -822,10 +812,6 @@ under the partial binding COPY admits, the resolved width `W` may fall strictly
 below the named extent. What, if anything, must COPY guarantee about the
 relationship between a partially-bound span's nominal extent and its smaller placed
 width, given that the design treats the shortfall as silent?
-
-What invariant fixes the placement order when a spec-set names overlapping or
-repeated source spans that resolve a single I-address to multiple positions in the
-resolved sequence?
 
 What must the operation preserve about level-uniformity when a spec-set assembles
 source spans of differing element-field depth into one destination region?
