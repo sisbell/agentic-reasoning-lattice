@@ -477,10 +477,7 @@ for every resolved address the delivered value or reference is the same at both
 states, and the two deliveries are identical. The arrangement is the sole mutable
 input (R4; P3), so repeatability holds exactly when the consulted restriction is
 unchanged — R7's hypothesis — which a caller secures by citing a version whose
-arrangement it does not subsequently edit. The foundation of permanent citation is
-thus not an impossibility of in-place arrangement editing but the immutable content
-store (S0): the bytes at an I-address never change, so a reference whose binding
-survives resolves to the same value for all time.
+arrangement it does not subsequently edit.
 
 ## What co-delivery does with transclusion
 
