@@ -115,13 +115,12 @@ split on this predicate:
 > `act(ρ, Σ) = ∅`  otherwise
 
 In the depth-compatible branch the active positions are the V-positions the span
-names that the document's arrangement actually binds; silent filtering is built in,
-since a named position the arrangement does not bind is simply absent from the
-intersection. In the override branch — any consulting-state depth mismatch,
-`V_S(d) ≠ ∅ ∧ #s ≠ m_S(d)` — the active set is forced
-empty, *overriding* the geometric `dom(Σ.M(d)) ∩ ⟦σ⟧`. In either branch `act(ρ, Σ)` is finite — it
-is `∅`, or a subset of `dom(Σ.M(d))`, which is finite (ASN-0036, S8-fin) — and
-totally ordered, being a subset of the totally ordered carrier `T` (ASN-0034, T1).
+names that the document's arrangement actually binds. In the override branch —
+any consulting-state depth mismatch, `V_S(d) ≠ ∅ ∧ #s ≠ m_S(d)` — the active set
+is forced empty, *overriding* the geometric `dom(Σ.M(d)) ∩ ⟦σ⟧`. In either
+branch `act(ρ, Σ)` is finite — it is `∅`, or a subset of `dom(Σ.M(d))`, which is
+finite (ASN-0036, S8-fin) — and totally ordered, being a subset of the totally
+ordered carrier `T` (ASN-0034, T1).
 Finiteness and total order together give it a unique ascending enumeration
 `v₁ < v₂ < … < v_{k}` where `k = |act(ρ, Σ)|`.
 
