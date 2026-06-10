@@ -65,17 +65,18 @@ tumbler with `zeros(d) = 2` (ASN-0045) that is present in the arrangement family
 depth at least 2 with positive components,
 `zeros(s) = 0 ∧ #s ≥ 2 ∧ (A i : 1 ≤ i ≤ #s : sᵢ > 0)`. This is the shape
 ASN-0036's S8a requires of every *bound* position; we impose it here directly as a
-constraint on the span's start, whether or not that start is itself bound. We
-further require *depth compatibility* with the named subspace: writing `S = s₁`
-for the subspace the start designates, when `S` is already populated in `d`
-(`V_S(d) ≠ ∅`) the start
-must match that subspace's common depth, `#s = m_S(d)` (the depth S8-depth
-(ASN-0036) fixes uniformly on `V_S(d)`). When `V_S(d) = ∅` the constraint is
-vacuous — any well-formed start of depth `≥ 2` is admissible. This depth match is a *minting-time* requirement on a well-formed V-spec. But
-`m_S(d)` is itself mutable — ASN-0047 re-pins a fully-cleared subspace's depth from
-scratch on its next insertion — so a V-spec well-formed when minted may later, at a
-downstream consulting state of the *same* document, fail `#s = m_S(d)`. The depth
-conjunct is therefore re-evaluated at each consulting state, not fixed at mint.
+constraint on the span's start, whether or not that start is itself bound. Each
+condition defining a V-spec is *stable*: the structural conditions — the shape of
+`s`, the level-uniformity and ordinal-level of `σ` — make no reference to state at
+all, and the one state-dependent conjunct, `d ∈ dom(Σ.M)`, is monotone (ASN-0047,
+M1 ArrangementMonotonicity), so once `d` is allocated it stays allocated and the
+conjunct, once true, never lapses. We deliberately keep *depth compatibility* with
+the named subspace out of well-formedness, precisely because it would *not* be
+stable in this sense: the depth a start would have to match, `m_S(d)`, is mutable
+— ASN-0047 re-pins a fully-cleared subspace's depth from scratch on its next
+insertion — so `#s = m_S(d)` can hold at one state and fail at a later one. Depth
+compatibility is therefore a *consulting-state* predicate `depthcompat(ρ, Σ)`,
+defined below and applied inside `act`, where it is the sole depth check.
 Ordinal-level means the width acts at the deepest component,
 `actionPoint(ℓ) = #ℓ` (ASN-0082, OrdinalLevel). This is the deepest-action-point
 discipline that keeps a span within a single subspace:
