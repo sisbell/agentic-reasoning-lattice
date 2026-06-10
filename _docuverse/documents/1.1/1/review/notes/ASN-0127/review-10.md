@@ -1,0 +1,23 @@
+# Review of ASN-0127
+
+## REVISE
+
+### Issue 1: Injective-reorder discovery change wrongly claimed to "respect no containment"
+
+**ASN-0127, D-NONMONO (K.μ~ clause, "Injective `d_q`")**: "When a displaced member is a sole witness the discovery set does change, the change respects no containment — neither `⊆` nor `⊇` — and it need not even preserve discovery-set cardinality."
+
+**Problem**: The clause correctly derives that under an injective reorder the *image's* two values are equal-cardinality and therefore incomparable (`distinct finite sets of equal size cannot nest under ⊆`). It then transfers this incomparability to the *discovery-set* change with no derivation. The transfer is invalid: `findlinks` is not order-reflecting, so incomparable I-sets can map to nested (comparable) link-sets.
+
+Concrete counterexample inside the model. Let `d_q` have `v₁ ↦ a₁` with `L_1 = ({a₁}, {a₃}, Θ)`, and `v₂ ↦ a₅` where `a₅ ∈ dom(Σ.C)` is referenced by no link (links are optional; nothing forces `a₅` into any endset's coverage). Query `W = {v₁}`, so `image(W, Σ) = {a₁}` and `findlinks_disc(W, Σ) = {L_1}`. The injective transposition `π = (v₁ v₂)` is a valid K.μ~ (length- and subspace-preserving, domain `{v₁, v₂}` unchanged, non-trivial since `a₁ ≠ a₅`). It yields `Σ'.M(d_q): v₁ ↦ a₅, v₂ ↦ a₁`, so `image(W, Σ') = {a₅}` — incomparable with `{a₁}`, exactly as the clause says — but `findlinks_disc(W, Σ') = findlinks({a₅}, Σ') = ∅`. The discovery set moves `{L_1} → ∅`, a **strict containment `⊋`**, under an injective reorder whose displaced member `a₁` *was* the sole in-region witness for `L_1`. This directly contradicts "respects no containment." A dual `⊊` is equally realizable: when one endset's coverage contains both the swapped-out and swapped-in address (e.g. `L_1 = ({a_old, a_new}, …)`), that link persists across the swap while the swapped-in address adds a fresh match, giving `{L_1} ⊊ {L_1, L_2}`.
+
+The bundled companion claim "the discovery set *does* change" is also false: if the swapped-in address re-witnesses exactly the same links as the swapped-out one, the discovery set is fixed even though the displaced member is a sole witness. The ASN's own caveat that "Image-motion is necessary but not sufficient for the discovery set to move" applies here too, but the clause treats sole-witness-ness as sufficient.
+
+**Required**: D-NONMONO's *conclusion* (non-monotonicity) survives on the lateral-swing witness `{L_1} ↦ {L_2}`, which is genuinely incomparable precisely because its from-endsets are disjoint singletons — but the *general characterization* must be cut or corrected. Either weaken "respects no containment" to an existence claim (there exist injective reorders whose discovery change is incomparable — all the lemma needs), or state the hypothesis under which it holds (the swapped-out and swapped-in I-addresses witness disjoint link sets, as both exhibited witnesses in fact do). The inference "image change is incomparable ⟹ discovery change is incomparable" cannot stand as a property of the injective regime.
+
+## OUT_OF_SCOPE
+
+The four open questions (content-keyed queries through `Σ.C`, filter-set distributivity, the uniform-transition wp generalizing D-CWP, and composition with ASN-0098's link projection) are correctly deferred — each is new territory rather than a gap in this note's stated scope.
+
+META: (not applicable — the note defines a derived query primitive and its state-transition invariance abstractly, which is legitimate specification content.)
+
+VERDICT: REVISE
