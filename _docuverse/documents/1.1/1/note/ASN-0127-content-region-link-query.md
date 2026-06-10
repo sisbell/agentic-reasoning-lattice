@@ -26,7 +26,7 @@ Given a document `d ∈ dom(Σ.M)` and a query region `W ⊆ T`, the document's 
 
 The intersection `W ∩ dom(Σ.M(d))` is load-bearing: V-positions named by `W` but absent from `d`'s arrangement contribute nothing, so the image fabricates no I-address absent from the arrangement. The image is a forward image of a partial function on its defined domain — a basic projection.
 
-When `W` is a contiguous V-span in some subspace `S`, ASN-0058's mapping-block decomposition gives the image as a union of I-runs: B1 and B2 partition `W`'s V-positions into disjoint blocks `βⱼ = (vⱼ, aⱼ, nⱼ)`, and B3 (consistency, `Σ.M(d)(vⱼ + k) = aⱼ + k`) makes each block's I-extent the contiguous run `{aⱼ + k : 0 ≤ k < nⱼ}` (B1–B3, ASN-0058). When `v ∈ W` has `subspace(v) = s_L`, S3★ (ASN-0047) routes `Σ.M(d)(v) ∈ dom(Σ.L)` and the image picks up a link address; endsets may reference any address in `T` (L4, ASN-0043), so the link subspace is admissible as a coverage target.
+When `W` is a contiguous V-span in some subspace `S`, the image is a union of I-runs delivered by ASN-0058's *restriction* decomposition. The restriction `f = Σ.M(d)|W` has induced domain `W ∩ dom(Σ.M(d))` confined to the single subspace `S`, so C1a (RestrictionDecomposition, ASN-0058) supplies a unique maximally merged decomposition of `f` into *W-confined* blocks `βⱼ = (vⱼ, aⱼ, nⱼ)`: their V-extents partition `W ∩ dom(Σ.M(d))` and the per-block consistency `f(vⱼ + k) = aⱼ + k` makes each I-extent the contiguous run `{aⱼ + k : 0 ≤ k < nⱼ}`, so `image(W, d, Σ)` is exactly the union of these I-extents. The restriction is load-bearing: blocks of the *full* arrangement `Σ.M(d)` (B1–B3, ASN-0058, quantified over all of `dom(Σ.M(d))`) may straddle `W`'s boundary, and their full I-extents `I(βⱼ)` would overstate the image, which is the union of the W-restricted sub-runs `{Σ.M(d)(v) : v ∈ V(βⱼ) ∩ W}` — exactly what C1a's W-confined blocks compute. When `v ∈ W` has `subspace(v) = s_L`, S3★ (ASN-0047) routes `Σ.M(d)(v) ∈ dom(Σ.L)` and the image picks up a link address; endsets may reference any address in `T` (L4, ASN-0043), so the link subspace is admissible as a coverage target.
 
 **F-IMG-MONO (ImageMonotonicityUnderArrangementExtension).** *If `Σ → Σ'` extends `Σ.M(d)` (a K.μ⁺ or K.μ⁺_L step that adds positions to `d`'s arrangement while agreeing on prior positions), then for every `W ⊆ T`:*
 
@@ -90,7 +90,7 @@ This is a *definition*, not a derived theorem. The factoring is what makes the s
 
 ## The stability keystone
 
-The single result that propagates to every preservation claim in the rest of the note:
+This note runs on *two* keystones, one per anchoring regime; they must not be collapsed into one. The first governs the *store-fixed* lane — transitions that hold `Σ.L` literally fixed — and is the meta-lemma below. It propagates to F-INERT and, through its per-link weakening F-CIL-perlink, to F-LAMBDA, and thence to everything D-NONMONO and D-CWP draw from F-INERT. It does *not* reach the existence-anchoring lane (E-INV → E-MONO → E-CONS): there the I-request is fixed in the permanent store, but the *path* `Σ →* Σ'` admits K.λ, so `Σ.L` may *grow* and F-CIL's store-equality hypothesis `Σ.L = Σ'.L` fails outright. That lane rests on a distinct foundation — LP13's per-link value persistence (UnconditionalLinkPersistence, ASN-0098), which pins each *surviving* link's value across a growing store — named as the second keystone in the existence-anchoring section below.
 
 **F-CIL (ComprehensionInvariantUnderΣL — meta-lemma).** *If `Σ.L = Σ'.L` as partial functions, then for every comprehension*
 
@@ -113,7 +113,7 @@ A weaker per-link form supports the inductive step for K.λ:
 
 ## Operational consequences
 
-The keystone meta-lemma turns the question "which transitions preserve the result?" into the question "which transitions preserve `Σ.L`?"
+The store-fixed keystone F-CIL turns the question "which transitions preserve the result?" into the question "which transitions preserve `Σ.L`?" — for the store-fixed lane. (The existence lane is governed instead by LP13; see below.)
 
 **F-PRES (PublishedFramePreservation).** *Every transition in `V_atomic ∖ {K.λ} = {K.α, K.δ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.ρ}` and the composite `K.μ~` preserves the link store: `dom(Σ'.L) = dom(Σ.L) ∧ (A a ∈ dom(Σ.L) :: Σ'.L(a) = Σ.L(a))`. The atomic operations publish `L' = L` in their effect frame (ASN-0047). The composite `K.μ~` is K.μ⁻ + K.μ⁺ and preserves `Σ.L` by composition.*
 
@@ -137,7 +137,7 @@ The crux of how a caller experiences `findlinks_V`'s behavior is *how the I-addr
 
 ### Existence anchoring
 
-The request is given directly as a fixed I-address set `I ⊆ T` in the permanent address space. The match predicate then turns only on `coverage(Σ.L(a).eᵢ) ∩ I`; link values are permanent (LP13, ASN-0098), so both a link's arity and its per-slot coverage are fixed across every transition.
+The request is given directly as a fixed I-address set `I ⊆ T` in the permanent address space. The match predicate then turns only on `coverage(Σ.L(a).eᵢ) ∩ I`; link values are permanent (LP13, ASN-0098), so both a link's arity and its per-slot coverage are fixed across every transition. LP13 is *this* lane's keystone, standing where F-CIL stood for the store-fixed lane: because the path `Σ →* Σ'` admits link creation, `Σ.L` is not fixed and F-CIL does not apply, yet LP13 still pins every surviving link's value under the growing store. The three claims below all descend from it.
 
 **E-INV (CoveragePermanence).** *For fixed `I` and any `Σ →* Σ'`, every `a ∈ dom(Σ.L)` satisfies `a ∈ dom(Σ'.L)` and `matches(a, I, Σ') ⟺ matches(a, I, Σ)`.*
 
@@ -214,7 +214,7 @@ Take a single document `d` with three text positions `v_1, v_2, v_3` mapping to 
 | F-IMONO | `I' ⊆ I ⟹ findlinks(I') ⊆ findlinks(I)` | Phase 2 algebra (corollary of F-UDIST) |
 | F-V | `findlinks_V(W, d, Σ) = findlinks(image(W, d, Σ), Σ)` | two-phase combinator (definition) |
 | F-VDIST | `findlinks_V(W₁ ∪ W₂, d, Σ) = findlinks_V(W₁, d, Σ) ∪ findlinks_V(W₂, d, Σ)` | composite algebra (Phase-1 payoff of F-UDIST) |
-| F-CIL | comprehension over `dom(Σ.L)` with `Σ.L`-only predicate is `Σ.L`-stable | keystone meta-lemma |
+| F-CIL | comprehension over `dom(Σ.L)` with `Σ.L`-only predicate is `Σ.L`-stable | store-fixed-lane keystone |
 | F-CIL-perlink | per-link version under per-link value preservation | sub-lemma |
 | F-PRES | `V_atomic ∖ {K.λ}` and `K.μ~` preserve `Σ.L` | transition vocabulary |
 | F-INERT | preservation ⟹ result invariance | operational consequence |
