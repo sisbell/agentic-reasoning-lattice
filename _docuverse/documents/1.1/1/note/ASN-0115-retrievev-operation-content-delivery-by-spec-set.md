@@ -81,8 +81,9 @@ must match that subspace's common depth, `#s = m_S(d)` (the depth S8-depth
 (ASN-0036) fixes uniformly on `V_S(d)`). This is the same discipline ASN-0058's
 ContentReference imposes (`#ℓ = #u = m` with `m` the common V-position depth).
 When `V_S(d) = ∅` the constraint is vacuous — any well-formed start of depth `≥ 2`
-is admissible — but then `act = ∅` and the gap analysis is trivial (every named
-position is unbound). Ordinal-level means the width acts at the deepest component,
+is admissible — but then `act = ∅`, since `⟦σ⟧` lies wholly in subspace `S`
+(Confinement) and the subspace-`S` slice of `dom(Σ.M(d))` is exactly `V_S(d) = ∅`.
+Ordinal-level means the width acts at the deepest component,
 `actionPoint(ℓ) = #ℓ` (ASN-0082, OrdinalLevel). This is the deepest-action-point
 discipline that keeps a span within a single subspace:
 
