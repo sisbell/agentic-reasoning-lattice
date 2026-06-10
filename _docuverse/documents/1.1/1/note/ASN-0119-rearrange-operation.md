@@ -37,8 +37,8 @@ We work in the extended state `Σ = (C, L, E, M, R)` of ASN-0047 — its *state*
 with REARRANGE imported as an atomic arrangement-rearrangement primitive
 (ASN-0084), distinct from and not reducible to ASN-0047's own non-atomic `K.μ~`
 composite (a `K.μ⁻ + K.μ⁺` pair that necessarily passes through a content-removed
-intermediate), even though a non-trivial REARRANGE realizes the same *net*
-arrangement change. The model lifts the strand model (ASN-0036) and the link model
+intermediate), even though REARRANGE realizes the same *net* arrangement change as
+that composite without ever vacating content. The model lifts the strand model (ASN-0036) and the link model
 (ASN-0043) into a single arrangement whose V-positions inhabit two subspaces — the
 text subspace `s_C` and the link subspace `s_L` (ASN-0047, S3★-aux). REARRANGE
 mutates only the arrangement family `M`; the content store `C` and the link store
@@ -390,8 +390,8 @@ and since `π` is a bijection of `dom(M(d))` (RA2), this is exactly
       project(a, i, d, Σ') = π( project(a, i, d, Σ) ).             **(RA7a)**
 
 We derive RA7a inline from RA1 rather than cite ASN-0098's **LP11**
-(ReorderingBijection): REARRANGE_K is not K.μ~, and the no-op REARRANGE lies
-outside LP11's non-triviality hypothesis. The footprint is carried *through* `π`:
+(ReorderingBijection): REARRANGE_K is not K.μ~, and LP11 is a lemma about K.μ~
+transitions. The footprint is carried *through* `π`:
 neither lost nor enlarged, only relocated to where the content now sits.
 
 As a transition in ASN-0047's model REARRANGE allocates no content and records no
@@ -404,8 +404,14 @@ subspace onto itself, so
 `Contains_C(Σ') = Contains_C(Σ) ⊆ R = R'`. The remaining
 ExtendedReachableStateInvariants conjuncts (P6, P7, P8, P7a, P4a, the E-family
 NodeLineage/ActivatedEmission, the L-family, the C-family) are preserved by the
-`C`/`E`/`R`/`L` frame, so the invariant package REARRANGE joins is fully accounted
-for.
+`C`/`E`/`R`/`L` frame. ASN-0047's second transition theorem,
+**ExtendedTransitionInvariants** (its sole conjunct **P3**,
+ArrangementMutabilityOnly), holds with every conjunct at equality: `dom(C) =
+dom(C')` with `C'(a) = C(a)` by RA0, `dom(L) = dom(L')` with `L'(ℓ) = L(ℓ)` by
+RA6, and `E = E'`, `R = R'` by the inert `E`/`R` frame — so the only component P3
+permits to lose information, `M`, is the only one REARRANGE rewrites. With both of
+ASN-0047's invariant theorems discharged, the invariant package REARRANGE joins is
+fully accounted for.
 
 *A link spanning both moved regions, or running from a moved region into
 stationary content* (Question 5). Here the footprint may be split by a cut, and we
