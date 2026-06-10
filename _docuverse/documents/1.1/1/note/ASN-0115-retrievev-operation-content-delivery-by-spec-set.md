@@ -547,13 +547,9 @@ physically originate ("the virtual byte stream of a document may include bytes
 from any other document," 4/10; non-native bytes have "an ordinal position …
 just as if they were native," 4/11). And the *resolution* must remain
 *traceable* — co-assembly must not collapse distinct origins into an anonymous
-blob, because each active position resolves to a definite address whose home
-document is determinate — `origin(a)` for a content address (S7), `home(a)` for a
-link address (ASN-0043, L1a; coinciding with origin by ASN-0086,
-HomeOriginCoincidence) — so the home document of every assembled fragment is
-recoverable from the resolution mapping. Losing the first gives disconnected
-fragments; losing the second gives an unattributable assembly. RETRIEVEV must
-give one coherent delivery *and* a resolution whose origins stay determinate.
+blob, because each active position's home document stays determinate from the
+resolution mapping, as the boxed claim fixes per position. Losing the first gives
+disconnected fragments; losing the second gives an unattributable assembly.
 Because each spec is resolved against its own
 arrangement (R4), cross-document spec-sets are resolved per document and then
 concatenated — Gregory's `specset2ispanset` loop calls the per-document lookup
@@ -564,7 +560,7 @@ independence R9 requires.
 document-level tumblers, `zeros(dⱼ) = 2`, with distinct allocation events,
 ASN-0036 S7d) each create and bind their own content. Document `d₁` binds a
 content position `v₁` (`subspace(v₁) = s_C`) to a content address `a₁ ∈ dom(Σ.C)`
-that `d₁` itself allocated, so `origin(a₁) = d₁` (S7b); document `d₂` binds a
+that `d₁` itself allocated, so `origin(a₁) = d₁` (S7(b)); document `d₂` binds a
 content position `v₂` (`subspace(v₂) = s_C`) to a content address `a₂ ∈ dom(Σ.C)`
 that `d₂` allocated, so `origin(a₂) = d₂`. Because `d₁ ≠ d₂` were distinct
 allocating documents, S7(c) (StructuralAttribution) gives `origin(a₁) ≠
