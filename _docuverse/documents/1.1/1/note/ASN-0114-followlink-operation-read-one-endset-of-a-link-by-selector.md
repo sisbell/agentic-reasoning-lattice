@@ -225,9 +225,8 @@ closure `Σ →* Σ'`, so the single-step fact must be composed along the sequen
 This composition is exactly LP13 (UnconditionalLinkPersistence, ASN-0098) — "for
 every reachable state sequence `Σ →* Σ'` and every `a ∈ dom(Σ.L)`: `a ∈
 dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)`" — which ASN-0098 obtains from L12 via its closure
-schema (★). (Equivalently, one inducts on the length of the sequence: the empty
-sequence is trivial, and each step extends `Σ'.L(a) = Σ.L(a)` by one application
-of L12.) Hence `a ∈ dom(Σ'.L)` and `Σ'.L(a) = Σ.L(a)`, so `Σ'.L(a).eᵢ =
+schema (★). We invoke that closure as established rather than re-running it here.
+Hence `a ∈ dom(Σ'.L)` and `Σ'.L(a) = Σ.L(a)`, so `Σ'.L(a).eᵢ =
 Σ.L(a).eᵢ` and their coverages are equal. F1 applied at each state then equates
 the coverages of the two results. ∎
 
