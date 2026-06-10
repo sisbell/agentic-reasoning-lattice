@@ -40,7 +40,7 @@ We write `shape(K)` for the shape the well-formed registry — a partial functio
 
 The shapes are stated in terms of the span count `|e|` of an endset; F and G are both endsets. The span-count and coverage measures diverge sharply. A single unit-depth span `(a, δ(1, #a))` is one span — `|{(a, δ(1, #a))}| = 1` — yet its coverage is `{t : a ≼ t}`, generally infinite (PrefixSpanCoverage, ASN-0043). Span-count, not coverage, is the measure.
 
-One edge follows from counting spans rather than coverage. Types are keyed by *coverage class* (The registry) — coverage-invariant — but F-conformance counts spans, a coverage-variant notion. So a source presenting one contiguous extent as two abutting spans `(a, ℓ₁)`, `(a ⊕ ℓ₁, ℓ₂)` has `|F| = 2` and fails every shape, even though its coverage equals that of the conformant one-span F. The rule is on the side of the literal emission: **a single-span slot means a single span as emitted**. Counting spans-as-emitted keeps the measure intrinsic to the value.
+The divergence cuts both ways. Types are keyed by *coverage class* (The registry) — coverage-invariant — yet F-conformance counts spans: a source presenting one contiguous extent as two abutting spans `(a, ℓ₁)`, `(a ⊕ ℓ₁, ℓ₂)` has `|F| = 2` and fails every shape, even though its coverage equals that of the conformant one-span F.
 
 The predicate `Sh-conf(K, F, G)` is defined only for *registered* K — those for which the registry records a shape. For an unregistered K, `shape(K)` does not exist and `Sh-conf(K, F, G)` carries no truth value. For a typed tuple `(F, G, K)` under a type K registered with shape s, `Sh-conf(K, F, G)` holds when:
 
@@ -78,7 +78,7 @@ The registry is fixed when `Σ_init` is defined (The registry); we now show it n
 
 No step kind in `→_sh` has the registry in its *effect*; each leaves it in its frame. **P1 (RegistryInvariance).** At every `→_sh*`-reachable state, `Σ.registry = Σ_init.registry` — the registry never drifts. This follows by induction on the length of a `→_sh*`-derivation: the base case `Σ = Σ_init` is immediate, and each step preserves `Σ.registry = Σ_init.registry` by the frame condition for whichever of the three kinds it is.
 
-Precondition (i) of `K.λ_sh` requires deciding whether the emitted `[K]` is a registered key. By P1 the registry never grows, so by C0 (The registry) it has finitely many keys at *every* reachable state; deciding (i) is then deciding `coverage(K) = coverage(K_j)` against each of the finitely many stored representative endsets `K_j`, and each such test is decidable by CoverageEqualityDecidable (ASN-0086) because it operates on the endsets `K`, `K_j` directly. Finiteness bounds the number of comparisons and CoverageEqualityDecidable discharges each one, so (i) — and hence the whole gate — is a terminating, applicable-at-every-emit check.
+Precondition (i) of `K.λ_sh` requires deciding whether the emitted `[K]` is a registered key. By P1 the registry never grows, so by C0 (The registry) it has finitely many keys at *every* reachable state; deciding (i) is then deciding `coverage(K) = coverage(K_j)` against each of the finitely many stored representative endsets `K_j`, and each such test is decidable by CoverageEqualityDecidable (ASN-0086) because it operates on the endsets `K`, `K_j` directly.
 
 The registry's invariance (P1) makes a registered type's shape stable across states. **P2 (ShapeStability).** For any *registered* K, `shape(K)` takes the same value at every `→_sh*`-reachable state: since `shape(K)` is read from the P1-invariant registry, the same K cannot carry one shape at Σ and another at Σ'.
 
@@ -94,7 +94,7 @@ Registry permanence introduced the forgetful projection `π`. We now show it is 
 
 The bridge has two consequences.
 
-**(B1) Shared components.** Σ and `π(Σ)` share their C, M, and L components. Every ASN-0086 state-indexed function this note invokes — `a_emit(·, d)`, `A_rel^·`, `L_K^·`, `A_K^·`, and `nullified(·)` — reads only the C/M/L components (in each definition only `dom(Σ.L)`, the link values `Σ.L(·)`, `coverage`, and `origin` appear — never the registry), so each takes equal values at Σ and `π(Σ)` and is thereby well-defined on this note's four-component states by evaluation at the projection, `f(Σ) := f(π(Σ))`. In particular, since `a_emit` reads only M and L, `a_emit(π(Σ), d) = a_emit(Σ, d)` and `dom(π(Σ).L) = dom(Σ.L)`; consequently `A_rel^{π(Σ)} = A_rel^Σ` (AddressPartition, ASN-0086, gives `A_rel^Σ = dom(Σ.L)`).
+**(B1) Shared components.** Σ and `π(Σ)` share their C, M, and L components. Every ASN-0086 state-indexed function reads only C/M/L — an ASN-0086 state has nothing else — so each agrees at Σ and `π(Σ)`, and is thereby well-defined on this note's four-component states by evaluation at the projection, `f(Σ) := f(π(Σ))`. In particular, since `a_emit` reads only M and L, `a_emit(π(Σ), d) = a_emit(Σ, d)` and `dom(π(Σ).L) = dom(Σ.L)`; consequently `A_rel^{π(Σ)} = A_rel^Σ` (AddressPartition, ASN-0086, gives `A_rel^Σ = dom(Σ.L)`).
 
 **(B2) Lemma transfer.** Take any ASN-0086 result whose conclusion is a predicate over the C/M/L components — either of a single `→*`-reachable state, or of a transition between two states each separately exhibited as `→_sh`-reachable. For each state Σ this note reasons about, `π(Σ)` is `→*`-reachable (ProjectionBridge), so the result holds at `π(Σ)`; since it constrains only the shared C/M/L components, its conclusion transfers to Σ directly. B2 yields no `→_sh`-successors: an existence-of-successor conclusion `∃ Σ' : Σ → Σ' ∧ …` transfers only to a `→`-successor of `π(Σ)`, which need not lift to a `→_sh`-step of Σ.
 
@@ -149,15 +149,6 @@ What singles out C3 is not that it can fail — so can C2 — but that it is the
 ## Reachable conformance
 
 We lift P3's single-step guarantee to an invariant holding at every reachable state. **P6 (ReachableConformance).** For every `→_sh*`-reachable Σ and every `a ∈ dom(Σ.L)`, the stored value `Σ.L(a)` is a standard triple `(F, G, K)` whose K is registered and for which `Sh-conf(K, F, G) = ⊤`. This is the state-level closure of P3's single-step half — the guarantee a consuming app relies on. *Derived* by induction on derivation length: the base `Σ_init.L = ∅` (Registry permanence) holds vacuously; each `→_sh`-step either leaves `dom(Σ.L)` unchanged (K.σ, K.α) or extends it by one tuple that P3 forces to be a standard triple with K registered and conforming. The induction hypothesis being carried is the *predicate* "stored value is a standard triple ∧ K registered ∧ `Sh-conf(K, F, G) = ⊤`," not merely value-persistence. For the tuple a step newly deposits, P3 supplies all three conjuncts — the standard-triple shape from precondition (0) of `K.λ_sh`, registration from (i), conformance from (ii). For a tuple already present, the three conjuncts persist by, in turn: L12 (LinkImmutability, ASN-0043), under which the stored value `(F, G, K)` — and hence its standard-triple shape — persists unchanged, holding at `π(Σ)` and transferred to Σ by the projection bridge (B2), each `→_sh`-step projecting to a `→`-step with the L-component shared (B1, `Σ.L = π(Σ).L`); P1 (RegistryInvariance, Registry permanence), under which K's registration status persists, the registry being invariant so a type registered at Σ is registered at Σ'; and P4 (Sh-confStateIndependence), under which the conformance verdict persists, `Sh-conf(K, F, G)` being defined and evaluating identically at Σ and Σ'.
-
-## Properties established
-
-- **P1 (RegistryInvariance)**
-- **P2 (ShapeStability)**
-- **P3 (Sh-confWellFormedness)**
-- **P4 (Sh-confStateIndependence)**
-- **P5 (GateRealizability)**
-- **P6 (ReachableConformance)**
 
 ## Worked illustration
 
