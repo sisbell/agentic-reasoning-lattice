@@ -228,8 +228,21 @@ inherited verbatim from the pre-state, none of them mentioning the values
 (ASN-0047, **D-CTG★**), sequentiality (**D-SEQ★**), the minimum position
 (**D-MIN★**), V-position well-formedness (**S8a**), uniform per-subspace
 depth (**S8-depth**), and finiteness (**S8-fin**) all held for `V_{s_C}(d)` before
-the rearrangement and so hold after it. We may now read off the remaining
-obligations.
+the rearrangement and so hold after it.
+
+One per-state invariant does turn on the values `π` reshuffles, so it cannot be
+inherited this way and needs a positive argument: S8★ (ASN-0047, **S8★**,
+PerSubspaceSpanDecomposition) constrains the maximal correspondence-run
+decomposition of `M(d)`, a function of the I-address *values*, not of the key set
+— and REARRANGE is precisely the operation that refragments it, a content subspace
+that was one maximal run before a pivot breaking into several after. ASN-0084
+already discharges it: **R-BLK** (RunDecompositionTransformation) carries the
+pre-state run partition to a disjoint, covering run partition of `M'(d)`, and
+**R-CANON** (CanonicalityOfMergeNormalForm) shows that partition's merge-normal
+form is the unique maximal-run decomposition S8 guarantees — exactly S8★ on the
+content subspace. On the link subspace, S8★'s trivial length-1 decomposition and
+the value-dependent CL-OWN/CL-UNIQ ride untouched on the frozen `s_L` frame. We
+may now read off the remaining obligations.
 
 ## The intervening content
 
@@ -378,25 +391,14 @@ and since `π` is a bijection of `dom(M(d))` (RA2), this is exactly
 
       project(a, i, d, Σ') = π( project(a, i, d, Σ) ).             **(RA7a)**
 
-This inline derivation rests on the bijection equation RA1 and holds for *every*
-REARRANGE, which is why we give it rather than cite ASN-0098's **LP11**
-(ReorderingBijection). The relationship is worth stating precisely. A *non-trivial*
-REARRANGE_K meets all five of K.μ~'s admissibility conditions — post-state shape
-(i), non-triviality (ii), length-preservation (iii), subspace-preservation (iv),
-and link-subspace fixity (v) — together with K.μ~'s precondition that `M(d)`
-restricted to the content subspace take at least two distinct values, so its *net*
-arrangement change is realizable as a K.μ~ and LP11 applies. A *trivial*
-REARRANGE_K — symmetric content, `M'(d) = M(d)` — is a no-op that fails
-non-triviality (ii), hence is no K.μ~ at all and lies outside LP11's hypothesis.
-REARRANGE itself is ASN-0084's *atomic* primitive — a single `π` applied in one
-step — distinct from the non-atomic K.μ~ composite (which would traverse a
-content-removed intermediate) even where the two agree in net effect; the
-RA1-based derivation covers the non-trivial and trivial branches alike, including
-the no-op a bare LP11 citation cannot. As a transition in ASN-0047's model
-REARRANGE allocates no content and records no provenance, with
-`ran(M'(d)) = ran(M(d))` by RA1, so the model's coupling obligations J0, J1★, and
-J1'★ hold vacuously. The footprint is carried *through* `π`: neither lost nor
-enlarged, only relocated to where the content now sits.
+We derive RA7a inline from RA1 rather than cite ASN-0098's **LP11**
+(ReorderingBijection) because the RA1 argument holds for *every* REARRANGE,
+including the trivial no-op (`M'(d) = M(d)`) — which, failing K.μ~'s
+non-triviality condition, is no K.μ~ at all and so lies outside LP11's hypothesis.
+As a transition in ASN-0047's model REARRANGE allocates no content and records no
+provenance, with `ran(M'(d)) = ran(M(d))` by RA1, so the model's coupling
+obligations J0, J1★, and J1'★ hold vacuously. The footprint is carried *through*
+`π`: neither lost nor enlarged, only relocated to where the content now sits.
 
 *A link spanning both moved regions, or running from a moved region into
 stationary content* (Question 5). Here the footprint may be split by a cut, and we
@@ -635,6 +637,7 @@ the regions tile, not merely shift each by a local offset.
 | RA2 (Permutation) | The induced `π` (R-PPERM/R-SPERM) is a bijection of `dom(M(d))` onto itself; `dom(M'(d)) = dom(M(d))` | imported (ASN-0084 R-PIV/R-SWP) |
 | S2 (FunctionalityPreserved) | `M'(d)` is single-valued — the disjoint tiling of destinations (R-PIV/R-SWP) gives each V-position one I-address (ASN-0036 S2) | preserved |
 | S3★ (ReferentialIntegrityPreserved) | per-subspace: `subspace(v) = s_C ⟹ M'(d)(v) ∈ dom(C)` and `subspace(v) = s_L ⟹ M'(d)(v) ∈ dom(L)` (ASN-0047 S3★; derivation in the body) | preserved |
+| S8★ (SpanDecompositionPreserved) | `M'(d)` admits the unique maximal correspondence-run decomposition S8 guarantees — content subspace by ASN-0084 R-BLK + R-CANON, link subspace by the frozen frame (ASN-0047 S8★) | preserved |
 | RA3 (VExtentConservation) | `\|dom(M'(d))\| = \|dom(M(d))\|`, and the active run's endpoints are fixed — the document's total extent is conserved | introduced |
 | RA5 (Discoverability) | Moved content is discoverable under its new V-position `π(v)` and resolves to its original I-address `M(d)(v)` | introduced |
 | RA6 (LinkStoreFrame) | `Σ'.L = Σ.L` — links are untouched; a link anchored in a moved region survives and travels with its content because endsets reference unchanged I-addresses | introduced |
