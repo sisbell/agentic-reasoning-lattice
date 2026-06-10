@@ -475,9 +475,17 @@ comparability is required, not derived. Because the consulted restriction binds
 immutability (S0) holds the stored entry fixed, giving `Σ.C(a) = Σ'.C(a)`. Hence
 for every resolved address the delivered value or reference is the same at both
 states, and the two deliveries are identical. The arrangement is the sole mutable
-input (R4; P3), so repeatability holds exactly when the consulted restriction is
-unchanged — R7's hypothesis — which a caller secures by citing a version whose
-arrangement it does not subsequently edit.
+input (R4; P3) — `deliver` is a function of the consulted restriction and the
+immutable stores — so keeping that restriction unchanged (R7's hypothesis)
+*secures* repeatability, which a caller obtains by citing a version whose
+arrangement it does not subsequently edit. This is a sufficiency, not a
+biconditional: an unchanged restriction guarantees an identical delivery, but the
+converse fails. A rebinding that lands on an equal-valued content address —
+permitted by S4 (OriginBasedIdentity), which allows `a₁ ≠ a₂` with
+`Σ.C(a₁) = Σ.C(a₂)` — leaves the delivery byte-identical while the consulted
+restriction changed, so identical delivery does not entail an unchanged
+restriction. The caller relies on the forward direction and never on that
+coincidence.
 
 ## What co-delivery does with transclusion
 
