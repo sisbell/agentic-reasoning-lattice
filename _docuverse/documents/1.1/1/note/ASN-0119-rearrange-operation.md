@@ -44,8 +44,8 @@ The model lifts the strand model (ASN-0036) and the link model
 text subspace `s_C` and the link subspace `s_L` (ASN-0047, S3★-aux). REARRANGE
 mutates only the arrangement family `M`; the content store `C` and the link store
 `L` are frames (`Σ'.C = Σ.C`, `Σ'.L = Σ.L`), and the entity set `E` and the
-provenance relation `R` are inert under it, so we suppress `E` and `R` and write
-`Σ = (C, M, L)` for the active components throughout. The
+provenance relation `R` are inert under it, so we suppress `E` and `R` from the
+state-tuple notation and write `Σ = (C, M, L)` for the active components. The
 *content store* `Σ.C : T ⇀ Val` (ASN-0036, S0) is append-only and immutable; an
 address `a ∈ dom(C)`, once allocated, denotes its value forever. This is the
 Istream: the permanent record of *what content exists*. The *arrangement*
@@ -290,8 +290,7 @@ boundary at which P4a held, so every trace to `Σ` exhibits a trace state `Σ_k`
 its prefix at which `a` sat in `d`'s content-subspace range. That witness `Σ_k` is
 an earlier trace state in the prefix, whose arrangement `M_k(d)` the appended
 REARRANGE step does not touch, so it persists unchanged into the extended trace to
-`Σ'`, witnessing `(a, d)` there as well — the pre-state's trace witness persists,
-and the appended step is never consulted. A trace reaching `Σ'` by any *other*
+`Σ'`, witnessing `(a, d)` there as well. A trace reaching `Σ'` by any *other*
 final composite has that composite drawn from ASN-0047's vocabulary; it does not
 factor through `Σ` via REARRANGE, and need not. For *any* such final composite
 `Σ'' →* Σ'`, ASN-0047's P4a argument for that composite discharges the obligation
@@ -304,9 +303,7 @@ own atomic vocabulary, not REARRANGE-interleaved traces) but by the *combined*
 induction over the extended vocabulary: ASN-0047's arguments establish that each of
 its composites preserves the invariant package, this ASN establishes that REARRANGE
 preserves it, and so every reachable composite boundary — REARRANGE-interleaved or
-not — satisfies P4a, `Σ''` among them. P4a at `Σ'` thus holds on every valid
-trace — the REARRANGE-ending ones by the persistence argument above, all others by
-their final composite's ASN-0047 argument under the combined induction. The genuinely per-state ExtendedReachableStateInvariants conjuncts that
+not — satisfies P4a, `Σ''` among them. The genuinely per-state ExtendedReachableStateInvariants conjuncts that
 remain (P6, P7, P8, the E-family NodeLineage/ActivatedEmission, the L-family, the
 C-family) are preserved by the `C`/`E`/`R`/`L` frame. ASN-0047's second transition theorem,
 **ExtendedTransitionInvariants** (its sole conjunct **P3**,
@@ -351,9 +348,9 @@ around it.
 
 The document's total extent must be unchanged: "the same bytes are present, in
 the same quantity, merely permuted into a different order" (Question 7).
-Conservation is immediate from RA2. The active V-positions of the text subspace
-`s_C` form a contiguous run by D-CTG★, and `π` permutes that run onto itself, so
-the run's cardinality and its endpoints are invariant:
+Conservation is immediate from RA2: since `dom(M'(d)) = dom(M(d))`, the active
+text run is literally unchanged as a set, so its cardinality and its endpoints are
+invariant:
 
       | dom(M'(d)) | = | dom(M(d)) |,    min and max V-position fixed.   **(RA3)**
 
