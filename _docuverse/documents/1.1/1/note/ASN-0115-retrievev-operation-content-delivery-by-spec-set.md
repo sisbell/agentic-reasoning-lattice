@@ -481,16 +481,13 @@ comparability is required, not derived. Because the consulted restriction binds
 `a ∈ dom(Σ.C) ∩ dom(Σ'.C)`; over the intervening transitions `Σ →* Σ'`, content
 immutability (S0) holds the stored entry fixed, giving `Σ.C(a) = Σ'.C(a)`. Hence
 for every resolved address the delivered value or reference is the same at both
-states, and the two deliveries are identical. A document's arrangement is the one
-mutable input: K.μ⁻, K.μ⁺, and K.μ~ (ASN-0047) edit `Σ.M(dⱼ)` in place, and P3
-(ArrangementMutabilityOnly) marks `M` as the sole component that may lose
-information. RETRIEVEV therefore always resolves against the *current* `Σ.M(dⱼ)`,
-never a frozen snapshot; repeatability holds exactly when the consulted
-restriction is unchanged — R7's hypothesis — which a caller secures by citing a
-version whose arrangement it does not subsequently edit. The foundation of
-permanent citation is thus not an impossibility of in-place arrangement editing
-but the immutable content store (S0): the bytes at an I-address never change, so a
-reference whose binding survives resolves to the same value for all time.
+states, and the two deliveries are identical. The arrangement is the sole mutable
+input (R4; P3), so repeatability holds exactly when the consulted restriction is
+unchanged — R7's hypothesis — which a caller secures by citing a version whose
+arrangement it does not subsequently edit. The foundation of permanent citation is
+thus not an impossibility of in-place arrangement editing but the immutable content
+store (S0): the bytes at an I-address never change, so a reference whose binding
+survives resolves to the same value for all time.
 
 ## What co-delivery does with transclusion
 
@@ -552,9 +549,6 @@ delivering both positions by way of the same `a` is identity-preserving by
 construction — in computing the delivery the operation never copies, it
 dereferences the one address `a` twice, so both items are the one content
 delivered twice, not two independent reproductions of it.
-
-Each position resolves through `a` independently — whether delivered alone or
-alongside the other — so the shared home is established per-position, not jointly.
 
 Nor does the operation merge the two items into one. This is forced abstractly —
 two distinct V-positions are two distinct entries, and a delivery that dropped
