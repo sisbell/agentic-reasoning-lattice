@@ -97,9 +97,7 @@ precondition. We define:
 
 > **F0 (FollowLink).** `followlink(Σ, a, i)` is *defined* (returns a span-set)
 > exactly when `a ∈ dom(Σ.L) ∧ 1 ≤ i ≤ |Σ.L(a)|`; otherwise it returns the
-> distinguished error value `⊥`. The coverage that span-set must carry is governed
-> by the postcondition the wp named above, which we elevate to the central claim
-> F1 rather than restate here.
+> distinguished error value `⊥`.
 
 **Status of the result — a relation, determinate up to coverage.** The wp above
 fixes the precondition under which a defined call must return a span-set `R` with
@@ -119,10 +117,7 @@ when the call is undefined, F0 fixes the value at the distinguished `⊥`. (ii)
 *Empty end:* when `coverage(Σ.L(a).eᵢ) = ∅`, the postcondition forces
 `coverage(R) = ∅`, whence the first collapse gives `R = ⟨⟩` uniquely.
 
-Three commitments now remain to justify — the coverage relationship (F1), the
-pure-read frame (F4), and the distinction between a valid-but-empty end and an
-invalid selector (F7) — each carried by its own claim rather than packed into the
-definition, and each with consequences to extract. We take them in turn.
+Three commitments remain — F1, F4, F7. We take them in turn.
 
 ## What the result must be: exact coverage, no more and no less
 
@@ -505,7 +500,7 @@ abstract specification exists to make visible.
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| F0 | `followlink(Σ, a, i)` is defined (returns a span-set) iff `a ∈ dom(Σ.L) ∧ 1 ≤ i ≤ \|Σ.L(a)\|`; else returns `⊥`. The coverage a defined call carries is owned by F1, not restated here | introduced |
+| F0 | `followlink(Σ, a, i)` is defined (returns a span-set) iff `a ∈ dom(Σ.L) ∧ 1 ≤ i ≤ \|Σ.L(a)\|`; else returns `⊥` | introduced |
 | F1 | CoverageExactness: `coverage(followlink(Σ, a, i)) = coverage(Σ.L(a).eᵢ)` — neither over- nor under-coverage | introduced |
 | F2 | DiscontiguityFaithfulness: if `coverage(Σ.L(a).eᵢ)` is disconnected, any F1-result has `≥ 2` spans (corollary of F1 and span convexity) | introduced |
 | F3 | RepresentationInvariance: any two F1-results for the same `(Σ, a, i)` are denotationally equal; the contract binds coverage, not span decomposition or order | introduced |
