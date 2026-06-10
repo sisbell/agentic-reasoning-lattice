@@ -406,17 +406,23 @@ post-state, and the theorem returns the full invariant set there.
 One concrete shape is worth stating once, because it is the formal content of
 Nelson's assurance (Q10) that reading end to end yields the original content with
 the new material interleaved at the chosen point. The post-state text domain
-`V_S(d')` is the canonical dense run `{q_1, …, q_{N+n}}` of length `N' = N + n`: by
-the **block-disjointness fact** (Effect), the three index intervals `{1, …, J-1}`
-(prefix), `{J, …, J+n-1}` (new), `{J+n, …, N+n}` (shifted suffix) are consecutive,
-pairwise disjoint, and union to `{1, …, N+n}`. This is I-DOM — and is exactly the
-contiguity K.μ⁺'s clause (iii) discharged, hence the post-state D-CTG★/D-MIN★/D-SEQ★
-the theorem returns. The new material occupies exactly the interval
-`{q_J, …, q_{J+n-1}}`, a connected, ordered, gap-free block, and the whole stream
-around it stays a single coherent ordinal sequence; on the content subspace
-`S = s_C` the per-subspace slice is the whole text subspace, so these starred forms
-reduce to the unstarred D-CTG/D-MIN/D-SEQ of ASN-0036. IP1 records the narrower fact
-that the inserted material forms *one* correspondence run within the S8★ partition.
+`V_S(d')` is the canonical dense run `{q_1, …, q_{N+n}}` of length `N' = N + n` —
+this is I-DOM, which the Effect already establishes from the block-disjointness
+fact, and is exactly the contiguity K.μ⁺'s clause (iii) discharged, hence the
+post-state D-CTG★/D-MIN★/D-SEQ★ the theorem returns. The new material occupies
+exactly the interval `{q_J, …, q_{J+n-1}}`, a connected, ordered, gap-free block,
+and the whole stream around it stays a single coherent ordinal sequence; on the
+content subspace `S = s_C` the per-subspace slice is the whole text subspace, so
+these starred forms reduce to the unstarred D-CTG/D-MIN/D-SEQ of ASN-0036. IP1
+records the narrower fact that the inserted material forms a correspondence run in
+S8's sense — lockstep V/I advance over the block — though not necessarily a
+*maximal* one: when the left-adjacent slot `q_{J-1}` holds the current greatest
+origin-`d` address `a_prev` (a configuration reachable once a reordering K.μ~
+(ASN-0047) has decoupled V-order from I-order), the fresh start
+`a = inc(a_prev, 0) = shift(M(d)(q_{J-1}), 1)` is I-adjacent to the left run, so the
+block I-merges backward into it and is not a standalone element of the maximal-run
+partition S8★ delivers. Forward I-merging with the shifted suffix never happens —
+those addresses all lie strictly below the fresh `a`.
 
 *Provenance coupling — the obligation allocation incurs.* The inserting document's
 identity is minted into the address as content enters (4/11), and the implementation
@@ -500,8 +506,8 @@ witnesses:
   immutability **L12 (LinkImmutability, ASN-0043)** lifted across the composite
   fixes `Σ'.L(a) = Σ.L(a)` for every prior link `a`, so **LP3★
   (MultiStepCoverageInvariance, ASN-0098)** gives
-  `coverage_{Σ'}(e) = coverage_{Σ}(e)` for every prior endset. Coverage-invariance
-  rests on endset immutability, not on freshness. Foundation **L4 (EndsetGenerality)**
+  `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)` for every prior link `a` and slot
+  `i`. Coverage-invariance rests on endset immutability, not on freshness. Foundation **L4 (EndsetGenerality)**
   and **L9 (TypeGhostPermission)** let an endset reference *any* tumbler, including
   ghost addresses not yet in `dom(C)`, so a pre-existing endset may already name an
   address that INSERT now mints into `A_new`.
@@ -533,8 +539,9 @@ injectively to a surviving one (left verbatim, suffix shifted, cross-subspace
 verbatim), and the new block can only add witnesses, never remove or redirect. We
 record it.
 
-**IP4 (LinkSurvival).** *For every endset `e` existing in `Σ`,
-`coverage_{Σ'}(e) = coverage_{Σ}(e)` (by L12 + LP3★ across the composite) — no link's designated content
+**IP4 (LinkSurvival).** *For every prior link `a ∈ dom(Σ.L)` and every slot `i`,
+with `e = Σ.L(a).eᵢ` its endset, LP3★ (with L12 across the composite) fixes
+`coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)` — no link's designated content
 changes. The post-insert resolved-witness set of `e` in `d` is
 `project(e, d, Σ') = {v ∈ dom(M'(d)) : M'(d)(v) ∈ coverage(e)}`, which decomposes
 into four disjoint parts:*
@@ -631,7 +638,7 @@ full-range identity RAN into
 LP12, for every prior link `a` — and noting that the unsubscripted `coverage(eᵢ)`
 below is well-defined because each slot's coverage is invariant pre-to-post across
 the whole composite (L12 + **LP3★ (MultiStepCoverageInvariance, ASN-0098)**, so
-`coverage_{Σ'}(eᵢ) = coverage_{Σ}(eᵢ)`) —
+`coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)`) —
 
 ```
   discoverable_from(a, d, Σ')
