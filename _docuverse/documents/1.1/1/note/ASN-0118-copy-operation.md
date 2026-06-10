@@ -246,16 +246,10 @@ V-positions starting at `p`:
 
 This is the post-insertion shift of ASN-0082 (I3, PostInsertionShift) instantiated
 at width `W`; from it we borrow, *for the shifted positions*, that they remain
-well-formed (I3-VP), preserve depth (I3-VD), and stay finite (I3-fin). I3 does *not*
-establish the function-ness, no-holes, contiguity, and sequentiality of COPY's
-actual `Σ'.M(d)`: it describes only the shift, leaving the gap `[p, p+W)` empty in
-its `M'(d)`, whereas COPY fills that gap with the placement positions (CP2). Those
-properties rest instead on the tiling argument given later under prior-arrangement
-preservation — placement, shift, and left ranges occupy disjoint, abutting ordinal
-intervals — together with CP3c's domain closure and K.μ⁺'s strict-extension
-contract. The placement positions `p, p+1, …, p+(W−1)` occupy exactly the ordinal
-gap that the shift vacates, and the two ranges are disjoint by the
-order-preservation of shift (ASN-0034, TS4).
+well-formed (I3-VP), preserve depth (I3-VD), and stay finite (I3-fin). The
+function-ness, no-holes, contiguity, and sequentiality of COPY's actual `Σ'.M(d)`
+rest instead on the tiling argument delivered under prior-arrangement preservation
+below, together with CP3c's domain closure and K.μ⁺'s strict-extension contract.
 
 *Effect — domain closure (text subspace).* The text-subspace V-positions of the
 post-state are exactly the left-frame positions, the placement positions, and the
@@ -808,7 +802,7 @@ sources.
 | Label | Statement | Status |
 |-------|-----------|--------|
 | CP0 | `resolve(R, Σ)` reads each active source position through its arrangement, in spec-set order, yielding `⟨c₀,…,c_{W−1}⟩` with (a) every `cᵢ ∈ dom(Σ.C)`, (b) resolution a pure read of `Σ`, (c) non-contiguity of sources preserved as distinct runs | introduced |
-| CP1 | TransclusionFrame: `dom(Σ'.C) = dom(Σ.C) ∧ (A a ∈ dom(Σ.C) : Σ'.C(a) = Σ.C(a))` — COPY allocates no content; the placed material refers to existing I-addresses. The boundary distinguishing transclusion from replication | introduced |
+| CP1 | TransclusionFrame: `dom(Σ'.C) = dom(Σ.C) ∧ (A a ∈ dom(Σ.C) : Σ'.C(a) = Σ.C(a))` — COPY allocates no content; the placed material refers to existing I-addresses | introduced |
 | CP2 | Placement: `(A i : 0 ≤ i < W : Σ'.M(d)(p + i) = cᵢ)` — `W` fresh destination V-positions bind the resolved (pre-existing) I-addresses; the placed material shares the source's content identity | introduced |
 | CP3 | PriorArrangementPreservation: left content unchanged (CP3b, `v < p`), trailing text content shifted forward by `W` with bindings intact (CP3a, `v ≥ p`), and the text-subspace domain closed to left ∪ placement ∪ shifted with the pre-shift positions vacated (CP3c) — so S2 functionality is dischargeable from the postconditions; order-preserving, injective, non-destructive | introduced |
 | CP4 | MultiplicityIncrease: total references into the placed set increase by exactly `W`; each placed `cᵢ`'s own reference count increases by its occurrence count in `resolve(R, Σ)` (≥ 1); distinct V-positions binding one address are permanently independent occurrences (S5, M14) | introduced |
@@ -818,7 +812,7 @@ sources.
 | CP8 | ProvenanceRecording: `(A i : 0 ≤ i < W : (cᵢ, d) ∈ Σ'.R)` — J1★ demands the *membership* in `Σ'.R`, satisfied by a fresh K.ρ step for range-new addresses not already in `Σ.R` (J1'★-admissible), by permanence P2 for range-new addresses already in `Σ.R` (re-COPY of deleted content, K.ρ optional), and by P4★ + P2 for addresses already in `d`'s current range | introduced |
 | CP9 | SelfTransclusionAdmissibility: when `d_s = d`, resolution reads the pre-state, so placement adds independent V-positions of `d` referring to addresses `d` already bound; no content is duplicated | introduced |
 | CP10 | ImmutabilityPreservation: S0 preserved across COPY (corollary of CP1); reused content carries identical bytes into the destination because they are the same bytes | introduced |
-| CP11 | OriginMultisetPreservation: `⦃origin(cᵢ) : 0 ≤ i < W⦄` is preserved into the destination's arrangement; cross-origin blocks cannot merge (M16). Replication would collapse it to `⦃d,…,d⦄` — the reveal that separates reuse from replication | introduced |
+| CP11 | OriginMultisetPreservation: `⦃origin(cᵢ) : 0 ≤ i < W⦄` is preserved into the destination's arrangement; cross-origin blocks cannot merge (M16) | introduced |
 
 ## Open Questions
 
