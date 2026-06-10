@@ -203,12 +203,7 @@ what does *not* change:
 
 The frame is as much a part of the specification as the effect. An
 implementation that satisfied F1 but, say, advanced an arrangement or perturbed
-a referenced document as a side effect would not have implemented FOLLOWLINK. We
-note for completeness that Nelson's accounting machinery (cash-register
-increment, royalty accrual on delivery) sits outside the abstract state `Σ`
-modeled here; F4 is a statement about `Σ`, and monotone bookkeeping counters, to
-the extent they exist, lie below this abstraction and never alter the link or
-the referenced material (Q10).
+a referenced document as a side effect would not have implemented FOLLOWLINK.
 
 ## Determinism over time
 
@@ -234,14 +229,9 @@ Hence `a ∈ dom(Σ'.L)` and `Σ'.L(a) = Σ.L(a)`, so `Σ'.L(a).eᵢ =
 the coverages of the two results. ∎
 
 F5 as stated is a *coverage*-permanence claim, and exactly one fact carries it:
-*link immutability* (L12). Because `Σ'.L(a) = Σ.L(a)`, the recorded spans — and
-hence their coverage — are fixed, whatever those spans happen to denote. That the
-recorded addresses are addresses of permanent content identity rather than mutable
-positions (Q3, Q7, Q8) — Nelson's strap-between-bytes image (4/42) and the
-survivability annotation (4/43) — is what upgrades coverage-permanence to
-*material*-permanence, making "the same coverage" mean "the same material" even
-after the surrounding documents are edited; F5 does not formally claim that
-stronger reading.
+*link immutability* (L12, composed along `Σ →* Σ'` by LP13). Because
+`Σ'.L(a) = Σ.L(a)`, the recorded spans — and hence their coverage — are fixed,
+whatever those spans happen to denote.
 
 ## Confinement: one end tells nothing of the others
 
@@ -413,9 +403,7 @@ FOLLOWLINK's contract is with the recorded end; F1's exactness is exactness *to
 what the link records*, which by F5 is invariant. The shrinkage Nelson allows in
 Q3 — an end "shrinking" when its bytes are deleted — is likewise a property of
 how the end renders into a current arrangement, not a change to the recorded
-end, which persists by L12. Keeping this boundary sharp is what lets F1 and F5
-state unconditional guarantees: they hold of the recorded end precisely because
-they do not entangle the operation with the mutable arrangement of any document.
+end, which persists by L12.
 
 ## A worked instance
 
@@ -490,7 +478,7 @@ abstract specification exists to make visible.
 | F2 | DiscontiguityFaithfulness: if `coverage(Σ.L(a).eᵢ)` is disconnected, any F1-result has `≥ 2` spans (corollary of F1 and span convexity) | introduced |
 | F3 | RepresentationInvariance: any two F1-results for the same `(Σ, a, i)` are denotationally equal; the contract binds coverage, not span decomposition or order | introduced |
 | F4 | PureRead frame: `followlink` induces no state transition; `Σ.C`, `Σ.L`, every `Σ.M(d)`, and every slot `j ≠ i` are unchanged | introduced |
-| F5 | TemporalDeterminism: for `Σ →* Σ'` with `a ∈ dom(Σ.L)`, results at the two states are coverage-equal (from L12 immutability alone; content-identity addressing upgrades this to material-permanence but is not needed for the coverage claim) | introduced |
+| F5 | TemporalDeterminism: for `Σ →* Σ'` with `a ∈ dom(Σ.L)`, results at the two states are coverage-equal (from L12 immutability alone, composed by LP13) | introduced |
 | F6 | SlotConfinement: the result is a function of `Σ.L(a).eᵢ` alone (up to coverage); independent of and non-disclosing of all `eⱼ`, `j ≠ i` | introduced |
 | F7 | EmptyVersusInvalid: `⟨⟩ ≠ ⊥`; a valid selector over an empty end returns `⟨⟩` (success); an invalid selector returns `⊥` (error); collapsing them is incorrect | introduced |
 | F8 | ContentIndependence: defined and exact whenever the link and slot exist, regardless of whether covered addresses currently hold content or links | introduced |
