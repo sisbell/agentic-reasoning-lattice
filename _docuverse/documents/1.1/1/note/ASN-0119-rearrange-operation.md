@@ -180,9 +180,13 @@ Since `π` is a bijection,
                  = { M(d)(v)     : v ∈ dom(M(d)) }
                  = ran(M(d)).                                       **(RA1)**
 
-This is ASN-0084's range invariance R-RI restated; we label it **RA1** for use
-below. The document points at the same content after the rearrangement as before
-— only the order of pointing has changed.
+The middle step is the pointwise equation `M'(d)(π(v)) = M(d)(v)`, established by
+ASN-0084's **ArrangementRearrangement** (DEF) and the correctness clauses of
+R-PPERM / R-SPERM — the same source as RA2, not a result of R-RI but a hypothesis
+of it. The resulting range equality `ran(M'(d)) = ran(M(d))` is ASN-0084's range
+invariance **R-RI**. We label the pair **RA1** for use below. The document points
+at the same content after the rearrangement as before — only the order of pointing
+has changed.
 
 Two foundation invariants ride along on the same structural facts, and we
 discharge them explicitly. *Functionality* is preserved — `M'(d)` is
@@ -545,11 +549,12 @@ is nonempty after exactly when it was nonempty before (immediate from RA7a):
 
       project(a, i, d, Σ') ≠ ∅   ⟺   project(a, i, d, Σ) ≠ ∅.      **(RA7b)**
 
-A link discoverable from `d` before the rearrangement is discoverable from `d`
-after it. Discovery answers by *address*: ASN-0098's **LP12**
+RA7b is the per-slot fact; the discoverability conclusion follows from the deeper,
+address-keyed view. Discovery answers by *address*: ASN-0098's **LP12**
 (DiscoverabilityCharacterisation) reduces discoverability from `d` to
-`coverage(a, i) ∩ ran(M(d)) ≠ ∅`, and by RA1 that intersection is invariant — so
-the link surfaces at whatever V-positions the content now occupies (Question 8).
+`coverage(a, i) ∩ ran(M(d)) ≠ ∅`, and by RA1 that intersection is invariant — so a
+link discoverable from `d` before the rearrangement is discoverable from `d` after
+it, surfacing at whatever V-positions the content now occupies (Question 8).
 Fragmentation changes how many spans the footprint comprises; it does not change
 *whether* the link is found.
 
@@ -693,7 +698,7 @@ the regions tile, not merely shift each by a local offset.
 |-------|-----------|--------|
 | REARRANGE_K | Operation imported from ASN-0084: 3-/4-cut transposition in the text subspace at depth 2, specified by PivotPostcondition (R-EXT, R-P1, R-P2) or SwapPostcondition (R-EXT, R-S1, R-S2, R-S3) with frame R-FRAME-P/R-FRAME-S; this note builds the system-level guarantees below on top of it | imported (ASN-0084) |
 | RA0 (ContentStoreFrame) | `Σ'.C = Σ.C` — the content store is a verbatim frame; no I-address is created, destroyed, or rebound | imported (ASN-0084 R-FRAME-P/S) |
-| RA1 (IdentityCorrespondence) | `M'(d)(π(v)) = M(d)(v)`, hence `ran(M'(d)) = ran(M(d))` — I-addresses carried across the reassignment | imported (ASN-0084 R-RI) |
+| RA1 (IdentityCorrespondence) | `M'(d)(π(v)) = M(d)(v)` (ASN-0084 ArrangementRearrangement / R-PPERM / R-SPERM, = RA2's source), hence `ran(M'(d)) = ran(M(d))` (ASN-0084 R-RI) — I-addresses carried across the reassignment | imported (ASN-0084) |
 | RA2 (Permutation) | The induced `π` (R-PPERM/R-SPERM) is a bijection of `dom(M(d))` onto itself; `dom(M'(d)) = dom(M(d))` | imported (ASN-0084 R-PIV/R-SWP) |
 | S2 (FunctionalityPreserved) | `M'(d)` is single-valued — the disjoint tiling of destinations (R-PIV/R-SWP) gives each V-position one I-address (ASN-0036 S2) | preserved |
 | S3★ (ReferentialIntegrityPreserved) | per-subspace: `subspace(v) = s_C ⟹ M'(d)(v) ∈ dom(C)` and `subspace(v) = s_L ⟹ M'(d)(v) ∈ dom(L)` (ASN-0047 S3★; derivation in the body) | preserved |
