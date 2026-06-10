@@ -202,44 +202,40 @@ arrangement contraction–extension pair `K.μ⁻` then `K.μ⁺` (degenerating 
 ASN-0082's I3 family, and `n` provenance recordings (K.ρ, ASN-0047) that couple each
 allocated address to `d`. Each clause below states its postcondition and cites its
 foundation atomic; per-step preconditions are discharged step by step in the
-valid-composite section below. We record first the **block-disjointness
-fact**: as ordinals `q`, the three index intervals `{1, …, J-1}` (left),
-`{J, …, J+n-1}` (block), and `{J+n, …, N+n}` (shifted suffix) are consecutive —
-with no integer gap — and pairwise disjoint, their union being `{1, …, N+n}`
-(immediate from `0 < J ≤ N+1`: the right endpoint of each interval is one below the
-left endpoint of the next). We name the clauses:
+valid-composite section below. Two facts the arrangement clauses share are worth
+recording once. The **block-disjointness fact**: as ordinals `q`, the three index
+intervals `{1, …, J-1}` (left), `{J, …, J+n-1}` (block), and `{J+n, …, N+n}`
+(shifted suffix) are consecutive — with no integer gap — and pairwise disjoint, their
+union being `{1, …, N+n}` (immediate from `0 < J ≤ N+1`: the right endpoint of each
+interval is one below the left endpoint of the next). The **gapped/filled bridge**:
+ASN-0082's I3 family fixes its values on the *gapped* arrangement `M'₀(d)`, whose
+subspace-`S` domain (by I3-V/I3-CS) is the left prefix `{1, …, J-1}` together with the
+shifted suffix `{J+n, …, N+n}`, excluding the inserted block; INSERT's post-state is
+`M'(d) = M'₀(d) ∪ {block fill}`, the `{block fill}` mapping the block interval
+`{J, …, J+n-1}`. By the block-disjointness fact the block is disjoint from the gapped
+domain, so the union adds an entry at every block slot and leaves every gapped value —
+left and shifted-suffix alike — unchanged. We name the clauses:
 
 - (I-ALLOC) `dom(C') = dom(C) ∪ A_new`, with `C'(shift(a, k)) = w_k` for
   `0 ≤ k < n` — the K.α effect (ASN-0093), iterated `n` times along `A_C(d)`.
 - (I-IMM) `(A b : b ∈ dom(C) : C'(b) = C(b))` — K.α append-only (C0, ASN-0093).
 - (I-SHIFT) `(A v : v ∈ V_S(d) ∧ v ≥ p : shift(v, n) ∈ dom(M'(d)) ∧
-  M'(d)(shift(v, n)) = M(d)(v))` — by ASN-0082 **I3 (PostInsertionShift)** together
-  with the block-disjointness fact above. I3 fixes these values on ASN-0082's
-  *gapped* arrangement `M'₀(d)`, whose domain (by I3-V/I3-CS) excludes the inserted
-  block; INSERT's post-state is `M'(d) = M'₀(d) ∪ {block fill}`. Since the block
-  (index interval `{J, …, J+n-1}`) is disjoint from the shifted-suffix positions
-  (index interval `{J+n, …, N+n}`), the union adds no entry at any shifted-suffix
-  slot and I3's values transfer unchanged.
+  M'(d)(shift(v, n)) = M(d)(v))` — ASN-0082 **I3 (PostInsertionShift)** fixes these
+  values on the shifted-suffix region `{J+n, …, N+n}` of `M'₀(d)`; the gapped/filled
+  bridge carries them to `M'(d)` unchanged.
 - (I-LEFT) `(A v : v ∈ V_S(d) ∧ v < p : v ∈ dom(M'(d)) ∧ M'(d)(v) = M(d)(v))` —
-  by ASN-0082 **I3-L (PostInsertionLeftFrame)** together with the block-disjointness
-  fact above: the block (index interval `{J, …, J+n-1}`) is disjoint from the left
-  positions `{1, …, J-1}`, so the union `M'₀(d) ∪ {block fill}` leaves I3-L's values
-  on the left region unchanged.
+  ASN-0082 **I3-L (PostInsertionLeftFrame)** fixes these values on the left region
+  `{1, …, J-1}` of `M'₀(d)`; the gapped/filled bridge carries them to `M'(d)`
+  unchanged.
 - (I-NEW) `(A k : 0 ≤ k < n : shift(p, k) ∈ dom(M'(d)) ∧
-  M'(d)(shift(p, k)) = shift(a, k))` — the INSERT-specific fill of the block that
-  ASN-0082's gapped arrangement leaves vacated, mapped in lockstep to the K.α run
-  `A_new`. A block position is `shift(p, k) = q_{J+k}` for `0 ≤ k < n`, the index
-  interval `{J, …, J+n-1}`. The gapped arrangement's domain is the left prefix
-  `{1, …, J-1}` together with the shifted suffix `{J+n, …, N+n}` (I3-V/I3-CS); by the
-  block-disjointness fact the block interval is disjoint from both, so block ∩
-  (gapped domain) = ∅ and the gapped arrangement leaves every block position free.
+  M'(d)(shift(p, k)) = shift(a, k))` — the `{block fill}` of the gapped/filled bridge:
+  the block positions `shift(p, k) = q_{J+k}` (`0 ≤ k < n`), left free by the gapped
+  arrangement, mapped in lockstep to the K.α run `A_new`.
 - (I-DOM) `{v ∈ dom(M'(d)) : subspace(v) = S} =
-  {q_1, …, q_{J-1}} ∪ {q_J, …, q_{J+n-1}} ∪ {q_{J+n}, …, q_{N+n}}`. The left
-  prefix `{q_1, …, q_{J-1}}` and shifted suffix `{q_{J+n}, …, q_{N+n}}` are the
-  gapped domain that ASN-0082 I3-CS (PostInsertionSubspaceClosure) characterises —
-  the subspace-`S` closure being exactly the domain this equation ranges over; the
-  middle block `{q_J, …, q_{J+n-1}}` — exactly the interval
-  I3-V vacates and I3-CS excludes — is contributed by INSERT's own I-NEW fill.
+  {q_1, …, q_{J-1}} ∪ {q_J, …, q_{J+n-1}} ∪ {q_{J+n}, …, q_{N+n}}` — the gapped/filled
+  bridge at the domain level: I3-CS (PostInsertionSubspaceClosure) supplies the gapped
+  domain (left prefix `{q_1, …, q_{J-1}}` and shifted suffix `{q_{J+n}, …, q_{N+n}}`),
+  and INSERT's own I-NEW `{block fill}` supplies the middle block `{q_J, …, q_{J+n-1}}`.
 - (I-PROV) `R' = R ∪ {(shift(a, k), d) : 0 ≤ k < n}` — the `n` provenance records
   coupling each freshly allocated I-address to its inserting document, by **K.ρ
   (ProvenanceRecording, ASN-0047)** iterated `n` times. The
@@ -393,27 +389,35 @@ allocated run, together with the composite-boundary properties P7 and P7a. The f
 post-state has the same arrangement as the K.μ⁺ post-state — K.ρ does not touch `M` —
 so the arrangement invariants the theorem returns there are the ones K.μ⁺ established.
 
-One concrete shape is worth stating once, because it is the formal content of
-Nelson's assurance (Q10) that reading end to end yields the original content with
-the new material interleaved at the chosen point. The post-state text domain
-`V_S(d')` is the canonical dense run `{q_1, …, q_{N+n}}` of length `N' = N + n` —
-this is I-DOM, which the Effect already establishes from the block-disjointness
-fact, and is exactly the contiguity K.μ⁺'s clause (iii) discharged, hence the
-post-state D-CTG★/D-MIN★/D-SEQ★ the theorem returns. The new material occupies
-exactly the interval `{q_J, …, q_{J+n-1}}`, a connected, ordered, gap-free block,
-and the whole stream around it stays a single coherent ordinal sequence; on the
-content subspace `S = s_C` the per-subspace slice is the whole text subspace, so
-these starred forms reduce to the unstarred D-CTG/D-MIN/D-SEQ of ASN-0036. IP1
-records the narrower fact that the inserted material forms a correspondence run in
-S8's sense — lockstep V/I advance over the block — though not necessarily a
-*maximal* one: when the left-adjacent slot `q_{J-1}` holds the current greatest
-origin-`d` address `a_prev` (reachable in the ordinary append case, where `q_N`
-already holds the greatest address — and more generally after a K.μ~ reordering
-(ASN-0047) places `a_prev` at `q_{J-1}` for interior `J`), the fresh start
-`a = inc(a_prev, 0) = shift(M(d)(q_{J-1}), 1)` is I-adjacent to the left run, so the
-block I-merges backward into it and is not a standalone element of the maximal-run
+One reading of I-DOM is worth singling out, since it is the formal content of
+Nelson's assurance (Q10) that reading end to end yields the original content with the
+new material interleaved at the chosen point: restricted to the whole text subspace
+`S = s_C` — where the per-subspace starred forms D-CTG★/D-MIN★/D-SEQ★ reduce to the
+unstarred D-CTG/D-MIN/D-SEQ of ASN-0036 — I-DOM places the new material at exactly the
+connected, ordered, gap-free block `{q_J, …, q_{J+n-1}}` within one coherent ordinal
+sequence. We record the connected-region fact as a claim.
+
+**IP1 (InsertedRun).** *The inserted material forms a single correspondence run:
+for `0 ≤ k < n`, `M'(d)(shift(p, k)) = shift(a, k)`, so V-positions and
+I-addresses advance in lockstep over a contiguous block. The block
+`{shift(p, k) : 0 ≤ k < n}` is order-isomorphic to its image
+`{shift(a, k) : 0 ≤ k < n}` under T1.*
+
+IP1 records a correspondence run in S8's sense — lockstep V/I advance over the block
+— though not necessarily a *maximal* one: when the left-adjacent slot `q_{J-1}` holds
+the current greatest origin-`d` address `a_prev` (reachable in the ordinary append
+case, where `q_N` already holds the greatest address — and more generally after a
+K.μ~ reordering (ASN-0047) places `a_prev` at `q_{J-1}` for interior `J`), the fresh
+start `a = inc(a_prev, 0) = shift(M(d)(q_{J-1}), 1)` is I-adjacent to the left run, so
+the block I-merges backward into it and is not a standalone element of the maximal-run
 partition S8★ delivers. Forward I-merging with the shifted suffix never happens —
 those addresses all lie strictly below the fresh `a`.
+
+The new region is *seamless in arrangement yet distinguishable in identity* (Q9): in
+the V-stream there is no marker at the boundary `q_{J-1} | q_J | q_{J+n}` — reading
+flows across it without interruption — while in the I-stream every inserted unit
+carries a fresh, origin-stamped address that records exactly which span was
+introduced. The seam is erased in the arrangement and preserved in the identity.
 
 *Provenance coupling — the obligation allocation incurs.* The inserting document's
 identity is minted into the address as content enters (4/11), and the implementation
@@ -424,25 +428,6 @@ counterpart of that record.
 0 ≤ k < n}` (I-PROV) within the same composite that allocates and places the content,
 not deferred: every freshly minted content address `shift(a, k)` enters `R` coupled to
 its inserting document `d` in the same composite that mints it.*
-
-Two finer points remain. First, inserting a *span* rather
-than a single byte is, at the V-layer, no different in kind — the same uniform
-shift opens a block of exactly the right size and the suffix slides over by
-precisely `n` (Q5). The span enters as a single contiguous run; it is under no
-obligation to *stay* contiguous under later editing, but at the moment of
-insertion it is connected and ordered (Q4). Second, the new region is
-*seamless in arrangement yet distinguishable in identity* (Q9): in the V-stream
-there is no marker at the boundary `q_{J-1} | q_J | q_{J+n}` — reading flows
-across it without interruption — while in the I-stream every inserted unit
-carries a fresh, origin-stamped address that records exactly which span was
-introduced. The seam is erased in the arrangement and preserved in the
-identity. We record the connected-region fact as a claim:
-
-**IP1 (InsertedRun).** *The inserted material forms a single correspondence run:
-for `0 ≤ k < n`, `M'(d)(shift(p, k)) = shift(a, k)`, so V-positions and
-I-addresses advance in lockstep over a contiguous block. The block
-`{shift(p, k) : 0 ≤ k < n}` is order-isomorphic to its image
-`{shift(a, k) : 0 ≤ k < n}` under T1.*
 
 ## Invariants the operation must preserve
 
