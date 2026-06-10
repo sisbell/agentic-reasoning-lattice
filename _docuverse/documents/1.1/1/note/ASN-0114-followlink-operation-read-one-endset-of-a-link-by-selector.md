@@ -40,6 +40,14 @@ value; once an address is in `dom(Σ.L)`, its value is permanently fixed
 type slot `e₃` mandated non-empty (L3). Within an endset, however, span order
 carries no meaning — an endset is an unordered set (L5).
 
+The ambient state `Σ` is the five-tuple of ASN-0047,
+`Σ = (Σ.C, Σ.L, Σ.E, Σ.M, Σ.R)` — content store, link store, entity set,
+arrangement family, and provenance relation — and `Σ →* Σ'` is its reachability
+relation, over which the persistence results we invoke (ASN-0098's LP13 and
+LP-Fin) are stated. FOLLOWLINK consults only the link store `Σ.L`; the remaining
+four components enter this note solely as the frame the operation must leave
+untouched (F4) and as the substrate over which permanence is composed (F5).
+
 For each endset we have its *coverage*, the set of addresses it designates:
 
 > `coverage(e) = (∪ (s, ℓ) : (s, ℓ) ∈ e : {t ∈ T : s ≤ t < s ⊕ ℓ})`
@@ -202,9 +210,10 @@ We capture this as a frame condition, the part of the specification that says
 what does *not* change:
 
 > **F4 (PureRead).** `followlink` induces no state transition. For the state
-> `Σ` against which it is evaluated, the post-state equals `Σ`: the content
-> store `Σ.C`, the link store `Σ.L`, and every arrangement `Σ.M(d)` are identical
-> before and after.
+> `Σ` against which it is evaluated, the post-state equals `Σ` in every
+> component — the content store `Σ.C`, the link store `Σ.L`, the entity set
+> `Σ.E`, every arrangement `Σ.M(d)`, and the provenance relation `Σ.R` are
+> identical before and after.
 
 An implementation that satisfied F1 but, say, advanced an arrangement or
 perturbed a referenced document as a side effect would not have implemented
@@ -265,15 +274,8 @@ say, at a position chosen by inspecting `eⱼ`). Such a result honors F1 yet lea
 `eⱼ` into the span-set the caller actually receives. Representation-level
 non-exposure of the other ends is therefore *not* a guarantee the contract makes;
 like the span ordering F3 leaves free, it lies below the abstraction. The one
-implementation we have evidence for nonetheless delivers it: the selector is
-turned into a width-one query positioned at exactly the requested slot, and the
-retrieval traverses only that slot's stored region, never visiting the others
-(Q12, Q18) — so although the from-, to-, and type-ends are physically co-resident
-in one link object, "requesting endset N cannot expose the content of endsets at
-N ± k" because the query is bounded to slot N alone (Q18). That bounded-query
-behavior is an artifact of this implementation; it corroborates how the
-implementation realizes confinement but does not strengthen F6, whose guarantee
-remains at coverage.
+implementation we have evidence for nonetheless delivers it, bounding each
+retrieval to a width-one query over the requested slot alone (Q12, Q18).
 
 What, then, *does* the result expose? Exactly `coverage(Σ.L(a).eᵢ)` — the set of
 addresses the selected end targets — and, derivable from it, two further facts.
@@ -490,7 +492,7 @@ abstract specification exists to make visible.
 | F1 | CoverageExactness: `coverage(followlink(Σ, a, i)) = coverage(Σ.L(a).eᵢ)` — neither over- nor under-coverage | introduced |
 | F2 | DiscontiguityFaithfulness: if `coverage(Σ.L(a).eᵢ)` is disconnected, any F1-result has `≥ 2` spans (corollary of F1 and span convexity) | introduced |
 | F3 | RepresentationInvariance: any two F1-results for the same `(Σ, a, i)` are denotationally equal; the contract binds coverage, not span decomposition or order (corollary of F1) | introduced |
-| F4 | PureRead frame: `followlink` induces no state transition; `Σ.C`, `Σ.L`, and every `Σ.M(d)` are unchanged | introduced |
+| F4 | PureRead frame: `followlink` induces no state transition; `Σ.C`, `Σ.L`, `Σ.E`, every `Σ.M(d)`, and `Σ.R` are unchanged | introduced |
 | F5 | TemporalDeterminism: for `Σ →* Σ'` with `a ∈ dom(Σ.L)`, results at the two states are coverage-equal (from F1 and L12 immutability, the latter composed by LP13) | introduced |
 | F6 | SlotConfinement: the result's *coverage* is a function of `coverage(Σ.L(a).eᵢ)` alone, turning on no `eⱼ`, `j ≠ i` (corollary of F1); representation-level non-exposure of other ends is an implementation property, not a contract guarantee | introduced |
 | F7 | EmptyVersusInvalid: `⟨⟩ ≠ ⊥`; a valid selector over an empty end returns `⟨⟩` (success); an invalid selector returns `⊥` (error); collapsing them is incorrect | introduced |
