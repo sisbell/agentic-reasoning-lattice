@@ -72,7 +72,7 @@ This weakest precondition is *strictly stronger* than `K.λ_sh`'s own preconditi
 
 What singles out C3 is not that it can fail — so can C2 — but that it is the conjunct *newly* live under `→_sh`. Under ASN-0086's unit-depth retraction discipline C3 was vacuous: unit-depth to-spans together with R0a (FlatLinkDomain) force `a_emit(Σ, d) ∉ coverage(G')` for every pre-existing `L_R` tuple — the disciplined-domain simplification of ASN-0086's wp Case 2. By Single-source, `→_sh` admits non-unit retraction to-spans whose coverage can include a fresh address, so C3 becomes live. C2's self-nullification, by contrast, is inherited from ASN-0086 and already live there.
 
-We bridge to ASN-0086 through the projection `π(Σ) = (Σ.C, Σ.M, Σ.L)` that forgets the registry — call this **the projection bridge**. Each `→_sh`-step preserves the registry in its frame (Registry permanence) and acts on the C/M/L components exactly as the corresponding ASN-0086 step: a K.σ-step as `K.σ`, a K.α-step as `K.α`, and a `K.λ_sh`-step as a `K.λ` step — its three added preconditions (0), (i), (ii) only *restrict* when it fires, leaving its C/M/L effect and frame identical to `K.λ`'s. Hence whenever `Σ →_sh Σ'`, we have `π(Σ) → π(Σ')` in ASN-0086's relation. By induction on derivation length, `π` maps every `→_sh*`-reachable state to a state `→*`-reachable from ASN-0086's initial state: at the base, `π(Σ_init)` is ASN-0086's own initial state by the `Σ_init` construction (Registry permanence), trivially `→*`-reachable from itself; and each step extends a `→`-derivation rooted at `Σ_init^{0086}` by the projected step just exhibited. The bridge has two consequences. First, `a_emit` reads only the M and L components, which Σ and `π(Σ)` share, so `a_emit(π(Σ), d) = a_emit(Σ, d)` and `dom(π(Σ).L) = dom(Σ.L)`. Second, ASN-0086's structural lemmas — R0 (fresh-address emission), `a_emit` totality, L-ContiguousPrefix, PrefixSpanCoverage — are quantified over `→*`-reachable three-component states, so they hold at `π(Σ)` for every state Σ this note reasons about; since they constrain only the shared C/M/L components, their conclusions transfer to Σ directly.
+We bridge to ASN-0086 through the projection `π(Σ) = (Σ.C, Σ.M, Σ.L)` that forgets the registry — call this **the projection bridge**. Each `→_sh`-step preserves the registry in its frame (Registry permanence) and acts on the C/M/L components exactly as the corresponding ASN-0086 step: a K.σ-step as `K.σ`, a K.α-step as `K.α`, and a `K.λ_sh`-step as a `K.λ` step — its three added preconditions (0), (i), (ii) only *restrict* when it fires, leaving its C/M/L effect and frame identical to `K.λ`'s. Hence whenever `Σ →_sh Σ'`, we have `π(Σ) → π(Σ')` in ASN-0086's relation. By induction on derivation length, `π` maps every `→_sh*`-reachable state to a state `→*`-reachable from ASN-0086's initial state: at the base, `π(Σ_init)` is ASN-0086's own initial state by the `Σ_init` construction (Registry permanence), trivially `→*`-reachable from itself; and each step extends a `→`-derivation rooted at `Σ_init^{0086}` by the projected step just exhibited. The bridge has two consequences. First, `a_emit` reads only the M and L components, which Σ and `π(Σ)` share, so `a_emit(π(Σ), d) = a_emit(Σ, d)` and `dom(π(Σ).L) = dom(Σ.L)`. Second, ASN-0086's structural lemmas — R0 (fresh-address emission), `a_emit` totality, L-ContiguousPrefix — are quantified over `→*`-reachable three-component states, so they hold at `π(Σ)` for every state Σ this note reasons about; since they constrain only the shared C/M/L components, their conclusions transfer to Σ directly. (PrefixSpanCoverage, used elsewhere in this note, needs no such bridge: it is an unconditional tumbler fact of ASN-0043 — "for any tumbler `x` with `#x ≥ 1`, …" — holding at every tumbler regardless of reachability or component count.)
 
 **Gate realizability — the liveness dual of P3.** Dual to P3's safety half, P5 asserts that every conforming triple at an allocated home actually fires a `→_sh`-step.
 
@@ -134,14 +134,14 @@ We lift P3's single-step guarantee to an invariant holding at every reachable st
 
 ## Properties established
 
-For a consuming app, the framework's six guarantees and the section where each is stated and proved:
+For a consuming app, the framework establishes six guarantees — what each one buys:
 
-- **P1 (RegistryInvariance)** — Registry permanence.
-- **P2 (ShapeStability)** — Registration entries.
-- **P3 (Sh-confWellFormedness)** — The shape-gated emit.
-- **P4 (Sh-confStateIndependence)** — Registration entries.
-- **P5 (GateRealizability)** — The shape-gated emit.
-- **P6 (ReachableConformance)** — Reachable conformance.
+- **P1 (RegistryInvariance)** — `Σ.registry` is identical at every `→_sh*`-reachable state; the type declarations an app fixes at `Σ_init` never drift out from under it.
+- **P2 (ShapeStability)** — a registered type's shape is a well-defined function of its coverage class `[K]`, returning the same value at every reachable state, so an app's notion of "what tuples are well-formed under K" is fixed once K is registered.
+- **P3 (Sh-confWellFormedness)** — every value a `→_sh`-step adjoins to `dom(Σ.L)` is a standard triple `(F, G, K)` whose K is registered and for which `Sh-conf(K, F, G) = ⊤`; the gate admits no shape-violating tuple.
+- **P4 (Sh-confStateIndependence)** — for a registered K, `Sh-conf(K, F, G)` is defined and returns the same verdict at every reachable state, ghost targets included; conformance can be checked once, not re-checked per state.
+- **P5 (GateRealizability)** — every conforming triple at an allocated home fires some `→_sh`-step; the gate rejects no well-formed emission (the liveness dual of P3).
+- **P6 (ReachableConformance)** — at every reachable state, *every* stored link `Σ.L(a)` is a registered, shape-conforming standard triple; an app may read the link store and assume conformance without re-validating.
 
 ## Worked illustration
 
