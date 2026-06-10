@@ -124,9 +124,17 @@ by D-SEQ★), a too-shallow depth-2 start `[S, 1]` has `V_S(d) ⊆ ⟦σ⟧` and
 vacuum the *entire* subspace, while the neighbouring depth-2 start `[S, 2]`
 captures nothing — all-or-nothing on where the shallow start happened to fall. A
 spec stale against a re-pinned subspace should deliver nothing rather than vacuum
-its re-pinned content; so the override only *bites* when the start has gone too
-shallow (`#s < m_S(d)`), forcing empty lest the intersection capture deeper
-content the citation never named. In either branch `act(ρ, Σ)` is finite —
+its re-pinned content; so in the shallow case (`#s < m_S(d)`) the override forces
+empty lest the intersection capture deeper content the citation never named. The
+override *bites* only there: the deep case `#s > m_S(d)` has an already-empty
+geometric intersection, so force-empty discards nothing. A bound position
+`v ∈ dom(Σ.M(d)) ∩ ⟦σ⟧` lies in subspace `S` (Confinement: `v₁ = s₁`), hence in
+`V_S(d)` at depth exactly `m_S(d)` (S8-depth); yet Confinement also makes `v`
+carry `s`'s length-`(#s − 1)` prefix `p`, forcing `#v ≥ #s − 1 ≥ m_S(d)`. The two
+reconcile only at `#s = m_S(d) + 1`, where `#v = m_S(d) = #p` collapses `p ≼ v` to
+`v = p ≺ s`, so `v < s` (T1 case (ii)) — contradicting `v ∈ ⟦σ⟧`. Hence
+`dom(Σ.M(d)) ∩ ⟦σ⟧ = ∅` whenever `#s > m_S(d)`, and the override's reach is
+exactly the shallow case. In either branch `act(ρ, Σ)` is finite —
 it is `∅`, or a subset of `dom(Σ.M(d))`, which is finite (ASN-0036, S8-fin) — and
 totally ordered, being a subset of the totally
 ordered carrier `T` (ASN-0034, T1).
@@ -272,16 +280,20 @@ Against *which* arrangement is the resolution performed? Against the one named.
 > delivered material reflects exactly what the named arrangement binds those
 > spans to.
 
-This answers the apparent dilemma between "the content each span *currently*
-designates" and "content as it stood at some version." In Xanadu the dilemma
-largely dissolves, because the version is encoded in the document tumbler — "the
-Document field of the tumbler may be continually subdivided, with new subfields …
-indicating daughter documents and versions" (4/29), and distinct versions are
-distinct document tumblers with distinct arrangements (ASN-0036, S7d). Naming
-`dⱼ` *is* naming the version; there is no privileged "basic" version the system
-could silently substitute — "there is thus no 'basic' version of a document set
-apart from other versions" (2/19). Current and as-it-stood coincide because the
-binding consulted is the one the address selects.
+This addresses the apparent dilemma between "the content each span *currently*
+designates" and "content as it stood at some version." RETRIEVEV resolves it in
+favor of *current*: it consults the named document's arrangement as it stands at
+`Σ`. What naming `dⱼ` settles is *which* arrangement to consult — the version is
+encoded in the document tumbler ("the Document field of the tumbler may be
+continually subdivided, with new subfields … indicating daughter documents and
+versions," 4/29), distinct versions are distinct document tumblers with distinct
+arrangements (ASN-0036, S7d), and there is no privileged "basic" version the
+system could silently substitute ("there is thus no 'basic' version of a document
+set apart from other versions," 2/19). Naming `dⱼ` does *not* freeze that
+arrangement, however: `Σ.M(dⱼ)` is mutable (K.μ⁻/K.μ⁺/K.μ~, ASN-0047; P3), so
+"as it stood" coincides with "current" only for a version whose arrangement is not
+subsequently edited — a discipline the caller keeps by citing-and-not-editing,
+not an invariant the address enforces.
 
 ## Order and boundaries
 
@@ -471,11 +483,16 @@ comparability is required, not derived. Because the consulted restriction binds
 `a ∈ dom(Σ.C) ∩ dom(Σ'.C)`; over the intervening transitions `Σ →* Σ'`, content
 immutability (S0) holds the stored entry fixed, giving `Σ.C(a) = Σ'.C(a)`. Hence
 for every resolved address the delivered value or reference is the same at both
-states, and the two deliveries are identical. Editing produces a *new* version
-(a new document tumbler with its own arrangement) rather than
-mutating an existing one, so "the same spec-set against the same version" is
-always a well-defined, reproducible request — the foundation of permanent
-citation: "any address … may be specified by a permanent tumbler address" (4/19).
+states, and the two deliveries are identical. A document's arrangement is the one
+mutable input: K.μ⁻, K.μ⁺, and K.μ~ (ASN-0047) edit `Σ.M(dⱼ)` in place, and P3
+(ArrangementMutabilityOnly) marks `M` as the sole component that may lose
+information. RETRIEVEV therefore always resolves against the *current* `Σ.M(dⱼ)`,
+never a frozen snapshot; repeatability holds exactly when the consulted
+restriction is unchanged — R7's hypothesis — which a caller secures by citing a
+version whose arrangement it does not subsequently edit. The foundation of
+permanent citation is thus not an impossibility of in-place arrangement editing
+but the immutable content store (S0): the bytes at an I-address never change, so a
+reference whose binding survives resolves to the same value for all time.
 
 ## What co-delivery does with transclusion
 
@@ -765,7 +782,7 @@ absent consolidation step realizing the no-deduplication corollary of R3 and R8.
 | R1 | MaterialDelivery: a content item carries the bound value `Σ.C(Σ.M(d)(v))`, not a description of its location | introduced |
 | R2 | Faithfulness: every content item equals `Σ.C(Σ.M(d)(v))` (from S2 + S3★ and the `item` definition); no value may be substituted. Frame limit: this governs the denotation of delivery, not any transmission channel | introduced |
 | R3 | SpecSetExactness: items arise for exactly `act(ρⱼ, Σ)` — for a depth-compatible spec this is `⟦σⱼ⟧ ∩ dom(Σ.M(dⱼ))` (nothing outside the spans, nothing named-and-bound omitted), for a depth-incompatible spec it is `∅` | introduced |
-| R4 | ArrangementRelativity: each V-spec is resolved through `Σ.M(dⱼ)` alone; the version named by `dⱼ` fixes the binding, so current and as-it-stood coincide | introduced |
+| R4 | ArrangementRelativity: each V-spec is resolved through the current `Σ.M(dⱼ)` alone; naming `dⱼ` selects which version's arrangement to consult, and delivery reflects what that arrangement currently binds | introduced |
 | R5 | OrderFidelity: spec-set sequence order across specs (no global V re-sort); ascending V-order within a spec; boundaries implicit in spans | introduced |
 | R6 | SilentGapFiltering: a position outside `act(ρⱼ, Σ)` contributes nothing and causes no failure (gap signalled by absence); for a depth-compatible spec the gap is a terminal overrun past the bound frontier, never an interior hole in the bindable slice; a depth-incompatible spec has `act = ∅` | introduced |
 | R7 | Repeatability: equal consulted arrangement restrictions ⟹ identical delivery; the arrangement is the sole mutable input | introduced |
