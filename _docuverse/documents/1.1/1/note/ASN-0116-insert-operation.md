@@ -200,9 +200,7 @@ with `A_new ∩ dom(C) = ∅`.
 arrangement contraction–extension pair `K.μ⁻` then `K.μ⁺` (degenerating to a single
 `K.μ⁺` when no suffix moves) whose net effect realises the post-insertion shift of
 ASN-0082's I3 family, and `n` provenance recordings (K.ρ, ASN-0047) that couple each
-allocated address to `d`. Each clause below states its postcondition and cites its
-foundation atomic; per-step preconditions are discharged step by step in the
-valid-composite section below. Two facts the arrangement clauses share are worth
+allocated address to `d`. Two facts the arrangement clauses share are worth
 recording once. The **block-disjointness fact**: as ordinals `q`, the three index
 intervals `{1, …, J-1}` (left), `{J, …, J+n-1}` (block), and `{J+n, …, N+n}`
 (shifted suffix) are consecutive — with no integer gap — and pairwise disjoint, their
@@ -314,8 +312,7 @@ predecessors leave, is
   subspace strictly contracts" precondition is met; the retained domain is
   `{q_1, …, q_{J−1}} ∪ V_{s_L}(d)`. The intermediate text subspace is now the prefix
   alone, the link subspace untouched. The bound `J−1 < N` holds down to `J = 1`, so
-  K.μ⁻ fires throughout `1 ≤ J ≤ N`; the front-insertion extreme `J = 1` (with
-  `n'_{s_C} = 0`) is walked through concretely in the front-insertion boundary below.
+  K.μ⁻ fires throughout `1 ≤ J ≤ N`.
 - *`K.μ⁺` (install block and shifted suffix).* Acting on `d`, add the I-NEW block
   and the I-SHIFT shifted suffix — the same mappings the Effect fixes (the values are
   pinned there, via I3); this step installs them as one domain-extending transition
@@ -379,7 +376,7 @@ ExtendedReachableStateInvariants for its post-state is licensed.
 
 We must check that the result is well-formed — that we have not opened a gap,
 overlaid two positions, or broken the density that lets spans name contiguous
-regions. The previous section did the load-bearing work: INSERT is a valid
+regions. INSERT is a valid
 composite, and `Σ` is reachable from `Σ₀` (precondition), so the post-state is
 reachable too. **ExtendedReachableStateInvariants (ASN-0047)** therefore delivers
 the *entire* post-state invariant set at once — the per-state invariants S2
@@ -702,7 +699,7 @@ pre-state, where by P4★ at the composite boundary the records `(a_3, d)`,
 I-addresses did not, so they induce **no** new entry.
 The range-based coupling records exactly `A_new`. ✓
 Finally **P7a** at the post-state for a prior address: `a_1` carried some
-`(a_1, d) ∈ R` at the pre-state (P7a there), and `R ⊆ R'` preserves it, so `a_1`
+`(a_1, d') ∈ R` at the pre-state (P7a there), and `R ⊆ R'` preserves it, so `a_1`
 remains covered; the two fresh addresses are covered by the records just added. ✓
 
 **Links over the insertion (IP4, IP5, IP6).** Equip `d` with two links to drive the
@@ -803,10 +800,7 @@ I-DOM, D-MIN★.
 
 ## What we have established
 
-Two effects, two layers, kept clean: on the content layer INSERT is the `n`-fold
-allocation K.α with its provenance recording K.ρ, and on the arrangement layer the
-contraction–extension pair `K.μ⁻` then `K.μ⁺` realising ASN-0082's shift. The claims
-established are catalogued below.
+The claims established are catalogued below.
 
 ## Claims Introduced
 
