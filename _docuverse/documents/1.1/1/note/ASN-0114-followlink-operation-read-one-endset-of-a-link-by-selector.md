@@ -59,12 +59,13 @@ denotation on the left, an endset coverage on the right — and means exactly
 `⟦R⟧ = coverage(eᵢ)`.
 
 Two consequences of ASN-0053's S2 — every well-formed span denotes a non-empty
-set — recur below, so we name them here. No object assembled from one or more
+set — we name them here. No object assembled from one or more
 spans can have empty coverage; hence coverage vanishes exactly on the empty
 object. For a span-set `R` this is the *first collapse*,
-`R = ⟨⟩ ⟺ coverage(R) = ∅`; for an endset `e` it is the *second collapse*,
-`coverage(e) = ∅ ⟺ e = ∅`. Each `⟸` is immediate — the empty object covers
-nothing — and each `⟹` is the contrapositive of S2. The first collapse also
+`coverage(R) = ∅ ⟺ R = ⟨⟩`; for an endset `e` it is the *second collapse*,
+`coverage(e) = ∅ ⟺ e = ∅`. Both are written coverage-first, so each `⟸` is
+immediate — the empty object covers nothing — and each `⟹` is the contrapositive
+of S2. The first collapse also
 fixes the reading of `R = ⟨⟩` when `R` stands for the coverage-relation rather
 than a single span-set: it abbreviates `coverage(R) = ∅`, which is well-defined
 on the relation.
@@ -116,10 +117,6 @@ equality `followlink(Σ, a, i) = v` is itself well-defined. (i) *Out of domain:*
 when the call is undefined, F0 fixes the value at the distinguished `⊥`. (ii)
 *Empty end:* when `coverage(Σ.L(a).eᵢ) = ∅`, the postcondition forces
 `coverage(R) = ∅`, whence the first collapse gives `R = ⟨⟩` uniquely.
-
-Three independent commitments remain — F1, F4, F7 — which we take in turn; the
-remaining properties F2, F3, F5, F6, and F8 emerge alongside them as corollaries,
-each traced to its source as it is derived below.
 
 ## What the result must be: exact coverage, no more and no less
 
