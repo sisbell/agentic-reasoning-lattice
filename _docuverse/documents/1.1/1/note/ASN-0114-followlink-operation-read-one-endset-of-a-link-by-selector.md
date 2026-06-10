@@ -24,9 +24,7 @@ stored. But the discipline of specification forces precise questions. *What
 relationship* must the returned object bear to the stored end? *What* does
 returning one end disclose about the link, and what must it conceal? *Which*
 results are admissible and which are forbidden? And what is the boundary between
-a legitimate answer of "nothing" and an illegitimate request? We shall find that
-each of these questions has a sharp answer, and that the sharp answers are
-exactly the invariants an implementation must satisfy.
+a legitimate answer of "nothing" and an illegitimate request?
 
 ## The substrate we build on
 
@@ -137,8 +135,7 @@ the link records at that end is reported. `coverage(R) ⊆ coverage(Σ.L(a).eᵢ
 forbids over-coverage: no address the link does not record may appear. Because
 the endset *is* the connection — the from-set is precisely what the link is
 "from" — there is no wider or narrower region for a faithful answer to report
-(Q9). The endset is definitional, not a summary of some other region, so
-exactness is forced, not merely desirable.
+(Q9).
 
 A consequence worth isolating concerns discontiguity. Nelson insists the result
 must not be "flattened to a single span" when the end touches "a broken,
