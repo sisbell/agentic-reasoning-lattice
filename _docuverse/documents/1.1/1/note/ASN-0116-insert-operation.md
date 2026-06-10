@@ -89,10 +89,9 @@ scoped to `d`, with
 
 > `a ∉ dom(C)`, `origin(a) = d`, `subspace_I(a) = s_C`.
 
-Its freshness is proved, not assumed: K.α's emission lemmas
-**FirstEmissionFreshness** and **SubsequentEmissionFreshness** discharge
-`a ∉ dom(C) ∪ dom(L)` against the whole store, the valid-composite section below
-settling step by step which lemma governs each emission. The
+K.α's emission lemmas **FirstEmissionFreshness** and
+**SubsequentEmissionFreshness** discharge `a ∉ dom(C) ∪ dom(L)` against the whole
+store. The
 `findpreviousisagr`-and-increment evidence above is the concrete realisation of
 K.α's subsequent-emission branch `a = inc(a_prev, 0)`, where
 `a_prev = max{a' ∈ dom(C) : origin(a') = d}`.
@@ -164,10 +163,9 @@ transport of bindings. The invariant runs in the content layer
 deliberately fluid).
 
 We must also state what the operation leaves alone. The displacement is
-confined to subspace `S`. Gregory's evidence makes this structural rather than
-incidental: the insertion cut is bounded above by the *next subspace boundary*,
-so a text insertion at `1.x` shifts text positions but never reaches link
-positions at `2.x` (Q12, Q13). Abstractly this is forced by the subspace
+confined to subspace `S`. In Gregory's implementation the insertion cut is
+bounded above by the *next subspace boundary*, so a text insertion at `1.x`
+shifts text positions but never reaches link positions at `2.x` (Q12, Q13). Abstractly this is forced by the subspace
 identifier sitting in the V-position's first component (foundation: T7): an
 ordinal shift advances the last component and cannot cross into another
 subspace's region. Hence:
@@ -203,7 +201,9 @@ with `A_new ∩ dom(C) = ∅`.
 arrangement contraction–extension pair `K.μ⁻` then `K.μ⁺` (degenerating to a single
 `K.μ⁺` when no suffix moves) whose net effect realises the post-insertion shift of
 ASN-0082's I3 family, and `n` provenance recordings (K.ρ, ASN-0047) that couple each
-allocated address to `d`. We record first the **block-disjointness
+allocated address to `d`. Each clause below states its postcondition and cites its
+foundation atomic; per-step preconditions are discharged step by step in the
+valid-composite section below. We record first the **block-disjointness
 fact**: as ordinals `q`, the three index intervals `{1, …, J-1}` (left),
 `{J, …, J+n-1}` (block), and `{J+n, …, N+n}` (shifted suffix) are consecutive —
 with no integer gap — and pairwise disjoint, their union being `{1, …, N+n}`
@@ -211,9 +211,7 @@ with no integer gap — and pairwise disjoint, their union being `{1, …, N+n}`
 left endpoint of the next). We name the clauses:
 
 - (I-ALLOC) `dom(C') = dom(C) ∪ A_new`, with `C'(shift(a, k)) = w_k` for
-  `0 ≤ k < n` — the K.α effect (ASN-0093), iterated `n` times along `A_C(d)`; its
-  per-step preconditions (freshness, and the `w_k ∈ Val` typing of each committed
-  value) are discharged in the valid-composite section.
+  `0 ≤ k < n` — the K.α effect (ASN-0093), iterated `n` times along `A_C(d)`.
 - (I-IMM) `(A b : b ∈ dom(C) : C'(b) = C(b))` — K.α append-only (C0, ASN-0093).
 - (I-SHIFT) `(A v : v ∈ V_S(d) ∧ v ≥ p : shift(v, n) ∈ dom(M'(d)) ∧
   M'(d)(shift(v, n)) = M(d)(v))` — by ASN-0082 **I3 (PostInsertionShift)** together
@@ -251,8 +249,7 @@ left endpoint of the next). We name the clauses:
   I3-V vacates and I3-CS excludes — is contributed by INSERT's own I-NEW fill.
 - (I-PROV) `R' = R ∪ {(shift(a, k), d) : 0 ≤ k < n}` — the `n` provenance records
   coupling each freshly allocated I-address to its inserting document, by **K.ρ
-  (ProvenanceRecording, ASN-0047)** iterated `n` times (its per-step precondition
-  discharged in the valid-composite section). The
+  (ProvenanceRecording, ASN-0047)** iterated `n` times. The
   record is `(shift(a, k), d)` with `shift(a, k)` element-level content (S7b/C1) and
   `d` document-level, matching `Σ.R ⊆ T_elem × E_doc`. These are the only additions
   to `R`; INSERT removes nothing from it (P2 of ASN-0047, R monotone).
@@ -367,9 +364,9 @@ vacuous and no contraction is needed; the sequence collapses to
 the single K.μ⁺ adding only the new block `{q_J, …, q_{J+n−1}} → A_new` above the
 untouched prefix `{q_1, …, q_N}` (empty when `V_S(d) = ∅`). Its preconditions are
 discharged exactly as in (i)–(v) above, with prior-domain agreement again holding
-because the prefix is left in place. Dropping K.μ⁻ here is forced, not optional: with
-`J−1 = N = n_{s_C}` the content subspace would not contract strictly, so K.μ⁻ is
-*inapplicable* — and unnecessary, since nothing is vacated.
+because the prefix is left in place. With `J−1 = N = n_{s_C}` the content subspace
+would not contract strictly, so K.μ⁻ is *inapplicable* — and unnecessary, since
+nothing is vacated.
 
 *Clause 2 — the couplings at the composite boundary.* Because INSERT both allocates
 content (I-ALLOC) and places it into the content subspace of `ran(M'(d))` (I-NEW), the
