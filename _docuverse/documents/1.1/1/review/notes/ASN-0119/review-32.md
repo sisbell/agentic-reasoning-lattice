@@ -1,0 +1,34 @@
+# Review of ASN-0119
+
+This is a careful, well-instrumented note. The core structural fact — REARRANGE rewrites only `M` and never touches an I-address — is correctly identified and milked for every downstream guarantee. The worked pivot and swap are arithmetically correct (I checked the destination tilings, the `π` tables, the `diff[2] = w_β − w_α` displacement, and the divergent intermediate `A C D B E` against the formulas), the link-footprint transport (RA7a) and discoverability (RA7b) derivations are sound, and the boundary treatment (empty/single-position documents outside the domain, empty exteriors inside it) is the right partial-operation discipline. One proof, however, has a completeness gap, and it sits exactly in the area the last commit touched.
+
+## REVISE
+
+### Issue 1: P4a case-2 narrows "any other final composite" to K.μ~ — a characterization that is not exhaustive
+
+**ASN-0119, "What is preserved" (couplings/boundary-properties paragraph)**: "A trace reaching Σ' by any other final composite does not factor through Σ via REARRANGE, and need not: ... the non-atomic K.μ~ composite (K.μ⁻ + K.μ⁺) realizes the same net π and reaches the same Σ', so **the final composite of such a trace is a K.μ~**, ending in its K.μ⁺ half rather than in REARRANGE."
+
+**Problem**: The declarative "the final composite of such a trace is a K.μ~" asserts an exhaustive characterization of the non-REARRANGE routes to Σ', and it is false. Σ' is reachable by a final standalone K.μ⁺ that is not the second half of any K.μ~:
+
+- Let `n = |V_{s_C}(d)|` and `a* = M'(d)([s_C, n])`. Take `Σ''` equal to `Σ'` except `M''(d)` drops the last text position, `M''(d) = M'(d) ↾ {[s_C,1..n-1]} ∪ {link positions}`. This is a valid contiguous content prefix (D-SEQ★), `Contains_C(Σ'') ⊆ Contains_C(Σ') ⊆ R` so P4★ holds at `Σ''`, and `Σ''` is reachable by incremental construction.
+- A single K.μ⁺ adding `[s_C,n] ↦ a*` reaches `Σ'`. Its couplings hold: J0 is vacuous (`a*` not fresh, `dom(C')=dom(C)`), J1'★ is vacuous (`R'=R`), and J1★ is satisfied because `(a*, d) ∈ Contains_C(Σ') ⊆ R = R'`. So this one-step K.μ⁺ is a valid composite and `Σ'` has a valid trace ending in K.μ⁺ — not K.μ~.
+
+The closing clause "all others by the operations that produce them" is the correct general statement, but it *contradicts* the preceding K.μ~-only sentence. As written, the case analysis covers REARRANGE-final traces (case 1, fine) and K.μ~-final traces, but leaves the K.μ⁺-final (and any other ASN-0047-final) traces unaddressed by the load-bearing sentence — a Dijkstra-style skipped case in a proof of a boundary property that subsequent ASNs will rely on.
+
+A second imprecision rides in the same argument: "discharged by ASN-0047's induction over its atomic vocabulary." That induction does not range over traces with interleaved REARRANGE steps. The case-2 final composite's *per-operation* P4a argument does transfer freely (it depends only on the pre-state satisfying P4a), but the inductive hypothesis "P4a holds at the pre-state `Σ''`" is supplied by the **combined** induction — sound precisely because this ASN proves REARRANGE preserves the invariants ASN-0047's per-operation proofs assume. The discharge should name that combined induction, not ASN-0047's alone.
+
+**Required**: Recast case 2 to cover *every* non-REARRANGE final composite (any ASN-0047 operation discharges its own P4a obligation, given pre-state P4a), demoting K.μ~ to one illustration rather than the characterization; and state explicitly the combined induction (REARRANGE-preservation results from this ASN + ASN-0047's per-operation arguments) that licenses the case-2 discharge over REARRANGE-interleaved traces. The conclusion (P4a at Σ') is true; the case analysis that establishes it is incomplete.
+
+### Issue 2: redundant restatement of where the couplings/boundary-properties are evaluated (anti-bloat)
+
+**ASN-0119, "What is preserved"**: immediately after "We therefore extend that vocabulary with REARRANGE as a new atomic primitive: a single REARRANGE step is, by fiat, a one-step valid composite, **making Σ → Σ' a valid composite transition and its post-state Σ' a composite boundary**," the next sentence — "The couplings are then evaluated between Σ and Σ', the composite-boundary properties at Σ', exactly as ASN-0047 requires" — re-states content already carried by the bolded tail and by the earlier sentence defining couplings as initial-to-final and boundary properties at a boundary state.
+
+**Problem**: non-advancing restatement; the reader must skip a sentence that adds nothing to follow the argument.
+**Required**: delete the sentence (the one residual fact — that this matches "what ASN-0047 requires" — is already implied by the extension sentence).
+
+## OUT_OF_SCOPE
+
+### Topic 1: weakest precondition for footprint *contiguity* preservation
+RA7c gives a sufficient (explicitly not necessary) condition for run-structure preservation, and the note's worked examples correctly show contiguity can be preserved without confinement and broken across regions. A full WP characterizing exactly when a straddling footprint lands contiguous depends on cross-region width relationships and belongs with the footprint-fragmentation index question the note already defers (Open Question 3). The note's decision to state a sufficient condition and punt the full characterization is the right scoping, not a gap to fix here.
+
+VERDICT: REVISE
