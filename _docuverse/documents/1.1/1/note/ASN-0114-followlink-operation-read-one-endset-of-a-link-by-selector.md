@@ -218,10 +218,10 @@ FOLLOWLINK.
 
 ## Determinism over time
 
-From coverage exactness (F1) and link immutability (L12, composed along `Σ →* Σ'`
-by LP13), a permanence property follows without further assumption. The result of
-FOLLOWLINK depends only on `Σ.L(a).eᵢ` (through F1) and, by L12, that value never
-changes once `a ∈ dom(Σ.L)`. Two
+From coverage exactness (F1) and the permanence of a link's value across any
+reachable transition sequence (LP13), a determinism property follows without
+further assumption. The result of FOLLOWLINK depends only on `Σ.L(a).eᵢ`
+(through F1), and that endset persists unchanged once `a ∈ dom(Σ.L)`. Two
 requests for the same end of the same link, separated by any sequence of
 intervening operations on the system, must therefore denote the same positions.
 
@@ -467,8 +467,7 @@ second, the very conflation F7 forbids.
 FOLLOWLINK is, abstractly, a projection. Given a link address and a slot
 selector, it returns that slot's endset, measured by coverage, under three
 primary commitments — F1, F4, F7 — atop the F0 definedness precondition, with
-F2, F3, F5, F6, and F8 following as corollaries (F2, F3, F6 from F1; F5 from F1
-and link immutability; F8 from F0 and F1). It returns *exactly* the recorded end — no more, no less (F1) —
+F2, F3, F5, F6, and F8 following as corollaries. It returns *exactly* the recorded end — no more, no less (F1) —
 preserving its discontiguous shape as a corollary (F2), with representation free
 but coverage bound (F3). It changes nothing (F4) and answers the same
 question the same way for all time (F5). It reads one end and discloses only that
@@ -490,7 +489,7 @@ abstract specification exists to make visible.
 | F2 | DiscontiguityFaithfulness: if `coverage(Σ.L(a).eᵢ)` is disconnected, any F1-result has `≥ 2` spans (corollary of F1 and span convexity) | introduced |
 | F3 | RepresentationInvariance: any two F1-results for the same `(Σ, a, i)` are denotationally equal; the contract binds coverage, not span decomposition or order (corollary of F1) | introduced |
 | F4 | PureRead frame: `followlink` induces no state transition; `Σ.C`, `Σ.L`, `Σ.E`, every `Σ.M(d)`, and `Σ.R` are unchanged | introduced |
-| F5 | TemporalDeterminism: for `Σ →* Σ'` with `a ∈ dom(Σ.L)`, results at the two states are coverage-equal (from F1 and L12 immutability, the latter composed by LP13) | introduced |
+| F5 | TemporalDeterminism: for `Σ →* Σ'` with `a ∈ dom(Σ.L)`, results at the two states are coverage-equal (corollary of F1 and link permanence, LP13) | introduced |
 | F6 | SlotConfinement: the result's *coverage* is a function of `coverage(Σ.L(a).eᵢ)` alone, turning on no `eⱼ`, `j ≠ i` (corollary of F1); representation-level non-exposure of other ends is an implementation property, not a contract guarantee | introduced |
 | F7 | EmptyVersusInvalid: `⟨⟩ ≠ ⊥`; a valid selector over an empty end returns `⟨⟩` (success); an invalid selector returns `⊥` (error); collapsing them is incorrect | introduced |
 | F8 | ContentIndependence: defined and exact whenever the link and slot exist, regardless of whether covered addresses currently hold content or links (corollary of F0 and F1) | introduced |
