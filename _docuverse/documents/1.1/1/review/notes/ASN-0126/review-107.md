@@ -1,0 +1,28 @@
+# Review of ASN-0126
+
+## REVISE
+
+### Issue 1: Existence of the chain-base allocation chain is asserted, not derived
+**ASN-0126, Range sterilization (T4-validity discharge)**: "The base `chain_d(0) = d.0.s_L.1` is `a_emit`'s first-emission output (EmitAddress, ASN-0086): the terminus of a T10a-conforming chain of L1c's shape (ASN-0043) seeded at the document node `d` ... so T10a.4 carries T4-validity along that chain to its terminus."
+**Problem**: The chain's *existence* is the unproven link, and neither citation supplies it. L1c is quantified over `dom(Σ.L)` — it guarantees a chain only for *stored* link addresses — and the paragraph itself has just conceded that the discharge must cover the unfilled slots where "L0b is silent." In the `J_d^Σ = −1` case (empty homed-set), `chain_d(0) ∉ dom(Σ.L)`, so L1c yields nothing; EmitAddress merely *defines* the tumbler `[d.0.s_L.1]`, with no producibility content. Yet this base is the foot of the induction that establishes T4-validity for every chain element, which in turn underwrites TA5-SigValid in the strict-ascent argument, the CPP application at `p = #g` in the up-set realizability, frontier-landing, and hence the entire Corollary RangeSterilization. A multi-step construction is being carried by a colon.
+**Required**: Either exhibit the seed chain explicitly — a `k = 2` first step from `d` (precondition `zeros(d) = 2 ≤ 2`, the seed T4-valid by DocVal via S7d as already cited), sibling advances at element level to reach subspace component `s_L`, a `k = 1` child-spawn (precondition `zeros = 3 ≤ 3`), all lengths exceeding `#d`, with T10a.4 propagating T4-validity to the terminus — or route producibility through ASN-0086's R0, whose on-chain clause `a ∈ A_L(d)` covers the first-emission output, if `A_L(d)` is there defined as the L1c-producible chain. As written, the claim is exactly the "X follows from Y + Z" pattern.
+
+### Issue 2: Bare `→` used for four-component transitions in P5's proof
+**ASN-0126, Gate realizability (proof of P5)**: "We verify `Σ → Σ'` is a `K.λ_sh`-step." and "All hold, so `Σ → Σ'` is a `K.λ_sh`-step, hence a `→_sh`-step".
+**Problem**: The note itself binds `→` to ASN-0086's relation over three-component states ("ASN-0086's `→ ≡ K.σ ∪ K.α ∪ K.λ` becomes `→_sh`"), and its entire bridge apparatus exists to keep `→` and `→_sh` apart. Here `Σ` and `Σ'` are four-component states, so `Σ → Σ'` is type-incorrect under the note's own binding; the reader must guess that "the transition pair (Σ, Σ')" is meant — at precisely the point where the lift from `→` to `→_sh` is the thing being verified. Every other section gets this right (`Σ' →_sh Θ` in frontier-landing, `Σ →_sh Σ'` in the corollary).
+**Required**: Replace with "the pair `(Σ, Σ')` is a `K.λ_sh`-step" (or establish membership and then write `Σ →_sh Σ'`); reserve `→` for ASN-0086's three-component relation throughout.
+
+### Issue 3: Nullify_Binary contract omits persistence of its nullification postconditions
+**ASN-0126, Retraction as an attributed Binary (operation block)**: "Collected as an operation contract, in the discipline of ASN-0086's operation blocks ... *Target nullification iff residence.* `a ∈ nullified(Σ') ⟺ a ∈ A_rel^{Σ'} ⟺ P-tgt at Σ`".
+**Problem**: ASN-0086's Nullify block — the discipline this contract claims to follow — states "persisting thereafter by R6a." The wrapper's contract states value-permanence of the *deposit* (L12, with its B2 license) but says nothing about whether the nullified status of the target and the covered resident links persists across later `→_sh`-steps, nor that the nullified tuples stay out of their types' active subsets at `→_sh*`-successors. Neither persistence is free under `→_sh`: R6a is a transition invariant needing B2's transition-invariant license per step, and R6c is path-quantified over `→*`-successors — the category B2 excludes — needing the projected-path license the note builds in Corollary RangeSterilization (i). The contract is the app-facing deliverable; an app should not have to reassemble these transfers itself. This is a postcondition established with its consequences unexplored (standard 6).
+**Required**: Add a persistence clause to the postconditions: membership in `nullified(Σ')` established by the bullets persists across every later `→_sh`-step (R6a, transferred per B2's transition-invariant scope), and for any resident `(a', F', G') ∈ L_K^{Σ'}` with `a'` nullified, `(a', F', G') ∉ A_K` at every `→_sh*`-successor (R6c, via the projected-path license already exhibited in Corollary RangeSterilization (i)).
+
+## OUT_OF_SCOPE
+
+### Topic 1: Registry composition protocol
+**Why out of scope**: C0 demands unique coverage-class keys in `Σ_init.registry`, and the note fixes registration to the single act of constructing `Σ_init`. How declarations from independently authored apps are merged into one registry, and how representative-endset collisions are detected and resolved at composition time, is a registration-protocol question for a successor note — the note correctly specifies the well-formedness obligation without specifying the composer.
+
+### Topic 2: Recovering a disciplined layer atop `→_sh`
+**Why out of scope**: The note proves that ASN-0086's layer-scoped results (the disciplined-domain wp simplification, the unit-depth-discipline discharge) do not transfer. Whether an app-level commitment — retraction only via `Nullify_Binary` with P-tgt-valid targets — reconstitutes an analogue of the unit-depth discipline over `→_sh`, restoring C3's vacuity, is genuinely new development for the successor note, not a gap in this one.
+
+VERDICT: REVISE
