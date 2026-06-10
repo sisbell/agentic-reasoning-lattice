@@ -70,13 +70,11 @@ condition defining a V-spec is *stable*: the structural conditions — the shape
 `s`, the level-uniformity and ordinal-level of `σ` — make no reference to state at
 all, and the one state-dependent conjunct, `d ∈ dom(Σ.M)`, is monotone (ASN-0047,
 M1 ArrangementMonotonicity), so once `d` is allocated it stays allocated and the
-conjunct, once true, never lapses. We deliberately keep *depth compatibility* with
-the named subspace out of well-formedness, precisely because it would *not* be
-stable in this sense: the depth a start would have to match, `m_S(d)`, is mutable
-— ASN-0047 re-pins a fully-cleared subspace's depth from scratch on its next
-insertion — so `#s = m_S(d)` can hold at one state and fail at a later one. Depth
-compatibility is therefore a *consulting-state* predicate `depthcompat(ρ, Σ)`,
-defined below and applied inside `act`, where it is the sole depth check.
+conjunct, once true, never lapses. Depth compatibility is therefore a
+*consulting-state* predicate `depthcompat(ρ, Σ)` — consulting-state because
+`m_S(d)` is mutable (ASN-0047 re-pins a cleared subspace, so `#s = m_S(d)` need
+not persist) — defined below and applied inside `act`, where it is the sole depth
+check.
 Ordinal-level means the width acts at the deepest component,
 `actionPoint(ℓ) = #ℓ` (ASN-0082, OrdinalLevel). This is the deepest-action-point
 discipline that keeps a span within a single subspace:
@@ -135,6 +133,17 @@ is `∅`, or a subset of `dom(Σ.M(d))`, which is finite (ASN-0036, S8-fin) — 
 totally ordered, being a subset of the totally ordered carrier `T` (ASN-0034, T1).
 Finiteness and total order together give it a unique ascending enumeration
 `v₁ < v₂ < … < v_{k}` where `k = |act(ρ, Σ)|`.
+
+A start may name a subspace other than `s_C` or `s_L` and still be well-formed —
+the V-position shape constrains `#s ≥ 2` and positivity but leaves `s₁`
+unconstrained. Such a start is harmless rather than special-cased: by S3★-aux
+every active V-position lies in `s_C` or `s_L`, so `V_S(d) = ∅` for any
+`S ∉ {s_C, s_L}` at every reachable state; `depthcompat` then holds by its first
+disjunct, `act = dom(Σ.M(d)) ∩ ⟦σ⟧`, and Confinement places `⟦σ⟧` wholly in the
+unused subspace `S`, disjoint from `dom(Σ.M(d))` — so `act = ∅` and the spec
+delivers nothing. Every spec that contributes material therefore has
+`S ∈ {s_C, s_L}`, the assumption the depth and `item` reasoning below tacitly rely
+on.
 
 Each active position is resolved through the arrangement to a single address
 `a = Σ.M(d)(v)` (well-defined and single-valued by S2), and the *delivery item*
