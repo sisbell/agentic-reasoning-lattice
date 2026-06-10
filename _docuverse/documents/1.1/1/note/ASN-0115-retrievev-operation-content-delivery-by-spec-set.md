@@ -493,18 +493,15 @@ get distinct addresses, while transcluded content shares one address (S4). So
 delivering both positions by way of the same `a` is identity-preserving by
 construction — in computing the delivery the operation never copies, it
 dereferences the one address `a` twice, so both items are the one content
-delivered twice, not two independent reproductions of it. That makes the shared
-identity a property of *how the delivery is computed*, not of the delivered
-bytes.
+delivered twice, not two independent reproductions of it.
 
-Because the identity lives in the computation, the sharing is internal to
-resolution, not disclosed by the output. Each position resolves through `a`
+Co-delivery therefore establishes nothing about the relation between the two
+that two separate single-span deliveries would not: it carries no information a
+pair of isolated requests lacks. Each position resolves through `a`
 independently — whether delivered alone or alongside the other — so the shared
 home is established per-position, not jointly; and `deliver` performs no
 comparison of the two resolutions, it concatenates two independently computed
-items (R0). Co-delivery therefore establishes nothing about the relation between
-the two that two separate single-span deliveries would not: it carries no
-information a pair of isolated requests lacks. Nelson's promise that the system
+items (R0). Nelson's promise that the system
 "will also reveal and clarify commonalities between documents and among
 versions" (3/4) is kept by operations that compare addresses, not by RETRIEVEV,
 whose content payload is value-only.
@@ -554,10 +551,9 @@ document may include bytes from any other document," 4/10; non-native bytes have
 origin must stay *determinate* — co-assembly must not fuse distinct origins into
 an anonymous blob. This second obligation is met automatically: `origin` and
 `home` are functions of the resolved address, so no faithful resolution could
-lose a fragment's home document. Output-recoverability — whether that home
-survives into the delivered output — is where the two item kinds genuinely part.
-Because each spec is resolved against its own arrangement (R4), cross-document
-spec-sets are resolved per document and then concatenated — Gregory's
+lose a fragment's home document. Because each spec is resolved against its own
+arrangement (R4), cross-document spec-sets are resolved per document and then
+concatenated — Gregory's
 `specset2ispanset` loop calls the per-document lookup once per spec, reading each
 document's arrangement in isolation, exactly the independence R9 requires.
 
