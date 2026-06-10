@@ -25,7 +25,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.shared.paths import WORKSPACE
 
 
+# Role-keyed model table. Call sites name a role; which model serves a
+# role is decided here and nowhere else. Tier aliases (opus/sonnet/fable)
+# remain for explicit overrides and CLI flags.
 MODEL_FLAGS = {
+    # roles
+    "default": "claude-fable-5[1m]",   # note/inquiry review-revise-consult-draft loop
+    "evidence": "claude-sonnet-4-6",   # evidence-channel consultations
+    "commit": "claude-sonnet-4-6",     # runner commit messages
+    # tier aliases
     "fable": "claude-fable-5[1m]",
     "opus": "claude-opus-4-8[1m]",
     "sonnet": "claude-sonnet-4-6",
@@ -396,7 +404,7 @@ def _next_config_dir():
     return picked
 
 
-def invoke_claude(prompt, *, model="fable", effort="max", tools=None,
+def invoke_claude(prompt, *, model="default", effort="max", tools=None,
                   output_format="json", cwd=None, omit_tools=False):
     """Call claude --print (single-turn, no tools by default). Returns Result.
 
@@ -580,7 +588,7 @@ def _result_from_json(data, elapsed):
     )
 
 
-def invoke_claude_agent(prompt, *, model="fable", effort="max",
+def invoke_claude_agent(prompt, *, model="default", effort="max",
                         tools="Read,Write,Bash", max_turns=12, cwd=None,
                         enabled_tools=None):
     """Call claude -p (agent mode). Returns Result.

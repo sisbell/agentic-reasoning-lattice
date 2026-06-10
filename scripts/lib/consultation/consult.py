@@ -20,7 +20,7 @@ from lib.shared.invoke_claude import (
 )
 
 
-def invoke_claude(prompt, model="fable", effort=None, allow_tools=False,
+def invoke_claude(prompt, model="default", effort=None, allow_tools=False,
                   cwd=None, output_file=None, skill="consult", label=""):
     """Call claude --print with consult-specific side effects.
 

@@ -42,8 +42,8 @@ def build_channel_plugin(meta, channel_dir):
     """Construct a plugin from meta + channel_dir based on meta['shape'].
 
     Returns an object exposing
-      generate_questions(inquiry, n=10, model="fable", out_of_scope="") -> list[str]
-      consult(question, label="", model="fable", effort="max") -> str
+      generate_questions(inquiry, n=10, model="default", out_of_scope="") -> list[str]
+      consult(question, label="", model="default", effort="max") -> str
     """
     shape = meta.get("shape")
     if shape is None:
@@ -131,7 +131,7 @@ def flat_corpus(
             _template_cache[path] = read_file(path)
         return _template_cache[path]
 
-    def generate_questions(inquiry, n=10, model="fable", out_of_scope=""):
+    def generate_questions(inquiry, n=10, model="default", out_of_scope=""):
         template = _template(gen_questions_prompt)
         if not template:
             print(f"  [ERROR] {gen_questions_prompt.name} not found",
@@ -152,7 +152,7 @@ def flat_corpus(
             skill=f"pre-consult:{role_label}", label=role_label)
         return parse_numbered(response.text)
 
-    def consult(question, label="", model="fable", effort="max"):
+    def consult(question, label="", model="default", effort="max"):
         template = _template(answer_prompt)
         if not template:
             print(f"  prompt template not found: {answer_prompt}",

@@ -224,7 +224,7 @@ def _save_answer(consult_subdir, item, role, answer):
     )
 
 
-def _run_targeted_consultations(items, asn_id, consult_subdir, model="fable"):
+def _run_targeted_consultations(items, asn_id, consult_subdir, model="default"):
     """Run channel consultations for items with assigned questions.
 
     Theory consultations run in parallel (no tools).
@@ -273,7 +273,7 @@ def _run_targeted_consultations(items, asn_id, consult_subdir, model="fable"):
         for idx, (item_idx, question) in enumerate(evidence_work):
             answer = load_channel_plugin(evidence_channel).consult(
                 question, label=f"Q{idx + 1}:evidence",
-                model="sonnet", effort="max")
+                model="evidence", effort="max")
             items[item_idx]["answers"]["evidence"] = answer
             _save_answer(consult_subdir, items[item_idx], "evidence", answer)
         print(f"  [EVIDENCE] All done", file=sys.stderr)
@@ -319,7 +319,7 @@ def _run_consult_for_review(
     asn_label,
     review_path,
     *,
-    model: str = "opus",
+    model: str = "default",
 ):
     """Run the consult flow for one specific review of one ASN.
 
@@ -524,7 +524,7 @@ class NoteConsultAgent(Agent):
 
     role: ClassVar[str] = "note-consult"
 
-    def __init__(self, *, model: str = "opus"):
+    def __init__(self, *, model: str = "default"):
         self.model = model
 
     def run(self, session: Session, note_addr: Address) -> AgentResult:

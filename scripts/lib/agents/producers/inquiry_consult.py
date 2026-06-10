@@ -117,7 +117,7 @@ def _filter_questions(inquiry_text, out_of_scope, questions, covers_text=""):
 
     print(f"  [FILTER] Checking {len(questions)} questions against exclusions...",
           file=sys.stderr)
-    result = invoke_claude(prompt, model="fable",
+    result = invoke_claude(prompt, model="default",
                            skill="pre-consult:filter",
                            label="filter")
 
@@ -152,7 +152,7 @@ def _filter_questions(inquiry_text, out_of_scope, questions, covers_text=""):
     return filtered
 
 
-def _decompose_inquiry(inquiry_text, num_theory=10, num_evidence=10, model="fable",
+def _decompose_inquiry(inquiry_text, num_theory=10, num_evidence=10, model="default",
                        out_of_scope="", asn_id=None):
     """Two-pass decompose: theory channel then evidence channel.
 
@@ -231,8 +231,8 @@ def _load_existing_answers(consult_dir, questions):
     return existing
 
 
-def _run_consultations(questions, consult_dir, asn_id, theory_model="fable",
-                       evidence_model="sonnet", effort="max"):
+def _run_consultations(questions, consult_dir, asn_id, theory_model="default",
+                       evidence_model="evidence", effort="max"):
     """Run all consultations. Theory in parallel, evidence sequential.
 
     Saves each answer to disk as it completes. Skips questions with existing
@@ -313,7 +313,7 @@ def _run_consultations(questions, consult_dir, asn_id, theory_model="fable",
 def _run_consult_for_inquiry(
     asn_id,
     *,
-    model: str = "opus",
+    model: str = "default",
     num_theory=None,
     num_evidence=None,
     regenerate: bool = False,
@@ -465,7 +465,7 @@ class InquiryConsultAgent(Agent):
 
     role: ClassVar[str] = "inquiry-consult"
 
-    def __init__(self, *, model: str = "opus"):
+    def __init__(self, *, model: str = "default"):
         self.model = model
 
     def run(self, session: Session, inquiry_addr: Address) -> AgentResult:

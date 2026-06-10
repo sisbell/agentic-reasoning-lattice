@@ -41,8 +41,6 @@ from lib.shared.paths import (
 
 METHODOLOGY_PROMPT = prompt_path("agents/_shared/methodology.md")
 
-MODEL = "claude-fable-5[1m]"
-
 
 def build_prompt(
     asn_path: Path,
@@ -245,7 +243,7 @@ class NoteReviseAgent(Agent):
 
     role: ClassVar[str] = "note-revise"
 
-    def __init__(self, *, model: str = "opus", effort: str = "max"):
+    def __init__(self, *, model: str = "default", effort: str = "max"):
         self.model = model
         self.effort = effort
 

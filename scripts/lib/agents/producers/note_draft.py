@@ -45,7 +45,7 @@ from lib.shared.paths import (
 
 METHODOLOGY_PROMPT = prompt_path("agents/_shared/methodology.md")
 
-MODEL = "claude-fable-5[1m]"
+MODEL = "default"
 
 
 # ─── Helpers ────────────────────────────────────────────────────

@@ -250,7 +250,7 @@ def _draft_message(trigger_name: str, addr: str) -> str:
         f"  - Output only the message, nothing else."
     )
     result = invoke_claude(
-        prompt, model="sonnet", effort="high", output_format=None,
+        prompt, model="commit", effort="high", output_format=None,
     )
     text = (result.text or "").strip()
     if not text:
