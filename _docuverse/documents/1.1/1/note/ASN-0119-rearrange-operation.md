@@ -40,10 +40,11 @@ composite (a `K.μ⁻ + K.μ⁺` pair that necessarily passes through a content-
 intermediate), even though a non-trivial REARRANGE realizes the same *net*
 arrangement change. The model lifts the strand model (ASN-0036) and the link model
 (ASN-0043) into a single arrangement whose V-positions inhabit two subspaces — the
-text subspace `s_C` and the link subspace `s_L` (ASN-0047, S3★-aux). REARRANGE writes only the
-content store `C`, the arrangement family `M`, and — in its frame — the link store
-`L`; the entity set `E` and the provenance relation `R` are inert under it, so we
-suppress them and write `Σ = (C, M, L)` for the active components throughout. The
+text subspace `s_C` and the link subspace `s_L` (ASN-0047, S3★-aux). REARRANGE
+mutates only the arrangement family `M`; the content store `C` and the link store
+`L` are frames (`Σ'.C = Σ.C`, `Σ'.L = Σ.L`), and the entity set `E` and the
+provenance relation `R` are inert under it, so we suppress `E` and `R` and write
+`Σ = (C, M, L)` for the active components throughout. The
 *content store* `Σ.C : T ⇀ Val` (ASN-0036, S0) is append-only and immutable; an
 address `a ∈ dom(C)`, once allocated, denotes its value forever. This is the
 Istream: the permanent record of *what content exists*. The *arrangement*
@@ -186,8 +187,7 @@ below. The document points at the same content after the rearrangement as before
 — only the order of pointing has changed.
 
 Two foundation invariants ride along on the same structural facts, and we
-discharge them explicitly so that the hardest-to-maintain conjuncts of a
-rearrangement are not left implicit. *Functionality* is preserved — `M'(d)` is
+discharge them explicitly. *Functionality* is preserved — `M'(d)` is
 single-valued (ASN-0036, **S2**) — because ASN-0084's R-PIV/R-SWP already
 establish the post-state to be a total function, each V-position receiving
 exactly one I-address. *Referential integrity* is preserved
@@ -215,11 +215,9 @@ text subspace onto itself); pre-state S3★ applied at `π⁻¹(v)` gives
 (ASN-0084, **R-NS** / R-FRAME-P/S(a)), so `M'(d)(v) = M(d)(v) ∈ dom(L)` by
 pre-state S3★. Each subspace's inclusion thus carries to the post-state.
 
-The contiguity and tiling invariants of the text subspace — the ones a future
-operation will lean on to name cuts — ride along on a single observation, and we
-discharge them so no load-bearing conjunct is skipped. Because
-`dom(M'(d)) = dom(M(d))` (RA2) and `π` fixes the exterior while permuting the
-affected interval onto itself, the active text-position set
+The contiguity and tiling invariants of the text subspace ride along on a single
+observation. Because `dom(M'(d)) = dom(M(d))` (RA2) and `subspace(·)` is intrinsic
+to `v`, the active text-position set
 `V_{s_C}(d) = { v ∈ dom(M(d)) : subspace(v) = s_C }` is *literally unchanged as a
 set*: `π` only reassigns the I-address *value* filed at each `v`, never the set of
 keys. Every reachable-state invariant that constrains this set alone is therefore
@@ -392,13 +390,21 @@ and since `π` is a bijection of `dom(M(d))` (RA2), this is exactly
       project(a, i, d, Σ') = π( project(a, i, d, Σ) ).             **(RA7a)**
 
 We derive RA7a inline from RA1 rather than cite ASN-0098's **LP11**
-(ReorderingBijection) because the RA1 argument holds for *every* REARRANGE,
-including the trivial no-op (`M'(d) = M(d)`) — which, failing K.μ~'s
-non-triviality condition, is no K.μ~ at all and so lies outside LP11's hypothesis.
+(ReorderingBijection): REARRANGE_K is not K.μ~, and the no-op REARRANGE lies
+outside LP11's non-triviality hypothesis. The footprint is carried *through* `π`:
+neither lost nor enlarged, only relocated to where the content now sits.
+
 As a transition in ASN-0047's model REARRANGE allocates no content and records no
 provenance, with `ran(M'(d)) = ran(M(d))` by RA1, so the model's coupling
-obligations J0, J1★, and J1'★ hold vacuously. The footprint is carried *through*
-`π`: neither lost nor enlarged, only relocated to where the content now sits.
+obligations J0, J1★, and J1'★ hold vacuously. The one composite-boundary invariant
+that reads the mutated arrangement, P4★ (`Contains_C(Σ) ⊆ R`), is preserved
+because the content-subspace value set is invariant: `π` permutes the text
+subspace onto itself, so
+`{ M'(d)(v) : subspace(v) = s_C } = { M(d)(u) : subspace(u) = s_C }`, whence
+`Contains_C(Σ') = Contains_C(Σ) ⊆ R = R'`. The remaining
+ExtendedReachableStateInvariants conjuncts (P6, P7, P8, P7a, P4a, the L-family,
+the C-family) are preserved by the `C`/`E`/`R`/`L` frame, so the invariant package
+REARRANGE joins is fully accounted for.
 
 *A link spanning both moved regions, or running from a moved region into
 stationary content* (Question 5). Here the footprint may be split by a cut, and we
