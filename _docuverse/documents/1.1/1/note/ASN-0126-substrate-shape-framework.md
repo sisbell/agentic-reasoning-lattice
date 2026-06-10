@@ -26,12 +26,12 @@ ASN-0043/0086 carry substrate state `Σ = (Σ.C, Σ.M, Σ.L)`. This framework ex
 
 `Σ = (Σ.C, Σ.M, Σ.L, Σ.registry)`
 
-The registry records, for each type an app declares, the shape its tuples must take. Registration is keyed by *coverage class*, not by raw endset. ASN-0086's TypeEquivalence (lifting L8, ASN-0043) identifies type endsets by coverage — `K ~ K' ≡ coverage(K) = coverage(K')` — and treats the type subscript as a coverage-class index, so `L_K = L_{K'}` whenever `K ~ K'`. The registry honours this: the key of an entry is the coverage class `[K]`, equivalently, the registry assigns `~`-equal endsets one and the same entry. The coverage class `[K_j]` is keyed concretely by storing any finite member endset `K_j ∈ T_admissible` of that class, against which coverage equality is decidable (CoverageEqualityDecidable, ASN-0086). Each registry entry thus records such a representative endset `K_j` (denoting the coverage class `[K_j]`) together with:
+The registry records, for each type an app declares, the shape its tuples must take. It is a partial function `T_admissible/~ ⇀ (name, shape)`: a key is a coverage class `[K_j]`, stored concretely as a representative `K_j ∈ T_admissible` against which CoverageEqualityDecidable (ASN-0086) settles membership. Keying by coverage class rather than raw endset honours ASN-0086's TypeEquivalence (lifting L8, ASN-0043), which identifies type endsets by coverage — `K ~ K' ≡ coverage(K) = coverage(K')` — and treats the type subscript as a coverage-class index, so `L_K = L_{K'}` whenever `K ~ K'`. Each entry pairs that representative with:
 
-- a **name** — opaque app-level metadata, uninterpreted by the framework
+- a **name** — opaque payload the framework never reads; only keys are constrained unique (below), so names may collide, and a name never drifts (P1, Registry permanence)
 - a **shape** — one of `Unary`, `Binary`, `Multi` (Three shapes by G span count)
 
-A registry is well-formed when shape values lie in `{Unary, Binary, Multi}` and — the condition the shape function's well-definedness actually rests on — *coverage-class keys are unique*: no two entries have `~`-equal keys. Equivalently, a well-formed registry *is* a partial function `T_admissible/~ ⇀ (name, shape)` from coverage classes to entries. Well-formedness constrains the key and the shape but says nothing about `name`: no framework invariant, predicate, or operation reads it, so two entries may carry the same `name` with no consequence — entry identity rests on the coverage-class key alone. `name` is carried in the registry tuple only as opaque payload, so that an app's chosen labels inherit the registry's no-drift guarantee (Registry permanence); the framework preserves it but never inspects it.
+A registry is well-formed when shape values lie in `{Unary, Binary, Multi}` and — the condition the shape function's well-definedness actually rests on — *coverage-class keys are unique*: no two entries have `~`-equal keys.
 
 **C0 (RegistryWellFormedness).** `Σ_init.registry` is well-formed (above) and finite: `|Σ_init.registry| < ∞`.
 
