@@ -212,8 +212,7 @@ substituted, because the delivered value simply *is* the store's value at the
 resolved address — that is the whole of R2. Permanence *across* states — that the
 byte at an I-address never changes after creation, so the same resolution yields
 the same value at a later state — is a distinct guarantee that R2 does not invoke;
-it is carried by content immutability (S0) and made load-bearing in R7
-(Repeatability) and R11 (PermanentSourcing). That cross-state permanence is the
+it is carried by content immutability (S0). That cross-state permanence is the
 storage-layer invariant Nelson's design rests on — content lives permanently at
 its address, and "you always know where you are, and can at once ascertain the
 home document of any specific word or character" (2/40).
@@ -499,7 +498,7 @@ permanent I-address wherever it appears (ASN-0036, S5 UnrestrictedSharing).
 > of the delivered output: each item carries the value `Σ.C(a)`, never the address
 > `a` (R1), so the co-delivery is byte-indistinguishable from the delivery of two
 > coincidentally-equal contents at distinct addresses (S4) and discloses nothing
-> about the shared origin (cf. R9). The **link sub-case** is *vacuous*: two
+> about the shared origin. The **link sub-case** is *vacuous*: two
 > distinct active link positions can never share a link address. Genuine
 > transclusion is therefore confined to content.
 
@@ -539,7 +538,11 @@ get distinct addresses, while transcluded content shares one address (S4). So
 delivering both positions by way of the same `a` is identity-preserving by
 construction — in computing the delivery the operation never copies, it
 dereferences the one address `a` twice, so both items are the one content
-delivered twice, not two independent reproductions of it.
+delivered twice, not two independent reproductions of it. That this identity
+leaves no trace in the delivered stream is the content side of R9's
+kind-asymmetry: a content item carries only the value `Σ.C(a)`, never the
+address, so the shared origin is recoverable through the resolution mapping
+`v ↦ a` but not from the output.
 
 Each position resolves through `a` independently — whether delivered alone or
 alongside the other — so the shared home is established per-position, not jointly.
@@ -766,7 +769,7 @@ absent consolidation step realizing the no-deduplication corollary of R3 and R8.
 |-------|-----------|--------|
 | R0 | `deliver(R, Σ)` = per-spec deliveries concatenated in spec-set order; `deliver₁(ρ,Σ)` = items of `act(ρ,Σ)` in ascending T1 order, where `act(ρ,Σ) = dom(Σ.M(d)) ∩ ⟦σ⟧` when `ρ` is depth-compatible at `Σ` (`V_S(d) = ∅ ∨ #s = m_S(d)`) and `∅` otherwise; `item` carries `Σ.C(a)` for content positions, the reference `a` for link positions | introduced |
 | R1 | MaterialDelivery: a content item carries the bound value `Σ.C(Σ.M(d)(v))`, not a description of its location | introduced |
-| R2 | Faithfulness: every content item equals `Σ.C(Σ.M(d)(v))` (from S2 + S3★ and the `item` definition; permanence-across-time belongs to R7/R11, via S0); no value may be substituted. Frame limit: this governs the denotation of delivery, not any transmission channel | introduced |
+| R2 | Faithfulness: every content item equals `Σ.C(Σ.M(d)(v))` (from S2 + S3★ and the `item` definition); no value may be substituted. Frame limit: this governs the denotation of delivery, not any transmission channel | introduced |
 | R3 | SpecSetExactness: items arise for exactly `act(ρⱼ, Σ)` — for a depth-compatible spec this is `⟦σⱼ⟧ ∩ dom(Σ.M(dⱼ))` (nothing outside the spans, nothing named-and-bound omitted), for a depth-incompatible spec it is `∅` | introduced |
 | R4 | ArrangementRelativity: each V-spec is resolved through `Σ.M(dⱼ)` alone; the version named by `dⱼ` fixes the binding, so current and as-it-stood coincide | introduced |
 | R5 | OrderFidelity: spec-set sequence order across specs (no global V re-sort); ascending V-order within a spec; boundaries implicit in spans | introduced |
