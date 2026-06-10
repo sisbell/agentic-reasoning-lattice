@@ -312,10 +312,8 @@ predecessors leave, is
   `a = shift(a, 0)` is a
   *first* emission exactly when `d`'s content region is empty
   (`{a' ∈ dom(C) : origin(a') = d} = ∅`); there `a = [d.0.s_C.1]` and freshness is
-  discharged by **FirstEmissionFreshness** — not SubsequentEmissionFreshness, whose
-  precondition (the subsequent-emit predicate `{a' ∈ dom(C) : origin(a') = d} ≠ ∅`)
-  fails on this case. When the region is non-empty, `k = 0` is itself a subsequent
-  emission and **SubsequentEmissionFreshness** applies. For every `k ≥ 1` the prior
+  discharged by **FirstEmissionFreshness**. When the region is non-empty, `k = 0` is
+  itself a subsequent emission and **SubsequentEmissionFreshness** applies. For every `k ≥ 1` the prior
   in-insert allocation `shift(a, k−1)` has already made the region non-empty, so the
   `k`-th step acts on a store already holding `{shift(a, 0), …, shift(a, k−1)}` and
   **SubsequentEmissionFreshness** gives `shift(a, k) ∉ dom(C) ∪ dom(L)`. The
@@ -417,8 +415,9 @@ these starred forms reduce to the unstarred D-CTG/D-MIN/D-SEQ of ASN-0036. IP1
 records the narrower fact that the inserted material forms a correspondence run in
 S8's sense — lockstep V/I advance over the block — though not necessarily a
 *maximal* one: when the left-adjacent slot `q_{J-1}` holds the current greatest
-origin-`d` address `a_prev` (a configuration reachable once a reordering K.μ~
-(ASN-0047) has decoupled V-order from I-order), the fresh start
+origin-`d` address `a_prev` (reachable in the ordinary append case, where `q_N`
+already holds the greatest address — and more generally after a K.μ~ reordering
+(ASN-0047) places `a_prev` at `q_{J-1}` for interior `J`), the fresh start
 `a = inc(a_prev, 0) = shift(M(d)(q_{J-1}), 1)` is I-adjacent to the left run, so the
 block I-merges backward into it and is not a standalone element of the maximal-run
 partition S8★ delivers. Forward I-merging with the shifted suffix never happens —
@@ -728,9 +727,7 @@ subtle case is the shifted suffix: `a_3, a_4, a_5` now occupy the *new* slots
 V-position, and these addresses are *range-old* — already in `ran(M(d))` at the
 pre-state, where by P4★ at the composite boundary the records `(a_3, d)`,
 `(a_4, d)`, `(a_5, d)` already sit in `R`. Their V-positions changed, but their
-I-addresses did not, so they induce **no** new entry: even a reader that
-re-recorded them on the position change would only re-add records already in
-`R`, a no-op that never reaches `R' ∖ R` — and J1'★ constrains only `R' ∖ R`.
+I-addresses did not, so they induce **no** new entry.
 The range-based coupling records exactly `A_new`. ✓
 Finally **P7a** at the post-state for a prior address: `a_1` carried some
 `(a_1, d) ∈ R` at the pre-state (P7a there), and `R ⊆ R'` preserves it, so `a_1`
