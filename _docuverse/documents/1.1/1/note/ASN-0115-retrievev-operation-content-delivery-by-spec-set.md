@@ -214,8 +214,7 @@ must be the content itself — no character altered, fabricated, or dropped.
 > the content store, to the address the arrangement assigns its position:
 > `item(v, ρ, Σ).val = Σ.C(Σ.M(d)(v))`. No other value may be substituted.
 
-The justification is structural, and it is worth seeing exactly which invariants
-carry it. R2 is a *single-state* denotational equality, and the invariants it
+The justification is structural. R2 is a *single-state* denotational equality, and the invariants it
 needs are correspondingly few. Resolution is single-valued because `Σ.M(d)` is a
 function (S2), so the resolved address `a = Σ.M(d)(v)` is determinate; S3★ places
 `a` in the content store, so `Σ.C(a)` is defined; and the `item` definition *sets*
@@ -224,10 +223,7 @@ substituted, because the delivered value simply *is* the store's value at the
 resolved address — that is the whole of R2. Permanence *across* states — that the
 byte at an I-address never changes after creation, so the same resolution yields
 the same value at a later state — is a distinct guarantee that R2 does not invoke;
-it is carried by content immutability (S0). That cross-state permanence is the
-storage-layer invariant Nelson's design rests on — content lives permanently at
-its address, and "you always know where you are, and can at once ascertain the
-home document of any specific word or character" (2/40).
+it is carried by content immutability (S0).
 
 We must be equally precise about where this invariant *stops*. Faithfulness is a
 property of *what the operation is defined to return* — it is a semantic
