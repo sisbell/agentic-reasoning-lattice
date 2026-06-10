@@ -184,7 +184,7 @@ The middle step is the pointwise equation `M'(d)(π(v)) = M(d)(v)`, established 
 ASN-0084's **ArrangementRearrangement** (DEF) and the correctness clauses of
 R-PPERM / R-SPERM — the same source as RA2, not a result of R-RI but a hypothesis
 of it. The resulting range equality `ran(M'(d)) = ran(M(d))` is ASN-0084's range
-invariance **R-RI**. We label the pair **RA1** for use below. The document points
+invariance **R-RI**. We label the pair **RA1**. The document points
 at the same content after the rearrangement as before — only the order of pointing
 has changed.
 
@@ -284,16 +284,24 @@ the inert `R`), so its quantifier and its witnessing set are pointwise unchanged
 P4a (TraceWitnessing) is the one that needs more than a frame: it quantifies over
 valid *traces* to the state, not over the state alone, so `R' = R` gives that the
 *set* of provenance entries is unchanged but does not by itself supply each entry's
-witness. A valid trace to `Σ'` is a valid trace to `Σ` extended by the single
-REARRANGE step `Σ → Σ'`. Fix any `(a, d) ∈ R'`; since `R' = R` it already lies in
-`R`, and `Σ` is a composite boundary at which P4a held, so every trace to `Σ`
-exhibits a trace state `Σ_k` in its prefix at which `a` sat in `d`'s
-content-subspace range. That witness `Σ_k` is an earlier trace state in the
-prefix, whose arrangement `M_k(d)` the appended REARRANGE step does not touch, so
-it persists unchanged into the extended trace to `Σ'`, witnessing `(a, d)` there as
-well. P4a is thus discharged by `R' = R` together with P4a at `Σ` applied to the
-prefix — the pre-state's trace witness persists, and the appended step is never
-consulted. The genuinely per-state ExtendedReachableStateInvariants conjuncts that
+witness. We must discharge P4a for every valid trace to `Σ'`, and these split by
+their final composite. A trace *ending in this REARRANGE step* decomposes as a
+valid trace to `Σ` extended by the single REARRANGE step `Σ → Σ'`: fix any
+`(a, d) ∈ R'`; since `R' = R` it already lies in `R`, and `Σ` is a composite
+boundary at which P4a held, so every trace to `Σ` exhibits a trace state `Σ_k` in
+its prefix at which `a` sat in `d`'s content-subspace range. That witness `Σ_k` is
+an earlier trace state in the prefix, whose arrangement `M_k(d)` the appended
+REARRANGE step does not touch, so it persists unchanged into the extended trace to
+`Σ'`, witnessing `(a, d)` there as well — the pre-state's trace witness persists,
+and the appended step is never consulted. A trace reaching `Σ'` by any *other*
+final composite does not factor through `Σ` via REARRANGE, and need not: as "The
+two streams" notes, the non-atomic `K.μ~` composite (`K.μ⁻ + K.μ⁺`) realizes the
+same net `π` and reaches the same `Σ'`, so the final composite of such a trace is a
+`K.μ~`, ending in its `K.μ⁺` half rather than in REARRANGE. Such a trace is that
+composite's own P4a obligation, already discharged by ASN-0047's induction over its
+atomic vocabulary. P4a at `Σ'` thus holds on every valid trace — the
+REARRANGE-ending ones by the persistence argument above, all others by the
+operations that produce them. The genuinely per-state ExtendedReachableStateInvariants conjuncts that
 remain (P6, P7, P8, the E-family NodeLineage/ActivatedEmission, the L-family, the
 C-family) are preserved by the `C`/`E`/`R`/`L` frame. ASN-0047's second transition theorem,
 **ExtendedTransitionInvariants** (its sole conjunct **P3**,
@@ -385,8 +393,7 @@ endpoints `ord 1`, `ord 5` are fixed (**RA3**). Now a sample link footprint: let
 `a*` be a link whose coverage holds the "C" byte `a₃`. Before the move its
 footprint is `{[s_C,3]}`; since `[s_C,3] = c₁ + 0`, the pivot branch of `π` gives
 `π([s_C,3]) = c₀ + 0 = [s_C,2]`, and indeed `M'([s_C,2]) = a₃`. The footprint
-travels through `π` to `{[s_C,2]}` — relocated, not lost; the Links section next
-formalizes this transport as **RA7a**.
+travels through `π` to `{[s_C,2]}` — relocated, not lost.
 
 *Swap.* Take "ABCDEF" at `[s_C,1..6]` and exchange `α = {B}` with `β = {E, F}`,
 leaving the middle `μ = {C, D}` between them: cuts `c₀=[s_C,2]`, `c₁=[s_C,3]`,
@@ -455,10 +462,7 @@ and since `π` is a bijection of `dom(M(d))` (RA2), this is exactly
 
 The footprint is carried *through* `π`: neither lost nor enlarged, only relocated
 to where the content now sits. (This derivation re-proves inline, for REARRANGE,
-ASN-0098's coverage invariance LP3 and reordering bijection LP11: both are
-established there by case analysis over ASN-0047's transition vocabulary, which
-REARRANGE_K sits outside, so this note reconstructs their conclusions rather than
-citing them.)
+ASN-0098's coverage invariance LP3 and reordering bijection LP11.)
 
 *A link spanning both moved regions, or running from a moved region into
 stationary content* (Question 5). Here the footprint may be split by a cut, and we
