@@ -110,13 +110,14 @@ is admissible — but then `act = ∅` and the gap analysis is trivial (every na
 position is unbound). Ordinal-level means
 the width acts at the deepest component, `actionPoint(ℓ) = #ℓ` (ASN-0082,
 OrdinalLevel). Combined with level-uniformity (`#ℓ = #s`) and the start depth
-`#s ≥ 2`, this forces `actionPoint(ℓ) ≥ 2`, so both endpoints `s` and `s ⊕ ℓ`
-agree on position 1. The endpoint agreement extends to the whole interval by
-ContiguousSubtrees (ASN-0034, T5): taking prefix `p = [s₁]`, we have `p ≼ s` and
-`p ≼ s ⊕ ℓ`, so for any `t ∈ ⟦σ⟧` — i.e. `s ≤ t < s ⊕ ℓ`, hence `s ≤ t ≤ s ⊕ ℓ` —
-T5 gives `p ≼ t`. Thus every `t ∈ ⟦σ⟧` has first component `s₁`, and the span's
-interval cannot cross the subspace boundary. This is
-the deepest-action-point discipline R10 relies on; without it, a merely
+`#s ≥ 2`, this is the configuration ASN-0058's C0a (PrefixConfinement) analyses:
+every `t ∈ ⟦σ⟧` agrees with `s` on its first `#s − 1` components — in particular
+`t₁ = s₁`, so the span's interval cannot cross the subspace boundary. C0a routes
+through C0 (OrdinalDisplacementNecessity) to obtain `actionPoint(ℓ) = #ℓ`, which
+is the one place its content-reference preconditions enter; the V-spec asserts
+ordinal-level width directly, and C0a's remaining confinement step consumes only
+that and depth `#s ≥ 2`, so it transfers to every V-spec span, bound or not. This
+is the deepest-action-point discipline R10 relies on; without it, a merely
 level-uniform well-formed span may have `actionPoint(ℓ) = 1` and straddle from
 the content subspace into the link subspace (e.g. `s = [1,5]`, `ℓ = [2,0]`:
 `s ⊕ ℓ = [3,0]`, and `[2,3] ∈ ⟦σ⟧` has `subspace = s_L`). A single
@@ -357,14 +358,12 @@ relative to the active range is needed or made. The no-interior-hole property is
 therefore a statement about the bindable slice, not about every tumbler of the
 interval.
 
-We pin the shape of that slice by ContiguousSubtrees (ASN-0034, T5), *not* by
+We pin the shape of that slice by *prefix confinement* (ASN-0058, C0a), *not* by
 D-SEQ★: D-SEQ★ governs the *bound* set `V_S(d)`, not the arbitrary named positions
-of `⟦σ⟧`. Because the span is ordinal-level, `ℓ = δ(n, m_S)` acts at the deepest
-position `m_S`, so both endpoints `s` and `s ⊕ ℓ` agree on positions
-`1 … m_S − 1`; taking the length-`(m_S − 1)` prefix `p = [s₁, …, s_{m_S−1}]` we
-have `p ≼ s` and `p ≼ s ⊕ ℓ`, whence for every `t ∈ ⟦σ⟧` — i.e. `s ≤ t < s ⊕ ℓ`,
-hence `s ≤ t ≤ s ⊕ ℓ` — T5 gives `p ≼ t`. So every depth-`m_S` member of `⟦σ⟧`
-shares `s`'s first `m_S − 1` components and varies only in the last coordinate `k`.
+of `⟦σ⟧`. The span is ordinal-level of depth `m_S ≥ 2`, so C0a gives every
+`t ∈ ⟦σ⟧` agreement with `s` on positions `1 … m_S − 1`. So every depth-`m_S`
+member of `⟦σ⟧` shares `s`'s first `m_S − 1` components and varies only in the last
+coordinate `k`.
 To name those components we appeal to `act ≠ ∅`, the substantive case: pick any
 `v ∈ act ⊆ V_S(d)`. By D-SEQ★ `v = [S, 1, …, 1, k_v]`, and `v ∈ ⟦σ⟧` at depth
 `m_S` forces `v` to agree with `s` on positions `1 … m_S − 1`, so `s`'s first
@@ -620,9 +619,8 @@ content (`s_C`) and links (`s_L`). A spec-set with specs in both subspaces
 gathers positions of both kinds. (Whether a *single* span's denotation can itself
 straddle the boundary — and what delivery must then guarantee — we leave to the
 Open Questions; the V-spec definition restricts `σ` to ordinal-level spans, for
-which `actionPoint(ℓ) ≥ 2`, so a text-rooted span cannot reach link positions:
-both endpoints `s` and `s ⊕ ℓ` agree on position 1 = `s_C`, so by ContiguousSubtrees
-(ASN-0034, T5) with prefix `[s_C]` every `t ∈ ⟦σ⟧` has first component `s_C`.)
+which prefix confinement (ASN-0058, C0a) keeps every `t ∈ ⟦σ⟧` on the start's
+first component, so a text-rooted span cannot reach link positions.)
 
 > **R10 (SubspaceCrossingObservability).** When an active position lies in the
 > link subspace (`subspace(v) = s_L`), it resolves (by S3★) to a link address
@@ -656,8 +654,8 @@ position `v_L` (`subspace(v_L) = s_L`) to a link address `a_L ∈ dom(Σ.L)`; th
 two are disjoint stores (SD). Build a two-spec spec-set with one span per
 subspace: `R = ⟨(d, σ_C), (d, σ_L)⟩`, where `σ_C` is an `s_C`-rooted ordinal span
 naming `v_C` and `σ_L` is an `s_L`-rooted ordinal span naming `v_L`. Each span,
-being ordinal-level, stays within its own subspace (the ContiguousSubtrees
-argument above), so neither straddles. Resolving the first spec gives
+being ordinal-level, stays within its own subspace (prefix confinement,
+ASN-0058 C0a), so neither straddles. Resolving the first spec gives
 `subspace(v_C) = s_C`, hence by S3★ `a_C ∈ dom(Σ.C)` and item
 `⟨content, Σ.C(a_C)⟩`; resolving the second gives `subspace(v_L) = s_L`, hence by
 S3★ `a_L ∈ dom(Σ.L)` and item `⟨ref, a_L⟩`. Therefore
