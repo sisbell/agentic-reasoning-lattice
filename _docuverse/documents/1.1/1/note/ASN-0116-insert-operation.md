@@ -729,17 +729,28 @@ coverage(e) ∩ ran(M'(d))`. ✓ IP4.
 *The IP6 trap.* Was discoverability of `ℓ` from `d` *newly* gained? No — `ℓ` was
 *already* discoverable via `a_3` (`coverage(e) ∩ ran(M(d)) = {a_3} ≠ ∅`), so
 `ℓ ∈ D(d, Σ)`. Yet `ℓ ∈ Added`, since `coverage(e) ∩ A_new = {[d.0.s_C.8]} ≠ ∅`.
-This is precisely the pre-state the *sufficient* emptiness form would reject and
-the *weakest* containment form accepts: `ℓ ∈ Added ⊆ D(d, Σ)` leaves `D(d)`
-unchanged. ✓ IP6 (containment, not emptiness).
+So `ℓ ∈ Added ∩ D(d, Σ)`: `ℓ` lies in `Added` yet contributes no *new*
+discoverable link, having been discoverable already. This is the per-link
+configuration that separates the two wp forms. The *sufficient* emptiness form
+`Added = ∅` is already violated by `ℓ`, so it would refuse to certify
+preservation — even though `ℓ`'s own membership in `Added` is harmless; the
+*weakest* containment form tolerates `ℓ` precisely because `ℓ ∈ D(d, Σ)`, so `ℓ`
+alone could never break the containment `Added ⊆ D(d, Σ)`. Whether `D(d)` is
+preserved at the document level turns on the *whole* of `Added`, not on `ℓ`: here
+`Added = {ℓ, ℓ'}` also contains the orphaned `ℓ'` (below), which `D(d, Σ)` does
+not, so the containment fails and `D(d)` *does* change — driven entirely by `ℓ'`,
+never by `ℓ`. ✓ IP6 (the distinction is containment, not emptiness; `ℓ` is
+exactly the member the emptiness form over-rejects).
 
 *A genuine resurrection.* Let `ℓ'` carry `coverage(e') = {[d.0.s_C.7]}`, a single
 ghost address, orphaned at `Σ` (`coverage(e') ∩ ran(M(d)) = ∅`, and discoverable
 from no document). After the insert the new block carries
 `M'(d)(q_3) = [d.0.s_C.7] ∈ coverage(e')`, so `q_3 ∈ project(e', d, Σ')`: `ℓ'`
-becomes discoverable from `d`. Here `ℓ' ∈ Added ∖ D(d, Σ)`, so `D(d, Σ') ⊋
-D(d, Σ)` — a real change to the discoverable set, and a **resurrection in LP18's
-sense** because `ℓ'` was orphaned. ✓ IP4 new-block, IP6 escape branch.
+becomes discoverable from `d`. Here `ℓ' ∈ Added ∖ D(d, Σ)`, so the combined
+`Added = {ℓ, ℓ'} ⊄ D(d, Σ)`: IP6's containment fails, and
+`D(d, Σ') = D(d, Σ) ∪ {ℓ'} ⊋ D(d, Σ)` — a real change to the discoverable set,
+driven by `ℓ'`, and a **resurrection in LP18's sense** because `ℓ'` was orphaned.
+✓ IP4 new-block, IP6 escape branch.
 
 *Isolation (IP5).* Suppose `d'` also arranges `a_3`: `M(d')(q'_1) = a_3`. INSERT on
 `d` leaves `M'(d') = M(d')` (F-DOC), and `a_3 ∈ dom(C)` retains its value (IP2).
