@@ -131,9 +131,11 @@ The crux of how a caller experiences `findlinks_V`'s behavior is *how the I-addr
 
 ### Existence anchoring
 
-The request is given directly as a fixed I-address set `I ⊆ T` in the permanent address space. The match predicate then turns only on `coverage(Σ.L(a).eᵢ) ∩ I`, and coverage is invariant across all transitions (LP3★, ASN-0098).
+The request is given directly as a fixed I-address set `I ⊆ T` in the permanent address space. The match predicate then turns only on `coverage(Σ.L(a).eᵢ) ∩ I`; link values are permanent (LP13, ASN-0098), so both a link's arity and its per-slot coverage are fixed across every transition.
 
-**E-INV (CoveragePermanence).** *For fixed `I` and any `Σ →* Σ'`, every `a ∈ dom(Σ.L)` satisfies `matches(a, I, Σ') ⟺ matches(a, I, Σ)`.*
+**E-INV (CoveragePermanence).** *For fixed `I` and any `Σ →* Σ'`, every `a ∈ dom(Σ.L)` satisfies `a ∈ dom(Σ'.L)` and `matches(a, I, Σ') ⟺ matches(a, I, Σ)`.*
+
+*Derivation. LP13 (UnconditionalLinkPersistence, ASN-0098) gives `a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a)` across `Σ →* Σ'` — full link-value persistence, hence both arity equality `|Σ'.L(a)| = |Σ.L(a)|` and per-slot coverage equality `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)`. Then `matches(a, I, Σ') = (E i : 1 ≤ i ≤ |Σ'.L(a)| : coverage(Σ'.L(a).eᵢ) ∩ I ≠ ∅) = (E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ∩ I ≠ ∅) = matches(a, I, Σ)`, the middle equality discharged by LP13 (arity and per-slot coverage together). LP3★ alone fixes per-slot coverage but not the arity bound `|Σ.L(a)|` over which the existential ranges; LP13 supplies both.*
 
 **E-MONO (ExistenceMonotonicity).** *For fixed `I`, `Σ →* Σ' ⟹ findlinks(I, Σ) ⊆ findlinks(I, Σ')`.*
 
@@ -158,6 +160,14 @@ The request is resolved through a querying document's current arrangement. Given
 - *K.μ~ on `d_q`*: the witnessing bijection can carry a position with otherwise-unshared image across the `W` boundary, so the image moves (F-IMG-SWING) while `Σ.L` is held fixed (F-PRES/F-INERT); `findlinks_disc` may therefore rise or fall, with no link created or retracted.
 - *Transitions not on `d_q`*: `image(W, d_q, Σ) = image(W, d_q, Σ')`; the result changes only if `K.λ` adds a matching link (F-LAMBDA).
 
+**D-CWP (ContractionStabilityWP).** *Fix a K.μ⁻ contraction `Σ → Σ'` on the query document `d_q`, and write `Δ ≡ image(W, d_q, Σ) ∖ image(W, d_q, Σ')` for the I-addresses the contraction drops from the queried region (well-defined, with `image(W, d_q, Σ) = image(W, d_q, Σ') ∪ Δ`, by F-IMG-CONTR). The contraction leaves the discovery set fixed*
+
+> `findlinks_disc(W, d_q, Σ') = findlinks_disc(W, d_q, Σ)`  *iff*  `findlinks(Δ, Σ) ⊆ findlinks(image(W, d_q, Σ'), Σ)`
+
+*— i.e. iff every link reaching a dropped I-address also reaches a retained one.*
+
+*Derivation. K.μ⁻ preserves `Σ.L` (F-PRES), so `findlinks(I, Σ') = findlinks(I, Σ)` for every fixed `I` (F-INERT); in particular `findlinks_disc(W, d_q, Σ') = findlinks(image(W, d_q, Σ'), Σ)` — the comprehension may be evaluated at `Σ`. Expanding the pre-state set through `image(W, d_q, Σ) = image(W, d_q, Σ') ∪ Δ` and applying F-UDIST (no disjointness required): `findlinks_disc(W, d_q, Σ) = findlinks(image(W, d_q, Σ') ∪ Δ, Σ) = findlinks(image(W, d_q, Σ'), Σ) ∪ findlinks(Δ, Σ) = findlinks_disc(W, d_q, Σ') ∪ findlinks(Δ, Σ)`. Writing `A = findlinks_disc(W, d_q, Σ')` and `B = findlinks(Δ, Σ)`, this reads `findlinks_disc(W, d_q, Σ) = A ∪ B`, so the stability equation `A = findlinks_disc(W, d_q, Σ)` becomes `A = A ∪ B`, which holds iff `B ⊆ A` — exactly `findlinks(Δ, Σ) ⊆ findlinks(image(W, d_q, Σ'), Σ)`. This is the weakest precondition for discovery-anchored stability under this single K.μ⁻ step — the discovery analog, on the contraction side, of ASN-0098's LP12a (ContractionDiscoverabilityWP). The uniform characterization over arbitrary transitions and regions remains open (Q3).*
+
 **D-ZERO (PresentNotHistorical).** *A discovery zero `findlinks_disc(W, d_q, Σ) = ∅` asserts that no link in `dom(Σ.L)` is presently reachable from `d_q`'s arrangement at `Σ`. It does not assert historical absence. A link whose endpoints have left `d_q`'s consulted arrangement merely ceases to be reachable through it (its image drops by D-NONMONO), so it leaves the discovery set while remaining a permanent member of the store (L12).*
 
 *By contrast, an existence zero against fixed `I` certifies historical absence: by E-INV satisfaction against fixed `I` is per-link time-invariant, and by E-MONO the set is monotone, so `findlinks(I, Σ) = ∅` implies `findlinks(I, Σ₀) ⊆ findlinks(I, Σ) = ∅` along every path `Σ₀ →* Σ` — no link satisfying `I` was ever created.*
@@ -173,6 +183,8 @@ Take a single document `d` with three text positions `v_1, v_2, v_3` mapping to 
 *Stability under K.α* — allocating fresh content `a_4` adds nothing to `image(R, d, Σ)` (V-positions in `R` are unchanged); F-INERT carries the result. ✓
 
 *Stability under K.μ⁻* — with `v_1 = [1,1], v_2 = [1,2], v_3 = [1,3]`, K.μ⁻ retains an initial segment `{[s_C, 1, …, 1, k] : 1 ≤ k ≤ n'_{s_C}}` of the sequential positions (D-SEQ★), never a mid-sequence position. Retaining `n'_{s_C} = 1` keeps only the prefix `{v_1}`, removing both `v_2` and `v_3`. Then `R ∩ dom(Σ'.M(d)) = {v_1, v_2} ∩ {v_1} = {v_1}`, so `image(R, d, Σ')` shrinks to `{a_1}` and `findlinks_disc(R, d, Σ')` shrinks to `{L_1}`. ✓ D-NONMONO contraction clause.
+
+*Rise under K.μ⁺ (store-fixed)* — Continue from the contracted state of the previous bullet, naming it `Σ₁`: `dom(Σ₁.M(d)) = {v_1}`, so `image(R, d, Σ₁) = {a_1}` and `findlinks_disc(R, d, Σ₁) = {L_1}`. The pre-existing link `L_2 = ({a_2}, {a_3}, Θ)` still resides in `dom(Σ₁.L)` (K.μ⁻ preserved the store) and its from-endpoint `a_2` still resides in `dom(Σ₁.C)` (content is permanent, P0) — but `a_2 ∉ image(R, d, Σ₁)`, so `L_2 ∉ findlinks_disc(R, d, Σ₁)`: the link and its target both persist, yet `L_2` is presently undiscoverable through `d`. Now apply K.μ⁺ adding `v_2 ↦ a_2`, a valid content-subspace extension restoring the contiguous segment `{v_1, v_2}` (D-SEQ★) whose image `a_2 ∈ dom(Σ₁.C)` discharges referential integrity (S3★); call the result `Σ₂`. The link store is untouched — `Σ₂.L = Σ₁.L` (F-PRES) — so no link is created. Yet `image(R, d, Σ₂) = {a_1, a_2}`, and `L_2` re-enters via slot 1 (`e₁ ∩ {a_1, a_2} = {a_2} ≠ ∅`): `findlinks_disc(R, d, Σ₂) = {L_1, L_2}`. Thus `L_2 ∉ findlinks_disc(R, d, Σ₁)` while `L_2 ∈ findlinks_disc(R, d, Σ₂)` — the discovery set rises under a pure arrangement extension, with no link created or modified. ✓ D-NONMONO extension clause. This store-fixed rise is precisely the motion existence anchoring cannot exhibit: against fixed `I`, only K.λ ever changes `findlinks(I, ·)` (F-LAMBDA, E-CONS), so the existence-anchored set never rises without a creation — here discovery rises on arrangement alone.
 
 *K.λ adding L_3* `= ({a_1}, ∅, Θ)` (a conforming triple; the empty to-endset is admissible, the type slot `Θ = {a_θ} ≠ ∅` is mandatory): F-LAMBDA gives `findlinks({a_1, a_2}, Σ') = {L_1, L_2, L_3}` — the prior result plus the new link's match, which fires via slot 1 (`e₁ ∩ {a_1} = {a_1}`).
 
@@ -202,6 +214,7 @@ Take a single document `d` with three text positions `v_1, v_2, v_3` mapping to 
 | E-CONS | path-level set difference is exactly matching creations | existence anchoring |
 | D-PRES | image is a live reading of `Σ.M(d_q)` | discovery anchoring |
 | D-NONMONO | discovery-anchored result is non-monotone (K-case analysis) | discovery anchoring |
+| D-CWP | K.μ⁻ stability iff every dropped-region link also reaches a retained I-address | discovery anchoring (wp) |
 | D-ZERO | discovery zero ≠ historical absence | discovery anchoring |
 
 ## Open questions
@@ -210,6 +223,6 @@ What is the relationship between `findlinks_V` and a content-keyed query that na
 
 Under what filter-set constraints over `findlinks` does union-distributivity (F-UDIST) preserve into the filtered form, and where does the per-slot universal vs the per-link existential distinction matter for compositional reasoning?
 
-What conditions on `R` and on a transition `Σ → Σ'` are jointly sufficient to preserve `findlinks_V(R, d, Σ) = findlinks_V(R, d, Σ')` — i.e., the weakest precondition for discovery-anchored stability under a specific transition?
+D-CWP computes the weakest precondition for discovery-anchored stability under a K.μ⁻ contraction on the query document. What is the corresponding weakest precondition for an arbitrary transition `Σ → Σ'` and region `R` — a uniform characterization across the whole K-vocabulary (extension, reorder, and off-document transitions alongside contraction) of when `findlinks_V(R, d, Σ) = findlinks_V(R, d, Σ')`, of which D-CWP is the contraction instance?
 
 How does this foundation compose with ASN-0098's link projection displacement? `image()` and the LP** results both consult `Σ.M`; the natural composition is "project a link through arrangement, then ask if the projection meets a content region" — but the operational composition is not addressed here.
