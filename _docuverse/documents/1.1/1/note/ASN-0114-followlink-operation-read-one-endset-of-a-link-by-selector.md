@@ -49,14 +49,8 @@ endset's spans; it consults no other component of state. A *span-set* (ASN-0053)
 is a finite sequence of spans denoting the union of its spans' position sets,
 `⟦Σ⟧`, with two span-sets equivalent when they denote the same set. We will
 write the result of FOLLOWLINK as a span-set and measure it by its coverage,
-extending `coverage` to a span-set `R` by the bridging definition `coverage(R)
-:= ⟦R⟧`. The extension is faithful: `coverage(e)` unions the position sets over
-the spans of an endset (a set), `⟦R⟧` unions them over the spans of a span-set (a
-sequence), and both reduce to the *same* union over the *same* spans — so the
-set-versus-sequence form and the order of spans within `R` are alike immaterial.
-An equality `coverage(R) = coverage(eᵢ)` is then well-typed — a span-set
-denotation on the left, an endset coverage on the right — and means exactly
-`⟦R⟧ = coverage(eᵢ)`.
+writing `coverage(R) := ⟦R⟧` for a span-set `R`. An equality `coverage(R) =
+coverage(eᵢ)` then unfolds to `⟦R⟧ = coverage(eᵢ)`.
 
 Two consequences of ASN-0053's S2 — every well-formed span denotes a non-empty
 set — we name them here. No object assembled from one or more
@@ -65,10 +59,7 @@ object. For a span-set `R` this is the *first collapse*,
 `coverage(R) = ∅ ⟺ R = ⟨⟩`; for an endset `e` it is the *second collapse*,
 `coverage(e) = ∅ ⟺ e = ∅`. Both are written coverage-first, so each `⟸` is
 immediate — the empty object covers nothing — and each `⟹` is the contrapositive
-of S2. The first collapse also
-fixes the reading of `R = ⟨⟩` when `R` stands for the coverage-relation rather
-than a single span-set: it abbreviates `coverage(R) = ∅`, which is well-defined
-on the relation.
+of S2.
 
 ## The selector and its domain
 
@@ -212,10 +203,8 @@ what does *not* change:
 
 > **F4 (PureRead).** `followlink` induces no state transition. For the state
 > `Σ` against which it is evaluated, the post-state equals `Σ`: the content
-> store `Σ.C`, the link store `Σ.L`, every arrangement `Σ.M(d)`, and every other
-> endset of the queried link are identical before and after. In particular,
-> requesting end `i` of link `a` changes neither `Σ.L(a)` itself, nor any
-> `Σ.L(a).eⱼ` for `j ≠ i`, nor any document the selected end points into.
+> store `Σ.C`, the link store `Σ.L`, and every arrangement `Σ.M(d)` are identical
+> before and after.
 
 An implementation that satisfied F1 but, say, advanced an arrangement or
 perturbed a referenced document as a side effect would not have implemented
@@ -501,7 +490,7 @@ abstract specification exists to make visible.
 | F1 | CoverageExactness: `coverage(followlink(Σ, a, i)) = coverage(Σ.L(a).eᵢ)` — neither over- nor under-coverage | introduced |
 | F2 | DiscontiguityFaithfulness: if `coverage(Σ.L(a).eᵢ)` is disconnected, any F1-result has `≥ 2` spans (corollary of F1 and span convexity) | introduced |
 | F3 | RepresentationInvariance: any two F1-results for the same `(Σ, a, i)` are denotationally equal; the contract binds coverage, not span decomposition or order (corollary of F1) | introduced |
-| F4 | PureRead frame: `followlink` induces no state transition; `Σ.C`, `Σ.L`, every `Σ.M(d)`, and every slot `j ≠ i` are unchanged | introduced |
+| F4 | PureRead frame: `followlink` induces no state transition; `Σ.C`, `Σ.L`, and every `Σ.M(d)` are unchanged | introduced |
 | F5 | TemporalDeterminism: for `Σ →* Σ'` with `a ∈ dom(Σ.L)`, results at the two states are coverage-equal (from F1 and L12 immutability, the latter composed by LP13) | introduced |
 | F6 | SlotConfinement: the result's *coverage* is a function of `coverage(Σ.L(a).eᵢ)` alone, turning on no `eⱼ`, `j ≠ i` (corollary of F1); representation-level non-exposure of other ends is an implementation property, not a contract guarantee | introduced |
 | F7 | EmptyVersusInvalid: `⟨⟩ ≠ ⊥`; a valid selector over an empty end returns `⟨⟩` (success); an invalid selector returns `⊥` (error); collapsing them is incorrect | introduced |
