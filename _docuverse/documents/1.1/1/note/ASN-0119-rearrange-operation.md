@@ -255,11 +255,9 @@ builds composites from a closed atomic vocabulary
 `{K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.ρ}` that does not contain REARRANGE. We
 therefore extend that vocabulary with REARRANGE as a new atomic primitive: a single
 REARRANGE step is, by fiat, a one-step valid composite, making `Σ → Σ'` a valid
-composite transition and its post-state `Σ'` a composite boundary. The couplings are
-then evaluated between `Σ` and `Σ'`, the composite-boundary properties at `Σ'`,
-exactly as ASN-0047 requires. One structural fact underlies several of them: because
-`π` permutes the text subspace onto itself, the content-subspace value set is
-invariant,
+composite transition and its post-state `Σ'` a composite boundary. One structural
+fact underlies several of them: because `π` permutes the text subspace onto itself,
+the content-subspace value set is invariant,
 
       { M'(d)(v) : subspace(v) = s_C } = { M(d)(u) : subspace(u) = s_C }.
 
@@ -294,14 +292,24 @@ an earlier trace state in the prefix, whose arrangement `M_k(d)` the appended
 REARRANGE step does not touch, so it persists unchanged into the extended trace to
 `Σ'`, witnessing `(a, d)` there as well — the pre-state's trace witness persists,
 and the appended step is never consulted. A trace reaching `Σ'` by any *other*
-final composite does not factor through `Σ` via REARRANGE, and need not: as "The
-two streams" notes, the non-atomic `K.μ~` composite (`K.μ⁻ + K.μ⁺`) realizes the
-same net `π` and reaches the same `Σ'`, so the final composite of such a trace is a
-`K.μ~`, ending in its `K.μ⁺` half rather than in REARRANGE. Such a trace is that
-composite's own P4a obligation, already discharged by ASN-0047's induction over its
-atomic vocabulary. P4a at `Σ'` thus holds on every valid trace — the
-REARRANGE-ending ones by the persistence argument above, all others by the
-operations that produce them. The genuinely per-state ExtendedReachableStateInvariants conjuncts that
+final composite has that composite drawn from ASN-0047's vocabulary; it does not
+factor through `Σ` via REARRANGE, and need not. The non-atomic `K.μ~` composite
+(`K.μ⁻ + K.μ⁺`) realizes the same net `π` and reaches the same `Σ'`, ending in its
+`K.μ⁺` half — but it is only one such route (a standalone `K.μ⁺` adding a single
+content position reaches `Σ'` as well), an illustration rather than a
+characterization of the alternatives. For *any* such final composite `Σ'' →* Σ'`,
+ASN-0047's P4a argument for that composite discharges the obligation at `Σ'` from
+the single hypothesis that P4a holds at its pre-state `Σ''`; that argument reads
+only the pre-state, never how `Σ''` was reached, so it transfers verbatim when the
+prefix `Σ₀ →* Σ''` interleaves REARRANGE steps. The hypothesis itself — P4a at
+`Σ''` — is supplied not by ASN-0047's induction alone (which ranges only over its
+own atomic vocabulary, not REARRANGE-interleaved traces) but by the *combined*
+induction over the extended vocabulary: ASN-0047's arguments establish that each of
+its composites preserves the invariant package, this ASN establishes that REARRANGE
+preserves it, and so every reachable composite boundary — REARRANGE-interleaved or
+not — satisfies P4a, `Σ''` among them. P4a at `Σ'` thus holds on every valid
+trace — the REARRANGE-ending ones by the persistence argument above, all others by
+their final composite's ASN-0047 argument under the combined induction. The genuinely per-state ExtendedReachableStateInvariants conjuncts that
 remain (P6, P7, P8, the E-family NodeLineage/ActivatedEmission, the L-family, the
 C-family) are preserved by the `C`/`E`/`R`/`L` frame. ASN-0047's second transition theorem,
 **ExtendedTransitionInvariants** (its sole conjunct **P3**,
