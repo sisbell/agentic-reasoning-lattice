@@ -126,8 +126,12 @@ captures nothing — all-or-nothing on where the shallow start happened to fall.
 spec stale against a re-pinned subspace should deliver nothing rather than vacuum
 its re-pinned content; so in the shallow case (`#s < m_S(d)`) the override forces
 empty lest the intersection capture deeper content the citation never named. The
-override changes nothing in the deep case `#s > m_S(d)`, where Confinement and
-S8-depth already force `dom(Σ.M(d)) ∩ ⟦σ⟧ = ∅`. In either branch `act(ρ, Σ)` is finite —
+override changes nothing in the deep case `#s > m_S(d)`, where the geometric
+intersection is independently empty: for any `v ∈ dom(Σ.M(d)) ∩ ⟦σ⟧`, Confinement
+gives `v₁ = s₁ = S` (so `v ∈ V_S(d)`) and S8-depth then pins `#v = m_S(d) < m = #s`,
+while Confinement's agreement of `v` with `s` on positions `1 ≤ j < m` covers all
+`#v` of `v`'s own positions — so `v` is a proper prefix of `s`, whence `v < s`
+(T1 case (ii)), contradicting the lower bound `v ≥ s` that `v ∈ ⟦σ⟧` supplies. In either branch `act(ρ, Σ)` is finite —
 it is `∅`, or a subset of `dom(Σ.M(d))`, which is finite (ASN-0036, S8-fin) — and
 totally ordered, being a subset of the totally
 ordered carrier `T` (ASN-0034, T1).
