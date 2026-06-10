@@ -288,27 +288,24 @@ where `R₀ = ∅` (ASN-0047, `Σ₀`); P4a's quantifier over `(a, d) ∈ R` is 
 
 *Step* (`n → n+1`): an `(n+1)`-composite trace `T` factors as an `n`-composite
 prefix `T⁻` to a pre-state `Σ⁻` extended by a final composite `C : Σ⁻ →* Σ⁺`, with
-`Σ⁺` the trace's final state. The inductive hypothesis `U(n)`, applied to the
-strictly shorter prefix `T⁻`, supplies P4a at `Σ⁻` along `T⁻`. We split on `C`.
+`Σ⁺` the trace's final state. Fix any `(a, d) ∈ Σ⁺.R` and split on whether the entry
+is new across `C`.
 
-*Case (i): `C` is the REARRANGE step* (so `Σ⁻ = Σ`, `Σ⁺ = Σ'`). Fix any
-`(a, d) ∈ R'`; since `R' = R` it already lies in `R = Σ⁻.R`, so `U(n)` exhibits a
-trace state `Σ_k` in `T⁻`'s history at which `a` sat in `d`'s content-subspace
-range. That `Σ_k` is an earlier state in the prefix, whose arrangement `M_k(d)` the
-appended REARRANGE step does not touch, so it persists unchanged into `T`'s history
-and witnesses `(a, d)` there as well. No entry is range-new (`R' = R`), so every
-obligation is met from the prefix.
+*New entry* (`(a, d) ∈ Σ⁺.R \ Σ⁻.R`): the coupling J1'★, which holds
+initial-to-final for the valid composite `C` (and for REARRANGE, declared a one-step
+valid composite, holds vacuously since `Σ⁺.R = Σ⁻.R`), places `a` in `d`'s
+content-subspace range at `Σ⁺` itself. `Σ⁺` is the trace's own final boundary, hence
+a state in `T`'s history, and it witnesses `(a, d)`.
 
-*Case (ii): `C` is one of ASN-0047's composites.* ASN-0047's own per-composite P4a
-argument for `C` discharges the obligation at `Σ⁺` from the single hypothesis that
-P4a holds at its pre-state `Σ⁻` — exactly what `U(n)` supplies. That argument reads
-only the pre-state, never how `Σ⁻` was reached, so it transfers verbatim to a prefix
-`T⁻` that interleaves REARRANGE steps.
+*Pre-existing entry* (`(a, d) ∈ Σ⁻.R`): the inductive hypothesis `U(n)`, applied to
+the strictly shorter prefix `T⁻`, supplies a boundary state `Σ_k` in `T⁻`'s history
+at which `a` sat in `d`'s content-subspace range. `Σ_k` is a state of the prefix and
+persists into `T`'s history, witnessing `(a, d)` there as well.
 
-In both cases `U(n+1)` holds, so by induction every reachable composite boundary
-satisfies P4a — `Σ'` among them. The appeal in Case (ii) is to `U(n)`, P4a at the
-strictly shorter pre-state, never to the conclusion `U(n+1)`, so the discharge is
-not circular. The genuinely per-state
+The split is exhaustive, so `U(n+1)` holds; by induction every reachable composite
+boundary satisfies P4a — `Σ'` among them. The argument rests only on J1'★ and `U(n)`,
+and is uniform in `C`: REARRANGE is simply the `Σ⁺.R = Σ⁻.R` instance, in which the
+new-entry branch is empty and every entry discharges through `U(n)`. The genuinely per-state
 ExtendedReachableStateInvariants conjuncts that remain fall under a single closure
 rule: every conjunct keyed only on frame-frozen components — `dom(C)` and its
 values by RA0, `E` and `R` inert, `dom(L)` and its values by RA6 — is preserved by
@@ -324,8 +321,7 @@ dom(C')` with `C'(a) = C(a)` by RA0, `dom(L) = dom(L')` with `L'(ℓ) = L(ℓ)` 
 frozen link store (`Σ'.L = Σ.L`), and `E = E'`, `R = R'` by the inert `E`/`R`
 frame — so the only component P3 permits to lose information, `M`, is the only one
 REARRANGE rewrites. With both of ASN-0047's invariant theorems discharged, the
-invariant package REARRANGE joins is fully accounted for. We may now read off the
-remaining obligations.
+invariant package REARRANGE joins is fully accounted for.
 
 ## The intervening content
 
@@ -378,8 +374,8 @@ the document neither grows nor shrinks.
 
 ## A worked transposition
 
-We fix a concrete instance, to be cited by the sections that follow, and check
-the postconditions against explicit ordinals. Take a document `d` whose text
+We fix a concrete instance and check the postconditions against explicit
+ordinals. Take a document `d` whose text
 subspace holds five bytes "ABCDE" at the contiguous depth-2 positions
 `[s_C, 1], …, [s_C, 5]`; write `a_k = M(d)([s_C, k])` for the I-address of the
 k-th byte, so `ord([s_C, k]) = k`.
@@ -393,8 +389,7 @@ front of the interval with `β` — `M'([s_C,2]) = a₃`, `M'([s_C,3]) = a₄`,
 
       A C D E B.
 
-The induced permutation `π`, which the sections below refer back to, reads off
-these destination equations:
+The induced permutation `π` reads off these destination equations:
 
       π:  ord 1 ↦ ord 1,   ord 2 ↦ ord 5,   ord 3 ↦ ord 2,
           ord 4 ↦ ord 3,   ord 5 ↦ ord 4.
@@ -483,9 +478,13 @@ must say *precisely* what the rearrangement does to its contiguity. The positive
 fact we can lean on is ASN-0084's **R-COMM** (PermutationShiftCommutativity):
 within each region `π` commutes with ordinal shift, `π(v + k) = π(v) + k`, so it
 acts there as a *constant displacement* — a rigid translation carrying the whole
-region by one fixed offset, which may be forward, backward, or zero (R-COMM
-licenses `π(v + k) = π(v) + k` regardless of that offset's sign, so this is not an
-ordinal shift, which ASN-0034 defines only for a positive amount). Reading the
+region by one fixed net offset. Two quantities must be kept distinct here. The
+within-region offset `k ≥ 0` in `π(v + k) = π(v) + k` is a forward ordinal shift
+(ASN-0034 defines `shift` only for a positive amount, with `k = 0` the identity),
+indexing positions within the region. The region's *net translation* `π(v₀) − v₀`
+is the signed quantity that may be forward, backward, or zero. R-COMM fixes the
+rigid-translation structure independently of that net direction — so the net
+translation need not itself be an ordinal shift. Reading the
 constants off R-PPERM/R-SPERM: in the pivot every position of `β` moves by `−w_α`
 (R-P1), every position of `α` by `+w_β` (R-P2), and the exterior by `0` (R-EXT);
 in the swap the four constant displacements are `−(w_α+w_μ)`, `w_β−w_α`,
