@@ -21,14 +21,6 @@ disclose — about content shared by transclusion, and about spans that cross fr
 the text subspace into the link subspace — that delivering one span in isolation
 would conceal? And what invariants govern the material the operation may return?
 
-The discipline of specification forces us to be exact about each of these. We
-shall find that "deliver the content" decomposes into a resolution step (map each
-named V-position through the arrangement to a content address) and a fetch step
-(read the immutable value at that address), and that the interesting content of
-the operation lives in the boundary conditions: missing positions, shared
-positions, cross-subspace positions, and the permanence of the store the bytes
-are drawn from.
-
 ## The substrate we build on
 
 **Standing precondition (reachability).** Throughout this ASN, every state `Σ`
@@ -79,7 +71,14 @@ for the subspace the start designates, when `S` is already populated in `d`
 (`V_S(d) ≠ ∅`) the start
 must match that subspace's common depth, `#s = m_S(d)` (the depth S8-depth
 (ASN-0036) fixes uniformly on `V_S(d)`). When `V_S(d) = ∅` the constraint is
-vacuous — any well-formed start of depth `≥ 2` is admissible.
+vacuous — any well-formed start of depth `≥ 2` is admissible. Because `m_S(d)`
+is itself mutable — ASN-0047 re-pins a fully-cleared subspace's depth from
+scratch on its next insertion — a V-spec well-formed when minted may later, at a
+downstream state of the *same* document, fail `#s = m_S(d)`; by R6's discipline
+we take such a depth-incompatible spec to have empty active set
+(`act(ρ, Σ) = ∅`, overriding the geometric `dom(Σ.M(d)) ∩ ⟦σ⟧` lest a
+now-too-shallow start capture deeper content the citation never named), so it
+delivers nothing and the request still succeeds rather than failing the whole.
 Ordinal-level means the width acts at the deepest component,
 `actionPoint(ℓ) = #ℓ` (ASN-0082, OrdinalLevel). This is the deepest-action-point
 discipline that keeps a span within a single subspace:
@@ -142,9 +141,7 @@ the whole spec-set is the concatenation in spec-set order:
 
 > `deliver(R, Σ) = deliver₁(ρ₁, Σ) ⌢ deliver₁(ρ₂, Σ) ⌢ … ⌢ deliver₁(ρₚ, Σ)`     (R0)
 
-Everything that follows is an analysis of this object. We name `deliver` as R0;
-the named claims R1–R11 record the invariants any faithful realization must
-satisfy. The empty-request boundary is settled by the definition: when `p = 0`
+The empty-request boundary is settled by the definition: when `p = 0`
 the concatenation in R0 has no factors, so `deliver(⟨⟩, Σ) = ⟨⟩` — the empty
 spec-set is a valid request whose delivery succeeds and returns nothing.
 
@@ -434,9 +431,7 @@ citation: "any address … may be specified by a permanent tumbler address" (4/1
 
 ## What co-delivery does with transclusion
 
-Now the first of the questions about whether delivering a *whole spec-set* is
-more than the sum of delivering its spans one at a time. Suppose two positions in
-the request — in the same spec or different specs — resolve to the same content
+Suppose two positions in the request — in the same spec or different specs — resolve to the same content
 address `a`. This is
 transclusion: the same content, included by reference in two places, carrying one
 permanent I-address wherever it appears (ASN-0036, S5 UnrestrictedSharing).
@@ -589,7 +584,7 @@ obligation R9 names.
 
 ## What co-delivery reveals: subspace crossing
 
-The last revelation. A document's arrangement maps positions in two subspaces:
+A document's arrangement maps positions in two subspaces:
 content (`s_C`) and links (`s_L`). A spec-set with specs in both subspaces
 gathers positions of both kinds.
 
@@ -737,7 +732,7 @@ What must content delivery guarantee about inline provenance — must a delivere
 
 Under what conditions, if any, may a content-delivery operation be permitted to fail outright rather than deliver partially?
 
-What invariant must govern delivery when a spec-set's resolved references include an address with no entity bound in either store?
+Were generalized referential integrity (S3★) relaxed — so that an arrangement could bind a position to an address present in neither store — what must delivery guarantee for the resulting dangling reference?
 
 What faithfulness, if any, may be required of the delivery channel itself, given that the storage-layer faithfulness invariant does not extend to transmission?
 
