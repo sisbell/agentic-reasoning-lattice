@@ -82,8 +82,18 @@ def main():
         help="Comment link id to close (overrides PROTOCOL_COMMENT_ID env).",
     )
     sub = parser.add_subparsers(dest="action", required=True)
-    sub.add_parser("accept")
+    p_accept = sub.add_parser("accept")
     p_reject = sub.add_parser("reject")
+    # Registered on the subparsers as well so the documented form
+    # (`accept --comment-id <id>`) parses. SUPPRESS keeps the attr out
+    # of the sub-namespace when the flag is absent there; without it,
+    # argparse copies the subparser's None default over a value parsed
+    # before the subcommand.
+    for p in (p_accept, p_reject):
+        p.add_argument(
+            "--comment-id", dest="comment_id", default=argparse.SUPPRESS,
+            help="Comment link id to close (overrides PROTOCOL_COMMENT_ID env).",
+        )
     p_reject.add_argument(
         "--rationale", required=True,
         help="One or two sentences explaining why the finding was refused.",
