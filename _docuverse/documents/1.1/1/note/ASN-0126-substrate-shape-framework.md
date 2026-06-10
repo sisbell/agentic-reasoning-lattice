@@ -31,7 +31,7 @@ The registry records, for each type an app declares, the shape its tuples must t
 - a **name** — an opaque string identifier
 - a **shape** — one of `Unary`, `Binary`, `Multi` (Three shapes by G span count)
 
-A registry is well-formed when shape values lie in `{Unary, Binary, Multi}`, names are unique within the registry, and — the condition the shape function's well-definedness actually rests on — *coverage-class keys are unique*: no two entries have `~`-equal keys. Equivalently, a well-formed registry *is* a partial function `T_admissible/~ ⇀ (name, shape)` from coverage classes to entries. Within one substrate, the name uniquely identifies a registry entry.
+A registry is well-formed when shape values lie in `{Unary, Binary, Multi}` and — the condition the shape function's well-definedness actually rests on — *coverage-class keys are unique*: no two entries have `~`-equal keys. Equivalently, a well-formed registry *is* a partial function `T_admissible/~ ⇀ (name, shape)` from coverage classes to entries.
 
 **C0 (RegistryWellFormedness).** `Σ_init.registry` is well-formed (above) and finite: `|Σ_init.registry| < ∞`.
 
@@ -67,7 +67,7 @@ This gate yields the framework's safety guarantee. **P3 (Sh-confWellFormedness).
 
 One class of ASN-0086 emits falls outside `→_sh` entirely. The `|F| = 1` rule (Single-source) admits no empty-from source, and `K.λ_sh`'s precondition (ii) enforces it: `Emit_K` is total over `Endset × Endset` and `∅ ∈ Endset`, so `Emit_K(Σ, d, ∅, G)` is a legitimate ASN-0086 invocation, yet — carrying no F span — it has `|F| = 0`; every registrable shape requires `|F| = 1`, so for a registered K precondition (ii) fails and for an unregistered K precondition (i) fails, and either way the emit has **no** `→_sh` image. ASN-0086's `Nullify(Σ, d_retr, a) ≡ Emit_R(Σ, d_retr, ∅, {(a, δ(1, #a))})` is one such empty-from emit, so it too has no `→_sh` image. Retraction must therefore be re-expressed as a single-source emit before the framework can gate it (Retraction as an attributed Binary).
 
-A second class falls outside `→_sh` for a different reason — precondition (0) itself. ASN-0086's `K.λ` admits any arity `N ≥ 3`; L3 (ASN-0043) records Nelson's explicit call for N-endset support beyond three, "4-sets, 5-sets ... n-sets supported in link storage and search." Precondition (0) restricts `K.λ_sh` to arity *exactly* 3, so every `N > 3` emission — legal under ASN-0086 — likewise has **no** `→_sh` image: an app whose links carry four or more endsets is foreclosed by this framework, just as the empty-from emit is. This is a deliberate narrowing of the gateable surface, not an oversight; the path to richer arity is left to Open Question 6.
+A second class falls outside `→_sh` for a different reason — precondition (0) itself. ASN-0086's `K.λ` admits any arity `N ≥ 3`, but precondition (0) restricts `K.λ_sh` to arity *exactly* 3, so every `N > 3` emission has **no** `→_sh` image. The path to richer arity is left to Open Question 6.
 
 ## Registry permanence
 
@@ -97,7 +97,7 @@ The bridge has two consequences.
 
 **(B1) Shared components.** Σ and `π(Σ)` share their C, M, and L components. Since `a_emit` reads only M and L, `a_emit(π(Σ), d) = a_emit(Σ, d)` and `dom(π(Σ).L) = dom(Σ.L)`; consequently `A_rel^{π(Σ)} = A_rel^Σ` (AddressPartition, ASN-0086, gives `A_rel^Σ = dom(Σ.L)`).
 
-**(B2) Lemma transfer.** Take any ASN-0086 result whose conclusion is a predicate over the C/M/L components — either of a single `→*`-reachable state, or of a transition between two states each separately exhibited as `→_sh`-reachable. For each state Σ this note reasons about, `π(Σ)` is `→*`-reachable (ProjectionBridge), so the result holds at `π(Σ)`; since it constrains only the shared C/M/L components, its conclusion transfers to Σ directly. This is the subclass every B2 citation below draws on — R-Scope, wp Case 2, L12, L-ContiguousPrefix are all state- or transition-predicates over C/M/L.
+**(B2) Lemma transfer.** Take any ASN-0086 result whose conclusion is a predicate over the C/M/L components — either of a single `→*`-reachable state, or of a transition between two states each separately exhibited as `→_sh`-reachable. For each state Σ this note reasons about, `π(Σ)` is `→*`-reachable (ProjectionBridge), so the result holds at `π(Σ)`; since it constrains only the shared C/M/L components, its conclusion transfers to Σ directly.
 
 *Existence-of-successor results are excluded.* ASN-0086's R0 (TupleAddressFreshness), R5 (TupleSelfTargeting), and R6c's restoration-by-reemission each conclude `∃ Σ' : Σ → Σ' ∧ …`. Transferring such a conclusion through `π` yields a `→`-successor of `π(Σ)`, whose witnessing `K.λ` step need not satisfy (0)/(i)/(ii) and so need not be a `K.λ_sh` step: a `→`-successor of `π(Σ)` is not automatically a `→_sh`-successor of Σ. Results of this subclass are obtained here not through B2 but by lifting (P5), which re-derives a gated emission by applying `Emit_K` at `π(Σ)` and manually lifting its `K.λ` step to `K.λ_sh`.
 
