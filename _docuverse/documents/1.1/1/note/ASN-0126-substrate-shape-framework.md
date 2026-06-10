@@ -14,7 +14,7 @@ Binary registration is strictly weaker than ASN-0086's UnitDepthRetractionDiscip
 
 ## Three shapes by G span count
 
-With F fixed at one span, the framework varies only by what G can hold. We measure G by its *span count* `|G|` (Single-source). The framework provides three registrable shapes, parameterized by `|G|`:
+With F fixed at one span, the framework varies only by what G can hold. We measure G by its span count `|G|`. The framework provides three registrable shapes, parameterized by `|G|`:
 
 | Shape  | G span count   | What it expresses                                              |
 |--------|----------------|-----------------------------------------------------------------|
@@ -26,7 +26,7 @@ Unary (`|G| = 0`) and Binary (`|G| = 1`) are mutually exclusive; the shapes clas
 
 ## Shape-conformance
 
-The shapes are stated in terms of the *span count* `|e|` of an endset (Single-source); F and G are both endsets. The span-count and coverage measures diverge sharply. A single unit-depth span `(a, δ(1, #a))` is one span — `|{(a, δ(1, #a))}| = 1` — yet its coverage is `{t : a ≼ t}`, generally infinite (PrefixSpanCoverage, ASN-0043). Span-count, not coverage, is the measure.
+The shapes are stated in terms of the span count `|e|` of an endset; F and G are both endsets. The span-count and coverage measures diverge sharply. A single unit-depth span `(a, δ(1, #a))` is one span — `|{(a, δ(1, #a))}| = 1` — yet its coverage is `{t : a ≼ t}`, generally infinite (PrefixSpanCoverage, ASN-0043). Span-count, not coverage, is the measure.
 
 One edge follows from counting spans rather than coverage. Types are keyed by *coverage class* (Registration entries) — coverage-invariant — but F-conformance counts spans, a coverage-variant notion. So a source presenting one contiguous extent as two abutting spans `(a, ℓ₁)`, `(a ⊕ ℓ₁, ℓ₂)` has `|F| = 2` and fails every shape, even though its coverage equals that of the conformant one-span F. The rule is on the side of the literal emission: **a single-span slot means a single span as emitted**. Counting spans-as-emitted keeps the measure intrinsic to the value.
 
@@ -58,7 +58,7 @@ ASN-0086 (wp Case 2) gives, for the ungated `Emit_K` over `→*`-reachable Σ, w
 
 `wp(Emit_K(Σ, d, F, G), (a, F, G) ∈ A_K^{Σ'}) ≡ d ∈ dom(Σ.M) ∧ (K ≁ R ∨ a_emit(Σ, d) ∉ coverage(G)) ∧ ¬(∃ (b, F', G') ∈ L_R^Σ :: a_emit(Σ, d) ∈ coverage(G'))`.
 
-The three inherited conjuncts read: the home is an allocated document (C1); the emit is not a self-nullifying retraction — the `K ≁ R` escape (C2); and no pre-existing retraction tuple already covers the fresh address (C3). `K.λ_sh` adds three preconditions to `K.λ` — (0) arity 3, (i) K registered, (ii) `Sh-conf(K, F, G)` — while leaving the C/M/L effect and the fresh address `a_emit(Σ, d)` identical (the projection argument below: a `K.λ_sh`-step acts on C/M/L exactly as `K.λ`). The gated emit therefore deposits `(F, G, K)` at `a_emit(Σ, d)` under precisely ASN-0086's post-state map, but is *enabled* on a strictly smaller guard. For a guarded operation `g → S`, `wp(g → S, R) ≡ g ∧ wp(S, R)` when the postcondition requires the operation to fire — and the active-subset postcondition is unattainable if the emit does not fire, since then the tuple is never deposited and `(a, F, G) ∉ A_K^{Σ'}`. With added guard `g_sh ≡ K registered ∧ Sh-conf(K, F, G)` and `wp(S, R)` ASN-0086's Case-2 right-hand side (the arity guard (0) is omitted from `g_sh` because the postcondition's arity-3 slice `|Σ.L(a)| = 3` already forces it — see The shape-gated emit):
+The three inherited conjuncts read: the home is an allocated document (C1); the emit is not a self-nullifying retraction — the `K ≁ R` escape (C2); and no pre-existing retraction tuple already covers the fresh address (C3). `K.λ_sh` adds three preconditions to `K.λ` — (0) arity 3, (i) K registered, (ii) `Sh-conf(K, F, G)` — while leaving the C/M/L effect and the fresh address `a_emit(Σ, d)` identical (the projection argument below: a `K.λ_sh`-step acts on C/M/L exactly as `K.λ`). The gated emit therefore deposits `(F, G, K)` at `a_emit(Σ, d)` under precisely ASN-0086's post-state map, but is *enabled* on a strictly smaller guard. For a guarded operation `g → S`, `wp(g → S, R) ≡ g ∧ wp(S, R)` when the postcondition requires the operation to fire — and the active-subset postcondition is unattainable if the emit does not fire, since then the tuple is never deposited and `(a, F, G) ∉ A_K^{Σ'}`. With added guard `g_sh ≡ K registered ∧ Sh-conf(K, F, G)` and `wp(S, R)` ASN-0086's Case-2 right-hand side (the arity guard (0) is omitted from `g_sh` because the postcondition's arity-3 slice `|Σ.L(a)| = 3` already forces it):
 
 `wp(Emit under →_sh, (a, F, G) ∈ A_K^{Σ'})`
 `≡ {g → S guard conjunction}`
@@ -124,7 +124,7 @@ Precondition (i) of `K.λ_sh` requires deciding whether the emitted `[K]` is a r
 The registry's invariance (P1, Registry permanence) and well-formedness (C0) together make a registered type's shape both stable and well-defined. **P2 (ShapeStability).** For any *registered* K, `shape(K)` is a well-defined function of K's coverage class `[K]` that takes the same value at every `→_sh*`-reachable state. The claim has two conjuncts, resting on different premises:
 
 - *State-stability* (← P1). For reachable Σ, Σ', the registry records the same shape for K; since `shape(K)` is read from the P1-invariant registry, the same K cannot carry one shape at Σ and another at Σ'.
-- *Coverage-class well-definedness* (← C0). For `K ~ K'`, `shape(K) = shape(K')`, so `shape(·)` is a function of `[K]` and not of an arbitrary representative endset. This conjunct rests not on P1 but on C0's uniqueness of coverage-class keys (established above) — exactly what was shown above to make `shape` and `Sh-conf` respect `~`.
+- *Coverage-class well-definedness* (← C0). That `shape(·)` is a function of `[K]`, not of an arbitrary representative endset, was derived above (Registration entries) from C0's uniqueness of coverage-class keys. This conjunct rests on that derivation — on C0, not P1.
 
 `Sh-conf` is therefore stable on registered types: for registered K it reads only `(F, G)` and `shape(K)`, and since `shape(K)` is registry-determined and the registry is invariant, `Sh-conf(K, F, G)` evaluates the same against Σ as against any Σ' reachable from Σ. Moreover registration status is itself state-independent by P1 — K is registered at Σ iff registered at Σ' — so the predicate is *defined* at Σ exactly when it is defined at Σ'. These two facts — verdict-stability and definedness-coincidence — are exactly what this note's fourth property records. **P4 (Sh-confStateIndependence).** For any *registered* K, any F, G, and any reachable Σ, Σ', `Sh-conf(K, F, G)` is defined at both states and its verdict at Σ equals its verdict at Σ'.
 
@@ -134,14 +134,14 @@ We lift P3's single-step guarantee to an invariant holding at every reachable st
 
 ## Properties established
 
-For a consuming app, the framework's guarantees are indexed below — each a property of *every* substrate satisfying this note's commitments. The canonical formal statement and proof of each live at the section named in parentheses; the glosses here are pointers, not restatements.
+For a consuming app, the framework's six guarantees and the section where each is stated and proved:
 
-- **P1 (RegistryInvariance)** — the registry never drifts from `Σ_init.registry`. (Registry permanence.)
-- **P2 (ShapeStability)** — a registered type's `shape(K)` is a well-defined function of `[K]`, constant across reachable states. (Registration entries.)
-- **P3 (Sh-confWellFormedness)** — every value a `→_sh`-step deposits is a standard triple with K registered and shape-conforming. (The shape-gated emit.)
-- **P4 (Sh-confStateIndependence)** — for registered K, `Sh-conf(K, F, G)` is defined and its verdict is state-independent. (Registration entries.)
-- **P5 (GateRealizability)** — every conforming triple at an allocated home fires a `→_sh`-step depositing it at `a_emit(Σ, d)`. (The shape-gated emit.)
-- **P6 (ReachableConformance)** — at every reachable state, every stored `Σ.L(a)` is a standard triple with K registered and shape-conforming — the guarantee a consuming app relies on. (Reachable conformance.)
+- **P1 (RegistryInvariance)** — Registry permanence.
+- **P2 (ShapeStability)** — Registration entries.
+- **P3 (Sh-confWellFormedness)** — The shape-gated emit.
+- **P4 (Sh-confStateIndependence)** — Registration entries.
+- **P5 (GateRealizability)** — The shape-gated emit.
+- **P6 (ReachableConformance)** — Reachable conformance.
 
 ## Worked illustration
 
