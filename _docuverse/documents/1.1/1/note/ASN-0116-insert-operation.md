@@ -376,9 +376,7 @@ ExtendedReachableStateInvariants for its post-state is licensed.
 
 We must check that the result is well-formed — that we have not opened a gap,
 overlaid two positions, or broken the density that lets spans name contiguous
-regions. INSERT is a valid
-composite, and `Σ` is reachable from `Σ₀` (precondition), so the post-state is
-reachable too. **ExtendedReachableStateInvariants (ASN-0047)** therefore delivers
+regions. **ExtendedReachableStateInvariants (ASN-0047)** therefore delivers
 the *entire* post-state invariant set at once — the per-state invariants S2
 (single-valuedness), S3★ (referential integrity), S8a, S8-depth, S8★, D-CTG★,
 D-MIN★, D-SEQ★, and the content-store validity S7b/C1/C1b/C1c of the freshly
