@@ -380,12 +380,16 @@ stationary content* (Question 5). Here the footprint may be split by a cut, and 
 must say *precisely* what the rearrangement does to its contiguity. The positive
 fact we can lean on is ASN-0084's **R-COMM** (PermutationShiftCommutativity):
 within each region `π` commutes with ordinal shift, `π(v + k) = π(v) + k`, so it
-acts there as a *uniform ordinal shift* — a constant displacement. Reading the
+acts there as a *constant displacement* — a rigid translation carrying the whole
+region by one fixed offset, which may be forward, backward, or zero (R-COMM
+licenses `π(v + k) = π(v) + k` regardless of that offset's sign, so this is not an
+ordinal shift, which ASN-0034 defines only for a positive amount). Reading the
 constants off R-PPERM/R-SPERM: in the pivot every position of `β` moves by `−w_α`
 (R-P1), every position of `α` by `+w_β` (R-P2), and the exterior by `0` (R-EXT);
 in the swap the four constant displacements are `−(w_α+w_μ)`, `w_β−w_α`,
 `w_β+w_μ`, and `0` for `β`, `μ`, `α`, and the exterior respectively. A constant
-shift is an order- and adjacency-preserving bijection on the region it acts on.
+displacement is an order- and adjacency-preserving bijection on the region it acts
+on.
 Hence a footprint *confined to a single region* has its entire run structure
 carried intact: the number of contiguous spans it comprises, and the gaps
 between them, are exactly the same before and after. In particular a footprint that is a single contiguous run
@@ -399,12 +403,15 @@ condition for contiguity-preservation — not as a weakest precondition:
 Every other postcondition of this note holds unconditionally (`wp = true`); the
 footprint's contiguity is the single property REARRANGE does not preserve in
 general, and so the one that needs a precondition. But that precondition is
-genuinely *only sufficient*. The converse of P7c fails in *both* directions, and
-the reason is that REARRANGE does not merely shift each region — it *relocates the
-region blocks*, laying `β` before `α` (pivot) or `β, μ, α` (swap), and so
-manufactures new *seams* where two formerly separated blocks now abut. Run
-structure is preserved *within* a region, but the seams can both heal and break
-contiguity *across* regions.
+genuinely *only sufficient*, and in two distinct senses, each exhibited by an
+example below: confinement is *not necessary* for a contiguous result — a
+footprint straddling a cut can still land contiguous — and confinement does *not*
+entail a single-span result — a footprint with internal gaps inside one region
+stays fragmented. The reason is that REARRANGE does not merely shift each region —
+it *relocates the region blocks*, laying `β` before `α` (pivot) or `β, μ, α`
+(swap), and so manufactures new *seams* where two formerly separated blocks now
+abut. Run structure is preserved *within* a region, but the seams can both heal
+and break contiguity *across* regions.
 
 *Confinement is not necessary (a straddling footprint can stay contiguous).* A
 footprint straddling a cut may land contiguously precisely when its parts meet at a
@@ -645,4 +652,4 @@ What invariant must relate a content-based discovery index to the arrangement af
 
 What must the operation guarantee about the recoverability of a prior arrangement from the permanent content store, given that REARRANGE records only the new V→I mapping and the old order is no longer expressed?
 
-What relationship must hold between the displacement imposed on intervening content and the requirement that every subspace boundary be preserved, so that no permuted position may cross from one subspace into another?
+What boundary-preservation guard must a refinement to closed-form displacement arithmetic impose, so that computing region destinations by a per-region offset can never carry a permuted position across a subspace boundary — the hazard the abstract tiling avoids by construction but a formula-based layer must discharge explicitly?
