@@ -89,9 +89,10 @@ scoped to `d`, with
 
 > `a ∉ dom(C)`, `origin(a) = d`, `subspace_I(a) = s_C`.
 
-Its freshness is proved, not assumed — **FirstEmissionFreshness** (when `d`'s
-content region is empty) and **SubsequentEmissionFreshness** (otherwise)
-discharge `a ∉ dom(C) ∪ dom(L)` against the whole store. The
+Its freshness is proved, not assumed: K.α's emission lemmas
+**FirstEmissionFreshness** and **SubsequentEmissionFreshness** discharge
+`a ∉ dom(C) ∪ dom(L)` against the whole store, the valid-composite section below
+settling step by step which lemma governs each emission. The
 `findpreviousisagr`-and-increment evidence above is the concrete realisation of
 K.α's subsequent-emission branch `a = inc(a_prev, 0)`, where
 `a_prev = max{a' ∈ dom(C) : origin(a') = d}`.
@@ -210,9 +211,9 @@ with no integer gap — and pairwise disjoint, their union being `{1, …, N+n}`
 left endpoint of the next). We name the clauses:
 
 - (I-ALLOC) `dom(C') = dom(C) ∪ A_new`, with `C'(shift(a, k)) = w_k` for
-  `0 ≤ k < n` — the K.α effect (ASN-0093), iterated `n` times along `A_C(d)`. K.α
-  commits `a ↦ v` only for `v ∈ Val`, the typing obligation discharged here by the
-  precondition `w_k ∈ Val`.
+  `0 ≤ k < n` — the K.α effect (ASN-0093), iterated `n` times along `A_C(d)`; its
+  per-step preconditions (freshness, and the `w_k ∈ Val` typing of each committed
+  value) are discharged in the valid-composite section.
 - (I-IMM) `(A b : b ∈ dom(C) : C'(b) = C(b))` — K.α append-only (C0, ASN-0093).
 - (I-SHIFT) `(A v : v ∈ V_S(d) ∧ v ≥ p : shift(v, n) ∈ dom(M'(d)) ∧
   M'(d)(shift(v, n)) = M(d)(v))` — by ASN-0082 **I3 (PostInsertionShift)** together
@@ -250,9 +251,8 @@ left endpoint of the next). We name the clauses:
   I3-V vacates and I3-CS excludes — is contributed by INSERT's own I-NEW fill.
 - (I-PROV) `R' = R ∪ {(shift(a, k), d) : 0 ≤ k < n}` — the `n` provenance records
   coupling each freshly allocated I-address to its inserting document, by **K.ρ
-  (ProvenanceRecording, ASN-0047)** iterated `n` times. Each K.ρ step's precondition
-  `shift(a, k) ∈ dom(C') ∧ d ∈ E_doc` is met: `shift(a, k)` is in the store the
-  moment its K.α step commits it, and `d ∈ dom(M) = E_doc` by precondition. The
+  (ProvenanceRecording, ASN-0047)** iterated `n` times (its per-step precondition
+  discharged in the valid-composite section). The
   record is `(shift(a, k), d)` with `shift(a, k)` element-level content (S7b/C1) and
   `d` document-level, matching `Σ.R ⊆ T_elem × E_doc`. These are the only additions
   to `R`; INSERT removes nothing from it (P2 of ASN-0047, R monotone).
@@ -309,8 +309,10 @@ predecessors leave, is
 
 > `K.α₁, …, K.αₙ`  →  `K.μ⁻`  →  `K.μ⁺`  →  `K.ρ₁, …, K.ρₙ`.
 
-- *`K.α₁, …, K.αₙ` (allocate).* Each commits one fresh content address along `A_C(d)`.
-  Freshness splits by branch. For `k = 0` the start address `a = shift(a, 0)` is a
+- *`K.α₁, …, K.αₙ` (allocate).* Each commits one fresh content address along `A_C(d)`,
+  with committed value `w_k ∈ Val` by precondition — discharging K.α's `v ∈ Val`
+  typing obligation. Freshness splits by branch. For `k = 0` the start address
+  `a = shift(a, 0)` is a
   *first* emission exactly when `d`'s content region is empty
   (`{a' ∈ dom(C) : origin(a') = d} = ∅`); there `a = [d.0.s_C.1]` and freshness is
   discharged by **FirstEmissionFreshness** — not SubsequentEmissionFreshness, whose
@@ -351,7 +353,7 @@ predecessors leave, is
   rewrites an existing entry.
 - *`K.ρ₁, …, K.ρₙ` (record provenance).* The `k`-th records `(shift(a, k), d)`; its
   precondition `shift(a, k) ∈ dom(C') ∧ d ∈ E_doc` holds because `shift(a, k)` entered
-  the store at its K.α step and `d ∈ dom(M) = E_doc`.
+  the store at its K.α step and `d ∈ E_doc` by precondition.
 
 The `K.μ⁻` then `K.μ⁺` pair is the K-atomic realization of the Effect's
 I-LEFT/I-SHIFT/I-NEW clauses — prefix fixed, suffix vacated and re-installed `n`
