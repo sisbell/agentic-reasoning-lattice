@@ -38,9 +38,9 @@ When `R` is a contiguous V-span in some subspace `S`, ASN-0058's mapping-block d
 
 *Derivation. Symmetric to F-IMG-MONO. The contraction frame (K.μ⁻, ASN-0047) gives `dom(Σ'.M(d)) ⊆ dom(Σ.M(d))` with `Σ'.M(d)(v) = Σ.M(d)(v)` for every `v ∈ dom(Σ'.M(d))` (retained-domain agreement). Take any `b ∈ image(R, d, Σ')`; then `b = Σ'.M(d)(v)` for some `v ∈ R ∩ dom(Σ'.M(d))`, whence `v ∈ R ∩ dom(Σ.M(d))` and `Σ.M(d)(v) = Σ'.M(d)(v) = b`, so `b ∈ image(R, d, Σ)`.*
 
-**F-IMG-SWING (ImageSwingUnderReorder).** *If `Σ → Σ'` is a K.μ~ reorder of `d`'s arrangement with witnessing bijection `π`, then `image(R, d, Σ') = {Σ.M(d)(u) : u ∈ π⁻¹(R) ∩ dom(Σ.M(d))}`. The total range is preserved (LP11, ASN-0098: `ran(Σ'.M(d)) = ran(Σ.M(d))`) but the forward image of a fixed sub-region `R` may differ — gain, lose, or change membership.*
+**F-IMG-SWING (ImageSwingUnderReorder).** *If `Σ → Σ'` is a K.μ~ reorder of `d`'s arrangement with witnessing bijection `π`, then `image(R, d, Σ') = {Σ.M(d)(u) : u ∈ π⁻¹(R) ∩ dom(Σ.M(d))}`. The total range is preserved (LP11, ASN-0098: `ran(Σ'.M(d)) = ran(Σ.M(d))`) but the forward image of a fixed sub-region `R` may change membership; and when `Σ.M(d)` is non-injective — content sharing (M13/M14, ASN-0058) — the image may additionally gain or lose members (change cardinality). Under injective `Σ.M(d)` only membership change is realizable.*
 
-*Derivation. K.μ~-FIX (ASN-0047) gives `dom(Σ'.M(d)) = dom(Σ.M(d))`, so the witness `π : dom(Σ.M(d)) → dom(Σ'.M(d))` is a bijection of `dom(Σ.M(d))` onto itself, satisfying the bijection equation `Σ'.M(d)(π(u)) = Σ.M(d)(u)` for every `u ∈ dom(Σ.M(d))`. Unfolding F-IMG at `Σ'` and reindexing each `v = π(u)`: since `π` ranges over all of `dom(Σ'.M(d))`, `v ∈ R ⟺ u ∈ π⁻¹(R)`, and `Σ'.M(d)(v) = Σ'.M(d)(π(u)) = Σ.M(d)(u)`, whence `image(R, d, Σ') = {Σ'.M(d)(v) : v ∈ R ∩ dom(Σ'.M(d))} = {Σ.M(d)(u) : u ∈ π⁻¹(R) ∩ dom(Σ.M(d))}`. That `π` need not fix `R` setwise is exactly why a fixed sub-region's image may gain, lose, or change membership even though the total range is preserved.*
+*Derivation. K.μ~-FIX (ASN-0047) gives `dom(Σ'.M(d)) = dom(Σ.M(d))`, so the witness `π : dom(Σ.M(d)) → dom(Σ'.M(d))` is a bijection of `dom(Σ.M(d))` onto itself, satisfying the bijection equation `Σ'.M(d)(π(u)) = Σ.M(d)(u)` for every `u ∈ dom(Σ.M(d))`. Unfolding F-IMG at `Σ'` and reindexing each `v = π(u)`: since `π` ranges over all of `dom(Σ'.M(d))`, `v ∈ R ⟺ u ∈ π⁻¹(R)`, and `Σ'.M(d)(v) = Σ'.M(d)(π(u)) = Σ.M(d)(u)`, whence `image(R, d, Σ') = {Σ'.M(d)(v) : v ∈ R ∩ dom(Σ'.M(d))} = {Σ.M(d)(u) : u ∈ π⁻¹(R) ∩ dom(Σ.M(d))}`. That `π` need not fix `R` setwise is why the image membership can change. The cardinality, however, is not free to move under an arbitrary reorder: `π` is a bijection on `dom(Σ.M(d))`, so `|π⁻¹(R) ∩ dom(Σ.M(d))| = |R ∩ dom(Σ.M(d))|` always. When `Σ.M(d)` is injective, these equal-size index sets carry to equal-size images — the image can only change membership, never gain or lose. A genuine cardinality change therefore requires `Σ.M(d)` non-injective, i.e. content sharing (M13/M14, ASN-0058). Witness: with `Σ.M(d) : v₁ ↦ a, v₂ ↦ a, v₃ ↦ b` (so `a` is shared) and `R = {v₁, v₂}`, `image(R, d, Σ) = {a}`; the reorder `π` given by `π(v₁) = v₁, π(v₂) = v₃, π(v₃) = v₂` yields `Σ'.M(d) : v₁ ↦ a, v₂ ↦ b, v₃ ↦ a`, and `π⁻¹(R) = {v₁, v₃}` gives `image(R, d, Σ') = {a, b}` — a gain from one member to two, with `ran(Σ'.M(d)) = ran(Σ.M(d)) = {a, b}` preserved throughout.*
 
 ## Phase 2: Per-link matching
 
@@ -62,6 +62,12 @@ A link matches the I-address set when *some* slot's coverage meets it. The exist
 
 *Derivation. Fix `a ∈ dom(Σ.L)` and unfold the match predicate at `I₁ ∪ I₂`: `matches(a, I₁ ∪ I₂, Σ) ≡ (E i : 1 ≤ i ≤ |Σ.L(a)| : coverage(Σ.L(a).eᵢ) ∩ (I₁ ∪ I₂) ≠ ∅)`. Intersection distributes over union — `coverage(Σ.L(a).eᵢ) ∩ (I₁ ∪ I₂) = (coverage(Σ.L(a).eᵢ) ∩ I₁) ∪ (coverage(Σ.L(a).eᵢ) ∩ I₂)` — and a union is non-empty iff one of its parts is, so the slot test becomes `coverage(Σ.L(a).eᵢ) ∩ I₁ ≠ ∅ ∨ coverage(Σ.L(a).eᵢ) ∩ I₂ ≠ ∅`. The existential distributes over this disjunction, giving `matches(a, I₁, Σ) ∨ matches(a, I₂, Σ)`. None of these steps consults `I₁ ∩ I₂`, so the law holds for arbitrary `I₁, I₂` — this is union-distribution of a set-valued operation, not a measure-style additive law over disjoint pieces. Set-builder over the disjunction splits the comprehension into `findlinks(I₁, Σ) ∪ findlinks(I₂, Σ)`. The unrestricted form is what Phase 1 needs: images of two disjoint V-regions need not be disjoint I-sets, since distinct V-positions may resolve to a shared I-address under content sharing (M13/M14, ASN-0058).*
 
+**F-IMONO (FindMonotonicityInI — corollary of F-UDIST).** *For all I-address sets `I' ⊆ I ⊆ T`:*
+
+> `findlinks(I', Σ) ⊆ findlinks(I, Σ)`.
+
+*Derivation. Write `I = I' ∪ (I ∖ I')` and apply F-UDIST: `findlinks(I, Σ) = findlinks(I', Σ) ∪ findlinks(I ∖ I', Σ) ⊇ findlinks(I', Σ)`. Monotonicity in the I-argument is thus immediate from union-distributivity; it is the fact a shrinking resolved request needs in the discovery analysis (D-NONMONO).*
+
 ## The two-phase composite
 
 **F-V (TwoPhaseFactoring).** *The two-phase combinator composes the projection with the per-link comprehension. For `d ∈ dom(Σ.M)`, `R ⊆ T`:*
@@ -71,6 +77,12 @@ A link matches the I-address set when *some* slot's coverage meets it. The exist
 *undefined when `d ∉ dom(Σ.M)`.*
 
 This is a *definition*, not a derived theorem. The factoring is what makes the stability analysis tractable: each phase consults only one of `Σ.M(d)` and `Σ.L`, so the composite's stability decomposes accordingly.
+
+**F-VDIST (RegionUnionDistributivity).** *For `d ∈ dom(Σ.M)` and any V-regions `R₁, R₂ ⊆ T` — no disjointness required:*
+
+> `findlinks_V(R₁ ∪ R₂, d, Σ) = findlinks_V(R₁, d, Σ) ∪ findlinks_V(R₂, d, Σ)`.
+
+*Derivation. The image is a forward image of the partial function `Σ.M(d)`, and forward image distributes over union of its argument. Unfolding F-IMG, `image(R₁ ∪ R₂, d, Σ) = {Σ.M(d)(v) : v ∈ (R₁ ∪ R₂) ∩ dom(Σ.M(d))}`; since `(R₁ ∪ R₂) ∩ dom(Σ.M(d)) = (R₁ ∩ dom(Σ.M(d))) ∪ (R₂ ∩ dom(Σ.M(d)))`, the image splits as `image(R₁, d, Σ) ∪ image(R₂, d, Σ)`. Then `findlinks_V(R₁ ∪ R₂, d, Σ) = findlinks(image(R₁ ∪ R₂, d, Σ), Σ) = findlinks(image(R₁, d, Σ) ∪ image(R₂, d, Σ), Σ) = {F-UDIST} findlinks(image(R₁, d, Σ), Σ) ∪ findlinks(image(R₂, d, Σ), Σ) = findlinks_V(R₁, d, Σ) ∪ findlinks_V(R₂, d, Σ)`. The middle step is exactly where F-UDIST must be unrestricted: even when `R₁ ∩ R₂ = ∅`, the two images may overlap — distinct V-positions can resolve to a shared I-address under content sharing (M13/M14, ASN-0058) — so a disjointness-restricted union law would not close this composition. F-VDIST is the Phase-1 payoff F-UDIST exists to enable: image distributes over V-region union, and union-distributivity over the resulting (possibly overlapping) I-sets carries the comprehension through.*
 
 ## The stability keystone
 
@@ -111,7 +123,7 @@ The keystone meta-lemma turns the question "which transitions preserve the resul
 
 *The two parts are disjoint: K.λ's freshness precondition (ASN-0093) gives `ℓ_new ∉ dom(Σ.L) ∪ dom(Σ.C)`, hence `ℓ_new ∉ findlinks(I, Σ)`. The prior-key contribution is preserved by F-CIL-perlink applied at each `a ∈ dom(Σ.L)`; the fresh-key contribution is the singleton `{ℓ_new}` exactly when the match holds at the new state.*
 
-`K.λ` is therefore the unique single-step source of change in the result, and its effect is fully characterized.
+`K.λ` is therefore the unique single-step source of change in `findlinks(I, Σ)` for *fixed* `I` — the existence-anchored result — and its effect there is fully characterized. The scope is essential: this is a statement about the fixed-`I` comprehension that F-INERT and F-LAMBDA range over, not about the discovery-anchored `findlinks_V`/`findlinks_disc` over a live arrangement. For the latter, K.μ⁺, K.μ⁻, and K.μ~ on the query document all move the result with no link created or retracted, because they move the resolved I-argument rather than `Σ.L` (D-NONMONO).
 
 ## Anchoring: existence vs discovery
 
@@ -142,7 +154,7 @@ The request is resolved through a querying document's current arrangement. Given
 **D-NONMONO (DiscoveryNonMonotonicity).** *`findlinks_disc` is not monotone across `Σ →* Σ'`. By case analysis on the K-transition:*
 
 - *K.μ⁺ or K.μ⁺_L on `d_q`*: the arrangement extends, so `image(W, d_q, Σ) ⊆ image(W, d_q, Σ')` (F-IMG-MONO); new I-addresses falling in `W`'s positions can add new link matches.
-- *K.μ⁻ on `d_q`*: the arrangement contracts, so `image(W, d_q, Σ') ⊆ image(W, d_q, Σ)` (F-IMG-CONTR); the resolved request can only shrink.
+- *K.μ⁻ on `d_q`*: the arrangement contracts, so `image(W, d_q, Σ') ⊆ image(W, d_q, Σ)` (F-IMG-CONTR); the resolved request can only shrink, and since `findlinks` is monotone in its I-argument (F-IMONO), the discovery set can only shrink with it: `findlinks_disc(W, d_q, Σ') ⊆ findlinks_disc(W, d_q, Σ)`.
 - *K.μ~ on `d_q`*: the witnessing bijection can carry a position with otherwise-unshared image across the `W` boundary, so `findlinks_disc` may rise or fall (F-IMG-SWING), with no link created or retracted.
 - *Transitions not on `d_q`*: `image(W, d_q, Σ) = image(W, d_q, Σ')`; the result changes only if `K.λ` adds a matching link (F-LAMBDA).
 
@@ -177,7 +189,9 @@ Take a single document `d` with three text positions `v_1, v_2, v_3` mapping to 
 | F-MATCH | match predicate (existential over slots) | Phase 2 primitive |
 | F-FIND | comprehension primitive `findlinks(I, Σ)` | Phase 2 primitive |
 | F-UDIST | `findlinks(I₁ ∪ I₂) = findlinks(I₁) ∪ findlinks(I₂)` for all `I₁, I₂` | Phase 2 algebra |
+| F-IMONO | `I' ⊆ I ⟹ findlinks(I') ⊆ findlinks(I)` | Phase 2 algebra (corollary of F-UDIST) |
 | F-V | `findlinks_V(R, d, Σ) = findlinks(image(R, d, Σ), Σ)` | two-phase combinator (definition) |
+| F-VDIST | `findlinks_V(R₁ ∪ R₂, d, Σ) = findlinks_V(R₁, d, Σ) ∪ findlinks_V(R₂, d, Σ)` | composite algebra (Phase-1 payoff of F-UDIST) |
 | F-CIL | comprehension over `dom(Σ.L)` with `Σ.L`-only predicate is `Σ.L`-stable | keystone meta-lemma |
 | F-CIL-perlink | per-link version under per-link value preservation | sub-lemma |
 | F-PRES | `V_atomic ∖ {K.λ}` and `K.μ~` preserve `Σ.L` | transition vocabulary |
