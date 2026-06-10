@@ -536,29 +536,37 @@ documents. What must delivery guarantee about presenting that material?
 
 > **R9 (CoherentMultiOriginAssembly).** A spec-set drawing on multiple origins is
 > delivered as one ordered sequence (R5), assembled by resolving each spec
-> against its own document's arrangement independently (R4). The *resolution* is
-> provenance-traceable: each active position `v` resolves to `a = Σ.M(d)(v)`, and
-> that address determines a home document, so no fragment's provenance is collapsed
-> by co-assembly. R9 asserts traceability of the *resolution*, not inline
-> provenance of the delivered stream — whether that origin travels *inside* the
-> delivered material or is recoverable only through the resolution mapping is a
-> separate question (the delivered content item carries `Σ.C(a)`, not `a`, by R1).
+> against its own document's arrangement independently (R4). How much origin
+> survives *into the delivered stream* is *kind-asymmetric*, tracking the payload
+> asymmetry of R1 and R10: a **link** item carries the address `a` itself (R10),
+> so its home `home(a)` is recoverable from the delivered output; a **content**
+> item carries only the value `Σ.C(a)` (R1), so its origin `origin(a)` is *not*
+> recoverable from the output — it is determinate only through the resolution
+> mapping `v ↦ a`, an internal artifact of computing `deliver`. Co-assembly thus
+> preserves link home in the stream while collapsing content origin out of it;
+> whether content origin must instead travel inline is deferred (Open Question 1).
 
-Two obligations hold simultaneously, and they pull in opposite directions. The
-material must be *coherent* — one ordered stream the caller reads as a single
-delivery, with fragments slotted in spec-set order regardless of where they
-physically originate ("the virtual byte stream of a document may include bytes
-from any other document," 4/10; non-native bytes have "an ordinal position …
-just as if they were native," 4/11). And the *resolution* must remain
-*traceable* — co-assembly must not collapse distinct origins into an anonymous
-blob, because each active position's home document stays determinate from the
-resolution mapping. That home document is fixed per position by the resolved
+Two obligations sit in this co-assembly, and they differ in how much they
+constrain the output. The material must be *coherent* — one ordered stream the
+caller reads as a single delivery, with fragments slotted in spec-set order
+regardless of where they physically originate ("the virtual byte stream of a
+document may include bytes from any other document," 4/10; non-native bytes have
+"an ordinal position … just as if they were native," 4/11). And each fragment's
+origin must stay *determinate* — co-assembly must not fuse distinct origins into
+an anonymous blob. That home document is fixed per position by the resolved
 address's subspace: for a content position (`subspace(v) = s_C`, `a ∈ dom(Σ.C)`)
 it is the document-level prefix `origin(a)` (S7); for a link position
 (`subspace(v) = s_L`, `a ∈ dom(Σ.L)`) it is the link's home `home(a)` (ASN-0043,
 L1a), which coincides with `origin` on link addresses (ASN-0086,
-HomeOriginCoincidence). Losing the first gives disconnected fragments; losing the
-second gives an unattributable assembly.
+HomeOriginCoincidence). Determinacy, though, is automatic — `origin` and `home`
+are functions of the resolved address, so no faithful resolution could lose it.
+Where the two kinds genuinely part is *output-recoverability*, and that is the
+asymmetry R9 records: a link item carries the address `a`, so its `home(a)` is
+recoverable from the delivered stream itself; a content item carries only
+`Σ.C(a)`, so its `origin(a)` survives only in the resolution mapping `v ↦ a`, an
+internal artifact of computing `deliver`. Co-assembly preserves link home in the
+output and collapses content origin out of it, with inline content provenance
+deferred (Open Question 1).
 Because each spec is resolved against its own
 arrangement (R4), cross-document spec-sets are resolved per document and then
 concatenated — Gregory's `specset2ispanset` loop calls the per-document lookup
@@ -583,22 +591,23 @@ arrangement in isolation: `(d₁, σ₁)` through `Σ.M(d₁)` yields
 Coherent ordered assembly: by R0's concatenation in spec-set order,
 `deliver(R, Σ) = ⟨⟨content, Σ.C(a₁)⟩, ⟨content, Σ.C(a₂)⟩⟩` — `d₁`'s item precedes
 `d₂`'s item because spec 1 precedes spec 2 (R5), irrespective of the T1-magnitudes
-of `a₁`, `a₂` or of `d₁`, `d₂`. (b) Traceable, non-collapsed provenance: each
-delivered item was resolved through a definite address whose home document is
-recoverable from the resolution mapping — `origin(a₁) = d₁` and `origin(a₂) = d₂`
-(S7) — and these are distinct, so co-assembly into one stream collapses neither
-origin into the other. The delivered stream is one coherent sequence (a) whose
-fragments remain individually attributable to their distinct creating documents
-(b) — exactly the dual obligation R9 names.
+of `a₁`, `a₂` or of `d₁`, `d₂`. (b) Determinate, resolution-recoverable
+provenance: each delivered item was resolved through a definite address whose
+home document is fixed by the resolution mapping — `origin(a₁) = d₁` and
+`origin(a₂) = d₂` (S7) — and these are distinct, so the resolution attributes
+each fragment to its own creating document. Both items here are content, so
+neither origin travels in the delivered output — each item carries `Σ.C(aⱼ)`, not
+`aⱼ` (R1) — and the attribution is recoverable through the resolution mapping,
+not inline: the content side of R9's kind-asymmetry. The delivered stream is one
+coherent sequence (a) whose fragments remain individually attributable, through
+resolution, to their distinct creating documents (b) — exactly the dual
+obligation R9 names.
 
 ## What co-delivery reveals: subspace crossing
 
 The last revelation. A document's arrangement maps positions in two subspaces:
 content (`s_C`) and links (`s_L`). A spec-set with specs in both subspaces
-gathers positions of both kinds. (A *single* span's denotation cannot itself
-straddle the boundary: the V-spec definition restricts `σ` to ordinal-level
-spans, for which the Confinement lemma keeps every `t ∈ ⟦σ⟧` on the start's first
-component, so a text-rooted span cannot reach link positions.)
+gathers positions of both kinds.
 
 > **R10 (SubspaceCrossingObservability).** When an active position lies in the
 > link subspace (`subspace(v) = s_L`), it resolves (by S3★) to a link address
@@ -714,8 +723,8 @@ separately. Co-resolution reveals transclusion — content positions sharing an
 address deliver identical, shared-origin material with no deduplication (R8);
 genuine transclusion is a content phenomenon, since CL-OWN and CL-UNIQ make
 distinct link positions sharing an address unreachable, so the link sub-case is
-vacuous (R8). It assembles multi-origin material into one coherent,
-still-traceable stream (R9);
+vacuous (R8). It assembles multi-origin material into one coherent stream whose
+fragments stay attributable to their origins through resolution (R9);
 and it makes the text/link subspace boundary observable as a change in item kind
 (R10). Underneath all of it, the store is permanent: orphaned-but-referenced
 content remains deliverable for all time (R11). Each of R1–R11 is an obligation
@@ -736,7 +745,7 @@ absent consolidation step realizing the no-deduplication corollary of R3 and R8.
 | R6 | SilentGapFiltering: a named position unbound in the consulted arrangement contributes nothing and causes no failure; the gap is signalled by absence | introduced |
 | R7 | Repeatability: equal consulted arrangement restrictions ⟹ identical delivery; the arrangement is the sole mutable input | introduced |
 | R8 | TransclusionRevelation: content positions sharing a resolved address deliver identical material via identity-preserving co-resolution through the one shared address, with no deduplication (one item per V-position); the link sub-case is vacuous (CL-OWN + CL-UNIQ forbid distinct link positions sharing an address), so genuine transclusion is confined to content | introduced |
-| R9 | CoherentMultiOriginAssembly: multi-origin spec-sets deliver as one ordered stream, resolved per document; the resolution is provenance-traceable (each active position's `Σ.M(d)(v)` has determinate home document — `origin(a)` for content (S7), `home(a)` for links (L1a, HomeOriginCoincidence)), not asserting inline provenance in the delivered material | introduced |
+| R9 | CoherentMultiOriginAssembly: multi-origin spec-sets deliver as one ordered stream (R5), resolved per document (R4); output-recoverable provenance is kind-asymmetric — a link item carries `a`, so `home(a)` is recoverable from the delivered output (R10; L1a, HomeOriginCoincidence), while a content item carries only `Σ.C(a)`, so `origin(a)` (S7) is determinate only through the resolution mapping, not the output (inline content provenance deferred, Open Question 1) | introduced |
 | R10 | SubspaceCrossingObservability: link-subspace positions resolve (S3★) to link addresses and deliver as references — kind-distinct from content items — making the subspace crossing observable | introduced |
 | R11 | PermanentSourcing: content is sourced from the immutable store by I-address; an address ever in `dom(Σ.C)` remains deliverable whenever any arrangement binds a position to it, including orphaned-but-referenced content | introduced |
 
