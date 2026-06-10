@@ -28,8 +28,7 @@ while fixing its prefix (foundation: OrdinalShift, OrdinalDisplacement). That
 formula requires `n ≥ 1` — `δ(0, #v)` is the zero tumbler, which TumblerAdd
 cannot apply (it requires `Pos(w)`) — so at the boundary we adopt the standard
 convention `shift(t, 0) := t`, the identity shift (as in ASN-0036 S8 and
-ASN-0058 OrdinalShiftBase). Every `0 ≤ k < n` indexing below invokes it at
-`k = 0`, where `shift(p, 0) = p` and `shift(a, 0) = a`. We
+ASN-0058 OrdinalShiftBase), with `shift(p, 0) = p` and `shift(a, 0) = a`. We
 take as given the two-layer state: a **content store** `Σ.C : T ⇀ Val`, the
 append-only ground truth of what content exists, and a per-document
 **arrangement** `Σ.M(d) : T ⇀ T`, the partial function from V-positions to
@@ -229,17 +228,11 @@ left endpoint of the next). We name the clauses:
 - (I-NEW) `(A k : 0 ≤ k < n : shift(p, k) ∈ dom(M'(d)) ∧
   M'(d)(shift(p, k)) = shift(a, k))` — the INSERT-specific fill of the block that
   ASN-0082's gapped arrangement leaves vacated, mapped in lockstep to the K.α run
-  `A_new`. A block position is `shift(p, k) = q_{J+k}` for `0 ≤ k < n`, lying in
-  `dom(M(d))` iff its index `J+k ≤ N`. Its absence from the gapped arrangement is
-  attributed by index: a position of index `≤ N` (hence `≥ p` and not in the shifted
-  image) is withheld by I3-V (PostInsertionVacating, which quantifies over
-  `v ∈ dom(M(d))`); a position of index `> N` (never in `dom(M(d))`) is withheld
-  instead by the domain-closure characterisation I3-CS. The attribution is sound
-  because no block position is a shifted-suffix image: such an image is
-  `q_i = shift(u, n)` for some `u = q_{i−n}` of index `i − n ≥ J`, whereas every
-  block index satisfies `i ≤ J + n − 1`, so `i − n ≤ J − 1 < J`, forcing `u < p` —
-  outside the shifted-suffix range I3-CS quantifies over. So I3-CS adds no entry at
-  any block position.
+  `A_new`. A block position is `shift(p, k) = q_{J+k}` for `0 ≤ k < n`, the index
+  interval `{J, …, J+n-1}`. The gapped arrangement's domain is the left prefix
+  `{1, …, J-1}` together with the shifted suffix `{J+n, …, N+n}` (I3-V/I3-CS); by the
+  block-disjointness fact the block interval is disjoint from both, so block ∩
+  (gapped domain) = ∅ and the gapped arrangement leaves every block position free.
 - (I-DOM) `{v ∈ dom(M'(d)) : subspace(v) = S} =
   {q_1, …, q_{J-1}} ∪ {q_J, …, q_{J+n-1}} ∪ {q_{J+n}, …, q_{N+n}}`. The left
   prefix `{q_1, …, q_{J-1}}` and shifted suffix `{q_{J+n}, …, q_{N+n}}` are the
@@ -396,10 +389,9 @@ reachable too. **ExtendedReachableStateInvariants (ASN-0047)** therefore deliver
 the *entire* post-state invariant set at once — the per-state invariants S2
 (single-valuedness), S3★ (referential integrity), S8a, S8-depth, S8★, D-CTG★,
 D-MIN★, D-SEQ★, and the content-store validity S7b/C1/C1b/C1c of the freshly
-allocated run, together with the composite-boundary properties P7 and P7a. K.μ⁺ is
-INSERT's last arrangement-modifying step — K.ρ does not touch `M` — so the state
-whose clause-1 preconditions the valid-composite section discharged *is* the final
-post-state, and the theorem returns the full invariant set there.
+allocated run, together with the composite-boundary properties P7 and P7a. The final
+post-state has the same arrangement as the K.μ⁺ post-state — K.ρ does not touch `M` —
+so the arrangement invariants the theorem returns there are the ones K.μ⁺ established.
 
 One concrete shape is worth stating once, because it is the formal content of
 Nelson's assurance (Q10) that reading end to end yields the original content with
@@ -429,14 +421,9 @@ writes a DOCISPAN provenance record per inserted I-span; I-PROV is the abstract
 counterpart of that record.
 
 **PROV (InsertionProvenance).** *INSERT records `R' = R ∪ {(shift(a, k), d) :
-0 ≤ k < n}` (I-PROV). Its coupling constraints J0, J1★, J1'★ of ASN-0047 are
-discharged once, in the valid-composite section (Clause 2), between the composite's
-initial and final states; given them, the composite-boundary properties P7a and P7
-hold at the post-state by ExtendedReachableStateInvariants. PROV's own content is this
-last step together with the timing observation: provenance is established
-within the same composite as allocation, not deferred — every freshly
-minted content address `shift(a, k)` enters `R` coupled to its inserting document `d`
-in the same composite that allocates and places it.*
+0 ≤ k < n}` (I-PROV) within the same composite that allocates and places the content,
+not deferred: every freshly minted content address `shift(a, k)` enters `R` coupled to
+its inserting document `d` in the same composite that mints it.*
 
 Two finer points remain. First, inserting a *span* rather
 than a single byte is, at the V-layer, no different in kind — the same uniform
@@ -848,7 +835,7 @@ established are catalogued below.
 | IP4 (LinkSurvival) | Every prior endset's coverage is unchanged (L12+LP3★ across the composite); post-insert witness set = left ∪ shifted-suffix ∪ cross-subspace ∪ new-block; prior witnesses map bijectively onto the first three parts (suffix relabelled by `shift(·,n)`), so witness count is non-decreasing and resolved content grows monotonically (new-block is LP18 resurrection only when the link was orphaned) | introduced |
 | IP5 (DocumentIsolation) | Every other document's arrangement and resolved content are invariant under INSERT on `d` | introduced |
 | IP6 (DiscoverabilityWP) | `wp(INSERT, D(d,Σ')=D(d,Σ)) ≡ INSERT-pre ∧ {a : (∃i) coverage(Σ.L(a).eᵢ) ∩ A_new ≠ ∅} ⊆ D(d,Σ)` (containment, not emptiness); the emptiness form is sufficient but strictly stronger; discharged free under tight-endset discipline (LP19a) | introduced |
-| PROV (InsertionProvenance) | `R' = R ∪ {(shift(a,k), d) : 0 ≤ k < n}` (I-PROV); its J0/J1★/J1'★ coupling is discharged in Clause 2 (valid-composite section), whence P7a/P7 hold at the post-state by ExtendedReachableStateInvariants; provenance is recorded within the same composite as allocation | introduced |
+| PROV (InsertionProvenance) | `R' = R ∪ {(shift(a,k), d) : 0 ≤ k < n}` (I-PROV); provenance recorded within the same composite as allocation, not deferred | introduced |
 | I-ALLOC | `dom(C') = dom(C) ∪ A_new`, `C'(shift(a,k)) = w_k` | cited (K.α, ASN-0093), iterated |
 | I-IMM | `(A b : b ∈ dom(C) : C'(b) = C(b))` — existing content values unchanged | cited (C0, ASN-0093) |
 | I-PROV | `R' = R ∪ {(shift(a,k), d) : 0 ≤ k < n}` — provenance record per allocated address | cited (K.ρ, ASN-0047), iterated |
