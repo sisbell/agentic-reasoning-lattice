@@ -139,14 +139,15 @@ ASN-0084 proves these define a total function whose induced map
       π : dom(M(d)) → dom(M(d)),   defined by   M'(d)(π(v)) = M(d)(v),
 
 is a bijection that fixes the exterior and permutes the affected interval. Its
-closed form is **R-PPERM** (pivot) and **R-SPERM** (swap); its totality and
-bijectivity, together with the domain identity `dom(M'(d)) = dom(M(d))`, are
-**R-PIV** and **R-SWP** — which also establish that the region destinations tile
+closed form, and its bijectivity, are **R-PPERM** (pivot) and **R-SPERM** (swap);
+the well-definedness lemmas **R-PIV** (pivot) and **R-SWP** (swap) establish that
+the named destinations constitute a total function on `dom(M(d))` — whence the
+domain identity `dom(M'(d)) = dom(M(d))` — and that the region destinations tile
 `[ord(c₀), ord(c_{n-1}))` exactly (disjoint and exhausting, R-EXT covering the
 complement, so every position is assigned exactly once). We take these results as
 given and write
 
-      dom(M'(d)) = dom(M(d))               **(RA2, = ASN-0084 R-PIV / R-SWP)**
+      dom(M'(d)) = dom(M(d))               **(RA2, ASN-0084 R-PIV / R-SWP)**
 
 for the domain-preservation fact we lean on below. This is the formal content of
 *transposition*: a reassignment of positions that loses none and invents none.
@@ -180,9 +181,8 @@ Since `π` is a bijection,
 
 The middle step is the pointwise equation `M'(d)(π(v)) = M(d)(v)`, established by
 ASN-0084's **ArrangementRearrangement** (DEF) and the correctness clauses of
-R-PPERM / R-SPERM — the same source as RA2, not a result of R-RI but a hypothesis
-of it. The resulting range equality `ran(M'(d)) = ran(M(d))` is ASN-0084's range
-invariance **R-RI**. We label the pair **RA1**. The document points
+R-PPERM / R-SPERM. The resulting range equality `ran(M'(d)) = ran(M(d))` is
+ASN-0084's range invariance **R-RI**. We label the pair **RA1**. The document points
 at the same content after the rearrangement as before — only the order of pointing
 has changed.
 
@@ -275,28 +275,40 @@ the inert `R`), so its quantifier and its witnessing set are pointwise unchanged
 P4a (TraceWitnessing) is the one that needs more than a frame: it quantifies over
 valid *traces* to the state, not over the state alone, so `R' = R` gives that the
 *set* of provenance entries is unchanged but does not by itself supply each entry's
-witness. We must discharge P4a for every valid trace to `Σ'`, and these split by
-their final composite. A trace *ending in this REARRANGE step* decomposes as a
-valid trace to `Σ` extended by the single REARRANGE step `Σ → Σ'`: fix any
-`(a, d) ∈ R'`; since `R' = R` it already lies in `R`, and `Σ` is a composite
-boundary at which P4a held, so every trace to `Σ` exhibits a trace state `Σ_k` in
-its prefix at which `a` sat in `d`'s content-subspace range. That witness `Σ_k` is
-an earlier trace state in the prefix, whose arrangement `M_k(d)` the appended
-REARRANGE step does not touch, so it persists unchanged into the extended trace to
-`Σ'`, witnessing `(a, d)` there as well. A trace reaching `Σ'` by any *other*
-final composite has that composite drawn from ASN-0047's vocabulary; it does not
-factor through `Σ` via REARRANGE, and need not. For *any* such final composite
-`Σ'' →* Σ'`, ASN-0047's P4a argument for that composite discharges the obligation
-at `Σ'` from the single hypothesis that P4a holds at its pre-state `Σ''`; that
-argument reads only the pre-state, never how `Σ''` was reached, so it transfers
-verbatim when the
-prefix `Σ₀ →* Σ''` interleaves REARRANGE steps. The hypothesis itself — P4a at
-`Σ''` — is supplied not by ASN-0047's induction alone (which ranges only over its
-own atomic vocabulary, not REARRANGE-interleaved traces) but by the *combined*
-induction over the extended vocabulary: ASN-0047's arguments establish that each of
-its composites preserves the invariant package, this ASN establishes that REARRANGE
-preserves it, and so every reachable composite boundary — REARRANGE-interleaved or
-not — satisfies P4a, `Σ''` among them. The genuinely per-state
+witness. We discharge it by induction on the number `n` of valid composites in a
+trace, over the *extended* vocabulary `{ASN-0047's composites} ∪ {REARRANGE}`. Let
+`U(n)` be the claim: for every valid trace of exactly `n` composites, with final
+state `Σ_T` and any `(a, d) ∈ Σ_T.R`, some state in the trace's history exhibits
+`a` in `d`'s content-subspace range. The measure is well-founded because every
+trace is finite (ASN-0047, P4a).
+
+*Base* (`n = 0`): the only zero-composite trace is the bare initial state `Σ₀`,
+where `R₀ = ∅` (ASN-0047, `Σ₀`); P4a's quantifier over `(a, d) ∈ R` is vacuous, so
+`U(0)` holds.
+
+*Step* (`n → n+1`): an `(n+1)`-composite trace `T` factors as an `n`-composite
+prefix `T⁻` to a pre-state `Σ⁻` extended by a final composite `C : Σ⁻ →* Σ⁺`, with
+`Σ⁺` the trace's final state. The inductive hypothesis `U(n)`, applied to the
+strictly shorter prefix `T⁻`, supplies P4a at `Σ⁻` along `T⁻`. We split on `C`.
+
+*Case (i): `C` is the REARRANGE step* (so `Σ⁻ = Σ`, `Σ⁺ = Σ'`). Fix any
+`(a, d) ∈ R'`; since `R' = R` it already lies in `R = Σ⁻.R`, so `U(n)` exhibits a
+trace state `Σ_k` in `T⁻`'s history at which `a` sat in `d`'s content-subspace
+range. That `Σ_k` is an earlier state in the prefix, whose arrangement `M_k(d)` the
+appended REARRANGE step does not touch, so it persists unchanged into `T`'s history
+and witnesses `(a, d)` there as well. No entry is range-new (`R' = R`), so every
+obligation is met from the prefix.
+
+*Case (ii): `C` is one of ASN-0047's composites.* ASN-0047's own per-composite P4a
+argument for `C` discharges the obligation at `Σ⁺` from the single hypothesis that
+P4a holds at its pre-state `Σ⁻` — exactly what `U(n)` supplies. That argument reads
+only the pre-state, never how `Σ⁻` was reached, so it transfers verbatim to a prefix
+`T⁻` that interleaves REARRANGE steps.
+
+In both cases `U(n+1)` holds, so by induction every reachable composite boundary
+satisfies P4a — `Σ'` among them. The appeal in Case (ii) is to `U(n)`, P4a at the
+strictly shorter pre-state, never to the conclusion `U(n+1)`, so the discharge is
+not circular. The genuinely per-state
 ExtendedReachableStateInvariants conjuncts that remain fall under a single closure
 rule: every conjunct keyed only on frame-frozen components — `dom(C)` and its
 values by RA0, `E` and `R` inert, `dom(L)` and its values by RA6 — is preserved by
@@ -703,7 +715,7 @@ the regions tile, not merely shift each by a local offset.
 |-------|-----------|--------|
 | REARRANGE_K | Operation imported from ASN-0084: 3-/4-cut transposition in the text subspace at depth 2, specified by PivotPostcondition (R-EXT, R-P1, R-P2) or SwapPostcondition (R-EXT, R-S1, R-S2, R-S3) with frame R-FRAME-P/R-FRAME-S | imported (ASN-0084) |
 | RA0 (ContentStoreFrame) | `Σ'.C = Σ.C` — the content store is a verbatim frame; no I-address is created, destroyed, or rebound | imported (ASN-0084 R-FRAME-P/S) |
-| RA1 (IdentityCorrespondence) | `M'(d)(π(v)) = M(d)(v)` (ASN-0084 ArrangementRearrangement / R-PPERM / R-SPERM, = RA2's source), hence `ran(M'(d)) = ran(M(d))` (ASN-0084 R-RI) — I-addresses carried across the reassignment | imported (ASN-0084) |
+| RA1 (IdentityCorrespondence) | `M'(d)(π(v)) = M(d)(v)` (ASN-0084 ArrangementRearrangement DEF + R-PPERM / R-SPERM correctness clauses), hence `ran(M'(d)) = ran(M(d))` (ASN-0084 R-RI) — I-addresses carried across the reassignment | imported (ASN-0084) |
 | RA2 (Permutation) | The induced `π` (R-PPERM/R-SPERM) is a bijection of `dom(M(d))` onto itself; `dom(M'(d)) = dom(M(d))` | imported (ASN-0084 R-PIV/R-SWP) |
 | S2 (FunctionalityPreserved) | `M'(d)` is single-valued — the disjoint tiling of destinations (R-PIV/R-SWP) gives each V-position one I-address (ASN-0036 S2) | preserved |
 | S3★ (ReferentialIntegrityPreserved) | per-subspace: `subspace(v) = s_C ⟹ M'(d)(v) ∈ dom(C)` and `subspace(v) = s_L ⟹ M'(d)(v) ∈ dom(L)` (ASN-0047 S3★; derivation in the body) | preserved |
