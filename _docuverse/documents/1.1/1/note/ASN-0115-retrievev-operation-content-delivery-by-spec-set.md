@@ -35,19 +35,11 @@ are drawn from.
 — including the states named in the V-spec and `deliver` definitions and in
 every claim R0–R11 — ranges over states *reachable from the initial state `Σ₀`
 under the sequential transition order* (ASN-0047, SequentialTransitionAxiom).
-This scoping is load-bearing, not decorative: nearly every step below cites an
-invariant that ASN-0047 establishes only of reachable states — collected there
-as `ExtendedReachableStateInvariants` — among them S3★ and S3★-aux (which make
-`item` total and well-defined), S8-depth and D-SEQ★ (R6's terminal-overrun
-argument), CL-OWN and CL-UNIQ (R8's link-vacuity argument), and S8a/S8-fin
-(finiteness and enumeration of `act`). At a non-reachable state these may fail —
-S3★-aux could admit a position in a third subspace, leaving `item` undefined;
-D-SEQ★ could fail, defeating R6's no-hole claim; CL-OWN/CL-UNIQ could fail,
-defeating R8's link vacuity — so the precondition is exactly what licenses the
-per-state invariant citations that follow. The project's foundation ASNs scope
-this the same way (ASN-0086: "Σ ranges over the →*-reachable states"; ASN-0098:
-"every reachable state Σ"). R7 (Repeatability) additionally relates two such
-reachable states comparable under `→*`; the base definitions inherit the
+This scoping is load-bearing: the per-state invariants the claims below cite are
+established by ASN-0047 (collected there as `ExtendedReachableStateInvariants`)
+only of reachable states, and may fail otherwise. Each claim cites the specific
+invariant it relies on at its use site. R7 (Repeatability) additionally relates
+two such reachable states comparable under `→*`; the base definitions inherit the
 single-state form of this precondition.
 
 We take the strand model as given. The *content store* `Σ.C : T ⇀ Val`
@@ -81,12 +73,6 @@ OriginBasedIdentity; S7 StructuralAttribution).
 
 ## What a spec-set is, and what delivery is
 
-All definitions and claims in this section and below are stated at a state `Σ`
-reachable from `Σ₀` under the sequential transition order, per the standing
-precondition above; this is what licenses the per-state invariant citations
-(S3★, S3★-aux, S8-depth, D-SEQ★, CL-OWN, CL-UNIQ, S8a, S8-fin) that the
-definitions of `act`, `item`, and `deliver`, and the proofs of R1–R11, rely on.
-
 A *V-spec* is a pair `ρ = (d, σ)` naming an **allocated** document `d` — a
 tumbler with `zeros(d) = 2` (ASN-0045) that is present in the arrangement family,
 `d ∈ dom(Σ.M)` — and a well-formed, level-uniform, **ordinal-level** span
@@ -94,43 +80,42 @@ tumbler with `zeros(d) = 2` (ASN-0045) that is present in the arrangement family
 depth at least 2 with positive components,
 `zeros(s) = 0 ∧ #s ≥ 2 ∧ (A i : 1 ≤ i ≤ #s : sᵢ > 0)`. This is the shape
 ASN-0036's S8a requires of every *bound* position; we impose it here directly as a
-constraint on the span's start, whether or not that start is itself bound. The
-direct imposition is necessary: S8a is an invariant restricted to the active domain
-`dom(Σ.M(d))`, and R6 below contemplates named starts absent from the arrangement,
-so the shape cannot be borrowed from S8a's domain-restricted guarantee — `#s ≥ 2`
-is a property of the V-position *shape*, required of the spec. We further require
-*depth compatibility* with the named subspace: writing `S = s₁` for the subspace
-the start designates, when `S` is already populated in `d` (`V_S(d) ≠ ∅`) the start
+constraint on the span's start, whether or not that start is itself bound. We
+further require *depth compatibility* with the named subspace: writing `S = s₁`
+for the subspace the start designates, when `S` is already populated in `d`
+(`V_S(d) ≠ ∅`) the start
 must match that subspace's common depth, `#s = m_S(d)` (the depth S8-depth
 (ASN-0036) fixes uniformly on `V_S(d)`). This is the same discipline ASN-0058's
 ContentReference imposes (`#ℓ = #u = m` with `m` the common V-position depth); it
 is what lets R6 below reason about `⟦σ⟧` and `V_S(d)` at a single shared depth.
 When `V_S(d) = ∅` the constraint is vacuous — any well-formed start of depth `≥ 2`
 is admissible — but then `act = ∅` and the gap analysis is trivial (every named
-position is unbound). Ordinal-level means
-the width acts at the deepest component, `actionPoint(ℓ) = #ℓ` (ASN-0082,
-OrdinalLevel). Combined with level-uniformity (`#ℓ = #s`) and the start depth
-`#s ≥ 2`, this is the configuration ASN-0058's C0a (PrefixConfinement) analyses:
-every `t ∈ ⟦σ⟧` agrees with `s` on its first `#s − 1` components — in particular
-`t₁ = s₁`, so the span's interval cannot cross the subspace boundary. C0a routes
-through C0 (OrdinalDisplacementNecessity) to obtain `actionPoint(ℓ) = #ℓ`, which
-is the one place its content-reference preconditions enter; the V-spec asserts
-ordinal-level width directly, and C0a's remaining confinement step consumes only
-that and depth `#s ≥ 2`, so it transfers to every V-spec span, bound or not. This
-is the deepest-action-point discipline R10 relies on; without it, a merely
-level-uniform well-formed span may have `actionPoint(ℓ) = 1` and straddle from
-the content subspace into the link subspace (e.g. `s = [1,5]`, `ℓ = [2,0]`:
-`s ⊕ ℓ = [3,0]`, and `[2,3] ∈ ⟦σ⟧` has `subspace = s_L`). A single
-boundary-crossing span is therefore outside this ASN, deferred to the Open
-Questions; designating both subspaces together is achieved by *composing*
+position is unbound). Ordinal-level means the width acts at the deepest component,
+`actionPoint(ℓ) = #ℓ` (ASN-0082, OrdinalLevel). This is the deepest-action-point
+discipline that keeps a span within a single subspace:
+
+> **Confinement (lemma).** For an ordinal-level, level-uniform span `σ = (s, ℓ)`
+> with `#s = #ℓ = m ≥ 2`, every `t ∈ ⟦σ⟧` agrees with `s` on its first `m − 1`
+> components — `tⱼ = sⱼ` for `1 ≤ j < m`. In particular `t₁ = s₁`, so `⟦σ⟧` lies
+> wholly in subspace `s₁` and cannot cross the subspace boundary.
+>
+> *Proof.* Ordinal-level width acts only at position `m` (`actionPoint(ℓ) = m`),
+> so the length-`(m − 1)` prefix `p = [s₁, …, s_{m−1}]` satisfies `p ≼ s`, and the
+> reach `reach(σ) = s ⊕ ℓ` copies that prefix unchanged below the action point
+> (TumblerAdd, ASN-0034), giving `p ≼ reach(σ)`. For any `t ∈ ⟦σ⟧`,
+> `s ≤ t < reach(σ)`, hence `s ≤ t ≤ reach(σ)`; T5 (ContiguousSubtrees, ASN-0034)
+> then yields `p ≼ t`, i.e. `tⱼ = sⱼ` for `1 ≤ j < m`. The argument consumes only
+> ordinal-level width and `#s ≥ 2`, and holds for **every** `t ∈ ⟦σ⟧`, bound or
+> not — no content-reference hypothesis is required. ∎
+
+Without ordinal-level width, a merely level-uniform well-formed span may have
+`actionPoint(ℓ) = 1` and straddle from the content subspace into the link
+subspace (e.g. `s = [1,5]`, `ℓ = [2,0]`: `s ⊕ ℓ = [3,0]`, and `[2,3] ∈ ⟦σ⟧` has
+`subspace = s_L`). A single boundary-crossing span is therefore outside this
+ASN's scope; designating both subspaces together is achieved by *composing*
 per-subspace ordinal spans into the spec-set, not by one straddling span. The
-allocation precondition `d ∈ dom(Σ.M)` is what makes the
-arrangement `Σ.M(d)` — and hence `act`, `item`, `deliver₁`, and `deliver` below —
-well-defined; it is the same precondition the substrate's `project` carries
-("defined when `d ∈ dom(Σ.M)`", ASN-0098). It is a precondition on the *existence*
-of the named arrangement, and is therefore distinct from R6's silent-gap case,
-which concerns the *absence of a binding* for a named position *within* an
-arrangement that does exist. A *spec-set* is a finite **ordered** sequence
+allocation precondition `d ∈ dom(Σ.M)` makes the named arrangement `Σ.M(d)`
+well-defined. A *spec-set* is a finite **ordered** sequence
 `R = ⟨ρ₁, …, ρₚ⟩` of V-specs, `p ≥ 0`. The ordering is part of the request:
 Nelson's caution that "if you want to designate a separated series of items
 exactly, including nothing else, you do this by a span-set, which is a series of
@@ -358,9 +343,9 @@ relative to the active range is needed or made. The no-interior-hole property is
 therefore a statement about the bindable slice, not about every tumbler of the
 interval.
 
-We pin the shape of that slice by *prefix confinement* (ASN-0058, C0a), *not* by
-D-SEQ★: D-SEQ★ governs the *bound* set `V_S(d)`, not the arbitrary named positions
-of `⟦σ⟧`. The span is ordinal-level of depth `m_S ≥ 2`, so C0a gives every
+We pin the shape of that slice by the *Confinement* lemma, *not* by D-SEQ★:
+D-SEQ★ governs the *bound* set `V_S(d)`, not the arbitrary named positions of
+`⟦σ⟧`. The span is ordinal-level of depth `m_S ≥ 2`, so Confinement gives every
 `t ∈ ⟦σ⟧` agreement with `s` on positions `1 … m_S − 1`. So every depth-`m_S`
 member of `⟦σ⟧` shares `s`'s first `m_S − 1` components and varies only in the last
 coordinate `k`.
@@ -616,11 +601,10 @@ that R8 (single shared origin) and R11 (single forked lineage) do not exercise.
 
 The last revelation. A document's arrangement maps positions in two subspaces:
 content (`s_C`) and links (`s_L`). A spec-set with specs in both subspaces
-gathers positions of both kinds. (Whether a *single* span's denotation can itself
-straddle the boundary — and what delivery must then guarantee — we leave to the
-Open Questions; the V-spec definition restricts `σ` to ordinal-level spans, for
-which prefix confinement (ASN-0058, C0a) keeps every `t ∈ ⟦σ⟧` on the start's
-first component, so a text-rooted span cannot reach link positions.)
+gathers positions of both kinds. (A *single* span's denotation cannot itself
+straddle the boundary: the V-spec definition restricts `σ` to ordinal-level
+spans, for which the Confinement lemma keeps every `t ∈ ⟦σ⟧` on the start's first
+component, so a text-rooted span cannot reach link positions.)
 
 > **R10 (SubspaceCrossingObservability).** When an active position lies in the
 > link subspace (`subspace(v) = s_L`), it resolves (by S3★) to a link address
@@ -654,8 +638,8 @@ position `v_L` (`subspace(v_L) = s_L`) to a link address `a_L ∈ dom(Σ.L)`; th
 two are disjoint stores (SD). Build a two-spec spec-set with one span per
 subspace: `R = ⟨(d, σ_C), (d, σ_L)⟩`, where `σ_C` is an `s_C`-rooted ordinal span
 naming `v_C` and `σ_L` is an `s_L`-rooted ordinal span naming `v_L`. Each span,
-being ordinal-level, stays within its own subspace (prefix confinement,
-ASN-0058 C0a), so neither straddles. Resolving the first spec gives
+being ordinal-level, stays within its own subspace (Confinement lemma), so
+neither straddles. Resolving the first spec gives
 `subspace(v_C) = s_C`, hence by S3★ `a_C ∈ dom(Σ.C)` and item
 `⟨content, Σ.C(a_C)⟩`; resolving the second gives `subspace(v_L) = s_L`, hence by
 S3★ `a_L ∈ dom(Σ.L)` and item `⟨ref, a_L⟩`. Therefore
