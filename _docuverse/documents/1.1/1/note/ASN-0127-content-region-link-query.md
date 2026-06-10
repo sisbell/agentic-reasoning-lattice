@@ -10,7 +10,7 @@ The algebra factors cleanly through arrangement. The reader names a region in V-
 
 Addresses are tumblers from `T` (ASN-0034), totally ordered under T1. We operate over the extended state `Σ = (C, L, E, M, R)` of ASN-0047: content store `C : T ⇀ Val` (append-only with immutable values, S0, ASN-0036), link store `L : T ⇀ Link` (append-only with immutable values, L12, finite at every reachable state, L-fin), entity set `E`, arrangement family `M(d) : T ⇀ T` for each `d ∈ dom(M)`, and provenance relation `R`. Links carry endset tuples `Σ.L(a) = (e₁, …, eₙ)` with `n ≥ 3` (L3); `coverage(e) ⊆ T` is the address set an endset denotes, a deterministic function of its spans (ASN-0043).
 
-The K-transition vocabulary is ASN-0047's: `K.α` (content allocation), `K.δ` (entity/document registration), `K.λ` (link creation), `K.μ⁺` and `K.μ⁺_L` (content/link-subspace arrangement extension), `K.μ⁻` (arrangement contraction), `K.μ~` (reordering, a composite of K.μ⁻ + K.μ⁺), `K.ρ` (provenance). `K.λ` is the unique transition that modifies `Σ.L`.
+The K-transition vocabulary is ASN-0047's. The *atomic* vocabulary is `V_atomic = {K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.ρ}` — `K.α` (content allocation), `K.δ` (entity/document registration), `K.λ` (link creation), `K.μ⁺` and `K.μ⁺_L` (content/link-subspace arrangement extension), `K.μ⁻` (arrangement contraction), `K.ρ` (provenance) — with `K.μ~` (reordering) the named composite of K.μ⁻ + K.μ⁺ (ASN-0047), not itself atomic. `K.λ` is the unique transition that modifies `Σ.L`.
 
 ## Phase 1: Region projection through arrangement
 
@@ -153,9 +153,9 @@ The request is resolved through a querying document's current arrangement. Given
 
 **D-NONMONO (DiscoveryNonMonotonicity).** *`findlinks_disc` is not monotone across `Σ →* Σ'`. By case analysis on the K-transition:*
 
-- *K.μ⁺ or K.μ⁺_L on `d_q`*: the arrangement extends, so `image(W, d_q, Σ) ⊆ image(W, d_q, Σ')` (F-IMG-MONO); new I-addresses falling in `W`'s positions can add new link matches.
-- *K.μ⁻ on `d_q`*: the arrangement contracts, so `image(W, d_q, Σ') ⊆ image(W, d_q, Σ)` (F-IMG-CONTR); the resolved request can only shrink, and since `findlinks` is monotone in its I-argument (F-IMONO), the discovery set can only shrink with it: `findlinks_disc(W, d_q, Σ') ⊆ findlinks_disc(W, d_q, Σ)`.
-- *K.μ~ on `d_q`*: the witnessing bijection can carry a position with otherwise-unshared image across the `W` boundary, so `findlinks_disc` may rise or fall (F-IMG-SWING), with no link created or retracted.
+- *K.μ⁺ or K.μ⁺_L on `d_q`*: the arrangement extends, so `image(W, d_q, Σ) ⊆ image(W, d_q, Σ')` (F-IMG-MONO). These transitions preserve `Σ.L` (F-PRES), so the comprehension state is again held fixed at `Σ` (F-INERT); new I-addresses falling in `W`'s positions can then add new link matches, evaluated against the unchanged store.
+- *K.μ⁻ on `d_q`*: the arrangement contracts, so `image(W, d_q, Σ') ⊆ image(W, d_q, Σ)` (F-IMG-CONTR). K.μ⁻ preserves `Σ.L` (F-PRES), so `findlinks(·, Σ') = findlinks(·, Σ)` for any fixed I-argument (F-INERT); this bridges the comprehension's evaluation state, letting it be held fixed at `Σ` while only the image moves. Hence `findlinks_disc(W, d_q, Σ') = findlinks(image(W, d_q, Σ'), Σ') = findlinks(image(W, d_q, Σ'), Σ) ⊆ findlinks(image(W, d_q, Σ), Σ) = findlinks_disc(W, d_q, Σ)` — the middle equality by F-INERT, the inclusion by F-IMONO evaluated at `Σ`. The discovery set can only shrink.
+- *K.μ~ on `d_q`*: the witnessing bijection can carry a position with otherwise-unshared image across the `W` boundary, so the image moves (F-IMG-SWING) while `Σ.L` is held fixed (F-PRES/F-INERT); `findlinks_disc` may therefore rise or fall, with no link created or retracted.
 - *Transitions not on `d_q`*: `image(W, d_q, Σ) = image(W, d_q, Σ')`; the result changes only if `K.λ` adds a matching link (F-LAMBDA).
 
 **D-ZERO (PresentNotHistorical).** *A discovery zero `findlinks_disc(W, d_q, Σ) = ∅` asserts that no link in `dom(Σ.L)` is presently reachable from `d_q`'s arrangement at `Σ`. It does not assert historical absence. A link whose endpoints have left `d_q`'s consulted arrangement merely ceases to be reachable through it (its image drops by D-NONMONO), so it leaves the discovery set while remaining a permanent member of the store (L12).*
@@ -176,7 +176,7 @@ Take a single document `d` with three text positions `v_1, v_2, v_3` mapping to 
 
 *K.λ adding L_3* `= ({a_1}, ∅, Θ)` (a conforming triple; the empty to-endset is admissible, the type slot `Θ = {a_θ} ≠ ∅` is mandatory): F-LAMBDA gives `findlinks({a_1, a_2}, Σ') = {L_1, L_2, L_3}` — the prior result plus the new link's match, which fires via slot 1 (`e₁ ∩ {a_1} = {a_1}`).
 
-*Existence vs discovery zero.* Suppose K.μ⁻ removes all of `v_1, v_2, v_3`. Then `image(R, d, Σ') = ∅`, `findlinks_disc(R, d, Σ') = ∅` (discovery zero — present absence). But `findlinks({a_1, a_2}, Σ') = {L_1, L_2}` (existence non-zero — the links persist in the store, their coverage unchanged by D-NONMONO and F-PRES).
+*Existence vs discovery zero.* Suppose K.μ⁻ removes all of `v_1, v_2, v_3`. Then `image(R, d, Σ') = ∅`, `findlinks_disc(R, d, Σ') = ∅` (discovery zero — present absence). But `findlinks({a_1, a_2}, Σ') = {L_1, L_2}` (existence non-zero — K.μ⁻ preserves `Σ.L`, so the fixed-`I` comprehension `findlinks({a_1, a_2}, ·)` is unchanged by F-INERT, with per-link coverage permanence by E-INV).
 
 ## Properties established
 
