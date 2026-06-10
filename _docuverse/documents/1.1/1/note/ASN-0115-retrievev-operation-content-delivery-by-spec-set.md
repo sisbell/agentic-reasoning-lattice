@@ -129,10 +129,7 @@ since a named position the arrangement does not bind is simply absent from the
 intersection. In the override branch — a once-valid start gone too shallow for the
 subspace's current depth — the active set is forced empty, *overriding* the
 geometric `dom(Σ.M(d)) ∩ ⟦σ⟧` lest a now-too-shallow start capture deeper content
-the citation never named; the spec then delivers nothing and the request still
-succeeds rather than failing the whole. This case-split is the single operative
-definition of `act`; every later use — R0's `deliver`, `item` totality, R3, R6,
-R7 — reads it, the override included. In either branch `act(ρ, Σ)` is finite — it
+the citation never named. In either branch `act(ρ, Σ)` is finite — it
 is `∅`, or a subset of `dom(Σ.M(d))`, which is finite (ASN-0036, S8-fin) — and
 totally ordered, being a subset of the totally ordered carrier `T` (ASN-0034, T1).
 Finiteness and total order together give it a unique ascending enumeration
@@ -687,8 +684,12 @@ Here is the decisive distinction between *deletion* and *removal of content*.
 (unreachable through *that* document's current arrangement) but is not absent
 from the store. The weakest precondition for delivery to include the value at
 `a` is therefore a *single* live condition: (i) the consulted arrangement binds
-some named content position to `a`. There is no independent store-membership
-conjunct to add. The named position is a content position
+some *active* content position to `a` — a `v ∈ act(ρ, Σ)` with `subspace(v) = s_C`
+and `Σ.M(d)(v) = a`. Stating (i) through `act` rather than bare namedness folds in
+the depth condition the override makes operative: `v ∈ act` entails the spec is
+depth-compatible at `Σ` (else `act = ∅`), that `v` is named (`act ⊆ ⟦σ⟧`), and
+that `v` is bound (`act ⊆ dom(Σ.M(d))`). There is no independent store-membership
+conjunct to add. The active position is a content position
 (`subspace(v) = s_C`), so generalized referential integrity discharges store
 membership directly — `Σ.M(d)(v) = a ⟹ a ∈ dom(Σ.C)` (S3★) — the instant (i)
 holds; immutability (S0) then holds `Σ.C(a)` fixed for all time. The two facts
@@ -713,8 +714,12 @@ binding of `v_d`: the post-state `Σ'` has `v_d ∉ dom(Σ'.M(d))`, so `a` is
 orphaned relative to `d`. Yet `a` never leaves the store — `dom(Σ.C) ⊆ dom(Σ'.C)`
 and `Σ'.C(a) = Σ.C(a)` by S0/S1 — and the contraction touches only `Σ.M(d)`, so
 `Σ'.M(d')(v') = a` still holds (ASN-0047, K.μ⁻ frame: `(A d'' : d'' ≠ d :
-M'(d'') = M(d''))`). Take the spec-set `R = ⟨(d', σ')⟩` whose single span names
-`v'`. Then `act((d', σ'), Σ') ∋ v'`, the resolution is `Σ'.M(d')(v') = a`, and
+M'(d'') = M(d''))`). Take the spec-set `R = ⟨(d', σ')⟩` whose single span is the
+unit-width span rooted at `v'` — `σ' = (v', δ(1, #v'))`, so its start `s = v'` sits
+at `#s = #v' = m_{s_C}(d')` (S8-depth, since `v' ∈ V_{s_C}(d')`), making `σ'`
+depth-compatible at `Σ'`. Then `act((d', σ'), Σ')` takes its geometric branch and
+contains `v'` (since `v' ∈ dom(Σ'.M(d')) ∩ ⟦σ'⟧`), the resolution is
+`Σ'.M(d')(v') = a`, and
 `deliver(R, Σ') = ⟨⟨content, Σ'.C(a)⟩⟩` — the spec over the *surviving* version
 delivers `Σ.C(a)` even though `d`'s current arrangement no longer references it.
 The wp's single live condition (i) holds at `d'` though it has been falsified at
