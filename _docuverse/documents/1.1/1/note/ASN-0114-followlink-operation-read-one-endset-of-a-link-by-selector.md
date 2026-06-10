@@ -243,11 +243,6 @@ survivability annotation (4/43) — is what upgrades coverage-permanence to
 after the surrounding documents are edited; F5 does not formally claim that
 stronger reading.
 
-We note the one careful qualification Nelson and Gregory both flag. "Same
-material" means same *content identity*, not same *coordinates in some document's
-current view*. The recorded end is invariant; its rendering into the live
-arrangement of a particular document is a separate matter, addressed below.
-
 ## Confinement: one end tells nothing of the others
 
 The question asks what reading one end exposes about the link "without naming or
@@ -281,19 +276,17 @@ precisely. `coverage(Σ.L(a).eᵢ)` is a set of arbitrary tumblers, not a set of
 T4-valid document-bearing addresses: by L4 (EndsetGenerality, ASN-0043) endset
 spans "may reference *any* addresses in the tumbler space," and L9 permits ghost
 targets, so a covered address may sit at node level (`zeros = 0`) or user level
-(`zeros = 1`), carrying no document field; moreover coverage is a union of
-half-open intervals `{t : s ≤ t < s ⊕ ℓ}`, whose *interior* tumblers need not be
-T4-valid at all (e.g. tumblers with adjacent zeros). For exactly those covered
+(`zeros = 1`), carrying no document field, or be a *non-T4-valid interior tumbler*
+of a half-open interval `{t : s ≤ t < s ⊕ ℓ}` (e.g. one with adjacent zeros) on
+which the field projections are undefined entirely. For exactly those covered
 addresses that *are* T4-valid and document-bearing — `zeros(t) ≥ 2`, on which
 T4b's field projections `N`, `U`, `D` are defined (ASN-0034, T4) — the home
 document is readable directly off the result, with no separate disclosure step
 (Q4): for such an address, revealing the region *is* revealing the document it
-lands in. For any covered address that is non-conforming — node- or user-level,
-or a non-T4-valid interior tumbler — no document field exists to read, so the
-result discloses no document for it. The "region *is* documents" equivalence
-therefore holds only over the document-bearing (`zeros ≥ 2`) slice of the
-coverage; L4 expressly permits ends whose covered addresses name no document at
-all, and over those the disclosure is of address region alone.
+lands in. The "region *is* documents" equivalence therefore holds only over this
+document-bearing slice; over the non-conforming addresses just enumerated, L4
+expressly permits ends that name no document at all, and there the disclosure is
+of address region alone.
 Second, the mere success of the request at selector `i` exposes that the link
 has at least `i` slots, `|Σ.L(a)| ≥ i`. Beyond these, the result discloses
 nothing: not the from-set when the to-set was asked, not the type, not the arity
@@ -355,6 +348,24 @@ negation structure of the precondition F0:
 > `wp(followlink(a, i), result ≠ ⊥) ≡ a ∈ dom(Σ.L) ∧ 1 ≤ i ≤ |Σ.L(a)|`,
 > and the complementary `wp(followlink(a, i), result = ⊥)` is the negation of
 > that condition.
+
+That boundary wp only restates F0's domain; no backward reasoning is exercised.
+The wp that actually probes F7's empty/non-empty split is the one asking when the
+result *is* the empty span-set. Working backward from `R = ⟨⟩`: the call must
+first be defined, else the result is `⊥ ≠ ⟨⟩`, supplying the two domain conjuncts;
+when defined, F1 gives `coverage(R) = coverage(Σ.L(a).eᵢ)`, and since `⟨⟩` is the
+*unique* span-set of empty coverage (ASN-0053, S2), `R = ⟨⟩ ⟺
+coverage(Σ.L(a).eᵢ) = ∅`. S2 then collapses that coverage condition to an endset
+condition: every well-formed span denotes a non-empty set, so any endset holding
+one or more spans has non-empty coverage, whence `coverage(Σ.L(a).eᵢ) = ∅ ⟺
+Σ.L(a).eᵢ = ∅`. Hence
+
+> `wp(followlink(a, i), R = ⟨⟩) ≡ a ∈ dom(Σ.L) ∧ 1 ≤ i ≤ |Σ.L(a)| ∧ Σ.L(a).eᵢ = ∅`.
+
+The third conjunct is exactly the state-dependent condition F7 makes
+load-bearing: among the defined calls, those returning the empty success are
+precisely those over an empty end, while every non-empty end returns a span-set
+of coverage `coverage(Σ.L(a).eᵢ) ≠ ∅`.
 
 ## Independence from content existence
 
