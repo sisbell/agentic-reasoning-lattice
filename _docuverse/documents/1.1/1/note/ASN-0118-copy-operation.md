@@ -55,7 +55,9 @@ and immutable: once `a ∈ dom(Σ.C)`, `a` persists and `Σ.C(a)` never changes
 (ASN-0036, S0 ContentImmutability; S1 StoreMonotonicity). The *arrangement* of a
 document `d` is a partial function `Σ.M(d) : T ⇀ T` (ASN-0036) from V-positions to
 I-addresses; it is a genuine function (S2 ArrangementFunctionality) whose every
-image lies in the content store (S3 ReferentialIntegrity), and it is the one
+image lies in the store appropriate to the V-position's subspace — content
+positions into `dom(Σ.C)`, link positions into `dom(Σ.L)` (ASN-0047, S3★
+GeneralizedReferentialIntegrity, refining ASN-0036's S3) — and it is the one
 component of state that may be edited in place. The *link store* `Σ.L : T ⇀ Link`
 (ASN-0043, ASN-0093) is permanent (L12 LinkImmutability). A document records,
 besides its arrangement, a *provenance* relation `Σ.R ⊆ T × T` (ASN-0047): a pair
@@ -92,8 +94,8 @@ udanax-green confirms the design is parametric in
 depth: `acceptablevsa` is an unconditional pass, the supplied action point used
 as-is. Whatever depth `ℓ` has, the
 span's start `s` is a well-formed V-position (ASN-0036, S8a): `zeros(s) = 0`,
-`#s ≥ 2`, every component of `s` positive. We reuse ASN-0058's construct rather
-than reinvent it. A *spec-set* is an ASN-0058 *ContentReferenceSequence*
+`#s ≥ 2`, every component of `s` positive. A *spec-set* is an ASN-0058
+*ContentReferenceSequence*
 `R = ⟨ρ₁, …, ρ_q⟩` (ContentReferenceSequence), a finite ordered sequence of V-specs
 with `q ≥ 1` (we write the spec-set length as `q`, reserving `p` for the insertion
 position introduced with the operation below). The ordering is part of the request — Nelson is explicit that "if you
@@ -162,13 +164,9 @@ object we record as the *resolution integrity* claim CP0:
   each `cᵢ` — run-leading or run-interior alike — is `Σ.M(d_s)(v)` for some active
   position `v ∈ act(ρ, Σ) ⊆ dom(Σ.M(d_s))` with `subspace(v) = s_C`
   (content-residence), so referential integrity S3★ gives `Σ.M(d_s)(v) ∈ dom(Σ.C)`.
-  The interior addresses `aⱼ + k` are covered because that grounding identifies
-  each with the image of the bound position `vⱼ + k`, not left as bare arithmetic
-  on `aⱼ`. The conclusion coincides with ASN-0058 C1
-  (ResolutionIntegrity); here it is grounded in S3★ over the bound subset, per the
-  resolution basis fixed above. *Nothing named by the spec-set is invented; it is
-  all found.* This is the precondition that the placement to come will require, met
-  by the source arrangements alone.
+  *Nothing named by the spec-set is invented; it is all found.* This is the
+  precondition that the placement to come will require, met by the source
+  arrangements alone.
 - **(b) Resolution is a pure read.** `resolve` is a function of `Σ`; it modifies no
   component — not `Σ.C`, not any `Σ.M(d)`, not `Σ.L`, not `Σ.R`. The source
   document is consulted, never altered, by the act of resolving a spec-set against
@@ -202,11 +200,7 @@ canonical first position `[s_C, 1, …, 1]` when `V_{s_C}(d) = ∅`
 
 **Precondition — content residence.** Every active position of every V-spec in `R`
 lies in the text subspace:
-`(A ρ ∈ R, v ∈ act(ρ, Σ) : subspace(v) = s_C)`. This promotes the resolution
-section's "content spec-set" restriction to an explicit precondition of the
-operation. By content-residence every active position is in `s_C`, so S3★ gives
-each resolved `cᵢ ∈ dom(Σ.C)` (CP0(a)), and the destination bindings of CP2 land
-content addresses in content-subspace positions (S3★ in the post-state).
+`(A ρ ∈ R, v ∈ act(ρ, Σ) : subspace(v) = s_C)`.
 
 **COPY(`Σ, d, p, R`)** is the transition `Σ → Σ'` with the following effect on the
 destination arrangement, displacement of its prior content, and recording of
@@ -411,8 +405,10 @@ it is consistent with the placement, and that dropping it yields a different
 operation (REPLICATE) entirely.
 
 The placement (CP2) requires, for each `i`, that `Σ'.M(d)(p + i) = cᵢ` be a legal
-arrangement binding — and referential integrity (S3) demands its image lie in the
-content store, `cᵢ ∈ dom(Σ'.C)`. There are two ways an operation *could* discharge
+arrangement binding — and since `p + i` is a content-subspace position (`p` is a
+text-subspace insertion position, its subspace carried by OrdShiftHom(a)),
+referential integrity (S3★, `s_C` branch) demands its image lie in the content
+store, `cᵢ ∈ dom(Σ'.C)`. There are two ways an operation *could* discharge
 this. The first is to *find* `cᵢ` already present; the second is to *allocate* a
 fresh address and copy the value into it. *Given* CP1, only the first is available
 — and it suffices: resolution integrity CP0(a) gives `cᵢ ∈ dom(Σ.C)`, and store
@@ -638,9 +634,15 @@ faithfully shares identity — brings `a` no closer to `d`. Discoverability is t
 *conditional on what the spec-set names*, which is exactly the lever transclusion
 gives an author: to inherit a link, place content the link already covers.
 
-Third, links anchored to the destination's *prior* content survive
-untouched, because that content's I-addresses are unchanged by the displacement
-(CP3) — the strap stays on the same bytes even as their V-positions slide forward.
+Third, links anchored to the destination's *prior* content survive. The
+displacement moves prior V-positions but preserves their images, so every prior
+I-address is retained in the post-state range:
+`ran(Σ'.M(d)) ⊇ {Σ.M(d)(v) : v ∈ V_{s_C}(d)}`, since each `v < p` keeps its binding
+(CP3b) and each `v ≥ p` carries it to `v + W` with `Σ'.M(d)(v + W) = Σ.M(d)(v)`
+(CP3a). A link whose endset coverage meets `{Σ.M(d)(v) : v ∈ V_{s_C}(d)}` therefore
+still meets `ran(Σ'.M(d))`, and LP12 at the post-state — with `Σ'.L = Σ.L` (CP7a)
+leaving coverage unchanged — keeps it discoverable from `d`. The strap stays on the
+same bytes even as their V-positions slide forward.
 
 ## Non-contiguous assembly, and the boundary between reuse and replication
 
@@ -765,7 +767,7 @@ sources.
 | CP4 | MultiplicityIncrease: total references into the placed set increase by exactly `W`; each placed `cᵢ`'s own reference count increases by its occurrence count in `resolve(R, Σ)` (≥ 1); distinct V-positions binding one address are permanently independent occurrences (S5, M14) | introduced |
 | CP5 | OriginInvariance: `origin(cᵢ)` is unchanged by COPY (S7(d)) and equals the document that *originally allocated* `cᵢ` — the spec-set source, a third document the source transcluded from, or `d` itself (copy-back / self-transclusion); attribution and ownership stay with that allocator | introduced |
 | CP6 | SourceIsolation: `(A d' ≠ d : Σ'.M(d') = Σ.M(d'))` and cross-subspace frame, the latter closing `d`'s non-`s_C` domain to its pre-state value (`{v ∈ dom(Σ'.M(d)) : subspace(v) ≠ s_C} = {v ∈ dom(Σ.M(d)) : subspace(v) ≠ s_C}`) with bindings preserved — every source and every other document is unmodified; the source's connectedness nonetheless grows (shared identity + provenance) | introduced |
-| CP7 | Links: (a) `Σ'.L = Σ.L`; (b) LinkSurvivalUnderReuse — any link whose endset coverage meets `{c₀,…,c_{W−1}}` becomes discoverable from `d` in `Σ'`; links to the destination's prior content survive (I-addresses unchanged) | introduced |
+| CP7 | Links: (a) `Σ'.L = Σ.L`; (b) LinkSurvivalUnderReuse — any link whose endset coverage meets `{c₀,…,c_{W−1}}` becomes discoverable from `d` in `Σ'`; links to the destination's prior content remain discoverable (prior images retained in range via CP3a/CP3b, LP12) | introduced |
 | CP8 | ProvenanceRecording: `(A i : 0 ≤ i < W : (cᵢ, d) ∈ Σ'.R)` — J1★ demands the *membership* in `Σ'.R`, satisfied by a fresh K.ρ step for range-new addresses not already in `Σ.R` (J1'★-admissible), by permanence P2 for range-new addresses already in `Σ.R` (re-COPY of deleted content, K.ρ optional), and by P4★ + P2 for addresses already in `d`'s current range | introduced |
 | CP9 | SelfTransclusionAdmissibility: when `d_s = d`, resolution reads the pre-state, so placement adds independent V-positions of `d` referring to addresses `d` already bound; no content is duplicated | introduced |
 | CP10 | ImmutabilityPreservation: S0 preserved across COPY (corollary of CP1); reused content carries identical bytes into the destination because they are the same bytes | introduced |
