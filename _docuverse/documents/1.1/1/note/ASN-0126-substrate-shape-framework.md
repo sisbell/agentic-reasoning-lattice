@@ -35,7 +35,7 @@ A registry is well-formed when shape values lie in `{Unary, Binary, Multi}`, nam
 
 **C0 (RegistryWellFormedness).** `Σ_init.registry` is well-formed (above) and finite: `|Σ_init.registry| < ∞`.
 
-C0's uniqueness of coverage-class keys is what lets the framework read a *shape per type*. Because lookup is by coverage class and no two entries share a `~`-equal key, `shape` respects `~`: for `K ~ K'`, `shape(K) = shape(K')`. So `shape(·)` is a well-defined function of the type-as-coverage-class `[K]`, not of an arbitrary endset representative; `shape(K)` denotes the shape the registry records for `[K]`, defined exactly on the registered coverage classes. The gate's conformance predicate, and the gate itself, read `shape(K)` through this function.
+We write `shape(K)` for the shape the well-formed registry — a partial function of coverage classes (above) — records for `[K]`; so `shape(K)` depends only on `[K]`, defined exactly on the registered coverage classes.
 
 ## Shape-conformance
 
@@ -61,11 +61,13 @@ ASN-0086's K.λ step has precondition L3 only (arity ≥ 3, non-empty type slot)
 
 `→_sh ≡ K.σ ∪ K.α ∪ K.λ_sh`,
 
-where `K.λ_sh` is `K.λ` with three added preconditions: (0) *the emitted value is a standard triple* — arity 3, so it carries exactly the two content slots `(F, G)` that `Sh-conf` reads; (i) *K is registered* — the registry records a shape for K; and (ii) `Sh-conf(K, F, G)`. Precondition (0) makes the value the standard triple (StandardTriple, ASN-0043), fixing `F = e₁` and `G = e₂` as its only two content slots, and (i) supplies `shape(K)` — a well-defined function of `[K]` on the registered coverage classes (C0, The registry) — so `Sh-conf(K, F, G)`, partial and defined only for registered K, is well-defined wherever (ii) is reached. K.σ and K.α are unchanged. The refinement is confined to the guard: `K.λ_sh` adds only preconditions to `K.λ`, so its C/M/L effect, its fresh emission address `a_emit(Σ, d)`, and its C/M/L frame are identical to `K.λ`'s — added preconditions restrict *when* a step fires, not *what* it does. Call this **effect-identity**.
+where `K.λ_sh` is `K.λ` with three added preconditions: (0) *the emitted value is a standard triple* — arity 3, so it carries exactly the two content slots `(F, G)` that `Sh-conf` reads; (i) *K is registered* — the registry records a shape for K; and (ii) `Sh-conf(K, F, G)`. Precondition (0) makes the value the standard triple (StandardTriple, ASN-0043), fixing `F = e₁` and `G = e₂` as its only two content slots, and (i) supplies `shape(K)` (defined for registered K, The registry) — so `Sh-conf(K, F, G)`, partial and defined only for registered K, is well-defined wherever (ii) is reached. K.σ and K.α are unchanged. The refinement is confined to the guard: `K.λ_sh` adds only preconditions to `K.λ`, so its C/M/L effect, its fresh emission address `a_emit(Σ, d)`, and its C/M/L frame are identical to `K.λ`'s — added preconditions restrict *when* a step fires, not *what* it does. Call this **effect-identity**.
 
 This gate yields the framework's safety guarantee. **P3 (Sh-confWellFormedness).** Every value a `→_sh`-step adjoins to `dom(Σ.L)` is a standard triple `(F, G, K)` whose K is registered and for which `Sh-conf(K, F, G)` holds. It is immediate: `K.λ_sh` is the only step kind that extends `dom(Σ.L)`, and (0), (i), (ii) are among its preconditions — so every deposited value is a standard triple of arity 3 by (0), with K registered by (i) and conforming to K's shape by (ii).
 
 One class of ASN-0086 emits falls outside `→_sh` entirely. The `|F| = 1` rule (Single-source) admits no empty-from source, and `K.λ_sh`'s precondition (ii) enforces it: `Emit_K` is total over `Endset × Endset` and `∅ ∈ Endset`, so `Emit_K(Σ, d, ∅, G)` is a legitimate ASN-0086 invocation, yet — carrying no F span — it has `|F| = 0`; every registrable shape requires `|F| = 1`, so for a registered K precondition (ii) fails and for an unregistered K precondition (i) fails, and either way the emit has **no** `→_sh` image. ASN-0086's `Nullify(Σ, d_retr, a) ≡ Emit_R(Σ, d_retr, ∅, {(a, δ(1, #a))})` is one such empty-from emit, so it too has no `→_sh` image. Retraction must therefore be re-expressed as a single-source emit before the framework can gate it (Retraction as an attributed Binary).
+
+A second class falls outside `→_sh` for a different reason — precondition (0) itself. ASN-0086's `K.λ` admits any arity `N ≥ 3`; L3 (ASN-0043) records Nelson's explicit call for N-endset support beyond three, "4-sets, 5-sets ... n-sets supported in link storage and search." Precondition (0) restricts `K.λ_sh` to arity *exactly* 3, so every `N > 3` emission — legal under ASN-0086 — likewise has **no** `→_sh` image: an app whose links carry four or more endsets is foreclosed by this framework, just as the empty-from emit is. This is a deliberate narrowing of the gateable surface, not an oversight; the path to richer arity is left to Open Question 6.
 
 ## Registry permanence
 
@@ -95,7 +97,9 @@ The bridge has two consequences.
 
 **(B1) Shared components.** Σ and `π(Σ)` share their C, M, and L components. Since `a_emit` reads only M and L, `a_emit(π(Σ), d) = a_emit(Σ, d)` and `dom(π(Σ).L) = dom(Σ.L)`; consequently `A_rel^{π(Σ)} = A_rel^Σ` (AddressPartition, ASN-0086, gives `A_rel^Σ = dom(Σ.L)`).
 
-**(B2) Lemma transfer.** Every ASN-0086 result quantified over `→*`-reachable three-component states holds at `π(Σ)` for each state Σ this note reasons about; since these results constrain only the shared C/M/L components, their conclusions transfer to Σ directly.
+**(B2) Lemma transfer.** Take any ASN-0086 result whose conclusion is a predicate over the C/M/L components — either of a single `→*`-reachable state, or of a transition between two states each separately exhibited as `→_sh`-reachable. For each state Σ this note reasons about, `π(Σ)` is `→*`-reachable (ProjectionBridge), so the result holds at `π(Σ)`; since it constrains only the shared C/M/L components, its conclusion transfers to Σ directly. This is the subclass every B2 citation below draws on — R-Scope, wp Case 2, L12, L-ContiguousPrefix are all state- or transition-predicates over C/M/L.
+
+*Existence-of-successor results are excluded.* ASN-0086's R0 (TupleAddressFreshness), R5 (TupleSelfTargeting), and R6c's restoration-by-reemission each conclude `∃ Σ' : Σ → Σ' ∧ …`. Transferring such a conclusion through `π` yields a `→`-successor of `π(Σ)`, whose witnessing `K.λ` step need not satisfy (0)/(i)/(ii) and so need not be a `K.λ_sh` step: a `→`-successor of `π(Σ)` is not automatically a `→_sh`-successor of Σ. Results of this subclass are obtained here not through B2 but by lifting (P5), which re-derives a gated emission by applying `Emit_K` at `π(Σ)` and manually lifting its `K.λ` step to `K.λ_sh`.
 
 ## Retraction as an attributed Binary
 
