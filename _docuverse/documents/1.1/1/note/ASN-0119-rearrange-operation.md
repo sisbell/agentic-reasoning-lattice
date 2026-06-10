@@ -38,13 +38,7 @@ with REARRANGE imported as an atomic arrangement-rearrangement primitive
 (ASN-0084), distinct from and not reducible to ASN-0047's own non-atomic `K.μ~`
 composite (a `K.μ⁻ + K.μ⁺` pair that necessarily passes through a content-removed
 intermediate), even though REARRANGE realizes the same *net* arrangement change as
-that composite without ever vacating content. Because REARRANGE_K sits outside
-ASN-0047's transition vocabulary, ASN-0098's link-projection lemmas about
-*transitions* — coverage invariance (LP3) and the reordering bijection (LP11) —
-are proved by case analysis over that vocabulary and do not cover it; where this
-note needs their conclusions for REARRANGE it re-derives them inline rather than
-cites them. (ASN-0098's single-state characterisations — properties of one `Σ`
-rather than of a transition — carry over directly and are cited as usual.)
+that composite without ever vacating content.
 The model lifts the strand model (ASN-0036) and the link model
 (ASN-0043) into a single arrangement whose V-positions inhabit two subspaces — the
 text subspace `s_C` and the link subspace `s_L` (ASN-0047, S3★-aux). REARRANGE
@@ -249,14 +243,27 @@ content subspace. On the link subspace, S8★'s trivial length-1 decomposition a
 the value-dependent CL-OWN/CL-UNIQ ride untouched on the frozen `s_L` frame.
 
 The remaining ASN-0047 obligations are general transition invariants — couplings,
-permanence, and hierarchy — discharged here so the invariant accounting lives in
-one place. As a transition in ASN-0047's model REARRANGE allocates no content and
-records no provenance, with `ran(M'(d)) = ran(M(d))` by RA1, so the model's
-coupling obligations J0, J1★, and J1'★ hold vacuously. The one composite-boundary
-invariant that reads the mutated arrangement, P4★ (`Contains_C(Σ) ⊆ R`), is
-preserved because the content-subspace value set is invariant: `π` permutes the
-text subspace onto itself, so
-`{ M'(d)(v) : subspace(v) = s_C } = { M(d)(u) : subspace(u) = s_C }`, whence
+permanence, and hierarchy. One structural fact underlies several of them: because
+`π` permutes the text subspace onto itself, the content-subspace value set is
+invariant,
+
+      { M'(d)(v) : subspace(v) = s_C } = { M(d)(u) : subspace(u) = s_C }.
+
+The three coupling obligations then hold vacuously, each by its own empty
+antecedent. J0 (every freshly allocated I-address is placed in some arrangement) is
+vacuous because `dom(C') = dom(C)` by RA0 — REARRANGE allocates no content, so no
+I-address is fresh. J1'★ (every new provenance entry answers to a range-new content
+address) is vacuous because `R' = R` under the inert `R` frame — no provenance entry
+is new. J1★ (every content address newly entering the content-subspace range is
+recorded in provenance) is the obligation that genuinely reads the arrangement: it
+fires for an I-address that lies in `{ M'(d)(v) : subspace(v) = s_C }` but not in
+`{ M(d)(u) : subspace(u) = s_C }`. By the content-subspace-range invariance just
+displayed those two sets coincide, so no such I-address exists and J1★'s antecedent
+is empty as well. Full-range invariance `ran(M'(d)) = ran(M(d))` (RA1) does not by
+itself settle J1★ — J1★ is stated against the content-subspace range, not the full
+range — so the subspace-preserving action of `π` is what closes it. The one
+composite-boundary invariant that reads the mutated arrangement, P4★
+(`Contains_C(Σ) ⊆ R`), is preserved by the same invariance:
 `Contains_C(Σ') = Contains_C(Σ) ⊆ R = R'`. The remaining
 ExtendedReachableStateInvariants conjuncts (P6, P7, P8, P7a, P4a, the E-family
 NodeLineage/ActivatedEmission, the L-family, the C-family) are preserved by the
@@ -421,7 +428,11 @@ and since `π` is a bijection of `dom(M(d))` (RA2), this is exactly
       project(a, i, d, Σ') = π( project(a, i, d, Σ) ).             **(RA7a)**
 
 The footprint is carried *through* `π`: neither lost nor enlarged, only relocated
-to where the content now sits.
+to where the content now sits. (This derivation re-proves inline, for REARRANGE,
+ASN-0098's coverage invariance LP3 and reordering bijection LP11: both are
+established there by case analysis over ASN-0047's transition vocabulary, which
+REARRANGE_K sits outside, so this note reconstructs their conclusions rather than
+citing them.)
 
 *A link spanning both moved regions, or running from a moved region into
 stationary content* (Question 5). Here the footprint may be split by a cut, and we
