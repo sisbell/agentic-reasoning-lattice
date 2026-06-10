@@ -1,16 +1,23 @@
 # ASN-0115 Claim Statements
 
-*Source: ASN-0115-retrievev-operation-content-delivery-by-spec-set.md (revised 2026-06-04) — Extracted: 2026-06-05*
+*Source: ASN-0115-retrievev-operation-content-delivery-by-spec-set.md (revised 2026-06-04) — Extracted: 2026-06-10*
 
-## Definition — ActivePositions
+## Definition — DepthCompat
 
-`act(ρ, Σ) = dom(Σ.M(d)) ∩ ⟦σ⟧`
+`depthcompat(ρ, Σ) ≡ V_S(d) = ∅ ∨ #s = m_S(d)`
 
-where `ρ = (d, σ)` is a V-spec, `Σ` is a reachable state, and `⟦σ⟧ = {t ∈ T : s ≤ t < s ⊕ ℓ}` for span `σ = (s, ℓ)`.
+where `ρ = (d, σ)`, `S = s₁` (subspace of span start `s`), `m_S(d)` defined only while `V_S(d) ≠ ∅`.
 
-The set `act(ρ, Σ)` is finite (subset of `dom(Σ.M(d))`, which is finite by S8-fin) and totally ordered (subset of `T` by T1), giving unique ascending enumeration `v₁ < v₂ < … < v_k` where `k = |act(ρ, Σ)|`.
+## Definition — Act
 
-## Definition — DeliveryItem
+```
+act(ρ, Σ) = dom(Σ.M(d)) ∩ ⟦σ⟧   when depthcompat(ρ, Σ)
+act(ρ, Σ) = ∅                     otherwise
+```
+
+`act(ρ, Σ)` is finite (subset of `dom(Σ.M(d))`, which is finite by S8-fin) and totally ordered (subset of `T` with T1 order), admitting unique ascending enumeration `v₁ < v₂ < … < v_k` where `k = |act(ρ, Σ)|`.
+
+## Definition — Item
 
 ```
 item(v, ρ, Σ) =
@@ -18,23 +25,29 @@ item(v, ρ, Σ) =
   ⟨ref, a⟩            if subspace(v) = s_L   (then a ∈ dom(Σ.L) by S3★)
 ```
 
-where `a = Σ.M(d)(v)` (well-defined and single-valued by S2). Defined on all `v ∈ act(ρ, Σ)` because S3★-aux (SubspaceExhaustiveness) ensures every active V-position has `subspace(v) = s_C` or `subspace(v) = s_L`.
+where `a = Σ.M(d)(v)`. Total on `act(ρ, Σ)` by S3★-aux (SubspaceExhaustiveness).
 
-## Definition — PerSpecDelivery
+## Definition — Deliver1
 
 `deliver₁(ρ, Σ) = ⟨item(v₁, ρ, Σ), …, item(v_k, ρ, Σ)⟩`
 
-the ascending-V sequence of items over the enumeration `v₁ < v₂ < … < v_k` of `act(ρ, Σ)`.
+where `v₁ < v₂ < … < v_k` is the unique ascending enumeration of `act(ρ, Σ)`.
+
+## Confinement — PrefixConfinement (LEMMA, lemma)
+
+For an ordinal-level, level-uniform span `σ = (s, ℓ)` with `#s = #ℓ = m ≥ 2`, every `t ∈ ⟦σ⟧` agrees with `s` on its first `m − 1` components — `tⱼ = sⱼ` for `1 ≤ j < m`. In particular `t₁ = s₁`, so `⟦σ⟧` lies wholly in subspace `s₁` and cannot cross the subspace boundary.
+
+*Proof.* Ordinal-level width acts only at position `m` (`actionPoint(ℓ) = m`), so the length-`(m − 1)` prefix `p = [s₁, …, s_{m−1}]` satisfies `p ≼ s`, and the reach `reach(σ) = s ⊕ ℓ` copies that prefix unchanged below the action point (TumblerAdd, ASN-0034), giving `p ≼ reach(σ)`. For any `t ∈ ⟦σ⟧`, `s ≤ t < reach(σ)`, hence `s ≤ t ≤ reach(σ)`; T5 (ContiguousSubtrees, ASN-0034) then yields `p ≼ t`, i.e. `tⱼ = sⱼ` for `1 ≤ j < m`. ∎
+
+---
 
 ## R0 — Deliver (DEF, definition)
 
 `deliver(R, Σ) = deliver₁(ρ₁, Σ) ⌢ deliver₁(ρ₂, Σ) ⌢ … ⌢ deliver₁(ρₚ, Σ)`
 
-where `R = ⟨ρ₁, …, ρₚ⟩` is a finite ordered sequence of V-specs, `p ≥ 0`.
+where `R = ⟨ρ₁, …, ρₚ⟩`, `p ≥ 0`. When `p = 0`: `deliver(⟨⟩, Σ) = ⟨⟩`.
 
-Boundary: `deliver(⟨⟩, Σ) = ⟨⟩`.
-
-Frame: no component of `Σ` is modified — neither `Σ.C`, nor `Σ.L`, nor any `Σ.M(d)`.
+`act(ρ,Σ) = dom(Σ.M(d)) ∩ ⟦σ⟧` when `ρ` is depth-compatible at `Σ` (`V_S(d) = ∅ ∨ #s = m_S(d)`) and `∅` otherwise; `item` carries `Σ.C(a)` for content positions, the reference `a` for link positions.
 
 ## R1 — MaterialDelivery (INV, predicate)
 
@@ -48,7 +61,7 @@ Frame limit: this governs the denotation of delivery, not any transmission chann
 
 ## R3 — SpecSetExactness (INV, predicate)
 
-The delivery contains an item for *exactly* the active positions of each span, and no others: every item arises from some `v ∈ ⟦σⱼ⟧ ∩ dom(Σ.M(dⱼ))` (nothing extra — every delivered item is named by a span), and every such `v` contributes an item (nothing present-and-named is omitted).
+The delivery contains an item for *exactly* the active positions `act(ρⱼ, Σ)` of each spec, and no others: every delivered item arises from some `v ∈ act(ρⱼ, Σ)` (nothing extra), and every `v ∈ act(ρⱼ, Σ)` contributes an item (nothing active omitted). For a spec depth-compatible at `Σ` this reads as span-for-span exactness, `act(ρⱼ, Σ) = ⟦σⱼ⟧ ∩ dom(Σ.M(dⱼ))` — every position the span names and the arrangement binds, and no other; for a spec depth-incompatible at `Σ`, `act(ρⱼ, Σ) = ∅`, so that spec contributes nothing.
 
 ## R4 — ArrangementRelativity (INV, predicate)
 
@@ -60,26 +73,25 @@ Across V-specs, delivery follows spec-set sequence order: the items of `ρᵢ` w
 
 ## R6 — SilentGapFiltering (INV, predicate)
 
-A named position with no binding in the consulted arrangement — `v ∈ ⟦σⱼ⟧ \ dom(Σ.M(dⱼ))` — contributes nothing to the delivery and causes no failure. Delivery succeeds and returns the items for the bound positions; the unbound positions are represented by their absence. Moreover, restricted to the depth-`m_S`, subspace-`S` slice of `⟦σⱼ⟧` — the only named positions the arrangement can bind — the unbound portion is always a *terminal overrun* of the subspace's contiguous active range — the named positions past the bound frontier — never an interior hole within that range. Named positions of `⟦σⱼ⟧` deeper than `m_S` are unbound too, but for a simpler reason: by S8-depth every active subspace-`S` position has depth exactly `m_S`, so any named position of depth `> m_S` is absent from `dom(Σ.M(dⱼ))` outright and is harmlessly filtered out of `act`; the no-interior-hole guarantee is a claim about the bindable slice, not about every named tumbler in the interval.
+A named position the consulted arrangement does not make active — one outside `act(ρⱼ, Σ)` — contributes nothing to the delivery and causes no failure; delivery succeeds and returns the items for exactly the active positions `act(ρⱼ, Σ)`, the rest represented by their absence. When `ρⱼ` is depth-compatible at `Σ`, `act(ρⱼ, Σ) = dom(Σ.M(dⱼ)) ∩ ⟦σⱼ⟧`, so the filtered positions are precisely the geometrically unbound ones, `v ∈ ⟦σⱼ⟧ \ dom(Σ.M(dⱼ))`; when `ρⱼ` is depth-incompatible at `Σ`, `act(ρⱼ, Σ) = ∅` and the whole span is filtered, still without failure. Moreover, for a depth-compatible `ρⱼ`, restricted to the depth-`m_S`, subspace-`S` slice of `⟦σⱼ⟧` — the only named positions the arrangement can bind — the unbound portion never falls as an interior hole within the subspace's contiguous active range; and whenever that slice meets the active range, the unbound portion is exactly a *terminal overrun* past the bound frontier. The no-interior-hole guarantee is a claim about the bindable slice, not about every named tumbler in the interval.
 
-## R7 — Repeatability (INV, predicate)
+## R7 — Repeatability (LEMMA, lemma)
 
 Let `Σ`, `Σ'` be two states of one evolving docuverse with one a reachability descendant of the other along the sequential transition order — without loss of generality `Σ →* Σ'` (ASN-0047, SequentialTransitionAxiom) — for which the consulted arrangement restrictions agree, `Σ.M(dⱼ)|⟦σⱼ⟧ = Σ'.M(dⱼ)|⟦σⱼ⟧` for every `j`. Then `deliver(R, Σ) = deliver(R, Σ')`.
 
-## R8 — TransclusionRevelation (INV, predicate)
+## R8 — TransclusionCoResolution (INV, predicate)
 
-If two active positions `v, v'` (within one spec or across specs) satisfy `Σ.M(d)(v) = Σ.M(d')(v') = a`, then the two positions share a single subspace: by S3★ the shared address `a` lies in `dom(Σ.C)` or in `dom(Σ.L)` but, by store disjointness (SD), not both. Two cases arise by that shared subspace:
+If two active positions `v, v'` (within one spec or across specs) resolve to the same address, `Σ.M(d)(v) = Σ.M(d')(v') = a`, then they share one subspace, and the co-delivery guarantee is content-only. In the **content sub-case** (`a ∈ dom(Σ.C)`) the two positions are co-resolved through the one shared address `a`:
 
-**(Content sub-case)** `subspace(v) = s_C`, `a ∈ dom(Σ.C)`:
-- (i) the two delivered items carry the identical value `Σ.C(a)`, by R2
-- (ii) both items are resolved through the one shared address `a` — identity-preserving co-resolution — never fabricating two independent origins, so `origin(a)` of both is one and the same (S4, S7)
-- (iii) the operation performs no deduplication: each position yields its own item, so the shared content appears once per V-position
+- (i) both items carry the identical value `Σ.C(a)` (R2);
+- (ii) both resolve *through* `a` — identity-preserving co-resolution — so `origin(a)` of both is one and the same (S4, S7);
+- (iii) the operation performs no deduplication, so the shared content appears once per V-position.
 
-**(Link sub-case)** `subspace(v) = s_L`, `a ∈ dom(Σ.L)`: vacuous. CL-OWN (ASN-0047) forces `origin(Σ.M(d)(v)) = d` for every link-subspace position, so two documents both binding `a` in their link subspaces are forced equal, `d = d'`. Within that one document, CL-UNIQ (ASN-0047) makes `Σ.M(d)` injective on the link subspace, so two positions both mapping to `a` are forced equal, `v = v'`. Genuine link transclusion therefore does not occur.
+The sharing is a fact of *resolution*, not of the delivered output: each item carries the value `Σ.C(a)`, never the address `a` (R1), so the co-delivery is byte-indistinguishable from the delivery of two coincidentally-equal contents at distinct addresses (S4) and discloses nothing about the shared origin. The **link sub-case** is *vacuous*: two distinct active link positions can never share a link address. Genuine transclusion is therefore confined to content.
 
 ## R9 — CoherentMultiOriginAssembly (INV, predicate)
 
-A spec-set drawing on multiple origins is delivered as one ordered sequence (R5), assembled by resolving each spec against its own document's arrangement independently (R4). The *resolution* is provenance-traceable: each active position `v` resolves to `a = Σ.M(d)(v)`, and that address determines a home document — for a content position (`subspace(v) = s_C`, `a ∈ dom(Σ.C)`) the document-level prefix `origin(a)` (S7); for a link position (`subspace(v) = s_L`, `a ∈ dom(Σ.L)`) the link's home `home(a)` (ASN-0043, L1a), which coincides with `origin` on link addresses (ASN-0086, HomeOriginCoincidence) — so no fragment's provenance is collapsed by co-assembly. Whether that origin travels *inside* the delivered material or is recoverable only through the resolution mapping is a separate question; R9 asserts traceability of the resolution, not inline provenance of the delivered stream.
+A spec-set drawing on multiple origins is delivered as one ordered sequence (R5), assembled by resolving each spec against its own document's arrangement independently (R4). How much origin survives *into the delivered stream* is *kind-asymmetric*, tracking the payload asymmetry of R1 and R10: a **link** item carries the address `a` itself (R10), so its home `home(a)` is recoverable from the delivered output; a **content** item carries only the value `Σ.C(a)` (R1), so its origin `origin(a)` is *not* recoverable from the output — it is determinate only through the resolution mapping `v ↦ a`, an internal artifact of computing `deliver`.
 
 ## R10 — SubspaceCrossingObservability (INV, predicate)
 
@@ -89,4 +101,8 @@ When an active position lies in the link subspace (`subspace(v) = s_L`), it reso
 
 Delivery sources every content item from the immutable content store by I-address. Consequently a content address that has ever entered `dom(Σ.C)` remains deliverable for all time: if any arrangement — the document's own, a later version's, or a transcluding document's — binds some V-position to `a`, then a spec over that document resolves to `a` and delivers `Σ.C(a)`, even if the originally-creating document's *current* arrangement no longer references `a`.
 
-Weakest precondition for delivery to include the value at `a`: a single live condition — (i) the consulted arrangement binds some named content position to `a` (`subspace(v) = s_C`, `Σ.M(d)(v) = a`). Store membership `a ∈ dom(Σ.C)` is an automatic, permanent consequence: S3★ supplies membership, S0 supplies immutability.
+The weakest precondition for delivery to include the value at `a` is a *single* live condition:
+
+- (i) the consulted arrangement binds some *active* content position to `a` — a `v ∈ act(ρ, Σ)` with `subspace(v) = s_C` and `Σ.M(d)(v) = a`.
+
+Stating (i) through `act` folds in: the spec is depth-compatible at `Σ` (else `act = ∅`), that `v` is named (`act ⊆ ⟦σ⟧`), and that `v` is bound (`act ⊆ dom(Σ.M(d))`). There is no independent store-membership conjunct: `Σ.M(d)(v) = a ⟹ a ∈ dom(Σ.C)` (S3★), and `Σ.C(a)` is then fixed for all time by S0.
