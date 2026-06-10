@@ -86,22 +86,42 @@ precondition. We define:
 
 > **F0 (FollowLink).** `followlink(Σ, a, i)` is *defined* (returns a span-set)
 > exactly when `a ∈ dom(Σ.L) ∧ 1 ≤ i ≤ |Σ.L(a)|`; otherwise it returns the
-> distinguished error value `⊥`. When defined, the returned span-set `R`
-> satisfies `coverage(R) = coverage(Σ.L(a).eᵢ)`.
+> distinguished error value `⊥`. The coverage that span-set must carry is governed
+> by the postcondition the wp named above, which we elevate to the central claim
+> F1 rather than restate here.
 
-**Status of the result — a relation, determinate up to coverage.** F0 asserts a
-satisfying `R` exists; we must exhibit one. This is immediate: `Σ.L(a).eᵢ ∈
-Endset = 𝒫_fin(Span)` is *already* a finite set of well-formed spans, so any
-sequencing of its members is a span-set whose coverage is `coverage(Σ.L(a).eᵢ)`
-by the definition of `coverage` as a union over the endset's spans. The recorded
-endset is thus its own witness, and F0 is satisfiable. Since F0 fixes the coverage
-of every satisfying `R` to `coverage(Σ.L(a).eᵢ)`, we read `followlink(Σ, a, i)` as
-a *relation* standing for any such span-set; wherever it appears as a single term
-inside `coverage(·)`, that term is well-defined.
+**Status of the result — a relation, determinate up to coverage.** The wp above
+fixes the precondition under which a defined call must return a span-set `R` with
+`coverage(R) = coverage(Σ.L(a).eᵢ)`; we must exhibit such an `R`. This is
+immediate: `Σ.L(a).eᵢ ∈ Endset = 𝒫_fin(Span)` is *already* a finite set of
+well-formed spans, so any sequencing of its members is a span-set whose coverage
+is `coverage(Σ.L(a).eᵢ)` by the definition of `coverage` as a union over the
+endset's spans. The recorded endset is thus its own witness, and the postcondition
+is satisfiable. Because the postcondition pins only the *coverage* of a satisfying
+`R`, we read `followlink(Σ, a, i)` as a *relation* standing for any such span-set;
+wherever it appears as a single term inside `coverage(·)`, that term is
+well-defined.
 
-We must justify each of the three clauses of this definition — the coverage
-relationship, the frame, the error case — and extract their consequences. We do
-so in turn.
+In two cases the relation collapses to a *single* value, and there the bare
+equality `followlink(Σ, a, i) = v` — a term standing outside `coverage(·)` — is
+itself well-defined. (i) *Out of domain:* when the call is undefined, F0 fixes the
+value at the distinguished `⊥`. (ii) *Empty end:* when `coverage(Σ.L(a).eᵢ) = ∅`,
+the postcondition forces `coverage(R) = ∅`, and since every well-formed span
+denotes a non-empty set (ASN-0053, S2) the only span-set with empty coverage is
+`⟨⟩`; hence `R = ⟨⟩` uniquely. These are exactly the two cases in which the later
+sections write `followlink` as a bare equality — the `⊥` of an invalid selector
+and the `⟨⟩` of an empty end, in F7 and in the worked instance — and there the
+notation is licensed by this single-valuedness. More generally, any (in)equality
+between `followlink(Σ, a, i)` and `⟨⟩` reduces, by the equivalence
+`R = ⟨⟩ ⟺ coverage(R) = ∅` that S2 supplies (used at F7), to a statement about
+`coverage(followlink(Σ, a, i))`, so it too is well-defined even where the relation
+is otherwise multi-valued. Outside these uses the result is determinate only up to
+coverage, and we keep it inside `coverage(·)`.
+
+Three commitments now remain to justify — the coverage relationship (F1), the
+pure-read frame (F4), and the distinction between a valid-but-empty end and an
+invalid selector (F7) — each carried by its own claim rather than packed into the
+definition, and each with consequences to extract. We take them in turn.
 
 ## What the result must be: exact coverage, no more and no less
 
@@ -489,7 +509,7 @@ abstract specification exists to make visible.
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| F0 | `followlink(Σ, a, i)` is defined iff `a ∈ dom(Σ.L) ∧ 1 ≤ i ≤ \|Σ.L(a)\|`; else returns `⊥`. When defined it returns a span-set `R` with `coverage(R) = coverage(Σ.L(a).eᵢ)` | introduced |
+| F0 | `followlink(Σ, a, i)` is defined (returns a span-set) iff `a ∈ dom(Σ.L) ∧ 1 ≤ i ≤ \|Σ.L(a)\|`; else returns `⊥`. The coverage a defined call carries is owned by F1, not restated here | introduced |
 | F1 | CoverageExactness: `coverage(followlink(Σ, a, i)) = coverage(Σ.L(a).eᵢ)` — neither over- nor under-coverage | introduced |
 | F2 | DiscontiguityFaithfulness: if `coverage(Σ.L(a).eᵢ)` is disconnected, any F1-result has `≥ 2` spans (corollary of F1 and span convexity) | introduced |
 | F3 | RepresentationInvariance: any two F1-results for the same `(Σ, a, i)` are denotationally equal; the contract binds coverage, not span decomposition or order | introduced |
