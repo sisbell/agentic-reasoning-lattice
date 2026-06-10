@@ -83,8 +83,7 @@ for the subspace the start designates, when `S` is already populated in `d`
 (`V_S(d) ≠ ∅`) the start
 must match that subspace's common depth, `#s = m_S(d)` (the depth S8-depth
 (ASN-0036) fixes uniformly on `V_S(d)`). This is the same discipline ASN-0058's
-ContentReference imposes (`#ℓ = #u = m` with `m` the common V-position depth); it
-is what lets R6 below reason about `⟦σ⟧` and `V_S(d)` at a single shared depth.
+ContentReference imposes (`#ℓ = #u = m` with `m` the common V-position depth).
 When `V_S(d) = ∅` the constraint is vacuous — any well-formed start of depth `≥ 2`
 is admissible — but then `act = ∅` and the gap analysis is trivial (every named
 position is unbound). Ordinal-level means the width acts at the deepest component,
@@ -153,17 +152,15 @@ Everything that follows is an analysis of this object. We name `deliver` as R0;
 the named claims R1–R11 record the invariants any faithful realization must
 satisfy. The empty-request boundary is settled by the definition: when `p = 0`
 the concatenation in R0 has no factors, so `deliver(⟨⟩, Σ) = ⟨⟩` — the empty
-spec-set is a valid request whose delivery succeeds and returns nothing, the
-companion at the request level to R6's partial-success discipline within a spec.
+spec-set is a valid request whose delivery succeeds and returns nothing.
 
 RETRIEVEV is a *pure query*. `deliver(R, Σ)` reads the state and produces no
 transition: no component of `Σ` is modified — neither the content store `Σ.C`,
 nor the link store `Σ.L`, nor any arrangement `Σ.M(d)`, nor any other component.
 The operation does not appear in the substrate's transition vocabulary at all;
 it is a function of state, not a state transition. We record this as a frame
-rather than leave it implicit in the functional notation, matching the
-convention the project's other query operation states explicitly (ASN-0086,
-Observe: "Observe leaves Σ unchanged").
+rather than leave it implicit in the functional notation (cf. ASN-0086,
+Observe).
 
 ## Delivery returns material, not location
 
@@ -587,8 +584,7 @@ recoverable from the resolution mapping — `origin(a₁) = d₁` and `origin(a�
 (S7) — and these are distinct, so co-assembly into one stream collapses neither
 origin into the other. The delivered stream is one coherent sequence (a) whose
 fragments remain individually attributable to their distinct creating documents
-(b) — exactly the dual obligation R9 names, shown here for the multi-origin case
-that R8 (single shared origin) and R11 (single forked lineage) do not exercise.
+(b) — exactly the dual obligation R9 names.
 
 ## What co-delivery reveals: subspace crossing
 
