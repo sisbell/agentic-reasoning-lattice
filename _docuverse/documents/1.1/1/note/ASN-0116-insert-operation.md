@@ -244,7 +244,14 @@ left and shifted-suffix alike — unchanged. We name the clauses:
 *Frame.*
 - (F-SUB) `(A S' : S' ≠ S : {v ∈ dom(M'(d)) : subspace(v) = S'} =
   {v ∈ dom(M(d)) : subspace(v) = S'}` and `M'(d)` agrees with `M(d)` there`)` —
-  ASN-0082 **I3-X (PostInsertionCrossSubspaceFrame)**.
+  the set equality is two inclusions. Every prior cross-subspace position persists
+  with its value (`{v ∈ dom(M(d)) : subspace(v) = S'} ⊆
+  {v ∈ dom(M'(d)) : subspace(v) = S'}`, with agreement there) by ASN-0082 **I3-X
+  (PostInsertionCrossSubspaceFrame)**; and INSERT adds no cross-subspace position
+  (the reverse inclusion `{v ∈ dom(M'(d)) : subspace(v) = S'} ⊆
+  {v ∈ dom(M(d)) : subspace(v) = S'}`) by ASN-0082 **I3-CX
+  (PostInsertionCrossSubspaceClosure)**. The `⊆` half is load-bearing for RAN below,
+  which reads the cross-subspace image equality off this position-set equality.
 - (F-DOC) `(A d' : d' ≠ d : M'(d') = M(d'))` — ASN-0082 **I3-D
   (PostInsertionCrossDocumentFrame)**.
 - (F-LINK) `Σ'.L = Σ.L` — the link store is untouched. INSERT's only K-atomics are
@@ -329,7 +336,12 @@ predecessors leave, is
   `{J+n,…,N+n}` are consecutive, gap-free, and union to `{1,…,N+n}` — so S8-depth,
   D-CTG★, D-MIN★ hold; (iv) every
   added position sits in subspace `s_C`, meeting the amended K.μ⁺ content-subspace
-  restriction; and (v) the domain grows strictly (`J−1 < N+n`). The prior positions
+  restriction; and (v) the domain grows strictly (`J−1 < N+n`) yet stays finite — its
+  content subspace is the size-`(N+n)` run `{q_1, …, q_{N+n}}`, and its link subspace
+  is `V_{s_L}(d)`, carried unchanged from the pre-state `Σ` (K.α leaves `M` alone, K.μ⁻
+  retains the link subspace in full), hence finite by **S8-fin** (ASN-0036) at the
+  composite boundary `Σ`, so `dom(M'(d))` is a union of two finite sets and is finite
+  (equivalently **I3-fin**, ASN-0082). The prior positions
   `{q_1, …, q_{J−1}}` are untouched, so prior-domain agreement holds — K.μ⁺ never
   rewrites an existing entry.
 - *`K.ρ₁, …, K.ρₙ` (record provenance).* The `k`-th records `(shift(a, k), d)`; its
@@ -839,7 +851,7 @@ The claims established are catalogued below.
 | I-LEFT | V-positions `< p` in subspace `S` are unchanged | cited (I3-L, ASN-0082) |
 | I-NEW | The vacated block `{shift(p,k)}` maps to the fresh run `{shift(a,k)}` | introduced (composition glue) |
 | I-DOM | `V_S(d')` is the dense run `{q_1, …, q_{N+n}}` with `N' = N+n`; the post-state D-SEQ/D-MIN/D-CTG follow from this shape via ExtendedReachableStateInvariants (ASN-0047) | introduced (interval argument; prefix+suffix from I3-CS, ASN-0082; middle block from I-NEW) |
-| F-SUB | Positions in subspaces `S' ≠ S` are unchanged (subspace confinement of the shift) | cited (I3-X, ASN-0082) |
+| F-SUB | Positions in subspaces `S' ≠ S` are unchanged (subspace confinement of the shift): prior positions persist (I3-X) and none are added (I3-CX) | cited (I3-X + I3-CX, ASN-0082) |
 | F-DOC | Arrangements of all documents `d' ≠ d` are unchanged | cited (I3-D, ASN-0082) |
 | F-LINK | `Σ'.L = Σ.L` — the link store is untouched | cited (frame; no K-atomic touches `Σ.L`) |
 | F-ENT | `Σ'.E = Σ.E` — the entity set is untouched | cited (frame; INSERT registers no entity) |
