@@ -78,11 +78,8 @@ further require *depth compatibility* with the named subspace: writing `S = s₁
 for the subspace the start designates, when `S` is already populated in `d`
 (`V_S(d) ≠ ∅`) the start
 must match that subspace's common depth, `#s = m_S(d)` (the depth S8-depth
-(ASN-0036) fixes uniformly on `V_S(d)`). This is the same discipline ASN-0058's
-ContentReference imposes (`#ℓ = #u = m` with `m` the common V-position depth).
-When `V_S(d) = ∅` the constraint is vacuous — any well-formed start of depth `≥ 2`
-is admissible — but then `act = ∅`, since `⟦σ⟧` lies wholly in subspace `S`
-(Confinement) and the subspace-`S` slice of `dom(Σ.M(d))` is exactly `V_S(d) = ∅`.
+(ASN-0036) fixes uniformly on `V_S(d)`). When `V_S(d) = ∅` the constraint is
+vacuous — any well-formed start of depth `≥ 2` is admissible.
 Ordinal-level means the width acts at the deepest component,
 `actionPoint(ℓ) = #ℓ` (ASN-0082, OrdinalLevel). This is the deepest-action-point
 discipline that keeps a span within a single subspace:
@@ -139,8 +136,7 @@ distinguished by tag. These two cases are *exhaustive* on active positions, so
 `item` is total on `act`: every `v ∈ act(ρ, Σ) ⊆ dom(Σ.M(d))` is an active
 V-position, and by S3★-aux (SubspaceExhaustiveness, ASN-0047) every active
 V-position has `subspace(v) = s_C` or `subspace(v) = s_L` — no third subspace
-arises. Hence `item` — and therefore `deliver₁` and `deliver` below — is
-well-defined on its stated domain. The *per-spec delivery* is the ascending-V sequence
+arises. Hence `item` is well-defined on its stated domain. The *per-spec delivery* is the ascending-V sequence
 `deliver₁(ρ, Σ) = ⟨item(v₁, ρ, Σ), …, item(v_k, ρ, Σ)⟩`, and the **delivery** of
 the whole spec-set is the concatenation in spec-set order:
 
@@ -361,12 +357,9 @@ empty I-span set and a successful, empty contribution — indistinguishable from
 legitimately empty region. The gap is signalled *structurally* (the caller
 compares what it asked for against what arrived), not by an error code.
 
-Note the boundary R6 does *not* cover: failure of an open-document precondition
-is a different matter from an unbound position within an open document. R6 is
-about absence of binding, not about authorization or existence of the document
-entity. An implementation may legitimately refuse a request that names a document
-it cannot consult; what it may not do is fail a request merely because some named
-positions within a consultable arrangement are unbound.
+Note the boundary R6 does *not* cover: R6 concerns the absence of *binding* for a
+named position within an allocated document (`d ∈ dom(Σ.M)`), not the allocation
+of the document itself.
 
 *Worked instance.* Let document `d` have a content arrangement bound at exactly
 four positions, `V_1(d) = {[1, k] : 1 ≤ k ≤ 4}` (so `n_1 = 4`), each resolving to
@@ -740,7 +733,7 @@ absent consolidation step realizing the no-deduplication corollary of R3 and R8.
 | R6 | SilentGapFiltering: a named position unbound in the consulted arrangement contributes nothing and causes no failure; the gap is signalled by absence | introduced |
 | R7 | Repeatability: equal consulted arrangement restrictions ⟹ identical delivery; the arrangement is the sole mutable input | introduced |
 | R8 | TransclusionCoResolution: content positions sharing a resolved address deliver identical material via identity-preserving co-resolution through the one shared address, with no deduplication (one item per V-position); the sharing is internal to resolution and not disclosed by the output, which carries values not addresses (R1) and is byte-indistinguishable from coincidental value-equality (S4, R9); the link sub-case is vacuous (CL-OWN + CL-UNIQ forbid distinct link positions sharing an address), so genuine transclusion is confined to content | introduced |
-| R9 | CoherentMultiOriginAssembly: multi-origin spec-sets deliver as one ordered stream (R5), resolved per document (R4); output-recoverable provenance is kind-asymmetric — a link item carries `a`, so `home(a)` is recoverable from the delivered output (R10; L1a, HomeOriginCoincidence), while a content item carries only `Σ.C(a)`, so `origin(a)` (S7) is determinate only through the resolution mapping, not the output (inline content provenance deferred — see the inline-provenance open question below) | introduced |
+| R9 | CoherentMultiOriginAssembly: multi-origin spec-sets deliver as one ordered stream (R5), resolved per document (R4); output-recoverable provenance is kind-asymmetric — a link item carries `a`, so `home(a)` is recoverable from the delivered output (R10; L1a, HomeOriginCoincidence), while a content item carries only `Σ.C(a)`, so `origin(a)` (S7) is determinate only through the resolution mapping, not the output | introduced |
 | R10 | SubspaceCrossingObservability: link-subspace positions resolve (S3★) to link addresses and deliver as references — kind-distinct from content items — making the subspace crossing observable | introduced |
 | R11 | PermanentSourcing: content is sourced from the immutable store by I-address; an address ever in `dom(Σ.C)` remains deliverable whenever any arrangement binds a position to it, including orphaned-but-referenced content | introduced |
 
