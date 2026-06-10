@@ -58,7 +58,7 @@ ASN-0086 (wp Case 2) gives, for the ungated `Emit_K` over `→*`-reachable Σ, w
 
 `wp(Emit_K(Σ, d, F, G), (a, F, G) ∈ A_K^{Σ'}) ≡ d ∈ dom(Σ.M) ∧ (K ≁ R ∨ a_emit(Σ, d) ∉ coverage(G)) ∧ ¬(∃ (b, F', G') ∈ L_R^Σ :: a_emit(Σ, d) ∈ coverage(G'))`.
 
-The three inherited conjuncts read: the home is an allocated document (C1); the emit is not a self-nullifying retraction — the `K ≁ R` escape (C2); and no pre-existing retraction tuple already covers the fresh address (C3). `K.λ_sh` adds three preconditions to `K.λ` — (0) arity 3, (i) K registered, (ii) `Sh-conf(K, F, G)` — while leaving the C/M/L effect and the fresh address `a_emit(Σ, d)` identical (the projection argument below: a `K.λ_sh`-step acts on C/M/L exactly as `K.λ`). The gated emit therefore deposits `(F, G, K)` at `a_emit(Σ, d)` under precisely ASN-0086's post-state map, but is *enabled* on a strictly smaller guard. For a guarded operation `g → S`, `wp(g → S, R) ≡ g ∧ wp(S, R)` when the postcondition requires the operation to fire — and the active-subset postcondition is unattainable if the emit does not fire, since then the tuple is never deposited and `(a, F, G) ∉ A_K^{Σ'}`. With added guard `g_sh ≡ K registered ∧ Sh-conf(K, F, G)` and `wp(S, R)` ASN-0086's Case-2 right-hand side (the arity guard (0) is omitted from `g_sh` because the postcondition's arity-3 slice `|Σ.L(a)| = 3` already forces it):
+The three inherited conjuncts read: the home is an allocated document (C1); the emit is not a self-nullifying retraction — the `K ≁ R` escape (C2); and no pre-existing retraction tuple already covers the fresh address (C3). `K.λ_sh` adds three preconditions to `K.λ` — (0) arity 3, (i) K registered, (ii) `Sh-conf(K, F, G)` — while leaving the C/M/L effect and the fresh address `a_emit(Σ, d)` identical by construction — `K.λ_sh` adds only preconditions to `K.λ`, and added preconditions restrict when a step fires, not what it does. The gated emit therefore deposits `(F, G, K)` at `a_emit(Σ, d)` under precisely ASN-0086's post-state map, but is *enabled* on a strictly smaller guard. For a guarded operation `g → S`, `wp(g → S, R) ≡ g ∧ wp(S, R)` when the postcondition requires the operation to fire — and the active-subset postcondition is unattainable if the emit does not fire, since then the tuple is never deposited and `(a, F, G) ∉ A_K^{Σ'}`. With added guard `g_sh ≡ K registered ∧ Sh-conf(K, F, G)` and `wp(S, R)` ASN-0086's Case-2 right-hand side (the arity guard (0) is omitted from `g_sh` because the postcondition's arity-3 slice `|Σ.L(a)| = 3` already forces it):
 
 `wp(Emit under →_sh, (a, F, G) ∈ A_K^{Σ'})`
 `≡ {g → S guard conjunction}`
@@ -134,14 +134,14 @@ We lift P3's single-step guarantee to an invariant holding at every reachable st
 
 ## Properties established
 
-For a consuming app, the framework establishes six guarantees — what each one buys:
+For a consuming app, the framework establishes six guarantees, each stated and proved in the body above — what each one buys:
 
-- **P1 (RegistryInvariance)** — `Σ.registry` is identical at every `→_sh*`-reachable state; the type declarations an app fixes at `Σ_init` never drift out from under it.
-- **P2 (ShapeStability)** — a registered type's shape is a well-defined function of its coverage class `[K]`, returning the same value at every reachable state, so an app's notion of "what tuples are well-formed under K" is fixed once K is registered.
-- **P3 (Sh-confWellFormedness)** — every value a `→_sh`-step adjoins to `dom(Σ.L)` is a standard triple `(F, G, K)` whose K is registered and for which `Sh-conf(K, F, G) = ⊤`; the gate admits no shape-violating tuple.
-- **P4 (Sh-confStateIndependence)** — for a registered K, `Sh-conf(K, F, G)` is defined and returns the same verdict at every reachable state, ghost targets included; conformance can be checked once, not re-checked per state.
-- **P5 (GateRealizability)** — every conforming triple at an allocated home fires some `→_sh`-step; the gate rejects no well-formed emission (the liveness dual of P3).
-- **P6 (ReachableConformance)** — at every reachable state, *every* stored link `Σ.L(a)` is a registered, shape-conforming standard triple; an app may read the link store and assume conformance without re-validating.
+- **P1 (RegistryInvariance)** — the type declarations an app fixes at `Σ_init` never drift out from under it.
+- **P2 (ShapeStability)** — an app's notion of "what tuples are well-formed under K" is fixed once K is registered.
+- **P3 (Sh-confWellFormedness)** — the gate admits no shape-violating tuple.
+- **P4 (Sh-confStateIndependence)** — conformance can be checked once, not re-checked per state, ghost targets included.
+- **P5 (GateRealizability)** — the gate rejects no well-formed emission, the liveness dual of P3.
+- **P6 (ReachableConformance)** — an app may read the link store and assume conformance without re-validating.
 
 ## Worked illustration
 
