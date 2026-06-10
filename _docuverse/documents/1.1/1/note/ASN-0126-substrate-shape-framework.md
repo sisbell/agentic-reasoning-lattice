@@ -40,9 +40,7 @@ We write `shape(K)` for the shape the well-formed registry — a partial functio
 
 ## Shape-conformance
 
-The shapes are stated in terms of the span count `|e|` of an endset; F and G are both endsets. The span-count and coverage measures diverge sharply. A single unit-depth span `(a, δ(1, #a))` is one span — `|{(a, δ(1, #a))}| = 1` — yet its coverage is `{t : a ≼ t}`, generally infinite (PrefixSpanCoverage, ASN-0043). Span-count, not coverage, is the measure.
-
-The divergence cuts both ways. Types are keyed by *coverage class* (The registry) — coverage-invariant — yet F-conformance counts spans: a source presenting one contiguous extent as two abutting spans `(a, ℓ₁)`, `(a ⊕ ℓ₁, ℓ₂)` has `|F| = 2` and fails every shape, even though its coverage equals that of the conformant one-span F.
+The shapes are stated in terms of the span count `|e|` of an endset; F and G are both endsets. The gate measures span count, not coverage — and the two measures diverge in both directions. A single unit-depth span `(a, δ(1, #a))` is one span — `|{(a, δ(1, #a))}| = 1` — yet its coverage is `{t : a ≼ t}`, generally infinite (PrefixSpanCoverage, ASN-0043): one span carries unbounded coverage. Conversely, a source presenting one contiguous extent as two abutting spans `(a, ℓ₁)`, `(a ⊕ ℓ₁, ℓ₂)` has `|F| = 2` and fails every shape even though its coverage equals that of the conformant one-span F: coverage-equal sources can differ in span count. This decomposition-sensitivity is the gate's distinctive point, and it sits in tension with type identity — types are keyed by *coverage class* (The registry), which is coverage-invariant, yet conformance counts spans.
 
 The predicate `Sh-conf(K, F, G)` is defined only for *registered* K — those for which the registry records a shape. For an unregistered K, `shape(K)` does not exist and `Sh-conf(K, F, G)` carries no truth value. For a typed tuple `(F, G, K)` under a type K registered with shape s, `Sh-conf(K, F, G)` holds when:
 
@@ -53,8 +51,6 @@ The predicate `Sh-conf(K, F, G)` is defined only for *registered* K — those fo
 For Multi the conjunct `|G| < ∞` holds for *every* endset by `Endset = 𝒫_fin(Span)`, so Multi places no real bound on G's span count — it is the unrestricted, permissive shape that subsumes Unary and Binary, constraining only F.
 
 `Sh-conf` consults no state-indexed address set: it imposes no residence check, so endset spans may reference any address, including ghost addresses at which nothing is stored. L4 and L9 (ASN-0043) permit this, and the framework inherits the permission unchanged.
-
-The predicate therefore depends only on the tuple's span counts `|F|`, `|G|` and the shape recorded for K in the registry.
 
 ## The shape-gated emit
 
