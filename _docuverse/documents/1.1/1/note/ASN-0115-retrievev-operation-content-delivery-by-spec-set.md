@@ -37,10 +37,7 @@ every claim R0–R11 — ranges over states *reachable from the initial state `�
 under the sequential transition order* (ASN-0047, SequentialTransitionAxiom).
 This scoping is load-bearing: the per-state invariants the claims below cite are
 established by ASN-0047 (collected there as `ExtendedReachableStateInvariants`)
-only of reachable states, and may fail otherwise. Each claim cites the specific
-invariant it relies on at its use site. R7 (Repeatability) additionally relates
-two such reachable states comparable under `→*`; the base definitions inherit the
-single-state form of this precondition.
+only of reachable states, and may fail otherwise.
 
 We take the strand model as given. The *content store* `Σ.C : T ⇀ Val`
 (ASN-0036) binds content addresses to values; it is append-only and immutable —
@@ -104,9 +101,7 @@ discipline that keeps a span within a single subspace:
 > reach `reach(σ) = s ⊕ ℓ` copies that prefix unchanged below the action point
 > (TumblerAdd, ASN-0034), giving `p ≼ reach(σ)`. For any `t ∈ ⟦σ⟧`,
 > `s ≤ t < reach(σ)`, hence `s ≤ t ≤ reach(σ)`; T5 (ContiguousSubtrees, ASN-0034)
-> then yields `p ≼ t`, i.e. `tⱼ = sⱼ` for `1 ≤ j < m`. The argument consumes only
-> ordinal-level width and `#s ≥ 2`, and holds for **every** `t ∈ ⟦σ⟧`, bound or
-> not — no content-reference hypothesis is required. ∎
+> then yields `p ≼ t`, i.e. `tⱼ = sⱼ` for `1 ≤ j < m`. ∎
 
 Without ordinal-level width, a merely level-uniform well-formed span may have
 `actionPoint(ℓ) = 1` and straddle from the content subspace into the link
@@ -147,10 +142,8 @@ distinguished by tag. These two cases are *exhaustive* on active positions, so
 `item` is total on `act`: every `v ∈ act(ρ, Σ) ⊆ dom(Σ.M(d))` is an active
 V-position, and by S3★-aux (SubspaceExhaustiveness, ASN-0047) every active
 V-position has `subspace(v) = s_C` or `subspace(v) = s_L` — no third subspace
-arises. The per-case S3★ citations discharge store membership *within* each
-case; S3★-aux discharges that the case split *covers* `act`. Hence `item` —
-and therefore `deliver₁` and `deliver` below — is well-defined on its stated
-domain. The *per-spec delivery* is the ascending-V sequence
+arises. Hence `item` — and therefore `deliver₁` and `deliver` below — is
+well-defined on its stated domain. The *per-spec delivery* is the ascending-V sequence
 `deliver₁(ρ, Σ) = ⟨item(v₁, ρ, Σ), …, item(v_k, ρ, Σ)⟩`, and the **delivery** of
 the whole spec-set is the concatenation in spec-set order:
 
@@ -309,13 +302,10 @@ what can be delivered, signal the gap by absence, and never fail the whole.
 > and causes no failure. Delivery succeeds and returns the items for the bound
 > positions; the unbound positions are represented by their absence. Moreover,
 > restricted to the depth-`m_S`, subspace-`S` slice of `⟦σⱼ⟧` — the only named
-> positions the arrangement can bind — the unbound portion is always a *terminal
-> overrun* of the subspace's contiguous active range — the named positions past
-> the bound frontier — never an interior hole within that range. Named positions
-> of `⟦σⱼ⟧` deeper than `m_S` are unbound too, but for a simpler reason: by
-> S8-depth every active subspace-`S` position has depth exactly `m_S`, so any
-> named position of depth `> m_S` is absent from `dom(Σ.M(dⱼ))` outright and is
-> harmlessly filtered out of `act`; the no-interior-hole guarantee is a claim
+> positions the arrangement can bind — the unbound portion never falls as an
+> interior hole within the subspace's contiguous active range; and whenever that
+> slice meets the active range, the unbound portion is exactly a *terminal
+> overrun* past the bound frontier. The no-interior-hole guarantee is a claim
 > about the bindable slice, not about every named tumbler in the interval.
 
 This is forced by the model: `act(ρ, Σ)` is an intersection, so an unbound
@@ -339,9 +329,7 @@ Named positions of `⟦σ⟧` deeper than `m_S` are necessarily unbound, and the
 reason is immediate: S8-depth fixes the depth of every active subspace-`S`
 position at exactly `m_S`, so a named position of depth `> m_S` is simply absent
 from `dom(Σ.M(d))` and dropped from `act` — no claim about its T1-position
-relative to the active range is needed or made. The no-interior-hole property is
-therefore a statement about the bindable slice, not about every tumbler of the
-interval.
+relative to the active range is needed or made.
 
 We pin the shape of that slice by the *Confinement* lemma, *not* by D-SEQ★:
 D-SEQ★ governs the *bound* set `V_S(d)`, not the arbitrary named positions of
@@ -354,10 +342,15 @@ To name those components we appeal to `act ≠ ∅`, the substantive case: pick 
 `m_S` forces `v` to agree with `s` on positions `1 … m_S − 1`, so `s`'s first
 `m_S − 1` components are exactly `[S, 1, …, 1]` — `act ≠ ∅` forces a canonical
 start `s = [S, 1, …, 1, s_{m_S}]`. Hence the depth-`m_S` slice of `⟦σ⟧` is exactly
-`{[S, 1, …, 1, k] : s_{m_S} ≤ k < s_{m_S} + n}`, the only free coordinate being
-`k`. (If instead `act = ∅`, then `⟦σ⟧` meets no bound position, and — exactly as in
-the `V_S(d) = ∅` branch — every named position is an unbound overrun with no
-interior active range for a hole to fall in.)
+`{[S, 1, …, 1, k] : s_{m_S} ≤ k < s_{m_S} + ℓ_{m_S}}` — with `ℓ_{m_S}` the width's
+deepest component — the only free coordinate being `k`. (If instead `act = ∅`
+while `V_S(d) ≠ ∅`, the active range is present but unreached: the depth-`m_S`
+slice of `⟦σ⟧` is disjoint from `V_S(d)` — either the start's prefix differs from
+`[S, 1, …, 1]`, putting the slice wholly under an unrelated prefix, or the prefix
+is canonical but `s_{m_S} > n_S`, putting the slice past the frontier. Only the
+latter is a terminal overrun past the frontier in the stated sense; but in both
+the load-bearing negative property holds — the slice meets no bound position, so
+the span punches no interior hole within the active range.)
 
 A depth-`m_S` named position `[S, 1, …, 1, k]` is bound iff `k ≤ n_S` — exactly
 the D-SEQ★ frontier. Therefore the unbound members of the bindable slice are
