@@ -32,12 +32,8 @@ are drawn from.
 ## The substrate we build on
 
 **Standing precondition (reachability).** Throughout this ASN, every state `Σ`
-— including the states named in the V-spec and `deliver` definitions and in
-every claim R0–R11 — ranges over states *reachable from the initial state `Σ₀`
-under the sequential transition order* (ASN-0047, SequentialTransitionAxiom).
-This scoping is load-bearing: the per-state invariants the claims below cite are
-established by ASN-0047 (collected there as `ExtendedReachableStateInvariants`)
-only of reachable states, and may fail otherwise.
+ranges over states *reachable from the initial state `Σ₀` under the sequential
+transition order* (ASN-0047, SequentialTransitionAxiom).
 
 We take the strand model as given. The *content store* `Σ.C : T ⇀ Val`
 (ASN-0036) binds content addresses to values; it is append-only and immutable —
@@ -421,18 +417,25 @@ The proof is short and exposes which input is the variable one. `deliver` is a
 function of two things: the consulted arrangement restrictions, and the stores
 the resolved values are drawn from. The restrictions are equal by hypothesis, so
 `act` and the resolved addresses agree position-for-position. Fix any resolved
-address `a`. Because the consulted restriction binds `a` at both states, S3★
-places `a` in the appropriate store at each: `a ∈ dom(Σ.C) ∩ dom(Σ'.C)` for a
-content position, `a ∈ dom(Σ.L) ∩ dom(Σ'.L)` for a link position. The hypothesis
-gives `Σ →* Σ'` directly: the two states are comparable under the sequential
-transition order, not merely reachable from a shared ancestor — divergent branches
-of the reachability relation would not be comparable, and across them a freshly
-allocated address could carry different values, so comparability is required, not
-derived. Over the intervening transitions `Σ →* Σ'`, content immutability (S0) and
-link immutability (L12) hold the stored entry fixed, giving `Σ.C(a) = Σ'.C(a)`
-(resp. `Σ.L(a) = Σ'.L(a)`). The labelling of the two states is immaterial —
-value-equality is symmetric — so naming the descendant `Σ'` costs no generality. Hence for every resolved address the delivered value or reference is
-the same at both states, and the two deliveries are identical. The only mutable input to a
+address `a`, the same at both states by that agreement. The two item kinds now
+conclude by different routes, and the asymmetry is the point. For a **link
+position** the delivered item is `⟨ref, a⟩` — it carries the resolved *address*,
+never the link value `Σ.L(a)` — so its stability is already settled: equal
+resolved addresses give the identical reference item `⟨ref, a⟩` at both states,
+with no appeal to any store invariant. For a **content position** the item carries
+the value `Σ.C(a)`, and here value-persistence is the load-bearing fact. The
+hypothesis gives `Σ →* Σ'` directly: the two states are comparable under the
+sequential transition order, not merely reachable from a shared ancestor —
+divergent branches of the reachability relation would not be comparable, and
+across them a freshly allocated address could carry different values, so
+comparability is required, not derived. Because the consulted restriction binds
+`a` at both states, S3★ places it in the content store at each,
+`a ∈ dom(Σ.C) ∩ dom(Σ'.C)`; over the intervening transitions `Σ →* Σ'`, content
+immutability (S0) holds the stored entry fixed, giving `Σ.C(a) = Σ'.C(a)`. The
+labelling of the two states is immaterial — value-equality is symmetric — so
+naming the descendant `Σ'` costs no generality. Hence for every resolved address
+the delivered value or reference is the same at both states, and the two
+deliveries are identical. The only mutable input to a
 content delivery is the arrangement; this is exactly why repeatability is
 conditioned on "unchanged arrangements" and on nothing else. Editing produces a
 *new* version (a new document tumbler with its own arrangement) rather than
@@ -449,40 +452,46 @@ transclusion: the same content, included by reference in two places, carrying on
 permanent I-address wherever it appears (ASN-0036, S5 UnrestrictedSharing).
 
 > **R8 (TransclusionRevelation).** If two active positions `v, v'` (within one
-> spec or across specs) satisfy `Σ.M(d)(v) = Σ.M(d')(v') = a`, then the two
-> positions share a single subspace: by S3★ the shared address `a` lies in
-> `dom(Σ.C)` or in `dom(Σ.L)` but, by store disjointness (SD), not both. To run
-> store membership *back* to subspace we need that each of `subspace(v)`,
-> `subspace(v')` is one of `s_C`, `s_L` to begin with — supplied by S3★-aux
-> (SubspaceExhaustiveness, ASN-0047) for the active positions `v, v'` — whereupon
-> the contrapositive of the off-store S3★ branch closes the step: were
-> `subspace(v) = s_L` while `a ∈ dom(Σ.C)`, S3★ would force `a ∈ dom(Σ.L)`,
-> contradicting SD; so `a ∈ dom(Σ.C)` fixes `subspace(v) = s_C`, and symmetrically
-> `a ∈ dom(Σ.L)` fixes `subspace(v) = s_L`. The same dispatch applied to `v'`
-> yields `subspace(v) = subspace(v')`. Two cases arise by that
-> shared subspace, and they are *not* on equal footing. In the **content sub-case**
-> (`subspace(v) = s_C`, `a ∈ dom(Σ.C)`) — the realizable one, since S5
-> (UnrestrictedSharing) permits a content address to be bound at arbitrarily many
-> V-positions, within one document and across documents: (i) the two delivered
-> items carry the identical value `Σ.C(a)`, by R2; (ii) both items are resolved
-> *through* the one shared address `a` — identity-preserving co-resolution — never
-> fabricating two independent origins, so `origin(a)` of both is one and the same
-> (S4, S7); and (iii) the operation performs no deduplication: each position yields
-> its own item, so the shared content appears once per V-position. The **link
-> sub-case** (`subspace(v) = s_L`, `a ∈ dom(Σ.L)`) is, by contrast, *vacuous*: two
-> **distinct** active link positions can never share a link address. CL-OWN
-> (ASN-0047) forces `origin(Σ.M(d)(v)) = d` for every link-subspace position, so a
-> link address `a` can be bound only in the arrangement of `origin(a) = home(a)`;
-> two documents both binding `a` in their link subspaces are forced equal, `d = d'`.
-> Within that one document, CL-UNIQ (ASN-0047) makes `Σ.M(d)` injective on the link
-> subspace, so two positions both mapping to `a` are forced equal, `v = v'`. Both
-> are per-state invariants of every reachable state (ASN-0047,
-> ExtendedReachableStateInvariants). Genuine link transclusion therefore does not
-> occur, and the only multiplicity available for a link is a single bound
-> V-position named by two overlapping specs — which delivers the identical
-> reference `⟨ref, a⟩` (R10) twice with common provenance `home(a)` (ASN-0043,
-> L1a), and is *not* transclusion (it is one position, not two). The substantive
-> co-delivery guarantee of R8 is thus confined to content.
+> spec or across specs) resolve to the same address,
+> `Σ.M(d)(v) = Σ.M(d')(v') = a`, then they share one subspace, and the co-delivery
+> guarantee is content-only. In the **content sub-case** (`a ∈ dom(Σ.C)`) the two
+> positions deliver identical, shared-origin material: (i) both items carry the
+> identical value `Σ.C(a)` (R2); (ii) both are resolved *through* the one shared
+> address `a` — identity-preserving co-resolution — so `origin(a)` of both is one
+> and the same (S4, S7); and (iii) the operation performs no deduplication, so the
+> shared content appears once per V-position. The **link sub-case** is *vacuous*:
+> two distinct active link positions can never share a link address. Genuine
+> transclusion is therefore confined to content.
+
+The box's two structural claims — that the positions share one subspace, and that
+the link sub-case is vacuous — are established as follows.
+
+*Why the two positions share a subspace.* By S3★ the shared address `a` lies in
+`dom(Σ.C)` or in `dom(Σ.L)` but, by store disjointness (SD), not both. To run
+store membership *back* to subspace we need that each of `subspace(v)`,
+`subspace(v')` is one of `s_C`, `s_L` to begin with — supplied by S3★-aux
+(SubspaceExhaustiveness, ASN-0047) for the active positions `v, v'` — whereupon
+the contrapositive of the off-store S3★ branch closes the step: were
+`subspace(v) = s_L` while `a ∈ dom(Σ.C)`, S3★ would force `a ∈ dom(Σ.L)`,
+contradicting SD; so `a ∈ dom(Σ.C)` fixes `subspace(v) = s_C`, and symmetrically
+`a ∈ dom(Σ.L)` fixes `subspace(v) = s_L`. The same dispatch applied to `v'` yields
+`subspace(v) = subspace(v')`. The content sub-case is the realizable one: S5
+(UnrestrictedSharing) permits a content address to be bound at arbitrarily many
+V-positions, within one document and across documents.
+
+*Why the link sub-case is vacuous.* Two **distinct** active link positions can
+never share a link address. CL-OWN (ASN-0047) forces `origin(Σ.M(d)(v)) = d` for
+every link-subspace position, so a link address `a` can be bound only in the
+arrangement of `origin(a) = home(a)`; two documents both binding `a` in their link
+subspaces are forced equal, `d = d'`. Within that one document, CL-UNIQ (ASN-0047)
+makes `Σ.M(d)` injective on the link subspace, so two positions both mapping to `a`
+are forced equal, `v = v'`. Both are per-state invariants of every reachable state
+(ASN-0047, ExtendedReachableStateInvariants). Genuine link transclusion therefore
+does not occur, and the only multiplicity available for a link is a single bound
+V-position named by two overlapping specs — which delivers the identical reference
+`⟨ref, a⟩` (R10) twice with common provenance `home(a)` (ASN-0043, L1a), and is
+*not* transclusion (it is one position, not two). The substantive co-delivery
+guarantee of R8 is thus confined to content.
 
 Three points deserve emphasis. First, *identity is structural, not incidental*.
 Content identity in Xanadu is by creation, not by value: two independently
@@ -529,16 +538,11 @@ documents. What must delivery guarantee about presenting that material?
 > delivered as one ordered sequence (R5), assembled by resolving each spec
 > against its own document's arrangement independently (R4). The *resolution* is
 > provenance-traceable: each active position `v` resolves to `a = Σ.M(d)(v)`, and
-> that address determines a home document — for a content position
-> (`subspace(v) = s_C`, `a ∈ dom(Σ.C)`) the document-level prefix `origin(a)` (S7);
-> for a link position (`subspace(v) = s_L`, `a ∈ dom(Σ.L)`) the link's home
-> `home(a)` (ASN-0043, L1a), which coincides with `origin` on link addresses
-> (ASN-0086, HomeOriginCoincidence) — so no fragment's provenance is collapsed by
-> co-assembly. Whether that origin travels
-> *inside* the delivered material or is recoverable only through the resolution
-> mapping is a separate question (the delivered content item carries `Σ.C(a)`, not
-> `a`, by R1); R9 asserts traceability of the resolution, not inline provenance of
-> the delivered stream.
+> that address determines a home document, so no fragment's provenance is collapsed
+> by co-assembly. R9 asserts traceability of the *resolution*, not inline
+> provenance of the delivered stream — whether that origin travels *inside* the
+> delivered material or is recoverable only through the resolution mapping is a
+> separate question (the delivered content item carries `Σ.C(a)`, not `a`, by R1).
 
 Two obligations hold simultaneously, and they pull in opposite directions. The
 material must be *coherent* — one ordered stream the caller reads as a single
@@ -548,8 +552,13 @@ from any other document," 4/10; non-native bytes have "an ordinal position …
 just as if they were native," 4/11). And the *resolution* must remain
 *traceable* — co-assembly must not collapse distinct origins into an anonymous
 blob, because each active position's home document stays determinate from the
-resolution mapping, as the boxed claim fixes per position. Losing the first gives
-disconnected fragments; losing the second gives an unattributable assembly.
+resolution mapping. That home document is fixed per position by the resolved
+address's subspace: for a content position (`subspace(v) = s_C`, `a ∈ dom(Σ.C)`)
+it is the document-level prefix `origin(a)` (S7); for a link position
+(`subspace(v) = s_L`, `a ∈ dom(Σ.L)`) it is the link's home `home(a)` (ASN-0043,
+L1a), which coincides with `origin` on link addresses (ASN-0086,
+HomeOriginCoincidence). Losing the first gives disconnected fragments; losing the
+second gives an unattributable assembly.
 Because each spec is resolved against its own
 arrangement (R4), cross-document spec-sets are resolved per document and then
 concatenated — Gregory's `specset2ispanset` loop calls the per-document lookup
