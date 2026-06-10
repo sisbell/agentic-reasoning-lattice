@@ -125,18 +125,14 @@ We restrict attention to *content* spec-sets: COPY's content-residence precondit
 (stated with the operation below) requires every active position to be in the text
 subspace, `subspace(vⱼ) = s_C`, so by referential integrity (S3★) each resolves to
 a content address `Σ.M(d_s)(vⱼ) ∈ dom(Σ.C)`. This precondition does the work the
-discarded full-binding hypothesis would otherwise have done, and we fix here, once,
-the basis on which COPY's whole resolution and placement arithmetic stands. The
-precondition confines the resolved domain `act(ρ, Σ) ⊆ V_{s_C}(d_s)` to a *single
-subspace* directly, and S8-depth (ASN-0036) gives that subspace a *common depth*;
-these two arrangement-side facts are the only premises the arithmetic needs.
-Resolution integrity (CP0(a)) rests on S3★ over exactly the bound positions COPY
-acts on, and the run-decomposition (CP0(c)) on the single-subspace premise so
-obtained — *not* on ASN-0058's C1 or C0a, whose stated preconditions are the full
-binding COPY drops, and *not* on the span's ordinal-level form, since
-`actionPoint(ℓ)` may fall anywhere. The one ASN-0058 property that genuinely does
-*not* survive partial binding — its width-preservation C2 — COPY never uses; we
-record its loss as an open question.
+discarded full-binding hypothesis would otherwise have done. It confines the
+resolved domain `act(ρ, Σ) ⊆ V_{s_C}(d_s)` to a *single subspace* directly, and
+S8-depth (ASN-0036) gives that subspace a *common depth*; these two
+arrangement-side facts are the only premises the arithmetic needs. Resolution
+integrity (CP0(a)) rests on S3★ over exactly the bound positions COPY acts on, and
+the run-decomposition (CP0(c)) on the single-subspace premise so obtained. The one
+ASN-0058 property that genuinely does *not* survive partial binding — its
+width-preservation C2 — COPY never uses; we record its loss as an open question.
 
 We define **resolution** as the flat I-address sequence obtained by expanding
 ASN-0058's `resolve` (Resolution). ASN-0058 resolves a content reference
@@ -163,10 +159,16 @@ that `expand` emits at interior offset `k` is *exactly* the image
 `Σ.M(d_s)(vⱼ + k)` of the bound position `vⱼ + k ∈ act(ρ, Σ)` — run interiors
 included. The runs being a disjoint maximal partition of the totally-ordered
 `act(ρ, Σ)`, each run's positions ascend with `k` and lie wholly below the next
-run's, and C1b (ResolutionSequenceOrder) lists the runs in strictly increasing
-V-start order, so concatenating the runs in C1b order reproduces the ascending
-enumeration of `act(ρ, Σ)` address-for-address; concatenating across the spec-set
-in `R`'s order extends this to the whole sequence. Write
+run's — each run occupies a single lexicographic prefix-line as a consecutive
+last-component interval (shift fixes the prefix, advancing only the final
+component), all at the one common depth S8-depth fixes on `act(ρ, Σ)`, so a
+common-depth tumbler between a run's endpoints shares that run's prefix and is one
+of its own positions; the runs therefore occupy non-interleaving T1-intervals on
+which V-start order is interval order. C1b (ResolutionSequenceOrder) lists the runs
+in strictly increasing V-start order, so concatenating the runs in C1b order
+reproduces the ascending enumeration of `act(ρ, Σ)` address-for-address;
+concatenating across the spec-set in `R`'s order extends this to the whole
+sequence. Write
 `resolve(R, Σ) = ⟨c₀, c₁, …, c_{W−1}⟩`, with `W = |resolve(R,Σ)|` the total count
 of resolved addresses (the sum of the run widths `nⱼ`). Three facts about this
 object we record as the *resolution integrity* claim CP0:
@@ -187,7 +189,7 @@ object we record as the *resolution integrity* claim CP0:
 - **(b) Resolution is a pure read.** `resolve` is a function of `Σ`; it modifies no
   component — not `Σ.C`, not any `Σ.M(d)`, not `Σ.L`, not `Σ.R`. The source
   document is consulted, never altered, by the act of resolving a spec-set against
-  it. This is the seed of source isolation (CP6 below).
+  it.
 - **(c) Non-contiguity survives resolution.** The decomposition resolution rests on
   is licensed without the full-binding hypothesis: ASN-0058's C1a
   (RestrictionDecomposition) supplies the unique maximal-run decomposition of *any*
@@ -198,8 +200,7 @@ object we record as the *resolution integrity* claim CP0:
   disjoint I-regions, that decomposition returns several run-pairs in V-start order
   (C1b, ResolutionSequenceOrder) — an ordering of whatever runs the bound subset
   yields, independent of binding — so the expanded sequence is *not* one contiguous
-  run and records as many distinct origins as the source content had homes (CP11
-  below).
+  run and records as many distinct origins as the source content had homes.
 
 By the ContentReferenceSequence definition a spec-set has `q ≥ 1`; but even a
 non-empty spec-set may resolve to `W = 0` when partial binding leaves every named
@@ -264,18 +265,13 @@ shifted positions — and *nothing else*; in particular the pre-shift positions 
 > `{v ∈ dom(Σ'.M(d)) : subspace(v) = s_C} =`
 > `  {v ∈ V_{s_C}(d) : v < p} ∪ {p + i : 0 ≤ i < W} ∪ {v + W : v ∈ V_{s_C}(d) ∧ v ≥ p}`     (CP3c)
 
-CP3c is a *domain-closure* postcondition. COPY needs one wherever its other clauses
-fix individual bindings but leave the *extent* of some subspace's domain in
-`dom(Σ'.M(d))` underdetermined: absent an explicit closure, a model may admit
-spurious extra positions there, and `d`'s per-state invariants would be
-dischargeable only through the exhibited composite, not from the postconditions
-alone. We therefore close each subspace's domain explicitly — CP3c here for the text
-subspace, CP6's domain-equality conjunct below for the rest — and the
-contraction-then-extension composite exhibited later realizes both.
-
-For the text subspace the gap is concrete. In the displacing case CP3a asserts a
-*new* binding at `v + W` but does not by itself remove the pre-state binding at `v`;
-CP3b frames only `v < p` and CP6 only `subspace(v) ≠ s_C`. So nothing among
+CP3c is a *domain-closure* postcondition: it pins the extent of `d`'s text-subspace
+domain so that `d`'s per-state invariants are dischargeable from the postconditions
+alone, not only through the exhibited composite (CP6's domain-equality conjunct
+does the same for the non-text subspaces). The gap it closes is concrete. In the
+displacing case CP3a asserts a *new* binding at `v + W` but does not by itself
+remove the pre-state binding at `v`; CP3b frames only `v < p` and CP6 only
+`subspace(v) ≠ s_C`. So nothing among
 CP2/CP3a/CP3b/CP6 vacates the pre-state binding at `p`, and a reader could admit a
 post-state in which `p` is bound both to `c₀` (CP2) and to the un-vacated
 `Σ.M(d)(p)` — a double binding that falsifies S2 (ArrangementFunctionality). CP3c
@@ -501,8 +497,8 @@ Istream/Vstream seam. We tabulate it because the question turns on it.
 |---|---|---|
 | I-address (content identity) | **shared** with source — same address bound | CP2 |
 | content value (bytes) | **identical** — store unchanged | CP1, CP10 |
-| `origin` / home document | **identical** — the source's, computed from the address | CP5 |
-| ownership of the content | **the source's**, unchanged | CP5 |
+| `origin` / home document | **unchanged** — the original allocator's, read off the address | CP5 |
+| ownership of the content | **unchanged** — the original allocator's | CP5 |
 | V-position (arrangement slot) | **the destination's own**, freshly bound | CP2 |
 | provenance record `(cᵢ, d)` | **the destination's own**, freshly recorded | CP8 |
 
@@ -512,9 +508,13 @@ content. It does not own, and COPY does not transfer to it, the content's
 identity, value, or home. This is CP5, **OriginInvariance**: for every placed
 address, `origin(cᵢ)` is unchanged by the transition (CP1 keeps `cᵢ` in the store,
 and S7(d) makes `origin` constant while it is stored), and it equals the document
-that allocated `cᵢ` — a source, never `d` (unless `d` was itself that allocator).
-Attribution is *structural*: it is read off the address, not stored as detachable
-metadata, so the placement cannot strip it. The owner of the source content
+that *originally allocated* `cᵢ`. That allocator may be the spec-set source, a
+third document the source had itself transcluded from (a chained transclusion), or
+`d` itself — when `d` copies back content it once allocated, or self-transcludes.
+COPY's guarantee is not "never `d`" but *invariance*: whoever allocated `cᵢ` keeps
+the attribution, since COPY never reallocates and S7(d) holds `origin` fixed while
+`cᵢ` is stored. Attribution is *structural*: it is read off the address, not stored
+as detachable metadata, so the placement cannot strip it. The owner of the source content
 retains the content; the destination has acquired an arrangement and a reference,
 nothing more. This is exactly Nelson's "Document A can include Document B, even
 though Document B is owned by someone else" (2/35), made into a frame condition.
@@ -707,9 +707,10 @@ block decomposition of the destination's new region, one mapping block per run
 (`origin(cᵢ + 1) = origin(cᵢ)` for contiguous addresses, ASN-0058 M16a); across a
 block boundary where the origins differ, the blocks *cannot be merged* (ASN-0058,
 M16 CrossOriginMergeImpossibility). Therefore the multiset of origins carried by
-the placed material,
+the placed material — written with multiset brackets `⦃·⦄`, so a home shared by
+several fragments is counted once per fragment —
 
-> `{ origin(cᵢ) : 0 ≤ i < W }`,
+> `⦃ origin(cᵢ) : 0 ≤ i < W ⦄`,
 
 is preserved verbatim into the destination's arrangement: each fragment retains
 its distinct home, and each home remains queryable from the destination address
@@ -717,7 +718,7 @@ that binds it. This is CP11, **OriginMultisetPreservation**.
 
 Now contrast replication. REPLICATE would allocate `W` fresh contiguous addresses
 under the destination and copy the values; every placed address would have
-`origin = d`, collapsing the origin multiset to `{d, d, …, d}` and erasing the
+`origin = d`, collapsing the origin multiset to `⦃d, d, …, d⦄` and erasing the
 seams between the source regions. So discontiguity is a *test* that distinguishes
 the two operations even when a single-source copy would not: COPY's non-contiguous
 placement names `k` distinct parents, each still live, each still owed
@@ -773,11 +774,11 @@ We check the claims numerically.
   `[1,1]` unchanged.
 - **CP11 (origin multiset).** `origin(a₁) = origin(a₂) = 1.0.1.0.7 = d_A` and
   `origin(b₁) = 1.0.1.0.8 = d_B`, so the placed multiset is
-  `{d_A, d_A, d_B}`, carried verbatim into `d`'s arrangement. `a₁, a₂` form one
+  `⦃d_A, d_A, d_B⦄`, carried verbatim into `d`'s arrangement. `a₁, a₂` form one
   block (`a₂ = a₁ + 1`, same origin); `b₁` is a second block whose origin differs,
   so the two cannot merge (ASN-0058, M16). Two live parents are named, neither of
   them `d`. A REPLICATE would instead mint three addresses under `d` and collapse
-  the multiset to `{d, d, d}`, erasing the seam between source A and source B.
+  the multiset to `⦃d, d, d⦄`, erasing the seam between source A and source B.
 - **CP8 (provenance).** We classify each resolved address against `d`'s pre-state
   content-subspace range, `ran(Σ.M(d))|_{s_C} = {x₁, x₂}`. None of `a₁, a₂, b₁`
   lies in `{x₁, x₂}` — each was allocated by a source (`d_A` or `d_B`), so by S4
@@ -811,13 +812,13 @@ sources.
 | CP2 | Placement: `(A i : 0 ≤ i < W : Σ'.M(d)(p + i) = cᵢ)` — `W` fresh destination V-positions bind the resolved (pre-existing) I-addresses; the placed material shares the source's content identity | introduced |
 | CP3 | PriorArrangementPreservation: left content unchanged (CP3b, `v < p`), trailing text content shifted forward by `W` with bindings intact (CP3a, `v ≥ p`), and the text-subspace domain closed to left ∪ placement ∪ shifted with the pre-shift positions vacated (CP3c) — so S2 functionality is dischargeable from the postconditions; order-preserving, injective, non-destructive | introduced |
 | CP4 | MultiplicityIncrease: total references into the placed set increase by exactly `W`; each placed `cᵢ`'s own reference count increases by its occurrence count in `resolve(R, Σ)` (≥ 1); distinct V-positions binding one address are permanently independent occurrences (S5, M14) | introduced |
-| CP5 | OriginInvariance: `origin(cᵢ)` is unchanged by COPY and equals the source document that allocated `cᵢ`, never `d`; attribution and ownership remain the source's | introduced |
+| CP5 | OriginInvariance: `origin(cᵢ)` is unchanged by COPY (S7(d)) and equals the document that *originally allocated* `cᵢ` — the spec-set source, a third document the source transcluded from, or `d` itself (copy-back / self-transclusion); attribution and ownership stay with that allocator | introduced |
 | CP6 | SourceIsolation: `(A d' ≠ d : Σ'.M(d') = Σ.M(d'))` and cross-subspace frame, the latter closing `d`'s non-`s_C` domain to its pre-state value (`{v ∈ dom(Σ'.M(d)) : subspace(v) ≠ s_C} = {v ∈ dom(Σ.M(d)) : subspace(v) ≠ s_C}`) with bindings preserved — every source and every other document is unmodified; the source's connectedness nonetheless grows (shared identity + provenance) | introduced |
 | CP7 | Links: (a) `Σ'.L = Σ.L`; (b) LinkSurvivalUnderReuse — any link whose endset coverage meets `{c₀,…,c_{W−1}}` becomes discoverable from `d` in `Σ'`; links to the destination's prior content survive (I-addresses unchanged) | introduced |
 | CP8 | ProvenanceRecording: `(A i : 0 ≤ i < W : (cᵢ, d) ∈ Σ'.R)` — J1★ demands the *membership* in `Σ'.R`, satisfied by a fresh K.ρ step for range-new addresses not already in `Σ.R` (J1'★-admissible), by permanence P2 for range-new addresses already in `Σ.R` (re-COPY of deleted content, K.ρ optional), and by P4★ + P2 for addresses already in `d`'s current range | introduced |
 | CP9 | SelfTransclusionAdmissibility: when `d_s = d`, resolution reads the pre-state, so placement adds independent V-positions of `d` referring to addresses `d` already bound; no content is duplicated | introduced |
 | CP10 | ImmutabilityPreservation: S0 preserved across COPY (corollary of CP1); reused content carries identical bytes into the destination because they are the same bytes | introduced |
-| CP11 | OriginMultisetPreservation: `{origin(cᵢ) : 0 ≤ i < W}` is preserved into the destination's arrangement; cross-origin blocks cannot merge (M16). Replication would collapse it to `{d,…,d}` — the reveal that separates reuse from replication | introduced |
+| CP11 | OriginMultisetPreservation: `⦃origin(cᵢ) : 0 ≤ i < W⦄` is preserved into the destination's arrangement; cross-origin blocks cannot merge (M16). Replication would collapse it to `⦃d,…,d⦄` — the reveal that separates reuse from replication | introduced |
 
 ## Open Questions
 
