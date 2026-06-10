@@ -210,21 +210,30 @@ text subspace onto itself); pre-state S3★ applied at `π⁻¹(v)` gives
 (ASN-0084, **R-NS** / R-FRAME-P/S(a)), so `M'(d)(v) = M(d)(v) ∈ dom(L)` by
 pre-state S3★. Each subspace's inclusion thus carries to the post-state.
 
-The contiguity and tiling invariants of the text subspace ride along on a single
-observation. Because `dom(M'(d)) = dom(M(d))` (RA2) and `subspace(·)` is intrinsic
-to `v`, the active text-position set
-`V_{s_C}(d) = { v ∈ dom(M(d)) : subspace(v) = s_C }` is *literally unchanged as a
-set*: `π` only reassigns the I-address *value* filed at each `v`, never the set of
-keys. Every reachable-state invariant that constrains this set alone is therefore
-inherited verbatim from the pre-state, none of them mentioning the values
-`M(d)(v)` that `π` reshuffles. Concretely: text-subspace contiguity
-(ASN-0047, **D-CTG★**), sequentiality (**D-SEQ★**), the minimum position
-(**D-MIN★**), V-position well-formedness (**S8a**), uniform per-subspace
-depth (**S8-depth**), and finiteness (**S8-fin**) all held for `V_{s_C}(d)` before
-the rearrangement and so hold after it. Subspace exhaustiveness (**S3★-aux**) —
-every V-position carries subspace `s_C` or `s_L` — constrains the full key set
-`V_{s_C}(d) ∪ V_{s_L}(d) = dom(M(d))`, equally unchanged by RA2, and is inherited
-the same way.
+The contiguity and tiling invariants ride along on a single observation. Because
+`dom(M'(d)) = dom(M(d))` (RA2) and `subspace(·)` is intrinsic to `v`, *every*
+active-position set is literally unchanged as a set: the full key set `dom(M(d))`,
+and with it both subspace slices
+`V_{s_C}(d) = { v ∈ dom(M(d)) : subspace(v) = s_C }` and
+`V_{s_L}(d) = { v ∈ dom(M(d)) : subspace(v) = s_L }`. `π` only reassigns the
+I-address *value* filed at each `v`, never the set of keys. Every reachable-state
+invariant that constrains an active-position set alone is therefore inherited
+verbatim from the pre-state, none of them mentioning the values `M(d)(v)` that `π`
+reshuffles. Concretely, the per-subspace invariants — contiguity (ASN-0047,
+**D-CTG★**), sequentiality (**D-SEQ★**), the minimum position (**D-MIN★**), and
+uniform per-subspace depth (**S8-depth**) — each quantify over *every* subspace,
+the link subspace `s_L` no less than the text subspace `s_C`; and the
+whole-arrangement invariants — V-position well-formedness (**S8a**) and
+finiteness (**S8-fin**) — quantify over all of `dom(M(d))`. Each constrains only an
+unchanged key set, so each held before the rearrangement and holds after it, for
+`V_{s_L}(d)` exactly as for `V_{s_C}(d)`. The link subspace is in fact frozen more
+strongly than this set-invariance argument needs: R-NS (ASN-0084) gives
+`M'(d)(v) = M(d)(v)` at every `v` with `subspace(v) = s_L`, pinning its values
+pointwise as well — the freeze on which the *value*-dependent link-subspace
+invariants (S8★, CL-OWN, CL-UNIQ, discharged below) rest. Subspace exhaustiveness
+(**S3★-aux**) — every V-position carries subspace `s_C` or `s_L` — constrains the
+full key set `V_{s_C}(d) ∪ V_{s_L}(d) = dom(M(d))`, equally unchanged by RA2, and
+is inherited the same way.
 
 One per-state invariant does turn on the values `π` reshuffles, so it cannot be
 inherited this way and needs a positive argument: S8★ (ASN-0047, **S8★**,
