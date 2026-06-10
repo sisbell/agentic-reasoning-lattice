@@ -538,11 +538,7 @@ get distinct addresses, while transcluded content shares one address (S4). So
 delivering both positions by way of the same `a` is identity-preserving by
 construction — in computing the delivery the operation never copies, it
 dereferences the one address `a` twice, so both items are the one content
-delivered twice, not two independent reproductions of it. That this identity
-leaves no trace in the delivered stream is the content side of R9's
-kind-asymmetry: a content item carries only the value `Σ.C(a)`, never the
-address, so the shared origin is recoverable through the resolution mapping
-`v ↦ a` but not from the output.
+delivered twice, not two independent reproductions of it.
 
 Each position resolves through `a` independently — whether delivered alone or
 alongside the other — so the shared home is established per-position, not jointly.
