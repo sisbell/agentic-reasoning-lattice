@@ -407,8 +407,7 @@ the choice falls to MAKELINK, not to `K.μ⁺_L`. We fix it by convention:
 `m = 2`, the least depth S8a admits, giving first link V-position
 `v_a = [s_L, 1]`. Any fixed `m ≥ 2` would serve equally — no claim of this ASN
 consults the link-subspace depth — but the operation must name one, and the
-minimal choice adds no unforced structure; the convention is carried, with the
-seating rule itself, into the operation's consolidated contract (MLop below).
+minimal choice adds no unforced structure (MLop).
 The home document is thereby the link's residence and the locus of its
 ownership.
 
@@ -656,14 +655,8 @@ content-subspace restriction unchanged. A link *to* a region changes nothing
 about that region, which is why links can be made to published material one
 does not own.
 
-**The operation, consolidated (MLop).** Each piece of the contract was derived
-where it was needed — `wf` and `ρ` in the resolution section, the type
-precondition at ML6, `enabled` inside ML9's derivation, the seating rule and
-its depth convention in the residence section, the frame at ML10 — and a
-reader of the claims alone should not have to reassemble them. We therefore
-state the operation once, as a definition. `makelink(d, R₁, R₂, R₃)` is a
-partial operation on reachable states, defined exactly on its enabling
-precondition
+**MLop (MakelinkOperation).** `makelink(d, R₁, R₂, R₃)` is a partial
+operation on reachable states, defined exactly on its enabling precondition
 
 > `enabled(makelink(d, R₁, R₂, R₃)) ≡ d ∈ dom(Σ.M) ∧ (A i : 1 ≤ i ≤ 3 : wf(R_i, Σ)) ∧ ρ(R₃, Σ) ≠ ∅`.
 
@@ -681,11 +674,9 @@ decomposition free per ML2. The home arrangement gains exactly one binding,
 > `Σ'.M(d) = Σ.M(d) ∪ {v_a ↦ a}`,  where  `v_a = shift(max(V_{s_L}(d)), 1)` if `V_{s_L}(d) ≠ ∅`,  and  `v_a = [s_L, 1]` if `V_{s_L}(d) = ∅`
 
 — the second branch being the first link V-position at the conventional depth
-`m = 2` fixed in the residence section. Everything else is frame, exactly as
-ML10 states, and the operation returns `a`, the link's identity (ML0). We name
-this **MLop (MakelinkOperation)**: the operation's consolidated contract —
-signature, enabling precondition, link-store entry, home seating, frame — of
-which ML0–ML10 are the per-facet guarantees.
+`m = 2`, the least S8a admits. Everything else is frame, exactly as ML10
+states, and the operation returns `a`, the link's identity (ML0). ML0–ML10
+are the per-facet guarantees of this contract.
 
 ## A worked example
 
