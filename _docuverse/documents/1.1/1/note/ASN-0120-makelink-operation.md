@@ -74,9 +74,8 @@ for two distinct reasons. MAKELINK allocates no content (`Σ'.C = Σ.C`, ML10), 
 there is no fresh content address (J0 vacuous) and no content-subspace range-new
 I-address (J1★ vacuous) — the only V-position added is a link-subspace one (via
 `K.μ⁺_L`). J1'★ quantifies instead over new provenance entries `(a, d) ∈ R' \ R`,
-so its vacuity needs `R' \ R = ∅`: this holds because both `K.λ` and `K.μ⁺_L`
-carry `E' = E ∧ R' = R` in their ASN-0047 frames (ML10), not because no range-new
-address exists.
+and `R' \ R = ∅`: both `K.λ` and `K.μ⁺_L` carry `E' = E ∧ R' = R` in their
+ASN-0047 frames (ML10).
 
 ## What the endset arguments name, and what resolution recovers
 
@@ -101,11 +100,9 @@ ASN-0058's ContentReference condition (iii), which is moreover undefined when
 admitted; its interval `⟦σ_j⟧` may still capture active positions at the
 arrangement's own depth — a depth-2 start `[1,1]` bounds depth-3 positions, since
 `[1,1] ≤ [1,1,1] < [1,2]` under T1 — and `ρ` below resolves exactly those: the
-active-position filter, not a depth match, decides what is recovered. The
-confinement and containment arguments below use only `m = #u_j ≥ 2` and prefix
-sharing, so they are insensitive to the mismatch. An endset argument that reaches
-into the link subspace — a link pointing at another link — is deferred (Open
-Questions).
+active-position filter, not a depth match, decides what is recovered. An endset
+argument that reaches into the link subspace — a link pointing at another link —
+is deferred (Open Questions).
 A V-span lives in *arrangement* coordinates — the positions a reader currently sees
 — and arrangement is exactly the mutable component of state.
 
@@ -158,9 +155,17 @@ stored endset only *up to coverage equivalence*: the operation stores some
 store exactly (the recovery equation below). The reference decomposition records
 each I-address `aₖ ∈ ρ(R_j, Σ)` by its unit-depth span `(aₖ, δ(1, #aₖ))`, whose
 denotation is the subtree `{t : aₖ ≼ t}` (ASN-0043, PrefixSpanCoverage); a
-decomposition that merges a run of chain-adjacent resolved addresses into one
-wider canonical span `(aₖ, δ(n, #aₖ))` has the same coverage (ASN-0098, LP-Fin
-Corollary) and is an equally legal record. The endset is a finite set of such
+decomposition that merges a run of chain-adjacent resolved addresses
+`a₁, …, aₙ` (each `aₖ₊₁ = inc(aₖ, 0)`) into one wider canonical span
+`(a₁, δ(n, #a₁))` has the same coverage and is an equally legal record. The
+coverage equality is a span merge, not a store-trace fact. Each chain address is
+T4-valid, so `sig(aₖ) = #aₖ` (TA5-SigValid, ASN-0034) and the sibling step is
+exactly the last-component shift, `aₖ₊₁ = inc(aₖ, 0) = shift(aₖ, 1)`; hence each
+unit span's reach `shift(aₖ, 1)` equals the next span's start — consecutive unit
+spans are *adjacent*, level-uniform, at one common length (`#aₖ₊₁ = #aₖ`,
+TA5(c)). ASN-0053's merge (S3), applied inductively along the run, then
+concatenates the half-open intervals exactly:
+`(∪ k : 1 ≤ k ≤ n : ⟦(aₖ, δ(1, #aₖ))⟧) = ⟦(a₁, δ(n, #a₁))⟧`. The endset is a finite set of such
 spans — finite because `ρ(R_j, Σ)` is finite (`p` is finite and each
 `dom(Σ.M(d_j))` is finite by S8-fin, ASN-0036) — which discharges K.λ's
 `e_j ∈ Endset = 𝒫_fin(Span)` precondition. Link-value equality at the model's own
@@ -279,10 +284,17 @@ in `dom(Σ.C)` (S3★), and `a ∉ dom(Σ.C)` too — `K.λ`'s freshness is agai
 whole store, `a ∉ dom(Σ.C) ∪ dom(Σ.L)` (FirstEmissionFreshness /
 SubsequentEmissionFreshness, ASN-0093), and `dom(Σ.C)` is unchanged by `K.λ`.
 Neither branch admits `a`, so `a ∉ ran(M(d))`. Finally, the bound V-position
-`v_a` is the one `K.μ⁺_L` itself selects —
-`ValidFirstLinkPosition(d, v_a, m)` when `V_{s_L}(d) = ∅`, else
-`v_a = shift(max(V_{s_L}(d)), 1)`. The home document is thereby the link's residence
-and the locus of its ownership.
+`v_a`. When `V_{s_L}(d) ≠ ∅` it is fully determined:
+`v_a = shift(max(V_{s_L}(d)), 1)` (ASN-0047, K.μ⁺_L). When `V_{s_L}(d) = ∅` the
+substrate determines it only relative to a depth:
+`ValidFirstLinkPosition(d, v_a, m)` is parameterized by a *caller-chosen*
+`m ≥ 2` (ASN-0047), and `makelink(d, R₁, R₂, R₃)` carries no depth argument — so
+the choice falls to MAKELINK, not to `K.μ⁺_L`. We fix it by convention:
+`m = 2`, the least depth S8a admits, giving first link V-position
+`v_a = [s_L, 1]`. Any fixed `m ≥ 2` would serve equally — no claim of this ASN
+consults the link-subspace depth — but the operation must name one, and the
+minimal choice adds no unforced structure. The home document is thereby the
+link's residence and the locus of its ownership.
 
 Now the orthogonality. The home `d` was supplied independently of the endset
 arguments, and nothing in the operation couples them. MAKELINK admits a home `d`
@@ -395,40 +407,39 @@ in the abstract characterization of ASN-0098 (LP12),
 Since MAKELINK sets `Σ'.L(a) = (e₁, e₂, e₃)`, the right-hand side reduces in two
 steps.
 
-*Fact (a) — the coverage/`ρ` gap collapses on the store.* By generalized
-referential integrity (S3★, ASN-0047) an arrangement's images lie in the store:
-`ran(Σ'.M(d')) ⊆ dom(Σ.C) ∪ dom(Σ.L)`, the content-subspace V-positions mapping
-into `dom(Σ.C)` and the link-subspace ones into `dom(Σ.L)`. The intersection
-`coverage(eᵢ) ∩ ran(Σ'.M(d'))` therefore consults `coverage(eᵢ)` only at store
-addresses, so what we need is `coverage(eᵢ)`'s trace on the store — and that trace
-is exactly the resolved set,
-`coverage(eᵢ) ∩ (dom(Σ.C) ∪ dom(Σ.L)) = ρ(R_i, Σ)`. We establish this over store
-membership, not over the value of `subspace_I` at arbitrary covered tumblers (where
-it need not be defined: a covering-surplus descendant formed by a zero extension has
-`zeros = 4` and is not T4-valid, so `subspace_I` does not apply to it). The content
-half is ML1: `coverage(eᵢ) ∩ dom(Σ.C) = ρ(R_i, Σ)`. The link half is empty,
-`coverage(eᵢ) ∩ dom(Σ.L) = ∅`: each `eᵢ` is a union of canonical spans
-`(s, δ(n, #s))` rooted at resolved content addresses `s ∈ ρ(R_i, Σ) ⊆ dom(Σ.C)`
-(of form `[d.0.s_C.k]`), so by ASN-0098 (LP-Fin Corollary, which covers canonical
-spans of any width `n`, with `dom(Σ.L) ⊆ F` from LP-Sub)
-every store address in `coverage(eᵢ)` carries `subspace_I = s_C`; but every link
-address carries `subspace_I = s_L` (L0, ASN-0093), and `s_C ≠ s_L` — so no covered
-tumbler is a link address, and
-`coverage(eᵢ) ∩ ran(Σ'.M(d')) = ρ(R_i, Σ) ∩ ran(Σ'.M(d'))`. The
-covering surplus — the non-store descendants in `coverage(eᵢ)` — cannot meet an
-arrangement range and so drops out.
+*Fact (a) — the coverage/`ρ` gap collapses on the post-state store.* By
+generalized referential integrity (S3★, ASN-0047) at the post-state, an
+arrangement's images lie in the post-state store:
+`ran(Σ'.M(d')) ⊆ dom(Σ'.C) ∪ dom(Σ'.L)`, and that store is
+`dom(Σ.C) ∪ dom(Σ.L) ∪ {a}` (`Σ'.C = Σ.C` by ML10;
+`dom(Σ'.L) = dom(Σ.L) ∪ {a}`). The intersection
+`coverage(eᵢ) ∩ ran(Σ'.M(d'))` therefore consults `coverage(eᵢ)` only at
+post-state store addresses, so what we need is `coverage(eᵢ)`'s trace on that
+store — and that trace is exactly the resolved set,
+`coverage(eᵢ) ∩ (dom(Σ'.C) ∪ dom(Σ'.L)) = ρ(R_i, Σ)`. The content half is ML1:
+`coverage(eᵢ) ∩ dom(Σ'.C) = coverage(eᵢ) ∩ dom(Σ.C) = ρ(R_i, Σ)`. The link half
+is empty, `coverage(eᵢ) ∩ dom(Σ'.L) = ∅` — and here the fresh `a` is disposed of
+together with every pre-existing link address: each `eᵢ` is a union of canonical
+spans `(s, δ(n, #s))` rooted at resolved content addresses
+`s ∈ ρ(R_i, Σ) ⊆ dom(Σ.C)` (of form `[d.0.s_C.k]`), so by ASN-0098 (LP-Fin
+Corollary) every F-address in `coverage(eᵢ)` carries `subspace_I = s_C`; every
+element of `dom(Σ'.L)` lies in `F` (LP-Sub at `Σ'`) and carries
+`subspace_I = s_L` (L0, ASN-0093), and `s_C ≠ s_L` — so no covered tumbler is a
+link address, and in particular `a ∉ coverage(eᵢ)`. The covering surplus — the
+non-store descendants in `coverage(eᵢ)` (ML1's surplus argument) — cannot meet an
+arrangement range and so drops out. Hence
+`coverage(eᵢ) ∩ ran(Σ'.M(d')) = ρ(R_i, Σ) ∩ ran(Σ'.M(d'))`.
 
 *Fact (b) — the post-state range equals the pre-state range for the test.* For
 `d' ≠ d`, `K.μ⁺_L` touches only the home document's arrangement, so
 `Σ'.M(d') = Σ.M(d')` and `ran(Σ'.M(d')) = ran(Σ.M(d'))`. For the boundary case
 `d' = d` — the home document itself, exactly the case ML4 highlights — `K.μ⁺_L`
 extends the arrangement by the single binding `v_a ↦ a`, so
-`ran(Σ'.M(d)) = ran(Σ.M(d)) ∪ {a}`; but the added address `a` is itself a link
-address (`a ∈ dom(Σ'.L) ⊆ F`, `subspace_I(a) = s_L` by L0), so Fact (a)'s link-half
-conclusion applies to `a` verbatim — every store address in `coverage(eᵢ)` carries
-`subspace_I = s_C ≠ s_L` — hence `a ∉ coverage(eᵢ)`
-and the added point is inert:
-`coverage(eᵢ) ∩ ran(Σ'.M(d)) = coverage(eᵢ) ∩ ran(Σ.M(d))`. In both cases the test
+`ran(Σ'.M(d)) = ran(Σ.M(d)) ∪ {a}`. But Fact (a) established
+`a ∉ coverage(eᵢ)`, hence also `a ∉ ρ(R_i, Σ)` (a subset of `coverage(eᵢ)`,
+ML1), so the added point is inert on both sides of Fact (a)'s equation:
+`coverage(eᵢ) ∩ ran(Σ'.M(d)) = coverage(eᵢ) ∩ ran(Σ.M(d))` and
+`ρ(R_i, Σ) ∩ ran(Σ'.M(d)) = ρ(R_i, Σ) ∩ ran(Σ.M(d))`. In both cases the test
 reads against the pre-state range.
 
 Composing (a) and (b) — and conjoining the operation's definedness, since
@@ -511,10 +522,12 @@ first link. It is fresh (`a ∉ dom(Σ.L)`), home-scoped
 surplus argument (a proper descendant is either outside `F`, hence no store
 address, or in `F` and forced to `#E ≥ 3` against `F`'s `#E = 2`) — and likewise
 `coverage(e₂) ∩ dom(Σ.C) = {b₁}`. ML2 made concrete: `a₁` and `a₂` are
-consecutive chain siblings of `A_C(A)`, hence *I-adjacent*, so the single wider
-canonical span `(a₁, δ(2, #a₁))` has the same coverage as the two unit spans
-(LP-Fin Corollary); `e₁` may legally be recorded either way — distinct link
-values, coverage-equal, and no operation of the model distinguishes them.
+consecutive chain siblings of `A_C(A)` — `a₂ = inc(a₁, 0) = shift(a₁, 1)` by
+TA5-SigValid, so the two unit spans are adjacent and their intervals concatenate
+exactly (ASN-0053, S3) — hence the single wider canonical span `(a₁, δ(2, #a₁))`
+has the same coverage as the two unit spans; `e₁` may legally be recorded either
+way — distinct link values, coverage-equal, and no operation of the model
+distinguishes them.
 
 *Discoverability (ML9).* Evaluate `discoverable_from(a, d', Σ')` for each document.
 From `A`: `coverage(e₁) ∩ ran(Σ'.M(A)) ⊇ {a₁} ≠ ∅` — discoverable. From `B`:
@@ -534,15 +547,15 @@ yet is found from `A`, `B`, and `D` — residence and reachability are orthogona
 | Label | Statement | Status |
 |-------|-----------|--------|
 | ML0 | IdentityAllocation: the link's identity is a fresh (`a ∉ dom(Σ.L)`), permanent (never removed, never reused — GlobalUniqueness, T8), value-fixed (L12) link-subspace address allocated by `A_L(d)` under home `d`, with `home(a) = d` | introduced |
-| ML1 | EndsetResolution (precondition `wf(R,Σ)`: each `σ_j` content-subspace with `#u_j ≥ 2` — depth-match to the arrangement's common depth *not* required — ordinal displacement `ℓ_j = δ(n_j,#u_j)`, `d_j ∈ dom(Σ.M)`): each endset argument `R` is recorded as `ρ(R,Σ) = {Σ.M(d_j)(v) : v ∈ dom(Σ.M(d_j)) ∧ v ∈ ⟦σ_j⟧}`, with the containment `ρ(R,Σ) ⊆ dom(Σ.C)` holding by `wf`'s ordinal-displacement confinement (ASN-0058 `resolve` generalized to partial spans) — I-addresses read through source arrangements at creation; canonical spans (unit-depth or merged chain-adjacent runs, pinned up to coverage equivalence — ML2) give `coverage(e_j) ⊇ ρ(R_j,Σ)` with `coverage(e_j) ∩ dom(Σ.C) = ρ(R_j,Σ)` (covering, not exact — ASN-0053 S7) | introduced |
+| ML1 | EndsetResolution: under precondition `wf(R,Σ)`, each endset argument `R` is recorded as the I-addresses `ρ(R,Σ) = {Σ.M(d_j)(v) : v ∈ dom(Σ.M(d_j)) ∧ v ∈ ⟦σ_j⟧} ⊆ dom(Σ.C)`, read through the source arrangements at creation; the stored endset satisfies `coverage(e_j) ⊇ ρ(R_j,Σ)` and `coverage(e_j) ∩ dom(Σ.C) = ρ(R_j,Σ)` | introduced |
 | ML2 | RepresentationIndependence: the stored endset is determined only up to coverage equivalence — coverage-equal decompositions are distinct link values (L6) but no operation of the model distinguishes them: no span-positional accessor (L5), projection depends only on coverage (LP21), type matching compares coverage (L8); only the content-coverage `coverage(e_j) ∩ dom(Σ.C) = ρ(R_j,Σ)` (ML1) is operationally observable | introduced |
 | ML3 | UniformResolution: from, to, and type arguments are resolved by one procedure with no slot privileged at the V→I conversion step | introduced |
 | ML4 | ResidenceApplicationOrthogonality: home document and endset content are independent; the precondition relates `d` to no `ρ(R_j,Σ)`; a link may home anywhere and point anywhere, connecting two documents without residing in either | introduced |
 | ML5 | OrderedEndsets: the recorded triple is ordered, `(F,G,Θ) ≠ (G,F,Θ)` for `F ≠ G` (L6); the order fixes from/to roles semantically without restricting reachability (discovery is endset-symmetric) | introduced |
 | ML6 | TypedRelation: operation precondition `ρ(R₃,Σ) ≠ ∅` (the operation is undefined on a type spec that resolves empty, since K.λ requires `e₃ ≠ ∅`, L3); the third endset, recorded like from/to but matched by address (L8), distinguishes a typed relation from a bare connection; the type resolves to stored content like any other endset (`ρ(R₃,Σ) ⊆ dom(Σ.C)`) | introduced |
 | ML7 | Permanence: `(A Σ' → Σ'' : a ∈ dom(Σ'.L) : a ∈ dom(Σ''.L) ∧ Σ''.L(a) = Σ'.L(a))` — the made link is not broken by any editing of the content it connects | introduced |
-| ML8 | EndsetSurvivability: a *consequence* of ML7 (value-fixity) ∧ ML1 (content-identity recording), not a fresh store invariant — editing source documents changes `Σ.M` but never the recorded I-addresses, so by S0 the endset reference survives as long as any referenced content persists; this is bought by the V→I conversion of ML1, since value-fixity of positions would not yield survival of the reference | introduced |
-| ML9 | DiscoverabilityDecoupledFromResidence: `wp(makelink, discoverable_from(a, d', ·)) ≡ enabled(makelink) ∧ d' ∈ dom(Σ.M) ∧ (E i : ρ(R_i,Σ) ∩ ran(Σ.M(d')) ≠ ∅)`, with `enabled(makelink) ≡ d ∈ dom(Σ.M) ∧ (A i : wf(R_i,Σ)) ∧ ρ(R₃,Σ) ≠ ∅`; beyond enabledness the home `d` does not appear in the discoverability test — the link is discoverable from every region its endsets reference, residence-independently and endset-symmetrically | introduced |
+| ML8 | EndsetSurvivability: editing a source document changes `Σ.M` but never the recorded I-addresses, which by S0 denote their original content permanently — the endset reference survives all editing of the content it names (consequence of ML7 ∧ ML1) | introduced |
+| ML9 | DiscoverabilityDecoupledFromResidence: `wp(makelink, discoverable_from(a, d', ·)) ≡ enabled(makelink) ∧ d' ∈ dom(Σ.M) ∧ (E i : ρ(R_i,Σ) ∩ ran(Σ.M(d')) ≠ ∅)` — beyond enabledness, the home `d` does not appear in the discoverability test | introduced |
 | ML10 | Frame: `Σ'.C = Σ.C`; `Σ'.E = Σ.E ∧ Σ'.R = Σ.R` (inherited from the K.λ/K.μ⁺_L frames — the `R' = R` clause grounds J1'★'s vacuity); `(A d' ≠ d : Σ'.M(d') = Σ.M(d'))`; existing `Σ.L` entries unchanged; the linked-into sources are unmodified by being linked into | introduced |
 
 ## Open Questions
