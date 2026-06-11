@@ -1,0 +1,49 @@
+# Review of ASN-0121
+
+## REVISE
+
+### Issue 1: FL-JUNK is quantified over a single atomic step but claims invariance under arbitrary quantity
+**ASN-0121, "Non-impedance: junk links do not obstruct"**: "Let `Σ → Σ'` be a transition that adds links but matches none of them and retracts none — `dom(Σ.L) ⊆ dom(Σ'.L)`, `nullified(Σ') = nullified(Σ)`, and `(A a : a ∈ dom(Σ'.L) \ dom(Σ.L) : ¬ sat(a, q, Σ'))`. Then `findlinks(q, Σ') = findlinks(q, Σ)`."
+**Problem**: Two paragraphs earlier the ASN fixes `→` to be ASN-0047's atomic vocabulary, under which the only link-adding transition is K.λ, and a single K.λ adds exactly one link. As displayed, FL-JUNK therefore covers one junk link per step, while its prose ("The body of irrelevant links, however vast") and its claims-table entry ("unaffected by their quantity") assert invariance under arbitrary masses of junk — exactly the content of Nelson's 4/60 scaling claim. Either the hypothesis "adds links" (plural) is unsatisfiable beyond one under the fixed `→`, or `→` is being used loosely in contradiction with its own fixing. The `→*` form is what the claim needs, and it is never stated.
+**Required**: Restate FL-JUNK over `Σ →* Σ'` (same endpoint hypotheses: `nullified(Σ') = nullified(Σ)`, every `a ∈ dom(Σ'.L) ∖ dom(Σ.L)` fails `sat` at `Σ'`), with the proof drawing value persistence for existing links across the closure from the already-recorded facts (F-PRES per step, L12/LP13 across `→*`) — or keep the single-step lemma and add the explicit one-line inductive lift.
+
+### Issue 2: Consultation Q14 as cited contradicts FL-EMP's load-bearing distinction
+**ASN-0121, "The type is a first-class slot" vs. "Wildcards drop slots"**: FL-TYP's evidence sentence says Gregory "treats an empty type request as imposing no type constraint (consultation Q14)"; FL-EMP says "a constrained slot that resolves to no I-addresses short-circuits the entire find to the empty link-set before `intersectlinksets` is even reached (consultation Q7)" and insists "empty-spec and no-spec can never be identified."
+**Problem**: As rendered, the two citations point opposite ways on precisely the distinction FL-EMP declares load-bearing: Q14's reported behaviour identifies an empty type spec with NOSPECS (the unit), while FL-EMP makes the empty constrained endset the zero. The likely reconciliation — Gregory's wire encoding renders the type wildcard *as* the absent/empty spec, so the abstract `Θ = ∅` request is inexpressible there, distinct from Q7's supplied-but-vacuously-resolving slot — is nowhere stated. A careful reader trips on an apparent internal contradiction between two sections' evidence.
+**Required**: Reconcile the two citations in one clause: either mark the Q14 behaviour as an encoding fact (empty spec is the implementation's NOSPECS representation, so it instantiates the wildcard case, not the `∅`-constrained case), or record it as a third implementation divergence alongside the home-set and all-wildcard divergences already noted.
+
+### Issue 3: The Σ.L-only-dependence fact is stated four times and twice used by forward deferral before it is established
+**ASN-0121, intro / "The only result-changing transition" / FL-STB / FL-REACH**: intro: "the query itself is far narrower: `findlinks(q, Σ)` reads only the *link-store projection* `Σ.L` … (below) … FL-DEF's frame records this explicitly"; wp section: "Since `findlinks(q, ·)` is a function of `Σ.L` alone (FL-DEF's frame; the F-CIL instantiation recorded at FL-STB below), and every operation in `→` other than K.λ preserves `Σ.L` …, *K.λ is the unique result-changing transition*"; FL-STB then establishes the fact; FL-REACH restates it ("a function of `Σ.L`, `nullified(Σ)`, and `q` *alone*").
+**Problem**: The load-bearing dependency fact lives downstream of its two heaviest uses. The K.λ-uniqueness argument — the spine of FL-WP — leans on "recorded at FL-STB below," a forward deferral from a proof to a later lemma; the intro defers to FL-DEF's frame for the same fact; and the fact is then re-derived at FL-STB and paraphrased again at FL-REACH. This is the multiple-paragraphs-deferring-to-one-downstream-location pattern plus duplication, and it is structural, not cosmetic: a proof should not rest on a lemma stated two sections later, even non-circularly.
+**Required**: Establish the fact once, as a named one-line lemma immediately after FL-DEF (`nullified` is a function of `Σ.L`; `sat` reads `Σ.L(a)`, the address projection `home(a)`, and the fixed `q`; hence `findlinks(q, Σ)` is a function of `(Σ.L, q)`). Make FL-STB its F-CIL corollary, cite it backward from the K.λ-uniqueness paragraph and FL-REACH, and cut the intro paragraph to a pointer.
+
+### Issue 4: FL-REACH (d) stages a wrong claim and its correction instead of stating the result
+**ASN-0121, "Cross-document reach", consequence (d)**: "It is tempting to say the reach 'subsumes' ASN-0098's per-document `discoverable_from`, but that comparison must be drawn carefully, because `discoverable_from` is *request-independent* while `findlinks` is not. … So `findlinks(q, Σ)` is *not* in general a superset of the bare discoverable union; the headed claim must be restricted to the *satisfying* links."
+**Problem**: This is revision-narrative — a prior finding's content relocated rather than removed. The technical content of (d) is three things: the containment `findlinks(q, Σ) ⊇ ⋃_d {a : addressable ∧ sat ∧ discoverable_from}`, its strictness in the presence of satisfying orphans, and the `(∗, ∅, ∗, ∗)` counterexample showing the unrestricted comparison fails. The temptation/rebuttal staging ("It is tempting," "must be drawn carefully," "the headed claim must be restricted") narrates the document's own correction history and forces the reader through a wrong claim to reach the right one.
+**Required**: State the containment and strictness condition directly, keep the `(∗, ∅, ∗, ∗)` counterexample as a one-sentence remark on why the request-independent union is the wrong comparand, and delete the temptation/correction framing.
+
+### Issue 5: Local duplication and meta-prose instances
+**ASN-0121, multiple sections**:
+(i) "What is being matched": three consecutive formulations of the same fact — "constrains exactly the first three slots … leaves any higher slots `e₄ … eₙ` unconstrained" / "matched on its first three endsets alone and remains in the result space" / "the name fixes the three matched slots, and the determinacy of the result is unaffected by whatever further endsets a link may carry." One sentence suffices.
+(ii) FL-EMP: "The distinction is load-bearing: under the AND-of-ORs structure a unit slot widens the answer while a zero slot annihilates it…" restates the unit/zero sentences immediately above it.
+(iii) FL-CUR: "the *forward* direction (`a ∈ findlinks(q, Σ) ⟹ …`) is FL-SND, the *backward* direction (`… ⟹ a ∈ findlinks(q, Σ)`) is FL-CMP, and the two compose into the biconditional" — label bookkeeping that redisplays, verbatim, halves of the display two lines up; the formulas appear here for the third time in the document.
+(iv) "We invoke these two facts — link-store monotonicity and `nullified` monotonicity over the full vocabulary — wherever permanence is at issue below" — a downstream-consumer announcement; recording the facts is right, announcing their use-sites is noise.
+(v) The parenthetical "(An endset and an ASN-0053 span-set built from the same spans have equal address sets … so the unordered endset form loses nothing …)" defends against an objection the formalism never raises — `touch` is defined on coverages, so span-order independence holds by construction.
+**Problem**: Each instance is prose the precise reader must skip past; together they are the accretion pattern this review mode targets.
+**Required**: One formulation each for (i)–(iii); delete (iv)'s announcement sentence; delete or reduce (v) to a citation.
+
+### Issue 6: First-class retrieval of a standing retraction link is asserted but never witnessed
+**ASN-0121, "The only result-changing transition" / Trace 7**: "a type-`Θ` query touching the retraction class returns a retraction link like any other (consultation Q2)" — the assertion motivating case (b) ("The second case is not idle").
+**Problem**: No trace exhibits a retraction link being *returned*. Trace 7(b) shows only the negative half (the self-nullified retractor `b` excluded), while the constructed store contains the positive witness unexploited: after the trace-7 steps, `r₁` is addressable (no tuple's to-coverage names `[…,2,4]` — `G_ℓ` covers `ℓ`'s subtree, `G_self` covers `b`'s) and `sat(r₁, (∗, ∗, ∗, Θ_ρ), ·)` holds (type slot touches `ρ`'s subtree; remaining slots wildcard, the empty from-slot admitted under `q.F = ∗` per FL-EMP's link-side rule), so `findlinks((∗, ∗, ∗, Θ_ρ), ·) = {r₁}`. A load-bearing claim verified nowhere in the worked instance, with the witness one sentence away, is a verification gap.
+**Required**: Add the sentence to Trace 7 recording `r₁ ∈ findlinks((∗, ∗, ∗, Θ_ρ), ·)` — it simultaneously witnesses the first-class-retrieval claim and the FL-EMP link-side wildcard admission on a stored link.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Result enumeration order
+Nelson's text says the operation "returns a list"; the ASN specifies a set. The order in which matching links are delivered, and stability of that order across repeated inquiry, belongs with the paginated-retrieval operation (FINDNEXTNLINKSFROMTOTHREE), which the scope note already excludes.
+**Why out of scope**: The four-set satisfaction semantics is order-free; presentation order is a delivery concern of a different operation, not an error here.
+
+### Topic 2: Version-qualified inquiry, V-spec/I-address agreement, and federation
+**Why out of scope**: All three are genuinely new territory and the ASN already parks them correctly as Open Questions rather than claims.
+
+VERDICT: REVISE
