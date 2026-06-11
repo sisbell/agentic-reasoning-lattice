@@ -255,7 +255,7 @@ every reachable `Σ'` — the invariants behind RL0's necessity claims (L0b, L1,
 ASN-0043) hold at every reachable state — so a screen-failing `a` satisfies `a ∉ dom(Σ'.L)`
 throughout the future. For a *screen-passing* address, by
 contrast, the screen settles nothing in either direction: the screen-passing class contains
-addresses of both fates, so permanence of `⊥` is not derivable from the address alone. Some
+addresses of both fates, so permanence of `⊥` is not derivable from the screen alone. Some
 screen-passing addresses are unstable — take `a` at the frontier of an active link sub-allocator
 `A_L(d)` (the address K.λ's binding precondition fixes, ASN-0093): `readlink(a, ·) = ⊥` at the
 state before the K.λ step, and a link value after it; the worked read's
@@ -263,9 +263,16 @@ state before the K.λ step, and a link value after it; the worked read's
 allocating step. Others are permanently absent despite passing the screen, and two families
 witness this. *Depth:* under the standing precondition's transition vocabulary, every address
 that ever enters `dom(L)` lies on the chain `A_L(d)` of its origin (ChainMembershipForOrigin,
-ASN-0093), and every element of such a chain has element-field depth exactly 2 — the first
-emission `[d.0.s_L.1]` has `#E = 2`, and each subsequent emission is `inc(·, 0)`, which preserves
-length (TA5(c), with `sig = #` on T4-valid addresses by TA5-SigValid) — so
+ASN-0093), and every element of such a chain has element-field depth exactly 2. The first
+emission `[d.0.s_L.1]` has `#E = 2`, and each subsequent emission is `inc(·, 0)`; length
+preservation alone would not fix `#E`, since the element-field boundary is determined by the zero
+positions, so both must be checked. The step modifies only the single position `sig(t)` (TA5(b),
+`k = 0` case) and preserves length (TA5(c)); every chain element is T4-valid
+(ChainElementT4Validity, ASN-0093), so that position is the terminal one (TA5-SigValid,
+`sig(t) = #t`), and its value passes from a nonzero natural (`t_{#t} ≠ 0`, T4's
+trailing-component clause) to its successor `t_{#t} + 1 ≥ 2` — nonzero to nonzero. The zero count
+and zero positions are therefore unchanged, the element-field boundary is undisturbed, and
+`#E = 2` is preserved along the chain. So
 `a = [1.0.1.0.1.0.2.1.1]` passes every screen conjunct (T4-valid; `zeros(a) = 3`;
 `E(a) = [2, 1, 1]`, so `subspace_I(a) = s_L` and `#E(a) = 3 ≥ 2`) yet satisfies `a ∉ dom(Σ'.L)`
 at every reachable `Σ'`. Gregory's allocator concurs: its sole link-allocation path emits
@@ -274,12 +281,19 @@ reachable path deepens the element field. *Lineage:* every node entity extends t
 (`n₀ = [1] ≼ e`, NodeLineage, ASN-0047), so `a = [2.0.1.0.1.0.2.1]` passes the screen while its
 node field `[2]` is no `n₀`-descendant (`¬(n₀ ≼ [2])`); no entity chain through P8 can ever place
 `home(a)` in `dom(M)`, and L1a then excludes `a` from `dom(Σ'.L)` at every reachable `Σ'`. The
-screen is therefore a one-sided test: failure *proves* permanent absence; passage proves nothing
-about the future. The caching discipline follows: a success-branch result may be cached
-permanently, `⊥` at a screen-failing address may be cached permanently, and `⊥` at a
-screen-passing address must not be cached — not because every such address can later be
-allocated, but because its permanence is not derivable from the address alone, and caching `⊥` is
-sound only where permanence is established.
+screen is therefore a one-sided test: failure *proves* permanent absence; passage, by itself,
+proves nothing about the future. But the two families show that the screen-passing class is
+heterogeneous, split by finer tests that are still address-computable: depth (`#E(a) = 2` versus
+`#E(a) > 2`) and lineage (`N(a)₁ = 1` versus `N(a)₁ ≠ 1` — with `n₀ = [1]` fixed by Σ₀ of
+ASN-0047, `n₀ ≼ N(a)` is exactly `N(a)₁ = 1`). What passage withholds is thus permanence
+derivable from the *screen* alone; the address may still carry a permanence proof under the finer
+tests. The caching discipline follows in three parts: (i) a success-branch result may be cached
+permanently (L12, LP13); (ii) `⊥` may be cached permanently wherever an address-computable
+permanence proof applies — screen failure, element-field depth `#E(a) > 2` (the depth family), or
+node field off the `n₀` lineage, `N(a)₁ ≠ 1` (the lineage family); (iii) `⊥` must not be cached
+at the residual class — screen-passing, `#E(a) = 2`, `N(a)₁ = 1` — which contains the frontier
+addresses a future K.λ allocates, and for whose members the tests established here yield no
+permanence proof. Caching `⊥` is sound exactly where such a proof is in hand.
 
 ## Recorded relationship versus resolved position
 
@@ -322,6 +336,19 @@ Let the stored value `Σ.L(a) = (F, G, Θ)` be the standard triple
 - **to-set** `G = ∅` — a legitimately empty connective slot.
 - **type-set** `Θ = {([1.0.1.0.9.0.1.1], δ(1, 8))}` — a single span whose address sits under a
   document `[1.0.1.0.9]` that hosts no content: a *ghost* type, a label by location.
+
+The configuration just stipulated — three allocated, content-bearing, *unarranged* I-addresses —
+cannot arise at allocation, since J0 (AllocationPlacementCoupling, ASN-0047) requires every fresh
+I-address to be arranged at its allocating composite's boundary; it is nevertheless reachable, and
+we exhibit the route rather than assume it. Each of the three addresses is a chain emission of its
+document's content sub-allocator (`[1.0.1.0.1.0.1.1]` and `[1.0.1.0.1.0.1.2]` the first two
+emissions of `A_C(d₁)`, `[1.0.1.0.2.0.1.1]` the first of `A_C(d₂)`; `d₁` enters `dom(M)` by the
+K.δ route exhibited in the RL4 construction, and `d₂ = inc(d₁, 0)` by a `k = 0` sibling step), and
+each enters `dom(C)` inside a J0-satisfying composite — K.α coupled with a K.μ⁺ arranging it at
+the boundary. A subsequent K.μ⁻ on each document with content-subspace retention `n'_{s_C} = 0`
+then empties the content V-positions while `dom(C)` retains all three entries (P0). The link
+addresses of this section — `a`, then `a' = inc(a, 0)` and `c = inc(a', 0)` below — are the first
+three emissions of `A_L(d₁)`'s chain, allocated by three K.λ steps.
 
 A direct read returns the whole triple, grouped by slot:
 
@@ -381,7 +408,7 @@ complete structure. The read thus distinguishes *the relationship is unwitnessed
 | RL2 | Role preservation — on `a ∈ dom(Σ.L)` the read preserves arity (`|readlink(a, Σ)| = |Σ.L(a)|`) and exposes slot position as a model primitive (L6); from/to/type grouping delivered as structure | introduced |
 | RL3 | Type-by-address — the type is interpreted via `coverage(e₃)`, not via content at those addresses; ghost types read completely | introduced |
 | RL4 | Nesting locality — `readlink` is a function of `(a, Σ.L(a))` alone: reachable `Σ₁, Σ₂` with `Σ₁.L(a) = Σ₂.L(a)` give `readlink(a, Σ₁) = readlink(a, Σ₂)`; corollary: covered link addresses are returned as addresses, never dereferenced, witnessed by an explicit branched-history state pair | introduced |
-| RL5 | Determinacy — pure function of `(a, Σ.L(a))` (RL4); success-branch results stable across all `Σ →* Σ'` by link immutability; `⊥` is permanent at screen-failing addresses (every screen conjunct is necessary at every reachable state); at screen-passing addresses permanence of `⊥` is not derivable from the address alone — frontier addresses of an active `A_L(d)` are allocatable by a later K.λ, while off-chain (element-field depth > 2) and off-lineage (node field outside the `n₀` lineage) screen-passing addresses are permanently absent | introduced |
+| RL5 | Determinacy — pure function of `(a, Σ.L(a))` (RL4); success-branch results stable across all `Σ →* Σ'` by link immutability; `⊥` is permanent wherever an address-computable permanence proof applies — screen failure (every screen conjunct is necessary at every reachable state), element-field depth > 2 (off-chain), or node field outside the `n₀` lineage (off-lineage); at the residual class (screen-passing, depth-2, on-lineage) permanence of `⊥` is not derivable from the screen alone — it contains the frontier addresses of active `A_L(d)` chains, allocatable by a later K.λ — so `⊥` may be cached exactly where a permanence proof is in hand | introduced |
 | RL6 | Recorded, not resolved — the read depends only on `Σ.L(a)`, succeeds for orphaned links, and returns the complete structure independent of any arrangement | introduced |
 
 ## Open Questions
