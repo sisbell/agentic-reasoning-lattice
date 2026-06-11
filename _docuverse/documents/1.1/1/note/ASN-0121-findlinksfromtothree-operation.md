@@ -61,8 +61,8 @@ field projection `N(a).0.U(a).0.D(a)`, and a node- or account-rooted span tests 
 membership in the broader subtree it denotes. Every component thus denotes, through
 `coverage` (ASN-0043), a set of tumbler addresses — we call `q` an *I-address request* —
 and the wildcard denotes "no constraint." (An endset and an ASN-0053 span-set built from
-the same spans have equal address sets — `coverage(e) = ⟦Σ⟧` when `e`'s elements are
-exactly the components of the sequence `Σ` — so the unordered endset form loses nothing:
+the same spans have equal address sets — `coverage(e) = ⟦⟨σ₁, …, σₙ⟩⟧` when
+`e = {σ₁, …, σₙ}` — so the unordered endset form loses nothing:
 the matching rule below depends only on the address set a component covers, never on span
 order.)
 
@@ -163,9 +163,8 @@ Nelson's retracted links are "not currently addressable" (4/9). ASN-0086 defines
 
   `nullified(Σ) = { a ∈ dom(Σ.L) : (E (b, F', G') ∈ L_R^Σ :: a ∈ coverage(G')) }`
 
-— the link addresses targeted by a retraction tuple in the retraction relation `L_R^Σ` —
-monotone non-decreasing along every transition (R6a, RetractionStability:
-`a ∈ nullified(Σ) ⟹ a ∈ nullified(Σ')`). The
+— the link addresses targeted by a retraction tuple in the retraction relation `L_R^Σ`;
+its non-decrease across the transition vocabulary is derived below, once `→` is fixed. The
 currently addressable links are
 
   `addressable(Σ) = dom(Σ.L) \ nullified(Σ)`.
@@ -216,10 +215,6 @@ This is a pure query: it reads `Σ.L`, the retraction set, and (for residence) l
 addresses, and it writes nothing. Its frame is the whole of `Σ`: `findlinks` leaves the
 content store, the arrangements, and the link store unchanged.
 
-We record soundness and completeness as named claims even though they are now immediate
-from FL-DEF, because they are the load-bearing guarantees an alternative implementation
-must independently demonstrate.
-
 **FL-SND (soundness).** `(A a : a ∈ findlinks(q, Σ) : a ∈ addressable(Σ) ∧ sat(a, q, Σ))`.
 No returned link is withdrawn, and none fails any of the four criteria. In contrapositive
 form: a nullified link is not returned even when every criterion holds, and a link with any
@@ -246,8 +241,7 @@ is insensitive to the presence of non-matching links.
 
 **FL-JUNK (non-impedance).** Let `Σ → Σ'` be a transition that adds links but matches
 none of them and retracts none — `dom(Σ.L) ⊆ dom(Σ'.L)`, `nullified(Σ') = nullified(Σ)`,
-and `(A a : a ∈ dom(Σ'.L) \ dom(Σ.L) : ¬ sat(a, q, Σ'))` — and that preserves the
-values and home-projections of existing links. Then
+and `(A a : a ∈ dom(Σ'.L) \ dom(Σ.L) : ¬ sat(a, q, Σ'))`. Then
 `findlinks(q, Σ') = findlinks(q, Σ)`. The body of irrelevant links, however vast, neither
 enlarges the answer nor displaces a qualifying link from it.
 
@@ -508,16 +502,14 @@ Freshness `ℓ ∉ dom(Σ.L)` is a consequence of the frontier binding
 (FirstEmissionFreshness / SubsequentEmissionFreshness, ASN-0093), not a precondition
 conjunct. The displayed conjunctions are therefore the weakest *additional* precondition
 under which the named, enabled K.λ step lands `ℓ` (resp. `b`, `a`) in the answer; the full
-weakest precondition is `enabled(K.λ) ∧ ⟨displayed conjunction⟩` — the shape of ASN-0098's
-LP12a (ContractionDiscoverabilityWP), whose wp carries K.μ⁻'s applicability predicate
-`enabled(K.μ⁻[d, R])` conjoined with the substantive pullback term, and of ASN-0086's wp
-Case 2 (EmitKWeakestPrecondition), whose first conjunct `d ∈ dom(Σ.M)` is Emit_K's own
-applicability predicate. We carry `enabled(K.λ)` implicitly rather than redisplay it in
+weakest precondition is `enabled(K.λ) ∧ ⟨displayed conjunction⟩` (cf. LP12a, ASN-0098;
+wp Case 2, ASN-0086). We carry `enabled(K.λ)` implicitly rather than redisplay it in
 each case.
 
 *(a) Entry of a fresh ordinary link.* Let `Σ → Σ'` be a K.λ step that allocates a fresh
-address `ℓ ∉ dom(Σ.L)` with value `Σ'.L(ℓ) = (F, G, Θ)` of arity `N ≥ 3`, homed at
-`d = home(ℓ)`. We must cut the partition on *retraction-relation membership*, not on coverage
+address `ℓ ∉ dom(Σ.L)` with value `Σ'.L(ℓ) = (F, G, Θ, e₄, …, e_N)` of arity
+`N = |Σ'.L(ℓ)| ≥ 3` — the first three slots are `(F, G, Θ)`, the higher slots absent when
+`N = 3` — homed at `d = home(ℓ)`. We must cut the partition on *retraction-relation membership*, not on coverage
 class alone, because ASN-0086's `L_R^Σ = {(a, F, G) : a ∈ dom(Σ.L) ∧ |Σ.L(a)| = 3 ∧ …}`
 requires **arity exactly 3** in addition to the slot-3 coverage test. We therefore call the
 link *ordinary (non-retraction)* exactly when it does not enter the retraction relation —
@@ -534,10 +526,12 @@ and the slot-3 coverage test), and every prior value persists unchanged across K
 so with `ℓ` the only address `Σ.L` gains, no tuple enters or leaves `L_R`:
 `L_R^{Σ'} = L_R^Σ`. Then
 
-  `wp(K.λ, ℓ ∈ findlinks(q, ·)) ≡ ℓ ∉ nullified(Σ') ∧ liftH_d(q.H) ∧ lift(F, q.F) ∧ lift(G, q.G) ∧ lift(Θ, q.Θ)`,
+  `wp(K.λ, ℓ ∈ findlinks(q, ·)) ≡ ¬(E (b, F', G') ∈ L_R^Σ :: ℓ ∈ coverage(G')) ∧ liftH_d(q.H) ∧ lift(F, q.F) ∧ lift(G, q.G) ∧ lift(Θ, q.Θ)`,
 
-where `liftH_d(q.H) ≡ (q.H = ∗) ∨ (d ∈ coverage(q.H))`, and the addressability conjunct
-unfolds, for an ordinary K.λ, as `ℓ ∉ nullified(Σ') ≡ ¬(E (b, F', G') ∈ L_R^Σ :: ℓ ∈ coverage(G'))`.
+where `liftH_d(q.H) ≡ (q.H = ∗) ∨ (d ∈ coverage(q.H))`. Every conjunct is a pre-state
+predicate — `ℓ` itself is pre-state-determined, pinned to the sub-allocator frontier by the
+enabled step (scope note above). In post-state terms the first conjunct reads
+`ℓ ∉ nullified(Σ')`; the equivalence is derived below.
 *Derivation.* By FL-DEF, `ℓ ∈ findlinks(q, Σ') ⟺ ℓ ∈ addressable(Σ') ∧ sat(ℓ, q, Σ')`. We treat
 the two conjuncts in turn.
 
@@ -553,8 +547,9 @@ uncovered while merely fresh against `dom(Σ.L)` yet covered once it enters `dom
 the regime in which `nullified(Σ)`, restricted to `dom(Σ.L)`, omits `ℓ` "before" allocation
 while `nullified(Σ')` includes it "after." In that case `ℓ ∈ nullified(Σ')`, so
 `ℓ ∉ addressable(Σ')` and `ℓ ∉ findlinks(q, Σ')` *even though* `sat(ℓ, q, Σ')` holds. The
-addressability conjunct is therefore not vacuous, and the weakest precondition must retain it as
-`ℓ ∉ nullified(Σ')`, equivalently `¬(E (b, F', G') ∈ L_R^Σ :: ℓ ∈ coverage(G'))`. This is the
+addressability conjunct is therefore not vacuous, and the weakest precondition must retain it:
+`ℓ ∉ nullified(Σ') ≡ ¬(E (b, F', G') ∈ L_R^Σ :: ℓ ∈ coverage(G'))` — the displayed first
+conjunct, in pre-state form. This is the
 direct analogue of the third conjunct ASN-0086 deliberately carries in its wp Case 2
 (EmitKWeakestPrecondition), `¬(E (b, F', G') ∈ L_R^Σ :: a_emit(Σ, d) ∈ coverage(G'))`, and for
 the same reason — the conjunct is dischargeable only under a stated retraction discipline:
@@ -564,9 +559,10 @@ layer-reachable states (unit-depth retraction discipline plus R0a give
 ASN works over the *full* ASN-0047 transition vocabulary, which imposes no such discipline, so we
 do not assert that discharge here; we keep the conjunct explicit.
 
-The matching conjunct `sat(ℓ, q, Σ')` reads only the committed value `(F, G, Θ)` and the
-committed address (via `home(ℓ) = d`) — both fixed by the operation's own arguments, with no
-further pre-state dependence — so it equals the four-way conjunction
+The matching conjunct `sat(ℓ, q, Σ')` reads only the committed value's first three slots
+`(F, G, Θ)` and the committed address (via `home(ℓ) = d`) — both fixed by the operation's own
+arguments, with no further pre-state dependence; the higher slots `e₄, …, e_N` are
+unconstrained by `sat` — so it equals the four-way conjunction
 `liftH_d(q.H) ∧ lift(F, q.F) ∧ lift(G, q.G) ∧ lift(Θ, q.Θ)`. The wp is therefore the displayed
 *five*-way conjunction: a fresh link enters the answer iff its just-committed value and home meet
 all four lifted criteria of `q` *and* no standing retraction tuple already covers its address.
@@ -705,10 +701,8 @@ current line of descent.
 **FL-RET (retraction absence).** If `a ∈ nullified(Σ)`, then for every reachable
 `Σ →* Σ'` and every request `q`, `a ∉ findlinks(q, Σ')`. The exclusion is total: even if
 `a`'s endsets would still satisfy every endpoint criterion, `a ∉ addressable(Σ')` removes
-it from FL-DEF, and the non-decrease of `nullified` across the full transition vocabulary
-— R6a (ASN-0086) across the one link-store-changing operation K.λ, and constancy of
-`nullified` across every other operation in `→` (all of which leave `Σ.L`, hence `L_R^Σ`,
-untouched), as established for `→` and `→*` above — keeps it out forever. A retracted
+it from FL-DEF, and the non-decrease of `nullified` across `→` and `→*` (recorded in "The
+answer is forced") keeps it out forever. A retracted
 link neither lingers as a phantom result nor obstructs retrieval of the links that still
 satisfy the inquiry (FL-JUNK applies to its absence as to any non-match).
 
@@ -824,7 +818,7 @@ annihilates; the wildcard slot widens.
 *Trace 4 — retraction (FL-RET).* If instead `a₁ ∈ nullified(Σ)`, then
 `addressable(Σ) = {a₂, a₃}`, and Trace 1's `q = (∗, X, Y, ∗)` now yields
 `findlinks(q, Σ) = ∅` — `a₁` is excluded by FL-DEF even though its endsets still satisfy
-the criteria, and by R6a it stays excluded along every reachable `Σ →* Σ'`.
+the criteria, and by FL-RET it stays excluded along every reachable `Σ →* Σ'`.
 
 *Trace 5 — empty link endset (FL-EMP link-side symmetry).* Were a fourth link `a₄` homed
 at `d` with from-endset `e₁ = ∅`, to-endset `e₂ = {x}`-subtree, and some non-empty type
@@ -922,7 +916,7 @@ would be returned by `q` whenever no *standing* tuple covered it.)
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| FL-DEF | `findlinks(q, Σ) = { a ∈ addressable(Σ) : sat(a, q, Σ) }`, with `sat` the conjunction of the four lifted slot-criteria (AND of the ORs); `addressable(Σ) = dom(Σ.L) \ nullified(Σ)` (ASN-0086, monotone by R6a); the operation has frame `Σ` (reads only, writes nothing) | introduced |
+| FL-DEF | `findlinks(q, Σ) = { a ∈ addressable(Σ) : sat(a, q, Σ) }`, with `sat` the conjunction of the four lifted slot-criteria (AND of the ORs); `addressable(Σ) = dom(Σ.L) \ nullified(Σ)` (ASN-0086); the operation has frame `Σ` (reads only, writes nothing) | introduced |
 | FL-DEC | Decidability — `touch(e, r)` is decidable by ASN-0086's CoverageEqualityDecidable cell-decomposition run for intersection-nonemptiness, and `nullified(Σ)` is computable by ASN-0086's ActiveSubset argument, so `sat` is decidable per link and `findlinks(q, Σ) ⊆ dom(Σ.L)` is a finite, computable set (L-fin, ASN-0093) | introduced |
 | FL-SND | Soundness — `a ∈ findlinks(q, Σ) ⟹ a ∈ addressable(Σ) ∧ sat(a, q, Σ)`; no returned link is withdrawn or fails any criterion; no false positives | introduced |
 | FL-CMP | Completeness — every `a ∈ addressable(Σ)` with `sat(a, q, Σ)` is returned; the result is exactly the satisfying subset; no silent omission | introduced |
