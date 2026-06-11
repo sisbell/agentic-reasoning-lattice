@@ -57,9 +57,7 @@ provenance relation `R` are frozen alongside them (`Σ'.E = Σ.E` and `Σ'.R = �
 **(RA4)**). ASN-0084's frame names only the content store and the arrangement; lifting
 the operation into the extended `(C, L, E, M, R)` state, we extend that frame with an
 explicit clause for each component it does not name — RA6 for the link store `L`, and
-RA4 for `E` and `R` — by the same discipline. Because `E` and `R` are inert under the
-operation, we suppress them from the state-tuple notation and write `Σ = (C, M, L)`
-for the active components. The
+RA4 for `E` and `R`. The
 *content store* `Σ.C : T ⇀ Val` (ASN-0036, S0) is append-only and immutable; an
 address `a ∈ dom(C)`, once allocated, denotes its value forever. This is the
 Istream: the permanent record of *what content exists*. The *arrangement*
