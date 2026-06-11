@@ -1,6 +1,6 @@
 # ASN-0118: The COPY Operation — Transclusion as Shared Reference
 
-*2026-06-08*
+*2026-06-11*
 
 ## The problem
 
@@ -79,12 +79,11 @@ invariant across every state in which `a` is stored (S7(d)).
 ## What a spec-set names, and what resolution recovers
 
 A *V-spec* is a pair `ρ = (d_s, σ)`: an allocated source document
-`d_s ∈ dom(Σ.M)` together with a span `σ = (s, ℓ)` admissible under three
+`d_s ∈ dom(Σ.M)` together with a span `σ = (s, ℓ)` admissible under two
 conditions, which we state natively. It is *well-formed* in the sense of T12
 (ASN-0034): `Pos(ℓ)` and `actionPoint(ℓ) ≤ #s`, so its denotation
 `⟦σ⟧ = {t ∈ T : s ≤ t < s ⊕ ℓ}` is a well-defined order-convex set of tumblers.
-It is *level-uniform* (ASN-0053, S6): `#s = #ℓ`, so start, width, and reach all
-carry one tumbler length. It draws from a non-empty source subspace:
+And it draws from a non-empty source subspace:
 `V_{subspace(s)}(d_s) ≠ ∅`. The *active positions* of a V-spec are those
 tumblers the span denotes that the source arrangement actually binds,
 `act(ρ, Σ) = dom(Σ.M(d_s)) ∩ ⟦σ⟧` — the intersection of the source document's
@@ -92,29 +91,46 @@ bound V-positions (ASN-0036) with the span's denotation, and exactly the domain
 of ASN-0058's restriction `M(d_s)|⟦σ⟧` on which its `resolve` is defined. The
 set is finite (subset of the finite `dom(Σ.M(d_s))`, S8-fin) and totally
 ordered (subset of the totally ordered carrier `T`, T1), hence has a unique
-ascending enumeration `v₁ < … < v_k`. The first and third admissibility
+ascending enumeration `v₁ < … < v_k`. The two admissibility
 conditions are ASN-0058's ContentReference conditions (ii) and (i) inherited
-verbatim; the second relaxes its condition (iii) — which pins the span's length
-to the source subspace's common V-position depth, `#ℓ = #u = m` (S8-depth) — to
-bare level-uniformity, so every ContentReference is a V-spec but a V-spec's
-tumbler length may differ from the depth of the subspace it draws from.
+verbatim; its condition (iii) — which pins the width's tumbler length to the
+start's and both to the source subspace's common V-position depth,
+`#ℓ = #u = m` (S8-depth) — we drop entirely, so every ContentReference is a
+V-spec, but a V-spec's width may carry any length T12 admits, equal to the
+start's or not.
 
-The relaxation costs nothing downstream, because no consequence this ASN
-consumes rests on the depth pin: the bound active set is single-subspace by
-content-residence (`act(ρ, Σ) ⊆ V_{s_C}(d_s)`, the operation's precondition
-below) and single-depth by S8-depth (ASN-0036) applied to the active positions
-themselves — *regardless* of `#s` and of where `ℓ`'s action point falls. (A
-content span may, but need not, be *ordinal-level* — action point at the
+The drop costs nothing downstream, because no consequence this ASN consumes
+rests on either half of condition (iii) — not the depth pin `= m`, and not the
+shape pin `#ℓ = #s` (level-uniformity, ASN-0053 S6): no clause of CP0–CP12
+mentions `#s` or `#ℓ`, and the two facts the arithmetic does need — the bound
+active set is single-subspace by content-residence
+(`act(ρ, Σ) ⊆ V_{s_C}(d_s)`, the operation's precondition below) and
+single-depth by S8-depth (ASN-0036) applied to the active positions themselves
+— hold *regardless* of `#s`, of `#ℓ`, and of where `ℓ`'s action point falls.
+(A content span may, but need not, be *ordinal-level* — action point at the
 deepest component, `actionPoint(ℓ) = #ℓ`, so the span advances along the last
-component alone.) Nor is the relaxation merely notational: a depth-mismatched
-span can still capture active positions, and it is then admissible and
-resolves. Over a depth-2 text subspace, the spec `s = [1,1,5]`, `ℓ = [0,9,0]`
-is T12-well-formed (`Pos(ℓ)`, `actionPoint(ℓ) = 2 ≤ 3 = #s`) and level-uniform
-at length 3; its denotation `{t : [1,1,5] ≤ t < [1,10,0]}` contains exactly the
+component alone.) Nor is level-uniformity a fact about spans that the design
+merely happens not to use here. Nelson names the same-level span as the
+special case of the concept — a span refers to a subtree, "or merely to a
+series of elements of the same type, which is a degenerate case of a subtree"
+(4/24) — and his difference arithmetic gives the width a shape of its own: its
+leading zeros mark the level at which the span diverges from its start, and
+everything after its first nonzero field is copied from the *end* tumbler
+(4/32–4/33), the start's trailing digits being discarded by addition. The
+width's shape mirrors the span's end, not its start; pinning `#ℓ = #s` would
+formalize the degenerate case and constrain a quantity the addition never
+consults. Neither relaxation is merely notational: a shape-mismatched span can
+still capture active positions, and it is then admissible and resolves. Over a
+depth-2 text subspace, the spec `s = [1,1,5]`, `ℓ = [0,9,0]`
+is T12-well-formed (`Pos(ℓ)`, `actionPoint(ℓ) = 2 ≤ 3 = #s`); its denotation
+`{t : [1,1,5] ≤ t < [1,10,0]}` contains exactly the
 depth-2 positions `[1,k]` with `2 ≤ k ≤ 10`, capturing whichever of those the
 source binds; under the inherited condition (iii) it would be rejected
 (`#ℓ = 3 ≠ m = 2`), and here it is admitted, resolving by restriction to those
-bound positions. Beyond the three conditions the span's boundary tumblers are
+bound positions. The non-level-uniform spec `s = [1,1,5]`, `ℓ = [0,9]`
+(`actionPoint(ℓ) = 2 ≤ 3 = #s`, `#ℓ = 2 ≠ 3 = #s`) is admitted the same way:
+its denotation `{t : [1,1,5] ≤ t < [1,10]}` captures the depth-2 positions
+`[1,k]` with `2 ≤ k ≤ 9`. Beyond the two conditions the span's boundary tumblers are
 constrained no further: the start `s` need not carry the subspace depth, need
 not be a bound position of `d_s`, and need not be an S8a-well-formed V-position
 at all — under the partial binding admitted below, `s` is a pure *boundary*,
@@ -350,7 +366,12 @@ leaving every prior mapping intact — exactly K.μ⁺'s strict-extension frame
 `(A v ∈ dom(Σ.M(d)) : Σ'.M(d)(v) = Σ.M(d)(v))`. The placement positions are
 S8a-valid at depth `m_{s_C}(d)` by the placement-position observation. The
 resulting text run is the contiguous block `[min, max+W]` (or `[p, p+W)` when
-empty), discharging K.μ⁺'s D-CTG★/D-MIN★ precondition.
+empty), discharging K.μ⁺'s D-CTG★/D-MIN★ precondition. CP3c is discharged in
+its degenerate instance: no prior position satisfies `v ≥ p`, so its shifted
+summand is empty and its left summand is the whole prior text domain; K.μ⁺ is
+strict extension, vacating nothing and adding exactly the placement positions,
+so the post-state text domain equals the prior text domain ∪ `[p, p+W)` —
+CP3c's union.
 
 *Displacing case* (`p ≤ max`, so trailing content exists). Here a pure K.μ⁺ is
 *not* a faithful decomposition, and the difference is structural. The displacement
@@ -397,7 +418,14 @@ is S8a-valid at depth `m_{s_C}(d)` by S8a and S8-depth on the pre-state
 arrangement. The resulting text run is the
 contiguous block `[min, max+W]`, discharging K.μ⁺'s D-CTG★/D-MIN★ precondition.
 Steps (i)–(ii) together reproduce CP2, CP3a, and CP3b (the left prefix is
-retained by (i) and untouched by (ii)).
+retained by (i) and untouched by (ii)). They produce CP3c as well: the
+post-state text domain equals K.μ⁻'s retained prefix `[min, p)` united with
+K.μ⁺'s added ranges `[p, p+W) ∪ [p+W, max+W]` — exactly CP3c's three-range
+union — because step (i) vacates each pre-shift position in `[p, max]` of its
+old binding and step (ii) reintroduces none of those bindings (each displaced
+image re-enters only at `v + W`, and a vacated tumbler re-enters the domain
+only as a placement or shifted position of the union, under its single new
+binding), while nothing outside the union is added by either step.
 
 To these arrangement steps the composite appends its provenance steps, with a
 determinate inventory we fix once: **one K.ρ step per range-new address not
@@ -706,10 +734,17 @@ pre-state value, so no other address can enter the range) — gives
 > `wp(COPY, "a discoverable from d") ≡ enabled(COPY(Σ, d, p, R)) ∧ (E j : coverage(Σ.L(a).eⱼ) ∩ {c₀, …, c_{W−1}} ≠ ∅)`,
 
 matching the `enabled(op) ∧ ⟨pullback⟩` form of ASN-0098's LP12a. Here
-`enabled(COPY(Σ, d, p, R))` is the operation's applicability predicate —
-`d ∈ dom(Σ.M)`, `p` a valid insertion position for `d`, content residence, and
-`W ≥ 1` — and it guards the pullback's well-formedness: `W` and the `cᵢ` are
-defined only on pre-states where COPY applies.
+`enabled(COPY(Σ, d, p, R))` is the operation's applicability predicate in
+full — `d ∈ dom(Σ.M)`; `p` a valid insertion position for `d`; every member of
+`R` a V-spec admissible at `Σ`, i.e. its source allocated (`d_s ∈ dom(Σ.M)`),
+its span T12-well-formed, and its source subspace non-empty
+(`V_{subspace(s)}(d_s) ≠ ∅`); content residence; and `W ≥ 1`. The spec-set
+conjuncts are partly *state-dependent* — source allocation and subspace
+non-emptiness are facts about `Σ`, not about the syntax of `R`, and without
+`d_s ∈ dom(Σ.M)` the arrangement `Σ.M(d_s)`, hence `resolve(R, Σ)`, is
+undefined — so they belong inside the guard: it is this full predicate that
+makes the pullback well-formed, `W` and the `cᵢ` being defined exactly on the
+pre-states where every member of `R` resolves and COPY applies.
 
 The pullback conjunct is not vacuous: it fails precisely when none of the resolved
 addresses lies under any of `a`'s endsets, and in that case COPY — though it
@@ -787,7 +822,9 @@ with arrangements (text subspace, depth-2 V-positions `[1, k]`)
 
 Take the spec-set `R = ⟨(d_A, σ_A), (d_B, σ_B)⟩` with
 `σ_A = ([1,1], δ(2,2)) = ([1,1], [0,2])` and `σ_B = ([1,1], δ(1,2)) = ([1,1], [0,1])`.
-Both are level-uniform (`#s = #ℓ = 2`) and ordinal-level (`actionPoint(ℓ) = 2`).
+Both widths are ordinal displacements at the V-position depth
+(`actionPoint(ℓ) = #ℓ = 2 = #s`) — the fully aligned case, though admissibility
+requires no such alignment.
 Their denotations are `⟦σ_A⟧ = {t : [1,1] ≤ t < [1,3]}` and
 `⟦σ_B⟧ = {t : [1,1] ≤ t < [1,2]}`, so `act((d_A,σ_A),Σ) = {[1,1],[1,2]}` and
 `act((d_B,σ_B),Σ) = {[1,1]}`. Resolution reads each through its arrangement:
@@ -867,8 +904,8 @@ below the named extent. What, if anything, must COPY guarantee about the
 relationship between a partially-bound span's nominal extent and its smaller placed
 width, given that the design treats the shortfall as silent?
 
-What must the operation preserve about level-uniformity when a spec-set assembles
-source spans of differing element-field depth into one destination region?
+What must the operation guarantee when a spec-set assembles source spans whose
+boundary tumblers carry differing depths into one destination region?
 
 Under what conditions must a link discoverable from the destination after COPY
 become undiscoverable again if the destination later removes the transcluded
