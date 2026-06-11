@@ -241,14 +241,23 @@ hence outside `ρ(R, Σ) ⊆ F` — while `ρ(R, Σ)` is a bare finite set; ASN-
 (S7, CoveringExistence) likewise guarantees only *covering*,
 `coverage(e) ⊇ ρ(R, Σ)` (here a direct consequence of the recovery equation),
 and the containment is strict whenever any address is resolved. The boundary
-`ρ(R_j, Σ) = ∅` is the one case of exact equality, and it is in-model for the
-from and to slots: `wf` does not require a spec to capture any active position
-(nor even `p ≥ 1`), and only the type slot excludes the boundary (the
-non-empty type precondition, ML6 below). There, as noted at the recovery
-equation, `e_j = ∅` is the unique admissible record and
-`coverage(∅) = ∅ = ρ(R_j, Σ)` exactly. Under what conditions an empty from or
-to resolution may legitimately arise — and what it means for the link's
-connection — is deferred to the Open Questions.
+`ρ(R_j, Σ) = ∅` is the one case of exact equality, and for the from and to
+slots it is *admitted*: the operation's enabling condition (`enabled`, ML9
+below) constrains only the type slot's resolution, and `wf` does not require
+a spec to capture any active position (nor even `p ≥ 1`) — a well-formed spec
+all of whose positions have since been deleted, or that names a vacuous
+interval, resolves empty, and the operation is defined on it. There, as noted
+at the recovery equation, `e_j = ∅` is the unique admissible record and
+`coverage(∅) = ∅ = ρ(R_j, Σ)` exactly. The empty slot is benign at each point
+downstream. `K.λ`'s value precondition constrains only slot 3 (`e₃ ≠ ∅`, L3;
+the non-type slots are unconstrained), so `(∅, e₂, e₃)` and `(e₁, ∅, e₃)` are
+legal link values. And the slot is *inert* in ML9's discoverability test:
+with `ρ(R_j, Σ) = ∅` the conjunct `ρ(R_j, Σ) ∩ ran(Σ.M(d')) ≠ ∅` is false at
+every `d'`, so the empty slot never witnesses the existential, and the link
+is discoverable only through its populated endsets. This is the degenerate
+*one-sided* link whose slot convention ML5 records below. Its definedness is
+settled here; what the empty non-type endset *means* for the link's
+connection is deferred to the Open Questions.
 
 The covering surplus — the tumblers lying in a resolved address's subtree but
 strictly below it, `coverage(e_j) ∖ ρ(R_j, Σ)` under the extensional form — is
@@ -422,9 +431,11 @@ without restricting reachability. The design does contemplate a degenerate
 the first endset is the populated one, designating the matter pointed at, and
 the second is left empty. Nelson: "since it has only one side, we use the first
 endset to designate the matter pointed at. To call this 'from' is inane"
-(LM 4/48). What the empty non-type slot means for the link's connection — and
-under what conditions resolution may legitimately recover it empty — we defer
-to the first Open Question.
+(LM 4/48). In this model the one-sided link arises exactly at the
+empty-resolution boundary walked at the recovery equation: `ρ(R_j, Σ) = ∅`
+forces `e_j = ∅`, the operation is defined on the input, the record is
+L3-legal, and the empty slot is inert in discovery. What the empty non-type
+slot *means* for the link's connection we defer to the first Open Question.
 
 The third endset reveals the difference between a *connection* and a *relation*.
 A link with only from and to asserts that two regions are tied together — a bare
@@ -438,8 +449,17 @@ argument*: the supplied type spec must resolve non-empty,
 
 A type spec whose V-positions are all inactive — content deleted, or a document
 opened that never held the type content — resolves to `∅`; on such input the
-operation is *undefined* and must be rejected before `K.λ` is attempted, since an
-empty `e₃` violates L3. With the precondition met, every link
+operation is *undefined* and must be rejected before `K.λ` is attempted, since
+at the boundary `e₃ = ∅` is the unique admissible record (the recovery
+equation's span-shape clause) and an empty `e₃` violates L3. The precondition
+is also *sufficient* for L3's type clause, by a one-step discharge through the
+recovery equation: the stored record satisfies
+`coverage(e₃) ∩ F = ρ(R₃, Σ) ≠ ∅`, so `coverage(e₃) ≠ ∅`; since
+`coverage(∅) = ∅`, it follows that `e₃ ≠ ∅`. Necessity and sufficiency
+together make `ρ(R₃, Σ) ≠ ∅` exactly the operation precondition that L3
+induces on the type argument — and the contrast with the from/to slots is now
+sharp: L3 constrains only slot 3, which is why the empty-resolution boundary
+is admitted there and excluded here. With the precondition met, every link
 MAKELINK creates carries a classifier, and by L8
 (TypeByAddress) the type is matched by the *addresses* its endset covers, not by
 any content stored there. The type argument is `ρ`-resolved exactly as from and to
@@ -456,6 +476,13 @@ semantic gain is the difference between "these are linked" and "these are linked
 > *Implementation note.* Gregory's CREATELINK does *not* enforce the non-empty
 > type precondition: an empty type sporgl set resolves to `NULL`, passes its
 > insertion guards silently, and a link is stored with no type endset at all.
+> The from and to slots take the same silent path — a well-formed V-span whose
+> positions have all been deleted resolves to an empty sporgl set
+> (`vspanset2sporglset` appends nothing and signals success), every insertion
+> loop in `insertpm` and `insertspanf` is skipped, and the call succeeds —
+> concretely confirming the admitted empty-resolution boundary for the
+> non-type slots; the type slot is the one place where implementation
+> (store silently) and specification (reject) part ways.
 
 A *restriction* follows directly. Since all three arguments are `ρ`-resolved from
 content-subspace V-specs (ML1, ML3), `ρ(R_i, Σ) ⊆ dom(Σ.C)` for every endset, so
@@ -564,9 +591,22 @@ across all three endsets, the link is reachable from the from-regions, the
 to-regions, and the type-regions alike. We name this **ML9
 (DiscoverabilityDecoupledFromResidence)**: MAKELINK makes the link discoverable
 from every content region any of its endsets references, independently of where
-the link resides. And by ML1's stable store trace, the link can become
-discoverable from a new document only by that document's arrangement reaching
-the *originally resolved* content.
+the link resides. The consequence extends to every later state `Σ''` with
+`Σ' →* Σ''`, on two premises stated uniformly. The content half is ML1's
+stable store trace: `coverage(eᵢ) ∩ dom(Σ''.C) = ρ(R_i, Σ)` at every `Σ''`
+(tightness with LP19a). The link half is Fact (a)'s subspace exclusion, which
+is state-uniform: every `F`-address in `coverage(eᵢ)` carries
+`subspace_I = s_C` — a property of the fixed endset value alone (L12 fixes
+`eᵢ`; LP-Fin Corollary fixes its `F`-trace) — while every element of
+`dom(Σ''.L)` lies in `F` and carries `subspace_I = s_L` (LP-Sub and L0,
+invariants of every reachable state), so
+`coverage(eᵢ) ∩ dom(Σ''.L) = ∅` at every `Σ''`; independently, any address
+freshly allocated after creation is excluded from `coverage(eᵢ)` by LP19a.
+Since discoverability at `Σ''` consults `coverage(eᵢ) ∩ ran(Σ''.M(d''))`
+(LP12) and that range lies in `dom(Σ''.C) ∪ dom(Σ''.L)` (S3★), the two halves
+together yield the future-state consequence: the link can become discoverable
+from a new document only by that document's arrangement reaching the
+*originally resolved* content.
 
 Note what discharges ML9: *nothing beyond recording the endsets as I-addresses in
 the store.* The discoverability is not a separate indexing action MAKELINK must
@@ -647,19 +687,19 @@ yet is found from `A`, `B`, and `D` — residence and reachability are orthogona
 | Label | Statement | Status |
 |-------|-----------|--------|
 | ML0 | IdentityAllocation: the link's identity is a fresh (`a ∉ dom(Σ.L)`), permanent (never removed, never reused — GlobalUniqueness, T8), value-fixed (L12) link-subspace address allocated by `A_L(d)` under home `d`, with `home(a) = d` | introduced |
-| ML1 | EndsetResolution: under precondition `wf(R,Σ)`, each endset argument `R = ⟨(d₁,σ₁),…,(d_p,σ_p)⟩` is recorded as the I-addresses `ρ(R,Σ) = (∪ j : 1 ≤ j ≤ p : {Σ.M(d_j)(v) : v ∈ dom(Σ.M(d_j)) ∧ v ∈ ⟦σ_j⟧}) ⊆ dom(Σ.C)`, read through the source arrangements at creation; the stored endset has canonical spans rooted in `ρ(R,Σ)` and satisfies the recovery equation `coverage(e_j) ∩ F = ρ(R_j,Σ)`, equivalently `coverage(e_j) = (∪ a : a ∈ ρ(R_j,Σ) : {t : a ≼ t})`; consequently `coverage(e_j) ∩ dom(Σ.C) = ρ(R_j,Σ)` and `e_j` is tight at Σ (ASN-0098), so by LP19a the content trace is stable at all later states | introduced |
+| ML1 | EndsetResolution: under precondition `wf(R,Σ)`, each endset argument `R = ⟨(d₁,σ₁),…,(d_p,σ_p)⟩` is recorded as the I-addresses `ρ(R,Σ) = (∪ j : 1 ≤ j ≤ p : {Σ.M(d_j)(v) : v ∈ dom(Σ.M(d_j)) ∧ v ∈ ⟦σ_j⟧}) ⊆ dom(Σ.C)`, read through the source arrangements at creation; the stored endset has canonical spans rooted in `ρ(R,Σ)` and satisfies the recovery equation `coverage(e_j) ∩ F = ρ(R_j,Σ)`, equivalently `coverage(e_j) = (∪ a : a ∈ ρ(R_j,Σ) : {t : a ≼ t})`; consequently `coverage(e_j) ∩ dom(Σ.C) = ρ(R_j,Σ)` and `e_j` is tight at Σ (ASN-0098), so by LP19a the content trace is stable at all later states; the boundary `ρ(R_j,Σ) = ∅` is admitted for the non-type slots, with `e_j = ∅` the unique admissible record | introduced |
 | ML2 | RepresentationIndependence: the stored endset's coverage is pinned extensionally by ML1's recovery equation — all admissible records are coverage-equal — and the span decomposition is the only residual freedom; coverage-equal decompositions are distinct link values (L6) but no operation of the model distinguishes them: no span-positional accessor (L5), projection depends only on coverage (LP21), type matching compares coverage (L8) | introduced |
 | ML3 | UniformResolution: from, to, and type arguments are resolved by one procedure with no slot privileged at the V→I conversion step | introduced |
 | ML4 | ResidenceApplicationOrthogonality: home document and endset content are independent; the precondition relates `d` to no `ρ(R_j,Σ)`; a link may home anywhere and point anywhere, connecting two documents without residing in either | introduced |
 | ML5 | OrderedEndsets: the recorded triple is ordered, `(F,G,Θ) ≠ (G,F,Θ)` for `F ≠ G` (L6); the order fixes from/to roles semantically without restricting reachability (discovery is endset-symmetric) | introduced |
-| ML6 | TypedRelation: operation precondition `ρ(R₃,Σ) ≠ ∅` (the operation is undefined on a type spec that resolves empty, since K.λ requires `e₃ ≠ ∅`, L3); the third endset, recorded like from/to but matched by address (L8), distinguishes a typed relation from a bare connection; the type resolves to stored content like any other endset (`ρ(R₃,Σ) ⊆ dom(Σ.C)`) | introduced |
+| ML6 | TypedRelation: operation precondition `ρ(R₃,Σ) ≠ ∅`, necessary and sufficient for K.λ's `e₃ ≠ ∅` (L3) via the recovery equation (`coverage(e₃) ∩ F = ρ(R₃,Σ)` with `coverage(∅) = ∅`); L3 constrains only slot 3, so empty from/to resolution is admitted, forcing `e_j = ∅` — L3-legal and inert in ML9's test; the third endset, recorded like from/to but matched by address (L8), distinguishes a typed relation from a bare connection; the type resolves to stored content like any other endset (`ρ(R₃,Σ) ⊆ dom(Σ.C)`) | introduced |
 | ML7 | Permanence: `(A Σ' → Σ'' : a ∈ dom(Σ'.L) : a ∈ dom(Σ''.L) ∧ Σ''.L(a) = Σ'.L(a))` — the made link is not broken by any editing of the content it connects | introduced |
 | ML8 | EndsetSurvivability: editing a source document changes `Σ.M` but never the recorded I-addresses, which by S0 denote their original content permanently — the endset reference survives all editing of the content it names (consequence of ML7 ∧ ML1) | introduced |
-| ML9 | DiscoverabilityDecoupledFromResidence: `wp(makelink, discoverable_from(a, d', ·)) ≡ enabled(makelink) ∧ d' ∈ dom(Σ.M) ∧ (E i : ρ(R_i,Σ) ∩ ran(Σ.M(d')) ≠ ∅)` — beyond enabledness, the home `d` does not appear in the discoverability test | introduced |
+| ML9 | DiscoverabilityDecoupledFromResidence: `wp(makelink, discoverable_from(a, d', ·)) ≡ enabled(makelink) ∧ d' ∈ dom(Σ.M) ∧ (E i : ρ(R_i,Σ) ∩ ran(Σ.M(d')) ≠ ∅)` — beyond enabledness, the home `d` does not appear in the discoverability test; the consequence persists at every later `Σ''` via the stable content trace (LP19a) together with the state-uniform link-store exclusion `coverage(eᵢ) ∩ dom(Σ''.L) = ∅` (LP-Fin Corollary subspace `s_C` versus LP-Sub/L0 subspace `s_L`) | introduced |
 | ML10 | Frame: `Σ'.C = Σ.C`; `Σ'.E = Σ.E ∧ Σ'.R = Σ.R` (inherited from the K.λ/K.μ⁺_L frames — the `R' = R` clause grounds J1'★'s vacuity); `(A d' ≠ d : Σ'.M(d') = Σ.M(d'))`; existing `Σ.L` entries unchanged; the linked-into sources are unmodified by being linked into | introduced |
 
 ## Open Questions
 
-Under what conditions, if any, may the resolution `ρ(R, Σ)` legitimately recover an empty set for the from or to endset, and what does an empty non-type endset mean for the link's connection?
+What does an empty non-type endset — the admitted degenerate one-sided link — assert about the link's connection?
 
 What must the operation guarantee when an endset argument references content in the link subspace — a link whose endset points at another link — for the resolved record to remain well-formed?
