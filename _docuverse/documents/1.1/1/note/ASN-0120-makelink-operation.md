@@ -91,9 +91,12 @@ rests on:
 
 Each `σ_j` thus names an allocated source (`d_j ∈ dom(Σ.M)`), lies in the *content
 subspace* (`subspace(u_j) = s_C`) at some depth `m = #u_j ≥ 2`, and carries an
-*ordinal displacement* `ℓ_j = δ(n_j, m)` — equivalently `actionPoint(ℓ_j) = #u_j`,
-the tight half of T12's `actionPoint(ℓ_j) ≤ #u_j`; with `Pos(ℓ_j)` from `n_j ≥ 1`,
-every `σ_j` is T12-well-formed (ASN-0034). Note what `wf` does *not* require: that
+*ordinal displacement* `ℓ_j = δ(n_j, m)` — equivalently
+`#ℓ_j = #u_j ∧ actionPoint(ℓ_j) = #u_j` (equal length places the action point at
+the last component with zeros below it, recovering the δ-form; the action-point
+conjunct alone would admit longer displacements that are not ordinal). The
+action-point conjunct is the tight half of T12's `actionPoint(ℓ_j) ≤ #u_j`, and
+with `Pos(ℓ_j)` from `n_j ≥ 1`, every `σ_j` is T12-well-formed (ASN-0034). Note what `wf` does *not* require: that
 `#u_j` equal the common depth S8-depth fixes on `V_{s_C}(d_j)` (the analogue of
 ASN-0058's ContentReference condition (iii), which is moreover undefined when
 `V_{s_C}(d_j) = ∅`). A spec whose depth differs from the arrangement's is
@@ -394,15 +397,12 @@ consults the link-subspace depth — but the operation must name one, and the
 minimal choice adds no unforced structure. The home document is thereby the
 link's residence and the locus of its ownership.
 
-Now the orthogonality. The home `d` was supplied independently of the endset
-arguments, and nothing in the operation couples them. MAKELINK admits a home `d`
-together with endsets whose coverage is *disjoint* from everything under `d`'s
-prefix — a link living in document C that connects regions of A and B, touching
-nothing in C. Formally, the precondition imposes no constraint relating `d` to
-`ρ(R_j, Σ)`: the address `a` extends `d`'s prefix, while the resolved sets range
-over finite subsets of `dom(Σ.C)` determined solely by the source arrangements —
-nothing relates any `ρ(R_j, Σ)` to `d`, and in particular all three may be
-disjoint from everything under `d`'s prefix. We name
+Now the orthogonality. The precondition imposes no constraint relating `d` to
+any `ρ(R_j, Σ)`: the address `a` extends `d`'s prefix, while the resolved sets
+are finite subsets of `dom(Σ.C)` determined solely by the source arrangements.
+The substantive consequence: all three resolved sets may be disjoint from
+everything under `d`'s prefix — a link living in document C that connects
+regions of A and B, touching nothing in C. We name
 this **ML4 (ResidenceApplicationOrthogonality)**: a link's home document and the
 content its endsets reference are independent; connecting two documents never
 forces the link to live inside either, and a link need not point anywhere in its
@@ -501,9 +501,11 @@ We collect the guarantees, each now a consequence of how the operation records.
 **Permanence (ML7).** The link's address persists and its value is fixed: for
 every later transition `Σ' → Σ''`, `a ∈ dom(Σ''.L)` and `Σ''.L(a) = Σ'.L(a)`
 (L12, ASN-0043). The link, once made, is not unmade by any editing of the content
-it connects — because editing touches `Σ.M`, and the link lives in `Σ.L`. (Whether
-a link's *owner* may delete it is a separate operation outside this ASN; MAKELINK
-guarantees that no one *else's* edit can break it.)
+it connects — because editing touches `Σ.M`, and the link lives in `Σ.L`. The
+guarantee is unconditional: the transition vocabulary contains no operation that
+removes a link address or rewrites its value, so a link-retirement facility, were
+one wanted, would be a model extension outside the vocabulary this claim
+quantifies over.
 
 **Endset survivability (ML8).** ML7 already fixes the recorded value `Σ'.L(a)` for
 all time, and ML1 fixes its content-coverage as `ρ(R_j, Σ)`. What ML8 adds is the
