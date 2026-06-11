@@ -117,8 +117,11 @@ is the enfilade requirement that "all changes, once made, left the file
 remaining in canonical order" (1/34): the Vstream is dense, with no holes.
 
 Let `S = subspace(p) = s_C`, `p = q_J` the first deleted position, `w` the
-deletion width with `w₁ = 0`, `#w = #p = 2`, `Pos(w)`, and write `c = ord(w)`
-for the count of deleted slots, so the deleted block is `{q_J, …, q_{J+c−1}}`
+deletion width with `w₁ = 0`, `#w = #p = 2`, `Pos(w)`, and write `c = w₂` for
+the count of deleted slots — so `w = [0, c]`, whose ordinal projection is
+`w_ord = [c]` (OrdinalDisplacementProjection, ASN-0082), identified with the
+natural number `c` by the depth-2 singleton convention (ASN-0084). The deleted
+block is then `{q_J, …, q_{J+c−1}}`
 and `r = p ⊕ w = q_{J+c}` is the first surviving position past the gap. By the
 foundation SubspaceConventionAxiom (ASN-0047/ASN-0093) the text subspace
 identifier is `s_C = 1`, so `V_S(d) = V_1(d)` and ASN-0082's contraction —
@@ -184,7 +187,8 @@ transitions drawn from valid composites, so by that hypothesis the per-state
 invariant package of ExtendedReachableStateInvariants (ASN-0047) holds at `Σ`;
 `d ∈ dom(M)`; `S = subspace(p) = s_C`; `m = #p = 2`, equal to
 the common depth S8-depth fixes on `V_S(d)`; `p ∈ V_S(d)` is S8a-well-formed;
-`w₁ = 0`, `#w = #p`, `Pos(w)`, with `c = ord(w) ≥ 1`; and *containment* — the
+`w₁ = 0`, `#w = #p`, `Pos(w)` — so `w = [0, c]` with `c = w₂ ≥ 1`, positivity
+falling on the sole non-zero component; and *containment* — the
 deleted span lies within the arranged run: `p = q_J` and `r = p ⊕ w = q_{J+c}`
 with `1 ≤ J` and `J + c ≤ N + 1` (the case `J + c = N + 1` deletes a suffix,
 leaving `R = ∅`). This is exactly the foundation contraction's precondition
