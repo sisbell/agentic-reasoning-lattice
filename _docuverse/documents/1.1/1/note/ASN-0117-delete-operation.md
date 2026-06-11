@@ -265,10 +265,8 @@ provenance, so its antecedent `Σ'.R ∖ Σ.R` is empty. Both component steps fi
 link store, the entity set, and the provenance relation (`Σ'.L = Σ.L`,
 `Σ'.E = Σ.E`, `Σ'.R = Σ.R`: K.μ⁻'s per-subspace-scope frame and the amended
 K.μ⁺'s frame each list all three, ASN-0047), so the composite does too; the
-`R = ∅` single step has the same three clauses from J2's discharge above. This
-is the *frame
-discharge* **(DEL-CFRAME)** that the frame clauses DEL-LIMM, DEL-FENT, and
-DEL-FPROV below cite. With clause 2 thus discharged, DELETE is a valid composite
+`R = ∅` single step has the same three clauses from J2's discharge above. We
+name this frame discharge **DEL-CFRAME**. With clause 2 thus discharged, DELETE is a valid composite
 appended to the valid trace whose final boundary is the pre-state `Σ` (the
 precondition's boundary hypothesis), so the extended trace is itself valid and
 the post-state `Σ'` is a composite boundary of it; the three composite-boundary
@@ -487,8 +485,13 @@ DEL-FSUB holds the `s_L` positions and their images fixed. DEL-REMOVE drops the
 deleted correspondences, contributing nothing new. Hence
 `ran(M'(d)) ⊆ ran(M(d))`. If the
 deletion removes the *last* V-position of `d` mapping into a link's coverage,
-that link becomes *undiscoverable from `d`*: an orphaned reference in the sense
-of **LP17 (GhostProjection)** (ASN-0098). But three things remain true, and they
+that link becomes *undiscoverable from `d`*: every slot's coverage now misses
+`d`'s range — `coverage(Σ'.L(a).eᵢ) ∩ ran(M'(d)) = ∅` for all `i` — so
+`discoverable_from(a, d, Σ')` fails by **LP12 (DiscoverabilityCharacterisation)**
+(ASN-0098) read at `Σ'`. This undiscoverability is *per-document*; only when `d`
+was the link's sole arranging document does it amount to the global orphanhood of
+**LP17 (GhostProjection)**, whose hypothesis quantifies over every document's
+arrangement. But three things remain true, and they
 are exactly Nelson's design intent:
 
 - *The link persists.* `a ∈ dom(Σ'.L)` with `Σ'.L(a) = Σ.L(a)` (L12). The link
@@ -505,9 +508,13 @@ are exactly Nelson's design intent:
   documents that still arrange it* (Q5, Q7): yes, unconditionally.
 - *The link is re-discoverable from `d` if the content is re-arranged.* Because
   the I-addresses never left `C`, any later operation that places one of them
-  back into `d`'s arrangement makes the link discoverable from `d` again —
-  *resurrection* in the sense of **LP18** (ASN-0098). Deletion is not a
-  one-way door at the content layer.
+  back into `d`'s arrangement makes the link discoverable from `d` again. The
+  chain is the foundation's own: across any later `Σ' →* Σ''` the link persists
+  in the store (Store Monotonicity★, ASN-0098) with coverage unchanged (LP3★),
+  so an arrangement entry `Σ''.M(d)(v) = a*` with `a* ∈ coverage(Σ''.L(a).eᵢ)`
+  makes LP12's criterion true at `Σ''`. This is the proof chain of **LP18**
+  (Resurrection, ASN-0098) applied per-document — no step of it needs LP18's
+  global orphan premise. Deletion is not a one-way door at the content layer.
 
 **P4 (LinkSurvival).** *For every link `a ∈ dom(Σ.L)` and slot `i`, the stored
 endset has unchanged coverage: `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)`
@@ -515,16 +522,17 @@ endset has unchanged coverage: `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)
 changes, and the link store is untouched
 (`Σ'.L = Σ.L`). A link discoverable from `d` before the deletion remains
 discoverable from `d` iff some surviving V-position of `d` still maps into its
-coverage; otherwise it is orphaned from `d` (LP17) yet persists (L12), remains
-discoverable from every other document that still arranges its coverage (LP12),
-and is re-discoverable from `d` should the content be re-arranged (LP18).*
+coverage; otherwise it is undiscoverable from `d` (LP12 read at `Σ'`) yet
+persists (L12), remains discoverable from every other document that still
+arranges its coverage (LP12), and is re-discoverable from `d` should the content
+be re-arranged (Store Monotonicity★ + LP3★ + LP12 at the later state).*
 
 ## A weakest precondition: when is discoverability preserved?
 
 P4 leaves one question pointed but unanswered: under what condition does DELETE
 *preserve*, rather than possibly shrink, the set of links discoverable from `d`?
 The wp below is conditional in the *shrinking* direction, and the place it fails
-is exactly the orphaning P4 records.
+is exactly the loss of discoverability from `d` that P4 records.
 
 Write `D(d, Σ) = {a ∈ dom(Σ.L) : discoverable_from(a, d, Σ)}`. We seek
 
@@ -533,8 +541,7 @@ Write `D(d, Σ) = {a ∈ dom(Σ.L) : discoverable_from(a, d, Σ)}`. We seek
 P4 already established the full-document range decomposition, accounting for
 *both* subspaces:
 `ran(M'(d)) = M(d)(L) ∪ M(d)(R) ∪ ran(M(d)|_{V_{s_L}(d)}) ⊆ ran(M(d))`
-(the two text summands from DEL-LEFT/DEL-SHIFT, the link summand from DEL-FSUB,
-the exhaustiveness of the three from S3★-aux, as P4's derivation records).
+(as P4's derivation records).
 We refine the subset to the *exact* loss:
 
 > `ran(M'(d)) = ran(M(d)) \ A_del^{excl}`,
@@ -771,8 +778,8 @@ nothing and the transclusion would shatter; non-destruction (P0) is precisely
 what keeps the sharer whole. And any link whose coverage contains `a_3` or `a_4`
 stays discoverable from `d'` regardless of `d`'s deletion, since
 `coverage(eᵢ) ∩ ran(M'(d')) = coverage(eᵢ) ∩ ran(M(d')) ≠ ∅` is untouched
-(LP12 applied to `d'`, with `ran(M'(d')) = ran(M(d'))` by P5) — the orphaning the
-wp computes is strictly *local to `d`*. ✓ P5, P4.
+(LP12 applied to `d'`, with `ran(M'(d')) = ran(M(d'))` by P5) — the
+discoverability loss the wp computes is strictly *local to `d`*. ✓ P5, P4.
 
 ## What we have established
 
@@ -798,7 +805,7 @@ only their placement in this one document's present view is withdrawn.
 | DELETE | Operation: remove the span `(p, w)` of width `c` from document `d`'s arrangement; shift the suffix left to close the gap; touch the content store not at all | introduced |
 | P0 (NonDestruction) | `dom(C') = dom(C)` with all values preserved; every deleted I-address `A_del` survives in `C` — the permanent content store is untouched | introduced |
 | P2 (GapClosure) | Survivors close into the dense run `{q_1, …, q_{N−c}}`; prefix fixed, suffix shifts left by `c` carrying I-addresses unchanged, gap closes exactly, order and density preserved | introduced |
-| P4 (LinkSurvival) | Every endset's coverage is unchanged and the link store untouched, `Σ'.L = Σ.L` (coverage invariance by LP3★, ASN-0098); a link orphaned from `d` (LP17) still persists, stays discoverable from other documents arranging it (LP12), and is re-discoverable on re-arrangement (LP18) | introduced |
+| P4 (LinkSurvival) | Every endset's coverage is unchanged and the link store untouched, `Σ'.L = Σ.L` (coverage invariance by LP3★, ASN-0098); a link undiscoverable from `d` (LP12 at `Σ'`) still persists (L12), stays discoverable from other documents arranging it (LP12), and is re-discoverable on re-arrangement (Store Monotonicity★ + LP3★ + LP12) | introduced |
 | P5 (DocumentIsolation) | Every other document's arrangement and resolved content — including transcluders of the deleted I-addresses — are invariant under DELETE on `d` | introduced |
 | DEL-REMOVE | The arrangement loses exactly `c` V→I correspondences (`|{v ∈ dom(M'(d)) : subspace(v) = S}| = N − c`) and the top `c` labels `{q_{N−c+1}, …, q_N}` leave `dom(M'(d))`; the deleted I-addresses persist in `C` | introduced |
 | DEL-SHIFT | Suffix positions `v ∈ R` move to `σ(v) = q_{k−c}`, carrying their I-address (ASN-0082 D-SHIFT) | introduced |
