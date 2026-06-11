@@ -265,10 +265,7 @@ re-placed from the suffix `R` by the K.μ⁺ step (D-SHIFT), and in both cases i
 equals `M(d)(v)` for some content-subspace position `v ∈ dom(M(d))` of the
 initial state — so J1★'s "new to the range" trigger, the conjunct
 `¬(E v ∈ dom(M(d)) : subspace(v) = s_C ∧ M(d)(v) = a)`, is false for every `a`
-in the post-state range. (J1★ asks only that the post-state range introduce
-nothing new; what *leaves* the range — exactly `A_del^{excl}` of the wp section
-below, under within-document sharing a possibly proper subset of `A_del` —
-plays no part in the discharge.) **J1'★** (every new
+in the post-state range. **J1'★** (every new
 provenance entry requires range-new content) holds because DELETE adds no
 provenance, so its antecedent `Σ'.R ∖ Σ.R` is empty. Both component steps fix the
 link store, the entity set, and the provenance relation (`Σ'.L = Σ.L`,
@@ -437,8 +434,11 @@ reads are immutable. Therefore `d'` resolves every one of its V-positions to the
 same content, in the same order, before and after: "the owner of a document may
 delete bytes from the owner's current version, but those bytes remain in all
 other documents where they have been included" (4/11, Q3, Q5, Q10). This is the
-F0 cross-document frame the evidence confirms structurally — DELETE resolves
-exactly one document's arrangement and reaches no other (Q17). Sharing is by
+cross-document frame the evidence confirms structurally — DELETE resolves
+exactly one document's arrangement and reaches no other (Q17); the evidence
+record's own designation for this frame axiom is *F0* (a name of the
+consultation material, not a label of this specification or its foundations),
+and its statement here is DEL-FDOC. Sharing is by
 reference to immutable identity, so a deletion in one sharer is invisible to the
 rest.
 
@@ -729,8 +729,11 @@ deleted tail (or, for delete-everything, no text at all), yet every former
 I-address remains permanent and reconstructible in `C` (Q20). ✓ DEL-DOM,
 P2 (with `N' = N − c`, including `N' = 0`), S3★, DEL-CFRAME, P4★, P4a, P7a.
 
-**Within-document sharing.** Suppose additionally `M(d)(q_2) = a_5` — `d`
-arranges the content `a_5` at *two* positions. Delete `p = q_5`, `c = 1`. Then
+**Within-document sharing.** Modify the scenario so that `a_2 = a_5` — the
+images of `q_2` and `q_5` coincide (the `a_k` were never declared distinct, and
+S2 gives each position exactly one image, so coinciding images are the only way
+`d` can arrange the content `a_5` at *two* positions). Delete `p = q_5`,
+`c = 1`. Then
 `A_del = {a_5}` but `A_del^{excl} = ∅`, because `a_5` is still mapped by the
 surviving `q_2`. A link whose coverage contains `a_5` remains discoverable from
 `d` *despite* the deletion — the wp's preservation condition holds because
