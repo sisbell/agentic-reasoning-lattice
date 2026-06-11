@@ -151,11 +151,20 @@ depths:
 - *`#origin_d > #reach_d`* (content deeper than the maximal link position). Unequal endpoint
   depths force the cross-subspace case — single-subspace endpoints are equidepth by S8-depth —
   so `k = divergence(origin_d, reach_d) = 1` (divergence at the subspace component, `s_C` vs
-  `s_L`). By D0 the round-trip *fails* — `r⋆ ≠ reach_d` — so we compute `r⋆` directly. With
-  `k = 1`, TumblerAdd gives `r⋆` agreeing with `reach_d` (zero-padded to length `#origin_d`) on every position
-  `1 ≤ i ≤ #reach_d` and carrying trailing zeros beyond, so `reach_d` is a proper prefix of
-  `r⋆` and `reach_d < r⋆` (T1 case (ii)). Hence `max O(d) < reach_d < r⋆`, and again every
-  `v ∈ O(d)` lies in `⟦σ_d⟧`.
+  `s_L`). By D0 the round-trip *fails* — `r⋆ ≠ reach_d` — so we compute `r⋆` componentwise,
+  first the width by TumblerSub, then the sum by TumblerAdd. Write `p = #origin_d`,
+  `q = #reach_d`, so `p > q`. *The width, by TumblerSub at `zpd(reach_d, origin_d) = 1`:*
+  `extent_d₁ = reach_d₁ − origin_d₁` (the action-point component); `extent_dᵢ = reach_dᵢ`
+  (zero-padded) for `i > 1` — that is, `extent_dᵢ = reach_dᵢ` for `2 ≤ i ≤ q` and
+  `extent_dᵢ = 0` for `q < i ≤ p`; and `#extent_d = max(p, q) = p` (TA2), with
+  `actionPoint(extent_d) = 1` (TumblerSub's conditional postcondition). *The sum, by
+  TumblerAdd at `k = 1`:* at the action point the components cancel in ℕ —
+  `r⋆₁ = origin_d₁ + extent_d₁ = origin_d₁ + (reach_d₁ − origin_d₁) = reach_d₁` — and the
+  tail copies the width, `r⋆ᵢ = extent_dᵢ` for `i > 1`, so `r⋆ᵢ = reach_dᵢ` for `2 ≤ i ≤ q`
+  and `r⋆ᵢ = 0` for `q < i ≤ p`, with `#r⋆ = #extent_d = p` (result-length identity). So
+  `r⋆` agrees with `reach_d` on every position `1 ≤ i ≤ q`, and `q < p` strictly: `reach_d`
+  is a proper prefix of `r⋆`, and `reach_d < r⋆` (T1 case (ii)). Hence
+  `max O(d) < reach_d < r⋆`, and again every `v ∈ O(d)` lies in `⟦σ_d⟧`.
 
 In both cases `r⋆ ≥ reach_d > max O(d)`, so coverage holds; whether `r⋆` equals or strictly
 exceeds `reach_d` is recorded by **V-ReachTight** (reach tightness):
@@ -252,7 +261,7 @@ one. The golden case confirms the content instance: eleven characters of text re
 start `[s_C,1,…]` (since `s_C < s_L`), but `max O(d)` is a link position `[s_L, …]`. The
 reach crosses from subspace `s_C` into subspace `s_L`, so `⟦σ_d⟧` contains *every* position
 between them — including the unoccupied void separating the two subspaces, where nothing is
-arranged. We record **V6** (cross-subspace bounding box — the genuine negation of V5): when
+arranged. We record **V6** (cross-subspace bounding box — the negation of V5): when
 occupied positions span more than one subspace, `⟦σ_d⟧` contains an *occupied-depth* position
 outside `O(d)` — the span is a bounding box, not an exact cover. The witness is
 `w⋆ = [s_C,1,…,1,n_C+1]` (at the occupied content depth `m_C`, where `n_C = |V_{s_C}(d)|`): it
@@ -276,7 +285,7 @@ from the text start straight across the gap into link space (consultation Q11, Q
 
 ---
 
-## The origin is permanent; the extent tracks quantity, not order
+## The origin is permanent; the extent is a function of the extremes
 
 The origin remains fixed for the life of the document: the home position is permanent, "any
 address … may be specified by a permanent tumbler address" (4/19), while only the extent and
@@ -295,16 +304,30 @@ relocates I-addresses and shuffles V-positions, but it never moves the start of 
 holds steady at the canonical first position. The origin is the stable anchor against which
 every other V-address is read.
 
-The extent behaves oppositely. We distinguish *arrangement* (order) from *composition*
-(quantity): changing how content is arranged leaves the extent unchanged, while changing how
-much content there is changes it — a distinction we draw from the structure of the query
-itself, not from a sourced commitment. We record **V9** (extent tracks composition, not
-arrangement). A pure rearrangement permutes `M(d)` while preserving `O(d) = dom(M(d))`; only
-the values `M(d)(v)` are permuted. Since `origin_d = min O(d)` and
-`extent_d = shift(max O(d), 1) ⊖ origin_d` depend on `O(d)` alone — never on the values
-`M(d)(v)` — the reported span is *identical* before and after: reorder the document and its
-origin and extent do not move. Rearrangement acts purely on the Vstream's arrangement layer,
-and an operation confined to that layer leaves the measured extent fixed.
+The extent is not the origin's opposite in any blanket sense; we must say exactly what it
+depends on. Both endpoints consult only the *extremes* of the occupied set:
+`origin_d = min O(d)` and `extent_d = shift(max O(d), 1) ⊖ origin_d` are functions of the
+pair `(min O(d), max O(d))` and of nothing else — never the values `M(d)(v)`, never the
+interior of `O(d)`. We record **V9** (the span is a function of the extremes). Two
+consequences follow, one unconditional, one regime-dependent. *Rearrangement invariance.* A
+pure rearrangement permutes `M(d)` while preserving `O(d) = dom(M(d))`; only the values
+`M(d)(v)` are permuted, the extremes stand, and the reported span is *identical* before and
+after: reorder the document and its origin and extent do not move. *Composition
+sensitivity.* A composition change — adding or removing occupied positions — moves the span
+*iff* it moves an extreme, and it need not. In the single-subspace regime every composition
+change does: by D-SEQ★ the occupied set is the dense run `{[s,1,…,1,k] : 1 ≤ k ≤ n_s}`, so
+any change to `n_s` moves `max O(d) = [s,1,…,1,n_s]` and with it the final component of
+`extent_d`, which equals `n_s` (TumblerSub at `zpd = m_s` gives `extent_d = [0,…,0,n_s]`;
+V12 reads the count from this identity). In the cross-subspace regime the extremes are the
+content minimum and the link maximum, and a content-side composition change that keeps
+content present (`n'_{s_C} ≥ 1`) touches neither: in the worked report below, a `K.μ⁻` with
+retention counts `n'_{s_C} = 2`, `n'_{s_L} = 1` removes the content position `[1,3]` — the
+composition changes — yet `min O(d) = [1,1]` and `max O(d) = [2,1]` stand, so `origin_d`,
+`reach_d`, and `extent_d` are all identical before and after; likewise a content extension
+adds `[s_C,1,…,1,n_C+1]`, still below every link position by T1, and the span again does
+not move. The golden cases display the same insensitivity: ten characters plus one link
+(consultation Q11, Q19) and the worked report's three characters plus one link both report
+extent `[1,2]`.
 
 V8's boundary is reached at exactly two points within the editing vocabulary
 `{K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~}` (ASN-0047), symmetric across the content/link divide; everywhere
@@ -365,9 +388,15 @@ time-varying facts about the arrangement that the permanent identity `d` cannot,
 is fixed for the life of the document (V8) while the result is recomputed against the present
 state. Concretely, the returned span-set decides emptiness by the presence or absence of a
 component span (`RETRIEVEDOCVSPAN(d) = ⟨⟩ ⟺ O(d) = ∅`, V11) and, when non-empty in the
-single-subspace regime, its span `σ_d` fixes the occupied count
-exactly: `|O(d)| = n_s` is the final component of `max O(d)`, recoverable from `reach_d`
-(V5, D-SEQ★). The identity `d` — invariant under every edit — reports none of these.
+single-subspace regime, its span `σ_d` fixes the occupied count exactly, and the count is
+read off the returned value itself. The direct route is through the width: the endpoints
+share depth `m_s` and agree on positions `1..m_s−1` (the value `s` followed by 1's), so
+TumblerSub at `zpd = m_s` gives `extent_d = [0,…,0,n_s]`, and the final component of the
+returned width *is* `n_s = |O(d)|` (D-SEQ★; the worked report's `0.3` is this identity at
+`n_s = 3`). Equivalently, because single-subspace endpoints are equidepth, V-ReachTight
+licenses computing `reach_d = origin_d ⊕ extent_d = reach(σ_d)` from the returned pair, and
+`n_s + 1` is its final component. The identity `d` — invariant under every edit — reports
+none of these.
 
 ---
 
@@ -495,9 +524,7 @@ vacuously by definition; if `O(d)` lies in a single subspace `s`, V5 gives `Exac
 dense run `{[s,1,…,1,k]}` is covered with no occupied-depth position left over (V5's
 prefix-pinning and boundary-discreteness argument). Conversely, if `O(d)` occupies
 *both* subspaces, V6 supplies an occupied-depth witness `w⋆ ∈ ⟦σ_d⟧ \ O(d)` at the occupied
-content depth `m_C`, so `¬Exact` — the depth-scoped `Exact` is refuted by the witness, which
-the corollary `O(d) ⊊ ⟦σ_d⟧` alone could not provide. The two directions exhaust
-the cases by S3★-aux. So the single-subspace condition is both necessary and sufficient, hence
+content depth `m_C`, so `¬Exact`. The two directions exhaust the cases by S3★-aux. So the single-subspace condition is both necessary and sufficient, hence
 the *weakest* precondition. The companion reach property factors the same way along the
 orthogonal endpoint axis. The contingent tightness property — analogous to `Exact` —
 
@@ -531,11 +558,11 @@ endpoint depths), without inspecting the returned span.
 | V-LevelUniform | `σ_d` is level-uniform (S6: `#origin_d = #extent_d`) `⟺ #origin_d ≥ #reach_d`, since `#extent_d = max(#origin_d, #reach_d)` (TA2); always level-uniform in the single-subspace regime | introduced |
 | V4 | `extent_d` is computed from `O(d) = dom(M(d))` alone; content in `dom(C)` but absent from the arrangement (deleted, or native elsewhere) contributes nothing (Vstream-bounded, not Istream) | introduced |
 | V5 | When all occupied positions share one subspace, `⟦σ_d⟧` contains no occupied-depth position outside `O(d)` (exact cover of a contiguous run) | introduced |
-| V6 | When occupied positions span more than one subspace, `⟦σ_d⟧` contains an occupied-depth position outside `O(d)` (witness `w⋆ = [s_C,1,…,1,n_C+1]` at depth `m_C`) — the genuine negation of V5 (bounding box, not exact cover); corollary: `O(d) ⊊ ⟦σ_d⟧`; forced because a span denotes one convex region (ASN-0053 S0) and cannot trace a separated series | introduced |
+| V6 | When occupied positions span more than one subspace, `⟦σ_d⟧` contains an occupied-depth position outside `O(d)` (witness `w⋆ = [s_C,1,…,1,n_C+1]` at depth `m_C`) — the negation of V5 (bounding box, not exact cover); corollary: `O(d) ⊊ ⟦σ_d⟧`; forced because a span denotes one convex region (ASN-0053 S0) and cannot trace a separated series | introduced |
 | V8 | While the content subspace is non-empty, `origin_d = [s_C,1,…,1]`, invariant under all editing that leaves content present (origin permanence) | introduced |
-| V9 | A pure rearrangement preserves `O(d) = dom(M(d))`; since `origin_d` and `extent_d` depend on `O(d)` alone (not on the values `M(d)(v)`), the reported span is identical before and after (extent tracks composition, not arrangement) | introduced |
+| V9 | `origin_d` and `extent_d` are functions of the extremes `(min O(d), max O(d))` alone — never of the values `M(d)(v)` or the interior of `O(d)`; a pure rearrangement (preserving `O(d)`) returns the identical span, and a composition change moves the span iff it moves an extreme — always in the single-subspace regime (final component of `extent_d` equals `n_s`), but not in general in the cross-subspace regime, where content-side changes keeping `n'_{s_C} ≥ 1` leave the span fixed (the span is a function of the extremes) | introduced |
 | V11 | The operation is total over allocated documents; `O(d) = ∅` yields the distinguished empty span-set `⟨⟩` (V0), with `origin_d` undefined and no extent — the implementation's zeros are a sentinel, not a legal address (TA6) | introduced |
-| V12 | The result of `RETRIEVEDOCVSPAN(d)` determines time-varying arrangement facts that the permanent identity `d` cannot: the returned span-set decides emptiness (`RETRIEVEDOCVSPAN(d) = ⟨⟩ ⟺ O(d) = ∅`, V11) and, when non-empty in the single-subspace regime, its span `σ_d` fixes the exact occupied count `|O(d)| = n_s` (final component of `max O(d)`, recoverable from `reach_d`); `d` is invariant under every edit and reports none of these (information gain) | introduced |
+| V12 | The result of `RETRIEVEDOCVSPAN(d)` determines time-varying arrangement facts that the permanent identity `d` cannot: the returned span-set decides emptiness (`RETRIEVEDOCVSPAN(d) = ⟨⟩ ⟺ O(d) = ∅`, V11) and, when non-empty in the single-subspace regime, its span `σ_d` fixes the exact occupied count `|O(d)| = n_s` — the final component of the returned width `extent_d = [0,…,0,n_s]` (TumblerSub at `zpd = m_s`), equivalently the final component of `reach(σ_d) = reach_d` less one (V-ReachTight); `d` is invariant under every edit and reports none of these (information gain) | introduced |
 | V13 | `σ_d` depends only on `O(d)`; two documents sharing content report independent spans; transcluded positions count toward the borrowing document's extent (independence) | introduced |
 | V14 | Every *occupied* position in `O(d)` maps through `M(d)` to a permanent, immutable image, by subspace (S3★): content positions to `dom(C)` (S0, P0), link positions to `dom(L)` (L12); covered-but-unoccupied positions in the cross-subspace case (V6) carry no `M(d)` image; sharing preserves what the span denotes (permanence) | introduced |
 | V16 | `σ_d` is a pure function of `O(d)`; equal arrangements return identical spans, independent of how the arrangement was built; the returned span is a snapshot, not a live view (determinism) | introduced |
