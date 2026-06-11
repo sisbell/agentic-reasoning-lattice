@@ -559,7 +559,11 @@ V-ReachTight `reach(σ_d) = reach_d` — V3's same-depth tightness of
 same-depth upper bound of `max O(d) = [2,1]`).
 
 **The mirror variant (one line).** When `m_C = 2 < m_L = 3` — the one regime where
-V-ReachTight and V-LevelUniform decouple: `M(d) = { [1,1] ↦ a, [2,1,1] ↦ ℓ }` gives
+V-ReachTight holds while V-LevelUniform fails (the two properties part ways in both
+unequal-depth regimes — the depth-divergent variant above realizes the opposite split — and
+this is the remaining realizable quadrant, `(¬Tight, ¬LU)` being impossible since
+`#origin_d > #reach_d` and `#origin_d < #reach_d` exclude each other):
+`M(d) = { [1,1] ↦ a, [2,1,1] ↦ ℓ }` gives
 `origin_d = [1,1]`, `max O(d) = [2,1,1]`, `reach_d = [2,1,2]`, and
 `extent_d = [2,1,2] ⊖ [1,1] = [1,1,2]` of depth 3 (TumblerSub at `zpd = 1`); the round trip
 *closes* — `r⋆ = [1,1] ⊕ [1,1,2] = [2,1,2] = reach_d` by D1 at `#origin_d = 2 ≤ 3 = #reach_d`,
