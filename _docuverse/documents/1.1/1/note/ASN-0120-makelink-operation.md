@@ -159,11 +159,6 @@ every reachable state):
 
 > `coverage(e_j) ∩ F = ρ(R_j, Σ)`  (the *recovery equation*).
 
-At the boundary `ρ(R_j, Σ) = ∅` the span-shape clause admits no span at all —
-every span requires a root `s ∈ ρ(R_j, Σ)` — so `e_j = ∅` is the unique
-admissible record, and the equation holds with both sides empty; we return to
-this boundary below.
-
 We must say why the trace is taken on `F` rather than on the current store. A
 store-trace condition `coverage(e_j) ∩ dom(Σ.C) = ρ(R_j, Σ)` would leave coverage
 unpinned at the *unallocated frontier* of a content chain: with
@@ -241,23 +236,24 @@ hence outside `ρ(R, Σ) ⊆ F` — while `ρ(R, Σ)` is a bare finite set; ASN-
 (S7, CoveringExistence) likewise guarantees only *covering*,
 `coverage(e) ⊇ ρ(R, Σ)` (here a direct consequence of the recovery equation),
 and the containment is strict whenever any address is resolved. The boundary
-`ρ(R_j, Σ) = ∅` is the one case of exact equality, and for the from and to
-slots it is *admitted*: the operation's enabling condition (`enabled`, ML9
-below) constrains only the type slot's resolution, and `wf` does not require
-a spec to capture any active position (nor even `p ≥ 1`) — a well-formed spec
-all of whose positions have since been deleted, or that names a vacuous
-interval, resolves empty, and the operation is defined on it. There, as noted
-at the recovery equation, `e_j = ∅` is the unique admissible record and
-`coverage(∅) = ∅ = ρ(R_j, Σ)` exactly. The empty slot is benign at each point
-downstream. `K.λ`'s value precondition constrains only slot 3 (`e₃ ≠ ∅`, L3;
-the non-type slots are unconstrained), so `(∅, e₂, e₃)` and `(e₁, ∅, e₃)` are
-legal link values. And the slot is *inert* in ML9's discoverability test:
-with `ρ(R_j, Σ) = ∅` the conjunct `ρ(R_j, Σ) ∩ ran(Σ.M(d')) ≠ ∅` is false at
+`ρ(R_j, Σ) = ∅` is the one case of exact equality; we settle it here. The
+span-shape clause admits no span at all — every span requires a root
+`s ∈ ρ(R_j, Σ)` — so `e_j = ∅` is the unique admissible record, and the
+recovery equation holds with both sides empty, `coverage(∅) = ∅ = ρ(R_j, Σ)`.
+For the from and to slots the boundary is *admitted*: the operation's
+enabling condition (`enabled`, ML9 below) constrains only the type slot's
+resolution, and `wf` does not require a spec to capture any active position
+(nor even `p ≥ 1`) — a well-formed spec all of whose positions have since
+been deleted, or that names a vacuous interval, resolves empty, and the
+operation is defined on it. The empty record is legal: `K.λ`'s value
+precondition constrains only slot 3 (`e₃ ≠ ∅`, L3; the non-type slots are
+unconstrained), so `(∅, e₂, e₃)` and `(e₁, ∅, e₃)` are both legal link
+values. And the empty slot is *inert* in ML9's discoverability test: with
+`ρ(R_j, Σ) = ∅` the conjunct `ρ(R_j, Σ) ∩ ran(Σ.M(d')) ≠ ∅` is false at
 every `d'`, so the empty slot never witnesses the existential, and the link
-is discoverable only through its populated endsets. This is the degenerate
-*one-sided* link whose slot convention ML5 records below. Its definedness is
-settled here; what the empty non-type endset *means* for the link's
-connection is deferred to the Open Questions.
+is discoverable only through its populated endsets. What the empty non-type
+endset *means* for the link's connection — beyond the definedness, legality,
+and inertness settled here — is deferred to the first Open Question.
 
 The covering surplus — the tumblers lying in a resolved address's subtree but
 strictly below it, `coverage(e_j) ∖ ρ(R_j, Σ)` under the extensional form — is
@@ -291,18 +287,25 @@ source document's span covers content transcluded from two origins, the two runs
 carry different I-addresses and cannot be merged into one contiguous span (ASN-0058,
 M16 CrossOriginMergeImpossibility). ML1's recovery equation
 `coverage(e_j) ∩ F = ρ(R_j, Σ)` holds whatever this contiguity structure.
-The decomposition *is* observable at the value level — link equality is
-component-wise tuple equality over span-sets (L6, ASN-0043), so two coverage-equal
-decompositions are distinct link values — but no observable *of this model's
-operations* is sensitive to it: the model exposes no span-positional accessor
-within an endset (ASN-0043, L5), projection depends only on coverage (ASN-0098,
-LP21), type matching compares coverage (L8), and every claim of this ASN is a
-function of coverage. We name this **ML2 (RepresentationIndependence)**: the
-stored record's *coverage* is pinned — all admissible records are coverage-equal,
-the extensional form being a function of `ρ(R_j, Σ)` alone — while its span
-decomposition is the one residual freedom, and no operation of the model —
-projection, type matching, discoverability — can distinguish coverage-equal
-records.
+The decomposition *is* observable, and through the model's own accessors. Link
+equality is component-wise tuple equality over span-sets (L6, ASN-0043), so two
+coverage-equal decompositions are distinct link values; and span access by
+membership — the one accessor L5 grants (ASN-0043) — is itself
+decomposition-sensitive: for chain-adjacent resolved `a₁, a₂`, the test
+`(a₁, δ(2, #a₁)) ∈ e` holds of `{(a₁, δ(2, #a₁))}` and fails of
+`{(a₁, δ(1, #a₁)), (a₂, δ(1, #a₂))}`. A read-back of the stored value exposes
+it too: ASN-0086's `Observe_K` returns the raw `(a, F, G)` triples even though
+its *matching* is coverage-based, and any future read-back operation over
+`Σ.L` would do the same. The representation independence we may claim is
+therefore scoped: the observables this ASN's claims consult — projection
+(ASN-0098, LP21), type matching (L8), discoverability (LP12, ML9 below) — are
+each a function of coverage alone. We name this **ML2
+(RepresentationIndependence)**: the stored record's *coverage* is pinned — all
+admissible records are coverage-equal, the extensional form being a function of
+`ρ(R_j, Σ)` alone — while its span decomposition is the one residual freedom:
+observable via endset membership (L5) and value equality (L6), invisible to the
+coverage-determined observables this ASN consults. That division is exactly why
+the postcondition deliberately pins coverage and leaves the decomposition free.
 
 The same resolution applies *uniformly* to all three endset arguments — from, to,
 and type are read through their sources by one procedure, with no slot privileged
@@ -427,15 +430,14 @@ reader at the to-side finds the link as readily as one at the from-side. The
 ordering is therefore a labeling the user may rely on, not a one-way valve. We
 record this as the directionality half of ML5: the recorded order fixes roles
 without restricting reachability. The design does contemplate a degenerate
-*one-sided* link — one with no second region — and fixes its slot convention:
-the first endset is the populated one, designating the matter pointed at, and
-the second is left empty. Nelson: "since it has only one side, we use the first
-endset to designate the matter pointed at. To call this 'from' is inane"
-(LM 4/48). In this model the one-sided link arises exactly at the
-empty-resolution boundary walked at the recovery equation: `ρ(R_j, Σ) = ∅`
-forces `e_j = ∅`, the operation is defined on the input, the record is
-L3-legal, and the empty slot is inert in discovery. What the empty non-type
-slot *means* for the link's connection we defer to the first Open Question.
+*one-sided* link — one with no second region. Nelson: "since it has only one
+side, we use the first endset to designate the matter pointed at. To call
+this 'from' is inane" (LM 4/48). The slot convention this states — populate
+the first endset, leave the second empty — is recorded here as informative
+Nelson usage, not enforced: no precondition of the operation carries it, and
+the empty-resolution boundary settled in the resolution section admits both
+degenerate forms. In this model the one-sided link is exactly that boundary
+case.
 
 The third endset reveals the difference between a *connection* and a *relation*.
 A link with only from and to asserts that two regions are tied together — a bare
@@ -663,8 +665,10 @@ consecutive chain siblings of `A_C(A)` — `a₂ = inc(a₁, 0) = shift(a₁, 1)
 TA5-SigValid, so the two unit spans are adjacent and their intervals concatenate
 exactly (ASN-0053, S3) — hence the single wider canonical span `(a₁, δ(2, #a₁))`
 has the same coverage as the two unit spans; `e₁` may legally be recorded either
-way — distinct link values, coverage-equal, and no operation of the model
-distinguishes them. The merge is legal precisely because *both* chain addresses
+way — distinct link values, coverage-equal, indistinguishable to the
+coverage-determined observables ML2 scopes (projection, type matching,
+discoverability), though separable by the membership test
+`(a₁, δ(2, #a₁)) ∈ e₁`. The merge is legal precisely because *both* chain addresses
 are resolved: had `ρ(R₁, Σ)` been `{a₁}` alone, the wider span would place `a₂`
 in `coverage(e₁) ∩ F` and violate the recovery equation — whether `a₂` were
 allocated-but-unresolved or still the chain's unallocated frontier.
@@ -688,10 +692,10 @@ yet is found from `A`, `B`, and `D` — residence and reachability are orthogona
 |-------|-----------|--------|
 | ML0 | IdentityAllocation: the link's identity is a fresh (`a ∉ dom(Σ.L)`), permanent (never removed, never reused — GlobalUniqueness, T8), value-fixed (L12) link-subspace address allocated by `A_L(d)` under home `d`, with `home(a) = d` | introduced |
 | ML1 | EndsetResolution: under precondition `wf(R,Σ)`, each endset argument `R = ⟨(d₁,σ₁),…,(d_p,σ_p)⟩` is recorded as the I-addresses `ρ(R,Σ) = (∪ j : 1 ≤ j ≤ p : {Σ.M(d_j)(v) : v ∈ dom(Σ.M(d_j)) ∧ v ∈ ⟦σ_j⟧}) ⊆ dom(Σ.C)`, read through the source arrangements at creation; the stored endset has canonical spans rooted in `ρ(R,Σ)` and satisfies the recovery equation `coverage(e_j) ∩ F = ρ(R_j,Σ)`, equivalently `coverage(e_j) = (∪ a : a ∈ ρ(R_j,Σ) : {t : a ≼ t})`; consequently `coverage(e_j) ∩ dom(Σ.C) = ρ(R_j,Σ)` and `e_j` is tight at Σ (ASN-0098), so by LP19a the content trace is stable at all later states; the boundary `ρ(R_j,Σ) = ∅` is admitted for the non-type slots, with `e_j = ∅` the unique admissible record | introduced |
-| ML2 | RepresentationIndependence: the stored endset's coverage is pinned extensionally by ML1's recovery equation — all admissible records are coverage-equal — and the span decomposition is the only residual freedom; coverage-equal decompositions are distinct link values (L6) but no operation of the model distinguishes them: no span-positional accessor (L5), projection depends only on coverage (LP21), type matching compares coverage (L8) | introduced |
+| ML2 | RepresentationIndependence: the stored endset's coverage is pinned extensionally by ML1's recovery equation — all admissible records are coverage-equal — and the span decomposition is the only residual freedom; the decomposition remains observable via endset membership (L5) and value equality (L6), but the observables this ASN's claims consult — projection (LP21), type matching (L8), discoverability (LP12) — are functions of coverage alone and cannot distinguish coverage-equal records, which is why the postcondition pins coverage and leaves decomposition free | introduced |
 | ML3 | UniformResolution: from, to, and type arguments are resolved by one procedure with no slot privileged at the V→I conversion step | introduced |
 | ML4 | ResidenceApplicationOrthogonality: home document and endset content are independent; the precondition relates `d` to no `ρ(R_j,Σ)`; a link may home anywhere and point anywhere, connecting two documents without residing in either | introduced |
-| ML5 | OrderedEndsets: the recorded triple is ordered, `(F,G,Θ) ≠ (G,F,Θ)` for `F ≠ G` (L6); the order fixes from/to roles semantically without restricting reachability (discovery is endset-symmetric) | introduced |
+| ML5 | OrderedEndsets: the recorded triple is ordered, `(F,G,Θ) ≠ (G,F,Θ)` for `F ≠ G` (L6); the order fixes from/to roles semantically without restricting reachability (discovery is endset-symmetric); the one-sided slot convention (LM 4/48: populate the first slot, leave the second empty) is informative Nelson usage, not enforced — the operation admits both degenerate forms `(∅, e₂, e₃)` and `(e₁, ∅, e₃)` | introduced |
 | ML6 | TypedRelation: operation precondition `ρ(R₃,Σ) ≠ ∅`, necessary and sufficient for K.λ's `e₃ ≠ ∅` (L3) via the recovery equation (`coverage(e₃) ∩ F = ρ(R₃,Σ)` with `coverage(∅) = ∅`); L3 constrains only slot 3, so empty from/to resolution is admitted, forcing `e_j = ∅` — L3-legal and inert in ML9's test; the third endset, recorded like from/to but matched by address (L8), distinguishes a typed relation from a bare connection; the type resolves to stored content like any other endset (`ρ(R₃,Σ) ⊆ dom(Σ.C)`) | introduced |
 | ML7 | Permanence: `(A Σ' → Σ'' : a ∈ dom(Σ'.L) : a ∈ dom(Σ''.L) ∧ Σ''.L(a) = Σ'.L(a))` — the made link is not broken by any editing of the content it connects | introduced |
 | ML8 | EndsetSurvivability: editing a source document changes `Σ.M` but never the recorded I-addresses, which by S0 denote their original content permanently — the endset reference survives all editing of the content it names (consequence of ML7 ∧ ML1) | introduced |
