@@ -256,10 +256,9 @@ arrangement; in the cross-subspace case with `m_C ≠ m_L` there are exactly two
 depths. We record **V5**
 (exact cover): when all occupied positions share one subspace, `⟦σ_d⟧` contains no
 occupied-depth position outside `O(d)` — the span is a faithful trace, "dense and contiguous,"
-with the document forming "an unbroken sequence" (4/11). The definition and the proof meet
-exactly: in the single-subspace case the sole non-empty subspace is `s`, so the only occupied
-depth is `m_s`, and steps (i)–(ii) dispose of every depth-`m_s` tumbler in `⟦σ_d⟧` — V5 is
-discharged in full under the definition. The density is supplied by the
+with the document forming "an unbroken sequence" (4/11). In the single-subspace case the
+sole non-empty subspace is `s`, so the only occupied depth is `m_s`, and steps (i)–(ii)
+dispose of every depth-`m_s` tumbler in `⟦σ_d⟧`. The density is supplied by the
 per-subspace D-SEQ★, so the claim holds for a link-only document exactly as for a content-only
 one. The golden case confirms the content instance: eleven characters of text report
 `1.1 for 0.11`, the half-open interval `[1.1, 1.12)` covering exactly positions
@@ -278,13 +277,12 @@ occupied-depth by the V5 definition, since `V_{s_C}(d) ≠ ∅`): it
 is a content position, hence below every `s_L` reach by T1, so `origin_d ≤ w⋆ < reach_d` and
 `w⋆ ∈ ⟦σ_d⟧`; yet its final component `n_C+1` places it just past the dense content run
 `{[s_C,1,…,1,k] : k ≤ n_C}` (D-SEQ★), so `w⋆ ∉ O(d)`. V6 is existential, so this single
-depth-`m_C` witness discharges it under the definition; whether depth-`m_L` tumblers supply
+depth-`m_C` witness suffices; whether depth-`m_L` tumblers supply
 further witnesses when `m_L ≠ m_C` is immaterial. The bare strict inclusion
 `O(d) ⊊ ⟦σ_d⟧` follows as a corollary, but it cannot carry the dichotomy: even in V5's
 exact-cover case the inclusion is strict, since the zero-extension `origin_d.0` satisfies
 `origin_d < origin_d.0 < reach_d` (T1 case (ii); then divergence at the final position,
-`1 < n_s+1`) yet is no V-position (S8a forbids its zero component). `Exact` is depth-scoped
-and `⊊` is not; only the occupied-depth witness separates V6 from V5. A span denotes one
+`1 < n_s+1`) yet is no V-position (S8a forbids its zero component). A span denotes one
 convex region (`⟦σ_d⟧` is
 order-convex under T1, ASN-0053 S0), and a document occupying two disjoint subspaces is a
 *separated series* — "if you want to
@@ -560,6 +558,16 @@ V-ReachTight `reach(σ_d) = reach_d` — V3's same-depth tightness of
 `reach_d` relative to `max O(d)` is intact, since `reach_d = [2,2]` remains the least strict
 same-depth upper bound of `max O(d) = [2,1]`).
 
+**The mirror variant (one line).** When `m_C = 2 < m_L = 3` — the one regime where
+V-ReachTight and V-LevelUniform decouple: `M(d) = { [1,1] ↦ a, [2,1,1] ↦ ℓ }` gives
+`origin_d = [1,1]`, `max O(d) = [2,1,1]`, `reach_d = [2,1,2]`, and
+`extent_d = [2,1,2] ⊖ [1,1] = [1,1,2]` of depth 3 (TumblerSub at `zpd = 1`); the round trip
+*closes* — `r⋆ = [1,1] ⊕ [1,1,2] = [2,1,2] = reach_d` by D1 at `#origin_d = 2 ≤ 3 = #reach_d`,
+so V-ReachTight fires affirmatively — yet `#origin_d = 2 < 3 = #extent_d` breaks S6, and the
+returned span is strictly non-level-uniform (V-LevelUniform's negative branch); both width
+discriminators read correctly off the result: `extent_d₁ = 1 > 0` flags the bounding box
+(V9b) and the final component `extent_d₃ = 2 > 0` flags the tight reach (V9a).
+
 ---
 
 ## Preconditions and well-definedness
@@ -630,7 +638,9 @@ to test, matching `Exact`'s vacuous truth there. The worked report displays both
 discriminators at once: the cross-subspace width `[1,2]` opens with `1` (bounding box) and
 closes with `2 > 0` (tight reach); the content-only `[0,3]` opens with `0` (exact cover) and
 closes with `3 > 0` (tight reach); the depth-divergent variant's `[1,2,0]` opens with `1` and
-closes with `0` (bounding box, with overshooting reach).
+closes with `0` (bounding box, with overshooting reach); the mirror variant's `[1,1,2]` opens
+with `1` and closes with `2 > 0` (bounding box with tight reach — the non-level-uniform
+quadrant).
 
 ---
 
