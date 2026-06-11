@@ -47,10 +47,9 @@ We are looking for an operation that, given an address, returns the relationship
 The minimal honest specification is a lookup in the link store. We must first decide the
 operation's shape: a partial function gated by the precondition `a ∈ dom(Σ.L)`, after the pattern
 of the allocation operations (K.α, K.λ of ASN-0093), or a total request whose contract includes
-reporting absence. The deciding observation is the insufficiency of address-only tests, stated and
-discharged once with the structural screen following RL0: no predicate computable from the address
-alone is sufficient for membership in `dom(Σ.L)`, so a caller cannot in general discharge a
-membership precondition before invoking. Nelson's design points the same way — the address space is sparsely occupied by design,
+reporting absence. The deciding observation is the insufficiency of address-only tests: no
+predicate computable from the address alone is sufficient for membership in `dom(Σ.L)`, so a
+caller cannot in general discharge a membership precondition before invoking. Nelson's design points the same way — the address space is sparsely occupied by design,
 an address naming no stored object is a valid coordinate rather than malformed input, and the
 retrieval requests are all-that-is-there questions for which "nothing" is a legitimate answer.
 Gregory's implementation concurs: a retrieval at an unallocated link address is answered with the
@@ -79,16 +78,16 @@ precisely membership:
 
 and dually `wp(readlink request at a, result = ⊥) ≡ a ∉ dom(Σ.L)`. Both postconditions are
 well-formed on every state, and at each `(a, Σ)` exactly one of them is attainable: by the
-definition, every invocation returns either the stored value entire or `⊥` —
-`readlink(a, Σ) ∈ {Σ.L(a), ⊥}` when `a ∈ dom(Σ.L)`, and `readlink(a, Σ) = ⊥` otherwise. There is
+definition, `readlink(a, Σ) = Σ.L(a)` when `a ∈ dom(Σ.L)` — and `Σ.L(a) ∈ Link` with `⊥ ∉ Link`,
+so `⊥` is unattainable there — while `readlink(a, Σ) = ⊥` otherwise, so the success result is
+unattainable off the domain. These are exactly RL0's two biconditionals. Separately, there is
 no partial-success middle state: no execution returns a proper sub-value of the stored entry. This
 is a property of the *operation*, not of the codomain — `Link` is closed under shrinking a
 connective slot (for `(F, G, Θ) ∈ Link` with `|F| ≥ 2`, any `(F', G, Θ)` with `F' ⊊ F` is again an
 arity-3 sequence of endsets), so fragments of stored values do inhabit `Link ∪ {⊥}`; it is the
 definition that never returns one.
 
-The structural screen now does its honest work; we state it, with its necessity and its
-insufficiency, once here. A reader holding a candidate tumbler `a ∈ T` evaluates, from the address
+A reader holding a candidate tumbler `a ∈ T` can evaluate a *structural screen*, from the address
 alone and left to right:
 
 > `T4-valid(a) ∧ zeros(a) = 3 ∧ subspace_I(a) = s_L ∧ #E(a) ≥ 2`
@@ -99,9 +98,8 @@ It also guards the well-definedness of what follows: `subspace_I(·)` and the el
 projection `E(·)` are defined only on T4-valid tumblers (T4b, ASN-0034; SubspaceI, ASN-0043), so
 under the left-to-right reading the screen is evaluable on all of `T`, including tumblers such as
 `[1, 0, 0, 2, 0, 3]` on which the later conjuncts alone would have no value. The remaining
-conjuncts are necessary by L1, L0, and L1b (ASN-0043) respectively. Two separate facts now carry
-the section. *Every conjunct is necessary* — so a failed screen guarantees `⊥` without an
-invocation. *No address-computable predicate is sufficient* — at the initial state `Σ₀`
+conjuncts are necessary by L1, L0, and L1b (ASN-0043) respectively. *Every conjunct is necessary*
+— so a failed screen guarantees `⊥` without an invocation. *No address-computable predicate is sufficient* — at the initial state `Σ₀`
 (ASN-0047), `dom(Σ₀.L) = ∅`, so any satisfiable address-only predicate has a witness `a` with
 `a ∉ dom(Σ₀.L)`, and sufficiency fails there. Hence no caller can discharge a membership
 precondition from the address alone; only the outcome — `Link` versus `⊥` — settles membership in
@@ -197,10 +195,14 @@ only through L3, never through its content, so *both* steps are enabled at `Σ*`
 history by taking K.λ at `a'` with `v₁` in one branch and with `v₂` in the other. The two
 post-states have identical `dom(L)`, identical `dom(C)` and `dom(M)` (K.λ's frame), and identical
 link-store entries everywhere except at `a'`. Now extend both branches by the *same* step: K.λ at
-the next frontier `c = inc(a', 0)` with one value `ℓ_c` whose slot-2 endset is the canonical
-reflexive span `{(a', δ(1, #a'))}` over `a'` (L13, ASN-0043). This step's precondition consults
-only `dom(L)` (the frontier maximum) and `dom(M)`, on which the branches agree, so it is enabled
-identically in both, and it allocates the same address `c` in both. Writing `Σ₁, Σ₂` for the
+the next frontier `c = inc(a', 0)` with the one L3-conforming value
+`ℓ_c = (∅, {(a', δ(1, #a'))}, Θ₀)` for some fixed non-empty endset `Θ₀` — slot 2 carries the
+canonical reflexive span over `a'` (L13, ASN-0043), and the non-empty type slot `Θ₀` discharges
+K.λ's value-shape conjunct (`N ≥ 3`, each slot in `Endset`, `e₃ ≠ ∅`). The *state-dependent*
+conjuncts of this step's precondition consult only `dom(L)` (the frontier maximum) and `dom(M)`,
+on which the branches agree; the value-shape conjunct is branch-independent and discharged by
+`ℓ_c`'s form. The step is therefore enabled identically in both branches, and it allocates the
+same address `c` in both. Writing `Σ₁, Σ₂` for the
 resulting states (their entries frozen thereafter by L12):
 
 > `Σ₁.L(c) = ℓ_c = Σ₂.L(c)`,  `Σ₁.L(a') = v₁ ≠ v₂ = Σ₂.L(a')`,  `a' ∈ coverage(Σ₁.L(c).e₂)`,
@@ -209,8 +211,9 @@ the last by PrefixSpanCoverage (ASN-0043) and reflexivity of `≼`. RL4 applied 
 `readlink(c, Σ₁) = readlink(c, Σ₂)`, so the result embeds nothing read from `a'` — a flattening
 reader, returning covered values dereferenced, would differ across the pair and so violate RL4. A
 nested link address is disclosed as the tumbler address it is, whether it names content, another
-link, or nothing at all. (The worked read below instantiates exactly this pair: `a' = inc(a, 0)`
-and `c = inc(a', 0)` on `d₁`'s link sub-allocator.)
+link, or nothing at all. (The worked read below instantiates this address scaffolding —
+`a' = inc(a, 0)` and `c = inc(a', 0)` on `d₁`'s link sub-allocator — and verifies the
+unflattened-disclosure corollary at a single state; it does not exhibit the two-state witness.)
 
 ## Determinacy and the immutability of the recorded relationship
 
