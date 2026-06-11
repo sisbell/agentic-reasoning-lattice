@@ -51,8 +51,9 @@ and carry the depth-2 text case `m = 2` of the foundation displacement work,
 so `q_k = [S, k]` and `ord(q_k) = [k]`. The single arithmetic fact that does
 all the work below:
 
-> `σ(q_k) = q_{k−c}` for `k ≥ J + c` — *left*-shifting the last component by
-> the deletion width `c` carries the `k`-th slot to the `(k−c)`-th, leaving the
+> `σ(q_k) = q_{k−c}` for `k ≥ J + c`, where `q_J` is the first deleted slot and
+> `c` the deletion width — *left*-shifting the last component by `c` carries
+> the `k`-th slot to the `(k−c)`-th, leaving the
 > shared prefix `[S, 1, …, 1]` untouched. This is the ordinal subtraction
 > `ord(q_k) ⊖ w_ord` of the foundation contraction (ASN-0082), well-defined and
 > order-preserving on the surviving suffix.
@@ -236,8 +237,7 @@ composite has no realisation here. DELETE is instead a *single* **K.μ⁻** step
 prefix-retention truncation of the text subspace to count `n'_{s_C} = J − 1 = N − c`
 (with `n'_{s_C} < N` since `c ≥ 1`, supplying the strictly-contracting subspace),
 the link subspace held at full retention. The delete-everything sub-case
-`J = 1, c = N` is this with `n'_{s_C} = 0`. Coupling and frame discharge for
-this single-step realisation is taken up with the composite's, below.
+`J = 1, c = N` is this with `n'_{s_C} = 0`.
 
 In both cases the net effect on `M(d)` is exactly ASN-0082's left-shift
 displacement (vacuous on the suffix when `R = ∅`), which is why we read DELETE's
@@ -295,25 +295,22 @@ derive them by citation:
   ASN-0082 **D-L**.
 - (DEL-DOM) `{v ∈ dom(M'(d)) : subspace(v) = S} = L ∪ {σ(v) : v ∈ R}` —
   ASN-0082 **D-DOM**.
-- (DEL-CIMM) `Σ'.C = Σ.C` — ASN-0082 **D-I**, the content-store frame (P0).
+- (P0) `Σ'.C = Σ.C` — ASN-0082 **D-I**, the content-store frame.
 
 *Frame.*
-- (DEL-LIMM) `Σ'.L = Σ.L` — the link store is held entirely fixed, in both
-  domain and per-address value: `dom(Σ'.L) = dom(Σ.L)` and
-  `(A a : a ∈ dom(Σ.L) : Σ'.L(a) = Σ.L(a))` — DEL-CFRAME's `Σ'.L = Σ.L` clause
-  (the K.μ⁻/K.μ⁺ frames for the composite, J2 for the `R = ∅` single step;
-  ASN-0047).
+- (DEL-CFRAME) `Σ'.L = Σ.L ∧ Σ'.E = Σ.E ∧ Σ'.R = Σ.R` — the frame discharge
+  named above, holding in both realisations (the K.μ⁻/K.μ⁺ frame clauses for
+  the composite, J2 for the `R = ∅` single step; ASN-0047). The link store is
+  fixed in both domain and per-address value (`dom(Σ'.L) = dom(Σ.L)` and
+  `(A a : a ∈ dom(Σ.L) : Σ'.L(a) = Σ.L(a))`); on the fixed entity set, P1
+  (EntityPermanence) and P8 (EntityHierarchy) survive DELETE trivially; on the
+  fixed provenance relation, P4★, P4a, and P7a hold at the post-state boundary
+  by ExtendedReachableStateInvariants (ASN-0047).
 - (DEL-FSUB) `(A S' : S' ≠ S : {v ∈ dom(M'(d)) : subspace(v) = S'} =
   {v ∈ dom(M(d)) : subspace(v) = S'}` and `M'(d)` agrees there`)` —
   ASN-0082 **D-CS**. In particular the document's *links* (subspace `s_L`) are
   not moved by a text deletion.
 - (DEL-FDOC) `(A d' : d' ≠ d : M'(d') = M(d'))` — ASN-0082 **D-CD**.
-- (DEL-FENT) `Σ'.E = Σ.E` — the entity set is held fixed: DEL-CFRAME's
-  `Σ'.E = Σ.E` clause. P1 (EntityPermanence) and P8 (EntityHierarchy) survive DELETE
-  trivially.
-- (DEL-FPROV) `Σ'.R = Σ.R` — the provenance relation is held fixed: DEL-CFRAME's
-  `Σ'.R = Σ.R` clause; P4★, P4a, and P7a hold at the post-state boundary by
-  ExtendedReachableStateInvariants (ASN-0047).
 
 ## The document remains one coherent sequence
 
@@ -351,7 +348,8 @@ into a single coherent ordinal sequence (Q2).
 One per-state conjunct of the package deserves explicit mention, because the
 deletion *materially re-cuts* it: **S8★** (PerSubspaceSpanDecomposition,
 ASN-0047), the partition of `M(d)|_{V_S}` into maximal V→I correspondence runs.
-Closing the gap can fuse or split runs — across the closed boundary the
+Closing the gap can fuse or split runs — writing `a_k = M(d)(q_k)` for the
+pre-state image of the `k`-th slot, across the closed boundary the
 survivors `M'(d)(q_{J−1}) = a_{J−1}` and `M'(d)(q_J) = a_{J+c}` need not advance
 in lockstep, so the maximal-run decomposition of the post-state differs from
 that of the pre-state. But S8★ is a per-state obligation, pinning no particular
@@ -402,7 +400,7 @@ three of the four nearly immediate.
 
 **Content permanence, and address permanence.** This is P0, and it is the whole
 non-destruction guarantee. The store is unchanged in domain and value
-(DEL-CIMM). Address permanence — that DELETE allocates and frees nothing and
+(ASN-0082 D-I). Address permanence — that DELETE allocates and frees nothing and
 rebinds nothing — is P0 itself: `dom(C') = dom(C)` says the domain neither
 shrinks nor grows, and `(A b : b ∈ dom(C) : C'(b) = C(b))` says no address is
 rebound.
@@ -449,9 +447,7 @@ subspace beyond `s_C` and `s_L`. For content-subspace positions
 (`subspace(v') = s_C`): `M'(d')(v') ∈ dom(Σ'.C)` with
 `C'(M'(d')(v')) = C(M(d')(v'))` (P0). For link-subspace positions
 (`subspace(v') = s_L`): `M'(d')(v') ∈ dom(Σ'.L)` with
-`Σ'.L(M'(d')(v')) = Σ.L(M(d')(v'))` (DEL-LIMM). The per-subspace split here is
-the same one S3★ forces on `M'(d)` above (§"The document remains one coherent
-sequence"). The arrangement and resolved
+`Σ'.L(M'(d')(v')) = Σ.L(M(d')(v'))` (DEL-CFRAME). The arrangement and resolved
 content of every other
 document — including any that transcludes the deleted I-addresses — are invariant
 under DELETE on `d`.*
@@ -459,7 +455,7 @@ under DELETE on `d`.*
 **Link survival, and discoverability across documents.** A link's endsets
 reference I-addresses, not V-positions (4/42, 4/30). DELETE removes no I-address
 (P0) and adds, removes, or edits no link, so the link store is held entirely
-fixed — `Σ'.L = Σ.L` in both domain and value (DEL-LIMM). Coverage invariance
+fixed — `Σ'.L = Σ.L` in both domain and value (DEL-CFRAME). Coverage invariance
 is the foundation's: DELETE realises as a one- or two-step transition sequence,
 so **LP3★** (MultiStepCoverageInvariance,
 ASN-0098) gives `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)` at every slot
@@ -568,7 +564,7 @@ addresses (L4(c), cross-subspace endsets). (If a deleted I-address is also
 arranged elsewhere in `d` — the within-document sharing that S5/M13 of the
 arrangement model permit — it does not leave the range.) The link store is fixed
 throughout — `dom(Σ'.L) = dom(Σ.L)`
-(DEL-LIMM) — so `D(d, ·)` is computed over the *same* index set before and after,
+(DEL-CFRAME) — so `D(d, ·)` is computed over the *same* index set before and after,
 and the quantification "for every prior link `a ∈ dom(Σ.L)`" below exhausts
 `dom(Σ'.L)` as well; were DELETE permitted to add a link, `D(d, Σ')` could acquire
 a member with no pre-image and the identity `D(d, Σ') = D(d, Σ)` would fail.
@@ -615,7 +611,7 @@ is a permanent I-address in `dom(C)`.
 `J = 3`, `w = [0, 2]`, `r = p ⊕ w = q_5`, `R = {q_5}`, `L = {q_1, q_2}`,
 `X = {q_3, q_4}`. Containment holds: `J = 3 ≥ 1` and `J + c = 5 ≤ N + 1 = 6`.
 
-*Content frame (DEL-CIMM, P0).* `Σ'.C = Σ.C`. The deleted I-addresses
+*Content frame (P0).* `Σ'.C = Σ.C`. The deleted I-addresses
 `A_del = {a_3, a_4}` remain in `dom(C')` with their bytes intact. Nothing is
 allocated or freed. ✓ P0.
 
@@ -644,8 +640,7 @@ canonical-order guarantee (Q2). The bytes `a_3, a_4` are not gone: they sit in
 `C`, recoverable by backtrack, still resolved by any link or any other document
 that names them.
 
-**A multi-position suffix shift (`|R| ≥ 2`).** The primary scenario moved a lone
-suffix position, so it never exercised DELETE's signature effect: the *uniform*
+**A multi-position suffix shift (`|R| ≥ 2`).** This case exercises the *uniform*
 left-shift of an entire suffix of two or more positions, all by the same `c`,
 with their relative order preserved. Take the same `N = 5` document and **delete
 the span at `p = q_2` of width `c = 1`** (removing `q_2`). Here `J = 2`,
@@ -674,11 +669,10 @@ the dense run with `N' = N − c = 4`. Reading end to end yields `a_1, a_3, a_4,
 — the second unit omitted, the remaining three re-closed in their original
 relative order. ✓ DEL-SHIFT, D-BJ, P2.
 
-**Boundary — leading-span delete (`J = 1`, `R ≠ ∅`).** None of the cases above
-exercises the most delicate composite interaction: step-1 K.μ⁻ *emptying* the
-text subspace and step-2 K.μ⁺ re-adding survivors *into the emptied subspace*,
-re-pinning S8-depth from scratch. This is exactly the first-position-with-
-survivors case. Take the same `N = 5` document and **delete the opening span at
+**Boundary — leading-span delete (`J = 1`, `R ≠ ∅`).** This case exercises
+step-1 K.μ⁻ *emptying* the text subspace and step-2 K.μ⁺ re-adding survivors
+*into the emptied subspace*, re-pinning S8-depth from scratch. Take the same
+`N = 5` document and **delete the opening span at
 `p = q_1` of width `c = 1`** (removing `q_1`). Here `J = 1`, `w = [0, 1]`,
 `r = p ⊕ w = q_2`, `L = ∅`, `X = {q_1}`, `R = {q_2, q_3, q_4, q_5}`. Containment
 holds: `J = 1 ≥ 1` and `J + c = 2 ≤ N + 1 = 6`. Since `R ≠ ∅`, DELETE is the
@@ -723,14 +717,14 @@ run — so `V_S(d') = {q_1, q_2, q_3}`, `N' = 3`. *Delete-everything* is the
 `n'_{s_C} = 0` specialisation: `p = q_1`, `c = N = 5`, all five mappings removed,
 `V_S(d') = ∅`, the empty arrangement denoting the empty partial function. In both,
 K.μ⁻'s self-sufficiency (J2) supplies the frames directly — `Σ'.C = Σ.C`
-(P0, DEL-CIMM, every `a_k` surviving permanently in `C`), `Σ'.E = Σ.E` (DEL-FENT),
-`Σ'.R = Σ.R` (DEL-FPROV), the link store fixed (DEL-LIMM) — and the per-state
+(P0, every `a_k` surviving permanently in `C`) and
+`Σ'.L = Σ.L ∧ Σ'.E = Σ.E ∧ Σ'.R = Σ.R` (DEL-CFRAME) — and the per-state
 package (including S3★) together with the composite-boundary properties P4★,
 P4a, and P7a holds at the post-state by ExtendedReachableStateInvariants
 (ASN-0047). The document then arranges all but the
 deleted tail (or, for delete-everything, no text at all), yet every former
 I-address remains permanent and reconstructible in `C` (Q20). ✓ DEL-DOM,
-P2 (with `N' = N − c`, including `N' = 0`), S3★, DEL-FENT, DEL-FPROV, P4★, P4a, P7a.
+P2 (with `N' = N − c`, including `N' = 0`), S3★, DEL-CFRAME, P4★, P4a, P7a.
 
 **Within-document sharing.** Suppose additionally `M(d)(q_2) = a_5` — `d`
 arranges the content `a_5` at *two* positions. Delete `p = q_5`, `c = 1`. Then
@@ -739,10 +733,8 @@ surviving `q_2`. A link whose coverage contains `a_5` remains discoverable from
 `d` *despite* the deletion — the wp's preservation condition holds because
 something was left at that end within `d`. ✓ P4, wp.
 
-**Cross-document transclusion (P5 in the concrete).** The scenarios above all
-live inside the single document `d`; none exercises the operation's signature
-isolation guarantee. So introduce a *second* document `d'` that transcludes some
-of `d`'s content. Concretely, let `d'` arrange the deleted I-addresses: with
+**Cross-document transclusion (P5 in the concrete).** Introduce a *second*
+document `d'` that transcludes some of `d`'s content. Concretely, let `d'` arrange the deleted I-addresses: with
 `V_S(d') = {q_1, q_2}` and `M(d')(q_1) = a_3`, `M(d')(q_2) = a_4` — the very two
 addresses `A_del = {a_3, a_4}` that the primary scenario deletes from `d`. Note
 that `d'`'s positions are the *same tumblers* as the opening slots of `d`'s run:
@@ -807,7 +799,7 @@ only their placement in this one document's present view is withdrawn.
 | Label | Statement | Status |
 |-------|-----------|--------|
 | DELETE | Operation: remove the span `(p, w)` of width `c` from document `d`'s arrangement; shift the suffix left to close the gap; touch the content store not at all | introduced |
-| P0 (NonDestruction) | `dom(C') = dom(C)` with all values preserved; every deleted I-address `A_del` survives in `C` — the permanent content store is untouched | introduced |
+| P0 (NonDestruction) | `Σ'.C = Σ.C` — `dom(C') = dom(C)` with all values preserved; every deleted I-address `A_del` survives in `C` (ASN-0082 D-I) | introduced |
 | P2 (GapClosure) | Survivors close into the dense run `{q_1, …, q_{N−c}}`; prefix fixed, suffix shifts left by `c` carrying I-addresses unchanged, gap closes exactly, order and density preserved | introduced |
 | P4 (LinkSurvival) | Every endset's coverage is unchanged and the link store untouched, `Σ'.L = Σ.L` (coverage invariance by LP3★, ASN-0098); a link undiscoverable from `d` (LP12 at `Σ'`) still persists (L12), stays discoverable from other documents arranging it (LP12), and is re-discoverable on re-arrangement (Store Monotonicity★ + LP3★ + LP12) | introduced |
 | P5 (DocumentIsolation) | Every other document's arrangement and resolved content — including transcluders of the deleted I-addresses — are invariant under DELETE on `d` | introduced |
@@ -815,13 +807,9 @@ only their placement in this one document's present view is withdrawn.
 | DEL-SHIFT | Suffix positions `v ∈ R` move to `σ(v) = q_{k−c}`, carrying their I-address (ASN-0082 D-SHIFT) | introduced |
 | DEL-LEFT | Prefix positions `v < p` are unchanged (ASN-0082 D-L) | introduced |
 | DEL-DOM | `V_S(d')` is the dense run `{q_1, …, q_{N−c}}` with the gap closed (ASN-0082 D-DOM, D-SEP) | introduced |
-| DEL-CIMM | `Σ'.C = Σ.C` — the content store is a strict frame (ASN-0082 D-I) | introduced |
-| DEL-CFRAME | `Σ'.L = Σ.L ∧ Σ'.E = Σ.E ∧ Σ'.R = Σ.R` in both realisations — the K.μ⁻/K.μ⁺ frame clauses for the composite, J2 for the lone K.μ⁻ (ASN-0047) | introduced |
-| DEL-LIMM | `Σ'.L = Σ.L` — the link store is a strict frame, domain and value (DEL-CFRAME) | introduced |
+| DEL-CFRAME | `Σ'.L = Σ.L ∧ Σ'.E = Σ.E ∧ Σ'.R = Σ.R` in both realisations — the K.μ⁻/K.μ⁺ frame clauses for the composite, J2 for the lone K.μ⁻ (ASN-0047); P1/P8 preserved on the fixed entity set, P4★/P4a/P7a at the post-state boundary | introduced |
 | DEL-FSUB | Positions in subspaces `S' ≠ S` (notably links) are unchanged (ASN-0082 D-CS) | introduced |
 | DEL-FDOC | Arrangements of all documents `d' ≠ d` are unchanged (ASN-0082 D-CD) | introduced |
-| DEL-FENT | `Σ'.E = Σ.E` — the entity set is a strict frame (DEL-CFRAME); P1/P8 preserved | introduced |
-| DEL-FPROV | `Σ'.R = Σ.R` — the provenance relation is a strict frame (DEL-CFRAME); P4★/P7a preserved | introduced |
 
 ## Open Questions
 
