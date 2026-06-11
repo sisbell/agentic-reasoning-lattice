@@ -404,8 +404,11 @@ K.μ⁺ arranging the fresh address at the boundary (discharging J0) and a K.ρ 
 for the range-new address (discharging J1★; J1'★ holds because each new provenance entry is
 exactly that range-new pair). A subsequent K.μ⁻ on each document with content-subspace retention
 `n'_{s_C} = 0` then empties the content V-positions while `dom(C)` retains all three entries
-(P0); the provenance entries persist through the contraction (P2), so P4★ and P7a hold at this
-and every subsequent composite boundary. The link
+(P0). Each contraction is itself a valid composite — its couplings are vacuous, as J2
+(ContractionIsolation, ASN-0047) records: K.μ⁻'s frame gives `C' = C` and `R' = R`, so J0 and
+J1'★ quantify over empty sets, and the arrangement range only shrinks, so no range-new
+content-subspace I-address arises for J1★. The provenance entries persist through the
+contraction (P2), so P4★ and P7a hold at this and every subsequent composite boundary. The link
 addresses of this section — `a`, then `a' = inc(a, 0)` and `c = inc(a', 0)` below — are the first
 three emissions of `A_L(d₁)`'s chain, allocated by three bare K.λ steps, each a valid composite
 by SOV.
