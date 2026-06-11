@@ -186,17 +186,23 @@ restricts merging to runs *all of whose chain addresses are resolved*, since the
 wider span's `F`-trace is the whole run, `F ∩ ⟦(a₁, δ(n, #a₁))⟧ = {a₁, …, aₙ}`
 (LP-Fin Corollary), and one unresolved member — skipped or frontier — already
 violates the equation. The coverage equality is a span merge, not a store-trace
-fact. Each chain address is T4-valid, so `sig(aₖ) = #aₖ` (TA5-SigValid,
-ASN-0034) and the sibling step is exactly the last-component shift,
+fact. We adopt, once for this ASN, the convention `shift(t, 0) := t` —
+ASN-0034's OrdinalShift is defined only for amounts `≥ 1`, and we extend it at
+zero exactly as ASN-0036 (S8) and ASN-0058 (OrdinalShiftBase) do. Each chain
+address is T4-valid, so `sig(aₖ) = #aₖ` (TA5-SigValid, ASN-0034) and the
+sibling step is exactly the last-component shift,
 `aₖ₊₁ = inc(aₖ, 0) = shift(aₖ, 1)`; hence each unit span's reach `shift(aₖ, 1)`
 equals the next span's start — consecutive unit spans are *adjacent*,
-level-uniform, at one common length (`#aₖ₊₁ = #aₖ`, TA5(c)). ASN-0053's merge
-(S3), applied inductively along the run — at the step absorbing the next unit
-span, the accumulated prefix `(a₁, δ(k, #a₁))` reaches
-`a₁ ⊕ δ(k, #a₁) = shift(a₁, k)`, which equals the next start
-`aₖ₊₁ = shift(aₖ, 1) = shift(shift(a₁, k−1), 1) = shift(a₁, k)`, with
-`aₖ = shift(a₁, k−1)` by induction and the composition of shifts by TS3
-(ShiftComposition, ASN-0034) — concatenates the half-open intervals exactly:
+level-uniform, at one common length (`#aₖ₊₁ = #aₖ`, TA5(c)). Along the run,
+`aₖ = shift(a₁, k−1)` for every `1 ≤ k ≤ n`: the case `k = 1` is the
+convention, the case `k = 2` is the sibling step itself (`a₂ = shift(a₁, 1)`,
+no composition needed), and each step from `k ≥ 2` to `k + 1` composes by TS3
+(ShiftComposition, ASN-0034, both amounts `k − 1 ≥ 1` and `1` in its domain):
+`aₖ₊₁ = shift(shift(a₁, k−1), 1) = shift(a₁, k)`. ASN-0053's merge (S3),
+applied inductively along the run — at the step absorbing unit span `k + 1`,
+the accumulated prefix `(a₁, δ(k, #a₁))` reaches
+`a₁ ⊕ δ(k, #a₁) = shift(a₁, k)`, which is the next start `aₖ₊₁` —
+concatenates the half-open intervals exactly:
 `(∪ k : 1 ≤ k ≤ n : ⟦(aₖ, δ(1, #aₖ))⟧) = ⟦(a₁, δ(n, #a₁))⟧`. The endset is a finite set of such
 spans — finite because `ρ(R_j, Σ)` is finite (`p` is finite and each
 `dom(Σ.M(d_j))` is finite by S8-fin, ASN-0036) — which discharges K.λ's
@@ -230,19 +236,13 @@ since `ρ(R_j, Σ) ⊆ F`), never exact equality.
 
 The covering surplus — the tumblers lying in a resolved address's subtree but
 strictly below it, `coverage(e_j) ∖ ρ(R_j, Σ)` under the extensional form — is
-never a store address. We argue over store membership, not over
-projections at arbitrary covered tumblers (where T4b's `E` need not be defined: a
-zero extension has `zeros = 4` and is not T4-valid). Let `t` be a proper
-descendant of a resolved `aₖ`, so `aₖ ≺ t`. If `t ∉ F`, then `t` is no store
-address by LP-Sub (ASN-0098), which confines `dom(Σ.C) ∪ dom(Σ.L)` to `F`. If
-`t ∈ F`, then `t` has the structural form `[d.0.s.k]` with element-field depth
-`#E(t) = 2` *exactly* — not merely the `#E ≥ 2` that C1b alone supplies; but
-`aₖ ∈ F` likewise has `#E(aₖ) = 2`, and the proper prefix `aₖ ≺ t` places all
-three of `t`'s zero separators within `aₖ`'s positions, so `t`'s element field
-extends `aₖ`'s two-component field by `#t − #aₖ ≥ 1` further components,
-`#E(t) ≥ 3` — contradiction. Either way `t ∉ dom(Σ.C) ∪ dom(Σ.L)`, in particular
-`t ∉ dom(Σ.C)` — a descendant-by-descendant re-derivation of the `n = 1`
-instance of LP-Fin Corollary used above. Two consequences follow. First, the
+never a store address. The chain is three cited facts: by PrefixSpanCoverage
+(ASN-0043), each resolved `aₖ`'s subtree is a unit span's denotation,
+`{t : aₖ ≼ t} = ⟦(aₖ, δ(1, #aₖ))⟧`; by LP-Fin Corollary at `n = 1` (ASN-0098,
+applicable since `aₖ ∈ ρ(R_j, Σ) ⊆ dom(Σ.C) ⊆ F` via LP-Sub),
+`F ∩ {t : aₖ ≼ t} = {aₖ}`; and by LP-Sub, `dom(Σ.C) ∪ dom(Σ.L) ⊆ F`. Hence no
+proper descendant of a resolved address is a store address. Two consequences
+follow. First, the
 store trace is exact at the creating state:
 `coverage(e_j) ∩ dom(Σ.C) = ρ(R_j, Σ)`, by set algebra from the recovery
 equation and `dom(Σ.C) ⊆ F` (LP-Sub). Second, the record is *tight at `Σ`* in
@@ -486,10 +486,9 @@ arrangement's images lie in the post-state store:
 `coverage(eᵢ) ∩ ran(Σ'.M(d'))` therefore consults `coverage(eᵢ)` only at
 post-state store addresses, so what we need is `coverage(eᵢ)`'s trace on that
 store — and that trace is exactly the resolved set,
-`coverage(eᵢ) ∩ (dom(Σ'.C) ∪ dom(Σ'.L)) = ρ(R_i, Σ)`. The content half follows
-from ML1's recovery equation by set algebra, since `dom(Σ'.C) = dom(Σ.C) ⊆ F`
-(ML10; LP-Sub): `coverage(eᵢ) ∩ dom(Σ'.C) = (coverage(eᵢ) ∩ F) ∩ dom(Σ.C) =
-ρ(R_i, Σ) ∩ dom(Σ.C) = ρ(R_i, Σ)`. The link half
+`coverage(eᵢ) ∩ (dom(Σ'.C) ∪ dom(Σ'.L)) = ρ(R_i, Σ)`. The content half is an
+application: `dom(Σ'.C) = dom(Σ.C)` (ML10), so ML1's store-trace exactness
+gives `coverage(eᵢ) ∩ dom(Σ'.C) = ρ(R_i, Σ)`. The link half
 is empty, `coverage(eᵢ) ∩ dom(Σ'.L) = ∅` — and here the fresh `a` is disposed of
 together with every pre-existing link address: each `eᵢ` is a union of canonical
 spans `(s, δ(n, #s))` rooted at resolved content addresses
@@ -498,8 +497,8 @@ Corollary) every F-address in `coverage(eᵢ)` carries `subspace_I = s_C`; every
 element of `dom(Σ'.L)` lies in `F` (LP-Sub at `Σ'`) and carries
 `subspace_I = s_L` (L0, ASN-0093), and `s_C ≠ s_L` — so no covered tumbler is a
 link address, and in particular `a ∉ coverage(eᵢ)`. The covering surplus — the
-non-store descendants in `coverage(eᵢ)` (ML1's surplus argument) — cannot meet an
-arrangement range and so drops out. Hence
+non-store descendants in `coverage(eᵢ)` (PrefixSpanCoverage; LP-Fin Corollary at
+`n = 1`; LP-Sub) — cannot meet an arrangement range and so drops out. Hence
 `coverage(eᵢ) ∩ ran(Σ'.M(d')) = ρ(R_i, Σ) ∩ ran(Σ'.M(d'))`.
 
 *Fact (b) — the post-state range equals the pre-state range for the test.* For
@@ -542,19 +541,19 @@ across all three endsets, the link is reachable from the from-regions, the
 to-regions, and the type-regions alike. We name this **ML9
 (DiscoverabilityDecoupledFromResidence)**: MAKELINK makes the link discoverable
 from every content region any of its endsets references, independently of where
-the link resides. Nor can the guarantee silently widen at later states: each
-`eᵢ` is tight at `Σ` (ML1), so by LP19a (ASN-0098) no address allocated after
-creation ever enters `coverage(eᵢ)` — the link can become discoverable from a
-new document only by that document's arrangement reaching the *originally
-resolved* content.
+the link resides. And by ML1's stable store trace, the link can become
+discoverable from a new document only by that document's arrangement reaching
+the *originally resolved* content.
 
 Note what discharges ML9: *nothing beyond recording the endsets as I-addresses in
 the store.* The discoverability is not a separate indexing action MAKELINK must
 remember to perform; it is the standing meaning of having content-identity endsets
-present in `Σ.L`. (Gregory's spanfilade is the concrete index that realizes this
-biconditional, keyed by I-address with the home dimension explicitly nulled out —
-Q14, Q20 — which is the implementation's way of guaranteeing exactly that home
-plays no role.)
+present in `Σ.L`.
+
+> *Implementation note.* Gregory's spanfilade is the concrete index that realizes
+> this biconditional, keyed by I-address with the home dimension explicitly nulled
+> out (Q14, Q20) — the implementation's way of guaranteeing exactly that home
+> plays no role.
 
 **Frame (ML10).** MAKELINK allocates no content and edits no other document:
 `Σ'.C = Σ.C` (the operation reads source arrangements, it does not write content),
@@ -594,10 +593,9 @@ first link. It is fresh (`a ∉ dom(Σ.L)`), home-scoped
 *Record (ML1, ML2).* `Σ'.L(a) = (e₁, e₂, e₃)` with
 `e₁ = {(a₁, δ(1,#a₁)), (a₂, δ(1,#a₂))}`, `e₂ = {(b₁, δ(1,#b₁))}`,
 `e₃ = {(θ₁, δ(1,#θ₁))}`. Checking ML1/ML2: `coverage(e₁) ∩ F = {a₁, a₂} =
-ρ(R₁, Σ)` — the subtrees of `a₁` and `a₂` contribute no further `F`-address, by
-ML1's surplus argument (a proper descendant is either outside `F`, hence no store
-address, or in `F` and forced to `#E ≥ 3` against `F`'s `#E = 2`) — and likewise
-`coverage(e₂) ∩ F = {b₁}`. ML2 made concrete: `a₁` and `a₂` are
+ρ(R₁, Σ)` — each unit span's `F`-trace is its root alone (LP-Fin Corollary at
+`n = 1`, ASN-0098), so the subtrees of `a₁` and `a₂` contribute no further
+`F`-address — and likewise `coverage(e₂) ∩ F = {b₁}`. ML2 made concrete: `a₁` and `a₂` are
 consecutive chain siblings of `A_C(A)` — `a₂ = inc(a₁, 0) = shift(a₁, 1)` by
 TA5-SigValid, so the two unit spans are adjacent and their intervals concatenate
 exactly (ASN-0053, S3) — hence the single wider canonical span `(a₁, δ(2, #a₁))`
