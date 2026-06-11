@@ -192,9 +192,10 @@ exactly that one position.
 > at `v`*: `unit(d, v) = (d, (v, δ(1, #v)))`, with `δ` the ordinal displacement
 > of ASN-0034. Then:
 >
-> (a) *Well-formedness.* `unit(d, v)` is a V-spec in the sense above: its start
-> has the required V-position shape, and its span is well-formed (T12),
-> level-uniform, and ordinal-level.
+> (a) *Well-formedness.* `unit(d, v)` is a V-spec in the sense above: its named
+> document satisfies both document conjuncts (`zeros(d) = 2`, `d ∈ dom(Σ.M)`),
+> its start has the required V-position shape, and its span is well-formed
+> (T12), level-uniform, and ordinal-level.
 >
 > (b) *Depth compatibility.* `depthcompat(unit(d, v), Σ)` holds.
 >
@@ -209,8 +210,11 @@ exactly that one position.
 > The width `δ(1, #v) = [0, …, 0, 1]` of length `#v` (OrdinalDisplacement,
 > ASN-0034) satisfies `Pos(δ(1, #v))` and `actionPoint(δ(1, #v)) = #v`, so the
 > span meets T12 (`actionPoint(ℓ) = #v ≤ #v = #s`), is level-uniform
-> (`#ℓ = #v = #s`), and is ordinal-level (`actionPoint(ℓ) = #ℓ`); and
-> `d ∈ dom(Σ.M)` by hypothesis.
+> (`#ℓ = #v = #s`), and is ordinal-level (`actionPoint(ℓ) = #ℓ`). The document
+> conjuncts close from the hypothesis: `d ∈ dom(Σ.M)` directly, and
+> `zeros(d) = 2` by M0 (DocumentTumblerWellFormed, ASN-0093), which gives
+> `T4-valid(d) ∧ zeros(d) = 2` for every `d ∈ dom(Σ.M)` — applicable because
+> the standing reachability precondition places `Σ` in M0's range.
 >
 > (b) `v ∈ dom(Σ.M(d))` with `subspace(v) = S` puts `v ∈ V_S(d)`, so
 > `V_S(d) ≠ ∅`, and S8-depth (ASN-0036) pins the common depth `m_S(d) = #v`.
