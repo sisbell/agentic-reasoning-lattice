@@ -21,8 +21,7 @@ inquiry. We want a specification an alternative implementation would also have t
 We write the system state as ASN-0047's five-tuple `Σ = (Σ.C, Σ.L, Σ.E, Σ.M, Σ.R)` —
 the content store, the link store, the entity set, the family of document arrangements,
 and the provenance relation. This is the state the transition vocabulary `→` (below)
-operates on, so the monotonicity arguments that underwrite the permanence claims have
-the same state object to range over as the operations they reason about. The query
+operates on. The query
 itself is far narrower: `findlinks(q, Σ)` reads only the *link-store projection* `Σ.L`
 (values and addresses) — the retraction relation it consults is itself a sub-part of
 `Σ.L` (below). The remaining components `Σ.C`, `Σ.E`, `Σ.M`, `Σ.R` enter only the
@@ -42,7 +41,7 @@ satisfaction rule `sat` (below) tests `e₁, e₂, e₃` and leaves any higher s
 `e₄ … eₙ` unconstrained. A higher-arity link is therefore matched on its first three
 endsets alone and remains in the result space; the name fixes the three matched slots,
 and the determinacy of the result is unaffected by whatever further endsets a link may
-carry. This is the intended semantics for the operation. Each endset references a set of I-addresses, its
+carry. Each endset references a set of I-addresses, its
 coverage. The link also resides somewhere: `home(a)` is a document-level tumbler,
 extracted from the *address* `a` by field projection, **not** from the endsets. These
 two facts — what a link *connects* (its endset coverages) and where it *lives* (its
@@ -60,32 +59,12 @@ grammar does not confine it to any address level, and `athome` (below) is well-d
 plain coverage membership for whatever endset `H` is. By *convention*, a home request is
 phrased on the *organizational-prefix* axis, its spans rooted at node-, account-, or
 document-level addresses; but this rooting is intended usage, not a well-formedness
-condition the type enforces. (An element-rooted `H` is admissible regardless: `athome` is
-well-defined as coverage membership for any endset, so there are no ill-formed inputs to
-exclude and the operation is total over the declared request type. For a *unit-depth*
-element-rooted span the match is simply vacuous — its coverage `{t : p ≼ t}` is the subtree
-of an element-level `p` with `zeros(p) = 3`, which contains no document-level tumbler, so
-`athome` is uniformly `false`. A *wide* element-rooted span carries no such guarantee: its
-coverage is the order-convex range `{t : p ≤ t < p ⊕ ℓ}`, which may straddle a length
-boundary and so contain a document-level tumbler — e.g. `p = [1,0,1,0,1,0,1,1]` with
-`ℓ = [0,0,0,0,1,1,1,1]` (T12-well-formed) gives `p ⊕ ℓ = [1,0,1,0,2,1,1,1]`, and the
-document tumbler `q = [1,0,1,0,2]` lies in `coverage((p, ℓ))`, so `athome(a, H)` can hold
-for a link with `home(a) = q`. Totality does not depend on vacuity in either case.)
-The *canonical* home span is the **unit-depth prefix span** `(p, δ(1, #p))`, whose
-displacement is exactly the unit-depth `δ(1, #p)` that PrefixSpanCoverage (ASN-0043)
-requires; it denotes the full subtree `{t : p ≼ t}`, order-convex under T5 (ASN-0034).
-A wider span `(p, ℓ)` rooted at the same `p` is equally admissible — `Endset = 𝒫_fin(Span)`
-imposes no upper-displacement bound — and its coverage is then the order-convex *range*
-`{t : p ≤ t < p ⊕ ℓ}` (T12, ASN-0034), a proper sub-range of the subtree, not `{t : p ≼ t}`.
-The PrefixSpanCoverage citation discharges the subtree reading *only* for the unit-depth
-case; for a wider `H`, `athome` still bounds residence, now to an order-convex sub-range
-rather than a whole subtree. The traces below, and the canonical residence-bounding uses
-(node/account/document granularity), exercise only unit-depth spans, where the subtree
-reading holds. The three endset-components `F, G, Θ` are, by the same convention, phrased on
+condition the type enforces. The three endset-components `F, G, Θ` are, by the same
+convention, phrased on
 the *element-level I-address* axis. (Note `home(a)` itself is always document-level — the
 field projection `N(a).0.U(a).0.D(a)` — while the *request component* `H` is not so
 confined: a node- or account-rooted span tests `home(a)`'s membership in the broader
-subtree it denotes, the residence bounding exercised at node granularity in Trace 6.)
+subtree it denotes.)
 Every request the grammar admits is thus phrased entirely over addresses —
 all of its components denote sets of tumbler addresses — and we call it an *I-address
 request*. There is exactly one kind of request in this grammar; the arrangement-mediated
@@ -156,6 +135,15 @@ tests membership of `home(a)` against that subtree. A wider home span bounds res
 an order-convex *sub-range* of a subtree (T12, ASN-0034) rather than the whole of it;
 `athome` is defined uniformly as coverage membership in either case, so nothing below
 depends on `H` being unit-depth — only the subtree *reading* of the residence bound does.
+Root level interacts with span width the same way: a unit-depth span rooted at an
+*element-level* `p` (`zeros(p) = 3`) covers the subtree of `p`, which contains no
+document-level tumbler, so against it `athome` is uniformly `false`; but a *wide*
+element-rooted span may straddle a length boundary and so cover a document-level tumbler
+— e.g. `p = [1,0,1,0,1,0,1,1]` with `ℓ = [0,0,0,0,1,1,1,1]` (T12-well-formed) gives
+`p ⊕ ℓ = [1,0,1,0,2,1,1,1]`, and the document tumbler `[1,0,1,0,2]` lies in
+`coverage((p, ℓ))` — so `athome(a, H)` can hold for a link homed at that document. The
+traces below exercise only unit-depth spans rooted at organizational prefixes, where the
+subtree reading holds.
 
 ## The satisfaction rule: the AND of the ORs
 
@@ -339,13 +327,15 @@ endsets `X = {(x, δ(1,#x))}` and `Y = {(y, δ(1,#y))}`. By PrefixSpanCoverage (
 `coverage(X) = {t : x ≼ t}` and `coverage(Y) = {t : y ≼ t}`; since `x` and `y` are
 equal-length and distinct they are prefix-incomparable (Prefix, ASN-0034: a proper prefix
 is strictly shorter), so these subtrees are disjoint (T10, PartitionIndependence,
-ASN-0034) and `coverage(X) ∩ coverage(Y) = ∅`. Now let `a` be a link with from-endset
-`e₁ = X` and
-to-endset `e₂ = Y` (its type endset and home are immaterial here). Then
+ASN-0034) and `coverage(X) ∩ coverage(Y) = ∅`. Now let `a ∈ dom(Σ.L)` be a link with
+from-endset `e₁ = X` and to-endset `e₂ = Y`, and let `a ∉ nullified(Σ)` (its type endset
+and home are immaterial here; its addressability is not — FL-DEF ranges over
+`addressable(Σ)`, so `sat` alone does not confer membership). Then
 `coverage(e₁) ∩ coverage(X) ≠ ∅` (it contains `x`), `coverage(e₁) ∩ coverage(Y) = ∅`,
 `coverage(e₂) ∩ coverage(Y) ≠ ∅` (contains `y`), and `coverage(e₂) ∩ coverage(X) = ∅`.
 Checking both requests against FL-DEF: for `q = (∗, X, Y, ∗)`, `lift(e₁, X) = true` and
-`lift(e₂, Y) = true`, so `sat(a, q, Σ)` holds and `a ∈ findlinks((∗, X, Y, ∗), Σ)`; for the
+`lift(e₂, Y) = true`, so `sat(a, q, Σ)` holds and, `a` being addressable by hypothesis,
+`a ∈ findlinks((∗, X, Y, ∗), Σ)`; for the
 reversed `q' = (∗, Y, X, ∗)`, `lift(e₁, Y) ≡ touch(e₁, Y) = (coverage(X) ∩ coverage(Y) ≠ ∅)
 = false`, so `sat(a, q', Σ)` fails and `a ∉ findlinks((∗, Y, X, ∗), Σ)`. Reversing the two
 endpoint constraints is therefore not a no-op.
@@ -409,10 +399,7 @@ constrained slots admit. In the limit `findlinks((∗, ∗, ∗, ∗), Σ) = add
 all currently addressable links — and a single constrained slot yields precisely the
 links matching that slot alone. This is the formal reading of Nelson's "If the home-set
 is the whole docuverse, all links between these two elements are returned" (4/63): an
-unconstrained axis widens, never empties, the result. `addressable(Σ)` here ranges over
-links of *every* arity `N ≥ 3`; a higher-arity link is admitted by the all-wildcard
-request like any other, and under a constrained request is matched on its first three
-endsets alone (its slots `e₄ … eₙ` never enter `sat`).
+unconstrained axis widens, never empties, the result.
 
 A wildcard must not be conflated with a *constrained* slot that happens to bound nothing.
 The request grammar admits both: a slot may be left unspecified (`∗`, NOSPECS) or
@@ -478,9 +465,9 @@ the restriction `a ∈ addressable(Σ)` from the index set and `sat(a, q, Σ)` f
 selector; FL-SND alone delivers only the `sat` conjunct, so the addressability half rests
 on FL-DEF, not FL-SND. *Backward* (`a ∈ addressable(Σ) ∧ sat(a, q, Σ) ⟹ a ∈ findlinks(q, Σ)`):
 this is FL-CMP, no satisfying addressable link omitted. The two directions compose into
-the biconditional. Current additions are included (a newly created matching link enters the
-answer); current withdrawals are excluded (a nullified link leaves it, R6a); the
-surrounding mass of non-matching links is irrelevant (FL-JUNK).
+the biconditional. Current additions are included (a newly created *addressable* matching
+link enters the answer); current withdrawals are excluded (a nullified link leaves it,
+R6a); the surrounding mass of non-matching links is irrelevant (FL-JUNK).
 
 Two stability facts about the snapshot follow from immutability. First, a link's match
 status is *permanent once created*, modulo retraction: `Σ.L(a)` is fixed by L12 and
@@ -515,7 +502,8 @@ Nelson's link model exempts no type from search — "there is essentially nothin
 Xanadu system except documents and their arbitrary links" (4/41), and the search mechanism
 "does not actually look at what is stored under the 'type' … it merely considers the
 type's address" (4/44–4/45), so a type-`Θ` query touching the retraction class returns a
-retraction link like any other. The operation is therefore obliged to surface a fresh
+retraction link like any other (consultation Q2). The operation is therefore obliged to
+surface a fresh
 retraction link when it matches, and its entry has a weakest precondition we must
 characterise — one that differs from the ordinary case precisely because the *same* K.λ
 grows `L_R`, carrying a self-retraction term.
@@ -545,9 +533,11 @@ foundation's coverage equality `coverage(Σ'.L(ℓ).e₃) = coverage(R)` (equiva
 the endset lying in `R`'s `~`-class). This subsumes two sub-cases: the type endset does not match the
 retraction coverage (`coverage(Θ) ≠ coverage(R)`, any arity), *or* the type endset
 does match but the link's arity is not 3 (`coverage(Θ) = coverage(R)` with
-`N > 3` — a higher-arity link FL-WILD keeps in scope, whose slot-3 coverage tests retraction
-yet which never enters the triple-restricted `L_R`). In either sub-case `ℓ ∉ L_R^{Σ'}`, and
-since `ℓ` is the only address `Σ.L` gains, no other tuple enters `L_R` either, so
+`N > 3` — a higher-arity link, still in the result space, whose slot-3 coverage tests retraction
+yet which never enters the triple-restricted `L_R`). In either sub-case `ℓ ∉ L_R^{Σ'}`;
+membership of an *existing* address in `L_R` reads its stored value (the arity-3 conjunct
+and the slot-3 coverage test), and every prior value persists unchanged across K.λ (L12),
+so with `ℓ` the only address `Σ.L` gains, no tuple enters or leaves `L_R`:
 `L_R^{Σ'} = L_R^Σ`. Then
 
   `wp(K.λ, ℓ ∈ findlinks(q, ·)) ≡ ℓ ∉ nullified(Σ') ∧ liftH_d(q.H) ∧ lift(F, q.F) ∧ lift(G, q.G) ∧ lift(Θ, q.Θ)`,
@@ -560,7 +550,8 @@ the two conjuncts in turn.
 The addressability conjunct does *not* drop out by freshness alone, and we must carry it.
 The ordinariness condition above — `ℓ ∉ L_R^{Σ'}` — is exactly what leaves
 the retraction relation fixed: `ℓ` does not enter `L_R` (either its slot-3 coverage is not
-the retraction class, or its arity exceeds 3), and `ℓ` is the only address `Σ.L` acquires,
+the retraction class, or its arity exceeds 3), every prior tuple persists with value
+unchanged (L12), and `ℓ` is the only address `Σ.L` acquires,
 so `L_R^{Σ'} = L_R^Σ`;
 hence by ASN-0086's definition
 `nullified(Σ') = { a ∈ dom(Σ'.L) : (E (b, F', G') ∈ L_R^Σ :: a ∈ coverage(G')) }`. Freshness
@@ -591,15 +582,14 @@ further pre-state dependence — so it equals the four-way conjunction
 *five*-way conjunction: a fresh link enters the answer iff its just-committed value and home meet
 all four lifted criteria of `q` *and* no standing retraction tuple already covers its address.
 
-*(c) Entry of a fresh retraction link.* The ordinariness cut of case (a) sets aside
+*(b) Entry of a fresh retraction link.* The ordinariness cut of case (a) sets aside
 exactly one realisable K.λ result change: the entry of a fresh link that *itself* enters the
-retraction relation. Because the link model exempts no type from search (consultation, Q2 — a
-type-`Θ` query touching the retraction class returns such a link like any other), we compute
+retraction relation; we compute
 its weakest precondition rather than scope it out. Let `Σ → Σ'` be a K.λ step that allocates
 a fresh address `b ∉ dom(Σ.L)` with value `Σ'.L(b) = (F_b, G', Θ_b)` of *arity exactly 3*
 whose type endset matches the retraction coverage — `coverage(Θ_b) = coverage(R)` —
 so by ASN-0086's slot-3 test (now applicable, the arity-3 conjunct met) `b ∈ L_R^{Σ'}`. This
-is precisely the complement of case (a)'s `ℓ ∉ L_R^{Σ'}`, so (a) and (c) partition the
+is precisely the complement of case (a)'s `ℓ ∉ L_R^{Σ'}`, so (a) and (b) partition the
 fresh-link space exhaustively. We do *not* assume the empty-from RetractionDirectionality
 convention: this ASN works over the full ASN-0047 vocabulary, which admits attribution-bearing
 retractions whose from-slot `F_b` may be non-empty (ASN-0086's convention reserves the from-set
@@ -628,13 +618,13 @@ the second is the *self-retraction* term `b ∈ coverage(G')`, in which the very
 committed names its own address (a self-nullifying retraction). Negating,
 `b ∉ nullified(Σ') ≡ ¬(E (c, F'', G'') ∈ L_R^Σ :: b ∈ coverage(G'')) ∧ b ∉ coverage(G')`.
 This is precisely case (a)'s addressability conjunct with the self-retraction term
-`b ∉ coverage(G')` adjoined — the term case (b) sets aside by scope, here *live* because `b`
+`b ∉ coverage(G')` adjoined — the term case (c) below sets aside by scope, here *live* because `b`
 is the fresh retractor's own address. Conjoining matching and addressability gives the
 displayed *six*-way wp: a fresh retraction link enters the answer iff its committed value and
 home meet all four lifted criteria of `q`, no standing retraction tuple already covered its
 address, *and* it does not retract itself.
 
-*(b) Survival of an existing match under retraction.* Let `Σ → Σ'` be a K.λ step that
+*(c) Survival of an existing match under retraction.* Let `Σ → Σ'` be a K.λ step that
 commits a *retraction tuple* whose to-coverage is `coverage(G')` — by ASN-0086 this grows
 `nullified` by exactly the targets in `coverage(G')` (R6b), leaving every link value and
 home untouched (L12). For an existing link `a ∈ dom(Σ.L)`,
@@ -660,17 +650,7 @@ This equation is stated and used only on the existing-link slice `a ∈ dom(Σ.L
 retractor address `b ∈ dom(Σ'.L) \ dom(Σ.L)` lies outside that slice, so the *self-retraction*
 case `b ∈ coverage(G')` — in which `b` nullifies its own address — is excluded by scope and does
 not bear on the conclusion drawn for existing links (its weakest precondition is the subject of
-case (c) above, where it appears as the live self-retraction conjunct `b ∉ coverage(G')`). (On
-the existing-link slice `dom(Σ.L)` — all this case uses — the increment is exactly
-`nullified(Σ') ∩ dom(Σ.L) = (nullified(Σ) ∪ coverage(G')) ∩ dom(Σ.L)`, which the
-singleton-extension premise `L_R^{Σ'} = L_R^Σ ∪ {(b, ∅, G')}` discharges alongside R6b. We do
-*not* assert the corresponding equation over the full post-state index `dom(Σ'.L)`: the naive
-`nullified(Σ) ∪ {t ∈ dom(Σ'.L) : t ∈ coverage(G')}` would omit the fresh retractor `b` whenever
-`b ∉ coverage(G')` yet `b` is covered by a *pre-existing* tuple `(c, F'', G'') ∈ L_R^Σ` with
-`b ∈ coverage(G'')` — the ghost-pre-coverage hazard of case (a) — so over the full index the
-newly-nullified set is `(coverage(G') ∩ dom(Σ.L) \ nullified(Σ))` plus the fresh `b` nullified by
-*either* `G'` *or* a pre-existing tuple, and the "exact" simplification fails. Case (b) needs only
-the `dom(Σ.L)` slice, where the fresh-`b` terms do not arise.)
+case (b) above, where it appears as the live self-retraction conjunct `b ∉ coverage(G')`).
 R6b discharges only the ⟸ (⊇) half — that hitting `coverage(G')` forces nullification — while
 the displayed split supplies the ⟹ (⊆) half from the singleton extension of `L_R`. Negating,
 `a ∈ addressable(Σ') ⟺ a ∉ nullified(Σ) ∧ a ∉ coverage(G')`. Conjoining with `sat` and
@@ -691,12 +671,11 @@ attach to bytes — to I-addresses (content identity) — not to V-positions:
 Editing operations rewrite arrangements `Σ.M`; they do not touch the link store `Σ.L`
 (F-PRES, ASN-0127; values immutable, L12) nor the content store `Σ.C` (append-only, S0),
 and they do not alter the I-addresses an endset references. Because every request is phrased over I-addresses (the
-content-identity regime — there is no other kind in the grammar), `sat` depends only on
+content-identity regime), `sat` depends only on
 `Σ.L`, on link addresses, and on the fixed `q`. None of these moves under editing.
 
 **FL-STB (stability under editing).** For a transition `Σ → Σ'` that preserves the link
-store — `Σ'.L = Σ.L` — and any
-request `q` (necessarily an I-address request, the grammar's only kind),
+store — `Σ'.L = Σ.L` — and any request `q`,
 `findlinks(q, Σ') = findlinks(q, Σ)`. This is an instance of ASN-0127's meta-lemma F-CIL
 (ComprehensionInvariantUnderΣL): FL-DEF is the comprehension
 `{ a ∈ dom(Σ.L) : a ∉ nullified(Σ) ∧ sat(a, q, Σ) }`, and its membership predicate
@@ -764,8 +743,8 @@ of `Σ.L`, `nullified(Σ)`, and `q` *alone* — the arrangements `Σ.M` do not a
 it. The search is therefore intrinsically a global content-identity sieve over the link
 store, not a per-document enumeration.
 
-**FL-REACH (cross-document reach).** For any request `q` (an I-address request, the
-grammar's only kind), `findlinks(q, Σ)` is independent of `Σ.M`. Four consequences
+**FL-REACH (cross-document reach).** For any request `q`, `findlinks(q, Σ)` is
+independent of `Σ.M`. Four consequences
 follow. *(a) Every home is reached.* The store is
 searched whole; a link is eligible regardless of which document homes it, so in-links —
 stored in documents other than the one being read — are found on equal footing with
@@ -917,7 +896,7 @@ wildcard `H = ∗` of Trace 1 imposes no test at all. The node-rooted span verif
 the home-set bounds residence at node — and, by the same construction, account or
 document — granularity.
 
-*Trace 7 — FL-WP's load-bearing hazards (case (a) ghost-pre-coverage, case (c)
+*Trace 7 — FL-WP's load-bearing hazards (case (a) ghost-pre-coverage, case (b)
 self-retraction).* The earlier traces fix the store and vary `q`; here we exercise the two
 subtle conjuncts of FL-WP against a concrete K.λ step. Fix a retraction-type representative
 at address `ρ = [1,0,1,0,9,0,3,7]` in the type subspace, so `coverage(R) = {t : ρ ≼ t}`;
@@ -940,12 +919,12 @@ The matching conjunct holds: `lift(X, q.F) = lift(Y, q.G) = true`, home/type wil
 despite the match. The wp correctly predicts absence, exhibiting the addressability conjunct as
 non-vacuous: freshness against `dom(Σ.L)` does not discharge it.
 
-*Case (c), self-retraction.* Now a K.λ step allocates the fresh address `b` with the arity-3
+*Case (b), self-retraction.* Now a K.λ step allocates the fresh address `b` with the arity-3
 retraction value `(∅, G_self, {ρ}-subtree)`, where `G_self` is a unit-depth span covering
 `{t : b ≼ t}` — `b`'s *own* subtree. Then `coverage({ρ}-subtree) = coverage(R)` with arity 3,
 so `b ∈ L_R^{Σ'}` and `L_R^{Σ'} = L_R^Σ ∪ {(b, ∅, G_self)}`. Take `q = (∗, ∗, ∗, Θ_ρ)`: the
 type slot matches (`lift({ρ}-subtree, Θ_ρ) = true`), the other slots wildcard, so
-`sat(b, q, Σ')`. But FL-WP(c)'s self-retraction conjunct `b ∉ coverage(G')` is *false* —
+`sat(b, q, Σ')`. But FL-WP(b)'s self-retraction conjunct `b ∉ coverage(G')` is *false* —
 `b ∈ coverage(G_self)` by reflexivity of `≼` — so `b ∈ nullified(Σ')` and `b ∉ findlinks(q, Σ')`:
 the link nullifies its own address. The wp's sixth conjunct is exactly what predicts this. (Had
 `b` instead carried arity `N > 3` with the same retraction-class type, ASN-0086's triple
@@ -966,9 +945,9 @@ would be returned by `q` whenever no *standing* tuple covered it.)
 | FL-TYP | Type by address — the type criterion tests `coverage(e₃)` by address overlap, never reads stored content; ghost types are matchable, type may be constrained alone, and prefix-rooted type spans match subtype subtrees | introduced |
 | FL-WILD | Wildcard semantics — a wildcard slot drops from the conjunction (universal), not empties it; all-wildcard returns all addressable links of every arity `N ≥ 3`, with no endset entering the matching predicate `sat` (every `lift` is `true` independent of endset content); addressability is still determined by reading retraction-link endsets to compute `nullified`; under a *constrained* request a link is matched on its first three endsets `e₁, e₂, e₃` alone (slots `e₄ … eₙ` never enter `sat`) | introduced |
 | FL-EMP | Empty-constraint zero — a constrained slot with empty coverage (`∅`) gives `lift = false` for every link, so any empty constrained component forces `findlinks(q, Σ) = ∅`; empty-spec (zero) is distinct from wildcard/NOSPECS (unit). By the symmetry of `touch`, the same zero applies to a *link's* own empty endset (L3 permits `e₁ = ∅` or `e₂ = ∅`): such a link is excluded from any constrained from-/to-slot and admitted on that axis only under the corresponding wildcard | introduced |
-| FL-CUR | Currency — `a ∈ findlinks(q, Σ) ⟺ a ∈ addressable(Σ) ∧ sat(a, q, Σ)`, the conjunction of FL-SND and FL-CMP against `addressable(Σ)`: current additions in, current retractions out, non-matches irrelevant | introduced |
+| FL-CUR | Currency — `a ∈ findlinks(q, Σ) ⟺ a ∈ addressable(Σ) ∧ sat(a, q, Σ)`, the conjunction of FL-SND and FL-CMP against `addressable(Σ)`: current addressable additions in, current retractions out, non-matches irrelevant | introduced |
 | FL-MON | Monotone accumulation absent retraction — an unretracted matching link, once found, stays found as the store grows | introduced |
-| FL-WP | Weakest precondition for the unique result-changing transition (K.λ), in its three result-changing cases, partitioned by retraction-relation membership `L_R^{Σ'}` (arity 3 ∧ slot-3 coverage equality `coverage(Σ'.L(a).e₃) = coverage(R)`), not coverage match alone — `(a)` a fresh *ordinary* link (`ℓ ∉ L_R^{Σ'}`, i.e. `coverage(Θ) ≠ coverage(R)` of any arity *or* `coverage(Θ) = coverage(R)` with arity `> 3`) enters the answer iff `ℓ ∉ nullified(Σ') ∧ liftH_d(q.H) ∧ lift(F, q.F) ∧ lift(G, q.G) ∧ lift(Θ, q.Θ)`, where the addressability conjunct `ℓ ∉ nullified(Σ') ≡ ¬(E (b, F', G') ∈ L_R^Σ :: ℓ ∈ coverage(G'))` is *not* discharged by freshness alone (a pre-existing retraction tuple may cover the ghost-allocated `ℓ`; cf. ASN-0086 wp Case 2), and is carried explicitly absent a retraction discipline; `(c)` a fresh *retraction* link (`b ∈ L_R^{Σ'}`: arity 3, `coverage(Θ_b) = coverage(R)`, value `(F_b, G', Θ_b)` with arbitrary, possibly attribution-bearing, from-endset `F_b`) enters iff `¬(E (c, F'', G'') ∈ L_R^Σ :: b ∈ coverage(G'')) ∧ b ∉ coverage(G') ∧ liftH_d(q.H) ∧ lift(F_b, q.F) ∧ lift(G', q.G) ∧ lift(Θ_b, q.Θ)` — case (a)'s conjunction with `L_R` extended by `b`'s own tuple and the live self-retraction conjunct `b ∉ coverage(G')` (which depends only on slot 3 and to-coverage, hence is unaffected by `F_b`); (a) and (c) are complementary and exhaustive over the fresh-link space; `(b)` an existing match survives a retraction-bearing K.λ iff `a ∈ findlinks(q, Σ) ∧ a ∉ coverage(G')` | introduced |
+| FL-WP | Weakest precondition for the unique result-changing transition (K.λ), in its three result-changing cases, partitioned by retraction-relation membership `L_R^{Σ'}` (arity 3 ∧ slot-3 coverage equality `coverage(Σ'.L(a).e₃) = coverage(R)`), not coverage match alone — `(a)` a fresh *ordinary* link (`ℓ ∉ L_R^{Σ'}`, i.e. `coverage(Θ) ≠ coverage(R)` of any arity *or* `coverage(Θ) = coverage(R)` with arity `> 3`) enters the answer iff `ℓ ∉ nullified(Σ') ∧ liftH_d(q.H) ∧ lift(F, q.F) ∧ lift(G, q.G) ∧ lift(Θ, q.Θ)`, where the addressability conjunct `ℓ ∉ nullified(Σ') ≡ ¬(E (b, F', G') ∈ L_R^Σ :: ℓ ∈ coverage(G'))` is *not* discharged by freshness alone (a pre-existing retraction tuple may cover the ghost-allocated `ℓ`; cf. ASN-0086 wp Case 2), and is carried explicitly absent a retraction discipline; `(b)` a fresh *retraction* link (`b ∈ L_R^{Σ'}`: arity 3, `coverage(Θ_b) = coverage(R)`, value `(F_b, G', Θ_b)` with arbitrary, possibly attribution-bearing, from-endset `F_b`) enters iff `¬(E (c, F'', G'') ∈ L_R^Σ :: b ∈ coverage(G'')) ∧ b ∉ coverage(G') ∧ liftH_d(q.H) ∧ lift(F_b, q.F) ∧ lift(G', q.G) ∧ lift(Θ_b, q.Θ)` — case (a)'s conjunction with `L_R` extended by `b`'s own tuple and the live self-retraction conjunct `b ∉ coverage(G')` (which depends only on slot 3 and to-coverage, hence is unaffected by `F_b`); (a) and (b) are complementary and exhaustive over the fresh-link space; `(c)` an existing match survives a retraction-bearing K.λ iff `a ∈ findlinks(q, Σ) ∧ a ∉ coverage(G')` | introduced |
 | FL-STB | Stability under editing — for any request (the grammar's only kind being I-address requests), the result is invariant under any transition preserving `Σ.L`; an instance of F-CIL (ComprehensionInvariantUnderΣL, ASN-0127), FL-DEF's membership predicate consulting only `Σ.L` and query-data, so retraction-set preservation follows from the single link-store hypothesis; pure-arrangement edits and content appends (F-PRES, ASN-0127) do not change which links are returned | introduced |
 | FL-RET | Retraction absence — a retracted link is permanently and completely absent from every subsequent current-state inquiry, and its absence does not impede other results | introduced |
 | FL-REACH | Cross-document reach — for any request `findlinks` is independent of `Σ.M`: global over the store, finds transcluded content once, returns all links under a whole-docuverse home-set, and contains every satisfying, addressable link that any document surfaces — `findlinks(q, Σ) ⊇ ⋃_d { a : a ∈ addressable(Σ) ∧ sat(a, q, Σ) ∧ discoverable_from(a, d, Σ) }`, strict given satisfying orphans (not a superset of the bare, request-independent discoverable union) | introduced |
