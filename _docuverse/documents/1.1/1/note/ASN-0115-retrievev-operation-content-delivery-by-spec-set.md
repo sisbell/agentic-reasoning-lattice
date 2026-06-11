@@ -180,6 +180,59 @@ RETRIEVEV is a *pure query*: `deliver(R, Σ)` is a function of state that modifi
 no component of `Σ` and appears in no transition of the substrate's vocabulary
 (cf. ASN-0086, Observe).
 
+Several worked instances below need a spec that names *exactly one* bound
+position — and "names `v`" alone does not determine a span, since many ordinal
+spans contain `v` and some capture further bound positions besides. The
+following lemma packages the canonical such construction once: the unit-width
+span rooted at a bound position is a well-formed spec whose active set is
+exactly that one position.
+
+> **UnitSpec (lemma).** Let `d ∈ dom(Σ.M)` and let `v ∈ dom(Σ.M(d))` be a bound
+> position; write `S = subspace(v)` and `a = Σ.M(d)(v)`. Define the *unit spec
+> at `v`*: `unit(d, v) = (d, (v, δ(1, #v)))`, with `δ` the ordinal displacement
+> of ASN-0034. Then:
+>
+> (a) *Well-formedness.* `unit(d, v)` is a V-spec in the sense above: its start
+> has the required V-position shape, and its span is well-formed (T12),
+> level-uniform, and ordinal-level.
+>
+> (b) *Depth compatibility.* `depthcompat(unit(d, v), Σ)` holds.
+>
+> (c) *Singleton active set.* `act(unit(d, v), Σ) = {v}`.
+>
+> (d) *Unit delivery.* `deliver₁(unit(d, v), Σ)` is the one-item sequence
+> `⟨item(v, unit(d, v), Σ)⟩` — `⟨⟨content, Σ.C(a)⟩⟩` when `S = s_C`,
+> `⟨⟨ref, a⟩⟩` when `S = s_L`; no third case arises.
+>
+> *Proof.* (a) The start `v` inherits its shape from S8a (ASN-0036), which every
+> bound position satisfies: `zeros(v) = 0`, `#v ≥ 2`, every component positive.
+> The width `δ(1, #v) = [0, …, 0, 1]` of length `#v` (OrdinalDisplacement,
+> ASN-0034) satisfies `Pos(δ(1, #v))` and `actionPoint(δ(1, #v)) = #v`, so the
+> span meets T12 (`actionPoint(ℓ) = #v ≤ #v = #s`), is level-uniform
+> (`#ℓ = #v = #s`), and is ordinal-level (`actionPoint(ℓ) = #ℓ`); and
+> `d ∈ dom(Σ.M)` by hypothesis.
+>
+> (b) `v ∈ dom(Σ.M(d))` with `subspace(v) = S` puts `v ∈ V_S(d)`, so
+> `V_S(d) ≠ ∅`, and S8-depth (ASN-0036) pins the common depth `m_S(d) = #v`.
+> The start is `v` itself, so `#s = #v = m_S(d)` — `depthcompat` holds by its
+> second disjunct.
+>
+> (c) By (b), `act` takes its geometric branch,
+> `act(unit(d, v), Σ) = dom(Σ.M(d)) ∩ ⟦σ⟧` with `σ = (v, δ(1, #v))`, and by
+> PrefixSpanCoverage (ASN-0043) the unit-width denotation is the prefix subtree,
+> `⟦σ⟧ = {t ∈ T : v ≼ t}`. *Lower bound:* `v ≼ v` (Prefix is reflexive) and
+> `v ∈ dom(Σ.M(d))` by hypothesis, so `v ∈ act`. *Upper bound:* let `t ∈ act`.
+> Then `v ≼ t`, so `t` agrees with `v` on positions `1 … #v` (Prefix, ASN-0034)
+> — in particular `subspace(t) = t₁ = v₁ = S` — and `t ∈ dom(Σ.M(d))`, so
+> `t ∈ V_S(d)`; S8-depth then pins `#t = m_S(d) = #v`. A prefix at equal length
+> is equality: `v ≼ t` with `#t = #v` is agreement at every position of a shared
+> length, so `t = v` (Prefix; T3, ASN-0034). Hence `act(unit(d, v), Σ) = {v}`.
+>
+> (d) By (c) the ascending enumeration of the active set is `⟨v⟩`, so
+> `deliver₁(unit(d, v), Σ) = ⟨item(v, unit(d, v), Σ)⟩`, and the case split on
+> `S` is the `item` definition — exhaustive because S3★-aux places every bound
+> position's subspace in `{s_C, s_L}`. ∎
+
 ## Delivery returns material, not location
 
 The first thing to settle is *what kind of thing* comes back. The contrast
@@ -566,9 +619,14 @@ bytes are delivered once per V-position.
 
 *Worked instance.* Let document `d` transclude one stretch of content twice: V-positions `u`
 and `w` (with `u < w`, both in subspace `s_C`) both map to the same content
-address `a`, i.e. `Σ.M(d)(u) = Σ.M(d)(w) = a`. Take the spec-set
-`R = ⟨(d, σ_w), (d, σ_u)⟩` whose first spec names `w` and whose second names `u`.
-Then `deliver(R, Σ) = ⟨⟨content, Σ.C(a)⟩, ⟨content, Σ.C(a)⟩⟩`: two items, the
+address `a`, i.e. `Σ.M(d)(u) = Σ.M(d)(w) = a`. Take the spec-set of the two unit
+specs in reverse V-order, `R = ⟨unit(d, w), unit(d, u)⟩` — explicitly
+`⟨(d, (w, δ(1, #w))), (d, (u, δ(1, #u)))⟩`. Both positions are bound, so UnitSpec
+applies to each spec: `act(unit(d, w), Σ) = {w}` and `act(unit(d, u), Σ) = {u}`
+(UnitSpec (c)), and each per-spec delivery is the single item
+`⟨⟨content, Σ.C(a)⟩⟩` (UnitSpec (d), at `S = s_C`). Concatenating in spec-set
+order (R0),
+`deliver(R, Σ) = ⟨⟨content, Σ.C(a)⟩, ⟨content, Σ.C(a)⟩⟩`: two items, the
 *same* value both times (R8.i), in the order the specs were given — `w` before
 `u`, against V-magnitude (R5) — with neither dropped (R8.iii). The two appearances resolve
 through the single address `a` — a fact of the resolution, not of the delivered
@@ -616,12 +674,13 @@ content position `v₂` (`subspace(v₂) = s_C`) to a content address `a₂ ∈ 
 that `d₂` allocated, so `origin(a₂) = d₂`. Because `d₁ ≠ d₂` were distinct
 allocating documents, S7(c) (StructuralAttribution) gives `origin(a₁) ≠
 origin(a₂)` — the two fragments carry distinct, determinate home documents. Build
-the cross-document spec-set `R = ⟨(d₁, σ₁), (d₂, σ₂)⟩`, where `σ₁` is an
-`s_C`-rooted ordinal span over `d₁` naming `v₁` and `σ₂` is an `s_C`-rooted
-ordinal span over `d₂` naming `v₂`. By R4 each spec is resolved against its own
-arrangement in isolation: `(d₁, σ₁)` through `Σ.M(d₁)` yields
-`act((d₁,σ₁),Σ) = {v₁}` and item `⟨content, Σ.C(a₁)⟩`; `(d₂, σ₂)` through
-`Σ.M(d₂)` yields `act((d₂,σ₂),Σ) = {v₂}` and item `⟨content, Σ.C(a₂)⟩`. (a)
+the cross-document spec-set of unit specs `R = ⟨unit(d₁, v₁), unit(d₂, v₂)⟩` —
+explicitly `⟨(d₁, (v₁, δ(1, #v₁))), (d₂, (v₂, δ(1, #v₂)))⟩`. Each `vⱼ` is bound
+in its own document, so UnitSpec applies per spec. By R4 each spec is resolved
+against its own arrangement in isolation: `unit(d₁, v₁)` through `Σ.M(d₁)` yields
+`act(unit(d₁, v₁), Σ) = {v₁}` (UnitSpec (c)) and the single item
+`⟨content, Σ.C(a₁)⟩` (UnitSpec (d)); `unit(d₂, v₂)` through `Σ.M(d₂)` yields
+`act(unit(d₂, v₂), Σ) = {v₂}` and item `⟨content, Σ.C(a₂)⟩`. (a)
 Coherent ordered assembly: by R0's concatenation in spec-set order,
 `deliver(R, Σ) = ⟨⟨content, Σ.C(a₁)⟩, ⟨content, Σ.C(a₂)⟩⟩` — `d₁`'s item precedes
 `d₂`'s item because spec 1 precedes spec 2 (R5), irrespective of the T1-magnitudes
@@ -667,14 +726,16 @@ references intermixed, with the boundary visible in the tagging.
 *Worked instance.* Let document `d` bind a content position
 `v_C` (`subspace(v_C) = s_C`) to a content address `a_C ∈ dom(Σ.C)`, and a link
 position `v_L` (`subspace(v_L) = s_L`) to a link address `a_L ∈ dom(Σ.L)`; the
-two are disjoint stores (SD). Build a two-spec spec-set with one span per
-subspace: `R = ⟨(d, σ_C), (d, σ_L)⟩`, where `σ_C` is an `s_C`-rooted ordinal span
-naming `v_C` and `σ_L` is an `s_L`-rooted ordinal span naming `v_L`. Each span,
-being ordinal-level, stays within its own subspace (Confinement lemma), so
-neither straddles. Resolving the first spec gives
-`subspace(v_C) = s_C`, hence by S3★ `a_C ∈ dom(Σ.C)` and item
-`⟨content, Σ.C(a_C)⟩`; resolving the second gives `subspace(v_L) = s_L`, hence by
-S3★ `a_L ∈ dom(Σ.L)` and item `⟨ref, a_L⟩`. Therefore
+two are disjoint stores (SD). Build a two-spec spec-set of unit specs, one per
+subspace: `R = ⟨unit(d, v_C), unit(d, v_L)⟩` — explicitly
+`⟨(d, (v_C, δ(1, #v_C))), (d, (v_L, δ(1, #v_L)))⟩`. Each unit span is
+ordinal-level (UnitSpec (a)), so it stays within its own subspace (Confinement
+lemma) and neither straddles; both positions are bound, so UnitSpec (c) gives
+`act(unit(d, v_C), Σ) = {v_C}` and `act(unit(d, v_L), Σ) = {v_L}`. Resolving the
+first spec gives `subspace(v_C) = s_C`, hence by S3★ `a_C ∈ dom(Σ.C)` and the
+single item `⟨content, Σ.C(a_C)⟩` (UnitSpec (d)); resolving the second gives
+`subspace(v_L) = s_L`, hence by S3★ `a_L ∈ dom(Σ.L)` and the single item
+`⟨ref, a_L⟩` (UnitSpec (d)). Therefore, concatenating in spec-set order (R0),
 `deliver(R, Σ) = ⟨⟨content, Σ.C(a_C)⟩, ⟨ref, a_L⟩⟩` — a heterogeneous stream
 whose two items differ in tag (`content` vs `ref`), and the subspace boundary
 between the two specs is observable precisely as that change of item kind. A
@@ -734,13 +795,15 @@ binding of `v_d`: the post-state `Σ'` has `v_d ∉ dom(Σ'.M(d))`, so `a` is
 orphaned relative to `d`. Yet `a` never leaves the store — `dom(Σ.C) ⊆ dom(Σ'.C)`
 and `Σ'.C(a) = Σ.C(a)` by S0/S1 — and the contraction touches only `Σ.M(d)`, so
 `Σ'.M(d')(v') = a` still holds (ASN-0047, K.μ⁻ frame: `(A d'' : d'' ≠ d :
-M'(d'') = M(d''))`). Take the spec-set `R = ⟨(d', σ')⟩` whose single span is the
-unit-width span rooted at `v'` — `σ' = (v', δ(1, #v'))`, so its start `s = v'` sits
-at `#s = #v' = m_{s_C}(d')` (S8-depth, since `v' ∈ V_{s_C}(d')`), making `σ'`
-depth-compatible at `Σ'`. Then `act((d', σ'), Σ')` takes its geometric branch and
-contains `v'` (since `v' ∈ dom(Σ'.M(d')) ∩ ⟦σ'⟧`), the resolution is
+M'(d'') = M(d''))`). Take the single-unit-spec request `R = ⟨unit(d', v')⟩`,
+whose span is the unit-width span rooted at `v'` — `σ' = (v', δ(1, #v'))`. Since
+`v'` is bound in `Σ'.M(d')` with `subspace(v') = s_C`, UnitSpec applies at `Σ'`:
+the spec is depth-compatible (UnitSpec (b), `#v' = m_{s_C}(d')` by S8-depth since
+`v' ∈ V_{s_C}(d')`), its active set is exactly the singleton
+`act(unit(d', v'), Σ') = {v'}` (UnitSpec (c)), the resolution is
 `Σ'.M(d')(v') = a`, and
-`deliver(R, Σ') = ⟨⟨content, Σ'.C(a)⟩⟩` — the spec over the *surviving* version
+`deliver(R, Σ') = ⟨⟨content, Σ'.C(a)⟩⟩` (UnitSpec (d)) — the spec over the
+*surviving* version
 delivers `Σ.C(a)` even though `d`'s current arrangement no longer references it.
 The wp's single live condition (i) holds at `d'` though it has been falsified at
 `d`; deletion-as-contraction is local to the arrangement it edits, never to the
