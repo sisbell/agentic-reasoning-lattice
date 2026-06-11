@@ -537,14 +537,7 @@ witnesses:
 
 This is the precise sense of Nelson's survivability clause restricted to
 insertion (4/43): because insertion removes nothing, *every* link survives with
-its designated content unchanged. The resolved witnesses are V-positions, and the
-suffix witnesses are *relabelled* by `v ↦ shift(v, n)` — so the post-insert
-V-position set is not in general a superset of the prior one (IP4's case split
-below makes the conditions precise). What is monotone is the
-*count* of witnesses and the *resolved content*: each prior witness maps
-injectively to a surviving one (left verbatim, suffix shifted, cross-subspace
-verbatim), and the new block can only add witnesses, never remove or redirect. We
-record it.
+its designated content unchanged. We record it.
 
 **IP4 (LinkSurvival).** *For every prior link `a ∈ dom(Σ.L)` and every slot `i`,
 with `e = Σ.L(a).eᵢ` its endset, LP3★ (with LP13 across the composite, ASN-0098) fixes
@@ -654,7 +647,12 @@ the whole composite (LP13 + **LP3★ (MultiStepCoverageInvariance, ASN-0098)**, 
     ⟺ discoverable_from(a, d, Σ)  ∨  (E i : coverage(eᵢ) ∩ A_new ≠ ∅).
 ```
 
-Therefore `D(d, Σ') = D(d, Σ) ∪ Added`, where
+The biconditional is per-link, quantified over the *prior* links `a ∈ dom(Σ.L)`.
+To lift it to the sets, the quantification must exhaust `D(d, Σ')` — which is by
+definition a subset of `dom(Σ'.L)` — and F-LINK supplies exactly this:
+`Σ'.L = Σ.L`, hence `dom(Σ'.L) = dom(Σ.L)`, so the composite mints no link and
+every member of `D(d, Σ')` is a prior link the biconditional covers. Therefore
+`D(d, Σ') = D(d, Σ) ∪ Added`, where
 `Added = {a ∈ dom(Σ.L) : (E i : coverage(Σ.L(a).eᵢ) ∩ A_new ≠ ∅)}` is the set of
 links the freshly minted run would newly witness. Since `D(d, Σ')` is the *union*
 of the prior set with `Added`, the two coincide iff `Added ⊆ D(d, Σ)` — **not** iff
