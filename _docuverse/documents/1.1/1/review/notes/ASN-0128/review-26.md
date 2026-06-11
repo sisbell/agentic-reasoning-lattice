@@ -1,0 +1,28 @@
+# Review of ASN-0128
+
+## REVISE
+
+### Issue 1: I0's closing claim overstates what the case analysis proves
+**ASN-0128, Idem operational semantics, I0**: "No query, matching or enumerating, selects between coverage-equal tuples by content; we reject the finer criterion for that reason."
+**Problem**: False as stated against the note's own operation set. "The operation set" ships `Observe_K` as "ASN-0086's read unchanged," and that read returns elements of `L_K^Σ` — full triples `(a, F, G)`, address-attributed, endsets included. Two co-active coverage-equal tuples with different denoted sets (I0a's separating pair — a configuration the sentence itself contemplates, since it is exactly what the rejected finer criterion would admit, and one that arises today under `idem = ⊥` per I5 or off-surface) are separated *by content* directly in `Observe_K`'s result: the caller sees two triples with different G decompositions, each pinned to its own address. The enumeration family is not clean either — its *results* reflect denoted-set differences, which I1's hit clause explicitly concedes ("Every enumeration predicate thereafter reflects the incumbent tuple's denoted sets, never the suppressed call's"). What the preceding case analysis actually establishes is strictly narrower: no *argument* — denotation-keyed or coverage-keyed — selects one member of a coverage-equal pair over the other. Since this sentence is the stated ground for adopting coverage equality over denoted-set equality, the overclaim sits under the design decision itself.
+**Required**: Restate the conclusion in the argument-matching sense the cases prove — e.g., "no argument, matching or enumeration-keyed, separates coverage-equal tuples; their decompositions surface only in result position, where the matching surfaces are blind to them and the enumeration unions cannot be steered between them" — and rest the rejection of the finer criterion on that property together with I1's priced suppression loss; or scope "query" explicitly to the predicate family's argument matching, excluding `Observe_K`'s result position.
+
+### Issue 2: I3 asserts class emptiness that does not follow
+**ASN-0128, Idem operational semantics, I3**: "a later `idem = ⊤` emit with the same `(F, G)` does not see a born-nullified tuple in its dedup check; it consults only the active subset, which is empty for that pair."
+**Problem**: The final clause is a non sequitur. I3's hypothesis is only that one gate-clearing emit was born nullified. Between that deposit and "a later" emit, an intervening same-pair emit is a miss (the class is active-empty at that point), and if *its* deposit lands active the class is non-empty — the later emit is then a hit, not a fresh attempt. What follows unconditionally from I2 is only that the born-nullified tuple itself is invisible to the dedup check; emptiness of the whole I0-class requires the additional assumption that no intervening deposit filled it.
+**Required**: Replace "which is empty for that pair" with "from which the born-nullified tuple is absent" (or condition the emptiness claim on no intervening same-class deposit landing active).
+
+### Issue 3: branch semantics stated three times (anti-bloat)
+**ASN-0128, Idem operational semantics — I1, "The exposed signature," and I6**: the exposed-signature paragraph reads "Three outcomes. *Rejection* — no step, no address — … *Hit* (idem=⊤ only) — `Σ' = Σ` and the incumbent's address, `d` unread, the call admitted whatever the home slot holds (I1). *Deposit* — the `K.λ_sh` step under ASN-0086's emit contract…"
+**Problem**: The hit/miss/rejection semantics are stated normatively in I1 (four clauses) and I5, restated by the exposed-signature paragraph's outcome list, and restated a third time inside I6 ("Hit. No step: `Σ' = Σ`; returned address `a★ = a'` … The branch reads no further input — `d` in particular is not consulted (I1)"). The note's own commitments bullet bills I6 as the consolidation ("a full hit/miss contract consolidated with its caller-facing weakest precondition (I6)"); the signature paragraph's enumeration is the same content in different words, each clause a citation back to I1/I5/I6 — the same-thing-twice pattern this note's classifier flags, here three times across one section.
+**Required**: Keep the branch semantics in exactly two places with distinct jobs — I1/I5 as the operational definition, I6 as the caller-facing contract and wp — and reduce the exposed-signature paragraph to what is new there: the content slots narrowed to address sets with `enc`, the widened home slot, partiality, and arity-by-construction, with a pointer to I6 for the outcome taxonomy.
+
+## OUT_OF_SCOPE
+
+### Topic 1: The serializing authority behind I4
+**Why out of scope**: I4 posits "a serializing authority orders the two calls before either becomes a step," which silently makes each surface call's read-then-step (the dedup consultation of `A_K^Σ` plus the deposit) atomic against interleaving. That is the right modeling boundary — `→_sh` inherits a relation with no concurrency semantics — but specifying the authority (granularity of its atomic sections, whether a `retract_stale` batch may claim one, fairness) is new machinery for a successor, not an error here.
+
+### Topic 2: Rejection signaling at the API surface
+**Why out of scope**: The exposed operations are partial — "no step, no address" — and S3 fixes the state-side error semantics. Whether a caller can observe *why* a call was rejected (gate failure vs. invalid home vs. P-tgt failure), and what value, if any, a rejection returns, is an interface question the substrate model deliberately doesn't reach; it belongs with the query/protocol layer, not in a revision of this note.
+
+VERDICT: REVISE
