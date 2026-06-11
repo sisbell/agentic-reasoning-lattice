@@ -139,7 +139,11 @@ def _parse_assignment(response, asn_id):
     for line in response.split("\n"):
         line = line.strip()
 
-        m = re.match(r"##\s+Issue\s+(\d+):\s*(.+)", line)
+        # Tolerate a parenthetical between number and colon — review
+        # headings like "Issue 2 (anti-bloat): ..." are copied verbatim
+        # into the assignment, and dropping them un-covers the finding,
+        # livelocking the consult trigger.
+        m = re.match(r"##\s+Issue\s+(\d+)[^:]*:\s*(.+)", line)
         if m:
             if current:
                 items.append(current)
