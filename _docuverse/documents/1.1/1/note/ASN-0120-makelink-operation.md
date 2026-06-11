@@ -660,17 +660,41 @@ Fix four documents `A`, `B`, `C`, `D`, all in `dom(Σ.M)`, and create a link hom
 in `C` that connects content of `A` to content of `B`, typed by content of `D` —
 touching nothing in `C`. This is the annotation shape of ML4.
 
-*Source content.* In `A`, two active V-positions map to content I-addresses
-`a₁ = A.0.s_C.1` and `a₂ = A.0.s_C.2`, so `{a₁, a₂} ⊆ ran(Σ.M(A))`. In `B`, one
-active V-position maps to `b₁ = B.0.s_C.1`, so `b₁ ∈ ran(Σ.M(B))`. The type
-content lives in a fourth document `D ∈ dom(Σ.M)`, `D ∉ {A, B, C}`: one active
-V-position of `D` maps to `θ₁ = D.0.s_C.1`, so `θ₁ ∈ ran(Σ.M(D))`. The home `C`'s
-arrangement reaches none of these addresses:
+*Source content.* Take the three source arrangements at depth 2 in the content
+subspace, where D-SEQ★ (ASN-0047) fixes the canonical position shape. In `A`,
+two active V-positions: `V_{s_C}(A) = {[s_C, 1], [s_C, 2]}`, mapping to content
+I-addresses `Σ.M(A)([s_C, 1]) = a₁ = A.0.s_C.1` and
+`Σ.M(A)([s_C, 2]) = a₂ = A.0.s_C.2`, so `{a₁, a₂} ⊆ ran(Σ.M(A))`. In `B`, one:
+`V_{s_C}(B) = {[s_C, 1]}` with `Σ.M(B)([s_C, 1]) = b₁ = B.0.s_C.1`. The type
+content lives in a fourth document `D ∈ dom(Σ.M)`, `D ∉ {A, B, C}`, again with
+one: `V_{s_C}(D) = {[s_C, 1]}` with `Σ.M(D)([s_C, 1]) = θ₁ = D.0.s_C.1`. The
+home `C`'s arrangement reaches none of these addresses:
 `{a₁, a₂, b₁, θ₁} ∩ ran(Σ.M(C)) = ∅`.
 
-*Arguments.* `from = R₁` resolves to `ρ(R₁, Σ) = {a₁, a₂}`; `to = R₂` resolves to
-`ρ(R₂, Σ) = {b₁}`; `type = R₃` resolves to `ρ(R₃, Σ) = {θ₁} ≠ ∅`, so the type
-precondition of ML6 is met; `home = C`.
+*Arguments.* The three spec-sets are exhibited concretely against these
+arrangements — each a single V-spec over its source:
+
+> `R₁ = ⟨(A, σ₁)⟩` with `σ₁ = ([s_C, 1], δ(2, 2))`;  `R₂ = ⟨(B, ([s_C, 1], δ(1, 2)))⟩`;  `R₃ = ⟨(D, ([s_C, 1], δ(1, 2)))⟩`;  `home = C`.
+
+We trace `R₁`'s resolution end to end; the other two are the same computation at
+width 1. *Well-formedness:* `wf(R₁, Σ)` checks its one spec — the source is
+allocated (`A ∈ dom(Σ.M)`, stipulated), the start lies in the content subspace
+(`subspace([s_C, 1]) = s_C`) at depth `#[s_C, 1] = 2 ≥ 2`, and the displacement
+is ordinal at that depth (`ℓ₁ = δ(2, 2)` with `n₁ = 2 ≥ 1`) — so `wf(R₁, Σ)`
+holds. *Interval:* `[s_C, 1] ⊕ δ(2, 2) = shift([s_C, 1], 2) = [s_C, 3]`
+(OrdinalShift, ASN-0034), so `⟦σ₁⟧ = {t : [s_C, 1] ≤ t < [s_C, 3]}`.
+*Active-position filter:* every member of `⟦σ₁⟧` carries subspace `s_C` (ML1's
+prefix-confinement step), so the filter can admit only content-subspace
+positions of `A`, whatever its link subspace holds; of `A`'s active positions,
+`[s_C, 1]` and `[s_C, 2]` lie in the interval —
+`[s_C, 1] ≤ [s_C, 1] < [s_C, 2] < [s_C, 3]` under T1, the last component
+deciding — and `V_{s_C}(A)` holds no others, so
+`dom(Σ.M(A)) ∩ ⟦σ₁⟧ = {[s_C, 1], [s_C, 2]}`. *Images:* reading the two active
+positions through the arrangement,
+`ρ(R₁, Σ) = {Σ.M(A)([s_C, 1]), Σ.M(A)([s_C, 2])} = {a₁, a₂}`. By the same steps,
+`ρ(R₂, Σ) = {Σ.M(B)([s_C, 1])} = {b₁}` and
+`ρ(R₃, Σ) = {Σ.M(D)([s_C, 1])} = {θ₁} ≠ ∅`, so the type precondition of ML6 is
+met.
 
 *Identity (ML0).* `A_L(C)` emits the fresh link address `a = C.0.s_L.1` — `C`'s
 first link. It is fresh (`a ∉ dom(Σ.L)`), home-scoped
@@ -710,10 +734,10 @@ yet is found from `A`, `B`, and `D` — residence and reachability are orthogona
 
 *An edit, and what survives it (ML7, ML1, ML8, ML9).* Everything so far is a
 creation-state check; the headline guarantee is about what happens *after*. So
-we edit a source. Name `A`'s two active content positions: at depth 2 the
-canonical shape D-SEQ★ forces is `V_{s_C}(A) = {[s_C, 1], [s_C, 2]}`, and we
-take `[s_C, 1] ↦ a₁`, `[s_C, 2] ↦ a₂`. Apply the foundation contraction K.μ⁻
-(ASN-0047) to `A` with retention `n'_{s_C} = 1` (the link subspace, if
+we edit a source. `A`'s content arrangement is the depth-2
+`V_{s_C}(A) = {[s_C, 1], [s_C, 2]}` with `[s_C, 1] ↦ a₁`, `[s_C, 2] ↦ a₂`,
+fixed in the source-content stipulation above. Apply the foundation contraction
+K.μ⁻ (ASN-0047) to `A` with retention `n'_{s_C} = 1` (the link subspace, if
 populated, retained in full): the transition `Σ' → Σ''` restricts `A`'s
 arrangement to the retained set, so `[s_C, 1] ↦ a₁` survives and
 `a₂ ∉ ran(Σ''.M(A))`. Against this concrete edit:
