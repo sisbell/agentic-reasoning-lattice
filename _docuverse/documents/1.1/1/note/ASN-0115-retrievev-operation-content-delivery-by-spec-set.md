@@ -44,7 +44,7 @@ fixes where each kind of position resolves: for `v ∈ dom(Σ.M(d))`,
 `subspace(v) = s_C ⟹ Σ.M(d)(v) ∈ dom(Σ.C)` and
 `subspace(v) = s_L ⟹ Σ.M(d)(v) ∈ dom(Σ.L)` (ASN-0047, S3★), and every active
 V-position lies in one of these two subspaces (S3★-aux). Content and link stores
-are disjoint (ASN-0093, SD).
+are disjoint (ASN-0047, L14 StoreDisjointness).
 
 A span `σ = (s, ℓ)` is well-formed when `Pos(ℓ)` and `actionPoint(ℓ) ≤ #s`
 (ASN-0034, T12); its denotation is the half-open tumbler interval
@@ -180,12 +180,10 @@ RETRIEVEV is a *pure query*: `deliver(R, Σ)` is a function of state that modifi
 no component of `Σ` and appears in no transition of the substrate's vocabulary
 (cf. ASN-0086, Observe).
 
-Several worked instances below need a spec that names *exactly one* bound
-position — and "names `v`" alone does not determine a span, since many ordinal
-spans contain `v` and some capture further bound positions besides. The
-following lemma packages the canonical such construction once: the unit-width
-span rooted at a bound position is a well-formed spec whose active set is
-exactly that one position.
+"Names `v`" alone does not determine a span: many ordinal spans contain `v`,
+and some capture further bound positions besides. The following lemma packages
+the canonical construction — the unit-width span rooted at a bound position is
+a well-formed spec whose active set is exactly that one position.
 
 > **UnitSpec (lemma).** Let `d ∈ dom(Σ.M)` and let `v ∈ dom(Σ.M(d))` be a bound
 > position; write `S = subspace(v)` and `a = Σ.M(d)(v)`. Define the *unit spec
@@ -212,9 +210,9 @@ exactly that one position.
 > span meets T12 (`actionPoint(ℓ) = #v ≤ #v = #s`), is level-uniform
 > (`#ℓ = #v = #s`), and is ordinal-level (`actionPoint(ℓ) = #ℓ`). The document
 > conjuncts close from the hypothesis: `d ∈ dom(Σ.M)` directly, and
-> `zeros(d) = 2` by M0 (DocumentTumblerWellFormed, ASN-0093), which gives
-> `T4-valid(d) ∧ zeros(d) = 2` for every `d ∈ dom(Σ.M)` — applicable because
-> the standing reachability precondition places `Σ` in M0's range.
+> `zeros(d) = 2` because `dom(Σ.M) = E_doc` (ASN-0047, M1) places `d` in
+> `E_doc = {e ∈ Σ.E : Document(e)}`, and the Document predicate (ASN-0045)
+> unfolds to `T4-valid(d) ∧ zeros(d) = 2`.
 >
 > (b) `v ∈ dom(Σ.M(d))` with `subspace(v) = S` puts `v ∈ V_S(d)`, so
 > `V_S(d) ≠ ∅`, and S8-depth (ASN-0036) pins the common depth `m_S(d) = #v`.
@@ -278,8 +276,7 @@ must be the content itself — no character altered, fabricated, or dropped.
 > position: for every active `v` with `subspace(v) = s_C`,
 > `item(v, ρ, Σ) = ⟨content, Σ.C(Σ.M(d)(v))⟩`. No other value may be substituted.
 
-The justification is structural. R2 is a *single-state* denotational equality, and the invariants it
-needs are correspondingly few. Resolution is single-valued because `Σ.M(d)` is a
+The justification is structural. Resolution is single-valued because `Σ.M(d)` is a
 function (S2), so the resolved address `a = Σ.M(d)(v)` is determinate; S3★ places
 `a` in the content store, so `Σ.C(a)` is defined; and the `item` definition *sets*
 the delivered content value to exactly `Σ.C(a)`. No other value may be
@@ -295,10 +292,8 @@ guarantee about resolution and dereference, not a guarantee about a transmission
 channel. Nelson disclaims the latter explicitly: storage and "attempts to
 deliver such material, are at User's risk" (5/18), with "no guarantee as to the
 correctness or authenticity" (5/18) of the channel. So R2 governs the
-denotation of `deliver`; it does not promise that an intervening wire delivers
-those bytes intact. This is a *frame limit*, not a claim: the abstract
-specification asserts faithfulness of the delivered material as a function of
-state, and asserts nothing about the medium.
+denotation of `deliver` and asserts nothing about the medium — a *frame limit*,
+not a further claim.
 
 ## Exactness and arrangement-relativity
 
@@ -324,18 +319,9 @@ for a depth-incompatible one, where nothing is active to omit. We stress
 that the span width `ℓ` is a tumbler boundary, not a count — "a tumbler-span …
 does not designate the number of bytes contained" (Nelson, 4/25; ASN-0034) — so
 the delivered quantity for a spec equals `|act(ρ, Σ)|`, the number of *active*
-positions. Call the width's deepest component `ℓ_{#ℓ}` the span's *nominal
-extent*: it is the cardinality of the depth-`#s`, subspace-`S` slice of `⟦σ⟧`
-(the bindable slice of §"Partial delivery"), since by Confinement every
-depth-`#s` member of `⟦σ⟧` shares `s`'s first `#s − 1` components, leaving only
-the last to range over `s_{#s} ≤ k < s_{#s} + ℓ_{#ℓ}`. The delivered quantity
-attains the nominal extent, `|act(ρ, Σ)| = ℓ_{#ℓ}`, iff the spec is
-depth-compatible at `Σ` and every member of the bindable slice is bound —
-equivalently, under the canonical start that a non-empty `act` forces
-(§"Partial delivery"), iff `s_{#s} + ℓ_{#ℓ} − 1 ≤ n_S`. Both directions follow
-from the R6 frontier analysis: the active positions are exactly the bound
-members of the bindable slice, so the two finite cardinalities agree precisely
-when the slice is bound throughout. Where a requested boundary falls between stored positions,
+positions; when that count attains the width's deepest component is
+characterised by the nominal-extent corollary of §"Partial delivery". Where a
+requested boundary falls between stored positions,
 an implementation must clip to the interval exactly (Gregory's `whereoncrum`
 classification and `context2vtext` boundary clip realize this); the clip changes
 no abstract content, it merely realizes the half-open interval precisely.
@@ -358,7 +344,7 @@ arrangements (ASN-0036, S7d), and there is no privileged "basic" version the
 system could silently substitute ("there is thus no 'basic' version of a document
 set apart from other versions," 2/19). Naming `dⱼ` does *not* freeze that
 arrangement, however: resolution is against the *current* `Σ.M(dⱼ)`, which is
-mutable (K.μ⁻/K.μ⁺/K.μ~, ASN-0047; P3), so naming a version does not freeze it.
+mutable (K.μ⁻/K.μ⁺/K.μ~, ASN-0047; P3).
 
 ## Order and boundaries
 
@@ -470,6 +456,31 @@ empty I-span set and a successful, empty contribution — indistinguishable from
 legitimately empty region. The gap is signalled *structurally* (the caller
 compares what it asked for against what arrived), not by an error code.
 
+*Corollary (nominal-extent attainment).* Call the width's deepest component
+`ℓ_{#ℓ}` the span's *nominal extent*. It is the cardinality of the bindable
+slice — the depth-`#s`, subspace-`S` members of `⟦σ⟧` (R6): by Confinement every
+depth-`#s` member of `⟦σ⟧` shares `s`'s first `#s − 1` components, leaving only
+the last to range over `s_{#s} ≤ k < s_{#s} + ℓ_{#ℓ}`. And `ℓ_{#ℓ} ≥ 1`: the
+span is ordinal-level, so its action point is `#ℓ`, and ActionPoint's
+postcondition `w_{actionPoint(w)} ≥ 1` (ASN-0034) applies at that position. The
+delivered quantity attains the nominal extent — `|act(ρ, Σ)| = ℓ_{#ℓ}` — iff the
+spec is depth-compatible at `Σ` and every member of the bindable slice is bound.
+The three branches of the `act` analysis above cover both directions.
+*Depth-incompatible:* the override gives `act = ∅`, so
+`|act| = 0 < 1 ≤ ℓ_{#ℓ}` — both sides of the biconditional fail.
+*Depth-compatible with `V_S(d) = ∅`:* the slice is non-empty (`ℓ_{#ℓ} ≥ 1`
+members) and wholly unbound — a bound slice member would lie in `V_S(d)` — so
+the right side fails, and `act = dom(Σ.M(d)) ∩ ⟦σ⟧ = ∅` fails the left.
+*Depth-compatible with `V_S(d) ≠ ∅`* (so `#s = m_S(d)`): `act` lies inside the
+bindable slice — every `v ∈ act` is bound and, by Confinement, in subspace `S`,
+so `v ∈ V_S(d)` and S8-depth (ASN-0036) pins `#v = m_S(d) = #s` — and every
+bound slice member lies in `dom(Σ.M(d)) ∩ ⟦σ⟧ = act`, so `act` is exactly the
+bound members of the slice. The two finite cardinalities therefore agree iff the
+slice is bound throughout; by the frontier analysis, a slice member
+`[S, 1, …, 1, k]` is bound iff `k ≤ n_S`, so — under the canonical start that a
+non-empty `act` forces — attainment is equivalent to
+`s_{#s} + ℓ_{#ℓ} − 1 ≤ n_S`.
+
 Note the boundary R6 does *not* cover: R6 concerns the absence of *binding* for a
 named position within an allocated document (`d ∈ dom(Σ.M)`), not the allocation
 of the document itself.
@@ -513,15 +524,15 @@ delivered material be identical?
 > with one a reachability descendant of the other along the sequential transition
 > order, and let `R` be a spec-set at the *earlier* state of the pair — without
 > loss of generality `Σ →* Σ'` (ASN-0047, SequentialTransitionAxiom), with
-> `dⱼ ∈ dom(Σ.M)` for every `j`. The relabelling is harmless precisely because
-> spec-set-hood is anchored at the earlier state, whichever member was given
-> first. Then each `dⱼ ∈ dom(Σ'.M)` as well — M1 (ArrangementMonotonicity,
-> ASN-0047) at each atomic step of `Σ →* Σ'` gives `dom(Σ.M) ⊆ dom(Σ'.M)` — so
-> the restrictions `Σ'.M(dⱼ)|⟦σⱼ⟧` and the delivery `deliver(R, Σ')` are
-> well-defined. If the consulted arrangement restrictions agree,
+> `dⱼ ∈ dom(Σ.M)` for every `j`. Then each `dⱼ ∈ dom(Σ'.M)` as well, so the
+> restrictions `Σ'.M(dⱼ)|⟦σⱼ⟧` and the delivery `deliver(R, Σ')` are
+> well-defined; and if the consulted arrangement restrictions agree,
 > `Σ.M(dⱼ)|⟦σⱼ⟧ = Σ'.M(dⱼ)|⟦σⱼ⟧` for every `j`, then
 > `deliver(R, Σ) = deliver(R, Σ')`.
 
+The well-definedness clause is discharged by M1 (ArrangementMonotonicity,
+ASN-0047): at each atomic step of `Σ →* Σ'` it gives `dom(Σ.M) ⊆ dom(Σ'.M)`,
+so `dⱼ ∈ dom(Σ'.M)` for every `j`.
 `deliver` is a function of two things: the consulted arrangement restrictions,
 and the stores the resolved values are drawn from. We first show the active sets
 agree, `act(ρⱼ, Σ) = act(ρⱼ, Σ')`. If `Σ.M(dⱼ)|⟦σⱼ⟧` is non-empty, a shared bound
@@ -588,13 +599,13 @@ The box's two structural claims — that the positions share one subspace, and t
 the link sub-case is vacuous — are established as follows.
 
 *Why the two positions share a subspace.* By S3★ the shared address `a` lies in
-`dom(Σ.C)` or in `dom(Σ.L)` but, by store disjointness (SD), not both. To run
+`dom(Σ.C)` or in `dom(Σ.L)` but, by store disjointness (L14, ASN-0047), not both. To run
 store membership *back* to subspace we need that each of `subspace(v)`,
 `subspace(v')` is one of `s_C`, `s_L` to begin with — supplied by S3★-aux
 (SubspaceExhaustiveness, ASN-0047) for the active positions `v, v'` — whereupon
 the contrapositive of the off-store S3★ branch closes the step: were
 `subspace(v) = s_L` while `a ∈ dom(Σ.C)`, S3★ would force `a ∈ dom(Σ.L)`,
-contradicting SD; so `a ∈ dom(Σ.C)` fixes `subspace(v) = s_C`, and symmetrically
+contradicting L14; so `a ∈ dom(Σ.C)` fixes `subspace(v) = s_C`, and symmetrically
 `a ∈ dom(Σ.L)` fixes `subspace(v) = s_L`. The same dispatch applied to `v'` yields
 `subspace(v) = subspace(v')`. The content sub-case is the realizable one: S5
 (UnrestrictedSharing) permits a content address to be bound at arbitrarily many
@@ -739,7 +750,7 @@ references intermixed, with the boundary visible in the tagging.
 *Worked instance.* Let document `d` bind a content position
 `v_C` (`subspace(v_C) = s_C`) to a content address `a_C ∈ dom(Σ.C)`, and a link
 position `v_L` (`subspace(v_L) = s_L`) to a link address `a_L ∈ dom(Σ.L)`; the
-two are disjoint stores (SD). Build a two-spec spec-set of unit specs, one per
+two are disjoint stores (L14). Build a two-spec spec-set of unit specs, one per
 subspace: `R = ⟨unit(d, v_C), unit(d, v_L)⟩` — explicitly
 `⟨(d, (v_C, δ(1, #v_C))), (d, (v_L, δ(1, #v_L)))⟩`. Each unit span is
 ordinal-level (UnitSpec (a)), so it stays within its own subspace (Confinement
