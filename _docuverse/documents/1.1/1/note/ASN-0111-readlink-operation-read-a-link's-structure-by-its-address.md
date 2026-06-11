@@ -27,9 +27,9 @@ We take from the foundations the shape of a stored link. The *link store* `Σ.L 
 with the standard-triple convention assigning slot 1 the *from*-endset, slot 2 the *to*-endset,
 and slot 3 the *type*-endset. Each endset is a finite set of spans over the tumbler line; each
 span `(s, ℓ)` denotes a contiguous region `{t : s ≤ t < s ⊕ ℓ}` (T12, ASN-0034). The relationship
-a link records is therefore not a pair of points but a triple of *span-sets*, each reaching —
-possibly discontiguously — anywhere in the docuverse. The address-set a span-set denotes is its
-`coverage` (ASN-0043):
+a link records is therefore not a pair of points but a triple of *endsets* — each a finite set of
+spans — reaching, possibly discontiguously, anywhere in the docuverse. The address-set an endset
+denotes is its `coverage` (ASN-0043):
 
 > `coverage(e) = (∪ (s, ℓ) : (s, ℓ) ∈ e : {t ∈ T : s ≤ t < s ⊕ ℓ})`.
 
@@ -48,8 +48,8 @@ The minimal honest specification is a lookup in the link store. We must first de
 operation's shape: a partial function gated by the precondition `a ∈ dom(Σ.L)`, after the pattern
 of the allocation operations (K.α, K.λ of ASN-0093), or a total request whose contract includes
 reporting absence. The deciding observation is the insufficiency of address-only tests: no
-predicate computable from the address alone is sufficient for membership in `dom(Σ.L)`, so a
-caller cannot in general discharge a membership precondition before invoking. Nelson's design points the same way — the address space is sparsely occupied by design,
+satisfiable predicate computable from the address alone is sufficient for membership in
+`dom(Σ.L)`, so a caller cannot in general discharge a membership precondition before invoking. Nelson's design points the same way — the address space is sparsely occupied by design,
 an address naming no stored object is a valid coordinate rather than malformed input, and the
 retrieval requests are all-that-is-there questions for which "nothing" is a legitimate answer.
 Gregory's implementation concurs: a retrieval at an unallocated link address is answered with the
@@ -99,7 +99,7 @@ projection `E(·)` are defined only on T4-valid tumblers (T4b, ASN-0034; Subspac
 under the left-to-right reading the screen is evaluable on all of `T`, including tumblers such as
 `[1, 0, 0, 2, 0, 3]` on which the later conjuncts alone would have no value. The remaining
 conjuncts are necessary by L1, L0, and L1b (ASN-0043) respectively. *Every conjunct is necessary*
-— so a failed screen guarantees `⊥` without an invocation. *No address-computable predicate is sufficient* — at the initial state `Σ₀`
+— so a failed screen guarantees `⊥` without an invocation. *No satisfiable address-computable predicate is sufficient* — at the initial state `Σ₀`
 (ASN-0047), `dom(Σ₀.L) = ∅`, so any satisfiable address-only predicate has a witness `a` with
 `a ∉ dom(Σ₀.L)`, and sufficiency fails there. Hence no caller can discharge a membership
 precondition from the address alone; only the outcome — `Link` versus `⊥` — settles membership in
@@ -332,7 +332,7 @@ complete structure. The read thus distinguishes *the relationship is unwitnessed
 | Label | Statement | Status |
 |-------|-----------|--------|
 | `readlink` | `readlink : T × Σ → Link ∪ {⊥}`; `readlink(a, Σ) = Σ.L(a)` when `a ∈ dom(Σ.L)`, else `⊥`; pure read, frame `Σ' = Σ` | introduced |
-| RL0 | Totality and success — defined for every `a ∈ T`; `readlink(a, Σ) ∈ Link ⟺ a ∈ dom(Σ.L)`, else `⊥`; every conjunct of the structural screen `T4-valid(a) ∧ zeros(a) = 3 ∧ subspace_I(a) = s_L ∧ #E(a) ≥ 2` is necessary, and no address-computable predicate is sufficient (witness: `dom(Σ₀.L) = ∅`) | introduced |
+| RL0 | Totality and success — defined for every `a ∈ T`; `readlink(a, Σ) ∈ Link ⟺ a ∈ dom(Σ.L)`, else `⊥`; every conjunct of the structural screen `T4-valid(a) ∧ zeros(a) = 3 ∧ subspace_I(a) = s_L ∧ #E(a) ≥ 2` is necessary, and no satisfiable address-computable predicate is sufficient (witness: `dom(Σ₀.L) = ∅`) | introduced |
 | RL1 | Completeness — on `a ∈ dom(Σ.L)` the read returns every recorded span of every endset and no other; `readlink(a, Σ) = Σ.L(a)`; inherits L4-generality of the recorded spans. Corollaries (since the output is `Σ.L(a)`): satisfies L3 (arity ≥ 3, non-empty type slot, connective slots may be `∅`), L5 (membership not sequence within an endset), and Endset well-formedness (T12 spans) | introduced |
 | RL2 | Role preservation — on `a ∈ dom(Σ.L)` the read preserves arity (`|readlink(a, Σ)| = |Σ.L(a)|`) and exposes slot position as a model primitive (L6); from/to/type grouping delivered as structure | introduced |
 | RL3 | Type-by-address — the type is interpreted via `coverage(e₃)`, not via content at those addresses; ghost types read completely | introduced |
