@@ -198,7 +198,9 @@ violates the equation. The coverage equality is a span merge, not a store-trace
 fact. We adopt, once for this ASN, the convention `shift(t, 0) := t` —
 ASN-0034's OrdinalShift is defined only for amounts `≥ 1`, and we extend it at
 zero exactly as ASN-0036 (S8) and ASN-0058 (OrdinalShiftBase) do. Each chain
-address is T4-valid, so `sig(aₖ) = #aₖ` (TA5-SigValid, ASN-0034) and the
+address is T4-valid — `aₖ ∈ ρ(R_j, Σ) ⊆ dom(Σ.C)`, and every content-store
+entry is T4-valid (StoreT4Validity, ASN-0093) — so `sig(aₖ) = #aₖ`
+(TA5-SigValid, ASN-0034) and the
 sibling step is exactly the last-component shift,
 `aₖ₊₁ = inc(aₖ, 0) = shift(aₖ, 1)`; hence each unit span's reach `shift(aₖ, 1)`
 equals the next span's start — consecutive unit spans are *adjacent*,
@@ -304,8 +306,7 @@ decomposition-sensitive: for chain-adjacent resolved `a₁, a₂`, the test
 `(a₁, δ(2, #a₁)) ∈ e` holds of `{(a₁, δ(2, #a₁))}` and fails of
 `{(a₁, δ(1, #a₁)), (a₂, δ(1, #a₂))}`. A read-back of the stored value exposes
 it too: ASN-0086's `Observe_K` returns the raw `(a, F, G)` triples even though
-its *matching* is coverage-based, and any future read-back operation over
-`Σ.L` would do the same. The representation independence we may claim is
+its *matching* is coverage-based. The representation independence we may claim is
 therefore scoped: the observables this ASN's claims consult — projection
 (ASN-0098, LP21), type matching (L8), discoverability (LP12, ML9 below) — are
 each a function of coverage alone. We name this **ML2
@@ -313,8 +314,7 @@ each a function of coverage alone. We name this **ML2
 admissible records are coverage-equal, the extensional form being a function of
 `ρ(R_j, Σ)` alone — while its span decomposition is the one residual freedom:
 observable via endset membership (L5) and value equality (L6), invisible to the
-coverage-determined observables this ASN consults. That division is exactly why
-the postcondition deliberately pins coverage and leaves the decomposition free.
+coverage-determined observables this ASN consults.
 
 The same resolution applies *uniformly* to all three endset arguments — from, to,
 and type are read through their sources by one procedure, with no slot privileged
@@ -509,9 +509,7 @@ every later transition `Σ' → Σ''`, `a ∈ dom(Σ''.L)` and `Σ''.L(a) = Σ'.
 (L12, ASN-0043). The link, once made, is not unmade by any editing of the content
 it connects — because editing touches `Σ.M`, and the link lives in `Σ.L`. The
 guarantee is unconditional: the transition vocabulary contains no operation that
-removes a link address or rewrites its value, so a link-retirement facility, were
-one wanted, would be a model extension outside the vocabulary this claim
-quantifies over.
+removes a link address or rewrites its value.
 
 **Endset survivability (ML8).** ML7 already fixes the recorded value `Σ'.L(a)` for
 all time, and ML1 fixes its content-coverage as `ρ(R_j, Σ)`. What ML8 adds is the
@@ -693,6 +691,44 @@ itself, in the link subspace and outside every `coverage(eᵢ)`. So
 from its own home. This is ML9 made concrete: discovery follows the content the
 endsets name (`A`, `B`, and `D`), not the residence (`C`). The link lives in `C`
 yet is found from `A`, `B`, and `D` — residence and reachability are orthogonal.
+
+*An edit, and what survives it (ML7, ML1, ML8, ML9).* Everything so far is a
+creation-state check; the headline guarantee is about what happens *after*. So
+we edit a source. Name `A`'s two active content positions: at depth 2 the
+canonical shape D-SEQ★ forces is `V_{s_C}(A) = {[s_C, 1], [s_C, 2]}`, and we
+take `[s_C, 1] ↦ a₁`, `[s_C, 2] ↦ a₂`. Apply the foundation contraction K.μ⁻
+(ASN-0047) to `A` with retention `n'_{s_C} = 1` (the link subspace, if
+populated, retained in full): the transition `Σ' → Σ''` restricts `A`'s
+arrangement to the retained set, so `[s_C, 1] ↦ a₁` survives and
+`a₂ ∉ ran(Σ''.M(A))`. Against this concrete edit:
+
+(i) *Permanence (ML7).* K.μ⁻'s frame carries `L' = L`, so
+`Σ''.L(a) = Σ'.L(a)` — the link object is untouched by the edit.
+
+(ii) *Stable trace (ML1).* K.μ⁻'s frame also carries `C' = C`, so
+`coverage(e₁) ∩ dom(Σ''.C) = {a₁, a₂} = ρ(R₁, Σ)`, exactly as at creation —
+the instance at `Σ''` of the stable store trace ML1 promises at every later
+state. The record still names both addresses, the deleted one included.
+
+(iii) *Survivability (ML8), and the partial span.* The position that carried
+`a₂` is gone, but the referent is not: `a₂ ∈ dom(Σ''.C)` with
+`Σ''.C(a₂) = Σ.C(a₂)` (S0) — the endset reference survives the deletion of
+its position because the record holds identities, not positions. And the link
+remains discoverable from `A` through what survives:
+`coverage(e₁) ∩ ran(Σ''.M(A)) = {a₁} ≠ ∅`, so `discoverable_from(a, A, Σ'')`
+holds (LP12). Had `e₁` been recorded as the single merged span
+`(a₁, δ(2, #a₁))`, that one span now covers one active position and one
+inactive — exactly the partial-span shape that motivated `ρ`'s
+active-position filter — and the link stays on the surviving content:
+Nelson's "if any of the bytes are left to which a link is attached, that
+link remains on them," exercised.
+
+(iv) *The other documents (ML9).* K.μ⁻ touches only `A`'s arrangement
+(`(A d' : d' ≠ A : Σ''.M(d') = Σ'.M(d'))`), so the tests at `B`, `D`, and `C`
+read unchanged ranges (LP4, ASN-0098): the link is still discoverable from
+`B` (via `b₁`) and `D` (via `θ₁`), and still not discoverable from its home
+`C`. Editing one source moves discoverability only where the edit lands —
+ML9's future-state consequence, concretely.
 
 ## Claims Introduced
 
