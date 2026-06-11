@@ -206,9 +206,13 @@ canonical first position `[s_C, 1, …, 1]` when `V_{s_C}(d) = ∅`
 lies in the text subspace:
 `(A ρ ∈ R, v ∈ act(ρ, Σ) : subspace(v) = s_C)`.
 
-**COPY(`Σ, d, p, R`)** is the transition `Σ → Σ'` with the following effect on the
-destination arrangement, displacement of its prior content, and recording of
-provenance, and with the frame conditions that say what it leaves alone.
+**COPY(`Σ, d, p, R`)** is the composite transition `Σ →* Σ'` (ASN-0047,
+SequentialTransitionAxiom, reserves `Σ → Σ'` for atomic steps; COPY's
+decomposition into atomic steps is exhibited in the next section, and every
+clause below relates the initial state `Σ` to the final state `Σ'`), with the
+following effect on the destination arrangement, displacement of its prior
+content, and recording of provenance, and with the frame conditions that say
+what it leaves alone.
 
 *Effect — placement.* The `W` resolved addresses are bound, in order, to the `W`
 V-positions starting at `p`:
@@ -231,16 +235,8 @@ shifted positions — and *nothing else*; in particular the pre-shift positions 
 > `{v ∈ dom(Σ'.M(d)) : subspace(v) = s_C} =`
 > `  {v ∈ V_{s_C}(d) : v < p} ∪ {p + i : 0 ≤ i < W} ∪ {v + W : v ∈ V_{s_C}(d) ∧ v ≥ p}`     (CP3c)
 
-CP3c is a *domain-closure* postcondition: it closes `d`'s text-subspace domain to
-the three disjoint, abutting ordinal ranges (left, placement, shifted; their
-disjointness is the tiling argument given later under prior-arrangement
-preservation), so each text V-position carries exactly one binding and `d`'s
-per-state invariants — S2 functionality among them — are dischargeable from the
-postconditions alone, not only through the exhibited composite; the same closure
-role is played by CP6's domain-equality conjunct (for `d`'s non-text subspaces),
-CP8's `⊆` direction (for `Σ.R`), and CP12 (for `E`). CP3c is the
-COPY analogue of ASN-0082's I3-V (PostInsertionVacating) and D-DOM (domain
-characterization), which COPY's displacement otherwise borrows wholesale.
+CP3c is the COPY analogue of ASN-0082's I3-V (PostInsertionVacating) and D-DOM
+(domain characterization), which COPY's displacement otherwise borrows wholesale.
 
 *Effect — provenance.* The provenance relation closes to the pre-state pairs plus
 exactly one pair per placed address:
@@ -267,8 +263,15 @@ exhibition that follows the frame clauses (the next section).
 
 COPY mints no node, account, or document: the composite below contains no K.δ
 step, and every step it does contain (K.μ⁻, K.μ⁺, K.ρ) frames `E` unchanged
-(ASN-0047). CP12 and CP8's `⊆` direction together bound the two components the
-remaining clauses constrain only from below.
+(ASN-0047). CP12 completes the operation's *closure inventory* — the clauses
+bounding each state component from above, where the effect clauses constrain
+only from below: CP3c closes `d`'s text-subspace domain, so each text V-position
+carries exactly one binding and `d`'s per-state invariants — S2 functionality
+among them — are dischargeable from the postconditions alone; CP6's
+domain-equality conjunct closes `d`'s non-text subspaces; CP8's `⊆` direction
+bounds `Σ.R`; CP12 bounds `E`; and the remaining components are pinned outright
+by the equalities CP1 (content store), CP7a (link store), and CP6's
+other-document clause.
 
 *Frame — link store, other subspaces, other documents.*
 
@@ -285,9 +288,7 @@ domain to exactly its pre-state value.
 
 The last clause includes every source document `d_s ≠ d` and every other document
 in the docuverse. The single self-reference case `d_s = d` — *self-transclusion* —
-is admitted: resolution (CP0) reads the *pre-state* `Σ.M(d)`, so the addresses
-`cᵢ` are fixed before any displacement, and the effect then re-binds them at fresh
-positions of the same document. We return to this case under CP9.
+is admitted; see CP9.
 
 ## COPY as a valid composite
 
@@ -467,10 +468,11 @@ native content for what it includes, it has manufactured a second identity, and 
 is replication.
 
 We record the immutability consequence as CP10: because `Σ.C` is untouched
-(CP1), content immutability S0 is preserved trivially across the COPY transition —
-every previously stored address keeps its value, and in particular the reused
-`cᵢ` carry into the destination *the same bytes* they hold at the source, because
-they are the same bytes.
+(CP1), content immutability S0 is preserved trivially across the COPY composite
+`Σ →* Σ'` — every atomic step frames `Σ.C`, so the preservation holds step by
+step, hence initial-to-final — every previously stored address keeps its value,
+and in particular the reused `cᵢ` carry into the destination *the same bytes*
+they hold at the source, because they are the same bytes.
 
 ## What stays the source's, and what the destination makes its own
 
@@ -490,7 +492,7 @@ The destination owns its arrangement — the *placement* of the material in its 
 virtual byte stream — and the provenance entry recording that it now refers to the
 content. It does not own, and COPY does not transfer to it, the content's
 identity, value, or home. This is CP5, **OriginInvariance**: for every placed
-address, `origin(cᵢ)` is unchanged by the transition (CP1 keeps `cᵢ` in the store,
+address, `origin(cᵢ)` is unchanged by COPY (CP1 keeps `cᵢ` in the store,
 and S7(d) makes `origin` constant while it is stored), and it equals the document
 that *originally allocated* `cᵢ`. That allocator may be the spec-set source, a
 third document the source had itself transcluded from (a chained transclusion), or
@@ -571,7 +573,7 @@ CP6 states that COPY modifies no document but the destination: every source `d_s
 distinct from `d`, and every other document, has `Σ'.M(d_s) = Σ.M(d_s)`. Combined
 with the read-only character of resolution (CP0(b)) and the content, link, and
 entity frames (CP1, CP7a, CP12), this says the source is untouched by the act of
-being copied from. The COPY transition writes to `Σ.M(d)`, `Σ.R`, and nothing
+being copied from. The COPY composite writes to `Σ.M(d)`, `Σ.R`, and nothing
 else.
 
 Yet *isolation of the act* is not *unawareness of the connection*, and the two
