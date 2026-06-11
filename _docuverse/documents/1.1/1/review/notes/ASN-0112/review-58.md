@@ -1,0 +1,27 @@
+# Review of ASN-0112
+
+I checked every construction in this ASN against the foundations: the well-formedness of `σ_d` (D0/T12 in both the equidepth and cross-subspace cases), the covering argument including the round-trip-failure branch (TumblerSub/TumblerAdd componentwise at `zpd = 1`), the V5 prefix-pinning/discreteness restriction, the V6 witness, the V9a inverse construction (including the `e_{#e} > 0 ⟺ #o ≤ #r` discriminator and the zero-freeness appeal), V18's case exhaustiveness over the editing vocabulary, and all three worked computations (`[1,2]`, `[0,3]`, `[1,2,0]`). The mathematics is sound throughout; the worked examples check out against the stated claims. What remains are a registration gap and two precision/bloat items.
+
+## REVISE
+
+### Issue 1: The exactness discriminator is a real claim but is unlabeled and absent from Claims Introduced
+**ASN-0112, "Preconditions and well-definedness"**: "*Exactness* reads the first component: for any non-empty result, `extent_d₁ = 0 ⟺ Exact`. The derivation is two lines on the `zpd` case split already in hand."
+**Problem**: This biconditional is presented as the symmetric partner of the tightness discriminator — "the two discriminators sit at opposite ends of that width" — and it carries its own two-case derivation (`zpd = m_s ≥ 2` zeroes position 1 in the single-subspace case; `zpd = 1` gives `extent_d₁ = s_L − s_C ≥ 1` in the cross-subspace case) plus worked-example verification ("the cross-subspace width `[1,2]` opens with `1` … the content-only `[0,3]` opens with `0`"). Yet it has no label and no row in the Claims Introduced table. The tightness discriminator, by contrast, is registered twice over (V-ReachTight gives `reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d`; V9a records that the width's final component is positive exactly in that case). The Claims Introduced table is the extraction surface for downstream consumers; a caller-facing decision procedure that exists only in section prose will be silently lost.
+**Required**: Register the exactness discriminator as a labeled claim (a V9b-style row stating `extent_d₁ = 0 ⟺ Exact` for non-empty results, with its derivation citations), or fold the biconditional explicitly into the V5/V6 table entries.
+
+### Issue 2: Defensive parenthetical in V3 — meta-prose about a construction the claim disowns
+**ASN-0112, "The bounding span and its two endpoints"**: "(We state the minimality order-theoretically, over tumblers, and deliberately so: whether a well-formed covering span can *attain* the denotational reach `w.0` exactly is a separate, case-dependent construction — the natural start `origin_d` fails it both when `origin_d = w` … and when `#origin_d > #w + 1` … — and nothing in V3 needs it.)"
+**Problem**: This is the forward-reference-accretion pattern the note's classifier flags: prose defending the *formulation* of the claim against an imagined objection rather than advancing what the claim says. It analyzes two failure cases of a construction (a span attaining reach `w.0`) that V3 explicitly does not claim and, by its own closing clause, does not need. It reads as a prior finding's content relocated into a parenthetical rather than removed. The single useful kernel — that V3's minimality is order-theoretic over same-depth tumblers, not a statement about achievable span denotations — needs one sentence, not a two-case counterexample analysis.
+**Required**: Trim to at most one clarifying sentence scoping V3's minimality. If the attainability question (can a covering span's denotational reach equal `w.0`?) is worth preserving, move it to Open Questions or promote it to its own claim; as a defensive aside it is noise.
+
+### Issue 3: "occupied-depth position" is load-bearing but never defined
+**ASN-0112, V5/V6 and "Preconditions and well-definedness"**: "`⟦σ_d⟧` contains no occupied-depth position outside `O(d)`" and "`Exact ≡ "⟦σ_d⟧ contains no occupied-depth position outside O(d)"`".
+**Problem**: The predicate that carries the V5/V6 dichotomy and the entire `wp(RETRIEVEDOCVSPAN(d), Exact)` characterization is defined only by usage. The reader must infer that an "occupied-depth position" is a tumbler `t` with `#t = m_S(d)` for some subspace `S` with `V_S(d) ≠ ∅`. In the cross-subspace case with `m_C ≠ m_L` there are *two* occupied depths, and whether depth-`m_L` tumblers count is left to inference (the theorems survive either reading — V6's witness sits at `m_C` and is existential — but a weakest-precondition result claimed as exact deserves a defined postcondition predicate). The document itself leans on the distinction being sharp: "`Exact` is depth-scoped and `⊊` is not."
+**Required**: A one-line formal definition at first use (V5), e.g. `t` is occupied-depth at `Σ, d` iff `#t = m_S(d)` for some `S ∈ {s_C, s_L}` with `V_S(d) ≠ ∅`, and a consistency check that V5's proof (which covers exactly depth-`m_s` tumblers) and V6's witness discharge the claim under that definition.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Exact reporting of multi-subspace documents via a multi-span result
+**Why out of scope**: V6 proves a single convex span cannot trace a separated series; the natural follow-up — returning a two-span span-set, one per subspace — is per-subspace extent reporting, explicitly assigned to a separate operation (RETRIEVEDOCVSPANSET). The ASN correctly stops at the impossibility argument rather than smuggling in the successor operation.
+
+VERDICT: REVISE
