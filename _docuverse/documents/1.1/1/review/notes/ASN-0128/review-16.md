@@ -1,0 +1,37 @@
+# Review of ASN-0128
+
+This note is unusually tight on its core machinery — the RP projection apparatus, I0a's minimal-elements lemma, I1a's induction, I6's and DR's per-branch wp derivations all check out, and the necessity halves are argued rather than asserted. The remaining issues are one substantive underspecification in a shipped registration, one mischaracterized scope boundary on a load-bearing lemma, and two duplication clusters the anti-bloat classifier exists to catch.
+
+## REVISE
+
+### Issue 1: S2 ships `supersedes` without fixing the direction convention its own tip-semantics depends on
+**ASN-0128, Standard registrations, S2**: "Records that one address supersedes another; `tip()` resolves to the current head when the active supersession edges from the queried address form a determinate, acyclic walk"
+**Problem**: BH2's edges run F → G — `succs(x)` returns the denoted G-targets of tuples whose F denotes `x`. S2 never says which slot carries the superseding address. Under the natural reading of the type's name — a tuple `(F, G)` asserts "F supersedes G," so F is the newer version — the walk from any version proceeds toward the *oldest* ancestor, and `tip()` resolves to the origin, the exact opposite of "the current head." The claimed semantics holds only under the inverse convention (F = superseded, G = superseder), which is nowhere stated. L7 (ASN-0043) places directional interpretation with the type, not the structure — so a shipped registration must state it, or two conforming implementations can walk opposite directions. S1 and S3 fix their slot conventions (S3 explicitly: F answers *who retracts*, G *what is retracted*); S2 alone omits it. Note also that the example section's registry table lists `supersedes` but no scenario exercises it — the one place the ambiguity would have surfaced.
+**Required**: One sentence in S2 pinning the slot convention (e.g., "a tuple asserts the address its F denotes is superseded by the address its G denotes; edges run old → new"), reconciled with the type's name, plus a chain-walk scenario in the example section verifying `tip()` against it.
+
+### Issue 2: DR's closing scope characterization under-describes what surface-discipline excludes
+**ASN-0128, Standard registrations, DR**: "The quantifier is real: a substrate whose `L_R` contains pre-policy or bypass-emitted range-G tuples is outside DR's scope, and there I2's sterilization caveat is the operative bound."
+**Problem**: The hypothesis DR actually needs is that *every* `L_R` tuple is wrapper-routed; the closing sentence names only range-G tuples and only the sterilization failure mode. A bypass-emitted **unit-depth** R-tuple defeats DR too, by a different route. Construction: raw-deposit (homed at some `d'`) an R-tuple with from-fill `(d_retr, δ(1, #d_retr))` and to-span `(a, δ(1, #a))` where `a = chain_{d_retr}(f + k)` lies ahead of `d_retr`'s frontier — a ghost at deposit time. When the frontier reaches `f + k`, a call `Nullify_Binary(Σ*, d_retr, a)` satisfies P0 ∧ P-reg ∧ P-tgt (self-emit disjunct), but the dedup *hits* on the bypass tuple — its endsets are coverage-equal to the wrapper's by construction — so the call takes no step and returns the bypass tuple's address. Single-tuple scope fails (`a ∉ dom(Σ*.L)`, so `{t : a ≼ t} ∩ A_rel^{Σ'} = ∅ ≠ {a}`) and nothing is nullified: the caller's retraction silently no-ops. This is exactly the case the hit branch's Residence bullet rules out *under* discipline; off discipline it is live, it is not range-G, and the operative failure is a spurious dedup hit, not I2's sterilization caveat.
+**Required**: Restate the exclusion as "any `L_R` tuple not deposited through the wrapper" and name both failure modes (slot sterilization for covered frontier slots; spurious hits against the wrapper's self-emit branch for unit-depth bypass tuples crafted with the wrapper's endset form) — or drop the illustrative sentence and let the surface-disciplined hypothesis speak for itself.
+
+### Issue 3: The C3-under-discipline fact is stated four times, twice in full
+**ASN-0128, SD; I4; I6 (disciplined-domain reduction); DR**: SD reads "On a surface-disciplined substrate, wp conjunct C3 holds at every gate-clearing emit: every surface-emitted retraction's to-coverage is a subtree rooted at a P-tgt-valid link address, which no later fresh address enters. The proof is DR's (Standard registrations)." DR's italicized opener restates the first clause verbatim; I4 restates it glossed ("On a surface-disciplined substrate (SD), C3 cannot fail and C2 concerns only self-nullifying retraction emits"); I6's reduction restates it again ("C3 holds at every gate-clearing emit (SD)").
+**Problem**: One lemma, four statements, one proof — and SD's statement sits where its proof cannot be given, since it depends on S3's P-tgt-rejecting policy defined two sections later; the "proof is DR's" deferral is the marker. This is the accretion pattern the classifier names: multiple paragraphs in different sections deferring to the same downstream location, plus two paragraphs saying the same thing in different words (SD and DR's opener).
+**Required**: SD keeps only the *definition* of surface-disciplined (needed at first use by I4/I6); the C3 lemma is stated and proved once, in DR; I4, I6, and S3 cite it by name without restating its content.
+
+### Issue 4: Duplicated normative sentences
+**ASN-0128, Denotation and views (Views), BH1 (Rewrite scope), Default predicates (lede); and BH2 (Effect), BH3 (target_of)**: (a) The default-view mechanics — BH1's rewrite layered on `members` and `targets_of`, default = active absent any BH1 registration — are stated in the Views bullet ("the default view is the active view after the read-filter rewrite, whose mechanics BH1's Rewrite scope fixes"), again in BH1's Rewrite scope (the normative home), and a third time in the Default predicates lede ("the default view is BH1's rewrite layered on two of them, where a read-filter type is registered"). (b) "Binary fixes each *tuple's* `|G| = 1`, not the number of active tuples per source" appears verbatim in BH2's Effect and again in BH3's `target_of` clause.
+**Problem**: Each fact has one normative home; the restatements are reader-routing prose that must be checked for consistency against the original on every revision cycle — the compounding cost the anti-bloat mode flags.
+**Required**: State each once at its normative home (BH1's Rewrite scope for the default view; BH2's Effect for the per-tuple `|G|` bound) and replace the other occurrences with bare citations.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Rejection-reason discrimination at the operation surface
+Rejection is uniformly "no step, no address" across gate failure, invalid home on a read branch, and P-tgt failure. Whether callers can distinguish *why* a call was rejected is an API-surface question a successor can take up.
+**Why out of scope**: The undiscriminated rejection semantics is sufficient for every wp and contract in this note; error reporting is new surface design, not a gap in these contracts.
+
+### Topic 2: The serializing authority presupposed by I4
+I4 models racing emits as ordered "ahead of the substrate relation" by an unspecified serializer. What that authority is and what fairness or atomicity it provides is outside the state model.
+**Why out of scope**: The note correctly inherits ASN-0086's sequential step relation, in which concurrency has no semantics; specifying the serializer would be a new system layer, not a repair to this one.
+
+VERDICT: REVISE
