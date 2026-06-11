@@ -226,10 +226,17 @@ satisfies
 
 For each canonical span `(s, δ(n, #s))` of `e_j`, the `F`-trace
 `{shift(s, k) : 0 ≤ k < n}` (LP-Fin Corollary, applicable since
-`s ∈ ρ(R_j, Σ) ⊆ dom(Σ.C) ⊆ F`) lies inside `coverage(e_j) ∩ F = ρ(R_j, Σ)`, so
-the span is the merge of a fully-resolved chain run and its denotation — the
-merge identity above, read right to left — is the union of exactly those
-addresses' unit subtrees; conversely each `a ∈ ρ(R_j, Σ) = coverage(e_j) ∩ F`
+`s ∈ ρ(R_j, Σ) ⊆ dom(Σ.C) ⊆ F`) lies inside `coverage(e_j) ∩ F = ρ(R_j, Σ)`.
+Before the merge identity can be read right to left, the trace — which arrives
+in shift-form — must be identified as a sibling chain run: each trace member
+lies in `ρ(R_j, Σ) ⊆ dom(Σ.C)`, hence is T4-valid (StoreT4Validity, ASN-0093)
+with `sig = #` (TA5-SigValid, ASN-0034), so the sibling step coincides with
+the last-component shift, `shift(shift(s, k), 1) = inc(shift(s, k), 0)` —
+the same transfer the left-to-right derivation above made explicit — and the
+trace is an `inc(·, 0)` chain run all of whose members are resolved. The span
+is therefore the merge of a fully-resolved chain run, and its denotation —
+the merge identity above, read right to left — is the union of exactly those
+addresses' unit subtrees. Conversely, each `a ∈ ρ(R_j, Σ) = coverage(e_j) ∩ F`
 lies in some span's interval, is by LP-Fin Corollary one of that span's chain
 addresses, and so carries its whole unit subtree `{t : a ≼ t}` inside the span's
 denotation. Coverage is thus a function of `ρ(R_j, Σ)` alone: any two admissible
@@ -536,7 +543,10 @@ Since MAKELINK sets `Σ'.L(a) = (e₁, e₂, e₃)`, the right-hand side reduces
 steps.
 
 *Fact (a) — the coverage/`ρ` gap collapses on the post-state store.* By
-generalized referential integrity (S3★, ASN-0047) at the post-state, an
+generalized referential integrity paired with subspace exhaustiveness (S3★
+with S3★-aux, ASN-0047) at the post-state — S3★-aux makes every V-position's
+subspace `s_C` or `s_L`, and S3★ closes each branch into the corresponding
+store, the same pairing the `a ∉ ran(M(d))` discharge above already used — an
 arrangement's images lie in the post-state store:
 `ran(Σ'.M(d')) ⊆ dom(Σ'.C) ∪ dom(Σ'.L)`, and that store is
 `dom(Σ.C) ∪ dom(Σ.L) ∪ {a}` (`Σ'.C = Σ.C` by ML10;
@@ -611,7 +621,8 @@ invariants of every reachable state), so
 `coverage(eᵢ) ∩ dom(Σ''.L) = ∅` at every `Σ''`; independently, any address
 freshly allocated after creation is excluded from `coverage(eᵢ)` by LP19a.
 Since discoverability at `Σ''` consults `coverage(eᵢ) ∩ ran(Σ''.M(d''))`
-(LP12) and that range lies in `dom(Σ''.C) ∪ dom(Σ''.L)` (S3★), the two halves
+(LP12) and that range lies in `dom(Σ''.C) ∪ dom(Σ''.L)` (S3★ with S3★-aux,
+as in Fact (a)), the two halves
 together yield the future-state consequence: the link can become discoverable
 from a new document only by that document's arrangement reaching the
 *originally resolved* content.
@@ -633,10 +644,15 @@ subspace is extended). The entity set and provenance relation are likewise
 untouched: `Σ'.E = Σ.E ∧ Σ'.R = Σ.R`, inherited from the frames of `K.λ` and
 `K.μ⁺_L` (ASN-0047) — MAKELINK creates no entity and records no provenance, and
 the `R' = R` clause is what discharges J1'★ above. Existing link-store entries are
-untouched — the store only gains `a ↦ (e₁, e₂, e₃)`. The sources the endsets read
-are unmodified by the act of being linked into: a link *to* a region changes
-nothing about that region, which is why links can be made to published material
-one does not own.
+untouched — the store only gains `a ↦ (e₁, e₂, e₃)`. The coordinates the endsets
+read — every source's *content-subspace* arrangement — are unmodified by the act
+of being linked into: the one arrangement change anywhere is the home's
+link-subspace seating `v_a ↦ a`, so a source `d_j ≠ d` is untouched outright,
+and a source coinciding with the home (`d_j = d`, which `wf` admits and ML4 and
+L4(b) (ASN-0043) anticipate) gains only that link-subspace binding, its
+content-subspace restriction unchanged. A link *to* a region changes nothing
+about that region, which is why links can be made to published material one
+does not own.
 
 ## A worked example
 
@@ -717,9 +733,12 @@ its position because the record holds identities, not positions. And the link
 remains discoverable from `A` through what survives:
 `coverage(e₁) ∩ ran(Σ''.M(A)) = {a₁} ≠ ∅`, so `discoverable_from(a, A, Σ'')`
 holds (LP12). Had `e₁` been recorded as the single merged span
-`(a₁, δ(2, #a₁))`, that one span now covers one active position and one
-inactive — exactly the partial-span shape that motivated `ρ`'s
-active-position filter — and the link stays on the surviving content:
+`(a₁, δ(2, #a₁))`, that one I-span now covers one I-address still arranged
+in `A` (`a₁ ∈ ran(Σ''.M(A))`) and one no longer arranged
+(`a₂ ∉ ran(Σ''.M(A))`) — the I-side counterpart of the partial V-span over
+a partially-deleted arrangement that motivated `ρ`'s active-position filter,
+a structural parallel in different coordinates rather than the same shape —
+and the link stays on the surviving content:
 Nelson's "if any of the bytes are left to which a link is attached, that
 link remains on them," exercised.
 
@@ -744,7 +763,7 @@ ML9's future-state consequence, concretely.
 | ML7 | Permanence: `(A Σ' → Σ'' : a ∈ dom(Σ'.L) : a ∈ dom(Σ''.L) ∧ Σ''.L(a) = Σ'.L(a))` — the made link is not broken by any editing of the content it connects | introduced |
 | ML8 | EndsetSurvivability: editing a source document changes `Σ.M` but never the recorded I-addresses, which by S0 denote their original content permanently — the endset reference survives all editing of the content it names (consequence of ML7 ∧ ML1) | introduced |
 | ML9 | DiscoverabilityDecoupledFromResidence: `wp(makelink, discoverable_from(a, d', ·)) ≡ enabled(makelink) ∧ d' ∈ dom(Σ.M) ∧ (E i : ρ(R_i,Σ) ∩ ran(Σ.M(d')) ≠ ∅)` — beyond enabledness, the home `d` does not appear in the discoverability test; the consequence persists at every later `Σ''` via the stable content trace (LP19a) together with the state-uniform link-store exclusion `coverage(eᵢ) ∩ dom(Σ''.L) = ∅` (LP-Fin Corollary subspace `s_C` versus LP-Sub/L0 subspace `s_L`) | introduced |
-| ML10 | Frame: `Σ'.C = Σ.C`; `Σ'.E = Σ.E ∧ Σ'.R = Σ.R` (inherited from the K.λ/K.μ⁺_L frames — the `R' = R` clause grounds J1'★'s vacuity); `(A d' ≠ d : Σ'.M(d') = Σ.M(d'))`; existing `Σ.L` entries unchanged; the linked-into sources are unmodified by being linked into | introduced |
+| ML10 | Frame: `Σ'.C = Σ.C`; `Σ'.E = Σ.E ∧ Σ'.R = Σ.R` (inherited from the K.λ/K.μ⁺_L frames — the `R' = R` clause grounds J1'★'s vacuity); `(A d' ≠ d : Σ'.M(d') = Σ.M(d'))`; existing `Σ.L` entries unchanged; every source's content-subspace arrangement is unmodified by being linked into — a source coinciding with the home gains only the link-subspace seating `v_a ↦ a` | introduced |
 
 ## Open Questions
 
