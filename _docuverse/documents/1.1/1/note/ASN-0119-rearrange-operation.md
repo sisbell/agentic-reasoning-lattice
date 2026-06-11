@@ -38,14 +38,9 @@ with REARRANGE imported as an atomic arrangement-rearrangement primitive
 (ASN-0084) that realizes the same *form* of arrangement change as ASN-0047's own
 non-atomic `K.μ~` composite without ever vacating content, coinciding with an
 admissible `K.μ~` whenever the net effect is non-trivial (`M'(d) ≠ M(d)`).
-(Coincidence is a five-clause claim — K.μ~'s admissibility (i)–(v) — and the four
-clauses beyond non-triviality (ii) are discharged by derivations later in this
-note: the post-state shape package (i) — S8a, S8-depth, D-CTG★, D-MIN★ — by the
-set-invariance argument of the invariant-preservation section, which inherits
-each on the unchanged key sets (RA2); length preservation (iii) by the depth-2
-closed forms of R-PPERM/R-SPERM, every text destination being again a depth-2
-position and the non-S branch the identity; subspace preservation (iv) by RA2a;
-and link-subspace fixity (v) by R-NS.) The
+Coincidence is a five-clause claim — K.μ~'s admissibility (i)–(v) — whose four
+clauses beyond non-triviality (ii) we discharge at the end of the
+invariant-preservation section, once the facts they rest on are in hand. The
 coincidence is not an equality of domains: K.μ~'s admissibility demands a
 non-trivial net effect over an arrangement whose content-subspace mapping takes
 at least two distinct values, while R-PRE imposes no value-based condition.
@@ -128,8 +123,9 @@ cuts the interval `[c₀, c₃)` splits into three,
 where `μ` is the *intervening region* belonging to neither moved block. We write
 `w_μ = ord(c₂) − ord(c₁)`. These regions and their ordinal-difference widths are
 ASN-0084's RegionPartition (its widths read off the R-PRE consequences); both
-moved-block widths are strictly positive (a cut sequence with a zero-width region
-is degenerate), and in the four-cut case `w_μ ≥ 1` as well.
+moved-block widths are strictly positive — `w_α ≥ 1` and `w_β ≥ 1`, with
+`w_μ ≥ 1` as well in the four-cut case — a consequence of CS2's strict ascent,
+not a separate condition to check.
 
 The cuts are coordinates in a single arrangement `M(d)`, so the geometry of the
 regions is fixed before any reassignment occurs.
@@ -374,6 +370,20 @@ state, so `allocated(Σ') = allocated(Σ)`. With ASN-0047's two invariant theore
 discharged and the vocabulary-quantified M1 and allocated-set obligations
 discharged alongside them, the invariant package REARRANGE joins is accounted
 for.
+
+The deferred `K.μ~` coincidence is now discharged clause by clause against
+K.μ~'s admissibility (i)–(v) (ASN-0047). The post-state shape package (i) —
+S8a, S8-depth, D-CTG★, D-MIN★ — holds by the set-invariance argument above,
+each invariant inherited on the unchanged key sets (RA2). Non-triviality (ii)
+is the hypothesis of the coincidence claim itself. Length preservation (iii) —
+`#π(v) = #v` — holds by the depth-2 closed forms of R-PPERM/R-SPERM: every text
+destination is again a depth-2 position, and every non-text position is fixed.
+Subspace preservation (iv) holds by RA2a on the text subspace and by pointwise
+fixity elsewhere. Link-subspace fixity (v) — `π(v) = v` at every link-subspace
+position, a key-level fact about `π` rather than about the values it files — is
+supplied by the non-S branch of R-PPERM/R-SPERM, which fixes every position
+with `subspace(v) ≠ s_C` pointwise. A non-trivial REARRANGE step is therefore
+an admissible `K.μ~`.
 
 ## The intervening content
 
@@ -728,16 +738,17 @@ matter how it computes positions.
 REARRANGE is therefore a *partial* operation: it is defined exactly where its
 preconditions R-PRE hold against `M(d)` (ASN-0084 states that REARRANGE_K "is
 partial, defined exactly where R-PRE(K) holds"), and on any input outside that
-domain it names no post-state. R-PRE demands a strictly ascending
-cut sequence whose affected interval `[c₀, c_{n-1})` lies wholly within the active
-text subspace (R-PRE(iv)) and whose two moved-region widths are each `≥ 1` (a
-zero-width moved region is degenerate). The degenerate document sizes are instances
-of this exclusion. An empty text subspace (`V_{s_C}(d) = ∅`) offers no active positions to
-cut. A single active position cannot furnish an affected interval of the minimum
+domain it names no post-state. R-PRE's clauses are these: the document's
+arrangement exists and its text subspace is non-empty (R-PRE(i)–(ii)); the cuts
+form a CS1–CS5 cut sequence — in particular strictly ascending, by CS2
+(R-PRE(iii)); and the affected interval `[c₀, c_{n-1})` lies wholly within the
+active text subspace (R-PRE(iv)). The degenerate document sizes are instances
+of this exclusion. An empty text subspace (`V_{s_C}(d) = ∅`) fails R-PRE(ii)
+outright. A single active position cannot furnish an affected interval of the minimum
 width — two positions for a pivot (`w_α, w_β ≥ 1`), three for a swap
-(`w_α, w_μ, w_β ≥ 1`) — that strict ascent together with R-PRE(iv) require. More
+(`w_α, w_μ, w_β ≥ 1`) — that strict ascent (CS2) together with R-PRE(iv) require. More
 generally, any document whose active run is shorter than that minimum interval
-cannot satisfy R-PRE(iv) and strict ascent simultaneously.
+cannot satisfy R-PRE(iv) and CS2 simultaneously.
 
 The opposite extreme stays *inside* the domain. When `c₀ = min(V_{s_C}(d)) =
 [s_C, 1]` the left exterior `{v : v < c₀}` is empty and R-EXT's `v < c₀` branch is a
