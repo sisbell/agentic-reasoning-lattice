@@ -233,23 +233,20 @@ composite has no realisation here. DELETE is instead a *single* **K.μ⁻** step
 prefix-retention truncation of the text subspace to count `n'_{s_C} = J − 1 = N − c`
 (with `n'_{s_C} < N` since `c ≥ 1`, supplying the strictly-contracting subspace),
 the link subspace held at full retention. The delete-everything sub-case
-`J = 1, c = N` is this with `n'_{s_C} = 0`. As an *elementary* transition K.μ⁻ is
-self-sufficient — it requires no coupling and carries
-`Σ'.C = Σ.C ∧ Σ'.L = Σ.L ∧ Σ'.E = Σ.E ∧ Σ'.R = Σ.R` directly (J2,
-ContractionIsolation, ASN-0047)
-— so every coupling and frame obligation below holds for this single-step
-realisation outright, without recourse to a second step.
+`J = 1, c = N` is this with `n'_{s_C} = 0`. Coupling and frame discharge for
+this single-step realisation is taken up with the composite's, below.
 
 In both cases the net effect on `M(d)` is exactly ASN-0082's left-shift
 displacement (vacuous on the suffix when `R = ∅`), which is why we read DELETE's
 clauses off ASN-0082 below.
 
-DELETE's coupling and frame obligations are discharged identically in both
-realisations. For the `R = ∅` single step, J2 (ContractionIsolation) already
-supplies `Σ'.C = Σ.C ∧ Σ'.L = Σ.L ∧ Σ'.E = Σ.E ∧ Σ'.R = Σ.R` outright, so every
-obligation below
-holds trivially and the elementary K.μ⁻ carries no composite-coupling clause at
-all. For the `R ≠ ∅` composite we discharge ValidComposite clause 2 (J0, J1★, J1'★
+DELETE's coupling and frame obligations are discharged for both realisations —
+trivially via J2 for the `R = ∅` single step, explicitly for the `R ≠ ∅`
+composite. The single step is an *elementary* K.μ⁻, self-sufficient by J2
+(ContractionIsolation, ASN-0047): it carries no composite-coupling clause and
+supplies `Σ'.C = Σ.C ∧ Σ'.L = Σ.L ∧ Σ'.E = Σ.E ∧ Σ'.R = Σ.R` directly, so every
+obligation below holds for it outright. For the `R ≠ ∅` composite we discharge
+ValidComposite clause 2 (J0, J1★, J1'★
 evaluated *only* between the initial state `Σ` and the final state `Σ'`)
 explicitly, all vacuously. **J0** (every freshly allocated I-address appears in some
 arrangement) holds because DELETE allocates no content — `dom(C') = dom(C)` (P0)
@@ -268,9 +265,9 @@ provenance entry requires range-new content) holds because DELETE adds no
 provenance, so its antecedent `Σ'.R ∖ Σ.R` is empty. Both component steps fix the
 link store, the entity set, and the provenance relation (`Σ'.L = Σ.L`,
 `Σ'.E = Σ.E`, `Σ'.R = Σ.R`: K.μ⁻'s per-subspace-scope frame and the amended
-K.μ⁺'s frame each list all three, ASN-0047), so the composite does too; together
-with J2's `Σ'.L = Σ.L ∧ Σ'.E = Σ.E ∧ Σ'.R = Σ.R` for the `R = ∅` single step,
-this is the *frame
+K.μ⁺'s frame each list all three, ASN-0047), so the composite does too; the
+`R = ∅` single step has the same three clauses from J2's discharge above. This
+is the *frame
 discharge* **(DEL-CFRAME)** that the frame clauses DEL-LIMM, DEL-FENT, and
 DEL-FPROV below cite. With clause 2 thus discharged, DELETE is a valid composite
 appended to the valid trace whose final boundary is the pre-state `Σ` (the
@@ -358,10 +355,16 @@ ASN-0047), the partition of `M(d)|_{V_S}` into maximal V→I correspondence runs
 Closing the gap can fuse or split runs — across the closed boundary the
 survivors `M'(d)(q_{J−1}) = a_{J−1}` and `M'(d)(q_J) = a_{J+c}` need not advance
 in lockstep, so the maximal-run decomposition of the post-state differs from
-that of the pre-state. But S8★ asserts only that *some* finite maximal-run
-partition exists, which S8 (ASN-0036) guarantees for any finite single-subspace
-arrangement; the contracted text arrangement `V_S(d') = {q_1, …, q_{N−c}}` is
-exactly such, so S8★ holds in the post-state notwithstanding the re-cut. The
+that of the pre-state. But S8★ is a per-state obligation, pinning no particular
+decomposition *across* states, so the pre/post re-cut is no violation; what the
+post-state owes is that the maximal-run decomposition of its contracted text
+arrangement `V_S(d') = {q_1, …, q_{N−c}}` exists *and is unique within that
+state* — uniqueness being S8's condition (c), which S8★ retains on the content
+subspace. Both are delivered by S8 (ASN-0036), whose preconditions the
+post-state package above supplies conjunct by conjunct: S8-fin by S8-fin-post,
+S2 by S2-post, S3 by S3★ restricted to the text subspace, S8a by S8a-post, and
+S8-depth by S8-depth-post. Hence S8★ holds in the post-state notwithstanding
+the re-cut. The
 remaining extended-state per-state conjuncts the deletion leaves undisturbed —
 **S3★-aux** (subspace exhaustiveness), **CL-OWN** (link-subspace ownership),
 **CL-UNIQ** (link-subspace position uniqueness) — are preserved trivially:
