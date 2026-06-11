@@ -90,8 +90,9 @@ Every request the grammar admits is thus phrased entirely over addresses —
 all of its components denote sets of tumbler addresses — and we call it an *I-address
 request*. There is exactly one kind of request in this grammar; the arrangement-mediated
 *V-spec* phrasing discussed later (under editing stability) is a separable front-end
-convenience that resolves to addresses before reaching `findlinks`, not a second kind of
-request. So the qualifier "I-address request," wherever it appears below, is simply every
+convenience that resolves to addresses before reaching `findlinks` (ASN-0127's two-phase
+combinator `findlinks_V`, F-V), not a second kind of request. So the qualifier
+"I-address request," wherever it appears below, is simply every
 `q` the grammar admits. We phrase request components as endsets precisely so that `coverage`
 (ASN-0043), which is defined on `Endset`, applies to them uniformly with the link's own
 endsets; an endset denotes, through `coverage`, a set of addresses, and the wildcard
@@ -125,27 +126,19 @@ analogous concern in the foundation (ASN-0086 CoverageEqualityDecidable).
 **FL-DEC (decidability).** For any two endsets `e, r ∈ Endset`, `touch(e, r)` is
 decidable using only T2 comparisons and TumblerAdd; consequently `sat(a, q, Σ)` is
 decidable per link, and `findlinks(q, Σ)` is a finite, computable set. *Proof.* By
-`Endset = 𝒫_fin(Span)` (ASN-0043), `e ∪ r` is finite, so `coverage(e)` and `coverage(r)`
-are each a finite union of half-open T1-intervals `[s, s ⊕ ℓ)` (T12, ASN-0034). Sort the
-finite endpoint set `{s : (s, ℓ) ∈ e ∪ r} ∪ {s ⊕ ℓ : (s, ℓ) ∈ e ∪ r}` under T1 into
-distinct values `c₁ < … < c_m`; each coverage is constant (in or out) on every cell
-between consecutive endpoints, so `coverage(e) ∩ coverage(r) ≠ ∅` iff some cell with a
-representative is in both — a cell-wise membership comparison, finitely many T2 tests.
-This is exactly the cell-decomposition of ASN-0086's CoverageEqualityDecidable, applied
-to intersection-nonemptiness rather than coverage equality. The home test
-`athome(a, H) ≡ home(a) ∈ coverage(H)` is decidable by the same finite cell membership
-(a single point against a finite interval union). Hence `sat` — a conjunction of four
-decidable tests — is decidable. It remains to show the *addressability filter* is itself
-computable, since `findlinks(q, Σ) = { a ∈ addressable(Σ) : sat(a, q, Σ) }` ranges over
-`addressable(Σ) = dom(Σ.L) \ nullified(Σ)`, not over `dom(Σ.L)` directly: enumerating the
-index set presupposes `nullified(Σ)`-membership is decidable. It is, by exactly the
-argument ASN-0086 records for its ActiveSubset/`nullified`. The retraction relation
+`Endset = 𝒫_fin(Span)` (ASN-0043), `coverage(e)` and `coverage(r)` are finite unions of
+half-open T1-intervals `[s, s ⊕ ℓ)` (T12, ASN-0034). Run the cell-decomposition procedure
+of ASN-0086's CoverageEqualityDecidable on `e ∪ r`: each coverage is constant on every
+cell between consecutive sorted span endpoints, so `coverage(e) ∩ coverage(r) ≠ ∅` iff
+the representative of some nonempty cell lies in both — the same finitely many T2 tests,
+run for intersection-nonemptiness rather than coverage equality. The home test
+`athome(a, H) ≡ home(a) ∈ coverage(H)` is a single point against a finite interval union
+— the T2 span-membership test of ASN-0086's ActiveSubset. Hence `sat` — a conjunction of
+four decidable tests — is decidable. The *addressability filter* over which FL-DEF ranges
+is computable by exactly ASN-0086's ActiveSubset argument: the retraction relation
 `L_R^Σ` is selected from the finite `dom(Σ.L)` by CoverageEqualityDecidable (the slot-3
-type-coverage test against the retraction coverage class), so `L_R^Σ` is finite and
-computable; each retraction tuple `(b, F', G') ∈ L_R^Σ` carries a to-endset `G'` whose
-coverage is a finite span-set, and `a ∈ coverage(G')` is decidable by T2 (a point against
-a finite interval union); hence `a ∈ nullified(Σ) ≡ (E (b, F', G') ∈ L_R^Σ :: a ∈ coverage(G'))`
-is a finite disjunction of decidable tests, so `nullified(Σ)` is computable and
+type-coverage test against the retraction coverage class), and `nullified(Σ)` is decided
+by T2 span-membership against the finitely many retraction to-coverages, so
 `addressable(Σ) = dom(Σ.L) \ nullified(Σ)` is enumerable. With both the filter and `sat`
 decidable, and `findlinks(q, Σ) ⊆ dom(Σ.L)` finite by L-fin (`|dom(Σ.L)| < ∞`, ASN-0093),
 the result is computed by deciding `sat` over the finitely many addressable links. ∎
@@ -214,23 +207,21 @@ and entity registration K.δ, the arrangement-editing family K.μ⁺, K.μ⁺_L,
 named composite K.μ~ (extension, contraction, reordering), and provenance recording K.ρ;
 `Σ →* Σ'` is the reflexive-transitive (reachability) closure of `→`. Two monotonicity
 facts about this *whole* vocabulary underwrite the permanence claims, and we record them
-once here. First, `dom(Σ.L)` is non-decreasing across `→`: only K.λ touches the link
-store, and it only extends it (L12a), with every other operation framing `Σ.L` fixed;
-ASN-0098's StoreMonotonicity★ lifts this to `dom(Σ.L) ⊆ dom(Σ'.L)` across `→*`. Second,
-`nullified` is non-decreasing across `→`. The cleanest way to see this is structural,
-which also avoids any gap in a per-operation enumeration: `nullified(Σ)` is a function of
+once here. First, `dom(Σ.L)` is non-decreasing across `→`: every operation other than
+K.λ preserves the link store outright — `dom(Σ'.L) = dom(Σ.L)` with per-link value
+equality (F-PRES, PublishedFramePreservation, ASN-0127, covering K.α, K.δ, K.μ⁺, K.μ⁺_L,
+K.μ⁻, K.ρ and the composite K.μ~) — and K.λ only extends it (L12a); ASN-0098's
+StoreMonotonicity★ lifts this to `dom(Σ.L) ⊆ dom(Σ'.L)` across `→*`. Second, `nullified`
+is non-decreasing across `→`. The argument is structural: `nullified(Σ)` is a function of
 `Σ.L` *alone* — it is defined through the retraction relation `L_R^Σ`, which is itself a
-subset of the link store — so any operation that frames `Σ.L` fixed leaves both `L_R^Σ`
-and `nullified(Σ)` unchanged. Within the ASN-0047 vocabulary the only operation that
-changes `Σ.L` is K.λ; every other operation frames the link store fixed — K.α writes only
-`Σ.C`; K.δ extends `Σ.E` (and, for documents, `dom(Σ.M)`) while framing `Σ.C`, `Σ.L`, and
-`Σ.R` fixed; K.μ⁺/K.μ⁺_L/K.μ⁻/K.μ~ rewrite only `Σ.M`; K.ρ writes only `Σ.R` — and so each
-holds `nullified` constant (the only fact needed here being `L' = L`). Across the one
-link-store-changing operation K.λ, R6a (ASN-0086, RetractionStability:
+subset of the link store — so every F-PRES step, holding `Σ'.L = Σ.L`, leaves both
+`L_R^Σ` and `nullified(Σ)` unchanged. Across the one link-store-changing operation K.λ,
+R6a (ASN-0086, RetractionStability:
 `a ∈ nullified(Σ) ⟹ a ∈ nullified(Σ')`) supplies monotonicity. So `nullified` is constant
-across every non-K.λ step and monotone (R6a) across K.λ, hence non-decreasing across all of
-`→` and, by induction, across `→*`. We invoke these two facts — link-store monotonicity and
-`nullified` monotonicity over the full vocabulary — wherever permanence is at issue below.
+across every non-K.λ step (F-PRES) and monotone (R6a) across K.λ, hence non-decreasing
+across all of `→` and, by induction, across `→*`. We invoke these two facts — link-store
+monotonicity and `nullified` monotonicity over the full vocabulary — wherever permanence
+is at issue below.
 
 Now we may derive, rather than stipulate, the answer set. Demand of any candidate answer
 `R` two things. *Soundness*: `(A a : a ∈ R : a ∈ addressable(Σ) ∧ sat(a, q, Σ))` —
@@ -346,8 +337,10 @@ content I-addresses
 text subspace `s_C = 1`, differing only in the last component), and the unit-depth request
 endsets `X = {(x, δ(1,#x))}` and `Y = {(y, δ(1,#y))}`. By PrefixSpanCoverage (ASN-0043),
 `coverage(X) = {t : x ≼ t}` and `coverage(Y) = {t : y ≼ t}`; since `x` and `y` are
-equal-length and non-nesting (T1, ASN-0034), these subtrees are disjoint, so
-`coverage(X) ∩ coverage(Y) = ∅`. Now let `a` be a link with from-endset `e₁ = X` and
+equal-length and distinct they are prefix-incomparable (Prefix, ASN-0034: a proper prefix
+is strictly shorter), so these subtrees are disjoint (T10, PartitionIndependence,
+ASN-0034) and `coverage(X) ∩ coverage(Y) = ∅`. Now let `a` be a link with from-endset
+`e₁ = X` and
 to-endset `e₂ = Y` (its type endset and home are immaterial here). Then
 `coverage(e₁) ∩ coverage(X) ≠ ∅` (it contains `x`), `coverage(e₁) ∩ coverage(Y) = ∅`,
 `coverage(e₂) ∩ coverage(Y) ≠ ∅` (contains `y`), and `coverage(e₂) ∩ coverage(X) = ∅`.
@@ -390,12 +383,14 @@ addresses; matching is by address identity.
 of address coverages, and never reads content stored at any type address. Three
 consequences follow. *(a) Ghost types.* A type address need not lie in `dom(Σ.C)`; an
 endset whose coverage includes addresses with no stored content is a valid, matchable
-type — "Link types may be ghost elements" (4/45). *(b) Independent constraint.* Because
+type (L9, TypeGhostPermission, ASN-0043) — "Link types may be ghost elements" (4/45).
+*(b) Independent constraint.* Because
 the type participates in `sat` on equal footing with from and to, a request may constrain
 type alone — `findlinks((∗, ∗, ∗, Θ), Σ)` returns every addressable link of a kind
 touching `Θ`, leaving from and to open. *(c) Hierarchy by containment.* A type request
 whose span is rooted at a supertype address `p` covers the whole subtree `{t : p ≼ t}`
-(PrefixSpanCoverage, ASN-0043), so a single type span matches all subtypes of `p`; the
+and so matches all and only subtypes of `p` — L10 (TypeHierarchyByContainment, ASN-0043,
+via PrefixSpanCoverage) applied on the request side; the
 type slot is searchable for super- and sub-types without any registry. Gregory's index
 keys the type endset by its I-addresses under a dedicated type-subspace, matched by
 address-overlap and never by stored value, and treats an empty type request as imposing
@@ -505,10 +500,14 @@ and `a ∈ addressable(Σ')` because `a ∈ dom(Σ'.L)` by link-store monotonici
 
 FL-MON and FL-STB are monotonicity and invariance statements; they do not isolate *which*
 single transition can move a link into or out of the answer. Since `findlinks(q, ·)` is a
-function of `Σ.L` alone (FL-DEF's frame; `nullified` is itself a function of `Σ.L`), and
-the only operation in `→` that changes `Σ.L` is K.λ (every other operation frames `Σ.L`
-fixed, as recorded above), *K.λ is the unique result-changing transition*. A single K.λ
-step can change the answer in three ways, and we compute the weakest precondition of each:
+function of `Σ.L` alone (FL-DEF's frame; the F-CIL instantiation recorded at FL-STB
+below), and every operation in `→` other than K.λ preserves `Σ.L` (F-PRES, ASN-0127, as
+recorded above), *K.λ is the unique result-changing transition*. (For the bare,
+unfiltered existence query, ASN-0127's F-LAMBDA already characterises the K.λ step — the
+result grows by exactly the fresh link when it matches; the cases below refine that
+per-step increment through the four-slot `sat` and the addressability filter, neither of
+which F-LAMBDA carries.) A single K.λ step can change the answer in three ways, and we
+compute the weakest precondition of each:
 the entry of a newly created *ordinary* link, the entry of a newly created *retraction*
 link, and the survival of an existing match under a retraction-bearing K.λ. The second
 case is not idle: a retraction link is a first-class link with its own address, and
@@ -567,8 +566,9 @@ hence by ASN-0086's definition
 `nullified(Σ') = { a ∈ dom(Σ'.L) : (E (b, F', G') ∈ L_R^Σ :: a ∈ coverage(G')) }`. Freshness
 `ℓ ∉ dom(Σ.L)` guarantees only that *this* step emits no retraction targeting `ℓ`; it does
 not exclude a *pre-existing* retraction tuple `(b, F', G') ∈ L_R^Σ` whose to-coverage already
-names `ℓ`. Endset coverage may reference ghost addresses with no stored content (ASN-0086 L4/L9
-EndsetGenerality, R5; ASN-0098 LP17/LP18 orphan/resurrection), so the future address `ℓ` can be
+names `ℓ`. Endset coverage may reference ghost addresses with no stored content (L4
+EndsetGenerality and L9 TypeGhostPermission, ASN-0043; R5, ASN-0086; LP17/LP18
+orphan/resurrection, ASN-0098), so the future address `ℓ` can be
 uncovered while merely fresh against `dom(Σ.L)` yet covered once it enters `dom(Σ'.L)` — exactly
 the regime in which `nullified(Σ)`, restricted to `dom(Σ.L)`, omits `ℓ` "before" allocation
 while `nullified(Σ')` includes it "after." In that case `ℓ ∈ nullified(Σ')`, so
@@ -577,10 +577,10 @@ addressability conjunct is therefore not vacuous, and the weakest precondition m
 `ℓ ∉ nullified(Σ')`, equivalently `¬(E (b, F', G') ∈ L_R^Σ :: ℓ ∈ coverage(G'))`. This is the
 direct analogue of the third conjunct ASN-0086 deliberately carries in its wp Case 2
 (EmitKWeakestPrecondition), `¬(E (b, F', G') ∈ L_R^Σ :: a_emit(Σ, d) ∈ coverage(G'))`, and for
-the same reason — the conjunct is dischargeable only under a stated retraction discipline (e.g.
-ASN-0086's unit-depth retraction discipline, under which a unit-depth-disciplined retraction span
-`{t : target ≼ t}` cannot cover a fresh same-structure `ℓ`, since equal length forces
-`target = ℓ ∈ dom(Σ.L)` against freshness, and cross-document coverage is excluded by T10). This
+the same reason — the conjunct is dischargeable only under a stated retraction discipline:
+ASN-0086's disciplined-domain simplification of wp Case 2 discharges it vacuously at
+layer-reachable states (unit-depth retraction discipline plus R0a give
+`a_emit(Σ, d) ∉ coverage(G')` for every pre-existing retraction tuple). This
 ASN works over the *full* ASN-0047 transition vocabulary, which imposes no such discipline, so we
 do not assert that discharge here; we keep the conjunct explicit.
 
@@ -689,35 +689,47 @@ attach to bytes — to I-addresses (content identity) — not to V-positions:
 > that link remains on them." (4/42)
 
 Editing operations rewrite arrangements `Σ.M`; they do not touch the link store `Σ.L`
-(immutable, L12) nor the content store `Σ.C` (append-only, S0), and they do not alter the
-I-addresses an endset references. Because every request is phrased over I-addresses (the
+(F-PRES, ASN-0127; values immutable, L12) nor the content store `Σ.C` (append-only, S0),
+and they do not alter the I-addresses an endset references. Because every request is phrased over I-addresses (the
 content-identity regime — there is no other kind in the grammar), `sat` depends only on
 `Σ.L`, on link addresses, and on the fixed `q`. None of these moves under editing.
 
 **FL-STB (stability under editing).** For a transition `Σ → Σ'` that preserves the link
 store — `Σ'.L = Σ.L` — and any
 request `q` (necessarily an I-address request, the grammar's only kind),
-`findlinks(q, Σ') = findlinks(q, Σ)`. The single hypothesis `Σ'.L = Σ.L` suffices: because
-`nullified` is a function of `Σ.L` alone (it is defined through the retraction relation
-`L_R^Σ ⊆ Σ.L`, as established in the monotonicity discussion above), `Σ'.L = Σ.L` already
-entails `nullified(Σ') = nullified(Σ)`, so retraction-set preservation is a consequence of
-the link-store hypothesis rather than an independent assumption. Pure-arrangement edits
-(insertion, deletion, rearrangement) and content appends, which preserve `Σ.L`, leave the
-answer invariant. The membership of the result may be expressed
+`findlinks(q, Σ') = findlinks(q, Σ)`. This is an instance of ASN-0127's meta-lemma F-CIL
+(ComprehensionInvariantUnderΣL): FL-DEF is the comprehension
+`{ a ∈ dom(Σ.L) : a ∉ nullified(Σ) ∧ sat(a, q, Σ) }`, and its membership predicate
+consults only `Σ.L` and query-data — `sat` reads the stored value `Σ.L(a)`, the
+address-projection `home(a)`, and the fixed `q`; `nullified` is defined through the
+retraction relation `L_R^Σ ⊆ Σ.L` — never `Σ.M`, `Σ.C`, `Σ.E`, or `Σ.R`. F-CIL therefore
+delivers the equality from the single hypothesis `Σ'.L = Σ.L`; in particular
+retraction-set preservation (`nullified(Σ') = nullified(Σ)`) is a consequence of the
+link-store hypothesis, not an independent assumption. Pure-arrangement edits (insertion,
+deletion, rearrangement) and content appends preserve `Σ.L` (F-PRES, ASN-0127) and so
+leave the answer invariant. The membership of the result may be expressed
 through different V-positions before and after the edit, but the *set of link
 identities returned is unchanged*.
 
 Nelson's one exception — a link drops from results when an *entire* endset's content is
 deleted, "nothing left at one end" (4/42) — concerns a different phrasing of the request.
-A *V-spec* request names its target through a document's current arrangement; if an
-endpoint's content has been fully removed from every arrangement, no V-spec resolves to
+A *V-spec* request names its target through a document's current arrangement; ASN-0127
+formalises exactly this front-end as the two-phase combinator `findlinks_V` (F-V,
+TwoPhaseFactoring): a V-region `W` is first resolved through the arrangement to the
+I-address set `image(W, d, Σ)`, and only then does a link query run. The fragility is
+then a theorem rather than an observation: `findlinks_V` is non-monotone across
+arrangement edits — extension grows it, contraction shrinks it, reordering can move it
+(D-NONMONO, ASN-0127) — and it can change while `dom(Σ.L)` is fixed (D-PRES, ASN-0127).
+In particular, if an endpoint's content has been fully removed from every arrangement,
+no V-spec resolves to
 its I-addresses, so a V-spec request cannot name it. Under the I-address regime the same
 link is *orphaned* but still content-identity-findable: its endset I-addresses persist
 (content is never destroyed, S0), and a direct I-address request still matches it
 (consultation Q18 documents the surviving index entries; ASN-0098's LP17/LP18 give the
-orphan/resurrection cycle). The abstract operation, specified over I-addresses, is stable;
-the arrangement-mediated naming of the request is a separable front-end convenience whose
-fragility under full deletion is a property of the *naming*, not of `findlinks`.
+orphan/resurrection cycle). The abstract operation, specified over I-addresses, is stable
+(FL-STB); the arrangement-mediated naming of the request is a separable front-end
+convenience whose fragility under full deletion is a property of the *resolution* (F-V's
+first phase), not of `findlinks`.
 
 ## Retraction is permanent absence from current inquiry
 
@@ -815,7 +827,8 @@ coverage is that address's subtree):
 | `a₃` | `{p}`-subtree | `{x}`-subtree | `{σ}`-subtree |
 
 The five content/type addresses are pairwise non-nesting, so their subtree coverages are
-pairwise disjoint. Take request endsets `X, Y, P` covering the subtrees of `x, y, p`
+pairwise disjoint (T10, ASN-0034). Take request endsets `X, Y, P` covering the subtrees
+of `x, y, p`
 respectively, and `Θ_τ` covering the subtree of `τ`. Assume `nullified(Σ) = ∅`, so
 `addressable(Σ) = {a₁, a₂, a₃}`.
 
@@ -916,7 +929,8 @@ subtree. Reserve two not-yet-allocated link addresses under `d`,
 `r₁ = [1,0,1,0,1,0,2,4]` with value `(∅, G_ℓ, {ρ}-subtree)`, where `G_ℓ` is a unit-depth span
 covering `{t : ℓ ≼ t}` — the subtree of the *future* address `ℓ`. Then `r₁ ∈ L_R^Σ` (arity 3,
 slot-3 coverage equal to `coverage(R)`), and its to-coverage names `ℓ` although `ℓ ∉ dom(Σ.L)` —
-a ghost target (ASN-0086 R5; ASN-0098 LP17). So `nullified(Σ)` restricted to `dom(Σ.L)` omits
+a ghost target (L4, EndsetGenerality, ASN-0043; LP17, ASN-0098). So `nullified(Σ)`
+restricted to `dom(Σ.L)` omits
 `ℓ`. Now a K.λ step allocates `ℓ` with the *ordinary* value `(X, Y, {τ}-subtree)` — type `τ`,
 `coverage(τ) ≠ coverage(R)`, so `ℓ ∉ L_R^{Σ'}` and `L_R^{Σ'} = L_R^Σ`. Take `q = (∗, X, Y, ∗)`.
 The matching conjunct holds: `lift(X, q.F) = lift(Y, q.G) = true`, home/type wildcards drop, so
@@ -943,7 +957,7 @@ would be returned by `q` whenever no *standing* tuple covered it.)
 | Label | Statement | Status |
 |-------|-----------|--------|
 | FL-DEF | `findlinks(q, Σ) = { a ∈ addressable(Σ) : sat(a, q, Σ) }`, with `sat` the conjunction of the four lifted slot-criteria (AND of the ORs); `addressable(Σ) = dom(Σ.L) \ nullified(Σ)` (ASN-0086, monotone by R6a); the operation has frame `Σ` (reads only, writes nothing) | introduced |
-| FL-DEC | Decidability — `touch(e, r)` is decidable by finite cell-decomposition of `coverage(e) ∪ coverage(r)` (cf. ASN-0086 CoverageEqualityDecidable), so `sat` is decidable per link and `findlinks(q, Σ) ⊆ dom(Σ.L)` is a finite, computable set (L-fin, ASN-0093) | introduced |
+| FL-DEC | Decidability — `touch(e, r)` is decidable by ASN-0086's CoverageEqualityDecidable cell-decomposition run for intersection-nonemptiness, and `nullified(Σ)` is computable by ASN-0086's ActiveSubset argument, so `sat` is decidable per link and `findlinks(q, Σ) ⊆ dom(Σ.L)` is a finite, computable set (L-fin, ASN-0093) | introduced |
 | FL-SND | Soundness — `a ∈ findlinks(q, Σ) ⟹ sat(a, q, Σ)`; a link with any constrained slot wholly disjoint from the request is excluded; no false positives | introduced |
 | FL-CMP | Completeness — every `a ∈ addressable(Σ)` with `sat(a, q, Σ)` is returned; the result is exactly the satisfying subset; no silent omission | introduced |
 | FL-JUNK | Non-impedance — the result is invariant under addition of non-matching links and unaffected by their quantity; match status is decided per link | introduced |
@@ -955,7 +969,7 @@ would be returned by `q` whenever no *standing* tuple covered it.)
 | FL-CUR | Currency — `a ∈ findlinks(q, Σ) ⟺ a ∈ addressable(Σ) ∧ sat(a, q, Σ)`, the conjunction of FL-SND and FL-CMP against `addressable(Σ)`: current additions in, current retractions out, non-matches irrelevant | introduced |
 | FL-MON | Monotone accumulation absent retraction — an unretracted matching link, once found, stays found as the store grows | introduced |
 | FL-WP | Weakest precondition for the unique result-changing transition (K.λ), in its three result-changing cases, partitioned by retraction-relation membership `L_R^{Σ'}` (arity 3 ∧ slot-3 coverage equality `coverage(Σ'.L(a).e₃) = coverage(R)`), not coverage match alone — `(a)` a fresh *ordinary* link (`ℓ ∉ L_R^{Σ'}`, i.e. `coverage(Θ) ≠ coverage(R)` of any arity *or* `coverage(Θ) = coverage(R)` with arity `> 3`) enters the answer iff `ℓ ∉ nullified(Σ') ∧ liftH_d(q.H) ∧ lift(F, q.F) ∧ lift(G, q.G) ∧ lift(Θ, q.Θ)`, where the addressability conjunct `ℓ ∉ nullified(Σ') ≡ ¬(E (b, F', G') ∈ L_R^Σ :: ℓ ∈ coverage(G'))` is *not* discharged by freshness alone (a pre-existing retraction tuple may cover the ghost-allocated `ℓ`; cf. ASN-0086 wp Case 2), and is carried explicitly absent a retraction discipline; `(c)` a fresh *retraction* link (`b ∈ L_R^{Σ'}`: arity 3, `coverage(Θ_b) = coverage(R)`, value `(F_b, G', Θ_b)` with arbitrary, possibly attribution-bearing, from-endset `F_b`) enters iff `¬(E (c, F'', G'') ∈ L_R^Σ :: b ∈ coverage(G'')) ∧ b ∉ coverage(G') ∧ liftH_d(q.H) ∧ lift(F_b, q.F) ∧ lift(G', q.G) ∧ lift(Θ_b, q.Θ)` — case (a)'s conjunction with `L_R` extended by `b`'s own tuple and the live self-retraction conjunct `b ∉ coverage(G')` (which depends only on slot 3 and to-coverage, hence is unaffected by `F_b`); (a) and (c) are complementary and exhaustive over the fresh-link space; `(b)` an existing match survives a retraction-bearing K.λ iff `a ∈ findlinks(q, Σ) ∧ a ∉ coverage(G')` | introduced |
-| FL-STB | Stability under editing — for any request (the grammar's only kind being I-address requests), the result is invariant under any transition preserving `Σ.L` (the single load-bearing hypothesis, since `nullified` is a function of `Σ.L` alone and so retraction-set preservation follows); pure-arrangement edits and content appends do not change which links are returned | introduced |
+| FL-STB | Stability under editing — for any request (the grammar's only kind being I-address requests), the result is invariant under any transition preserving `Σ.L`; an instance of F-CIL (ComprehensionInvariantUnderΣL, ASN-0127), FL-DEF's membership predicate consulting only `Σ.L` and query-data, so retraction-set preservation follows from the single link-store hypothesis; pure-arrangement edits and content appends (F-PRES, ASN-0127) do not change which links are returned | introduced |
 | FL-RET | Retraction absence — a retracted link is permanently and completely absent from every subsequent current-state inquiry, and its absence does not impede other results | introduced |
 | FL-REACH | Cross-document reach — for any request `findlinks` is independent of `Σ.M`: global over the store, finds transcluded content once, returns all links under a whole-docuverse home-set, and contains every satisfying, addressable link that any document surfaces — `findlinks(q, Σ) ⊇ ⋃_d { a : a ∈ addressable(Σ) ∧ sat(a, q, Σ) ∧ discoverable_from(a, d, Σ) }`, strict given satisfying orphans (not a superset of the bare, request-independent discoverable union) | introduced |
 
