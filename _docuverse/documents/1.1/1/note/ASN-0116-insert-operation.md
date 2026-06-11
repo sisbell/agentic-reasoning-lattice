@@ -97,7 +97,8 @@ K.α's subsequent-emission branch `a = inc(a_prev, 0)`, where
 
 For a span of `n` units, INSERT is the `n`-fold composition of K.α along the
 single content sub-allocator chain `A_C(d)`: the start `a` is fixed and each
-successive address advances by `inc(·, 0) = shift(·, 1)` (a valid address's
+successive address advances by `inc(·, 0) = shift(·, 1)` (each chain element is
+T4-valid — **ChainElementT4Validity**, ASN-0093 — and a valid address's
 significant position is its last, so `inc(·, 0)` increments the final component —
 **TA5-SigValid** and **TA5(c)**, ASN-0034). The allocated run is therefore exactly
 
@@ -128,13 +129,15 @@ length of the inserted text" (4/66). We must say exactly which positions
 follow, by how much, and — the subtle part — what relationship the displaced
 positions bear to what they held before.
 
-Let `S = subspace(p)` and let `p = q_J` be a **valid insertion position**:
-either `V_S(d)` is empty and `p = q_1` is the canonical first position, or
-`V_S(d) = {q_1, …, q_N}` and `p = q_J` for some `1 ≤ J ≤ N+1` (with `J = N+1`
-the *append* case, where `p = shift(max(V_S(d)), 1)` is one past the end). This
-is the full precondition on the insertion point: depth-`m`, subspace-`S`,
-S8a-well-formed, and seated at or one-past an existing slot so that no gap can
-open.
+Let `S = subspace(p)` and let `p = q_J` be a **valid insertion position** in
+the foundation's sense (ASN-0036): `ValidFirstInsertionPosition(d, p, m)` when
+`V_S(d)` is empty — `p = q_1`, the canonical first position — and
+`ValidInsertionPosition(d, p)` when `V_S(d) = {q_1, …, q_N}` — `p = q_J` for
+some `1 ≤ J ≤ N+1`, with `J = N+1` the *append* case, where
+`p = shift(max(V_S(d)), 1)` is one past the end. This
+is the full precondition on the insertion point — depth-`m`, subspace-`S`,
+S8a-well-formed, seated at or one-past an existing slot so that no gap can
+open — exactly the content of the two foundation predicates' postconditions.
 
 The displacement is then completely determined. Reading off `shift(q_k, n) =
 q_{k+n}`:
@@ -164,9 +167,13 @@ deliberately fluid).
 We must also state what the operation leaves alone. The displacement is
 confined to subspace `S`. In Gregory's implementation the insertion cut is
 bounded above by the *next subspace boundary*, so a text insertion at `1.x`
-shifts text positions but never reaches link positions at `2.x` (Q12, Q13). Abstractly this is forced by the subspace
-identifier sitting in the V-position's first component (foundation: T7): an
-ordinal shift advances the last component and cannot cross into another
+shifts text positions but never reaches link positions at `2.x` (Q12, Q13). Abstractly this is the foundation's subspace
+confinement of the ordinal shift: the subspace identifier sits in the
+V-position's first component (`subspace(v) = v₁`, SubspaceProjection,
+ASN-0036), and the shift fixes every component but the last —
+`subspace(shift(v, n)) = subspace(v)` by **OrdShiftHom (a)
+(OrdinalShiftPreservation, ASN-0036)**, extended to `n = 0` by **SUBCONF
+(SubspaceConfinement, ASN-0084)** — so it cannot cross into another
 subspace's region. Hence:
 
 - **Cross-subspace frame.** For every `S' ≠ S`, the positions of `d` in
@@ -407,14 +414,16 @@ sequence. We record the connected-region fact as a claim.
 for `0 ≤ k < n`, `M'(d)(shift(p, k)) = shift(a, k)`, so V-positions and
 I-addresses advance in lockstep over a contiguous block. The block
 `{shift(p, k) : 0 ≤ k < n}` is order-isomorphic to its image
-`{shift(a, k) : 0 ≤ k < n}` under T1.*
+`{shift(a, k) : 0 ≤ k < n}` under T1 (both indexings are strictly increasing
+in `k` — **TS3** composition with **TS4** strict increase, ASN-0034).*
 
 IP1 records a correspondence run in S8's sense — lockstep V/I advance over the block
 — though not necessarily a *maximal* one: when the left-adjacent slot `q_{J-1}` holds
 the current greatest origin-`d` address `a_prev` (reachable in the ordinary append
 case, where `q_N` already holds the greatest address — and more generally after a
 K.μ~ reordering (ASN-0047) places `a_prev` at `q_{J-1}` for interior `J`), the fresh
-start `a = inc(a_prev, 0) = shift(M(d)(q_{J-1}), 1)` is I-adjacent to the left run, so
+start `a = inc(a_prev, 0) = shift(M(d)(q_{J-1}), 1)` is I-adjacent to the left run (in
+the merge-condition sense of **M7**, MergeCondition, ASN-0058), so
 the block I-merges backward into it and is not a standalone element of the maximal-run
 partition S8★ delivers. Forward I-merging with the shifted suffix, by contrast, never
 happens in *any* reachable state — including the IP5 regime where a suffix slot holds
@@ -422,8 +431,12 @@ content transcluded from another document, whose I-address need not lie below th
 `a`. A forward merge would require the block's I-terminus `shift(a, n−1)` to be
 I-adjacent to the shifted-suffix head `M'(d)(q_{J+n}) = M(d)(q_J)`, i.e.
 `M(d)(q_J) = shift(a, n)`. But `shift(a, n)` is the address immediately following the
-allocated run `A_new` on the content chain `A_C(d)`, beyond the post-allocation frontier,
-so `shift(a, n) ∉ dom(C')` — a fortiori `∉ dom(C)` — whereas `M(d)(q_J) ∈ dom(C)` by
+allocated run `A_new` on the content chain `A_C(d)`, beyond the post-allocation frontier:
+the origin-`d` entries of `dom(C')` form a contiguous initial segment of `A_C(d)` ending
+at `shift(a, n−1)` (**ChainMembershipForOrigin**, ASN-0093), and every other entry of
+`dom(C')` lies on its own origin's chain, disjoint from `A_C(d)`
+(**ChainMembershipForOrigin** with **CrossDocumentDisjointness**, ASN-0093), so
+`shift(a, n) ∉ dom(C')` — a fortiori `∉ dom(C)` — whereas `M(d)(q_J) ∈ dom(C)` by
 **S3★** (the suffix head is a content-subspace image). The two I-addresses cannot
 coincide, whatever the origin of `M(d)(q_J)` and however it orders against `a`.
 
@@ -486,10 +499,11 @@ witnesses:
 
 - *The link's target is unchanged.* For any endset `e`, `coverage(e)` is a
   function of `e`'s spans alone, and INSERT never edits a stored link value. Since
-  INSERT is the composite of `n` content allocations (K.α) and one arrangement
-  transition — `Σ → Σ'` spans `n+1` steps — we cite the multi-step lemmas: link
-  immutability **L12 (LinkImmutability, ASN-0043)** lifted across the composite
-  fixes `Σ'.L(a) = Σ.L(a)` for every prior link `a`, so **LP3★
+  INSERT is a composite of several atomic transitions — the `n` K.α steps, the
+  K.μ⁻/K.μ⁺ arrangement pair, the `n` K.ρ steps — single-transition lemmas do not
+  apply to `Σ → Σ'` directly; we cite the multi-step lemmas the foundation already
+  provides: **LP13 (UnconditionalLinkPersistence, ASN-0098)** fixes
+  `Σ'.L(a) = Σ.L(a)` for every prior link `a` across the composite, and **LP3★
   (MultiStepCoverageInvariance, ASN-0098)** gives
   `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)` for every prior link `a` and slot
   `i`. Coverage-invariance rests on endset immutability, not on freshness. Foundation **L4 (EndsetGenerality)**
@@ -525,7 +539,7 @@ verbatim), and the new block can only add witnesses, never remove or redirect. W
 record it.
 
 **IP4 (LinkSurvival).** *For every prior link `a ∈ dom(Σ.L)` and every slot `i`,
-with `e = Σ.L(a).eᵢ` its endset, LP3★ (with L12 across the composite) fixes
+with `e = Σ.L(a).eᵢ` its endset, LP3★ (with LP13 across the composite, ASN-0098) fixes
 `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)` — no link's designated content
 changes. The post-insert resolved-witness set of `e` in `d` is
 `project(e, d, Σ') = {v ∈ dom(M'(d)) : M'(d)(v) ∈ coverage(e)}`, which decomposes
@@ -545,13 +559,14 @@ into four disjoint parts:*
 *The prior witness set `project(e, d, Σ)` partitions into left, suffix, and
 cross-subspace witnesses, and INSERT maps these injectively into the post-insert
 set: left and cross-subspace verbatim, suffix by the bijection `v ↦ shift(v, n)`
-(I-SHIFT). Whether the prior set is *contained* in the post-insert set turns on the
+(I-SHIFT; injective by **TS2**, ShiftInjectivity, ASN-0034). Whether the prior set is *contained* in the post-insert set turns on the
 suffix part. When no suffix witness shifts — the suffix part is empty — every prior
 witness is a left or cross-subspace witness, retained at its own V-position, so
 `project(e, d, Σ) ⊆ project(e, d, Σ')` (proper iff the new-block part is non-empty).
 When at least one suffix witness is present, `project(e, d, Σ') ⊄ project(e, d, Σ)`
 always holds: the largest shifted witness `shift(v_max, n)` — image of the greatest
-suffix witness `v_max` — lands at a position `> v_max` that, were it itself a prior
+suffix witness `v_max` — lands at a position `> v_max` (**TS4**, ShiftStrictIncrease,
+ASN-0034) that, were it itself a prior
 witness, would contradict `v_max` being the greatest suffix witness; so it carried no
 coverage witness before. The reverse inclusion `project(e, d, Σ) ⊆ project(e, d, Σ')`
 may or may not hold: a vacated suffix slot `v` need not leave the post-insert set,
@@ -622,7 +637,7 @@ contribution gains exactly `A_new`. Substituting the
 full-range identity RAN into
 LP12, for every prior link `a` — and noting that the unsubscripted `coverage(eᵢ)`
 below is well-defined because each slot's coverage is invariant pre-to-post across
-the whole composite (L12 + **LP3★ (MultiStepCoverageInvariance, ASN-0098)**, so
+the whole composite (LP13 + **LP3★ (MultiStepCoverageInvariance, ASN-0098)**, so
 `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)`) —
 
 ```
@@ -839,7 +854,7 @@ The claims established are catalogued below.
 | IP1 (InsertedRun) | The inserted material forms one correspondence run: `M'(d)(shift(p,k)) = shift(a,k)`, V- and I-addresses advancing in lockstep over a contiguous block | introduced |
 | IP2 (ContentAppendOnly) | `dom(C) ⊆ dom(C')` and existing values preserved; INSERT is purely additive on content | restated (C0, ASN-0093) |
 | IP3 (PositionImpermanence) | A V-position binds no permanent content: an occupied block slot `q_k` (J ≤ k ≤ min(J+n−1, N)) satisfies `M'(d)(q_k) = shift(a,k−J) ≠ M(d)(q_k)`, resolving to fresh content; permanence attaches to the I-address (IP0, IP2), not the slot | introduced |
-| IP4 (LinkSurvival) | Every prior endset's coverage is unchanged (L12+LP3★ across the composite); post-insert witness set = left ∪ shifted-suffix ∪ cross-subspace ∪ new-block; prior witnesses map bijectively onto the first three parts (suffix relabelled by `shift(·,n)`), so witness count is non-decreasing and resolved content grows monotonically (new-block is LP18 resurrection only when the link was orphaned) | introduced |
+| IP4 (LinkSurvival) | Every prior endset's coverage is unchanged (LP13+LP3★, ASN-0098, across the composite); post-insert witness set = left ∪ shifted-suffix ∪ cross-subspace ∪ new-block; prior witnesses map bijectively onto the first three parts (suffix relabelled by `shift(·,n)`), so witness count is non-decreasing and resolved content grows monotonically (new-block is LP18 resurrection only when the link was orphaned) | introduced |
 | IP5 (DocumentIsolation) | Every other document's arrangement and resolved content are invariant under INSERT on `d` | introduced |
 | IP6 (DiscoverabilityWP) | `wp(INSERT, D(d,Σ')=D(d,Σ)) ≡ INSERT-pre ∧ {a : (∃i) coverage(Σ.L(a).eᵢ) ∩ A_new ≠ ∅} ⊆ D(d,Σ)` (containment, not emptiness); the emptiness form is sufficient but strictly stronger; discharged free under tight-endset discipline (LP19a) | introduced |
 | PROV (InsertionProvenance) | `R' = R ∪ {(shift(a,k), d) : 0 ≤ k < n}` (I-PROV); provenance recorded within the same composite as allocation, not deferred | introduced |
