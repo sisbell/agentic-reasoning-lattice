@@ -95,9 +95,15 @@ advances along the last component alone. The bound active set
 by S8-depth (ASN-0036), *regardless* of where `ℓ`'s action point falls. Gregory's
 udanax-green confirms the design is parametric in
 depth: `acceptablevsa` is an unconditional pass, the supplied action point used
-as-is. Whatever depth `ℓ` has, the
-span's start `s` is a well-formed V-position (ASN-0036, S8a): `zeros(s) = 0`,
-`#s ≥ 2`, every component of `s` positive. A *spec-set* is an ASN-0058
+as-is. The span's boundary tumblers are constrained no further: the start `s`
+need not be a bound position of `d_s`, nor an S8a-well-formed V-position at
+all — under the partial binding admitted below, `s` is a pure *boundary*, and
+every well-formedness fact resolution consumes is recovered from the active
+positions themselves, whose membership in `dom(Σ.M(d_s))` supplies S8a
+(ASN-0036). Gregory's implementation matches: `specset2ispanset` checks only
+that the document address is non-zero, then resolves by pure intersection with
+bound positions — a start with a zero component or an unbound shape selects
+less, never errors. A *spec-set* is an ASN-0058
 *ContentReferenceSequence*
 `R = ⟨ρ₁, …, ρ_q⟩` (ContentReferenceSequence), a finite ordered sequence of V-specs
 with `q ≥ 1` (we write the spec-set length as `q`, reserving `p` for the insertion
@@ -245,9 +251,7 @@ exactly one pair per placed address:
 
 CP8's `⊇` direction is the membership `(A i : 0 ≤ i < W : (cᵢ, d) ∈ Σ'.R)`; its
 `⊆` direction pins `Σ'.R ∖ Σ.R` to pairs of placed addresses with `d`, so no
-spurious pair can enter. That the membership is *produced* rather than merely
-*required* — and the bound respected — is established in the composite
-exhibition that follows the frame clauses (the next section).
+spurious pair can enter (both discharged below).
 
 *Frame — left of the insertion point.*
 
@@ -361,19 +365,22 @@ precondition holds for these displaced bindings: S3★ at `Σ` places each trail
 image `Σ.M(d)(min+i)` in `dom(Σ.C)`, and K.μ⁻'s content frame carries
 `dom(Σ₁.C) = dom(Σ.C)` to the state where K.μ⁺ fires. Each retained mapping is
 left intact — K.μ⁺'s strict-extension frame. The freshly added V-positions are
-well-formed (S8a) and carry the subspace common depth, by routes that differ
-between the two kinds: the displaced trailing positions
-`{(min+i)+W : j ≤ i < N}` are *shifted* content, so I3-VP
-(PostInsertionWellFormedness, ASN-0082) and I3-VD (PostInsertionDepthUniformity)
-apply; the placement positions `{p + i : 0 ≤ i < W}` are *gap-fill*, not shifted
-content, so I3-VP/I3-VD do not cover them — the placement-position observation
-discharges both obligations for them instead. The resulting text run is the
+well-formed (S8a) and carry the subspace common depth, both kinds by one route:
+a shift from an S8a-valid base of depth `m_{s_C}(d)` preserves S8a
+(OrdShiftHom(b), ASN-0036) and length (`#shift(v, k) = #v`, OrdinalShift,
+ASN-0034). The placement positions `{p + i : 0 ≤ i < W}` instantiate this at
+base `p` (the placement-position observation); the displaced trailing positions
+`{(min+i)+W : j ≤ i < N}` instantiate it at base `min + i ∈ V_{s_C}(d)`, which
+is S8a-valid at depth `m_{s_C}(d)` by S8a and S8-depth on the pre-state
+arrangement. The resulting text run is the
 contiguous block `[min, max+W]`, discharging K.μ⁺'s D-CTG★/D-MIN★ precondition.
 Steps (i)–(ii) together reproduce CP2, CP3a, and CP3b (the left prefix is
 retained by (i) and untouched by (ii)).
 
-To these arrangement steps the composite appends one K.ρ provenance step per
-range-new address; it is these K.ρ steps that put pairs into `Σ.R`. Each fires its
+To these arrangement steps the composite appends its provenance steps, with a
+determinate inventory we fix once: **one K.ρ step per range-new address not
+already in `Σ.R`**, and no other K.ρ step. It is these K.ρ steps that put pairs
+into `Σ.R`. Each fires its
 elementary precondition (ASN-0047, K.ρ: `a ∈ dom(C) ∧ d ∈ E_doc`) at the
 intermediate state where it runs: `cᵢ ∈ dom(Σ.C)` by CP0(a), held across the
 arrangement steps by the content frame CP1 (no K.α runs, so `dom(C)` does not
@@ -410,12 +417,16 @@ the range-new case splits accordingly:
   reachable: `d` referenced `cᵢ` earlier and then contracted those V-positions away
   (K.μ⁻ removes from the range; P2 keeps the provenance pair forever), so `cᵢ` is
   absent from the *current* range yet present in `Σ.R` — exactly a re-COPY of
-  previously-deleted transcluded content. J1★'s membership `(cᵢ, d) ∈ Σ'.R` is then
+  previously-deleted transcluded content. J1★'s membership `(cᵢ, d) ∈ Σ'.R` is
   already discharged by provenance permanence P2 carrying the pre-state pair
-  forward; *no K.ρ step is required*. A redundant K.ρ recording the pair would be
-  a no-op on the relation — the pair already stands in `Σ.R`, so the step
+  forward, so the canonical composite emits *no* K.ρ step here, per the
+  inventory fixed above. An *admissible variant* emits a redundant K.ρ anyway:
+  the step is a no-op on the relation — the pair already stands in `Σ.R`, so it
   contributes nothing to `Σ'.R ∖ Σ.R`, and J1'★, which constrains only pairs
-  genuinely new to `R`, is indifferent to it.
+  genuinely new to `R`, is indifferent to it. Gregory's udanax-green takes the
+  redundant route: deletion never clears the spanfilade, and `insertspanf`
+  records unconditionally — no duplicate check exists anywhere in the insertion
+  path — deduplicating only at query time.
 
 For each `cᵢ` that is *not* range-new — already in the content-subspace range of
 `M(d)` in the pre-state (already transcluded into `d`, or, in self-transclusion
@@ -781,10 +792,13 @@ We check the claims numerically.
   lies in `{x₁, x₂}` — each was allocated by a source (`d_A` or `d_B`), so by S4
   (OriginBasedIdentity) it is distinct from `d`'s own `x₁, x₂`. All three placed
   addresses are therefore *range-new*: the placement (CP2) makes each new to
-  `d`'s content-subspace range in `Σ'`, so J1★ obliges a K.ρ step for each, and
-  J1'★ admits exactly those three. The composite thus runs three provenance steps,
-  yielding `Σ'.R = Σ.R ∪ {(a₁, d), (a₂, d), (b₁, d)}` — fresh recording for every
-  range-new address, and nothing else enters (CP8's `⊆` direction).
+  `d`'s content-subspace range in `Σ'`, so J1★ obliges the membership
+  `(·, d) ∈ Σ'.R` for each. Stipulating that `d` has never referenced them
+  (`(a₁, d), (a₂, d), (b₁, d) ∉ Σ.R`), the canonical inventory runs one K.ρ per
+  address, and J1'★ admits exactly those three. The composite thus runs three
+  provenance steps, yielding `Σ'.R = Σ.R ∪ {(a₁, d), (a₂, d), (b₁, d)}` — fresh
+  recording for every range-new address, and nothing else enters (CP8's `⊆`
+  direction).
 
   To exhibit the already-referenced branch, vary the spec-set to *re-place* `d`'s
   own `x₁`: append `(d, σ_x)` with `σ_x = ([1,1], δ(1,2))`, resolving the extra
@@ -809,7 +823,7 @@ sources.
 | CP5 | OriginInvariance: `origin(cᵢ)` is unchanged by COPY (S7(d)) and equals the document that *originally allocated* `cᵢ` — the spec-set source, a third document the source transcluded from, or `d` itself (copy-back / self-transclusion); attribution and ownership stay with that allocator | introduced |
 | CP6 | SourceIsolation: `(A d' ≠ d : Σ'.M(d') = Σ.M(d'))` and cross-subspace frame, the latter closing `d`'s non-`s_C` domain to its pre-state value (`{v ∈ dom(Σ'.M(d)) : subspace(v) ≠ s_C} = {v ∈ dom(Σ.M(d)) : subspace(v) ≠ s_C}`) with bindings preserved — every source and every other document is unmodified; the source's connectedness nonetheless grows (shared identity + provenance) | introduced |
 | CP7 | Links: (a) `Σ'.L = Σ.L`; (b) LinkSurvivalUnderReuse — any link whose endset coverage meets `{c₀,…,c_{W−1}}` becomes discoverable from `d` in `Σ'`; links to the destination's prior content remain discoverable (prior images retained in range via CP3a/CP3b, LP12) | introduced |
-| CP8 | ProvenanceClosure: `Σ'.R = Σ.R ∪ {(cᵢ, d) : 0 ≤ i < W}` — membership (`⊇`) by a fresh K.ρ step for range-new addresses not already in `Σ.R` (J1'★-admissible), by permanence P2 for range-new addresses already in `Σ.R` (re-COPY of deleted content, K.ρ optional), and by P4★ + P2 for addresses already in `d`'s current range; the `⊆` direction pins `Σ'.R ∖ Σ.R` to the placed pairs | introduced |
+| CP8 | ProvenanceClosure: `Σ'.R = Σ.R ∪ {(cᵢ, d) : 0 ≤ i < W}` — membership (`⊇`) by a fresh K.ρ step for range-new addresses not already in `Σ.R` (J1'★-admissible; the canonical composite's only K.ρ steps), by permanence P2 for range-new addresses already in `Σ.R` (re-COPY of deleted content; a redundant K.ρ is an admissible no-op variant), and by P4★ + P2 for addresses already in `d`'s current range; the `⊆` direction pins `Σ'.R ∖ Σ.R` to the placed pairs | introduced |
 | CP9 | SelfTransclusionAdmissibility: when `d_s = d`, resolution reads the pre-state, so placement adds independent V-positions of `d` referring to addresses `d` already bound; no content is duplicated | introduced |
 | CP10 | ImmutabilityPreservation: S0 preserved across COPY (corollary of CP1); reused content carries identical bytes into the destination because they are the same bytes | introduced |
 | CP11 | OriginMultisetPreservation: `⦃origin(cᵢ) : 0 ≤ i < W⦄` is preserved into the destination's arrangement; cross-origin blocks cannot merge (M16) | introduced |
