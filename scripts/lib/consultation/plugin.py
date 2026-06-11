@@ -43,7 +43,7 @@ def build_channel_plugin(meta, channel_dir):
 
     Returns an object exposing
       generate_questions(inquiry, n=10, model="default", out_of_scope="") -> list[str]
-      consult(question, label="", model="default", effort="max") -> str
+      consult(question, label="", model="default", effort="default") -> str
     """
     shape = meta.get("shape")
     if shape is None:
@@ -152,7 +152,7 @@ def flat_corpus(
             skill=f"pre-consult:{role_label}", label=role_label)
         return parse_numbered(response.text)
 
-    def consult(question, label="", model="default", effort="max"):
+    def consult(question, label="", model="default", effort="default"):
         template = _template(answer_prompt)
         if not template:
             print(f"  prompt template not found: {answer_prompt}",

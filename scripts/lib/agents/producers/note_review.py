@@ -209,7 +209,7 @@ class NoteReviewAgent(Agent):
 
     role: ClassVar[str] = "note-review"
 
-    def __init__(self, *, model: str = "default", effort: str = "max"):
+    def __init__(self, *, model: str = "default", effort: str = "default"):
         self.model = model
         self.effort = effort
 

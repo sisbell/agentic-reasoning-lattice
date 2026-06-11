@@ -32,6 +32,7 @@ from lib.backend.addressing import Address
 from lib.protocols.febe.protocol import Session
 from lib.lattice.labels import extract_label_digits, format_label
 from lib.shared.common import find_asn, read_file
+from lib.shared.invoke_claude import EFFORT_LEVELS, MODEL_FLAGS
 from lib.shared.paths import LATTICE, USAGE_LOG, WORKSPACE, prompt_path
 from lib.shared.prompts import read_prompt
 
@@ -79,14 +80,14 @@ def revise(
 
     cmd = [
         "claude", "-p",
-        "--model", "claude-fable-5[1m]",
+        "--model", MODEL_FLAGS["default"],
         "--output-format", "json",
         "--allowedTools", "Edit,Write,Read,Glob,Grep,Bash",
     ]
 
     env = os.environ.copy()
     env.pop("CLAUDECODE", None)
-    env["CLAUDE_CODE_EFFORT_LEVEL"] = "max"
+    env["CLAUDE_CODE_EFFORT_LEVEL"] = EFFORT_LEVELS["default"]
     if comment_id:
         env["PROTOCOL_COMMENT_ID"] = comment_id
         env["PROTOCOL_ASN_LABEL"] = asn_label

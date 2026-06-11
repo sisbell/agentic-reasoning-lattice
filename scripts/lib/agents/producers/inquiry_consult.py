@@ -232,7 +232,7 @@ def _load_existing_answers(consult_dir, questions):
 
 
 def _run_consultations(questions, consult_dir, asn_id, theory_model="default",
-                       evidence_model="evidence", effort="max"):
+                       evidence_model="evidence", effort="default"):
     """Run all consultations. Theory in parallel, evidence sequential.
 
     Saves each answer to disk as it completes. Skips questions with existing

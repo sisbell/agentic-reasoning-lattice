@@ -39,6 +39,14 @@ MODEL_FLAGS = {
     "sonnet": "claude-sonnet-4-6",
 }
 
+# Role-keyed effort table — same pattern as MODEL_FLAGS. The ladder is
+# low / medium / high / xhigh / max (model default: high); "max" is
+# unconstrained token spending, so reserve it for explicit overrides.
+# Raw ladder values pass through unchanged at the resolution site.
+EFFORT_LEVELS = {
+    "default": "xhigh",
+}
+
 
 @dataclass
 class Result:
@@ -404,7 +412,7 @@ def _next_config_dir():
     return picked
 
 
-def invoke_claude(prompt, *, model="default", effort="max", tools=None,
+def invoke_claude(prompt, *, model="default", effort="default", tools=None,
                   output_format="json", cwd=None, omit_tools=False):
     """Call claude --print (single-turn, no tools by default). Returns Result.
 
@@ -453,7 +461,7 @@ def invoke_claude(prompt, *, model="default", effort="max", tools=None,
                 continue  # don't bump attempt; just retry routing
             env["CLAUDE_CONFIG_DIR"] = config_dir
         if effort:
-            env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
+            env["CLAUDE_CODE_EFFORT_LEVEL"] = EFFORT_LEVELS.get(effort, effort)
 
         start = time.time()
         try:
@@ -588,7 +596,7 @@ def _result_from_json(data, elapsed):
     )
 
 
-def invoke_claude_agent(prompt, *, model="default", effort="max",
+def invoke_claude_agent(prompt, *, model="default", effort="default",
                         tools="Read,Write,Bash", max_turns=12, cwd=None,
                         enabled_tools=None):
     """Call claude -p (agent mode). Returns Result.
@@ -638,7 +646,7 @@ def invoke_claude_agent(prompt, *, model="default", effort="max",
                 continue  # don't bump attempt; just retry routing
             env["CLAUDE_CONFIG_DIR"] = config_dir
         if effort:
-            env["CLAUDE_CODE_EFFORT_LEVEL"] = effort
+            env["CLAUDE_CODE_EFFORT_LEVEL"] = EFFORT_LEVELS.get(effort, effort)
 
         start = time.time()
         try:

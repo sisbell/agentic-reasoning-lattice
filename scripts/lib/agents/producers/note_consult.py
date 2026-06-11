@@ -256,7 +256,7 @@ def _run_targeted_consultations(items, asn_id, consult_subdir, model="default"):
             def run_t(ii=item_idx, q=question, n=idx + 1):
                 answer = load_channel_plugin(theory_channel).consult(
                     q, label=f"Q{n}:theory",
-                    model=model, effort="max")
+                    model=model, effort="default")
                 items[ii]["answers"]["theory"] = answer
                 _save_answer(consult_subdir, items[ii], "theory", answer)
             t = threading.Thread(target=run_t)
@@ -273,7 +273,7 @@ def _run_targeted_consultations(items, asn_id, consult_subdir, model="default"):
         for idx, (item_idx, question) in enumerate(evidence_work):
             answer = load_channel_plugin(evidence_channel).consult(
                 question, label=f"Q{idx + 1}:evidence",
-                model="evidence", effort="max")
+                model="evidence", effort="default")
             items[item_idx]["answers"]["evidence"] = answer
             _save_answer(consult_subdir, items[item_idx], "evidence", answer)
         print(f"  [EVIDENCE] All done", file=sys.stderr)
@@ -361,7 +361,7 @@ def _run_consult_for_review(
     print(f"  [ASSIGN] Prompt: {len(prompt) // 1024}KB", file=sys.stderr)
 
     result = invoke_claude(
-        prompt, model=model, effort="max",
+        prompt, model=model, effort="default",
         allow_tools=False, label="assign",
         skill="gather-evidence:assign",
     )
