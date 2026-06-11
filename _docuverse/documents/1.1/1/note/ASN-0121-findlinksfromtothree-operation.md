@@ -150,7 +150,11 @@ Nelson's retracted links are "not currently addressable" (4/9). ASN-0086 defines
 its non-decrease across the transition vocabulary is derived below, once `→` is fixed. The
 currently addressable links are
 
-  `addressable(Σ) = dom(Σ.L) \ nullified(Σ)`.
+  `addressable(Σ) = dom(Σ.L) \ nullified(Σ)`
+
+— a definition this ASN introduces: ASN-0086 supplies `nullified` (and the per-type
+active subsets `A_K^Σ`), but the store-wide, request-independent complement is named
+here.
 
 Several claims below quantify over transitions `Σ → Σ'` and over reachable `Σ →* Σ'`, so
 we must say what relation `→` ranges over. We take `→` to be ASN-0047's atomic transition
@@ -192,7 +196,25 @@ With it, the predicate soundness *permits* into `R` for any link is
 `a ∈ addressable(Σ) ∧ sat(a, q, Σ)`; the predicate completeness *forces* into `R` is the
 same. The two demands meet with no slack between them, leaving no design freedom:
 
-  `findlinks(q, Σ) = { a ∈ addressable(Σ) : sat(a, q, Σ) }`.   **(FL-DEF)**
+  `findlinks_FTT(q, Σ) = { a ∈ addressable(Σ) : sat(a, q, Σ) }`.   **(FL-DEF)**
+
+*Notation — the FTT subscript.* The bare name `findlinks` is already taken: ASN-0127's
+existence primitive F-FIND defines `findlinks(I, Σ) ≡ {a ∈ dom(Σ.L) : matches(a, I, Σ)}`,
+and the two operations disagree in substance, not merely in signature, so we do not
+overload the symbol. The disagreements are three. (i) *Slot regime* — F-FIND's `matches`
+is slot-agnostic, an existential over every slot `1 ≤ i ≤ |Σ.L(a)|` (type and higher
+slots included) against a single I-address set, whereas `sat` is positional over the
+first three slots, each tested against its own request component. (ii) *Range* —
+F-FIND's comprehension runs over the full `dom(Σ.L)` with no nullification filter,
+whereas FL-DEF runs over `addressable(Σ)`. (iii) *Dynamics*, in consequence — F-FIND is
+monotone across `→*` (E-MONO, ASN-0127), whereas `findlinks_FTT` shrinks under retraction
+(FL-WP(c), FL-RET below). Neither operation is a restriction of the other: a link
+touching the request only through a higher slot `e₄` is found by F-FIND yet fails `sat`,
+and a nullified link satisfying all four criteria is found by F-FIND yet excluded here.
+The subscript follows ASN-0127's own variant pattern (`findlinks_V`); where this ASN
+routes through ASN-0127's lemmas (F-PRES, F-CIL), each is applied on its own stated
+hypotheses to `findlinks_FTT`'s defining comprehension, and the second phase of
+`findlinks_V` (F-V) remains the foundation's bare `findlinks`, not the present operation.
 
 *Corollary (of FL-DEC): the answer is computable.* `sat(a, q, Σ)` is decidable per link:
 it is a conjunction of four tests, each either a wildcard's `true` or an instance of
@@ -203,24 +225,24 @@ ActiveSubset argument: the retraction relation `L_R^Σ` is selected from the fin
 retraction coverage class), and `nullified(Σ)` is decided by T2 span-membership against
 the finitely many retraction to-coverages, so `addressable(Σ) = dom(Σ.L) \ nullified(Σ)`
 is enumerable. With both the filter and `sat` decidable, and
-`findlinks(q, Σ) ⊆ dom(Σ.L)` finite by L-fin (`|dom(Σ.L)| < ∞`, ASN-0093), the result is
+`findlinks_FTT(q, Σ) ⊆ dom(Σ.L)` finite by L-fin (`|dom(Σ.L)| < ∞`, ASN-0093), the result is
 computed by deciding `sat` over the finitely many addressable links. ∎
 
-**FL-LOC (link-store locality).** For fixed `q`, `findlinks(q, Σ)` is a function of
+**FL-LOC (link-store locality).** For fixed `q`, `findlinks_FTT(q, Σ)` is a function of
 `Σ.L` alone. *Proof.* `nullified` is a function of `Σ.L`, as established above, hence so
 is `addressable(Σ) = dom(Σ.L) \ nullified(Σ)`; and `sat(a, q, Σ)` reads only the stored
 value `Σ.L(a)`, the address projection `home(a)`, and the fixed `q`. No clause consults
 `Σ.C`, `Σ.M`, `Σ.E`, or `Σ.R`. ∎ The query writes nothing: its frame is the whole of
 `Σ` — content store, arrangements, and link store are left unchanged.
 
-**FL-SND (soundness).** `(A a : a ∈ findlinks(q, Σ) : a ∈ addressable(Σ) ∧ sat(a, q, Σ))`.
+**FL-SND (soundness).** `(A a : a ∈ findlinks_FTT(q, Σ) : a ∈ addressable(Σ) ∧ sat(a, q, Σ))`.
 No returned link is withdrawn, and none fails any of the four criteria. In contrapositive
 form: a nullified link is not returned even when every criterion holds, and a link with any
 constrained slot *wholly disjoint* from the request — `coverage(Σ.L(a).eᵢ) ∩ coverage(Rᵢ) = ∅`
 for a constrained `Rᵢ`, or `home(a) ∉ coverage(H)` for a constrained `H` — is
 not returned. There are no false positives.
 
-**FL-CMP (completeness).** `(A a : a ∈ addressable(Σ) ∧ sat(a, q, Σ) : a ∈ findlinks(q, Σ))`.
+**FL-CMP (completeness).** `(A a : a ∈ addressable(Σ) ∧ sat(a, q, Σ) : a ∈ findlinks_FTT(q, Σ))`.
 Every currently addressable link meeting all four criteria is returned; none is silently
 omitted. Together with FL-SND, the result is *exactly* the satisfying subset of
 `addressable(Σ)` — read at the inquiry state `Σ`, a *current snapshot* of the store: a
@@ -239,21 +261,34 @@ every other link in the store; a link's match status is a function of its own va
 own address, its own retraction status, and the fixed request. Consequently the result
 is insensitive to the presence of non-matching links.
 
-**FL-JUNK (non-impedance).** Let `Σ →* Σ'` be any reachable sequence that retracts
-nothing and whose added links — the set `dom(Σ'.L) \ dom(Σ.L)`, of arbitrary size — all
-fail the request: `nullified(Σ') = nullified(Σ)` and
+**FL-JUNK (non-impedance).** Let `Σ →* Σ'` be any reachable sequence that retracts no
+*existing* link and whose added links — the set `dom(Σ'.L) \ dom(Σ.L)`, of arbitrary
+size — all fail the request: `nullified(Σ') ∩ dom(Σ.L) = nullified(Σ)` and
 `(A a : a ∈ dom(Σ'.L) \ dom(Σ.L) : ¬ sat(a, q, Σ'))` (the inclusion
-`dom(Σ.L) ⊆ dom(Σ'.L)` holds across every `→*` by the monotonicity recorded above). Then
-`findlinks(q, Σ') = findlinks(q, Σ)`. The body of irrelevant links, however vast, neither
-enlarges the answer nor displaces a qualifying link from it.
+`dom(Σ.L) ⊆ dom(Σ'.L)` holds across every `→*` by the monotonicity recorded above, and
+`nullified(Σ) ⊆ nullified(Σ') ∩ dom(Σ.L)` likewise — `nullified` is non-decreasing and
+`nullified(Σ) ⊆ dom(Σ.L)` by definition — so the first hypothesis's substantive content
+is its `⊆` half: no link of `dom(Σ.L)` becomes nullified across the sequence). Then
+`findlinks_FTT(q, Σ') = findlinks_FTT(q, Σ)`. The body of irrelevant links, however vast,
+neither enlarges the answer nor displaces a qualifying link from it. We deliberately do
+*not* demand the stronger `nullified(Σ') = nullified(Σ)`: an added junk link may be
+*born-nullified* — covered at allocation by a standing retraction tuple over a ghost
+address, exactly the FL-WP(a) hazard exercised in Trace 7(a) — and a sequence adding such
+a link retracts nothing in any operational sense, yet grows `nullified(Σ')` by the new
+address, so the stronger hypothesis would silently exclude it. Nelson's claim is about
+arbitrary quantities of junk; the weaker hypothesis covers them all.
 
 The proof rests on value persistence across the closure: for every `a ∈ dom(Σ.L)`,
 `Σ'.L(a) = Σ.L(a)` — F-PRES on every non-K.λ step and L12 across K.λ, packaged across
 `→*` as LP13 (ASN-0098, UnconditionalLinkPersistence) — and `home(a)` is a projection of
 the fixed address `a`, so `sat(a, q, ·)` is constant across the sequence; with
-`nullified(Σ') = nullified(Σ)`, both membership conjuncts of every existing link are
-unchanged. The added links fail `q` by hypothesis. Hence the satisfying addressable set
-is unchanged.
+`nullified(Σ') ∩ dom(Σ.L) = nullified(Σ)`, an existing `a ∈ dom(Σ.L)` has
+`a ∈ nullified(Σ') ⟺ a ∈ nullified(Σ)`, so both membership conjuncts of every existing
+link are unchanged — the hypothesis is consumed on existing links only, which is why
+restricting it to `dom(Σ.L)` costs the proof nothing. The added links fail `q` by
+hypothesis and so enter neither answer (a born-nullified addition is excluded twice over,
+by its failed `sat` and by addressability). Hence the satisfying addressable set is
+unchanged.
 
 ## Residence and endpoints are orthogonal axes
 
@@ -319,15 +354,15 @@ and home are immaterial here; its addressability is not — FL-DEF ranges over
 `coverage(e₂) ∩ coverage(Y) ≠ ∅` (contains `y`), and `coverage(e₂) ∩ coverage(X) = ∅`.
 Checking both requests against FL-DEF: for `q = (∗, X, Y, ∗)`, `lift(e₁, X) = true` and
 `lift(e₂, Y) = true`, so `sat(a, q, Σ)` holds and, `a` being addressable by hypothesis,
-`a ∈ findlinks((∗, X, Y, ∗), Σ)`; for the
+`a ∈ findlinks_FTT((∗, X, Y, ∗), Σ)`; for the
 reversed `q' = (∗, Y, X, ∗)`, `lift(e₁, Y) ≡ touch(e₁, Y) = (coverage(X) ∩ coverage(Y) ≠ ∅)
-= false`, so `sat(a, q', Σ)` fails and `a ∉ findlinks((∗, Y, X, ∗), Σ)`. Reversing the two
+= false`, so `sat(a, q', Σ)` fails and `a ∉ findlinks_FTT((∗, Y, X, ∗), Σ)`. Reversing the two
 endpoint constraints is therefore not a no-op.
 
 This is exactly what keeps "links *from* X" and "links *to* X" two different, answerable
-queries. Bind the from-set to `X` and leave the to-set open — `findlinks((∗, X, ∗, ∗), Σ)`
+queries. Bind the from-set to `X` and leave the to-set open — `findlinks_FTT((∗, X, ∗, ∗), Σ)`
 — and the result is every link *originating* at `X`. Bind the to-set to `X` and leave the
-from-set open — `findlinks((∗, ∗, X, ∗), Σ)` — and the result is every link *arriving* at
+from-set open — `findlinks_FTT((∗, ∗, X, ∗), Σ)` — and the result is every link *arriving* at
 `X`, the backlink query. Had the two ends been merged into one undirected set, both
 collapse to "every link touching `X`," and the direction the author asserted would be
 lost. Gregory stores the two ends under distinct index subspaces and queries each against
@@ -360,7 +395,7 @@ endset whose coverage includes addresses with no stored content is a valid, matc
 type (L9, TypeGhostPermission, ASN-0043) — "Link types may be ghost elements" (4/45).
 *(b) Independent constraint.* Because
 the type participates in `sat` on equal footing with from and to, a request may constrain
-type alone — `findlinks((∗, ∗, ∗, Θ), Σ)` returns every addressable link of a kind
+type alone — `findlinks_FTT((∗, ∗, ∗, Θ), Σ)` returns every addressable link of a kind
 touching `Θ`, leaving from and to open. *(c) Hierarchy by containment.* A type request
 whose span is rooted at a supertype address `p` covers the whole subtree `{t : p ≼ t}`
 and so matches all and only subtypes of `p` — L10 (TypeHierarchyByContainment, ASN-0043,
@@ -382,8 +417,8 @@ universal constraint — it drops out of the conjunction rather than contributin
 set.
 
 **FL-WILD (wildcard semantics).** A wildcard slot imposes no constraint:
-`findlinks` with a wildcard component returns exactly the links the *remaining*
-constrained slots admit. In the limit `findlinks((∗, ∗, ∗, ∗), Σ) = addressable(Σ)` —
+`findlinks_FTT` with a wildcard component returns exactly the links the *remaining*
+constrained slots admit. In the limit `findlinks_FTT((∗, ∗, ∗, ∗), Σ) = addressable(Σ)` —
 all currently addressable links — and a single constrained slot yields precisely the
 links matching that slot alone. This is the formal reading of Nelson's "If the home-set
 is the whole docuverse, all links between these two elements are returned" (4/63): an
@@ -398,7 +433,7 @@ These are opposite elements of the conjunction.
 endset has empty coverage, `lift(e, ∅) ≡ touch(e, ∅) ≡ coverage(e) ∩ ∅ ≠ ∅` is `false`
 for every link `a` (and likewise `liftH(a, H) ≡ home(a) ∈ ∅` is `false` when `H` has empty
 coverage). Hence if *any* constrained component of `q` has empty coverage,
-`findlinks(q, Σ) = ∅` regardless of the store's contents. This is the polar opposite of the
+`findlinks_FTT(q, Σ) = ∅` regardless of the store's contents. This is the polar opposite of the
 wildcard: `∗` is the *unit* of the conjunction (`lift(e, ∗) = true`, drops out, admits
 whatever the other slots admit), whereas the empty endset is the *zero*
 (`lift(e, ∅) = false`, forces the whole conjunction to `false`). Gregory's back end
@@ -443,7 +478,7 @@ the link's life. Second, retraction is the *only* way for an addressable matchin
 leave the answer.
 
 **FL-MON (monotone accumulation absent retraction).** For any reachable `Σ →* Σ'` with
-`a ∉ nullified(Σ')`: if `a ∈ findlinks(q, Σ)` then `a ∈ findlinks(q, Σ')`. A matching
+`a ∉ nullified(Σ')`: if `a ∈ findlinks_FTT(q, Σ)` then `a ∈ findlinks_FTT(q, Σ')`. A matching
 link, once found and not withdrawn, stays found as the store grows. (By LP13 (ASN-0098,
 UnconditionalLinkPersistence) `Σ'.L(a) = Σ.L(a)` across the reachability closure `Σ →* Σ'`,
 and `home(a)` is a projection of the fixed address `a`, so `sat(a, q, Σ') = sat(a, q, Σ)`;
@@ -454,7 +489,7 @@ and `a ∈ addressable(Σ')` because `a ∈ dom(Σ'.L)` by link-store monotonici
 
 FL-MON above and FL-STB below are monotonicity and invariance statements; they do not
 isolate *which* single transition can move a link into or out of the answer. Since
-`findlinks(q, ·)` is a function of `Σ.L` alone (FL-LOC), and every operation in `→` other
+`findlinks_FTT(q, ·)` is a function of `Σ.L` alone (FL-LOC), and every operation in `→` other
 than K.λ preserves `Σ.L` (F-PRES, ASN-0127, as
 recorded above), *K.λ is the unique result-changing transition*. A single K.λ step can
 change the answer in three ways, and we
@@ -513,13 +548,13 @@ and the slot-3 coverage test), and every prior value persists unchanged across K
 so with `ℓ` the only address `Σ.L` gains, no tuple enters or leaves `L_R`:
 `L_R^{Σ'} = L_R^Σ`. Then
 
-  `wp(K.λ, ℓ ∈ findlinks(q, ·)) ≡ ¬(E (b, F', G') ∈ L_R^Σ :: ℓ ∈ coverage(G')) ∧ liftH_d(q.H) ∧ lift(F, q.F) ∧ lift(G, q.G) ∧ lift(Θ, q.Θ)`,
+  `wp(K.λ, ℓ ∈ findlinks_FTT(q, ·)) ≡ ¬(E (b, F', G') ∈ L_R^Σ :: ℓ ∈ coverage(G')) ∧ liftH_d(q.H) ∧ lift(F, q.F) ∧ lift(G, q.G) ∧ lift(Θ, q.Θ)`,
 
 where `liftH_d(q.H) ≡ (q.H = ∗) ∨ (d ∈ coverage(q.H))`. Every conjunct is a pre-state
 predicate — `ℓ` itself is pre-state-determined, pinned to the sub-allocator frontier by the
 enabled step (scope note above). In post-state terms the first conjunct reads
 `ℓ ∉ nullified(Σ')`; the equivalence is derived below.
-*Derivation.* By FL-DEF, `ℓ ∈ findlinks(q, Σ') ⟺ ℓ ∈ addressable(Σ') ∧ sat(ℓ, q, Σ')`. We treat
+*Derivation.* By FL-DEF, `ℓ ∈ findlinks_FTT(q, Σ') ⟺ ℓ ∈ addressable(Σ') ∧ sat(ℓ, q, Σ')`. We treat
 the two conjuncts in turn.
 
 The addressability conjunct does *not* drop out by freshness alone, and we must carry it.
@@ -533,7 +568,7 @@ orphan/resurrection, ASN-0098), so the future address `ℓ` can be
 uncovered while merely fresh against `dom(Σ.L)` yet covered once it enters `dom(Σ'.L)` — exactly
 the regime in which `nullified(Σ)`, restricted to `dom(Σ.L)`, omits `ℓ` "before" allocation
 while `nullified(Σ')` includes it "after." In that case `ℓ ∈ nullified(Σ')`, so
-`ℓ ∉ addressable(Σ')` and `ℓ ∉ findlinks(q, Σ')` *even though* `sat(ℓ, q, Σ')` holds. The
+`ℓ ∉ addressable(Σ')` and `ℓ ∉ findlinks_FTT(q, Σ')` *even though* `sat(ℓ, q, Σ')` holds. The
 addressability conjunct is therefore not vacuous, and the weakest precondition must retain it:
 `ℓ ∉ nullified(Σ') ≡ ¬(E (b, F', G') ∈ L_R^Σ :: ℓ ∈ coverage(G'))` — the displayed first
 conjunct, in pre-state form. The conjunct would be dischargeable only under a stated
@@ -565,10 +600,10 @@ nullification, so the targets are read from `G'` regardless of `F_b`. The retrac
 grows by exactly this one tuple: `L_R^{Σ'} = L_R^Σ ∪ {(b, F_b, G')}` — every prior tuple
 persists by L12, and `b` is the only address `Σ.L` gains. Then
 
-  `wp(K.λ, b ∈ findlinks(q, ·)) ≡ ¬(E (c, F'', G'') ∈ L_R^Σ :: b ∈ coverage(G'')) ∧ b ∉ coverage(G') ∧ liftH_d(q.H) ∧ lift(F_b, q.F) ∧ lift(G', q.G) ∧ lift(Θ_b, q.Θ)`,
+  `wp(K.λ, b ∈ findlinks_FTT(q, ·)) ≡ ¬(E (c, F'', G'') ∈ L_R^Σ :: b ∈ coverage(G'')) ∧ b ∉ coverage(G') ∧ liftH_d(q.H) ∧ lift(F_b, q.F) ∧ lift(G', q.G) ∧ lift(Θ_b, q.Θ)`,
 
 with `d = home(b)`. *Derivation.* By FL-DEF,
-`b ∈ findlinks(q, Σ') ⟺ b ∈ addressable(Σ') ∧ sat(b, q, Σ')`. The matching conjunct reads
+`b ∈ findlinks_FTT(q, Σ') ⟺ b ∈ addressable(Σ') ∧ sat(b, q, Σ')`. The matching conjunct reads
 the committed value `(F_b, G', Θ_b)` and home `d` — both fixed by the operation's own
 arguments — so `sat(b, q, Σ') = liftH_d(q.H) ∧ lift(F_b, q.F) ∧ lift(G', q.G) ∧ lift(Θ_b, q.Θ)`.
 (In the unattributed sub-case `F_b = ∅`, FL-EMP gives `lift(∅, q.F) = false` under any
@@ -594,10 +629,10 @@ address, *and* it does not retract itself.
 commits a *retraction tuple* whose to-coverage is `coverage(G')`, leaving every link value
 and home untouched (L12). For an existing link `a ∈ dom(Σ.L)`,
 
-  `wp(K.λ_retract, a ∈ findlinks(q, ·)) ≡ a ∈ findlinks(q, Σ) ∧ a ∉ coverage(G')`.
+  `wp(K.λ_retract, a ∈ findlinks_FTT(q, ·)) ≡ a ∈ findlinks_FTT(q, Σ) ∧ a ∉ coverage(G')`.
 
 *Derivation.* `sat(a, q, ·)` is constant across the step (`Σ'.L(a) = Σ.L(a)` by L12,
-`home(a)` fixed), so by FL-DEF `a ∈ findlinks(q, Σ') ⟺ a ∈ addressable(Σ') ∧ sat(a, q, Σ)`.
+`home(a)` fixed), so by FL-DEF `a ∈ findlinks_FTT(q, Σ') ⟺ a ∈ addressable(Σ') ∧ sat(a, q, Σ)`.
 We need the *exact* membership equation for `nullified(Σ')` on existing addresses, both
 directions — the ⊆ direction is what makes this the *weakest* precondition, licensing
 `a ∉ nullified(Σ')` from `a ∉ nullified(Σ) ∧ a ∉ coverage(G')`; R6b supplies only the ⊇
@@ -617,7 +652,7 @@ This equation is stated and used only on the existing-link slice `a ∈ dom(Σ.L
 retractor address `b ∈ dom(Σ'.L) \ dom(Σ.L)` lies outside it, so the self-retraction term
 `b ∈ coverage(G')` does not arise here — it is case (b)'s live conjunct. Negating,
 `a ∈ addressable(Σ') ⟺ a ∉ nullified(Σ) ∧ a ∉ coverage(G')`. Conjoining with `sat` and
-folding `a ∉ nullified(Σ) ∧ sat(a, q, Σ)` back into `a ∈ findlinks(q, Σ)` gives the stated
+folding `a ∉ nullified(Σ) ∧ sat(a, q, Σ)` back into `a ∈ findlinks_FTT(q, Σ)` gives the stated
 wp: a found link survives a retraction step exactly when the retraction's to-coverage does
 not name it. Setting `a ∉ coverage(G')` to hold for all `a` already in the answer recovers
 FL-MON's no-retraction hypothesis; its failure is the sole route by which a match leaves
@@ -639,7 +674,7 @@ phrased over I-addresses (the content-identity regime), the answer is a function
 
 **FL-STB (stability under editing).** For a transition `Σ → Σ'` that preserves the link
 store — `Σ'.L = Σ.L` — and any request `q`,
-`findlinks(q, Σ') = findlinks(q, Σ)`. This is FL-LOC routed through ASN-0127's
+`findlinks_FTT(q, Σ') = findlinks_FTT(q, Σ)`. This is FL-LOC routed through ASN-0127's
 meta-lemma F-CIL (ComprehensionInvariantUnderΣL): FL-DEF is the comprehension
 `{ a ∈ dom(Σ.L) : a ∉ nullified(Σ) ∧ sat(a, q, Σ) }`, whose membership predicate
 consults only `Σ.L` and query-data (FL-LOC), so F-CIL
@@ -669,7 +704,7 @@ link is *orphaned* but still content-identity-findable: its endset I-addresses p
 orphan/resurrection cycle). The abstract operation, specified over I-addresses, is stable
 (FL-STB); the arrangement-mediated naming of the request is a separable front-end
 convenience whose fragility under full deletion is a property of the *resolution* (F-V's
-first phase), not of `findlinks`.
+first phase), not of the underlying link query.
 
 ## Retraction is permanent absence from current inquiry
 
@@ -678,7 +713,7 @@ subsequent answers to the same four-set inquiry? Complete and consistent absence
 current line of descent.
 
 **FL-RET (retraction absence).** If `a ∈ nullified(Σ)`, then for every reachable
-`Σ →* Σ'` and every request `q`, `a ∉ findlinks(q, Σ')`. The exclusion is total: even if
+`Σ →* Σ'` and every request `q`, `a ∉ findlinks_FTT(q, Σ')`. The exclusion is total: even if
 `a`'s endsets would still satisfy every endpoint criterion, `a ∉ addressable(Σ')` removes
 it from FL-DEF, and the non-decrease of `nullified` across `→` and `→*` (recorded in "The
 answer is forced") keeps it out forever. A retracted
@@ -697,12 +732,12 @@ claim.
 
 Must the discovery reach across all documents whose arrangements could surface the same
 links? It must, and FL-LOC makes the reach automatic rather than something to be
-iterated for: `findlinks(q, Σ)` is a function of `Σ.L` and `q` alone — the arrangements
+iterated for: `findlinks_FTT(q, Σ)` is a function of `Σ.L` and `q` alone — the arrangements
 `Σ.M` do not appear in it. The search is therefore intrinsically a global
 content-identity sieve over the link
 store, not a per-document enumeration.
 
-**FL-REACH (cross-document reach).** For any request `q`, `findlinks(q, Σ)` is
+**FL-REACH (cross-document reach).** For any request `q`, `findlinks_FTT(q, Σ)` is
 independent of `Σ.M` (immediate from FL-LOC). Four consequences
 follow. *(a) Every home is reached.* The store is
 searched whole; a link is eligible regardless of which document homes it, so in-links —
@@ -714,16 +749,16 @@ Whole-docuverse residence.* Setting `H = ∗` imposes no residence bound, return
 matching links wherever homed — Nelson's "if the home-set is the whole docuverse, all
 links … are returned" (4/63). *(d) Superset of the satisfying discoverable links.*
 
-  `findlinks(q, Σ) ⊇ ⋃_d { a : a ∈ addressable(Σ) ∧ sat(a, q, Σ) ∧ discoverable_from(a, d, Σ) }`
+  `findlinks_FTT(q, Σ) ⊇ ⋃_d { a : a ∈ addressable(Σ) ∧ sat(a, q, Σ) ∧ discoverable_from(a, d, Σ) }`
 
 — immediate from FL-DEF, every member of the right-hand union being addressable and
 satisfying. The inclusion is *strict* whenever a satisfying, addressable *orphan* exists:
 an addressable `a` with `sat(a, q, Σ)` whose endset I-addresses lie in no arrangement
-range fails `discoverable_from(a, d, Σ)` for every `d` yet lies in `findlinks(q, Σ)`. The
+range fails `discoverable_from(a, d, Σ)` for every `d` yet lies in `findlinks_FTT(q, Σ)`. The
 restriction to *satisfying* links is what makes the comparison sound: `discoverable_from`
 is request-independent — by LP12 (ASN-0098) it consults `ran(Σ.M(d))`, never `q` — so the
 bare union `⋃_d { a : discoverable_from(a, d, Σ) }` is the set of all non-orphan links,
-and against `q = (∗, ∅, ∗, ∗)`, where FL-EMP forces `findlinks(q, Σ) = ∅`, it is not
+and against `q = (∗, ∅, ∗, ∗)`, where FL-EMP forces `findlinks_FTT(q, Σ) = ∅`, it is not
 contained in the result. The operation
 is therefore at least as complete as any document-by-document enumeration of the
 *satisfying* links, and strictly more so in the presence of satisfying orphans. No
@@ -768,22 +803,22 @@ contains `x`) and `lift(e₂, Y) = true`, home/type wildcards drop, so `sat(a₁
 `a₂` has `lift(e₁, X) ≡ touch(e₁, X) = false` (its from-coverage is `y`'s subtree,
 disjoint from `X`), so it fails; `a₃` has `lift(e₁, X) ≡ touch(e₁, X) = false` (from-coverage
 is `p`'s subtree), so it fails. By FL-DEF,
-`findlinks((∗, X, Y, ∗), Σ) = {a₁}`. Soundness (FL-SND): the one returned link is
+`findlinks_FTT((∗, X, Y, ∗), Σ) = {a₁}`. Soundness (FL-SND): the one returned link is
 addressable (`nullified(Σ) = ∅`) and satisfies every constrained slot. Completeness
 (FL-CMP): `a₂, a₃` are correctly absent, both failing
-the from-slot. Reversing to `q' = (∗, Y, X, ∗)` gives `findlinks(q', Σ) = {a₂}` by the
+the from-slot. Reversing to `q' = (∗, Y, X, ∗)` gives `findlinks_FTT(q', Σ) = {a₂}` by the
 symmetric computation — `a₁` now fails `lift(e₁, Y)`. The two answers differ, witnessing
-FL-DIR: `a₁ ∈ findlinks(q,Σ) \ findlinks(q',Σ)` and `a₂ ∈ findlinks(q',Σ) \ findlinks(q,Σ)`.
+FL-DIR: `a₁ ∈ findlinks_FTT(q,Σ) \ findlinks_FTT(q',Σ)` and `a₂ ∈ findlinks_FTT(q',Σ) \ findlinks_FTT(q,Σ)`.
 
 *Trace 2 — type alone (FL-TYP).* For `q = (∗, ∗, ∗, Θ_τ)`, only the type slot constrains:
 `a₁` and `a₂` have `lift(e₃, Θ_τ) = true` (both type-touch `τ`), while `a₃` has type `σ`,
-disjoint from `Θ_τ`, so it fails. `findlinks((∗, ∗, ∗, Θ_τ), Σ) = {a₁, a₂}` — the kind-of
+disjoint from `Θ_τ`, so it fails. `findlinks_FTT((∗, ∗, ∗, Θ_τ), Σ) = {a₁, a₂}` — the kind-of
 link query, regardless of endpoints.
 
 *Trace 3 — wildcard vs. empty (FL-WILD, FL-EMP).* The all-wildcard request returns
-everything addressable: `findlinks((∗, ∗, ∗, ∗), Σ) = {a₁, a₂, a₃}`. By contrast the
+everything addressable: `findlinks_FTT((∗, ∗, ∗, ∗), Σ) = {a₁, a₂, a₃}`. By contrast the
 request `(∗, ∅, ∗, ∗)` — a *constrained* from-slot with empty coverage — gives
-`lift(eᵢ, ∅) = false` for every link, so `findlinks((∗, ∅, ∗, ∗), Σ) = ∅`. The empty slot
+`lift(eᵢ, ∅) = false` for every link, so `findlinks_FTT((∗, ∅, ∗, ∗), Σ) = ∅`. The empty slot
 annihilates; the wildcard slot widens.
 
 *Trace 4 — retraction (FL-RET), exercising the determinacy of `nullified`.*
@@ -799,7 +834,7 @@ to-coverage `{t : a₁ ≼ t}` (PrefixSpanCoverage, ASN-0043) names `a₁`. Comp
 `nullified(Σ) = {a₁}` — the one to-coverage in `L_R^Σ` contains `a₁` by reflexivity of
 `≼` and no other link address, `a₂`, `a₃`, `r₄` being equal-length siblings of `a₁`,
 prefix-incomparable with it — so `addressable(Σ) = {a₂, a₃, r₄}`. Trace 1's
-`q = (∗, X, Y, ∗)` now yields `findlinks(q, Σ) = ∅`: `a₁` is excluded by FL-DEF even
+`q = (∗, X, Y, ∗)` now yields `findlinks_FTT(q, Σ) = ∅`: `a₁` is excluded by FL-DEF even
 though its endsets still satisfy every endpoint criterion; `a₂` and `a₃` fail the
 from-slot as in Trace 1; and `r₄` fails it by FL-EMP's link-side rule,
 `lift(∅, X) = false`. By FL-RET, `a₁` stays excluded along every reachable `Σ →* Σ'`.
@@ -816,7 +851,10 @@ empty *request* component, now on the link's side.
 
 *Trace 6 — residence axis (exercises FL-RES, and FL-SND on the home slot).* The earlier
 traces all fix `H = ∗`, so the residence criterion is never exercised concretely. We do so
-now. Augment the store with a second document `d' = [1,0,1,0,2]` (document-level,
+now, starting again from the base three-link store (Trace 4's `r₄` not present, so
+`L_R^Σ = ∅`, `nullified(Σ) = ∅`, and `a₁, a₂, a₃` are all addressable; on the
+post-Trace-4 store, where `a₁` is nullified, the answers below would differ). Augment
+that store with a second document `d' = [1,0,1,0,2]` (document-level,
 `zeros(d') = 2`, non-nesting with `d` — they are equal-length and differ in the last
 component) and a further link homed there,
 
@@ -841,11 +879,11 @@ the endpoint slots (`lift(e₁, X) = true`, `lift(e₂, Y) = true`), so the from
 and non-nesting, `d ∉ coverage(H_other)`, so `liftH(a₁, H_other) = false` and `a₁` is
 excluded *purely on `liftH`* — its endsets still touch `X` and `Y`. Symmetrically
 `athome(a₅, H_other) = (d' ∈ {t : d' ≼ t}) = true` by reflexivity of `≼`, so
-`findlinks((H_other, X, Y, ∗), Σ) = {a₅}`.
+`findlinks_FTT((H_other, X, Y, ∗), Σ) = {a₅}`.
 
 *Document-granularity, readmitting `a₁`.* For `q = (H_d, X, Y, ∗)`,
 `athome(a₁, H_d) = (d ∈ {t : d ≼ t}) = true` (reflexivity), readmitting `a₁`, while
-`athome(a₅, H_d) = (d' ∈ {t : d ≼ t}) = false`, so `findlinks((H_d, X, Y, ∗), Σ) = {a₁}`.
+`athome(a₅, H_d) = (d' ∈ {t : d ≼ t}) = false`, so `findlinks_FTT((H_d, X, Y, ∗), Σ) = {a₁}`.
 The two document-bounded requests differ only in `H` — the endpoint slots are byte-for-byte
 identical — yet the result flips between `{a₅}` and `{a₁}`. Residence is varied while
 endpoints are held fixed, and the answer changes: orthogonality witnessed directly, exactly
@@ -854,7 +892,7 @@ as FL-RES asserts.
 *Node-granularity, admitting both (the T5 subtree reading of `athome`).* For
 `q = (H_node, X, Y, ∗)`, both documents lie beneath node 1 — `[1] ≼ d` and `[1] ≼ d'`, each
 extending the one-component prefix `[1]` — so `athome` holds for both and
-`findlinks((H_node, X, Y, ∗), Σ) = {a₁, a₅}`. This is genuinely a residence *test*, not its
+`findlinks_FTT((H_node, X, Y, ∗), Σ) = {a₁, a₅}`. This is genuinely a residence *test*, not its
 absence: a link homed outside node 1's subtree would fail `liftH(·, H_node)`, whereas the
 wildcard `H = ∗` of Trace 1 imposes no test at all. The node-rooted span verifies that
 `athome` reads `home(a)`'s membership in the contiguous subtree `{t : [1] ≼ t}` (T5), so
@@ -863,7 +901,7 @@ document — granularity.
 
 *Trace 7 — FL-WP's load-bearing hazards (case (a) ghost-pre-coverage, case (b)
 self-retraction, and first-class retrieval of a standing retractor).* The earlier traces
-evaluate `findlinks` at single states; here we exercise the two
+evaluate `findlinks_FTT` at single states; here we exercise the two
 subtle conjuncts of FL-WP against a concrete K.λ step, with the retraction-type
 representative `ρ` as fixed in the setup (`coverage(R) = {t : ρ ≼ t}`); let `Θ_ρ` be a
 request type endset covering `ρ`'s subtree. Starting again from the base three-link
@@ -881,7 +919,7 @@ restricted to `dom(Σ.L)` omits
 The matching conjunct holds: `lift(X, q.F) = lift(Y, q.G) = true`, home/type wildcards drop, so
 `sat(ℓ, q, Σ')`. Yet FL-WP(a)'s addressability conjunct
 `¬(E (c, F', G') ∈ L_R^Σ :: ℓ ∈ coverage(G'))` is *false* — `r₁` witnesses
-`ℓ ∈ coverage(G_ℓ)` — so `ℓ ∈ nullified(Σ')`, `ℓ ∉ addressable(Σ')`, and `ℓ ∉ findlinks(q, Σ')`
+`ℓ ∈ coverage(G_ℓ)` — so `ℓ ∈ nullified(Σ')`, `ℓ ∉ addressable(Σ')`, and `ℓ ∉ findlinks_FTT(q, Σ')`
 despite the match. The wp correctly predicts absence, exhibiting the addressability conjunct as
 non-vacuous: freshness against `dom(Σ.L)` does not discharge it.
 
@@ -891,7 +929,7 @@ retraction value `(∅, G_self, {ρ}-subtree)`, where `G_self` is a unit-depth s
 so `b ∈ L_R^{Σ'}` and `L_R^{Σ'} = L_R^Σ ∪ {(b, ∅, G_self)}`. Take `q = (∗, ∗, ∗, Θ_ρ)`: the
 type slot matches (`lift({ρ}-subtree, Θ_ρ) = true`), the other slots wildcard, so
 `sat(b, q, Σ')`. But FL-WP(b)'s self-retraction conjunct `b ∉ coverage(G')` is *false* —
-`b ∈ coverage(G_self)` by reflexivity of `≼` — so `b ∈ nullified(Σ')` and `b ∉ findlinks(q, Σ')`:
+`b ∈ coverage(G_self)` by reflexivity of `≼` — so `b ∈ nullified(Σ')` and `b ∉ findlinks_FTT(q, Σ')`:
 the link nullifies its own address. The wp's sixth conjunct is exactly what predicts this.
 The same query also witnesses the positive half of the first-class-retrieval claim: the
 *standing* retractor `r₁` is addressable at `Σ'` — neither to-coverage in `L_R^{Σ'}` names
@@ -899,7 +937,7 @@ its address (`G_ℓ` covers `ℓ`'s subtree, `G_self` covers `b`'s, and both are
 prefix-incomparable with the equal-length sibling `r₁`) — and `sat(r₁, q, Σ')` holds: its
 type endset touches `Θ_ρ`, the remaining slots are wildcards, and the stored empty
 from-endset is admitted under `q.F = ∗` (FL-EMP's link-side rule). So
-`findlinks((∗, ∗, ∗, Θ_ρ), Σ') = {r₁}` — `b`, the only other link whose type touches `ρ`'s
+`findlinks_FTT((∗, ∗, ∗, Θ_ρ), Σ') = {r₁}` — `b`, the only other link whose type touches `ρ`'s
 subtree, is excluded by its self-retraction — a type-`Θ` query touching the retraction
 class returns a standing retraction link like any other, exercising the FL-EMP wildcard
 admission on a stored link. (Had
@@ -911,22 +949,22 @@ would be returned by `q` whenever no *standing* tuple covered it.)
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| FL-DEF | `findlinks(q, Σ) = { a ∈ addressable(Σ) : sat(a, q, Σ) }`, with `sat` the conjunction of the four lifted slot-criteria (AND of the ORs); `addressable(Σ) = dom(Σ.L) \ nullified(Σ)` (ASN-0086); the operation has frame `Σ` (reads only, writes nothing) | introduced |
-| FL-LOC | Link-store locality — for fixed `q`, `findlinks(q, Σ)` is a function of `Σ.L` alone; `Σ.C`, `Σ.M`, `Σ.E`, `Σ.R` are never consulted | introduced |
-| FL-DEC | Decidability — `touch(e, r)` is decidable by ASN-0086's CoverageEqualityDecidable cell-decomposition run for intersection-nonemptiness, and `athome(a, H)` by the same T2 span-membership test; corollary at FL-DEF: `sat` is decidable per link, `nullified(Σ)` is computable by ASN-0086's ActiveSubset argument, and `findlinks(q, Σ) ⊆ dom(Σ.L)` is a finite, computable set (L-fin, ASN-0093) | introduced |
-| FL-SND | Soundness — `a ∈ findlinks(q, Σ) ⟹ a ∈ addressable(Σ) ∧ sat(a, q, Σ)`; no returned link is withdrawn or fails any criterion; no false positives | introduced |
+| FL-DEF | `findlinks_FTT(q, Σ) = { a ∈ addressable(Σ) : sat(a, q, Σ) }`, with `sat` the conjunction of the four lifted slot-criteria (AND of the ORs); `addressable(Σ) = dom(Σ.L) \ nullified(Σ)` introduced here over ASN-0086's `nullified`; the FTT subscript keeps the operation distinct from ASN-0127's slot-agnostic, unfiltered `findlinks` (F-FIND), of which it is not a restriction; the operation has frame `Σ` (reads only, writes nothing) | introduced |
+| FL-LOC | Link-store locality — for fixed `q`, `findlinks_FTT(q, Σ)` is a function of `Σ.L` alone; `Σ.C`, `Σ.M`, `Σ.E`, `Σ.R` are never consulted | introduced |
+| FL-DEC | Decidability — `touch(e, r)` is decidable by ASN-0086's CoverageEqualityDecidable cell-decomposition run for intersection-nonemptiness, and `athome(a, H)` by the same T2 span-membership test; corollary at FL-DEF: `sat` is decidable per link, `nullified(Σ)` is computable by ASN-0086's ActiveSubset argument, and `findlinks_FTT(q, Σ) ⊆ dom(Σ.L)` is a finite, computable set (L-fin, ASN-0093) | introduced |
+| FL-SND | Soundness — `a ∈ findlinks_FTT(q, Σ) ⟹ a ∈ addressable(Σ) ∧ sat(a, q, Σ)`; no returned link is withdrawn or fails any criterion; no false positives | introduced |
 | FL-CMP | Completeness — every `a ∈ addressable(Σ)` with `sat(a, q, Σ)` is returned; the result is exactly the satisfying subset; no silent omission | introduced |
-| FL-JUNK | Non-impedance — across any `Σ →* Σ'` with `nullified(Σ') = nullified(Σ)` whose added links all fail the request, `findlinks(q, Σ') = findlinks(q, Σ)`: the result is invariant under such additions regardless of their quantity; match status is decided per link | introduced |
+| FL-JUNK | Non-impedance — across any `Σ →* Σ'` with `nullified(Σ') ∩ dom(Σ.L) = nullified(Σ)` (no existing link becomes nullified; added junk may itself be born-nullified) whose added links all fail the request, `findlinks_FTT(q, Σ') = findlinks_FTT(q, Σ)`: the result is invariant under such additions regardless of their quantity; match status is decided per link | introduced |
 | FL-RES | Residence–endpoint independence — the home criterion is a function of the link address alone, the endpoint criteria of the link value alone; the four slots are orthogonal constraints | introduced |
 | FL-DIR | Positional directionality — `F` matches `e₁` only and `G` matches `e₂` only; reversing the from/to constraints can change the result, keeping "from X" and "to X" distinct queries | introduced |
 | FL-TYP | Type by address — the type criterion tests `coverage(e₃)` by address overlap, never reads stored content; ghost types are matchable, type may be constrained alone, and prefix-rooted type spans match subtype subtrees | introduced |
 | FL-WILD | Wildcard semantics — a wildcard slot is the *unit* of the conjunction (drops out, imposes no constraint); the all-wildcard request returns `addressable(Σ)` | introduced |
-| FL-EMP | Empty-constraint zero — a constrained slot with empty coverage (`∅`) gives `lift = false` for every link, so any empty constrained component forces `findlinks(q, Σ) = ∅`; empty-spec (zero) is distinct from wildcard/NOSPECS (unit). By the symmetry of `touch`, the same zero applies to a *link's* own empty endset (L3 permits `e₁ = ∅` or `e₂ = ∅`): such a link is excluded from any constrained from-/to-slot and admitted on that axis only under the corresponding wildcard | introduced |
+| FL-EMP | Empty-constraint zero — a constrained slot with empty coverage (`∅`) gives `lift = false` for every link, so any empty constrained component forces `findlinks_FTT(q, Σ) = ∅`; empty-spec (zero) is distinct from wildcard/NOSPECS (unit). By the symmetry of `touch`, the same zero applies to a *link's* own empty endset (L3 permits `e₁ = ∅` or `e₂ = ∅`): such a link is excluded from any constrained from-/to-slot and admitted on that axis only under the corresponding wildcard | introduced |
 | FL-MON | Monotone accumulation absent retraction — an unretracted matching link, once found, stays found as the store grows | introduced |
 | FL-WP | Weakest preconditions for the unique result-changing transition K.λ — per-case wp's for the three result-changing cases, partitioned by retraction-relation membership; displayed in cases (a)–(c) | introduced |
 | FL-STB | Stability under editing — for any request, the result is invariant under any transition preserving `Σ.L`; FL-LOC routed through F-CIL (ComprehensionInvariantUnderΣL, ASN-0127), so retraction-set preservation follows from the single link-store hypothesis; pure-arrangement edits and content appends (F-PRES, ASN-0127) do not change which links are returned | introduced |
 | FL-RET | Retraction absence — a retracted link is permanently and completely absent from every subsequent current-state inquiry, and its absence does not impede other results | introduced |
-| FL-REACH | Cross-document reach — for any request `findlinks` is independent of `Σ.M`: global over the store, finds transcluded content once, returns all links under a whole-docuverse home-set, and contains every satisfying, addressable link that any document surfaces — `findlinks(q, Σ) ⊇ ⋃_d { a : a ∈ addressable(Σ) ∧ sat(a, q, Σ) ∧ discoverable_from(a, d, Σ) }`, strict given satisfying orphans (not a superset of the bare, request-independent discoverable union) | introduced |
+| FL-REACH | Cross-document reach — for any request `findlinks_FTT` is independent of `Σ.M`: global over the store, finds transcluded content once, returns all links under a whole-docuverse home-set, and contains every satisfying, addressable link that any document surfaces — `findlinks_FTT(q, Σ) ⊇ ⋃_d { a : a ∈ addressable(Σ) ∧ sat(a, q, Σ) ∧ discoverable_from(a, d, Σ) }`, strict given satisfying orphans (not a superset of the bare, request-independent discoverable union) | introduced |
 
 ## Open Questions
 
