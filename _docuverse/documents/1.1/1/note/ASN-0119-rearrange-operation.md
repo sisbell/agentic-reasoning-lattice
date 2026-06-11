@@ -37,7 +37,15 @@ We work in the extended state `Σ = (C, L, E, M, R)` of ASN-0047 — its *state*
 with REARRANGE imported as an atomic arrangement-rearrangement primitive
 (ASN-0084) that realizes the same *form* of arrangement change as ASN-0047's own
 non-atomic `K.μ~` composite without ever vacating content, coinciding with an
-admissible `K.μ~` whenever the net effect is non-trivial (`M'(d) ≠ M(d)`). The
+admissible `K.μ~` whenever the net effect is non-trivial (`M'(d) ≠ M(d)`).
+(Coincidence is a five-clause claim — K.μ~'s admissibility (i)–(v) — and the four
+clauses beyond non-triviality (ii) are discharged by derivations later in this
+note: the post-state shape package (i) — S8a, S8-depth, D-CTG★, D-MIN★ — by the
+set-invariance argument of the invariant-preservation section, which inherits
+each on the unchanged key sets (RA2); length preservation (iii) by the depth-2
+closed forms of R-PPERM/R-SPERM, every text destination being again a depth-2
+position and the non-S branch the identity; subspace preservation (iv) by RA2a;
+and link-subspace fixity (v) by R-NS.) The
 coincidence is not an equality of domains: K.μ~'s admissibility demands a
 non-trivial net effect over an arrangement whose content-subspace mapping takes
 at least two distinct values, while R-PRE imposes no value-based condition.
@@ -147,13 +155,20 @@ The swap (four cuts) is the same shape with the middle region threaded between:
       M'(d)(c₀ + w_β + j)       = M(d)(c₁ + j),  0 ≤ j < w_μ,   (ASN-0084 R-S2)
       M'(d)(c₀ + w_β + w_μ + j) = M(d)(c₀ + j),  0 ≤ j < w_α.   (ASN-0084 R-S3)
 
-ASN-0084 proves these define a total function whose induced map
+ASN-0084 proves these define a total function. The permutation we carry through
+the rest of the note is the *cut-point-induced bijection* of ASN-0084's
+**R-PPERM** (pivot) and **R-SPERM** (swap) — the specific map determined by the
+cut sequence `K` and the region partition, given in closed form and proved
+bijective by those lemmas —
 
-      π : dom(M(d)) → dom(M(d)),   defined by   M'(d)(π(v)) = M(d)(v),
+      π : dom(M(d)) → dom(M(d)),   satisfying   M'(d)(π(v)) = M(d)(v),
 
-is a bijection that fixes the exterior and permutes the affected interval. Its
-closed form, and its bijectivity, are **R-PPERM** (pivot) and **R-SPERM** (swap);
-the well-definedness lemmas **R-PIV** (pivot) and **R-SWP** (swap) establish that
+fixing the exterior and permuting the affected interval. The displayed equation
+is a correctness property of this `π`, not its definition: when `M(d)` is not
+injective — the value-degenerate instance above — many bijections satisfy it,
+the identity among them, and it is the cut-point `π`, not an arbitrary solution
+of the equation, that the worked tables below read off.
+The well-definedness lemmas **R-PIV** (pivot) and **R-SWP** (swap) establish that
 the named destinations constitute a total function on `dom(M(d))` — whence the
 domain identity `dom(M'(d)) = dom(M(d))` — and that the region destinations tile
 `[ord(c₀), ord(c_{n-1}))` exactly (disjoint and exhausting, R-EXT covering the
@@ -167,7 +182,7 @@ for the domain-preservation fact we lean on below. This is the formal content of
 
 ## What is preserved: I-address correspondence
 
-The defining equation `M'(d)(π(v)) = M(d)(v)` says exactly what the consultation
+The bijection equation `M'(d)(π(v)) = M(d)(v)` says exactly what the consultation
 calls for. Each rearranged region "must consist of exactly the same content it
 held before — the same bytes with the same permanent Istream identity"
 (Question 2). The value filed at the moved position is the value that was filed
@@ -288,6 +303,15 @@ itself (RA2a), the content-subspace value set is invariant,
 
       { M'(d)(v) : subspace(v) = s_C } = { M(d)(u) : subspace(u) = s_C }.
 
+One closure remark first, since J1★ quantifies over every document in `E'_doc`
+and `Contains_C` ranges over every document — as do the per-document arguments
+already made above (S2, S3★, the set-invariance package, S8★), each stated at
+the rearranged `d` alone: for every `d' ≠ d` the cross-document frame
+`M'(d') = M(d')` (RA9) leaves `d'`'s arrangement — domain, values, and
+content-subspace range — verbatim, so every per-document invariant and both
+range-based couplings (J1★, and P4★ through `Contains_C`) are inherited
+unchanged at `d'`, and the displayed arguments cover the only document whose
+arrangement changes.
 The three coupling obligations then hold vacuously, each by its own empty
 antecedent. J0 (every freshly allocated I-address is placed in some arrangement) is
 vacuous because `dom(C') = dom(C)` by RA0 — REARRANGE allocates no content, so no
@@ -302,7 +326,9 @@ is empty as well. Full-range invariance `ran(M'(d)) = ran(M(d))` (RA1) does not 
 itself settle J1★ — J1★ is stated against the content-subspace range, not the full
 range — so the subspace-preserving action of `π` is what closes it. The three
 composite-boundary properties are next. P4★ (`Contains_C(Σ) ⊆ R`) is the one that
-reads the mutated arrangement, and it is preserved by the same invariance:
+reads the mutated arrangement, and it is preserved by the same invariance at `d`
+together with the RA9 frame at every `d' ≠ d` (the closure remark above), the
+per-document contributions to `Contains_C` being unchanged in both cases:
 `Contains_C(Σ') = Contains_C(Σ) ⊆ R = R'`. P7a (every content address carries a
 provenance record) is trivial by frame — `dom(C)` and `R` are both frozen (RA0 and
 RA4), so its quantifier and its witnessing set are pointwise unchanged.
@@ -363,7 +389,7 @@ carried intact, so it satisfies RA0 and RA1 exactly as the moved blocks do.
 What is the *net* displacement of the middle? It departs ordinal `ord(c₁)` and
 arrives at ordinal `ord(c₀) + w_β`. The displacement is
 
-      (ord(c₀) + w_β) − ord(c₁) = w_β − w_α = (c₃ − c₂) − (c₁ − c₀),
+      (ord(c₀) + w_β) − ord(c₁) = w_β − w_α = (ord(c₃) − ord(c₂)) − (ord(c₁) − ord(c₀)),
 
 the difference in the widths of the two swapped regions. Gregory's implementation
 computes exactly this quantity for the middle slice — "the middle region
@@ -404,7 +430,12 @@ We fix a concrete instance and check the postconditions against explicit
 ordinals. Take a document `d` whose text
 subspace holds five bytes "ABCDE" at the contiguous depth-2 positions
 `[s_C, 1], …, [s_C, 5]`; write `a_k = M(d)([s_C, k])` for the I-address of the
-k-th byte, so `ord([s_C, k]) = k`.
+k-th byte, so `ord([s_C, k]) = k`. We stipulate that each byte was committed by
+its own allocation event, so the I-addresses — `a₁, …, a₅` here, `a₁, …, a₆` in
+the swap below — are pairwise distinct (S4, OriginBasedIdentity, ASN-0036, riding
+on GlobalUniqueness, ASN-0034); the footprint computations in this section and
+the RA8b inequalities in the atomicity section lean on that distinctness, which
+a shared-content pre-state (S5) would not supply.
 
 *Pivot.* Transpose the single-byte region `α = {B}` with the three-byte region
 `β = {C, D, E}`: cuts `c₀ = [s_C, 2]`, `c₁ = [s_C, 3]`, `c₂ = [s_C, 6]`, giving
@@ -504,8 +535,9 @@ acts there as a *constant displacement* — a rigid translation carrying the who
 region by one fixed net offset. Two quantities must be kept distinct here. The
 within-region offset `k ≥ 0` in `π(v + k) = π(v) + k` is a forward ordinal shift
 (ASN-0034 defines `shift` only for a positive amount, with `k = 0` the identity),
-indexing positions within the region. The region's *net translation* `π(v₀) − v₀`
-is the signed quantity that may be forward, backward, or zero. R-COMM fixes the
+indexing positions within the region. The region's *net translation*
+`ord(π(v₀)) − ord(v₀)` is the signed quantity that may be forward, backward, or
+zero. R-COMM fixes the
 rigid-translation structure independently of that net direction — so the net
 translation need not itself be an ordinal shift. Reading the
 constants off R-PPERM/R-SPERM: in the pivot every position of `β` moves by `−w_α`
@@ -633,7 +665,7 @@ bijection is the composition: writing `π₁, π₂` for the two moves' bijectio
 `M_mid(d)(π₁(v)) = M(d)(v)` and `M'_comp(d)(π₂(u)) = M_mid(d)(u)` give, at
 `u = π₁(v)`, `M'_comp(d)((π₂ ∘ π₁)(v)) = M(d)(v)`, and `π₂ ∘ π₁` is a bijection
 of `dom(M(d))`. Second, a rearrangement's post-arrangement is uniquely determined
-by its bijection and the pre-state: the defining equation inverts to
+by its bijection and the pre-state: the bijection equation inverts to
 `M'(d)(u) = M(d)(π⁻¹(u))` since `π` is a bijection (RA2). Hence
 
       π₂ ∘ π₁ = π   ⟹   M'_comp(d) = M'(d),                        **(RA8a)**
@@ -718,8 +750,8 @@ degenerate *input*.
 We flag, as an observation rather than a claim, that computing destinations by a
 *uniform displacement formula* per region — rather than by the tiling above — is
 correct only when the two moved regions have equal width. Gregory's analysis shows
-that the green implementation displaces region `α` by `c₂ − c₀` regardless of the
-widths, and that when `w_β > w_α` this drives the middle region to overlap the
+that the green implementation displaces region `α` by `ord(c₂) − ord(c₀)`
+regardless of the widths, and that when `w_β > w_α` this drives the middle region to overlap the
 relocated `α`, producing a V-position collision that violates the bijection
 requirement (Question 14); the same unguarded arithmetic can push a text position
 across a subspace boundary (Question 17). These are defects relative to the
