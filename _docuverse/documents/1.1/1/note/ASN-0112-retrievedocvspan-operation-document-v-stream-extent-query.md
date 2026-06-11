@@ -238,9 +238,7 @@ pinned, the T1 comparisons reduce to the final component: `t ≥ origin_d` gives
 and `t < reach_d` gives `t_{m_s} < n_s + 1`, whence `t_{m_s} ≤ n_s` because no natural lies
 strictly between `n_s` and `n_s + 1` — exactly the TA5 tightness of
 `reach_d = inc(max O(d), 0)` as the least same-length tumbler above `max O(d)`, established
-at V3. So `t = [s,1,…,1,k]` with `1 ≤ k ≤ n_s`, a member of the D-SEQ★ run. D-CTG★
-legitimately certifies only the sub-range `origin_d ≤ t ≤ max O(d)`; the cell beyond
-`max O(d)` is closed by (ii), not by contiguity. We record **V5**
+at V3. So `t = [s,1,…,1,k]` with `1 ≤ k ≤ n_s`, a member of the D-SEQ★ run. We record **V5**
 (exact cover): when all occupied positions share one subspace, `⟦σ_d⟧` contains no
 occupied-depth position outside `O(d)` — the span is a faithful trace, "dense and contiguous,"
 with the document forming "an unbroken sequence" (4/11). The density is supplied by the
@@ -297,15 +295,16 @@ relocates I-addresses and shuffles V-positions, but it never moves the start of 
 holds steady at the canonical first position. The origin is the stable anchor against which
 every other V-address is read.
 
-The extent behaves oppositely. Nelson distinguishes *arrangement* (order) from *composition*
-(quantity): "changing how content is arranged → extent unchanged; changing how much content
-there is → extent changes." We record **V9** (extent tracks composition, not arrangement).
-A pure rearrangement permutes `M(d)` while preserving `O(d) = dom(M(d))`; only the values
-`M(d)(v)` are permuted. Since `origin_d = min O(d)` and `extent_d = shift(max O(d), 1) ⊖ origin_d` depend
-on `O(d)` alone — never on the values `M(d)(v)` — the reported span is *identical* before and
-after: reorder the document and its origin and extent do not move. This matches
-Nelson's classification of rearrangement as a "Pure Vstream operation" that leaves the measured
-extent fixed.
+The extent behaves oppositely. We distinguish *arrangement* (order) from *composition*
+(quantity): changing how content is arranged leaves the extent unchanged, while changing how
+much content there is changes it — a distinction we draw from the structure of the query
+itself, not from a sourced commitment. We record **V9** (extent tracks composition, not
+arrangement). A pure rearrangement permutes `M(d)` while preserving `O(d) = dom(M(d))`; only
+the values `M(d)(v)` are permuted. Since `origin_d = min O(d)` and
+`extent_d = shift(max O(d), 1) ⊖ origin_d` depend on `O(d)` alone — never on the values
+`M(d)(v)` — the reported span is *identical* before and after: reorder the document and its
+origin and extent do not move. Rearrangement acts purely on the Vstream's arrangement layer,
+and an operation confined to that layer leaves the measured extent fixed.
 
 V8's boundary is reached at exactly two points within the editing vocabulary
 `{K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~}` (ASN-0047), symmetric across the content/link divide; everywhere
@@ -361,10 +360,12 @@ value TA6 forbids as an address.
 
 ## What the caller learns beyond the name
 
-We record **V12** (information gain): `σ_d` determines time-varying facts about the arrangement
-that the permanent identity `d` cannot, because `d` is fixed for the life of the document
-(V8) while `σ_d` is recomputed against the present state. Concretely, `σ_d` decides emptiness
-(`RETRIEVEDOCVSPAN(d) = ⟨⟩ ⟺ O(d) = ∅`, V11) and, in the single-subspace regime, fixes the occupied count
+We record **V12** (information gain): the result of `RETRIEVEDOCVSPAN(d)` determines
+time-varying facts about the arrangement that the permanent identity `d` cannot, because `d`
+is fixed for the life of the document (V8) while the result is recomputed against the present
+state. Concretely, the returned span-set decides emptiness by the presence or absence of a
+component span (`RETRIEVEDOCVSPAN(d) = ⟨⟩ ⟺ O(d) = ∅`, V11) and, when non-empty in the
+single-subspace regime, its span `σ_d` fixes the occupied count
 exactly: `|O(d)| = n_s` is the final component of `max O(d)`, recoverable from `reach_d`
 (V5, D-SEQ★). The identity `d` — invariant under every edit — reports none of these.
 
@@ -534,7 +535,7 @@ endpoint depths), without inspecting the returned span.
 | V8 | While the content subspace is non-empty, `origin_d = [s_C,1,…,1]`, invariant under all editing that leaves content present (origin permanence) | introduced |
 | V9 | A pure rearrangement preserves `O(d) = dom(M(d))`; since `origin_d` and `extent_d` depend on `O(d)` alone (not on the values `M(d)(v)`), the reported span is identical before and after (extent tracks composition, not arrangement) | introduced |
 | V11 | The operation is total over allocated documents; `O(d) = ∅` yields the distinguished empty span-set `⟨⟩` (V0), with `origin_d` undefined and no extent — the implementation's zeros are a sentinel, not a legal address (TA6) | introduced |
-| V12 | `σ_d` determines time-varying arrangement facts that the permanent identity `d` cannot: emptiness (`RETRIEVEDOCVSPAN(d) = ⟨⟩ ⟺ O(d) = ∅`) and, in the single-subspace regime, the exact occupied count `|O(d)| = n_s` (final component of `max O(d)`, recoverable from `reach_d`); `d` is invariant under every edit and reports none of these (information gain) | introduced |
+| V12 | The result of `RETRIEVEDOCVSPAN(d)` determines time-varying arrangement facts that the permanent identity `d` cannot: the returned span-set decides emptiness (`RETRIEVEDOCVSPAN(d) = ⟨⟩ ⟺ O(d) = ∅`, V11) and, when non-empty in the single-subspace regime, its span `σ_d` fixes the exact occupied count `|O(d)| = n_s` (final component of `max O(d)`, recoverable from `reach_d`); `d` is invariant under every edit and reports none of these (information gain) | introduced |
 | V13 | `σ_d` depends only on `O(d)`; two documents sharing content report independent spans; transcluded positions count toward the borrowing document's extent (independence) | introduced |
 | V14 | Every *occupied* position in `O(d)` maps through `M(d)` to a permanent, immutable image, by subspace (S3★): content positions to `dom(C)` (S0, P0), link positions to `dom(L)` (L12); covered-but-unoccupied positions in the cross-subspace case (V6) carry no `M(d)` image; sharing preserves what the span denotes (permanence) | introduced |
 | V16 | `σ_d` is a pure function of `O(d)`; equal arrangements return identical spans, independent of how the arrangement was built; the returned span is a snapshot, not a live view (determinism) | introduced |
