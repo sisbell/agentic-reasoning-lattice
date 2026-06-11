@@ -49,15 +49,14 @@ operation's shape: a partial function gated by the precondition `a ∈ dom(Σ.L)
 of the allocation operations (K.α, K.λ of ASN-0093), or a total request whose contract includes
 reporting absence. The deciding observation is the insufficiency of address-only tests: no
 satisfiable predicate computable from the address alone is sufficient for membership in
-`dom(Σ.L)`, so a caller cannot in general discharge a membership precondition before invoking. Nelson's design points the same way — the address space is sparsely occupied by design,
+`dom(Σ.L)` — proved below, at the structural screen. Nelson's design points the same way — the address space is sparsely occupied by design,
 an address naming no stored object is a valid coordinate rather than malformed input, and the
 retrieval requests are all-that-is-there questions for which "nothing" is a legitimate answer.
 Gregory's implementation concurs: a retrieval at an unallocated link address is answered with the
 protocol's distinguished failure reply, inside the operation's contract, not rejected as a
 violation of it. We therefore make the read total, over a codomain extended by one distinguished
-failure value `⊥` (with `⊥ ∉ Link`). Writing `𝒮` for the state space — the symbol ASN-0034
-(AllocatedSet, NoDeallocation) reserves precisely to keep the space distinct from a state `Σ` —
-with the second argument restricted to reachable states per the standing precondition, for any
+failure value `⊥` (with `⊥ ∉ Link`). Writing `𝒮` for the state space (ASN-0034), with the
+second argument restricted to reachable states per the standing precondition, for any
 address `a ∈ T` and reachable `Σ ∈ 𝒮`:
 
 > `readlink : T × 𝒮 → Link ∪ {⊥}`
@@ -262,7 +261,7 @@ screen-passing addresses are unstable — take `a` at the frontier of an active 
 `A_L(d)` (the address K.λ's binding precondition fixes, ASN-0093): `readlink(a, ·) = ⊥` at the
 state before the K.λ step, and a link value after it; the worked read's
 `a = [1.0.1.0.1.0.2.1]` below is exactly such a frontier address at the state preceding its
-allocating step. Others are permanently absent despite passing the screen, and two families
+allocating step. Others are permanently absent despite passing the screen, and three families
 witness this. *Depth:* at every reachable state `Σ'`, `dom(Σ'.C) ∪ dom(Σ'.L) ⊆ F` (LP-Sub,
 ASN-0098), and the structural form of `F` (SubstrateEmittableAddresses, ASN-0098: every member is
 `[d, 0, s, k]`) fixes `#E(·) = 2` on all of `F`. Hence `#E(a) > 2 ⟹ a ∉ F ⟹ a ∉ dom(Σ'.L)` at
@@ -278,16 +277,61 @@ node field `[2]` lies off the bootstrap lineage, and the exclusion is by contrad
 `parent([2.0.1.0.1]) = N(a).0.U(a) = [2.0.1] ∈ E'`; P8 again, at the account, gives
 `parent([2.0.1]) = N(a) = [2] ∈ E'`. But `zeros([2]) = 0`, so `Node([2])`, and NodeLineage
 (ASN-0047) then requires `n₀ ≼ [2]` — refuted at the first component, `[2]₁ = 2 ≠ 1 = (n₀)₁`.
-The supposition fails, so `a ∉ dom(Σ'.L)` at every reachable `Σ'`. The two families show that the screen-passing class is
-heterogeneous, split by finer tests that are still address-computable: depth (`#E(a) = 2` versus
-`#E(a) > 2`) and lineage (`N(a)₁ = 1` versus `N(a)₁ ≠ 1` — with `n₀ = [1]` fixed by Σ₀ of
-ASN-0047, `n₀ ≼ N(a)` is exactly `N(a)₁ = 1`). The caching discipline follows in three parts: (i) a success-branch result may be cached
+The supposition fails, so `a ∉ dom(Σ'.L)` at every reachable `Σ'`. *User field:*
+`a = [1.0.1.1.0.1.0.2.1]` passes the screen (zeros at positions 2, 5, 7, none adjacent, first and
+last components nonzero; `E(a) = [2, 1]`, so `subspace_I(a) = s_L` and `#E(a) = 2`) while its user
+field `U(a) = [1, 1]` has two components, and the exclusion runs by the same P8 chain. Suppose
+`a ∈ dom(Σ'.L)` at some reachable `Σ'`. Then L1a gives `home(a) = [1.0.1.1.0.1] ∈ E'_doc`, and P8
+gives `parent([1.0.1.1.0.1]) = N(a).0.U(a) = [1.0.1.1] ∈ E'` — an account whose user field has two
+components. But every account in every reachable `E'` has a single-component user field: accounts
+enter `E` only through K.δ case (ii) (ASN-0047) — with `k = 2` from a node, where
+`inc(t, 2) = t.[0, 1]` (TA5(d)) carries user field `[1]`, or with `k = 0` from an existing
+account, where `inc(t, 0)` modifies only the terminal component (TA5(c), TA5-SigValid) and so
+preserves `#U` — while the `k = 1` branch takes only document operands and case (i) makes nodes;
+induction over the history gives `#U(e) = 1` for every account in every reachable `E'`. The
+supposition fails as before, so `a ∉ dom(Σ'.L)` at every reachable `Σ'`. The general test is
+`#U(a) ≥ 2`. Gregory's account allocator concurs: seeded at the bootstrap node, its arithmetic
+emits single-component user fields only; deeper user fields arise there solely from non-canonical
+seeds, a path outside the model's transition vocabulary. The three families show that the
+screen-passing class is heterogeneous, split by finer tests that are still address-computable:
+depth (`#E(a) = 2` versus `#E(a) > 2`), lineage (`N(a)₁ = 1` versus `N(a)₁ ≠ 1` — with `n₀ = [1]`
+fixed by Σ₀ of ASN-0047, `n₀ ≼ N(a)` is exactly `N(a)₁ = 1`), and user-field width (`#U(a) = 1`
+versus `#U(a) ≥ 2`).
+
+The split is exhaustive — outside the three families, no further permanently-absent
+screen-passer hides. Call the *residual class* the screen-passing addresses with `#E(a) = 2`,
+`N(a)₁ = 1`, and `#U(a) = 1`; we show every member is allocatable: for any reachable `Σ` with
+`a ∉ dom(Σ.L)`, some extension `Σ →* Σ⁺` has `a ∈ dom(Σ⁺.L)`. The four fields of `a` are
+zero-free (every zero of a `zeros(a) = 3` tumbler is a field separator, T4b of ASN-0034), and the
+extension realises them in turn through the K.δ/K.λ vocabulary of ASN-0047, skipping any step
+whose target is already present. *Node:* `N(a)` is all-positive with `N(a)₁ = 1`, i.e.
+`n₀ ≼ N(a)`, so if `N(a) ∉ E` then K.δ case (i) baptises it (NodeBaptism). *Account:* the
+`(N(a), 2)` spawn yields `[N(a).0.1]` (ChildSpawnFreshness — if the spawn is already spent, the
+child is already in `E`), and `k = 0` sibling advances raise the single user component toward
+`U(a)₁`; each advance fires at the chain's frontier (FrontierEquivalence), so `[N(a).0.U(a)₁]` is
+reached or already present. *Document:* the `(account, 2)` spawn opens the document field at
+`[1]`; sibling advances raise its first component to `D(a)₁`; each further component `D(a)ᵢ` is
+opened by one `k = 1` version step (appending `[1]`, TA5(d)) and raised by sibling advances —
+every zero-free document field is realised this way, and each intermediate document enters
+`dom(M)` with the empty arrangement. *Element:* with `d := home(a) ∈ dom(M)` and
+`E(a) = [s_L, k]`, the links homed at `d` form a contiguous initial segment
+`{[d.0.s_L.j] : 1 ≤ j ≤ j₀}` of `A_L(d)`'s chain (ChainMembershipForOrigin, ASN-0093) with
+`j₀ < k` since `a ∉ dom(Σ.L)`, and `k − j₀` K.λ steps at the frontier — each with any
+L3-conforming value — deposit `a` as the chain's `k`-th emission. The steps compose into valid
+composites: none touches `dom(C)`, a content-subspace arrangement range, or `R`, so J0, J1★, and
+J1'★ hold vacuously at every boundary. Hence at a residual-class member `⊥` is never permanent,
+and no address-computable permanence test can exist for it.
+
+The caching discipline follows in three parts: (i) a success-branch result may be cached
 permanently (L12, LP13); (ii) `⊥` may be cached permanently wherever an address-computable
-permanence proof applies — screen failure, element-field depth `#E(a) > 2` (the depth family), or
-node field off the `n₀` lineage, `N(a)₁ ≠ 1` (the lineage family); (iii) `⊥` must not be cached
-at the residual class — screen-passing, `#E(a) = 2`, `N(a)₁ = 1` — which contains the frontier
-addresses a future K.λ allocates, and for whose members the tests established here yield no
-permanence proof. Caching `⊥` is sound exactly where such a proof is in hand.
+permanence proof applies — screen failure, element-field depth `#E(a) > 2` (the depth family),
+node field off the `n₀` lineage, `N(a)₁ ≠ 1` (the lineage family), or user-field width
+`#U(a) ≥ 2` (the user-field family); (iii) `⊥` must not be cached at the residual class —
+screen-passing, `#E(a) = 2`, `N(a)₁ = 1`, `#U(a) = 1` — each of whose members is allocated in some
+extension of any history that has not yet allocated it, so that no permanence proof can exist
+there. Caching `⊥` is sound exactly where such a proof is in hand: by the exhaustiveness of the
+split, the proofs of (ii) cover the whole permanently-absent class, and the residual class is
+exactly where caching is unsound.
 
 ## Recorded relationship versus resolved position
 
@@ -338,7 +382,7 @@ we exhibit the route rather than assume it. Each of the three addresses is a cha
 document's content sub-allocator (`[1.0.1.0.1.0.1.1]` and `[1.0.1.0.1.0.1.2]` the first two
 emissions of `A_C(d₁)`, `[1.0.1.0.2.0.1.1]` the first of `A_C(d₂)`; `d₁` enters `dom(M)` by the
 K.δ route exhibited in the RL4 construction, and `d₂ = inc(d₁, 0)` by a `k = 0` sibling step), and
-each enters `dom(C)` inside a valid composite of the shape J4 already uses — K.α coupled with a
+each enters `dom(C)` inside a valid composite — K.α coupled with a
 K.μ⁺ arranging the fresh address at the boundary (discharging J0) and a K.ρ recording `(a, d)`
 for the range-new address (discharging J1★; J1'★ holds because each new provenance entry is
 exactly that range-new pair). A subsequent K.μ⁻ on each document with content-subspace retention
@@ -406,7 +450,7 @@ complete structure. The read thus distinguishes *the relationship is unwitnessed
 | RL2 | Role preservation — on `a ∈ dom(Σ.L)` the read preserves arity (`|readlink(a, Σ)| = |Σ.L(a)|`) and exposes slot position as a model primitive (L6); from/to/type grouping delivered as structure | introduced |
 | RL3 | Type-by-address — the type is interpreted via `coverage(e₃)`, not via content at those addresses; ghost types read completely | introduced |
 | RL4 | Nesting locality — `readlink` is a function of `(a, Σ.L(a))` alone: reachable `Σ₁, Σ₂` with `Σ₁.L(a) = Σ₂.L(a)` give `readlink(a, Σ₁) = readlink(a, Σ₂)`; corollary: covered link addresses are returned as addresses, never dereferenced, witnessed by an explicit branched-history state pair | introduced |
-| RL5 | Determinacy — pure function of `(a, Σ.L(a))` (RL4); success-branch results stable across all `Σ →* Σ'` by link immutability; the structural screen is a one-sided test (failure proves permanent absence; passage proves nothing about the future); `⊥` is cacheable exactly where an address-computable permanence proof is in hand, per the three-part caching discipline | introduced |
+| RL5 | Determinacy — pure function of `(a, Σ.L(a))` (RL4); success-branch results stable across all `Σ →* Σ'` by link immutability; the structural screen is a one-sided test (failure proves permanent absence; passage proves nothing about the future); three permanence families — depth `#E(a) > 2`, lineage `N(a)₁ ≠ 1`, user-field `#U(a) ≥ 2` — together with screen failure exhaust permanent absence, every member of the residual class (screen-passing, `#E(a) = 2`, `N(a)₁ = 1`, `#U(a) = 1`) being allocatable; `⊥` is cacheable exactly where one of these address-computable permanence proofs is in hand | introduced |
 | RL6 | Recorded, not resolved — the read depends only on `Σ.L(a)`, succeeds for orphaned links, and returns the complete structure independent of any arrangement | introduced |
 
 ## Open Questions
