@@ -1,0 +1,30 @@
+# Review of ASN-0128
+
+## REVISE
+
+### Issue 1: The Φ-empty case is unrealizable on any substrate this note constructs
+**ASN-0128, Behaviors / BH1 (Rewrite scope)**: "and with Φ empty — no read-filter registration anywhere — the subtraction is empty: the default view coincides with the active view." And **Denotation and views / View selection**: "(the two coincide when no read-filter type is registered — BH1's Φ-empty case)".
+**Problem**: This note's own construction excludes the case. Standard registrations commits that "three coverage classes ship in `Σ_init.registry` for every substrate," R-C1 makes the three entries mandatory ("a colliding designation would violate C0's key uniqueness, and no `Σ_init` — no substrate at all — could be constructed"), and S1 ships `retired` with `behaviors = {BH1}`. Hence `Φ ⊇ {[K_ret]}` at every constructible `Σ_init`, and "no read-filter registration anywhere" names a state of no conforming substrate. The View selection parenthetical is worse than dead weight: it offers the unrealizable case as the explanation of when the selector's two readings coincide, which misdescribes the selector's actual behavior — on every real substrate, `default` and `active` differ definitionally on every `K' ≠ retired`. This is the imagined-excluded-case pattern the anti-bloat classifier flags.
+**Required**: Delete both clauses, or replace them with the coincidence that actually occurs in this system: the two readings agree extensionally at states where no BH1 type has an active tuple, and definitionally on a BH1 type's own surfaces (the `J ≠ K'` exclusion). If BH1's catalog entry is meant to be readable as registry-generic machinery independent of the shipped registrations, say so once, explicitly — the current text asserts the coincidence as a live case of this note's system.
+
+### Issue 2: `targets_under`'s recipe is view-ambiguous under the omitted-selector rule
+**ASN-0128, Default predicates / D3**: "The assertion-level forward query is the derived composition `targets_under(addr) = ⋃ { targets_of(x) : x ∈ members(K) ∧ x ≼ addr }` … an app-side composition rather than a fourth shipped predicate — and over address-denoting tuples it *equals* the coverage-keyed alternative `⋃ { addrs(G) : (a, F, G) ∈ A_K^Σ ∧ addr ∈ coverage(F) }`".
+**Problem**: View selection commits that "a call that omits the selector reads `default`," and `targets_under` is explicitly the composition an *app performs at the surface* — where both constituent calls are written unmarked. The section preamble's "the equations below are their `active` readings" rescues the in-document equation, but the deliverable is the recipe, and the recipe as written, executed at the surface, composes default-view constituents. The stated equality with the coverage-keyed form (written against `A_K^Σ`, the active view) then fails whenever any BH1 type — and `retired` always ships — has an active tuple filtering a source or target. The same latent ambiguity touches D2's bridge (`is_K(addr) ⟺ (E x : x ∈ members(K) : x ≼ addr)` is false under the default reading of `members` when a source is filtered), though there the preamble's scope arguably suffices.
+**Required**: Write the selectors into the composition — `targets_under(addr) = ⋃ { targets_of(x, active) : x ∈ members(K, active) ∧ x ≼ addr }` — or state explicitly which view `targets_under` commits to and note that the default-view composition is a different (filtered) query. One annotation each in D3 and D2's bridge closes it.
+
+### Issue 3: Two sections defer the same question to Open question 1
+**ASN-0128, BH1 (Rewrite scope)**: "Whether the rewrite extends to behavior-unlocked surfaces — BH3's `sources_to`, BH2's walk through a filtered mid-chain element — is deliberately uncommitted (Open question 1)." And **View selection**: "The rule fixes only how a caller designates a view on the surfaces the rewrite reaches; *which* surfaces it reaches is Open question 1's territory."
+**Problem**: This is the multiple-deferrals-to-one-downstream-location pattern. BH1's Rewrite scope is the carrier of the rewrite definition and is the right home for the single deferral; View selection's closing sentence re-defers the identical question one section later, adding no rule the reader doesn't already have. The accretion is recent (the selector paragraph is the newest material) and is exactly how deferral prose compounds across cycles.
+**Required**: Keep the deferral in BH1's Rewrite scope; end View selection at its committed rule (the selector designates a view on the two rewritten surfaces; no other surface carries it), with at most a bare cross-reference to BH1's scope, not a second pointer to the open question.
+
+## OUT_OF_SCOPE
+
+### Topic 1: A filtered raw-observation surface
+The note commits that raw `Observe_K` never filters (both `hist` and `oper`), and the default view exists only on `members` and `targets_of`. An app wanting filtered access to full tuples (not just denoted addresses) must compose `is_filtered` itself.
+**Why out of scope**: The commitment is deliberate and internally consistent; a `default`-view selector on `Observe_K` is a new surface, properly a successor's territory alongside the predicate-composition note.
+
+### Topic 2: A genuine concurrency treatment for surface calls
+I4 resolves concurrent emits by fiat: a serializing authority orders whole *calls*, so each dedup check runs against the immediately preceding call's post-state. I1a's miss-branch reasoning silently relies on this call-level atomicity — two checks evaluated against the same pre-state followed by two deposits would put two I0-equal active tuples in `A_K`. The note's sequential model makes this sound, but the atomicity granularity (check + step as one unit) is an assumption about the execution environment, not a property of `→_sh`.
+**Why out of scope**: I4 correctly states that concurrency has no semantics inside the inherited relation; specifying the serialization contract a concurrent substrate must honor is new machinery, not an error in this note.
+
+VERDICT: REVISE
