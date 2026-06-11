@@ -200,13 +200,9 @@ same-length tumbler strictly greater than `w`, while the true T1-immediate succe
 the deeper zero-extension `w.0` (by the prefix convention, T1 case (ii)), satisfying
 `w < w.0 < inc(w, 0) = reach_d`. So `reach_d` is *not* the least strict upper bound of `w`
 over all of `T` — the chain just displayed exhibits the strictly smaller upper bound `w.0` —
-but it is the least strict upper bound of `w` at `w`'s depth — V3's claim. (We state the
-minimality order-theoretically, over tumblers, and deliberately so: whether a well-formed
-covering span can *attain* the denotational reach `w.0` exactly is a separate, case-dependent
-construction — the natural start `origin_d` fails it both when `origin_d = w`, where padding
-makes the operands zero-padded-equal and the width `w.0 ⊖ origin_d` degenerates to the
-non-`Pos` zero tumbler, and when `#origin_d > #w + 1`, where D0's round-trip boundary makes
-the actual reach overshoot `w.0` — and nothing in V3 needs it.)
+but it is the least strict upper bound of `w` at `w`'s depth — V3's claim. V3's minimality is
+order-theoretic, over same-depth tumblers; whether a well-formed covering span can *attain*
+the denotational reach `w.0` is a separate question (see Open Questions).
 
 ---
 
@@ -253,10 +249,17 @@ pinned, the T1 comparisons reduce to the final component: `t ≥ origin_d` gives
 and `t < reach_d` gives `t_{m_s} < n_s + 1`, whence `t_{m_s} ≤ n_s` because no natural lies
 strictly between `n_s` and `n_s + 1` — exactly the TA5 tightness of
 `reach_d = inc(max O(d), 0)` as the least same-length tumbler above `max O(d)`, established
-at V3. So `t = [s,1,…,1,k]` with `1 ≤ k ≤ n_s`, a member of the D-SEQ★ run. We record **V5**
+at V3. So `t = [s,1,…,1,k]` with `1 ≤ k ≤ n_s`, a member of the D-SEQ★ run. Call a tumbler
+`t` *occupied-depth* at `(Σ, d)` iff `#t = m_S(d)` for some subspace `S ∈ {s_C, s_L}` with
+`V_S(d) ≠ ∅` — its depth is the S8-depth common depth of some non-empty subspace of `d`'s
+arrangement; in the cross-subspace case with `m_C ≠ m_L` there are exactly two occupied
+depths. We record **V5**
 (exact cover): when all occupied positions share one subspace, `⟦σ_d⟧` contains no
 occupied-depth position outside `O(d)` — the span is a faithful trace, "dense and contiguous,"
-with the document forming "an unbroken sequence" (4/11). The density is supplied by the
+with the document forming "an unbroken sequence" (4/11). The definition and the proof meet
+exactly: in the single-subspace case the sole non-empty subspace is `s`, so the only occupied
+depth is `m_s`, and steps (i)–(ii) dispose of every depth-`m_s` tumbler in `⟦σ_d⟧` — V5 is
+discharged in full under the definition. The density is supplied by the
 per-subspace D-SEQ★, so the claim holds for a link-only document exactly as for a content-only
 one. The golden case confirms the content instance: eleven characters of text report
 `1.1 for 0.11`, the half-open interval `[1.1, 1.12)` covering exactly positions
@@ -270,10 +273,13 @@ between them — including the unoccupied void separating the two subspaces, whe
 arranged. We record **V6** (cross-subspace bounding box — the negation of V5): when
 occupied positions span more than one subspace, `⟦σ_d⟧` contains an *occupied-depth* position
 outside `O(d)` — the span is a bounding box, not an exact cover. The witness is
-`w⋆ = [s_C,1,…,1,n_C+1]` (at the occupied content depth `m_C`, where `n_C = |V_{s_C}(d)|`): it
+`w⋆ = [s_C,1,…,1,n_C+1]` (at the occupied content depth `m_C`, where `n_C = |V_{s_C}(d)|` —
+occupied-depth by the V5 definition, since `V_{s_C}(d) ≠ ∅`): it
 is a content position, hence below every `s_L` reach by T1, so `origin_d ≤ w⋆ < reach_d` and
 `w⋆ ∈ ⟦σ_d⟧`; yet its final component `n_C+1` places it just past the dense content run
-`{[s_C,1,…,1,k] : k ≤ n_C}` (D-SEQ★), so `w⋆ ∉ O(d)`. The bare strict inclusion
+`{[s_C,1,…,1,k] : k ≤ n_C}` (D-SEQ★), so `w⋆ ∉ O(d)`. V6 is existential, so this single
+depth-`m_C` witness discharges it under the definition; whether depth-`m_L` tumblers supply
+further witnesses when `m_L ≠ m_C` is immaterial. The bare strict inclusion
 `O(d) ⊊ ⟦σ_d⟧` follows as a corollary, but it cannot carry the dichotomy: even in V5's
 exact-cover case the inclusion is strict, since the zero-extension `origin_d.0` satisfies
 `origin_d < origin_d.0 < reach_d` (T1 case (ii); then divergence at the final position,
@@ -575,7 +581,8 @@ no range to validate.
 The precondition for *legality* is trivial, but a caller wanting to know *what kind* of answer
 it will get — a faithful trace or a mere bounding box — is asking a non-trivial weakest-
 precondition question, and we can answer it. Take the distinguished result
-property `Exact ≡ "⟦σ_d⟧ contains no occupied-depth position outside O(d)"` (vacuously true on
+property `Exact ≡ "⟦σ_d⟧ contains no occupied-depth position outside O(d)"` (occupied-depth as
+defined at V5; vacuously true on
 the `⟨⟩` result, where there is no `σ_d`). Reasoning backward from `Exact`, we ask which states
 `Σ` guarantee it. We claim
 
@@ -607,7 +614,7 @@ endpoint depths), without inspecting the returned span. Both properties are equa
 *after* the fact, from the returned width alone, and the two discriminators sit at opposite
 ends of that width. *Tightness* reads the final component: the width's final component is
 positive exactly when the reach is tight (the V9a discriminator). *Exactness* reads the first
-component: for any non-empty result,
+component; we record **V9b** (exactness discriminator): for any non-empty result,
 
 > `extent_d₁ = 0 ⟺ Exact`.
 
@@ -639,11 +646,12 @@ closes with `0` (bounding box, with overshooting reach).
 | V-ReachTight | `reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d` — the denotational reach attains the constructed endpoint exactly when origin depth does not exceed reach depth; automatic in the single-subspace regime | introduced |
 | V-LevelUniform | `σ_d` is level-uniform (S6: `#origin_d = #extent_d`) `⟺ #origin_d ≥ #reach_d`, since `#extent_d = max(#origin_d, #reach_d)` (TA2); always level-uniform in the single-subspace regime | introduced |
 | V4 | `extent_d` is computed from `O(d) = dom(M(d))` alone; content in `dom(C)` but absent from the arrangement (deleted, or native elsewhere) contributes nothing (Vstream-bounded, not Istream) | introduced |
-| V5 | When all occupied positions share one subspace, `⟦σ_d⟧` contains no occupied-depth position outside `O(d)` (exact cover of a contiguous run) | introduced |
+| V5 | When all occupied positions share one subspace, `⟦σ_d⟧` contains no occupied-depth position outside `O(d)`, where `t` is *occupied-depth* at `(Σ, d)` iff `#t = m_S(d)` for some `S ∈ {s_C, s_L}` with `V_S(d) ≠ ∅` (exact cover of a contiguous run) | introduced |
 | V6 | When occupied positions span more than one subspace, `⟦σ_d⟧` contains an occupied-depth position outside `O(d)` (witness `w⋆ = [s_C,1,…,1,n_C+1]` at depth `m_C`) — the negation of V5 (bounding box, not exact cover); corollary: `O(d) ⊊ ⟦σ_d⟧`; forced because a span denotes one convex region (ASN-0053 S0) and cannot trace a separated series | introduced |
 | V8 | While the content subspace is non-empty, `origin_d = [s_C,1,…,1]`, invariant under all editing that leaves content present (origin permanence) | introduced |
 | V9 | `origin_d` and `extent_d` are functions of the extremes `(min O(d), max O(d))` alone — never of the values `M(d)(v)` or the interior of `O(d)`; a pure rearrangement (preserving `O(d)`) returns the identical span, and a composition change moves the span iff it moves an extreme (forward direction by functionality of the extremes-to-span map, converse by V9a) — every composition change moves an extreme in the single-subspace regime (final component of `extent_d` equals `n_s`), but not in general in the cross-subspace regime, where content-side changes keeping `n'_{s_C} ≥ 1` leave the extremes, hence the span, fixed | introduced |
 | V9a | The extremes-to-span map `(min O(d), max O(d)) ↦ (origin_d, extent_d)` is injective, by explicit inverse: `min O(d) = origin_d`; `reach_d = origin_d ⊕ extent_d` when the returned width's final component is positive (`⟺ #origin_d ≤ #reach_d`, D1 round-trip), else `#reach_d = sig(extent_d)` and `reach_d` is read componentwise off TumblerSub's formula at `zpd = 1` (zero-freeness of `reach_d`, S8a); `max O(d)` is `reach_d` with final component decremented (OrdinalShift, TS2) — so a moved extreme always moves the span (extremes recoverable) | introduced |
+| V9b | For any non-empty result, `extent_d₁ = 0 ⟺ Exact` — single-subspace endpoints first diverge at `zpd(reach_d, origin_d) = m_s ≥ 2` (S8a), so TumblerSub zeroes position 1 of the width; cross-subspace endpoints diverge at position 1, so `extent_d₁ = s_L − s_C ≥ 1` (TumblerSub at `zpd = 1`); the V5/V6 dichotomy identifies the zero case with `Exact` — the slot-1 partner of V9a's final-component tightness discriminator (exactness discriminator) | introduced |
 | V11 | The operation is total over allocated documents; `O(d) = ∅` yields the distinguished empty span-set `⟨⟩` (V0), with `origin_d` undefined and no extent — the implementation's zeros are a sentinel, not a legal address (TA6) | introduced |
 | V12 | The result of `RETRIEVEDOCVSPAN(d)` determines time-varying arrangement facts that the permanent identity `d` cannot: the returned span-set decides emptiness (`RETRIEVEDOCVSPAN(d) = ⟨⟩ ⟺ O(d) = ∅`, V11) and, when non-empty in the single-subspace regime, its span `σ_d` fixes the exact occupied count `|O(d)| = n_s` — the final component of the returned width `extent_d = [0,…,0,n_s]` (TumblerSub at `zpd = m_s`), equivalently the final component of `reach(σ_d) = reach_d` less one (V-ReachTight); `d` is invariant under every edit (P1, EntityPermanence, ASN-0047) and reports none of these (information gain) | introduced |
 | V13 | `σ_d` depends only on `O(d)`; two documents sharing content report independent spans; transcluded positions count toward the borrowing document's extent (independence) | introduced |
@@ -662,3 +670,5 @@ What faithfulness must a report of a designated historical version preserve rela
 What invariant must relate the whole-document span to the bounding spans of the document's individual correspondence runs, so that the global extent composes from local ones?
 
 What must the report guarantee about origin and extent when content occupies V-positions whose addressing arithmetic has been driven outside the well-formed range by prior editing?
+
+Under what conditions can a well-formed covering span's denotational reach attain the T1-immediate successor of the maximal occupied position?
