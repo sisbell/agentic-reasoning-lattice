@@ -80,12 +80,7 @@ and dually `wp(readlink request at a, result = ⊥) ≡ a ∉ dom(Σ.L)`. Both p
 well-formed on every state, and at each `(a, Σ)` exactly one of them is attainable: by the
 definition, `readlink(a, Σ) = Σ.L(a)` when `a ∈ dom(Σ.L)` — and `Σ.L(a) ∈ Link` with `⊥ ∉ Link`,
 so `⊥` is unattainable there — while `readlink(a, Σ) = ⊥` otherwise, so the success result is
-unattainable off the domain. These are exactly RL0's two biconditionals. Separately, there is
-no partial-success middle state: no execution returns a proper sub-value of the stored entry. This
-is a property of the *operation*, not of the codomain — `Link` is closed under shrinking a
-connective slot (for `(F, G, Θ) ∈ Link` with `|F| ≥ 2`, any `(F', G, Θ)` with `F' ⊊ F` is again an
-arity-3 sequence of endsets), so fragments of stored values do inhabit `Link ∪ {⊥}`; it is the
-definition that never returns one.
+unattainable off the domain. These are exactly RL0's two biconditionals.
 
 A reader holding a candidate tumbler `a ∈ T` can evaluate a *structural screen*, from the address
 alone and left to right:
@@ -122,7 +117,10 @@ returned endset equals the recorded one exactly, omitting nothing and introducin
 
 The set equality captures both directions at once: every recorded span `(s, ℓ) ∈ Σ.L(a).eᵢ` is
 returned, and no span outside `Σ.L(a).eᵢ` appears in the result. The justification is immediate from
-the definition: `readlink(a, Σ) = Σ.L(a)` componentwise.
+the definition: `readlink(a, Σ) = Σ.L(a)` componentwise. The codomain provides no enforcement here:
+`Link` is closed under shrinking a connective slot (for `(F, G, Θ) ∈ Link` with `|F| ≥ 2`, any
+`(F', G, Θ)` with `F' ⊊ F` is again an arity-3 sequence of endsets), so fragments of stored values
+do inhabit `Link ∪ {⊥}` — completeness is enforced by the definition, not by the type.
 
 This is why the read recovers the arbitrary, broken collections that endsets are permitted to be.
 An endset may scatter spans across many documents and across discontiguous regions within one;
@@ -192,7 +190,14 @@ and flatten, yet still be a function of `(a, Σ.L)`; RL4 excludes this.
 
 The exclusion has force only if the state pair RL4 quantifies over actually exists — two reachable
 states agreeing on the entry at the read address while disagreeing at a covered `a'` distinct from
-it. We construct the witnessing pair. Take any reachable `Σ*` with a document `d ∈ dom(Σ*.M)`, and
+it. We construct the witnessing pair. Its base hypothesis — a reachable state holding an allocated
+document — must itself be exhibited, since at `Σ₀` the document stratum is empty (`(E₀)_doc = ∅`,
+ASN-0047): K.δ case (ii) with `k = 2` at the bootstrap node `n₀ = [1]` yields the account
+`inc(n₀, 2) = [1.0.1]` (operand `zeros(n₀) = 0 ≤ 1`, parent `n₀ ∈ E₀`, freshness by
+ChildSpawnFreshness, ASN-0047), and a second `k = 2` step at `[1.0.1]` yields the document
+`inc([1.0.1], 2) = [1.0.1.0.1]` (operand `zeros = 1 ≤ 1`); the post-state registers this document
+in `dom(M)` with the empty arrangement and is a state of the required form. Take any reachable
+`Σ*` with a document `d ∈ dom(Σ*.M)`, and
 let `a'` be the frontier emission of `d`'s link sub-allocator `A_L(d)` at `Σ*` (the address K.λ's
 binding precondition fixes, ASN-0093). Pick two conforming link values `v₁ ≠ v₂` — say, two
 L3-conforming triples differing in their type endsets. K.λ's precondition constrains the value
@@ -236,18 +241,39 @@ Stability across `Σ →* Σ'` follows from LP13 (UnconditionalLinkPersistence, 
 
 A reader who has once read a link may rely on that reading permanently.
 
-*The failure branch's stability splits on the structural screen.* `readlink(a, Σ) = ⊥` does not in
-general entail `readlink(a, Σ') = ⊥` for `Σ →* Σ'`: for a *screen-passing* address, absence from
-`dom(Σ.L)` is not preserved by `→*` — a subsequent K.λ can allocate `a` itself (any screen-passing
-address at the frontier of an active link sub-allocator is a candidate), after which the read at
-`a` returns a link value. For a *screen-failing* address, by contrast, `⊥` is permanent: each
-screen conjunct is necessary for membership in `dom(Σ'.L)` at every reachable `Σ'` — the
-invariants behind RL0's necessity claims (L0b, L1, L0, L1b of ASN-0043) hold at every reachable
-state — so a screen-failing `a` satisfies `a ∉ dom(Σ'.L)` throughout the future, which is exactly
-the permanence that RL0's "a failed screen guarantees `⊥` without an invocation" already relies
-on. The caching discipline follows the split: a success-branch result may be cached permanently,
-`⊥` at a screen-failing address may be cached permanently, and `⊥` at a screen-passing address
-must not be cached.
+*The failure branch's stability is asymmetric in the structural screen.* For a *screen-failing*
+address, `⊥` is permanent: each screen conjunct is necessary for membership in `dom(Σ'.L)` at
+every reachable `Σ'` — the invariants behind RL0's necessity claims (L0b, L1, L0, L1b of
+ASN-0043) hold at every reachable state — so a screen-failing `a` satisfies `a ∉ dom(Σ'.L)`
+throughout the future. (RL0's "a failed screen guarantees `⊥` without an invocation" is the
+per-state instance of this; the permanence asserted here is the new content, obtained by
+quantifying that per-state fact over every reachable `Σ'`.) For a *screen-passing* address, by
+contrast, the screen settles nothing in either direction: the screen-passing class contains
+addresses of both fates, so permanence of `⊥` is not derivable from the address alone. Some
+screen-passing addresses are unstable — take `a` at the frontier of an active link sub-allocator
+`A_L(d)` (the address K.λ's binding precondition fixes, ASN-0093): `readlink(a, ·) = ⊥` at the
+state before the K.λ step, and a link value after it; the worked read's
+`a = [1.0.1.0.1.0.2.1]` below is exactly such a frontier address at the state preceding its
+allocating step. Others are permanently absent despite passing the screen, and two families
+witness this. *Depth:* under the standing precondition's transition vocabulary, every address
+that ever enters `dom(L)` lies on the chain `A_L(d)` of its origin (ChainMembershipForOrigin,
+ASN-0093), and every element of such a chain has element-field depth exactly 2 — the first
+emission `[d.0.s_L.1]` has `#E = 2`, and each subsequent emission is `inc(·, 0)`, which preserves
+length (TA5(c), with `sig = #` on T4-valid addresses by TA5-SigValid) — so
+`a = [1.0.1.0.1.0.2.1.1]` passes every screen conjunct (T4-valid; `zeros(a) = 3`;
+`E(a) = [2, 1, 1]`, so `subspace_I(a) = s_L` and `#E(a) = 3 ≥ 2`) yet satisfies `a ∉ dom(Σ'.L)`
+at every reachable `Σ'`. Gregory's allocator concurs: its sole link-allocation path emits
+addresses of the form `d.0.2.n`, advancing the final digit by the `inc(·, 0)` analogue; no
+reachable path deepens the element field. *Lineage:* every node entity extends the bootstrap node
+(`n₀ = [1] ≼ e`, NodeLineage, ASN-0047), so `a = [2.0.1.0.1.0.2.1]` passes the screen while its
+node field `[2]` is no `n₀`-descendant (`¬(n₀ ≼ [2])`); no entity chain through P8 can ever place
+`home(a)` in `dom(M)`, and L1a then excludes `a` from `dom(Σ'.L)` at every reachable `Σ'`. The
+screen is therefore a one-sided test: failure *proves* permanent absence; passage proves nothing
+about the future. The caching discipline follows: a success-branch result may be cached
+permanently, `⊥` at a screen-failing address may be cached permanently, and `⊥` at a
+screen-passing address must not be cached — not because every such address can later be
+allocated, but because its permanence is not derivable from the address alone, and caching `⊥` is
+sound only where permanence is established.
 
 ## Recorded relationship versus resolved position
 
@@ -349,7 +375,7 @@ complete structure. The read thus distinguishes *the relationship is unwitnessed
 | RL2 | Role preservation — on `a ∈ dom(Σ.L)` the read preserves arity (`|readlink(a, Σ)| = |Σ.L(a)|`) and exposes slot position as a model primitive (L6); from/to/type grouping delivered as structure | introduced |
 | RL3 | Type-by-address — the type is interpreted via `coverage(e₃)`, not via content at those addresses; ghost types read completely | introduced |
 | RL4 | Nesting locality — `readlink` is a function of `(a, Σ.L(a))` alone: reachable `Σ₁, Σ₂` with `Σ₁.L(a) = Σ₂.L(a)` give `readlink(a, Σ₁) = readlink(a, Σ₂)`; corollary: covered link addresses are returned as addresses, never dereferenced, witnessed by an explicit branched-history state pair | introduced |
-| RL5 | Determinacy — pure function of `(a, Σ.L(a))` (RL4); success-branch results stable across all `Σ →* Σ'` by link immutability; `⊥` is permanent at screen-failing addresses (every screen conjunct is necessary at every reachable state) but carries no stability at screen-passing addresses (a later K.λ may allocate `a`) | introduced |
+| RL5 | Determinacy — pure function of `(a, Σ.L(a))` (RL4); success-branch results stable across all `Σ →* Σ'` by link immutability; `⊥` is permanent at screen-failing addresses (every screen conjunct is necessary at every reachable state); at screen-passing addresses permanence of `⊥` is not derivable from the address alone — frontier addresses of an active `A_L(d)` are allocatable by a later K.λ, while off-chain (element-field depth > 2) and off-lineage (node field outside the `n₀` lineage) screen-passing addresses are permanently absent | introduced |
 | RL6 | Recorded, not resolved — the read depends only on `Σ.L(a)`, succeeds for orphaned links, and returns the complete structure independent of any arrangement | introduced |
 
 ## Open Questions
