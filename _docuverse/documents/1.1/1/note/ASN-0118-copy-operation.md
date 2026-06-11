@@ -42,9 +42,8 @@ citations below, which ASN-0047 collects in `ExtendedReachableStateInvariants` a
 guarantees only of reachable states.
 
 **Standing precondition (composite boundary).** COPY is itself an ASN-0047
-composite (we exhibit its decomposition below), so it is invoked *at a composite
-boundary*: its pre-state `Σ` is the final state of a completed composite, never a
-state reached mid-composite. This licenses the *composite-boundary properties* that
+composite, so it is invoked *at a composite boundary*: its pre-state `Σ` is the
+final state of a completed composite, never a state reached mid-composite. This licenses the *composite-boundary properties* that
 ASN-0047 collects separately from the per-state invariants — in particular P4★
 (`Contains_C(Σ) ⊆ R`), which holds at composite boundaries but may fail at an
 intermediate atomic state.
@@ -86,49 +85,56 @@ conditions, which we state natively. It is *well-formed* in the sense of T12
 `⟦σ⟧ = {t ∈ T : s ≤ t < s ⊕ ℓ}` is a well-defined order-convex set of tumblers.
 It is *level-uniform* (ASN-0053, S6): `#s = #ℓ`, so start, width, and reach all
 carry one tumbler length. It draws from a non-empty source subspace:
-`V_{subspace(s)}(d_s) ≠ ∅`. The first and third conditions are ASN-0058's
-ContentReference conditions (ii) and (i) inherited verbatim; the second is a
-*deliberate relaxation* of its condition (iii), which pins the span's length to
-the source subspace's common V-position depth — `#ℓ = #u = m` (S8-depth) — and
-of which we keep only the bare level-uniformity `#s = #ℓ`, dropping the `= m`
-conjunct. A V-spec is therefore a *relaxation* of an ASN-0058 ContentReference,
-not one simpliciter: every ContentReference is a V-spec, but a V-spec's tumbler
-length may differ from the depth of the subspace it draws from. The relaxation
-costs nothing downstream, because no consequence this ASN consumes rests on the
-depth pin: the bound active set `act(ρ, Σ) = dom(Σ.M(d_s)) ∩ ⟦σ⟧` is
-single-subspace by content-residence (`act(ρ, Σ) ⊆ V_{s_C}(d_s)`, the
-operation's precondition below) and single-depth by S8-depth (ASN-0036) applied
-to the active positions themselves — *regardless* of `#s` and of where `ℓ`'s
-action point falls. (A content span may, but need not, be *ordinal-level* —
-action point at the deepest component, `actionPoint(ℓ) = #ℓ`, so the span
-advances along the last component alone.) The relaxation is live, not
-notational: a depth-mismatched span can still capture active positions, and it
-is then admissible and resolves. Over a depth-2 text subspace, the spec
-`s = [1,1,5]`, `ℓ = [0,9,0]` is T12-well-formed (`Pos(ℓ)`,
-`actionPoint(ℓ) = 2 ≤ 3 = #s`) and level-uniform at length 3; its denotation
-`{t : [1,1,5] ≤ t < [1,10,0]}` contains exactly the depth-2 positions `[1,k]`
-with `2 ≤ k ≤ 10`, capturing whichever of those the source binds; under the
-inherited condition (iii) it would be rejected (`#ℓ = 3 ≠ m = 2`), and here it
-is admitted, resolving by restriction to those bound positions. Beyond the
-three conditions the span's boundary tumblers are constrained no further: the
-start `s` need not carry the subspace depth, need not be a bound position of
-`d_s`, and need not be an S8a-well-formed V-position at all — under the partial
-binding admitted below, `s` is a pure *boundary*, and every well-formedness
-fact resolution consumes is recovered from the active positions themselves,
-whose membership in `dom(Σ.M(d_s))` supplies S8a (ASN-0036). Gregory's
-udanax-green matches the relaxed admissibility at every stage: `acceptablevsa`
-— the hook placed to validate V-addresses — is an unconditional pass;
-`specset2ispanset` checks only that the document address is non-zero; and the
-resolution path classifies addresses by pure tumbler-order intersection, with
-no depth check, rejection, or normalization anywhere — a start with a zero
+`V_{subspace(s)}(d_s) ≠ ∅`. The *active positions* of a V-spec are those
+tumblers the span denotes that the source arrangement actually binds,
+`act(ρ, Σ) = dom(Σ.M(d_s)) ∩ ⟦σ⟧` — the intersection of the source document's
+bound V-positions (ASN-0036) with the span's denotation, and exactly the domain
+of ASN-0058's restriction `M(d_s)|⟦σ⟧` on which its `resolve` is defined. The
+set is finite (subset of the finite `dom(Σ.M(d_s))`, S8-fin) and totally
+ordered (subset of the totally ordered carrier `T`, T1), hence has a unique
+ascending enumeration `v₁ < … < v_k`. The first and third admissibility
+conditions are ASN-0058's ContentReference conditions (ii) and (i) inherited
+verbatim; the second relaxes its condition (iii) — which pins the span's length
+to the source subspace's common V-position depth, `#ℓ = #u = m` (S8-depth) — to
+bare level-uniformity, so every ContentReference is a V-spec but a V-spec's
+tumbler length may differ from the depth of the subspace it draws from.
+
+The relaxation costs nothing downstream, because no consequence this ASN
+consumes rests on the depth pin: the bound active set is single-subspace by
+content-residence (`act(ρ, Σ) ⊆ V_{s_C}(d_s)`, the operation's precondition
+below) and single-depth by S8-depth (ASN-0036) applied to the active positions
+themselves — *regardless* of `#s` and of where `ℓ`'s action point falls. (A
+content span may, but need not, be *ordinal-level* — action point at the
+deepest component, `actionPoint(ℓ) = #ℓ`, so the span advances along the last
+component alone.) Nor is the relaxation merely notational: a depth-mismatched
+span can still capture active positions, and it is then admissible and
+resolves. Over a depth-2 text subspace, the spec `s = [1,1,5]`, `ℓ = [0,9,0]`
+is T12-well-formed (`Pos(ℓ)`, `actionPoint(ℓ) = 2 ≤ 3 = #s`) and level-uniform
+at length 3; its denotation `{t : [1,1,5] ≤ t < [1,10,0]}` contains exactly the
+depth-2 positions `[1,k]` with `2 ≤ k ≤ 10`, capturing whichever of those the
+source binds; under the inherited condition (iii) it would be rejected
+(`#ℓ = 3 ≠ m = 2`), and here it is admitted, resolving by restriction to those
+bound positions. Beyond the three conditions the span's boundary tumblers are
+constrained no further: the start `s` need not carry the subspace depth, need
+not be a bound position of `d_s`, and need not be an S8a-well-formed V-position
+at all — under the partial binding admitted below, `s` is a pure *boundary*,
+and every well-formedness fact resolution consumes is recovered from the active
+positions themselves, whose membership in `dom(Σ.M(d_s))` supplies S8a
+(ASN-0036).
+
+Gregory's udanax-green matches the relaxed admissibility: `acceptablevsa` — the
+hook placed to validate V-addresses — is an unconditional pass;
+`specset2ispanset` checks only that the document address is non-zero; and span
+classification is pure tumbler-order intersection at full precision, with no
+depth check, rejection, or normalization anywhere — a start with a zero
 component, an unbound shape, or a mismatched depth selects less, never errors.
-(One implementation divergence is worth recording: udanax-green's clipping
-arithmetic converts boundary differences to integer offsets in a way that
-discards sub-depth structure, so a cross-depth boundary can be mis-read as a
-content offset; the abstract resolution defined below is immune, restricting to
-the bound positions and reading each image through the arrangement rather than
-by offset arithmetic.) A *spec-set*
-`R = ⟨ρ₁, …, ρ_q⟩` is a finite ordered sequence of V-specs
+Its clipping arithmetic diverges at resolution: boundary differences are
+converted to integer offsets in a way that discards sub-depth structure, so a
+cross-depth boundary can be mis-read as a content offset. The abstract
+resolution defined below is immune, restricting to the bound positions and
+reading each image through the arrangement rather than by offset arithmetic.
+
+A *spec-set* `R = ⟨ρ₁, …, ρ_q⟩` is a finite ordered sequence of V-specs
 with `q ≥ 1` — ASN-0058's *ContentReferenceSequence* shape, its members relaxed
 to V-specs as above (we write the spec-set length as `q`, reserving `p` for the
 insertion position introduced with the operation below). The ordering is part of the request — Nelson is explicit that "if you
@@ -136,14 +142,6 @@ want to designate a separated series of items exactly, including nothing else, y
 do this by a span-set, which is a series of spans" (4/25): a spec-set is a
 *sequence*, not a set, and its "exactly" is the *exclusion* of unwanted
 intermediate content between the named pieces.
-
-The *active positions* of a V-spec are those tumblers the span denotes that the
-source arrangement actually binds, `act(ρ, Σ) = dom(Σ.M(d_s)) ∩ ⟦σ⟧` — the
-intersection of the source document's bound V-positions (ASN-0036) with the span's
-denotation (ASN-0034, T12). This is exactly the domain of ASN-0058's restriction
-`M(d_s)|⟦σ⟧` on which its `resolve` is defined. The set is finite (subset of the
-finite `dom(Σ.M(d_s))`, S8-fin) and totally ordered (subset of the totally ordered
-carrier `T`, T1), hence has a unique ascending enumeration `v₁ < … < v_k`.
 
 Because `act` intersects the denotation with the *bound* positions, a V-spec whose
 span names positions the source does not bind is admitted, and `act` resolves it by
@@ -275,7 +273,7 @@ exactly one pair per placed address:
 
 CP8's `⊇` direction is the membership `(A i : 0 ≤ i < W : (cᵢ, d) ∈ Σ'.R)`; its
 `⊆` direction pins `Σ'.R ∖ Σ.R` to pairs of placed addresses with `d`, so no
-spurious pair can enter (both discharged below).
+spurious pair can enter.
 
 *Frame — left of the insertion point.*
 
@@ -705,9 +703,15 @@ shifted positions — whose images are the prior text images and the placed
 addresses — and CP6's domain-equality conjunct pins the non-text domain to its
 pre-state value, so no other address can enter the range) — gives
 
-> `wp(COPY, "a discoverable from d") = (E j : coverage(Σ.L(a).eⱼ) ∩ {c₀, …, c_{W−1}} ≠ ∅)`.
+> `wp(COPY, "a discoverable from d") ≡ enabled(COPY(Σ, d, p, R)) ∧ (E j : coverage(Σ.L(a).eⱼ) ∩ {c₀, …, c_{W−1}} ≠ ∅)`,
 
-The precondition is not vacuous: it fails precisely when none of the resolved
+matching the `enabled(op) ∧ ⟨pullback⟩` form of ASN-0098's LP12a. Here
+`enabled(COPY(Σ, d, p, R))` is the operation's applicability predicate —
+`d ∈ dom(Σ.M)`, `p` a valid insertion position for `d`, content residence, and
+`W ≥ 1` — and it guards the pullback's well-formedness: `W` and the `cᵢ` are
+defined only on pre-states where COPY applies.
+
+The pullback conjunct is not vacuous: it fails precisely when none of the resolved
 addresses lies under any of `a`'s endsets, and in that case COPY — though it
 faithfully shares identity — brings `a` no closer to `d`. Discoverability is thus
 *conditional on what the spec-set names*, which is exactly the lever transclusion
