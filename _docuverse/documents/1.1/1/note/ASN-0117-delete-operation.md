@@ -181,8 +181,7 @@ We collect the arrangement effect as a named operation.
 *Precondition.* `Σ` is a *composite boundary of a valid transition trace* from
 the initial state `Σ₀` (P4a's sense, ASN-0047) — a state reached by elementary
 transitions drawn from valid composites, so by that hypothesis the per-state
-invariant package of ExtendedReachableStateInvariants (ASN-0047) holds at `Σ`,
-and the trace stands ready to be extended by a further valid composite;
+invariant package of ExtendedReachableStateInvariants (ASN-0047) holds at `Σ`;
 `d ∈ dom(M)`; `S = subspace(p) = s_C`; `m = #p = 2`, equal to
 the common depth S8-depth fixes on `V_S(d)`; `p ∈ V_S(d)` is S8a-well-formed;
 `w₁ = 0`, `#w = #p`, `Pos(w)`, with `c = ord(w) ≥ 1`; and *containment* — the
@@ -327,11 +326,9 @@ of length `N' = N − c`. The prefix `L = {q_1, …, q_{J−1}}` abuts the shift
 suffix `{q_J, …, q_{N−c}}` (the images of `q_{J+c}, …, q_N` under
 `σ(q_k) = q_{k−c}`) flush — the gap-closure `σ(q_{J+c}) = q_J` (D-SEP) seats the
 two with no hole and no overlap.
-The pre-state `Σ` is a composite boundary of a valid trace (DELETE's
-precondition), and DELETE is a valid composite of elementary K.μ⁻/K.μ⁺ steps
-(or a lone elementary K.μ⁻ when `R = ∅`), so the extended trace is valid, its
-post-state is a composite boundary of it, and the per-state invariant package
-of **ExtendedReachableStateInvariants** (ASN-0047) holds there.
+The post-state `Σ'` is a composite boundary of the extended valid trace, as
+discharged in the *Effect* coupling paragraph above, so the per-state invariant
+package of **ExtendedReachableStateInvariants** (ASN-0047) holds there.
 We name only the conjuncts the deletion actively reshapes, all of them
 ASN-0082's post-contraction preservation family: **D-SEQ-post**/**D-MIN-post**
 (`min(V_S(d')) = q_1`)/**D-CTG-post** for the dense run, **S8a-post** and
@@ -480,7 +477,8 @@ through verbatim (DEL-FSUB) — and these two parts are exhaustive: S3★-aux
 (SubspaceExhaustiveness, ASN-0047) confines every V-position to subspace `s_C`
 or `s_L`, so DEL-FSUB's quantifier over `S' ≠ S` ranges over `s_L` alone and no
 third subspace exists to contribute positions. The full post-state range
-therefore decomposes as
+therefore decomposes — writing `M(d)(Y)` for the image of a position set `Y`
+under `M(d)`, while `M(d)|_Y` keeps its standard restriction meaning — as
 `ran(M'(d)) = M(d)(L) ∪ M(d)(R) ∪ ran(M(d)|_{V_{s_L}(d)})`. Each
 summand lies in `ran(M(d))`: the two text summands because DEL-LEFT and DEL-SHIFT
 preserve every surviving position's I-address value (`M'(d)(v) = M(d)(v)` on `L`,
@@ -537,8 +535,7 @@ P4 already established the full-document range decomposition, accounting for
 `ran(M'(d)) = M(d)(L) ∪ M(d)(R) ∪ ran(M(d)|_{V_{s_L}(d)}) ⊆ ran(M(d))`
 (the two text summands from DEL-LEFT/DEL-SHIFT, the link summand from DEL-FSUB,
 the exhaustiveness of the three from S3★-aux, as P4's derivation records).
-We refine the subset to the *exact* loss. Writing
-`M(d)|_Y` for the image of the position set `Y`,
+We refine the subset to the *exact* loss:
 
 > `ran(M'(d)) = ran(M(d)) \ A_del^{excl}`,
 
