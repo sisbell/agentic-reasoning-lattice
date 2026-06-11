@@ -1,25 +1,5 @@
 ## Question 1 [theory]
 
-> Is a span intended to be a pure boundary designator — any pair of tumblers bracketing content, regardless of the depth structure of the positions it captures — or is a span's depth meant to match the addressing depth of the document region it designates?
+> When a span designates content by its boundary tumblers, did the design intend those boundaries to be arbitrary tumblers ("what lies between is implicit in the choice of first and last point"), or must a span's start and width carry the same depth as the V-positions of the subspace it draws from?
 
-The curated spans material (LM 4/24-4/25) bears directly on this; let me verify against the original page images, since the diagrams there show how span boundaries relate to tree depth.
-
-
-<tool_use>
-{
-  "tool": "Read",
-  "input": {
-    "file_path": "/page-191.png"
-  }
-}
-</tool_use>
-
-
-<tool_use>
-{
-  "tool": "Read",
-  "input": {
-    "file_path": "/page-192.png"
-  }
-}
-</tool_use>
+I'll answer this from the span/tumbler design pages. Let me read the original pages on spans (4/24–4/25) and tumbler arithmetic/difference tumblers (4/32–4/38) to verify the intent before answering.
