@@ -198,9 +198,15 @@ component of `w` is its last, so `sig(w) = #w` (TA5-SIG, ASN-0034); hence
 TA5 (HierarchicalIncrement) settles the tightness directly: `inc(w, 0)` is the smallest
 same-length tumbler strictly greater than `w`, while the true T1-immediate successor of `w` is
 the deeper zero-extension `w.0` (by the prefix convention, T1 case (ii)), satisfying
-`w < w.0 < inc(w, 0) = reach_d`. So `reach_d` is *not* the least admissible reach over all of
-`T` (a span with reach `w.0` already covers `O(d)`), but it is the least strict upper bound of
-`w` at `w`'s depth — V3's claim.
+`w < w.0 < inc(w, 0) = reach_d`. So `reach_d` is *not* the least strict upper bound of `w`
+over all of `T` — the chain just displayed exhibits the strictly smaller upper bound `w.0` —
+but it is the least strict upper bound of `w` at `w`'s depth — V3's claim. (We state the
+minimality order-theoretically, over tumblers, and deliberately so: whether a well-formed
+covering span can *attain* the denotational reach `w.0` exactly is a separate, case-dependent
+construction — the natural start `origin_d` fails it both when `origin_d = w`, where padding
+makes the operands zero-padded-equal and the width `w.0 ⊖ origin_d` degenerates to the
+non-`Pos` zero tumbler, and when `#origin_d > #w + 1`, where D0's round-trip boundary makes
+the actual reach overshoot `w.0` — and nothing in V3 needs it.)
 
 ---
 
@@ -597,9 +603,27 @@ the *weakest* precondition directly:
 
 A caller can thus decide *before* querying whether the answer will be exact
 (check single-subspace occupancy) and whether its reach is the tight `reach_d` (check the
-endpoint depths), without inspecting the returned span; tightness is also decidable *after*
-the fact from the returned value alone, the width's final component being positive exactly
-when the reach is tight (the V9a discriminator).
+endpoint depths), without inspecting the returned span. Both properties are equally decidable
+*after* the fact, from the returned width alone, and the two discriminators sit at opposite
+ends of that width. *Tightness* reads the final component: the width's final component is
+positive exactly when the reach is tight (the V9a discriminator). *Exactness* reads the first
+component: for any non-empty result,
+
+> `extent_d₁ = 0 ⟺ Exact`.
+
+The derivation is two lines on the `zpd` case split already in hand. In the single-subspace
+case the endpoints agree on positions `1..m_s−1`, so they first diverge at
+`zpd(reach_d, origin_d) = m_s ≥ 2` (S8a), and TumblerSub zeroes every position below the
+action point — in particular `extent_d₁ = 0`. In the cross-subspace case the endpoints
+diverge already at position 1 (`s_C` vs `s_L`, the divergence established for T12 legality),
+so `zpd = 1` and `extent_d₁ = reach_d₁ − origin_d₁ = s_L − s_C ≥ 1 > 0`. Since
+single-subspace occupancy is exactly `wp(RETRIEVEDOCVSPAN(d), Exact)` (V5, V6), the first
+component is zero precisely on the exact covers; on the empty result `⟨⟩` there is no width
+to test, matching `Exact`'s vacuous truth there. The worked report displays both
+discriminators at once: the cross-subspace width `[1,2]` opens with `1` (bounding box) and
+closes with `2 > 0` (tight reach); the content-only `[0,3]` opens with `0` (exact cover) and
+closes with `3 > 0` (tight reach); the depth-divergent variant's `[1,2,0]` opens with `1` and
+closes with `0` (bounding box, with overshooting reach).
 
 ---
 
