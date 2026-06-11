@@ -441,14 +441,60 @@ requires all three couplings — J0, J1★, and J1'★ — to hold initial-to-fi
 freshly allocated I-address appear in some arrangement, is discharged *vacuously*:
 COPY runs no K.α step (CP1 gives `dom(Σ'.C) = dom(Σ.C)`), so
 `dom(Σ'.C) ∖ dom(Σ.C) = ∅` and J0's universal quantifier ranges over the empty
-set. The remaining two couplings carry the provenance obligation. The provenance
-obligation is read off these couplings, which ValidComposite evaluates
-*initial-to-final* (`Σ` to `Σ'`) — so the intermediate removal and re-addition of
-the displaced positions across steps (i)–(ii) is invisible to the coupling check,
-and only the net change in `d`'s content-subspace range matters. The discharge
-turns on a single *membership* obligation, which we must read off J1★ exactly. For
-each `cᵢ` that is *range-new* — placed by CP2 *and* not already in the
-content-subspace range of `M(d)` in the pre-state `Σ` — ASN-0047's coupling J1★
+set. The remaining two couplings carry the provenance obligation, and both are
+universally quantified over *every* document of the post-state — J1★ over every
+`d' ∈ E'_doc` and every address new to that document's content-subspace range,
+J1'★ over every pair entering `R` — so the discharge must cover the full
+quantifier, not only the destination's placed addresses. We split off the other
+documents first.
+
+*Every `d' ≠ d` — vacuous, by the frames.* The arrangement steps K.μ⁻ and K.μ⁺
+frame every other document's arrangement unchanged (ASN-0047, the per-step
+clause `(A d'' : d'' ≠ d : M'(d'') = M(d''))`), and each K.ρ step frames every
+arrangement unchanged; the net effect is CP6's other-document clause. With CP12
+giving `E'_doc = E_doc`, we have `Σ'.M(d') = Σ.M(d')` for every `d' ≠ d`: no
+address is new to `d'`'s content-subspace range, and J1★'s instances at `d'`
+range over the empty set — the same vacuity that discharged J0, reached through
+the arrangement frames rather than the content frame. J1'★ is vacuous off the
+destination for the symmetric reason: the composite's only `Σ.R`-touching steps
+are its K.ρ recordings, each adding a pair `(cᵢ, d)` at `d`, so `Σ'.R ∖ Σ.R`
+contains no pair `(a, d')` with `d' ≠ d`.
+
+*The destination — range-new ⊆ placed.* At `d` itself, J1★ fires for every
+address new to `d`'s content-subspace range, not only for the placed `cᵢ`, so
+before any case split we must establish that nothing *but* a placed address can
+be range-new. The couplings are evaluated *initial-to-final* (`Σ` to `Σ'`), so
+the intermediate removal and re-addition of the displaced positions across
+steps (i)–(ii) is invisible to the check; what matters is the net change in the
+set J1★'s witness clause tests. Writing
+`ran_C(Σ, d) = {a : (E v ∈ dom(Σ.M(d)) : subspace(v) = s_C ∧ Σ.M(d)(v) = a)}`
+for that set — `d`'s *content-subspace range* — we claim the range equation
+
+> `ran_C(Σ', d) = ran_C(Σ, d) ∪ {c₀, …, c_{W−1}}`
+
+and read it off the arrangement clauses. `⊇`: every pre-state text image
+survives — a position `v < p` keeps its binding (CP3b), and a position `v ≥ p`
+carries its image intact to `v + W` (CP3a), still a text-subspace position
+since shift preserves subspace (OrdShiftHom(a), ASN-0036) — and each `cᵢ`
+enters as the image of the text-subspace position `p + i` (CP2). `⊆`: CP3c
+closes the post-state text-subspace domain to exactly the left, placement, and
+shifted positions, and the same clauses give their images — `Σ.M(d)(v)` for a
+left position `v` (CP3b), `cᵢ` for a placement position (CP2), `Σ.M(d)(v)` for
+a shifted position `v + W` (CP3a) — each either a pre-state text image or a
+placed address. Hence `ran_C(Σ', d) ∖ ran_C(Σ, d) ⊆ {c₀, …, c_{W−1}}`: every
+address J1★ can demand a record for at `d` is a placed address, and the
+universal obligation reduces to deciding the membership `(cᵢ, d) ∈ Σ'.R` for
+each placed `cᵢ`. (The link-discoverability section below derives the
+full-range analogue `ran(Σ'.M(d)) = ran(Σ.M(d)) ∪ {c₀, …, c_{W−1}}` from the
+same clauses together with CP6's non-text closure; the content-subspace
+restriction proved here is the set J1★'s witness clause — `subspace(v) = s_C`
+— actually consults.)
+
+The discharge now turns on a single *membership* obligation per placed address,
+which we must read off J1★ exactly. For
+each `cᵢ` that is *range-new* — in `ran_C(Σ', d) ∖ ran_C(Σ, d)`, i.e. placed by
+CP2 *and* not already in the content-subspace range `ran_C(Σ, d)` of the
+pre-state `Σ` — ASN-0047's coupling J1★
 (ExtensionRecordsProvenance) demands the membership `(cᵢ, d) ∈ Σ'.R`. (Placement
 alone does not make an address range-new: a placed `cᵢ` that `d` already binds in
 the pre-state — the self-transclusion of CP9, or content `d` previously transcluded
