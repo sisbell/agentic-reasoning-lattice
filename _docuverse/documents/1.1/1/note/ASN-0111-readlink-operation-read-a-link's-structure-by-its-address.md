@@ -35,8 +35,7 @@ possibly discontiguously — anywhere in the docuverse. The address-set a span-s
 
 Every link address is, by the substrate invariants, an element-level, T4-valid tumbler in the
 link subspace: `zeros(a) = 3`, `subspace_I(a) = s_L`, `#E(a) ≥ 2` (L0, L1, L1b, L0b of ASN-0043).
-These facts are what make a link nameable in the same address space as content; their use as a
-pre-invocation structural screen is taken up with RL0 below.
+These facts are what make a link nameable in the same address space as content.
 
 ## Deriving the read
 
@@ -48,10 +47,10 @@ We are looking for an operation that, given an address, returns the relationship
 The minimal honest specification is a lookup in the link store. We must first decide the
 operation's shape: a partial function gated by the precondition `a ∈ dom(Σ.L)`, after the pattern
 of the allocation operations (K.α, K.λ of ASN-0093), or a total request whose contract includes
-reporting absence. The deciding observation comes with the structural screen below: every
-condition a caller can compute from the address alone is necessary but not sufficient for
-membership in `dom(Σ.L)`, so a caller cannot in general discharge a membership precondition before
-invoking. Nelson's design points the same way — the address space is sparsely occupied by design,
+reporting absence. The deciding observation is the insufficiency of address-only tests, stated and
+discharged once with the structural screen following RL0: no predicate computable from the address
+alone is sufficient for membership in `dom(Σ.L)`, so a caller cannot in general discharge a
+membership precondition before invoking. Nelson's design points the same way — the address space is sparsely occupied by design,
 an address naming no stored object is a valid coordinate rather than malformed input, and the
 retrieval requests are all-that-is-there questions for which "nothing" is a legitimate answer.
 Gregory's implementation concurs: a retrieval at an unallocated link address is answered with the
@@ -79,20 +78,34 @@ precisely membership:
 > `wp(readlink request at a, result is the recorded relationship at a) ≡ a ∈ dom(Σ.L)`,
 
 and dually `wp(readlink request at a, result = ⊥) ≡ a ∉ dom(Σ.L)`. Both postconditions are
-well-formed on every state, and at each `(a, Σ)` exactly one of them is attainable: the read
-either delivers the whole relationship or delivers `⊥`. There is no partial-success middle state —
-no element of the codomain `Link ∪ {⊥}` is a fragment of a link.
+well-formed on every state, and at each `(a, Σ)` exactly one of them is attainable: by the
+definition, every invocation returns either the stored value entire or `⊥` —
+`readlink(a, Σ) ∈ {Σ.L(a), ⊥}` when `a ∈ dom(Σ.L)`, and `readlink(a, Σ) = ⊥` otherwise. There is
+no partial-success middle state: no execution returns a proper sub-value of the stored entry. This
+is a property of the *operation*, not of the codomain — `Link` is closed under shrinking a
+connective slot (for `(F, G, Θ) ∈ Link` with `|F| ≥ 2`, any `(F', G, Θ)` with `F' ⊊ F` is again an
+arity-3 sequence of endsets), so fragments of stored values do inhabit `Link ∪ {⊥}`; it is the
+definition that never returns one.
 
-The structural screen now does its honest work. A reader holding a candidate tumbler can test the
-*necessary* structural conditions from the address alone —
+The structural screen now does its honest work; we state it, with its necessity and its
+insufficiency, once here. A reader holding a candidate tumbler `a ∈ T` evaluates, from the address
+alone and left to right:
 
-> `zeros(a) = 3 ∧ subspace_I(a) = s_L ∧ #E(a) ≥ 2`
+> `T4-valid(a) ∧ zeros(a) = 3 ∧ subspace_I(a) = s_L ∧ #E(a) ≥ 2`
 
-— by T4 parsing, the subspace projection, and the element-field length (ASN-0034); each conjunct
-is necessary by L1, L0, and L1b (ASN-0043) respectively. The screen is not sufficient: an address
-may parse as a well-formed link tumbler yet name no allocated link, and only the outcome — `Link`
-versus `⊥` — settles membership in `dom(Σ.L)`. A failed screen, by contrast, guarantees `⊥`
-without an invocation.
+The leading conjunct is decidable by direct inspection of the component sequence — at most three
+zeros, none adjacent, `a₁ ≠ 0`, `a_{#a} ≠ 0` (T4, ASN-0034) — and is necessary by L0b (ASN-0043).
+It also guards the well-definedness of what follows: `subspace_I(·)` and the element-field
+projection `E(·)` are defined only on T4-valid tumblers (T4b, ASN-0034; SubspaceI, ASN-0043), so
+under the left-to-right reading the screen is evaluable on all of `T`, including tumblers such as
+`[1, 0, 0, 2, 0, 3]` on which the later conjuncts alone would have no value. The remaining
+conjuncts are necessary by L1, L0, and L1b (ASN-0043) respectively. Two separate facts now carry
+the section. *Every conjunct is necessary* — so a failed screen guarantees `⊥` without an
+invocation. *No address-computable predicate is sufficient* — at the initial state `Σ₀`
+(ASN-0047), `dom(Σ₀.L) = ∅`, so any satisfiable address-only predicate has a witness `a` with
+`a ∉ dom(Σ₀.L)`, and sufficiency fails there. Hence no caller can discharge a membership
+precondition from the address alone; only the outcome — `Link` versus `⊥` — settles membership in
+`dom(Σ.L)`.
 
 ## Completeness: the read returns the whole relationship
 
@@ -172,12 +185,32 @@ one a candidate implementation can be checked against.
 — `readlink` is a function of `(a, Σ.L(a))` alone, immediate from the definition
 `readlink(a, Σ) = Σ.L(a)` on the success branch. Note that "pure function of `(a, Σ.L)`" would be
 strictly weaker: a function of the whole store may consult `Σ.L(a')` for covered addresses `a'`
-and flatten, yet still be a function of `(a, Σ.L)`; RL4 excludes this. No-flattening is the
-one-line corollary: two reachable states can agree on the entry at `a` while disagreeing on what
-is recorded at some `a' ∈ coverage(readlink(a, Σ₁).eᵢ)` with `a' ≠ a` — the K.λ event allocating
-`a'` accepts any conforming value — and RL4 forces the two reads at `a` to be equal, so the result
-embeds nothing read from `a'`. A nested link address is disclosed as the tumbler address it is,
-whether it names content, another link, or nothing at all.
+and flatten, yet still be a function of `(a, Σ.L)`; RL4 excludes this.
+
+The exclusion has force only if the state pair RL4 quantifies over actually exists — two reachable
+states agreeing on the entry at the read address while disagreeing at a covered `a'` distinct from
+it. We construct the witnessing pair. Take any reachable `Σ*` with a document `d ∈ dom(Σ*.M)`, and
+let `a'` be the frontier emission of `d`'s link sub-allocator `A_L(d)` at `Σ*` (the address K.λ's
+binding precondition fixes, ASN-0093). Pick two conforming link values `v₁ ≠ v₂` — say, two
+L3-conforming triples differing in their type endsets. K.λ's precondition constrains the value
+only through L3, never through its content, so *both* steps are enabled at `Σ*`; branch the
+history by taking K.λ at `a'` with `v₁` in one branch and with `v₂` in the other. The two
+post-states have identical `dom(L)`, identical `dom(C)` and `dom(M)` (K.λ's frame), and identical
+link-store entries everywhere except at `a'`. Now extend both branches by the *same* step: K.λ at
+the next frontier `c = inc(a', 0)` with one value `ℓ_c` whose slot-2 endset is the canonical
+reflexive span `{(a', δ(1, #a'))}` over `a'` (L13, ASN-0043). This step's precondition consults
+only `dom(L)` (the frontier maximum) and `dom(M)`, on which the branches agree, so it is enabled
+identically in both, and it allocates the same address `c` in both. Writing `Σ₁, Σ₂` for the
+resulting states (their entries frozen thereafter by L12):
+
+> `Σ₁.L(c) = ℓ_c = Σ₂.L(c)`,  `Σ₁.L(a') = v₁ ≠ v₂ = Σ₂.L(a')`,  `a' ∈ coverage(Σ₁.L(c).e₂)`,
+
+the last by PrefixSpanCoverage (ASN-0043) and reflexivity of `≼`. RL4 applied at `c` forces
+`readlink(c, Σ₁) = readlink(c, Σ₂)`, so the result embeds nothing read from `a'` — a flattening
+reader, returning covered values dereferenced, would differ across the pair and so violate RL4. A
+nested link address is disclosed as the tumbler address it is, whether it names content, another
+link, or nothing at all. (The worked read below instantiates exactly this pair: `a' = inc(a, 0)`
+and `c = inc(a', 0)` on `d₁`'s link sub-allocator.)
 
 ## Determinacy and the immutability of the recorded relationship
 
@@ -185,9 +218,8 @@ A read is only as trustworthy as the stability of what it reads. The link store 
 its values are frozen: once allocated, a link's address persists and its value never changes
 (L12, L12a of ASN-0043). The read inherits this stability.
 
-**RL5 (Determinacy).** `readlink` is a pure function of `(a, Σ.L(a))` (RL4) — not merely of the
-whole link store: two reads of the same address against the same stored entry return identical
-values. Moreover, the read is stable across the whole future:
+**RL5 (Determinacy).** `readlink` is a pure function of `(a, Σ.L(a))` (RL4). Moreover, the read is
+stable across the whole future:
 
 > `(A Σ, Σ' : Σ →* Σ' ∧ a ∈ dom(Σ.L) : readlink(a, Σ') = readlink(a, Σ))`.
 
@@ -195,6 +227,12 @@ Stability across `Σ →* Σ'` follows from LP13 (UnconditionalLinkPersistence, 
 `a ∈ dom(Σ'.L)` and `Σ'.L(a) = Σ.L(a)`; hence `readlink(a, Σ') = Σ'.L(a) = Σ.L(a) = readlink(a, Σ)`.
 
 A reader who has once read a link may rely on that reading permanently.
+
+*The failure branch carries no such stability.* `readlink(a, Σ) = ⊥` does not entail
+`readlink(a, Σ') = ⊥` for `Σ →* Σ'`: absence from `dom(Σ.L)` is not preserved by `→*` — a
+subsequent K.λ can allocate `a` itself (any screen-passing address at the frontier of an active
+link sub-allocator is a candidate), after which the read at `a` returns a link value. Only
+success-branch results are permanent; a caller must not cache `⊥`.
 
 ## Recorded relationship versus resolved position
 
@@ -291,12 +329,12 @@ complete structure. The read thus distinguishes *the relationship is unwitnessed
 | Label | Statement | Status |
 |-------|-----------|--------|
 | `readlink` | `readlink : T × Σ → Link ∪ {⊥}`; `readlink(a, Σ) = Σ.L(a)` when `a ∈ dom(Σ.L)`, else `⊥`; pure read, frame `Σ' = Σ` | introduced |
-| RL0 | Totality and success — defined for every `a ∈ T`; `readlink(a, Σ) ∈ Link ⟺ a ∈ dom(Σ.L)`, else `⊥`; the structural screen `zeros(a) = 3 ∧ subspace_I(a) = s_L ∧ #E(a) ≥ 2` is necessary but not sufficient | introduced |
+| RL0 | Totality and success — defined for every `a ∈ T`; `readlink(a, Σ) ∈ Link ⟺ a ∈ dom(Σ.L)`, else `⊥`; every conjunct of the structural screen `T4-valid(a) ∧ zeros(a) = 3 ∧ subspace_I(a) = s_L ∧ #E(a) ≥ 2` is necessary, and no address-computable predicate is sufficient (witness: `dom(Σ₀.L) = ∅`) | introduced |
 | RL1 | Completeness — on `a ∈ dom(Σ.L)` the read returns every recorded span of every endset and no other; `readlink(a, Σ) = Σ.L(a)`; inherits L4-generality of the recorded spans. Corollaries (since the output is `Σ.L(a)`): satisfies L3 (arity ≥ 3, non-empty type slot, connective slots may be `∅`), L5 (membership not sequence within an endset), and Endset well-formedness (T12 spans) | introduced |
 | RL2 | Role preservation — on `a ∈ dom(Σ.L)` the read preserves arity (`|readlink(a, Σ)| = |Σ.L(a)|`) and exposes slot position as a model primitive (L6); from/to/type grouping delivered as structure | introduced |
 | RL3 | Type-by-address — the type is interpreted via `coverage(e₃)`, not via content at those addresses; ghost types read completely | introduced |
-| RL4 | Nesting locality — `readlink` is a function of `(a, Σ.L(a))` alone: reachable `Σ₁, Σ₂` with `Σ₁.L(a) = Σ₂.L(a)` give `readlink(a, Σ₁) = readlink(a, Σ₂)`; corollary: covered link addresses are returned as addresses, never dereferenced | introduced |
-| RL5 | Determinacy — pure function of `(a, Σ.L(a))` (RL4), stable across all `Σ →* Σ'` by link immutability | introduced |
+| RL4 | Nesting locality — `readlink` is a function of `(a, Σ.L(a))` alone: reachable `Σ₁, Σ₂` with `Σ₁.L(a) = Σ₂.L(a)` give `readlink(a, Σ₁) = readlink(a, Σ₂)`; corollary: covered link addresses are returned as addresses, never dereferenced, witnessed by an explicit branched-history state pair | introduced |
+| RL5 | Determinacy — pure function of `(a, Σ.L(a))` (RL4); success-branch results stable across all `Σ →* Σ'` by link immutability; the `⊥` result carries no stability (a later K.λ may allocate `a`) | introduced |
 | RL6 | Recorded, not resolved — the read depends only on `Σ.L(a)`, succeeds for orphaned links, and returns the complete structure independent of any arrangement | introduced |
 
 ## Open Questions
