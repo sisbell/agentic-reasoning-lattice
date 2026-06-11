@@ -79,35 +79,59 @@ invariant across every state in which `a` is stored (S7(d)).
 
 ## What a spec-set names, and what resolution recovers
 
-A *V-spec* is an ASN-0058 *ContentReference* `ρ = (d_s, σ)` (ContentReference):
-an allocated source document `d_s ∈ dom(Σ.M)` together with a span `σ = (s, ℓ)`
-that ASN-0058 already constrains. It is *level-uniform* (ASN-0058 condition (iii);
-ASN-0053, S6): `#s = #ℓ`, so start, width, and reach all carry one tumbler length.
-It is *well-formed* in the sense of T12 (ASN-0058 condition (ii); ASN-0034):
-`Pos(ℓ)` and `actionPoint(ℓ) ≤ #s`, so its denotation
+A *V-spec* is a pair `ρ = (d_s, σ)`: an allocated source document
+`d_s ∈ dom(Σ.M)` together with a span `σ = (s, ℓ)` admissible under three
+conditions, which we state natively. It is *well-formed* in the sense of T12
+(ASN-0034): `Pos(ℓ)` and `actionPoint(ℓ) ≤ #s`, so its denotation
 `⟦σ⟧ = {t ∈ T : s ≤ t < s ⊕ ℓ}` is a well-defined order-convex set of tumblers.
-It draws from a non-empty source subspace (ASN-0058 condition (i)):
-`V_{subspace(s)}(d_s) ≠ ∅`. A content span may, but need not, be *ordinal-level* —
-the action point at the deepest component, `actionPoint(ℓ) = #ℓ`, so the span
-advances along the last component alone. The bound active set
-`act(ρ, Σ) = dom(Σ.M(d_s)) ∩ ⟦σ⟧` is single-subspace by content-residence
-(`act(ρ, Σ) ⊆ V_{s_C}(d_s)`, the operation's precondition below) and single-depth
-by S8-depth (ASN-0036), *regardless* of where `ℓ`'s action point falls. Gregory's
-udanax-green confirms the design is parametric in
-depth: `acceptablevsa` is an unconditional pass, the supplied action point used
-as-is. The span's boundary tumblers are constrained no further: the start `s`
-need not be a bound position of `d_s`, nor an S8a-well-formed V-position at
-all — under the partial binding admitted below, `s` is a pure *boundary*, and
-every well-formedness fact resolution consumes is recovered from the active
-positions themselves, whose membership in `dom(Σ.M(d_s))` supplies S8a
-(ASN-0036). Gregory's implementation matches: `specset2ispanset` checks only
-that the document address is non-zero, then resolves by pure intersection with
-bound positions — a start with a zero component or an unbound shape selects
-less, never errors. A *spec-set* is an ASN-0058
-*ContentReferenceSequence*
-`R = ⟨ρ₁, …, ρ_q⟩` (ContentReferenceSequence), a finite ordered sequence of V-specs
-with `q ≥ 1` (we write the spec-set length as `q`, reserving `p` for the insertion
-position introduced with the operation below). The ordering is part of the request — Nelson is explicit that "if you
+It is *level-uniform* (ASN-0053, S6): `#s = #ℓ`, so start, width, and reach all
+carry one tumbler length. It draws from a non-empty source subspace:
+`V_{subspace(s)}(d_s) ≠ ∅`. The first and third conditions are ASN-0058's
+ContentReference conditions (ii) and (i) inherited verbatim; the second is a
+*deliberate relaxation* of its condition (iii), which pins the span's length to
+the source subspace's common V-position depth — `#ℓ = #u = m` (S8-depth) — and
+of which we keep only the bare level-uniformity `#s = #ℓ`, dropping the `= m`
+conjunct. A V-spec is therefore a *relaxation* of an ASN-0058 ContentReference,
+not one simpliciter: every ContentReference is a V-spec, but a V-spec's tumbler
+length may differ from the depth of the subspace it draws from. The relaxation
+costs nothing downstream, because no consequence this ASN consumes rests on the
+depth pin: the bound active set `act(ρ, Σ) = dom(Σ.M(d_s)) ∩ ⟦σ⟧` is
+single-subspace by content-residence (`act(ρ, Σ) ⊆ V_{s_C}(d_s)`, the
+operation's precondition below) and single-depth by S8-depth (ASN-0036) applied
+to the active positions themselves — *regardless* of `#s` and of where `ℓ`'s
+action point falls. (A content span may, but need not, be *ordinal-level* —
+action point at the deepest component, `actionPoint(ℓ) = #ℓ`, so the span
+advances along the last component alone.) The relaxation is live, not
+notational: a depth-mismatched span can still capture active positions, and it
+is then admissible and resolves. Over a depth-2 text subspace, the spec
+`s = [1,1,5]`, `ℓ = [0,9,0]` is T12-well-formed (`Pos(ℓ)`,
+`actionPoint(ℓ) = 2 ≤ 3 = #s`) and level-uniform at length 3; its denotation
+`{t : [1,1,5] ≤ t < [1,10,0]}` contains exactly the depth-2 positions `[1,k]`
+with `2 ≤ k ≤ 10`, capturing whichever of those the source binds; under the
+inherited condition (iii) it would be rejected (`#ℓ = 3 ≠ m = 2`), and here it
+is admitted, resolving by restriction to those bound positions. Beyond the
+three conditions the span's boundary tumblers are constrained no further: the
+start `s` need not carry the subspace depth, need not be a bound position of
+`d_s`, and need not be an S8a-well-formed V-position at all — under the partial
+binding admitted below, `s` is a pure *boundary*, and every well-formedness
+fact resolution consumes is recovered from the active positions themselves,
+whose membership in `dom(Σ.M(d_s))` supplies S8a (ASN-0036). Gregory's
+udanax-green matches the relaxed admissibility at every stage: `acceptablevsa`
+— the hook placed to validate V-addresses — is an unconditional pass;
+`specset2ispanset` checks only that the document address is non-zero; and the
+resolution path classifies addresses by pure tumbler-order intersection, with
+no depth check, rejection, or normalization anywhere — a start with a zero
+component, an unbound shape, or a mismatched depth selects less, never errors.
+(One implementation divergence is worth recording: udanax-green's clipping
+arithmetic converts boundary differences to integer offsets in a way that
+discards sub-depth structure, so a cross-depth boundary can be mis-read as a
+content offset; the abstract resolution defined below is immune, restricting to
+the bound positions and reading each image through the arrangement rather than
+by offset arithmetic.) A *spec-set*
+`R = ⟨ρ₁, …, ρ_q⟩` is a finite ordered sequence of V-specs
+with `q ≥ 1` — ASN-0058's *ContentReferenceSequence* shape, its members relaxed
+to V-specs as above (we write the spec-set length as `q`, reserving `p` for the
+insertion position introduced with the operation below). The ordering is part of the request — Nelson is explicit that "if you
 want to designate a separated series of items exactly, including nothing else, you
 do this by a span-set, which is a series of spans" (4/25): a spec-set is a
 *sequence*, not a set, and its "exactly" is the *exclusion* of unwanted
@@ -192,7 +216,7 @@ object we record as the *resolution integrity* claim CP0:
   expanded sequence is *not* one contiguous run and records as many distinct
   origins as the source content had homes.
 
-By the ContentReferenceSequence definition a spec-set has `q ≥ 1`; but even a
+By the spec-set definition a spec-set has `q ≥ 1`; but even a
 non-empty spec-set may resolve to `W = 0` when partial binding leaves every named
 position unbound (resolution restricting to the empty bound subset). We exclude
 that degenerate outcome from the operation below by requiring `W ≥ 1`, since
@@ -715,8 +739,9 @@ block decomposition of the destination's new region, one mapping block per run
 (`origin(cᵢ + 1) = origin(cᵢ)` for contiguous addresses, ASN-0058 M16a); across a
 block boundary where the origins differ, the blocks *cannot be merged* (ASN-0058,
 M16 CrossOriginMergeImpossibility). Therefore the multiset of origins carried by
-the placed material — written with multiset brackets `⦃·⦄`, so a home shared by
-several fragments is counted once per fragment —
+the placed material — written with multiset brackets `⦃·⦄`, counted once per
+placed address, so a home contributing several addresses appears with that
+multiplicity —
 
 > `⦃ origin(cᵢ) : 0 ≤ i < W ⦄`,
 
@@ -724,10 +749,10 @@ is preserved verbatim into the destination's arrangement: each fragment retains
 its distinct home, and each home remains queryable from the destination address
 that binds it. This is CP11, **OriginMultisetPreservation**.
 
-Now contrast replication. REPLICATE would allocate `W` fresh contiguous addresses
-under the destination and copy the values; every placed address would have
-`origin = d`, collapsing the origin multiset to `⦃d, d, …, d⦄` and erasing the
-seams between the source regions. So discontiguity is a *test* that distinguishes
+Now contrast replication. Under REPLICATE — the rejected operation of the
+transclusion-frame section, where `origin(c'ᵢ) = d` was already established for
+every minted address — the origin multiset collapses to `⦃d, d, …, d⦄`, and the
+seams between the source regions are erased. So discontiguity is a *test* that distinguishes
 the two operations even when a single-source copy would not: COPY's non-contiguous
 placement names `k` distinct parents, each still live, each still owed
 attribution; REPLICATE's names one, the destination, and the provenances are
