@@ -55,9 +55,11 @@ retrieval requests are all-that-is-there questions for which "nothing" is a legi
 Gregory's implementation concurs: a retrieval at an unallocated link address is answered with the
 protocol's distinguished failure reply, inside the operation's contract, not rejected as a
 violation of it. We therefore make the read total, over a codomain extended by one distinguished
-failure value `⊥` (with `⊥ ∉ Link`). Writing `𝒮` for the state space (ASN-0034), with the
-second argument restricted to reachable states per the standing precondition, for any
-address `a ∈ T` and reachable `Σ ∈ 𝒮`:
+failure value `⊥` (with `⊥ ∉ Link`). Writing `𝒮` for the extended state space whose members are
+the states `Σ = (C, L, E, M, R)` (ASN-0047 — the substrate state of ASN-0093 as extended there;
+these are the states the standing precondition already ranges over, and the ones carrying the
+`Σ.L` component the definition consults), with the second argument restricted to reachable states
+per the standing precondition, for any address `a ∈ T` and reachable `Σ ∈ 𝒮`:
 
 > `readlink : T × 𝒮 → Link ∪ {⊥}`
 > `readlink(a, Σ) = Σ.L(a)`   when `a ∈ dom(Σ.L)`
@@ -224,7 +226,11 @@ K.λ's value-shape conjunct (`N ≥ 3`, each slot in `Endset`, `e₃ ≠ ∅`). 
 conjuncts of this step's precondition consult only `dom(L)` (the frontier maximum) and `dom(M)`,
 on which the branches agree; the value-shape conjunct is branch-independent and discharged by
 `ℓ_c`'s form. The step is therefore enabled identically in both branches, and it allocates the
-same address `c` in both. Writing `Σ₁, Σ₂` for the
+same address `c` in both. The steps of both branches — K.δ and K.λ alike — compose into valid
+composites: none touches `dom(C)`, a content-subspace arrangement range, or `R`, so J0, J1★, and
+J1'★ hold vacuously at every boundary (the same discharge covers the worked read's three bare K.λ
+steps below); both resulting states are therefore reachable, as RL4's quantification requires.
+Writing `Σ₁, Σ₂` for the
 resulting states (their entries frozen thereafter by L12):
 
 > `Σ₁.L(c) = ℓ_c = Σ₂.L(c)`,  `Σ₁.L(a') = v₁ ≠ v₂ = Σ₂.L(a')`,  `a' ∈ coverage(Σ₁.L(c).e₂)`,
@@ -444,7 +450,7 @@ complete structure. The read thus distinguishes *the relationship is unwitnessed
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| `readlink` | `readlink : T × 𝒮 → Link ∪ {⊥}` (`𝒮` the state space, second argument restricted to reachable states); `readlink(a, Σ) = Σ.L(a)` when `a ∈ dom(Σ.L)`, else `⊥`; pure read, frame `Σ' = Σ` | introduced |
+| `readlink` | `readlink : T × 𝒮 → Link ∪ {⊥}` (`𝒮` the extended state space `Σ = (C, L, E, M, R)` of ASN-0047, second argument restricted to reachable states); `readlink(a, Σ) = Σ.L(a)` when `a ∈ dom(Σ.L)`, else `⊥`; pure read, frame `Σ' = Σ` | introduced |
 | RL0 | Totality and success — defined for every `a ∈ T`; `readlink(a, Σ) ∈ Link ⟺ a ∈ dom(Σ.L)`, else `⊥`; every conjunct of the structural screen `T4-valid(a) ∧ zeros(a) = 3 ∧ subspace_I(a) = s_L ∧ #E(a) ≥ 2` is necessary, and no satisfiable address-computable predicate is sufficient (witness: `dom(Σ₀.L) = ∅`) | introduced |
 | RL1 | Completeness — on `a ∈ dom(Σ.L)` the read returns every recorded span of every endset and no other; `readlink(a, Σ) = Σ.L(a)`; inherits L4-generality of the recorded spans. Corollaries (since the output is `Σ.L(a)`): satisfies L3 (arity ≥ 3, non-empty type slot, connective slots may be `∅`), L5 (membership not sequence within an endset), and Endset well-formedness (T12 spans) | introduced |
 | RL2 | Role preservation — on `a ∈ dom(Σ.L)` the read preserves arity (`|readlink(a, Σ)| = |Σ.L(a)|`) and exposes slot position as a model primitive (L6); from/to/type grouping delivered as structure | introduced |
