@@ -207,10 +207,8 @@ is enumerable. With both the filter and `sat` decidable, and
 computed by deciding `sat` over the finitely many addressable links. ∎
 
 **FL-LOC (link-store locality).** For fixed `q`, `findlinks(q, Σ)` is a function of
-`Σ.L` alone. *Proof.* `nullified` is a function of `Σ.L` (it is defined through the
-retraction relation `L_R^Σ`, itself determined by `Σ.L` — selected from `dom(Σ.L)` by
-the arity-3 and slot-3 coverage tests on stored values, as recorded above), hence so is
-`addressable(Σ) = dom(Σ.L) \ nullified(Σ)`; and `sat(a, q, Σ)` reads only the stored
+`Σ.L` alone. *Proof.* `nullified` is a function of `Σ.L`, as established above, hence so
+is `addressable(Σ) = dom(Σ.L) \ nullified(Σ)`; and `sat(a, q, Σ)` reads only the stored
 value `Σ.L(a)`, the address projection `home(a)`, and the fixed `q`. No clause consults
 `Σ.C`, `Σ.M`, `Σ.E`, or `Σ.R`. ∎ The query writes nothing: its frame is the whole of
 `Σ` — content store, arrangements, and link store are left unchanged.
@@ -227,8 +225,7 @@ Every currently addressable link meeting all four criteria is returned; none is 
 omitted. Together with FL-SND, the result is *exactly* the satisfying subset of
 `addressable(Σ)` — read at the inquiry state `Σ`, a *current snapshot* of the store: a
 newly created addressable matching link enters the answer, and a nullified link leaves
-it. The snapshot reading is FL-DEF as a membership test, FL-SND forward and FL-CMP
-backward; it carries no content beyond the pair.
+it.
 
 ## Non-impedance: junk links do not obstruct
 
@@ -438,11 +435,8 @@ and the back end.)
 
 ## The result is a current snapshot
 
-The result's relationship to the link store *as it stands at the moment of inquiry* is
-fixed by FL-DEF's snapshot reading, recorded with FL-CMP above: the faithful, exhaustive
-satisfying subset of the currently addressable links.
-
-Two stability facts about the snapshot follow from immutability. First, a link's match
+Two stability facts about the snapshot — the reading recorded with FL-CMP above — follow
+from immutability. First, a link's match
 status is *permanent once created*, modulo retraction: `Σ.L(a)` is fixed by L12 and
 `home(a)` is fixed by the address, so `sat(a, q, ·)` is constant for a fixed `q` across
 the link's life. Second, retraction is the *only* way for an addressable matching link to
@@ -712,8 +706,8 @@ store, not a per-document enumeration.
 independent of `Σ.M` (immediate from FL-LOC). Four consequences
 follow. *(a) Every home is reached.* The store is
 searched whole; a link is eligible regardless of which document homes it, so in-links —
-stored in documents other than the one being read — are found on equal footing with
-out-links. *(b) Transclusion is found once.* When the same endpoint content is shared
+stored, as the links relevant to a reading typically are, in documents other than the
+one being read — are found on equal footing with out-links. *(b) Transclusion is found once.* When the same endpoint content is shared
 across documents, the link is indexed by that content's I-addresses and is found exactly
 once by content identity, however many documents surface it (consultation Q20). *(c)
 Whole-docuverse residence.* Setting `H = ∗` imposes no residence bound, returning all
@@ -734,12 +728,6 @@ contained in the result. The operation
 is therefore at least as complete as any document-by-document enumeration of the
 *satisfying* links, and strictly more so in the presence of satisfying orphans. No
 qualifying link is missed for want of a document to look in.
-
-This is precisely the reach that a docuverse-wide guarantee requires: because a link's
-in-links, its home, the transclusions of its endpoints, and the versions of its
-connected content all place the relevant link *outside* whatever document one happens to
-be reading, a complete discovery must — and FL-REACH does — range over the entire link
-store rather than the local arrangement.
 
 ## A worked instance
 
@@ -766,7 +754,12 @@ coverage is that address's subtree):
 The five content/type addresses are pairwise non-nesting, so their subtree coverages are
 pairwise disjoint (T10, ASN-0034). Take request endsets `X, Y, P` covering the subtrees
 of `x, y, p`
-respectively, and `Θ_τ` covering the subtree of `τ`. Assume `nullified(Σ) = ∅`, so
+respectively, and `Θ_τ` covering the subtree of `τ`. Fix a retraction-type
+representative at address `ρ = [1,0,1,0,9,0,3,7]` in the type subspace, so
+`coverage(R) = {t : ρ ≼ t}` — `ρ` is equal-length with `τ` and `σ` and distinct, hence
+non-nesting, so its subtree is disjoint from both stored type subtrees. `nullified(Σ)`
+is then computed, not assumed: no stored link has slot-3 coverage equal to
+`coverage(R)`, so `L_R^Σ = ∅`, `nullified(Σ) = ∅`, and
 `addressable(Σ) = {a₁, a₂, a₃}`.
 
 *Trace 1 — directional from/to (exercises FL-SND, FL-CMP, FL-DIR).* For
@@ -793,12 +786,25 @@ request `(∗, ∅, ∗, ∗)` — a *constrained* from-slot with empty coverage
 `lift(eᵢ, ∅) = false` for every link, so `findlinks((∗, ∅, ∗, ∗), Σ) = ∅`. The empty slot
 annihilates; the wildcard slot widens.
 
-*Trace 4 — retraction (FL-RET).* If instead `a₁ ∈ nullified(Σ)`, then
-`addressable(Σ) = {a₂, a₃}`, and Trace 1's `q = (∗, X, Y, ∗)` now yields
-`findlinks(q, Σ) = ∅` — `a₁` is excluded by FL-DEF even though its endsets still satisfy
-the criteria, and by FL-RET it stays excluded along every reachable `Σ →* Σ'`.
+*Trace 4 — retraction (FL-RET), exercising the determinacy of `nullified`.*
+`nullified(Σ)` is not a free parameter — by FL-LOC it is a function of the stored
+values, and over the three-link store above it is empty, as computed. To retract `a₁`
+the store must hold a witness. Extend it with a retraction link at the link
+sub-allocator frontier after `a₃`,
 
-*Trace 5 — empty link endset (FL-EMP link-side symmetry).* Were a fourth link `a₄` homed
+  `r₄ = [1,0,1,0,1,0,2,4]`  with value  `(∅, {(a₁, δ(1,#a₁))}, {ρ}-subtree)`
+
+— arity exactly 3 with slot-3 coverage equal to `coverage(R)`, so `r₄ ∈ L_R^Σ`, and its
+to-coverage `{t : a₁ ≼ t}` (PrefixSpanCoverage, ASN-0043) names `a₁`. Computing:
+`nullified(Σ) = {a₁}` — the one to-coverage in `L_R^Σ` contains `a₁` by reflexivity of
+`≼` and no other link address, `a₂`, `a₃`, `r₄` being equal-length siblings of `a₁`,
+prefix-incomparable with it — so `addressable(Σ) = {a₂, a₃, r₄}`. Trace 1's
+`q = (∗, X, Y, ∗)` now yields `findlinks(q, Σ) = ∅`: `a₁` is excluded by FL-DEF even
+though its endsets still satisfy every endpoint criterion; `a₂` and `a₃` fail the
+from-slot as in Trace 1; and `r₄` fails it by FL-EMP's link-side rule,
+`lift(∅, X) = false`. By FL-RET, `a₁` stays excluded along every reachable `Σ →* Σ'`.
+
+*Trace 5 — empty link endset (FL-EMP link-side symmetry).* Were an additional link `a₄` homed
 at `d` with from-endset `e₁ = ∅`, to-endset `e₂ = {x}`-subtree, and some non-empty type
 endset (well-formed: L3 constrains only the type slot to be non-empty, so an empty `e₁` is
 permitted), then under the constrained from-request `q = (∗, X, ∗, ∗)` it fails —
@@ -812,7 +818,7 @@ empty *request* component, now on the link's side.
 traces all fix `H = ∗`, so the residence criterion is never exercised concretely. We do so
 now. Augment the store with a second document `d' = [1,0,1,0,2]` (document-level,
 `zeros(d') = 2`, non-nesting with `d` — they are equal-length and differ in the last
-component) and a fourth link homed there,
+component) and a further link homed there,
 
   `a₅ = [1,0,1,0,2,0,2,1]`,  so `home(a₅) = N(a₅).0.U(a₅).0.D(a₅) = [1,0,1,0,2] = d'`,
 
@@ -857,12 +863,12 @@ document — granularity.
 
 *Trace 7 — FL-WP's load-bearing hazards (case (a) ghost-pre-coverage, case (b)
 self-retraction, and first-class retrieval of a standing retractor).* The earlier traces
-fix the store and vary `q`; here we exercise the two
-subtle conjuncts of FL-WP against a concrete K.λ step. Fix a retraction-type representative
-at address `ρ = [1,0,1,0,9,0,3,7]` in the type subspace, so `coverage(R) = {t : ρ ≼ t}`;
-let `Θ_ρ` be a request type endset covering `ρ`'s
-subtree. Reserve two not-yet-allocated link addresses under `d`,
-`ℓ = [1,0,1,0,1,0,2,5]` and `b = [1,0,1,0,1,0,2,6]`.
+evaluate `findlinks` at single states; here we exercise the two
+subtle conjuncts of FL-WP against a concrete K.λ step, with the retraction-type
+representative `ρ` as fixed in the setup (`coverage(R) = {t : ρ ≼ t}`); let `Θ_ρ` be a
+request type endset covering `ρ`'s subtree. Starting again from the base three-link
+store (Trace 4's `r₄` not present), reserve two not-yet-allocated link addresses under
+`d`, `ℓ = [1,0,1,0,1,0,2,5]` and `b = [1,0,1,0,1,0,2,6]`.
 
 *Case (a), ghost-pre-coverage.* Suppose the store already holds a *standing* retraction link
 `r₁ = [1,0,1,0,1,0,2,4]` with value `(∅, G_ℓ, {ρ}-subtree)`, where `G_ℓ` is a unit-depth span
@@ -906,7 +912,7 @@ would be returned by `q` whenever no *standing* tuple covered it.)
 | Label | Statement | Status |
 |-------|-----------|--------|
 | FL-DEF | `findlinks(q, Σ) = { a ∈ addressable(Σ) : sat(a, q, Σ) }`, with `sat` the conjunction of the four lifted slot-criteria (AND of the ORs); `addressable(Σ) = dom(Σ.L) \ nullified(Σ)` (ASN-0086); the operation has frame `Σ` (reads only, writes nothing) | introduced |
-| FL-LOC | Link-store locality — for fixed `q`, `findlinks(q, Σ)` is a function of `Σ.L` alone: `nullified` (hence `addressable`) is defined through `L_R^Σ`, itself determined by `Σ.L` (selected from `dom(Σ.L)` by the arity-3 and slot-3 coverage tests on stored values), and `sat` reads only `Σ.L(a)`, `home(a)`, and `q`; `Σ.C`, `Σ.M`, `Σ.E`, `Σ.R` are never consulted | introduced |
+| FL-LOC | Link-store locality — for fixed `q`, `findlinks(q, Σ)` is a function of `Σ.L` alone; `Σ.C`, `Σ.M`, `Σ.E`, `Σ.R` are never consulted | introduced |
 | FL-DEC | Decidability — `touch(e, r)` is decidable by ASN-0086's CoverageEqualityDecidable cell-decomposition run for intersection-nonemptiness, and `athome(a, H)` by the same T2 span-membership test; corollary at FL-DEF: `sat` is decidable per link, `nullified(Σ)` is computable by ASN-0086's ActiveSubset argument, and `findlinks(q, Σ) ⊆ dom(Σ.L)` is a finite, computable set (L-fin, ASN-0093) | introduced |
 | FL-SND | Soundness — `a ∈ findlinks(q, Σ) ⟹ a ∈ addressable(Σ) ∧ sat(a, q, Σ)`; no returned link is withdrawn or fails any criterion; no false positives | introduced |
 | FL-CMP | Completeness — every `a ∈ addressable(Σ)` with `sat(a, q, Σ)` is returned; the result is exactly the satisfying subset; no silent omission | introduced |
