@@ -249,33 +249,85 @@ exactly one pair per placed address:
 
 CP8's `⊇` direction is the membership `(A i : 0 ≤ i < W : (cᵢ, d) ∈ Σ'.R)`; its
 `⊆` direction pins `Σ'.R ∖ Σ.R` to pairs of placed addresses with `d`, so no
-spurious pair can enter. To see that the membership is *produced* rather than
-merely *required* — and the bound respected — we exhibit COPY as a valid ASN-0047
-composite (ValidComposite) and read the obligation off its atomic steps. The
-decomposition splits on whether the insertion point has trailing content to
-displace.
+spurious pair can enter. That the membership is *produced* rather than merely
+*required* — and the bound respected — is established in the composite
+exhibition that follows the frame clauses (the next section).
+
+*Frame — left of the insertion point.*
+
+> `(A v : v ∈ V_{s_C}(d) ∧ v < p : Σ'.M(d)(v) = Σ.M(d)(v))`     (CP3b)
+
+*Frame — content store.*
+
+> `dom(Σ'.C) = dom(Σ.C) ∧ (A a : a ∈ dom(Σ.C) : Σ'.C(a) = Σ.C(a))`     (CP1)
+
+*Frame — entity set.*
+
+> `Σ'.E = Σ.E`     (CP12)
+
+COPY mints no node, account, or document: the composite below contains no K.δ
+step, and every step it does contain (K.μ⁻, K.μ⁺, K.ρ) frames `E` unchanged
+(ASN-0047). CP12 and CP8's `⊆` direction together bound the two components the
+remaining clauses constrain only from below — without them a transition could
+satisfy every other clause while adding entities to `E` or spurious pairs to
+`Σ.R`. They play, for `E` and `Σ.R`, the closure role CP3c plays for the
+arrangement domain.
+
+*Frame — link store, other subspaces, other documents.*
+
+> `Σ'.L = Σ.L`     (CP7a)
+>
+> `{v ∈ dom(Σ'.M(d)) : subspace(v) ≠ s_C} = {v ∈ dom(Σ.M(d)) : subspace(v) ≠ s_C}`
+> `  ∧ (A v : v ∈ dom(Σ.M(d)) ∧ subspace(v) ≠ s_C : Σ'.M(d)(v) = Σ.M(d)(v))`
+>
+> `(A d' : d' ≠ d : Σ'.M(d') = Σ.M(d'))`     (CP6)
+
+The middle clause has two conjuncts. The pointwise conjunct preserves `d`'s
+*pre-state* non-text bindings; the domain-equality conjunct pins `d`'s non-`s_C`
+domain to exactly its pre-state value — the non-text instance of CP3c's closure
+principle.
+
+The last clause includes every source document `d_s ≠ d` and every other document
+in the docuverse. The single self-reference case `d_s = d` — *self-transclusion* —
+is admitted: resolution (CP0) reads the *pre-state* `Σ.M(d)`, so the addresses
+`cᵢ` are fixed before any displacement, and the effect then re-binds them at fresh
+positions of the same document. We return to this case under CP9.
+
+## COPY as a valid composite
+
+We must show that CP8's membership is *produced* rather than merely *required*,
+that its bound is respected, and that the operation is admissible under
+ASN-0047's transition discipline. We do all three at once by exhibiting COPY as
+a valid ASN-0047 composite (ValidComposite) and reading the obligations off its
+atomic steps. The decomposition splits on whether the insertion point has
+trailing content to displace.
+
+One observation serves both cases. *Placement-position well-formedness*: for a
+valid insertion position `p`, every placement position `p + i` with `0 ≤ i < W`
+is S8a-valid and carries the text-subspace common depth `m_{s_C}(d)`. For S8a:
+`p` is itself S8a-valid (ValidInsertionPosition postcondition (b), or
+ValidFirstInsertionPosition postcondition (b) when `V_{s_C}(d) = ∅`), and each
+`p + i = shift(p, i)` preserves S8a by OrdShiftHom(b) (ASN-0036), with
+`p + 0 = p` S8a-valid directly. For depth: when `V_{s_C}(d) ≠ ∅`,
+`#p = m_{s_C}(d)` (ValidInsertionPosition postcondition (a)); when
+`V_{s_C}(d) = ∅`, `m_{s_C}(d)` is *undefined* in the pre-state (ASN-0047,
+LinkSubspaceDepth: `m_S(d)` is well-defined only while `V_S(d) ≠ ∅`) —
+ValidFirstInsertionPosition fixes `#p = m` for a *chosen* parameter `m ≥ 2`, and
+this choice is what *defines* `m_{s_C}(d) := m` for the post-state; we do not
+equate `#p` with an as-yet-undefined depth. Either way, writing `m_{s_C}(d)` for
+the now-established post-state depth,
+`#(p + i) = #shift(p, i) = #p = m_{s_C}(d)`, so every placement position has
+that depth — preserving S8-depth where the subspace was populated and
+establishing it where it was empty, exactly as OrdShiftHom(b) preserves S8a.
 
 *Append or empty case* (`p = max+1`, or `V_{s_C}(d) = ∅`). No prior position
 satisfies `v ≥ p`, so CP3a is vacuous and the effect is a pure extension: a single
 K.μ⁺ step adds the `W` placement positions `[p, p+W)` bound to `c₀,…,c_{W−1}`,
 leaving every prior mapping intact — exactly K.μ⁺'s strict-extension frame
-`(A v ∈ dom(Σ.M(d)) : Σ'.M(d)(v) = Σ.M(d)(v))`. These placement positions
-`{p + i : 0 ≤ i < W}` are well-formed by S8a-validity of `p` and OrdShiftHom(b)
-(ASN-0036), with `p + 0 = p` S8a-valid directly. They also carry the subspace
-common depth, by routes that differ between the two sub-cases. In the append
-sub-case (`V_{s_C}(d) ≠ ∅`), `m_{s_C}(d)` is already defined, and `p` is a valid
-insertion position with `#p = m_{s_C}(d)` (ValidInsertionPosition postcondition
-(a)). In the empty sub-case (`V_{s_C}(d) = ∅`), `m_{s_C}(d)` is *undefined* in the
-pre-state (ASN-0047, LinkSubspaceDepth: `m_S(d)` is well-defined only while
-`V_S(d) ≠ ∅`); ValidFirstInsertionPosition fixes `#p = m` for a *chosen* parameter
-`m ≥ 2`, and this choice is what *defines* `m_{s_C}(d) := m` for the post-state —
-we do not equate `#p` with an as-yet-undefined depth. Either way, writing
-`m_{s_C}(d)` for the now-established post-state depth,
-`#(p + i) = #shift(p, i) = #p = m_{s_C}(d)`, so every placement position has that
-depth — preserving S8-depth in the append sub-case and establishing it in the
-empty sub-case, exactly as OrdShiftHom(b) preserves S8a. The resulting text run
-is the contiguous block `[min, max+W]` (or `[p, p+W)` when empty), discharging
-K.μ⁺'s D-CTG★/D-MIN★ precondition.
+`(A v ∈ dom(Σ.M(d)) : Σ'.M(d)(v) = Σ.M(d)(v))`. The placement positions are
+S8a-valid at depth `m_{s_C}(d)` by the placement-position observation. The
+resulting text run is the contiguous block `[min, max+W]` (or `[p, p+W)` when
+empty), discharging K.μ⁺'s D-CTG★/D-MIN★ precondition.
 
 *Displacing case* (`p ≤ max`, so trailing content exists). Here a pure K.μ⁺ is
 *not* a faithful decomposition, and the difference is structural. The displacement
@@ -308,21 +360,17 @@ top of the retained prefix, both the `W` placement positions `[p, p+W)` bound to
 `{(min+i)+W : j ≤ i < N} = [p+W, max+W]` — the equality by shift composition
 (ASN-0034, TS3; ASN-0084, Extended Associativity), `(min+i)+W = min+(i+W)` —
 bound to their original images `Σ.M(d)(min+i)` (CP3a). Each retained mapping is
-left intact — K.μ⁺'s strict-extension frame. The freshly added V-positions are well-formed (S8a), and
-the two kinds discharge that obligation by distinct routes: the displaced trailing
-positions `{(min+i)+W : j ≤ i < N}` are *shifted* content, so I3-VP
-(PostInsertionWellFormedness, ASN-0082) applies; the placement positions
-`{p + i : 0 ≤ i < W}` are *gap-fill*, not shifted content, so I3-VP does not cover
-them — instead `p` is itself S8a-valid (a valid insertion position), and each
-`p + i = shift(p, i)` preserves S8a by OrdShiftHom(b) (ASN-0036), with `p + 0 = p`
-S8a-valid directly. The same gap-fill positions also carry the subspace common
-depth, which I3-VD likewise does not cover: `p` is a valid insertion position, so
-`#p = m_{s_C}(d)` (ValidInsertionPosition postcondition (a)), and
-`#(p + i) = #shift(p, i) = #p = m_{s_C}(d)`, so every placement position has depth
-`m_{s_C}(d)` — preserving S8-depth for the gap-fill exactly as OrdShiftHom(b)
-preserves S8a. The resulting text run is the contiguous block `[min, max+W]`,
-discharging K.μ⁺'s D-CTG★/D-MIN★ precondition. Steps (i)–(ii) together reproduce CP2, CP3a, and CP3b
-(the left prefix is retained by (i) and untouched by (ii)).
+left intact — K.μ⁺'s strict-extension frame. The freshly added V-positions are
+well-formed (S8a) and carry the subspace common depth, by routes that differ
+between the two kinds: the displaced trailing positions
+`{(min+i)+W : j ≤ i < N}` are *shifted* content, so I3-VP
+(PostInsertionWellFormedness, ASN-0082) and I3-VD (PostInsertionDepthUniformity)
+apply; the placement positions `{p + i : 0 ≤ i < W}` are *gap-fill*, not shifted
+content, so I3-VP/I3-VD do not cover them — the placement-position observation
+discharges both obligations for them instead. The resulting text run is the
+contiguous block `[min, max+W]`, discharging K.μ⁺'s D-CTG★/D-MIN★ precondition.
+Steps (i)–(ii) together reproduce CP2, CP3a, and CP3b (the left prefix is
+retained by (i) and untouched by (ii)).
 
 To these arrangement steps the composite appends one K.ρ provenance step per
 range-new address; it is these K.ρ steps that put pairs into `Σ.R`. Each fires its
@@ -354,17 +402,20 @@ the range-new case splits accordingly:
 
 - **Range-new and not previously recorded** (`(cᵢ, d) ∉ Σ.R`). Here permanence has
   nothing to carry, so the membership can only be produced by a fresh K.ρ step
-  recording `(cᵢ, d)`. J1'★ (ProvenanceRequiresExtension) admits that step — its
-  admissibility condition is exactly that `cᵢ` be range-new — so the composite
-  includes one K.ρ per such address, producing `(cᵢ, d) ∈ Σ'.R`.
+  recording `(cᵢ, d)`. The resulting pair is genuinely new to `R`, so J1'★
+  (ProvenanceRequiresExtension) constrains it — and permits it, since its
+  condition is exactly that `cᵢ` be range-new. The composite includes one K.ρ per
+  such address, producing `(cᵢ, d) ∈ Σ'.R`.
 - **Range-new yet already recorded** (`(cᵢ, d) ∈ Σ.R`). This configuration is
   reachable: `d` referenced `cᵢ` earlier and then contracted those V-positions away
   (K.μ⁻ removes from the range; P2 keeps the provenance pair forever), so `cᵢ` is
   absent from the *current* range yet present in `Σ.R` — exactly a re-COPY of
   previously-deleted transcluded content. J1★'s membership `(cᵢ, d) ∈ Σ'.R` is then
   already discharged by provenance permanence P2 carrying the pre-state pair
-  forward; *no K.ρ step is required*. A redundant K.ρ would be J1'★-admissible (the
-  address is range-new) but is unnecessary, since the membership holds regardless.
+  forward; *no K.ρ step is required*. A redundant K.ρ recording the pair would be
+  a no-op on the relation — the pair already stands in `Σ.R`, so the step
+  contributes nothing to `Σ'.R ∖ Σ.R`, and J1'★, which constrains only pairs
+  genuinely new to `R`, is indifferent to it.
 
 For each `cᵢ` that is *not* range-new — already in the content-subspace range of
 `M(d)` in the pre-state (already transcluded into `d`, or, in self-transclusion
@@ -378,46 +429,6 @@ direction holds by the same exhibition: the composite's only `Σ.R`-touching ste
 are these K.ρ recordings, each adding a placed pair `(cᵢ, d)`, so
 `Σ'.R ∖ Σ.R ⊆ {(cᵢ, d) : 0 ≤ i < W}` — with J1'★ independently confining any new
 pair to range-new content of its document.
-
-*Frame — left of the insertion point.*
-
-> `(A v : v ∈ V_{s_C}(d) ∧ v < p : Σ'.M(d)(v) = Σ.M(d)(v))`     (CP3b)
-
-*Frame — content store.*
-
-> `dom(Σ'.C) = dom(Σ.C) ∧ (A a : a ∈ dom(Σ.C) : Σ'.C(a) = Σ.C(a))`     (CP1)
-
-*Frame — entity set.*
-
-> `Σ'.E = Σ.E`     (CP12)
-
-COPY mints no node, account, or document: the composite below contains no K.δ
-step, and every step it does contain (K.μ⁻, K.μ⁺, K.ρ) frames `E` unchanged
-(ASN-0047). CP12 and CP8's `⊆` direction together bound the two components the
-remaining clauses constrain only from below — without them a transition could
-satisfy every other clause while adding entities to `E` or spurious pairs to
-`Σ.R`. This is the standard CP3c sets for the arrangement domain: dischargeable
-from the postconditions alone, not only through the exhibited composite.
-
-*Frame — link store, other subspaces, other documents.*
-
-> `Σ'.L = Σ.L`     (CP7a)
->
-> `{v ∈ dom(Σ'.M(d)) : subspace(v) ≠ s_C} = {v ∈ dom(Σ.M(d)) : subspace(v) ≠ s_C}`
-> `  ∧ (A v : v ∈ dom(Σ.M(d)) ∧ subspace(v) ≠ s_C : Σ'.M(d)(v) = Σ.M(d)(v))`
->
-> `(A d' : d' ≠ d : Σ'.M(d') = Σ.M(d'))`     (CP6)
-
-The middle clause has two conjuncts. The pointwise conjunct preserves `d`'s
-*pre-state* non-text bindings; the domain-equality conjunct pins `d`'s non-`s_C`
-domain to exactly its pre-state value — the non-text instance of CP3c's closure
-principle.
-
-The last clause includes every source document `d_s ≠ d` and every other document
-in the docuverse. The single self-reference case `d_s = d` — *self-transclusion* —
-is admitted: resolution (CP0) reads the *pre-state* `Σ.M(d)`, so the addresses
-`cᵢ` are fixed before any displacement, and the effect then re-binds them at fresh
-positions of the same document. We return to this case under CP9.
 
 ## The transclusion frame: content is referenced, never allocated
 
@@ -584,7 +595,12 @@ CP2 binds destination V-positions to addresses that other documents may already
 bind. We record the consequence as CP4, **MultiplicityIncrease**: COPY adds `W`
 new `(document, V-position)` references (one per placement, CP2), so the total
 number of references into the placed set `{c₀, …, c_{W−1}}` increases by exactly
-`W`. The per-address arithmetic is finer: for a fixed placed address `cᵢ`, its own
+`W`. The exactness rests on the same domain closure that pins the range: the
+shifted bindings *replace* their pre-state reference pairs rather than adding to
+them (each `(v, a)` becomes `(v + W, a)`, the pre-shift position vacated by
+CP3c), and CP3c with CP6 — the domain-equality conjunct for `d`'s non-text
+subspaces, the other-document clause for the rest of the docuverse — excludes
+any other reference from being created or destroyed. The per-address arithmetic is finer: for a fixed placed address `cᵢ`, its own
 reference count increases by the number of times `cᵢ` *occurs in*
 `resolve(R, Σ)` — at least one, and more only when a single source address is
 resolved at several positions of the sequence. The aggregate increase `W` and the
@@ -645,9 +661,13 @@ content.
 Fix a link `a` not already discoverable from `d` at `Σ`, and ask what must hold
 of `Σ` for `a` to be discoverable from `d` after COPY. Pulling the post-state criterion back through
 the operation — `Σ'.L = Σ.L` (CP7a), and
-`ran(Σ'.M(d)) = ran(Σ.M(d)) ∪ {c₀, …, c_{W−1}}` (CP2 adds the placed addresses;
-CP3a/CP3b move prior positions but preserve their I-addresses, so the prior range
-is retained) — gives
+`ran(Σ'.M(d)) = ran(Σ.M(d)) ∪ {c₀, …, c_{W−1}}` (`⊇`: CP2 adds the placed
+addresses, while CP3a/CP3b move prior text positions but preserve their
+I-addresses and CP6 fixes the non-text bindings, so the prior range is retained;
+`⊆`: CP3c closes the text-subspace domain to exactly the left, placement, and
+shifted positions — whose images are the prior text images and the placed
+addresses — and CP6's domain-equality conjunct pins the non-text domain to its
+pre-state value, so no other address can enter the range) — gives
 
 > `wp(COPY, "a discoverable from d") = (E j : coverage(Σ.L(a).eⱼ) ∩ {c₀, …, c_{W−1}} ≠ ∅)`.
 
@@ -769,11 +789,12 @@ We check the claims numerically.
   own `x₁`: append `(d, σ_x)` with `σ_x = ([1,1], δ(1,2))`, resolving the extra
   address `x₁` (a self-transclusion, CP9). Now `x₁ ∈ ran(Σ.M(d))|_{s_C}` already in
   the pre-state — it is *not* range-new — so the placement re-binds an address `d`
-  already references. No K.ρ step fires for it: because `Σ` is a composite boundary,
-  P4★ (`Contains_C(Σ) ⊆ R`) gives `(x₁, d) ∈ Σ.R` already, and provenance
+  already references. No K.ρ step is needed for it: because `Σ` is a composite
+  boundary, P4★ (`Contains_C(Σ) ⊆ R`) gives `(x₁, d) ∈ Σ.R` already, and provenance
   permanence P2 carries it into `Σ'`. The membership `(x₁, d) ∈ Σ'.R` holds without
-  a redundant record — the P4★/P2 branch firing exactly where J1'★ would forbid a
-  fresh K.ρ.
+  any fresh record, and a redundant K.ρ would be a no-op on the relation — the pair
+  contributes nothing to `Σ'.R ∖ Σ.R`, so J1'★, which constrains only pairs
+  genuinely new to `R`, is indifferent to it.
 
 The numbers exhibit the whole point: the destination's V-positions are new, but
 every I-address and every origin in the assembly is borrowed, intact, from the
