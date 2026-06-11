@@ -161,8 +161,7 @@ In both cases `r⋆ ≥ reach_d > max O(d)`, so coverage holds; whether `r⋆` e
 exceeds `reach_d` is recorded by **V-ReachTight** (reach tightness):
 `reach(σ_d) = reach_d ⟺ #origin_d ≤ #reach_d`. Both directions are already discharged by V2's
 two covering cases above — case 1 (`#origin_d ≤ #reach_d`) closes the round-trip to
-`r⋆ = reach_d`, and case 2 (`#origin_d > #reach_d`) computes `reach_d < r⋆` — so the reach
-attains the constructed endpoint exactly when the origin is no deeper than the reach. This is
+`r⋆ = reach_d`, and case 2 (`#origin_d > #reach_d`) computes `reach_d < r⋆`. This is
 strictly weaker than equal endpoint depths: it holds automatically in the single-subspace
 regime (S8-depth makes the endpoints equidepth) and, in the cross-subspace case, throughout
 `m_C ≤ m_L`.
@@ -226,8 +225,22 @@ reachable state), the link subspace (`s = s_L`). By D-SEQ★ (the per-subspace d
 shape, ASN-0047, instantiated at `S = s`) the occupied positions are
 `{[s,1,…,1,k] : 1 ≤ k ≤ n_s}`, a dense run with no internal gaps. Then `origin_d = [s,1,…,1]`
 (D-MIN★), `max O(d) = [s,1,…,1,n_s]`, `reach_d = [s,1,…,1,n_s+1]`, and `⟦σ_d⟧` restricted to
-depth-`m_s` positions of subspace `s` is exactly that run — D-CTG★ rules out any occupied-depth
-position of `s` lying between `origin_d` and `reach_d` but outside the run. We record **V5**
+depth-`m_s` positions is exactly that run. The restriction needs two steps, because D-CTG★
+constrains only slice tuples lying between two members of `V_S(d)` — it is silent both on the
+half-open boundary cell `(max O(d), reach_d)` and on depth-`m_s` tumblers that are not slice
+tuples (a zero component, or first component `≠ s`). *(i) Prefix-pinning.* Let `t` be any
+depth-`m_s` tumbler with `origin_d ≤ t < reach_d`. The endpoints agree on positions
+`1..m_s−1` (the value `s` followed by 1's), so if `t` first diverges from that common prefix
+at some `j ≤ m_s−1`, a component below the prefix value forces `t < origin_d` and a component
+above it forces `t > reach_d` (T1 case (i), a contradiction either way); hence `t` carries
+the prefix `[s,1,…,1]` exactly. *(ii) Discreteness at the boundary cell.* With the prefix
+pinned, the T1 comparisons reduce to the final component: `t ≥ origin_d` gives `t_{m_s} ≥ 1`,
+and `t < reach_d` gives `t_{m_s} < n_s + 1`, whence `t_{m_s} ≤ n_s` because no natural lies
+strictly between `n_s` and `n_s + 1` — exactly the TA5 tightness of
+`reach_d = inc(max O(d), 0)` as the least same-length tumbler above `max O(d)`, established
+at V3. So `t = [s,1,…,1,k]` with `1 ≤ k ≤ n_s`, a member of the D-SEQ★ run. D-CTG★
+legitimately certifies only the sub-range `origin_d ≤ t ≤ max O(d)`; the cell beyond
+`max O(d)` is closed by (ii), not by contiguity. We record **V5**
 (exact cover): when all occupied positions share one subspace, `⟦σ_d⟧` contains no
 occupied-depth position outside `O(d)` — the span is a faithful trace, "dense and contiguous,"
 with the document forming "an unbroken sequence" (4/11). The density is supplied by the
@@ -241,14 +254,19 @@ one. The golden case confirms the content instance: eleven characters of text re
 start `[s_C,1,…]` (since `s_C < s_L`), but `max O(d)` is a link position `[s_L, …]`. The
 reach crosses from subspace `s_C` into subspace `s_L`, so `⟦σ_d⟧` contains *every* position
 between them — including the unoccupied void separating the two subspaces, where nothing is
-arranged. We record **V6** (cross-subspace bounding box): when occupied positions span more
-than one subspace, `O(d) ⊊ ⟦σ_d⟧` strictly — the span is a bounding box, not an exact cover,
-and includes inter-subspace positions that carry no content. The strictness is witnessed
-generally by `w⋆ = [s_C,1,…,1,n_C+1]` (depth `m_C`, where `n_C = |V_{s_C}(d)|`): it is a
-content position, hence below every `s_L` reach by T1, so `origin_d ≤ w⋆ < reach_d`; yet its
-final component `n_C+1` places it just past the dense content run
-`{[s_C,1,…,1,k] : k ≤ n_C}` (D-SEQ★), so `w⋆ ∉ O(d)` — covered but unoccupied, discharging the
-strict inclusion for every two-subspace `O(d)`. A span denotes one convex region (`⟦σ_d⟧` is
+arranged. We record **V6** (cross-subspace bounding box — the genuine negation of V5): when
+occupied positions span more than one subspace, `⟦σ_d⟧` contains an *occupied-depth* position
+outside `O(d)` — the span is a bounding box, not an exact cover. The witness is
+`w⋆ = [s_C,1,…,1,n_C+1]` (at the occupied content depth `m_C`, where `n_C = |V_{s_C}(d)|`): it
+is a content position, hence below every `s_L` reach by T1, so `origin_d ≤ w⋆ < reach_d` and
+`w⋆ ∈ ⟦σ_d⟧`; yet its final component `n_C+1` places it just past the dense content run
+`{[s_C,1,…,1,k] : k ≤ n_C}` (D-SEQ★), so `w⋆ ∉ O(d)`. The bare strict inclusion
+`O(d) ⊊ ⟦σ_d⟧` follows as a corollary, but it cannot carry the dichotomy: even in V5's
+exact-cover case the inclusion is strict, since the zero-extension `origin_d.0` satisfies
+`origin_d < origin_d.0 < reach_d` (T1 case (ii); then divergence at the final position,
+`1 < n_s+1`) yet is no V-position (S8a forbids its zero component). `Exact` is depth-scoped
+and `⊊` is not; only the occupied-depth witness separates V6 from V5. A span denotes one
+convex region (`⟦σ_d⟧` is
 order-convex under T1, ASN-0053 S0), and a document occupying two disjoint subspaces is a
 *separated series* — "if you want to
 designate a separated series of items exactly, including nothing else, you do this by a
@@ -300,10 +318,18 @@ and `origin_d` migrates *up* from the content anchor `[s_C,1,…,1]` to the link
 *First-content insertion* — a `K.μ⁺` extension into a link-only document (V5), where
 `origin_d = [s_L,1,…,1]`: the first content position occupies `[s_C,1,…,1]`, and since
 `s_C < s_L` the origin migrates *down* to the content anchor, restoring V8's regime (D-MIN★ at
-`S = s_C`). The remaining transitions leave content-occupancy status unchanged and so fix the
-origin: `K.μ⁺_L` (link-subspace extension) never touches `V_{s_C}(d)`, and `K.μ~` (reordering)
-preserves `O(d)` wholesale; a `K.μ⁺` into a content-present document and a `K.μ⁻` retaining at
-least one content position both leave `V_{s_C}(d) ≠ ∅` intact. Gregory confirms the
+`S = s_C`). The remaining transitions fix the origin by a uniform argument. Each leaves the
+content-occupancy status unchanged: `K.μ~` (reordering) preserves `O(d)` wholesale; a `K.μ⁺`
+into a content-present document and a `K.μ⁻` retaining at least one content position keep
+`V_{s_C}(d) ≠ ∅`; `K.μ⁺_L` never touches `V_{s_C}(d)` — in particular a link-only document
+stays link-only — and a `K.μ⁻` on a link-only document retaining at least one link
+(`n'_{s_L} ≥ 1`) likewise keeps `V_{s_C}(d) = ∅` with `V_{s_L}(d) ≠ ∅`. Whichever subspace
+the origin reads — the content anchor `[s_C,1,…,1]` when `V_{s_C}(d) ≠ ∅` (since `s_C < s_L`),
+the link anchor `[s_L,1,…,1]` when link-only — that subspace remains non-empty across the
+step, so its depth `m_S(d)` holds constant (the re-pinning discipline cited at V8) and
+D-MIN★ pins its minimum at `[S,1,…,1]` of that depth in both the pre- and post-state. The
+unchanged occupancy status selects the same pin before and after, and the pin itself does
+not move, so `origin_d` is fixed. Gregory confirms the
 content-clearing case: deleting all text while links remain is a permitted, non-empty state
 reporting the link span (`2.1 for 0.1` in the golden link-only configuration), not the empty
 result (deletion consultation).
@@ -417,8 +443,9 @@ at position 1 (`2 ≠ 1`), so `extent_d = [2-1, 2] = [1,2]`. Thus
 
 Verify the claims. **V1**: `origin_d = [1,1] ∈ O(d)`, an occupied content position. ✓
 **V2**: `⟦σ_d⟧ = {t : [1,1] ≤ t < [2,2]}` contains all four occupied positions. ✓
-**V6**: it *also* contains `[1,4], [1,5], …` and `[1, k]`-extensions in the inter-subspace
-void, none occupied — the span strictly encloses `O(d)`. ✓ **V2** (T12 legality): `extent_d =
+**V6**: it *also* contains the occupied-depth position `[1,4]` — the witness `w⋆`
+(`n_C = 3`), covered but unoccupied — along with `[1,5], …` in the inter-subspace void: a
+bounding box, not an exact cover. ✓ **V2** (T12 legality): `extent_d =
 [1,2]` is positive with `actionPoint = 1 ≤ 2 = #origin_d`. ✓
 
 Now drop the link, leaving `O'(d) = {[1,1], [1,2], [1,3]}`. Then `origin_d = [1,1]` (V8,
@@ -464,10 +491,11 @@ the `⟨⟩` result, where there is no `σ_d`). Reasoning backward from `Exact`,
 
 The derivation runs through V5 and V6. If `O(d)` is empty the result is `⟨⟩` and `Exact` holds
 vacuously by definition; if `O(d)` lies in a single subspace `s`, V5 gives `Exact` directly: the
-dense run `{[s,1,…,1,k]}` is covered with no
-occupied-depth position left over (D-CTG★ closing the gaps). Conversely, if `O(d)` occupies
-*both* subspaces, V6 gives `O(d) ⊊ ⟦σ_d⟧` strictly — the reach crosses the inter-subspace void,
-admitting unoccupied positions inside the denotation — so `¬Exact`. The two directions exhaust
+dense run `{[s,1,…,1,k]}` is covered with no occupied-depth position left over (V5's
+prefix-pinning and boundary-discreteness argument). Conversely, if `O(d)` occupies
+*both* subspaces, V6 supplies an occupied-depth witness `w⋆ ∈ ⟦σ_d⟧ \ O(d)` at the occupied
+content depth `m_C`, so `¬Exact` — the depth-scoped `Exact` is refuted by the witness, which
+the corollary `O(d) ⊊ ⟦σ_d⟧` alone could not provide. The two directions exhaust
 the cases by S3★-aux. So the single-subspace condition is both necessary and sufficient, hence
 the *weakest* precondition. The companion reach property factors the same way along the
 orthogonal endpoint axis. The contingent tightness property — analogous to `Exact` —
@@ -502,7 +530,7 @@ endpoint depths), without inspecting the returned span.
 | V-LevelUniform | `σ_d` is level-uniform (S6: `#origin_d = #extent_d`) `⟺ #origin_d ≥ #reach_d`, since `#extent_d = max(#origin_d, #reach_d)` (TA2); always level-uniform in the single-subspace regime | introduced |
 | V4 | `extent_d` is computed from `O(d) = dom(M(d))` alone; content in `dom(C)` but absent from the arrangement (deleted, or native elsewhere) contributes nothing (Vstream-bounded, not Istream) | introduced |
 | V5 | When all occupied positions share one subspace, `⟦σ_d⟧` contains no occupied-depth position outside `O(d)` (exact cover of a contiguous run) | introduced |
-| V6 | When occupied positions span more than one subspace, `O(d) ⊊ ⟦σ_d⟧` — the span bridges the inter-subspace void (bounding box, not exact cover); forced because a span denotes one convex region (ASN-0053 S0) and cannot trace a separated series | introduced |
+| V6 | When occupied positions span more than one subspace, `⟦σ_d⟧` contains an occupied-depth position outside `O(d)` (witness `w⋆ = [s_C,1,…,1,n_C+1]` at depth `m_C`) — the genuine negation of V5 (bounding box, not exact cover); corollary: `O(d) ⊊ ⟦σ_d⟧`; forced because a span denotes one convex region (ASN-0053 S0) and cannot trace a separated series | introduced |
 | V8 | While the content subspace is non-empty, `origin_d = [s_C,1,…,1]`, invariant under all editing that leaves content present (origin permanence) | introduced |
 | V9 | A pure rearrangement preserves `O(d) = dom(M(d))`; since `origin_d` and `extent_d` depend on `O(d)` alone (not on the values `M(d)(v)`), the reported span is identical before and after (extent tracks composition, not arrangement) | introduced |
 | V11 | The operation is total over allocated documents; `O(d) = ∅` yields the distinguished empty span-set `⟨⟩` (V0), with `origin_d` undefined and no extent — the implementation's zeros are a sentinel, not a legal address (TA6) | introduced |
