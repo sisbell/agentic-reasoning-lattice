@@ -219,7 +219,12 @@ shifted suffix `{J+n, …, N+n}`, excluding the inserted block; INSERT's post-st
 `M'(d) = M'₀(d) ∪ {block fill}`, the `{block fill}` mapping the block interval
 `{J, …, J+n-1}`. By the block-disjointness fact the block is disjoint from the gapped
 domain, so the union adds an entry at every block slot and leaves every gapped value —
-left and shifted-suffix alike — unchanged. We name the clauses:
+left and shifted-suffix alike — unchanged. The block is moreover wholly subspace-`S`:
+every filled position `shift(p, k)` has `subspace(shift(p, k)) = subspace(p) = S`
+(**OrdShiftHom (a)**, ASN-0036, extended to `k = 0` by **SUBCONF**, ASN-0084), so the
+union also leaves the *cross-subspace* slice of the gapped arrangement untouched — in
+every subspace `S' ≠ S`, `M'(d)` and `M'₀(d)` have the same positions and the same
+values. We name the clauses:
 
 - (I-ALLOC) `dom(C') = dom(C) ∪ A_new`, with `C'(shift(a, k)) = w_k` for
   `0 ≤ k < n` — the K.α effect (ASN-0093), iterated `n` times along `A_C(d)`.
@@ -251,7 +256,10 @@ left and shifted-suffix alike — unchanged. We name the clauses:
 *Frame.*
 - (F-SUB) `(A S' : S' ≠ S : {v ∈ dom(M'(d)) : subspace(v) = S'} =
   {v ∈ dom(M(d)) : subspace(v) = S'}` and `M'(d)` agrees with `M(d)` there`)` —
-  the set equality is two inclusions. Every prior cross-subspace position persists
+  the set equality is two inclusions, each a fact about the *gapped* `M'₀(d)` carried
+  to `M'(d)` by the bridge's cross-subspace clause (the block is wholly subspace-`S`,
+  so the cross-subspace slice of `M'(d)` coincides with that of `M'₀(d)`). Every prior
+  cross-subspace position persists
   with its value (`{v ∈ dom(M(d)) : subspace(v) = S'} ⊆
   {v ∈ dom(M'(d)) : subspace(v) = S'}`, with agreement there) by ASN-0082 **I3-X
   (PostInsertionCrossSubspaceFrame)**; and INSERT adds no cross-subspace position
@@ -449,12 +457,8 @@ introduced. The seam is erased in the arrangement and preserved in the identity.
 *Provenance coupling — the obligation allocation incurs.* The inserting document's
 identity is minted into the address as content enters (4/11), and the implementation
 writes a DOCISPAN provenance record per inserted I-span; I-PROV is the abstract
-counterpart of that record.
-
-**PROV (InsertionProvenance).** *INSERT records `R' = R ∪ {(shift(a, k), d) :
-0 ≤ k < n}` (I-PROV) within the same composite that allocates and places the content,
-not deferred: every freshly minted content address `shift(a, k)` enters `R` coupled to
-its inserting document `d` in the same composite that mints it.*
+counterpart of that record, discharged within the same composite that allocates and
+places the content — never deferred to a later transition.
 
 ## Invariants the operation must preserve
 
@@ -737,24 +741,47 @@ remains covered; the two fresh addresses are covered by the records just added. 
 **Links over the insertion (IP4, IP5, IP6).** Equip `d` with two links to drive the
 link claims against this concrete shift.
 
-*A link that both shifts and resurrects.* Let `ℓ` carry an endset `e` with
-`coverage(e) = {a_3, [d.0.s_C.8]}`. At the pre-state `a_3 = M(d)(q_3) ∈ ran(M(d))`,
-while `[d.0.s_C.8]` is a *ghost* — not yet in `dom(C)` — which L4/L9 permit an
-endset to name. So `project(e, d, Σ) = {q_3}`: one witness, at `q_3`. After the
+*A link that both shifts and resurrects.* Write `g := [d.0.s_C.8]`, and let `ℓ`
+carry the two-span endset
+
+> `e = {(a_3, δ(1, #a_3)), (g, δ(1, #g))}`,
+
+two unit-depth spans, one starting at the live address `a_3 = M(d)(q_3)`, one at
+the ghost `g` — not yet in `dom(C)` — which L4/L9 permit an endset to name. The
+coverage is *not* the two-element set `{a_3, g}`: by **PrefixSpanCoverage**
+(ASN-0043) each unit-depth span denotes the entire (infinite) prefix-subtree of
+its start, so `coverage(e) = {t : a_3 ≼ t} ∪ {t : g ≼ t}`. What the argument
+consumes is only the intersections with `ran(M(d))` and `A_new`, and these we
+discharge explicitly. Both spans are canonical with starts in the substrate form
+`F` of ASN-0098 (`a_3 ∈ dom(C) ⊆ F` by **LP-Sub**; `g ∈ F` by its shape
+`[d.0.s_C.8]`), so **LP-Fin** at `n = 1` gives `F ∩ {t : s ≼ t} = {s}` for each
+start `s`: a subtree member beyond the start itself strictly extends it, forcing
+`#E ≥ 3` (or a fourth zero), whereas every store entry — hence every arrangement
+image (S3★) and every element of `A_new` (chain form, **ChainMembershipForOrigin**,
+ASN-0093) — has `#E = 2`. Each subtree therefore meets `ran(M(d))` and `A_new` in
+at most its start address, and the intersections reduce to start-membership checks:
+
+- `coverage(e) ∩ ran(M(d)) = {a_3, g} ∩ ran(M(d)) = {a_3}` — `a_3 = M(d)(q_3)` is
+  in the range, while the ghost `g` lies beyond the frontier `a_max = [d.0.s_C.6]`,
+  so it is in neither `dom(C)` nor (by S3★) any arrangement range.
+- `coverage(e) ∩ A_new = {a_3, g} ∩ A_new = {g}` — `g = shift(a, 1)` is the second
+  fresh address, while `a_3 ∈ dom(C)` cannot be fresh.
+
+So `project(e, d, Σ) = {q_3}`: one witness, at `q_3`. After the
 insert, IP4's four parts are: left `∅`; cross-subspace `∅`; shifted-suffix
 `{q_5}`, since `q_3 ≥ p` carries `a_3` to `shift(q_3, 2) = q_5`; new-block
-`{q_4}`, since `shift(a, 1) = [d.0.s_C.8] ∈ coverage(e)` puts a witness at
+`{q_4}`, since `shift(a, 1) = g ∈ coverage(e)` puts a witness at
 `shift(p, 1) = q_4`. Hence `project(e, d, Σ') = {q_4, q_5}`. The prior witness set
 `{q_3}` is **not** a subset of `{q_4, q_5}` — the witness was *relabelled*
 (`q_3 → q_5`), not retained — an instance where the sets are incomparable, a suffix
 witness being present (`q_3 ≥ p`). The
 count rose by exactly the one new-block witness (`1 → 2`), and the resolved content
-grew monotonically: `coverage(e) ∩ ran(M(d)) = {a_3} ⊆ {a_3, [d.0.s_C.8]} =
-coverage(e) ∩ ran(M'(d))`. ✓ IP4.
+grew monotonically: by RAN, `coverage(e) ∩ ran(M'(d)) = (coverage(e) ∩ ran(M(d)))
+∪ (coverage(e) ∩ A_new)`, i.e. `{a_3} ⊆ {a_3, g}`. ✓ IP4.
 
 *The IP6 trap.* Was discoverability of `ℓ` from `d` *newly* gained? No — `ℓ` was
 *already* discoverable via `a_3` (`coverage(e) ∩ ran(M(d)) = {a_3} ≠ ∅`), so
-`ℓ ∈ D(d, Σ)`. Yet `ℓ ∈ Added`, since `coverage(e) ∩ A_new = {[d.0.s_C.8]} ≠ ∅`.
+`ℓ ∈ D(d, Σ)`. Yet `ℓ ∈ Added`, since `coverage(e) ∩ A_new = {g} ≠ ∅`.
 So `ℓ ∈ Added ∩ D(d, Σ)`: `ℓ` lies in `Added` yet contributes no *new*
 discoverable link, having been discoverable already. This is the per-link
 configuration that separates the two wp forms. The *sufficient* emptiness form
@@ -768,10 +795,15 @@ not, so the containment fails and `D(d)` *does* change — driven entirely by `�
 never by `ℓ`. ✓ IP6 (the distinction is containment, not emptiness; `ℓ` is
 exactly the member the emptiness form over-rejects).
 
-*A genuine resurrection.* Let `ℓ'` carry `coverage(e') = {[d.0.s_C.7]}`, a single
-ghost address, orphaned at `Σ` (`coverage(e') ∩ ran(M(d)) = ∅`, and discoverable
-from no document). After the insert the new block carries
-`M'(d)(q_3) = [d.0.s_C.7] ∈ coverage(e')`, so `q_3 ∈ project(e', d, Σ')`: `ℓ'`
+*A genuine resurrection.* Write `g' := [d.0.s_C.7]` and let `ℓ'` carry the
+single-span endset `e' = {(g', δ(1, #g'))}`, so `coverage(e') = {t : g' ≼ t}` — a
+unit-depth subtree rooted at a ghost. By the same LP-Fin reduction, `coverage(e')`
+meets any store-backed set in at most `{g'}`; and `g'` is in neither `dom(C)` (it
+lies beyond the frontier `a_max`) nor `dom(L)` (its subspace identifier is `s_C`,
+while every link address carries `s_L` — L0), so
+`coverage(e') ∩ ran(M(d'')) = ∅` for every document `d''`: `ℓ'` is orphaned at
+`Σ`. After the insert the new block carries
+`M'(d)(q_3) = g' ∈ coverage(e')`, so `q_3 ∈ project(e', d, Σ')`: `ℓ'`
 becomes discoverable from `d`. Here `ℓ' ∈ Added ∖ D(d, Σ)`, so the combined
 `Added = {ℓ, ℓ'} ⊄ D(d, Σ)`: IP6's containment fails, and
 `D(d, Σ') = D(d, Σ) ∪ {ℓ'} ⊋ D(d, Σ)` — a real change to the discoverable set,
@@ -857,10 +889,9 @@ The claims established are catalogued below.
 | IP4 (LinkSurvival) | Every prior endset's coverage is unchanged (LP13+LP3★, ASN-0098, across the composite); post-insert witness set = left ∪ shifted-suffix ∪ cross-subspace ∪ new-block; prior witnesses map bijectively onto the first three parts (suffix relabelled by `shift(·,n)`), so witness count is non-decreasing and resolved content grows monotonically (new-block is LP18 resurrection only when the link was orphaned) | introduced |
 | IP5 (DocumentIsolation) | Every other document's arrangement and resolved content are invariant under INSERT on `d` | introduced |
 | IP6 (DiscoverabilityWP) | `wp(INSERT, D(d,Σ')=D(d,Σ)) ≡ INSERT-pre ∧ {a : (∃i) coverage(Σ.L(a).eᵢ) ∩ A_new ≠ ∅} ⊆ D(d,Σ)` (containment, not emptiness); the emptiness form is sufficient but strictly stronger; discharged free under tight-endset discipline (LP19a) | introduced |
-| PROV (InsertionProvenance) | `R' = R ∪ {(shift(a,k), d) : 0 ≤ k < n}` (I-PROV); provenance recorded within the same composite as allocation, not deferred | introduced |
 | I-ALLOC | `dom(C') = dom(C) ∪ A_new`, `C'(shift(a,k)) = w_k` | cited (K.α, ASN-0093), iterated |
 | I-IMM | `(A b : b ∈ dom(C) : C'(b) = C(b))` — existing content values unchanged | cited (C0, ASN-0093) |
-| I-PROV | `R' = R ∪ {(shift(a,k), d) : 0 ≤ k < n}` — provenance record per allocated address | cited (K.ρ, ASN-0047), iterated |
+| I-PROV | `R' = R ∪ {(shift(a,k), d) : 0 ≤ k < n}` — provenance record per allocated address, within the same composite as allocation (not deferred) | cited (K.ρ, ASN-0047), iterated |
 | I-SHIFT | V-positions `≥ p` in subspace `S` move to `shift(v,n)`, carrying their I-address | cited (I3, ASN-0082) |
 | I-LEFT | V-positions `< p` in subspace `S` are unchanged | cited (I3-L, ASN-0082) |
 | I-NEW | The vacated block `{shift(p,k)}` maps to the fresh run `{shift(a,k)}` | introduced (composition glue) |
