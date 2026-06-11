@@ -354,18 +354,15 @@ active positions of `d` in subspace `S` are the contiguous prefix
 We confine the gap analysis to the *bindable slice* of `⟦σ⟧`: its depth-`m_S`,
 subspace-`S` members. These are the only named positions `dom(Σ.M(d))` can
 contain, since every active position has depth `m_S` (S8-depth) and subspace `S`.
-Named positions of `⟦σ⟧` deeper than `m_S` are necessarily unbound, and the
-reason is immediate: S8-depth fixes the depth of every active subspace-`S`
-position at exactly `m_S`, so a named position of depth `> m_S` is simply absent
-from `dom(Σ.M(d))` and dropped from `act` — no claim about its T1-position
-relative to the active range is needed or made.
+Named positions of `⟦σ⟧` deeper than `m_S` are necessarily unbound: S8-depth
+fixes the depth of every active subspace-`S` position at exactly `m_S`, so a
+named position of depth `> m_S` is absent from `dom(Σ.M(d))` and dropped from
+`act`.
 
-We pin the shape of that slice by the *Confinement* lemma, *not* by D-SEQ★:
-D-SEQ★ governs the *bound* set `V_S(d)`, not the arbitrary named positions of
-`⟦σ⟧`. The span is ordinal-level of depth `m_S ≥ 2`, so Confinement gives every
-`t ∈ ⟦σ⟧` agreement with `s` on positions `1 … m_S − 1`. So every depth-`m_S`
-member of `⟦σ⟧` shares `s`'s first `m_S − 1` components and varies only in the last
-coordinate `k`.
+The span is ordinal-level of depth `m_S ≥ 2`, so by Confinement every
+`t ∈ ⟦σ⟧` agrees with `s` on positions `1 … m_S − 1`; hence every depth-`m_S`
+member of `⟦σ⟧` shares `s`'s first `m_S − 1` components and varies only in the
+last coordinate `k`.
 To name those components we appeal to `act ≠ ∅`, the substantive case: pick any
 `v ∈ act ⊆ V_S(d)`. By D-SEQ★ `v = [S, 1, …, 1, k_v]`, and `v ∈ ⟦σ⟧` at depth
 `m_S` forces `v` to agree with `s` on positions `1 … m_S − 1`, so `s`'s first
@@ -445,9 +442,7 @@ delivered material be identical?
 
 `deliver` is a function of two things: the consulted arrangement restrictions,
 and the stores the resolved values are drawn from. We first show the active sets
-agree, `act(ρⱼ, Σ) = act(ρⱼ, Σ')` — non-trivial because `act`'s depth-compatibility
-branch reads the *whole* subspace state of `dⱼ`, not just the restriction to
-`⟦σⱼ⟧` the hypothesis equates. If `Σ.M(dⱼ)|⟦σⱼ⟧` is non-empty, a shared bound
+agree, `act(ρⱼ, Σ) = act(ρⱼ, Σ')`. If `Σ.M(dⱼ)|⟦σⱼ⟧` is non-empty, a shared bound
 position `v ∈ ⟦σⱼ⟧ ∩ dom(M(dⱼ))` lies in subspace `S = s₁` (Confinement), so
 `v ∈ V_S(dⱼ)` at both states and S8-depth pins `m_S(dⱼ) = #v` equally at each;
 depth-compatibility then holds-or-fails identically, and where it holds `act` is
@@ -694,10 +689,17 @@ Here is the decisive distinction between *deletion* and *removal of content*.
 `Σ.M(d)`; the bytes do not leave `Σ.C`, which is append-only and immutable
 (S0, S1). The content becomes *orphaned* relative to the contracting document
 (unreachable through *that* document's current arrangement) but is not absent
-from the store. The weakest precondition for delivery to include the value at
-`a` is therefore a *single* live condition: (i) the consulted arrangement binds
-some *active* content position to `a` — a `v ∈ act(ρ, Σ)` with `subspace(v) = s_C`
-and `Σ.M(d)(v) = a`. Stating (i) through `act` rather than bare namedness folds in
+from the store. The weakest precondition for delivery to include an item
+*sourced from* `a` — one whose resolving address, in the resolution mapping
+`v ↦ Σ.M(d)(v)` that computes `deliver` (R9), is `a` — is therefore a *single*
+live condition: (i) the consulted arrangement binds some *active* content
+position to `a` — a `v ∈ act(ρ, Σ)` with `subspace(v) = s_C` and
+`Σ.M(d)(v) = a`. The postcondition is pinned to the source address, not to
+value-appearance: for the bare appearance of `Σ.C(a)` in the output, (i) is
+sufficient but not necessary, since S4 permits a distinct `a' ≠ a` with
+`Σ.C(a') = Σ.C(a)`, and an active position resolving to `a'` puts the same value
+in the output while (i) is false — the delivered value does not identify its
+source address (R1, R8). Stating (i) through `act` rather than bare namedness folds in
 the depth condition the override makes operative: `v ∈ act` entails the spec is
 depth-compatible at `Σ` (else `act = ∅`), that `v` is named (`act ⊆ ⟦σ⟧`), and
 that `v` is bound (`act ⊆ dom(Σ.M(d))`). There is no independent store-membership
