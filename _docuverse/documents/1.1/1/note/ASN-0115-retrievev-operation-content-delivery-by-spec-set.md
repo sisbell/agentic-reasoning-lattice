@@ -75,17 +75,19 @@ Ordinal-level means the width acts at the deepest component,
 discipline that keeps a span within a single subspace:
 
 > **Confinement (lemma).** For an ordinal-level, level-uniform span `σ = (s, ℓ)`
-> with `#s = #ℓ = m ≥ 2`, every `t ∈ ⟦σ⟧` agrees with `s` on its first `m − 1`
-> components — `tⱼ = sⱼ` for `1 ≤ j < m`. In particular `t₁ = s₁`, so `⟦σ⟧` lies
-> wholly in subspace `s₁` and cannot cross the subspace boundary (generalizes
-> ASN-0058's C0a, PrefixConfinement).
+> with `#s = #ℓ = m ≥ 2`, every `t ∈ ⟦σ⟧` extends the length-`(m − 1)` prefix
+> `p = [s₁, …, s_{m−1}]` of `s`: `p ≼ t` — hence `#t ≥ m − 1` and `tⱼ = sⱼ` for
+> `1 ≤ j < m`. In particular `t₁ = s₁`, so `⟦σ⟧` lies wholly in subspace `s₁` and
+> cannot cross the subspace boundary (generalizes ASN-0058's C0a,
+> PrefixConfinement).
 >
 > *Proof.* Ordinal-level width acts only at position `m` (`actionPoint(ℓ) = m`),
 > so the length-`(m − 1)` prefix `p = [s₁, …, s_{m−1}]` satisfies `p ≼ s`, and the
 > reach `reach(σ) = s ⊕ ℓ` copies that prefix unchanged below the action point
 > (TumblerAdd, ASN-0034), giving `p ≼ reach(σ)`. For any `t ∈ ⟦σ⟧`,
 > `s ≤ t < reach(σ)`, hence `s ≤ t ≤ reach(σ)`; T5 (ContiguousSubtrees, ASN-0034)
-> then yields `p ≼ t`, i.e. `tⱼ = sⱼ` for `1 ≤ j < m`. ∎
+> then yields `p ≼ t`, which carries both the length bound `#t ≥ #p = m − 1`
+> (Prefix, ASN-0034) and the agreement `tⱼ = sⱼ` for `1 ≤ j < m`. ∎
 
 Without ordinal-level width, a merely level-uniform well-formed span may have
 `actionPoint(ℓ) = 1` and straddle from the content subspace into the link
@@ -128,10 +130,14 @@ its re-pinned content; so in the shallow case (`#s < m_S(d)`) the override force
 empty lest the intersection capture deeper content the citation never named. The
 override changes nothing in the deep case `#s > m_S(d)`, where the geometric
 intersection is independently empty: for any `v ∈ dom(Σ.M(d)) ∩ ⟦σ⟧`, Confinement
-gives `v₁ = s₁ = S` (so `v ∈ V_S(d)`) and S8-depth then pins `#v = m_S(d) < m = #s`,
-while Confinement's agreement of `v` with `s` on positions `1 ≤ j < m` covers all
-`#v` of `v`'s own positions — so `v` is a proper prefix of `s`, whence `v < s`
-(T1 case (ii)), contradicting the lower bound `v ≥ s` that `v ∈ ⟦σ⟧` supplies. In either branch `act(ρ, Σ)` is finite —
+gives `p ≼ v` for the length-`(m − 1)` prefix `p` of `s` — in particular
+`v₁ = s₁ = S` (so `v ∈ V_S(d)`) and `#v ≥ m − 1` — while S8-depth pins
+`#v = m_S(d) < m = #s`. Two sub-cases close the contradiction. If
+`m_S(d) < m − 1`, the depth pin contradicts Confinement's length bound
+`#v ≥ m − 1` outright. If `m_S(d) = m − 1`, then `#v = m − 1 = #p`, and `p ≼ v`
+at equal length forces `v = p` (Prefix, ASN-0034); but `p ≺ s` (a proper prefix,
+`#p = m − 1 < m = #s`), so `v < s` by T1 case (ii), contradicting the lower bound
+`v ≥ s` that `v ∈ ⟦σ⟧` supplies. In either branch `act(ρ, Σ)` is finite —
 it is `∅`, or a subset of `dom(Σ.M(d))`, which is finite (ASN-0036, S8-fin) — and
 totally ordered, being a subset of the totally
 ordered carrier `T` (ASN-0034, T1).
@@ -210,9 +216,10 @@ delivery needs no such annotation, because it delivers the value itself.
 What relationship must the delivered value bear to the content the span names? It
 must be the content itself — no character altered, fabricated, or dropped.
 
-> **R2 (Faithfulness).** Every delivered content item equals the value bound, in
-> the content store, to the address the arrangement assigns its position:
-> `item(v, ρ, Σ).val = Σ.C(Σ.M(d)(v))`. No other value may be substituted.
+> **R2 (Faithfulness).** Every delivered content item carries exactly the value
+> bound, in the content store, to the address the arrangement assigns its
+> position: for every active `v` with `subspace(v) = s_C`,
+> `item(v, ρ, Σ) = ⟨content, Σ.C(Σ.M(d)(v))⟩`. No other value may be substituted.
 
 The justification is structural. R2 is a *single-state* denotational equality, and the invariants it
 needs are correspondingly few. Resolution is single-valued because `Σ.M(d)` is a
@@ -460,11 +467,7 @@ never the link value `Σ.L(a)` — so its stability is already settled: equal
 resolved addresses give the identical reference item `⟨ref, a⟩` at both states,
 with no appeal to any store invariant. For a **content position** the item carries
 the value `Σ.C(a)`, and here value-persistence is the load-bearing fact. The
-hypothesis gives `Σ →* Σ'` directly: the two states are comparable under the
-sequential transition order, not merely reachable from a shared ancestor —
-divergent branches of the reachability relation would not be comparable, and
-across them a freshly allocated address could carry different values, so
-comparability is required, not derived. Because the consulted restriction binds
+hypothesis gives `Σ →* Σ'` directly. Because the consulted restriction binds
 `a` at both states, S3★ places it in the content store at each,
 `a ∈ dom(Σ.C) ∩ dom(Σ'.C)`; over the intervening transitions `Σ →* Σ'`, content
 immutability (S0) holds the stored entry fixed, giving `Σ.C(a) = Σ'.C(a)`. Hence
@@ -550,9 +553,7 @@ two distinct V-positions are two distinct entries, and a delivery that dropped
 one would violate R3 (it would silently omit a named, bound position). It is also
 exactly Gregory's behavior: the consolidation step that would merge co-referent
 spans is absent (the `consolidatespans` call is commented out), so identical
-bytes are delivered once per V-position. An alternative implementation is
-*required* to deliver both, by R3 — the absence of deduplication is not an
-implementation accident but a consequence of exactness.
+bytes are delivered once per V-position.
 
 *Worked instance.* Let document `d` transclude one stretch of content twice: V-positions `u`
 and `w` (with `u < w`, both in subspace `s_C`) both map to the same content
@@ -706,11 +707,7 @@ that `v` is bound (`act ⊆ dom(Σ.M(d))`). There is no independent store-member
 conjunct to add. The active position is a content position
 (`subspace(v) = s_C`), so generalized referential integrity discharges store
 membership directly — `Σ.M(d)(v) = a ⟹ a ∈ dom(Σ.C)` (S3★) — the instant (i)
-holds; immutability (S0) then holds `Σ.C(a)` fixed for all time. The two facts
-are not two necessary preconditions to be conjoined but a *decomposition* of the
-one condition: (i) is the live reference the caller must establish, and
-`a ∈ dom(Σ.C)` is its automatic, permanent consequence (S3★ supplying membership,
-S0 supplying immutability). A version
+holds; immutability (S0) then holds `Σ.C(a)` fixed for all time. A version
 created before a deletion still binds the address, and so still delivers the
 content — which is what makes identity-preserving restoration possible at all,
 and what makes "any portion of any version (historical or alternative)" (2/19)
