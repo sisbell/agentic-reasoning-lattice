@@ -70,17 +70,27 @@ allocated link addresses, and `⊥` — the report that no link lives at `a` —
 
 > `readlink(a, Σ) ∈ Link ⟺ a ∈ dom(Σ.L)`,   `readlink(a, Σ) = ⊥ ⟺ a ∉ dom(Σ.L)`.
 
-Reasoning backward from the postcondition "the result is the recorded relationship at `a`" — a
-postcondition that does not dereference `Σ.L` off its domain — the weakest precondition is
-precisely membership:
+Reasoning backward, we render "the result is the recorded relationship at `a`" as a guarded
+formula, and dually for failure:
 
-> `wp(readlink request at a, result is the recorded relationship at a) ≡ a ∈ dom(Σ.L)`,
+> `R_ok ≡ a ∈ dom(Σ.L) ∧ result = Σ.L(a)`,   `R_⊥ ≡ result = ⊥`.
 
-and dually `wp(readlink request at a, result = ⊥) ≡ a ∉ dom(Σ.L)`. Both postconditions are
-well-formed on every state, and at each `(a, Σ)` exactly one of them is attainable: by the
-definition, `readlink(a, Σ) = Σ.L(a)` when `a ∈ dom(Σ.L)` — and `Σ.L(a) ∈ Link` with `⊥ ∉ Link`,
-so `⊥` is unattainable there — while `readlink(a, Σ) = ⊥` otherwise, so the success result is
-unattainable off the domain. These are exactly RL0's two biconditionals.
+In `R_ok` the left conjunct guards the dereference in the right, so both postconditions are
+well-formed on every state — `Σ.L(a)` is consulted only where the guard places `a` in the domain.
+The read is the assignment `result := readlink(a, Σ)`, and its wp is the textual substitution:
+
+> `wp(result := readlink(a, Σ), R_ok)`
+> `≡ a ∈ dom(Σ.L) ∧ readlink(a, Σ) = Σ.L(a)`   {substitution `result := readlink(a, Σ)`}
+> `≡ a ∈ dom(Σ.L)`   {definition: on the domain, `readlink(a, Σ) = Σ.L(a)`}
+
+and dually
+
+> `wp(result := readlink(a, Σ), R_⊥) ≡ readlink(a, Σ) = ⊥ ≡ a ∉ dom(Σ.L)`,
+
+the last step because off the domain the definition gives `⊥`, while on it the result is
+`Σ.L(a) ∈ Link` and `⊥ ∉ Link`. The two weakest preconditions are complementary, so at each
+`(a, Σ)` exactly one of the two postconditions is attainable. These are exactly RL0's two
+biconditionals.
 
 A reader holding a candidate tumbler `a ∈ T` can evaluate a *structural screen*, from the address
 alone and left to right:
@@ -221,9 +231,7 @@ the last by PrefixSpanCoverage (ASN-0043) and reflexivity of `≼`. RL4 applied 
 `readlink(c, Σ₁) = readlink(c, Σ₂)`, so the result embeds nothing read from `a'` — a flattening
 reader, returning covered values dereferenced, would differ across the pair and so violate RL4. A
 nested link address is disclosed as the tumbler address it is, whether it names content, another
-link, or nothing at all. (The worked read below instantiates this address scaffolding —
-`a' = inc(a, 0)` and `c = inc(a', 0)` on `d₁`'s link sub-allocator — and verifies the
-unflattened-disclosure corollary at a single state; it does not exhibit the two-state witness.)
+link, or nothing at all.
 
 ## Determinacy and the immutability of the recorded relationship
 
@@ -245,9 +253,7 @@ A reader who has once read a link may rely on that reading permanently.
 address, `⊥` is permanent: each screen conjunct is necessary for membership in `dom(Σ'.L)` at
 every reachable `Σ'` — the invariants behind RL0's necessity claims (L0b, L1, L0, L1b of
 ASN-0043) hold at every reachable state — so a screen-failing `a` satisfies `a ∉ dom(Σ'.L)`
-throughout the future. (RL0's "a failed screen guarantees `⊥` without an invocation" is the
-per-state instance of this; the permanence asserted here is the new content, obtained by
-quantifying that per-state fact over every reachable `Σ'`.) For a *screen-passing* address, by
+throughout the future. For a *screen-passing* address, by
 contrast, the screen settles nothing in either direction: the screen-passing class contains
 addresses of both fates, so permanence of `⊥` is not derivable from the address alone. Some
 screen-passing addresses are unstable — take `a` at the frontier of an active link sub-allocator
