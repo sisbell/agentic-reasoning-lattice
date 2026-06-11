@@ -257,8 +257,7 @@ values. We name the clauses:
 - (F-SUB) `(A S' : S' ≠ S : {v ∈ dom(M'(d)) : subspace(v) = S'} =
   {v ∈ dom(M(d)) : subspace(v) = S'}` and `M'(d)` agrees with `M(d)` there`)` —
   the set equality is two inclusions, each a fact about the *gapped* `M'₀(d)` carried
-  to `M'(d)` by the bridge's cross-subspace clause (the block is wholly subspace-`S`,
-  so the cross-subspace slice of `M'(d)` coincides with that of `M'₀(d)`). Every prior
+  to `M'(d)` by the bridge's cross-subspace clause (Effect, above). Every prior
   cross-subspace position persists
   with its value (`{v ∈ dom(M(d)) : subspace(v) = S'} ⊆
   {v ∈ dom(M'(d)) : subspace(v) = S'}`, with agreement there) by ASN-0082 **I3-X
@@ -386,8 +385,12 @@ exactly `A_new = {shift(a, k) : 0 ≤ k < n}`, the shifted-suffix addresses bein
 range-old. **J0 (AllocationPlacementCoupling)** — every freshly allocated I-address
 appears in the post-state arrangement: I-NEW places each `shift(a, k)` at
 `shift(p, k) ∈ dom(M'(d))` with `d ∈ E_doc`. **J1★ (ExtensionRecordsProvenance)** —
-every content-subspace range-new address carries a record: the range-new addresses are
-exactly `A_new`, and I-PROV records `(shift(a, k), d)` for each. **J1'★
+every content-subspace range-new address carries a record, universally over the
+documents of `E'_doc`. The quantifier domain is `E'_doc = E_doc` by F-ENT — INSERT
+registers no document — so two instantiations exhaust it. At any `d' ≠ d`, F-DOC
+gives `M'(d') = M(d')`, so no address is new to `d'`'s content-subspace range and
+the instance holds vacuously. At `d` itself, the range-new addresses are exactly
+`A_new` (RAN), and I-PROV records `(shift(a, k), d)` for each. **J1'★
 (ProvenanceRequiresExtension)** — every new entry `(a, d) ∈ R' ∖ R` is range-new: I-PROV
 adds only `A_new` records, each range-new, and recording a range-old (shifted-suffix)
 address would manufacture an entry with no range-new witness. So clause 2 holds between
@@ -536,7 +539,8 @@ This is the precise sense of Nelson's survivability clause restricted to
 insertion (4/43): because insertion removes nothing, *every* link survives with
 its designated content unchanged. The resolved witnesses are V-positions, and the
 suffix witnesses are *relabelled* by `v ↦ shift(v, n)` — so the post-insert
-V-position set is *not* a superset of the prior one. What is monotone is the
+V-position set is not in general a superset of the prior one (IP4's case split
+below makes the conditions precise). What is monotone is the
 *count* of witnesses and the *resolved content*: each prior witness maps
 injectively to a surviving one (left verbatim, suffix shifted, cross-subspace
 verbatim), and the new block can only add witnesses, never remove or redirect. We
@@ -792,8 +796,7 @@ alone could never break the containment `Added ⊆ D(d, Σ)`. Whether `D(d)` is
 preserved at the document level turns on the *whole* of `Added`, not on `ℓ`: here
 `Added = {ℓ, ℓ'}` also contains the orphaned `ℓ'` (below), which `D(d, Σ)` does
 not, so the containment fails and `D(d)` *does* change — driven entirely by `ℓ'`,
-never by `ℓ`. ✓ IP6 (the distinction is containment, not emptiness; `ℓ` is
-exactly the member the emptiness form over-rejects).
+never by `ℓ`. ✓ IP6.
 
 *A genuine resurrection.* Write `g' := [d.0.s_C.7]` and let `ℓ'` carry the
 single-span endset `e' = {(g', δ(1, #g'))}`, so `coverage(e') = {t : g' ≼ t}` — a
