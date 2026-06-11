@@ -1,0 +1,79 @@
+# Review of ASN-0129
+
+## REVISE
+
+### Issue 1: Tuple-valued and class-valued bound variables have no vocabulary to act on them
+**ASN-0129, QD / PD0**: QD admits "`A_K` (the active K-slice), `L_K` (the audit K-slice)" as base domains; PD0 builds its class from "`∃` over audit domains (`L_K`, `L_dom`), tests of stored tuple content".
+**Problem**: Every atom in `V_atom` takes addresses (`T`) or ℕ; V-PRIM covers addresses, finite address sets, and ℕ. Nothing applies to a bound variable ranging over *tuples* `(a, F, G)`: no projection to the tuple address, no `addrs(·)`, no coverage-membership test on a bound tuple's endset. So a filtered domain `{x ∈ L_K : P(x, ·)}` has no expressible filter bodies, and PD0's "tests of stored tuple content" names predicates the language does not contain — the PD0 class collapses to bare non-emptiness and counts. Similarly, a `Reg`-bound variable's only use is indexing atom families (`M_K` with `K` bound, as in the cross-type worked example), a term former that is never defined; presumably it is eliminable by static expansion via V-STAT, but that is nowhere said.
+**Required**: Either admit tuple projections and per-tuple endset tests (`addrs(F)`, `t ∈ coverage(F)` — membership only, since `coverage(F)` is infinite and outside COD) as primitives, or remove tuple-valued domains and restate PD0 over address-valued domains. Define variable-indexed atom application over `Reg` (or its static expansion) explicitly.
+
+### Issue 2: PC6's converse is false as argued — `Observe_K` pattern queries exceed the atoms
+**ASN-0129, PC6**: "every function evaluable from the substrate's read primitives lies in PL — the read primitives being exhaustively `Observe_K` … and the atoms enumerate the leaf forms".
+**Problem**: A single call `Observe_K(Σ, {x}, {y₁, y₂}, oper) ≠ ∅` evaluates "some one active K-tuple's F covers x and its G covers both y₁ and y₂." This is not PL-expressible. Counterexample pair: K Multi, idem=⊥, no behaviors; two deposits at the same home in the same order, F = {(x, δ(1,#x))} in all four tuples. State A: G-denotations {y₁}, {y₂}. State B: {y₁, y₂}, {y₂}. Then every atom denotation coincides pointwise — `members = {x}` both; `targets_of(x)` = {y₁, y₂} both; `sources_to(t) = {x}` for every t under y₁ or y₂, both; `is_K` agrees everywhere; `count(A_K) = count(L_K) = 2` both; `L_dom`, `C_dom`, registry identical — so every PL term agrees on A and B (PL semantics factors through atom denotations and store domains), yet the Observe pattern query distinguishes them. The note's own base includes `Observe_K` with finite patterns, so "substrate-evaluable" strictly exceeds PL and the leaf-enumeration step of the converse fails.
+**Required**: Either extend the vocabulary so pattern queries are expressible (per-tuple quantification with coverage tests — the same repair as Issue 1), or redefine the read-primitive base as the ASN-0128 atom surface and downgrade PC6 from a theorem about the substrate to a definition of PL, stating the gap to `Observe_K` explicitly.
+
+### Issue 3: PC6a's proof sketch cites a result for a strictly weaker logic than PL
+**ASN-0129, PC6a**: "A PL term … has a fixed quantifier depth `k` … defeats any fixed `k` — the standard inexpressibility of transitive closure in fixed-quantifier-depth first-order logic over finite structures, instantiated at the denoted graph."
+**Problem**: PL is not fixed-depth FO, on three counts. (i) `is_in_chain`/`chain`/`tip` perform unbounded-length traversal at fixed syntax — on states whose K-graph has out-degree ≤ 1, `is_in_chain(x, y)` *is* `reach(x, y)` at arbitrary distance, so "chains longer than the term can traverse" is false as a general principle; the branch remark confines the rescue but then the lower bound must be proven on branchy families, where (ii) PC2a's cardinality comparisons and (iii) V-PRIM's built-in total orders T1/≼ are available. Plain-FO EF games do not handle counting, and locality-based lower bounds for counting logics collapse over ordered structures (the order makes the Gaifman graph trivial); inexpressibility for counting-plus-order logics is a substantially harder regime, in nearby cases open. Nothing in the sketch constructs state families on which reach differs while all walk atoms, all counts of all filtered domains, and all order-sensitive aggregations agree. The abstract sells this as "*provably* outside the language … promoted from a design stance to a theorem"; the proof obligation is unmet.
+**Required**: A genuine inexpressibility proof for PL as actually defined (handling counting, order, and the walk atoms — e.g., cardinality-balanced branchy gadget families with an atom-invariance argument), or demote PC6a to a conjecture/design stance and strip the "theorem" framing from the abstract and commitments.
+
+### Issue 4: PD0's class, as written, contains non-monotone terms
+**ASN-0129, PD0**: "A PL term whose atomic queries read only audit slices, in existential-positive position — built from `∃` over audit domains (`L_K`, `L_dom`), tests of stored tuple content, PC0's `∧`/`∨`, and PC2/PC2a over the same — is *⊤-stable*".
+**Problem**: `count(L_K) ≤ 3` is built solely from PC2a over an audit domain plus a V-PRIM comparison — no negation, no universal — so it sits in the class as described, and it flips ⊤→⊥ on the fourth K-deposit. Same for `min_{T1}(L_dom) = a₀`-style extremum tests. The Ground paragraph proves witness persistence for the ∃-core only; the class definition does not restrict the polarity of aggregation comparisons.
+**Required**: An inductive definition of the PD0 class with polarity rules: counts only in lower-bound position against constants (`count(D) ≥ c`), extrema excluded or polarity-typed, filter bodies recursively in the class, no equality/upper-bound tests on aggregates.
+
+### Issue 5: PD2's "only exception is retraction" is false when BH4 is attached
+**ASN-0129, PD2**: "a term reading *active* slices of S is invariant under deposits of types outside S **only when** `[R]` ∉ the depositing side … a trigger over active slices is untouched by unrelated fires *except retractions* — name the exception or be surprised by it."
+**Problem**: BH4's `age` reads the home chain frontier, and ASN-0128 is explicit that "the chain interleaves every type homed at d, so age counts the home's subsequent link traffic, not K-events alone." Take K ∈ S with BH4 and the trigger `stale(h) ≠ ∅`: a deposit of an unrelated type K' ∉ S, K' ≁ R, homed at the same document, advances `f_d`, increments the ages of K's active tuples there, and flips the trigger ⊥→⊤ — no retraction anywhere. PD2's exactness claim omits its own second exception, in the paragraph telling authors to name exceptions.
+**Required**: Define each atom's read footprint and carve out BH4 (home-chain arithmetic is home-wide, not slice-local), or scope PD2's active-slice clause to BH4-free terms.
+
+### Issue 6: View semantics are inconsistent — audit enumeration atoms undefined, QD's view binding contradicts PC3
+**ASN-0129, V / QD / PC3**: "`members(K, view)` … each atom's semantics exactly its ASN-0128 specification — this note adds no atom and changes none"; "`M_K` (the set `members(K, active)`)"; "the view is fixed once per top-level term and inherited by every constituent, mixed-view terms requiring an explicit per-atom selector".
+**Problem**: (a) ASN-0128 defines `members`/`targets_of` at `active` (D1/D3) and `default` (BH1's rewrite); no audit reading exists for any enumeration atom. Yet PC3 puts `audit` in every term's view range and the worked section glosses "the audit evaluation" of `quiescent(t)` — semantics this note needs but never defines, while claiming to add and change nothing. (b) QD hardwires `M_K` to `active`, but PC3 says the view is inherited by every constituent, and PD1's default-view analysis (a trigger over `M_K` flipping on a `retired` deposit) only works if `M_K` reads the default view — the binding is contradictory. (c) PC3 licenses mixed-view terms whenever selectors are explicit, while Open Question 1 presents fine-grained mixing as open; if any explicit mix is well-formed, the one-view rule is vacuous.
+**Required**: Define the audit reading of every enumeration atom (own it as a new definition); state whether QD base domains inherit the term's view or carry fixed views; reconcile PC3's licensing rule with Open Question 1.
+
+### Issue 7: UV is under-specified off set/sequence codomains
+**ASN-0129, UV**: "filtering rewrites enumeration results — on every enumeration surface — and rewrites nothing else … `tip` reports the active walk's verdict even when the tip itself is filtered".
+**Problem**: "Drops elements" type-checks only for set- and sequence-valued results. The rule is silent on: `target_of` (optional-valued — dropping to ⊥ would conflate retirement with the multiplicity verdict; leaving it unrewritten contradicts "every enumeration surface"); `targets_keyed` (omit keys whose target is filtered, or keep?); `sources_to` and `succs` (presumably elementwise, but unstated); BH4's `stale` (a set of tuple addresses — filtered when the event address is retired?). And `is_in_chain` is caught between two UV clauses: it is Boolean ("membership atoms are never rewritten") but AD classes it as enumeration-derived membership in the result list, which UV rewrites — so its default-view value on a retired mid-chain element is ambiguous. The `tip` carve-out shows a principle (verdicts are never presentation-rewritten) that is never stated as one.
+**Required**: A per-codomain UV rule covering every atom — collection results filter elementwise; optional/verdict results never rewritten (stated as the principle, with `target_of` decided); maps and `stale` and `is_in_chain` each given an explicit reading.
+
+### Issue 8: `age`'s partiality is exactly the silent kind PC2 bans, and it breaks PC5's universal claims
+**ASN-0129, V (BH4 family) / PC2 / PC5**: "`age : T → ℕ` (partial: active tuples only)"; "*Partiality is guarded, never silent*"; "every PL predicate is decidable at every reachable state."
+**Problem**: PC2's guard mechanism is defined only for the `T ∪ {⊥}` codomain. `age` is partial with codomain ℕ — no ⊥, no guard form applies — and no atom tests "this address holds an active K-tuple" (`is_K` tests F-coverage, not tuple addresses), so a guard is not even expressible. A term like `∃ a ∈ L_dom :: age(a) > h` has undefined subterms at any state containing an inactive or non-K link, contradicting PC4/PC5's claims for *every* PL term; worse, definedness is state-dependent — a retraction turns a defined term undefined, which also poisons the PD classification.
+**Required**: Re-type `age` as ℕ ∪ {⊥} (extending COD and PC2's guard accordingly), or admit an activeness-test primitive and syntactically restrict `age` to guarded positions.
+
+### Issue 9: PC2a's aggregation cannot reach set-valued terms, and the "meta-level sum" has no defined status
+**ASN-0129, PC2a**: "`count(D) = |[D]_Σ| : ℕ`"; "a cross-type composite is a meta-level sum of per-type counts (settling ASN-0128 Open Question 2)."
+**Problem**: (a) `count`/`max`/`min` consume QD domains only. `℘_fin(T)`-valued terms — `targets_of(x, active)`, and PC2a's own `⋃` output — are not QD domains and cannot be rebuilt as filters over any base (targets may be ghost addresses outside `C_dom ∪ L_dom ∪ M_K`). So "x has at most n targets" is inexpressible while `under_cap` counts sources — an undocumented asymmetry in a note claiming the full predicate language; `⋃`'s output composes only with membership/emptiness tests; sequence lengths (`chain`) are likewise unreachable. (b) ℕ-addition appears in no vocabulary list (V-PRIM admits comparisons only), so the "meta-level sum" is either outside PL — in which case Open Question 2 is settled by *exclusion* and the note should say cross-type totals are not PL triggers — or `+` must be admitted, in which case PC6's node/leaf enumeration must include it.
+**Required**: Close QD under address-set-valued PL terms (QD-fin survives — they are finite) or document the exclusion; fix the status of ℕ arithmetic explicitly.
+
+### Issue 10: `dom(Σ.M)` membership is silently absent, while PC4 overstates dependence on Σ.M
+**ASN-0129, PC6 / PC4**: "domain membership against `dom(Σ.C)`/`dom(Σ.L)`"; "pure function of `(Σ.C, Σ.M, Σ.L, Σ.registry)`".
+**Problem**: No QD base and no primitive exposes `d ∈ dom(Σ.M)` — yet the note's declared consumers are gating disciplines, and document-residence is the emit surface's own validation clause (I1/I5, ASN-0128). Every other exclusion (value reads, the ASN-0127 layer) is fenced with a stated rationale; this one is unstated, so it reads as an oversight rather than a boundary. Conversely PC4 lists Σ.M as an input of every PL term although no atom or domain reads any part of M — directly at odds with the "Structural reads only" paragraph ("never the value mappings").
+**Required**: Decide and document: admit an `M_dom` base (finite by the same step-counting argument as `C_dom`) or state the exclusion and why; tighten PC4's dependency tuple to what is actually read (`dom(Σ.C)`, Σ.L, registry).
+
+### Issue 11: Constants and literals are leaf forms the vocabulary never admits
+**ASN-0129, worked compositions / V-PRIM**: "`¬(∃ c ∈ OPEN(t) :: ⊤)`"; V-PRIM's own rationale: "PC6's converse direction enumerates leaf forms exhaustively, which an unadmitted ambient primitive would silently break."
+**Problem**: The Boolean constant ⊤, ℕ literals (`n` in `under_cap`, `h` in `stale`), and the ⊥-verdict in comparisons (`tip(t) ≠ ⊥` — which also needs equality on `T ∪ {⊥}`, not covered by "address equality") all appear in the note's own terms but in no vocabulary list. By V-PRIM's own argument, these unadmitted leaves break PC6's enumeration.
+**Required**: Admit constants/literals per COD entry, and either optional-equality or a definedness test for `T ∪ {⊥}`, to V-PRIM.
+
+### Issue 12: Minor rigor defects
+**ASN-0129, worked compositions / QD-fin**: "(PC1, consequence (c))"; "`x ∈ {y ∈ M_K(active) : y ≼ addr}`"; QD-fin's `dom(Σ.C)` argument.
+**Problem**: (a) PC1 has no labeled consequences — "(c)" is a dangling citation. (b) `M_K(active)` treats `M_K` as view-parameterized although QD defines it as already-active (resolve with Issue 6). (c) QD-fin's finiteness induction for `dom(Σ.C)` states the step (one address per K.α) but not the base — `|dom(Σ_init.C)| < ∞` via R-VAL's verbatim ASN-0086 components is needed and unstated.
+**Required**: Fix the citation, settle the notation, state the induction base.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Eliminators for Seq_fin and Map_fin
+`chain`'s sequence and `targets_keyed`'s map are producible but compositionally inert — no length, indexing, or lookup primitives consume them. Adding eliminators is a vocabulary extension for a successor (with PC6's enumeration updated in step).
+**Why out of scope**: COD claims only that each codomain is realized, not consumed; once Issue 9 documents aggregation's reach, the absence falsifies no present claim — it is new vocabulary, not an error here.
+
+### Topic 2: Evaluation cost model
+PC5 proves termination, not feasibility; nested filtered quantification can be expensive, and protocol authors will eventually need complexity guarantees per term shape.
+**Why out of scope**: A cost model is a new analytical layer over the algebra, not a gap in its correctness claims.
+
+### Topic 3: Two-state (transition) predicates
+PD0–PD2 classify single-state terms by behavior across steps, but a predicate algebra over (pre, post) state pairs — the natural typing for fire conditions on specific step kinds — is untouched territory.
+**Why out of scope**: The note deliberately has no temporal operators (PC6) and fences protocol machinery; a transition-predicate layer is a successor ASN, not a defect in this one.
+
+VERDICT: REVISE
