@@ -258,12 +258,17 @@ arrangement) holds because DELETE allocates no content — `dom(C') = dom(C)` (P
 recorded in the provenance relation `Σ'.R`. For `d' ≠ d` the discharge is
 immediate — DEL-FDOC gives
 `M'(d') = M(d')`, so no address is range-new for any other document. For the
-operated `d`, DELETE introduces *no* range-new content: every survivor's
-I-address that the K.μ⁺ step re-places was already in the content-subspace range
-of `M(d)` at its old position in the initial state, so it fails J1★'s "new to
-the range" trigger — the conjunct
-`¬(E v ∈ dom(M(d)) : subspace(v) = s_C ∧ M(d)(v) = a)` is false for each — and the
-deleted addresses are simply absent from the final range. **J1'★** (every new
+operated `d`, DELETE introduces *no* range-new content. The post-state
+content-subspace range has two summands, `M(d)(L) ∪ M(d)(R)`: a post-state
+image either is retained on the prefix `L` at its own position (D-L) or is
+re-placed from the suffix `R` by the K.μ⁺ step (D-SHIFT), and in both cases it
+equals `M(d)(v)` for some content-subspace position `v ∈ dom(M(d))` of the
+initial state — so J1★'s "new to the range" trigger, the conjunct
+`¬(E v ∈ dom(M(d)) : subspace(v) = s_C ∧ M(d)(v) = a)`, is false for every `a`
+in the post-state range. (J1★ asks only that the post-state range introduce
+nothing new; what *leaves* the range — exactly `A_del^{excl}` of the wp section
+below, under within-document sharing a possibly proper subset of `A_del` —
+plays no part in the discharge.) **J1'★** (every new
 provenance entry requires range-new content) holds because DELETE adds no
 provenance, so its antecedent `Σ'.R ∖ Σ.R` is empty. Both component steps fix the
 link store, the entity set, and the provenance relation (`Σ'.L = Σ.L`,
@@ -298,14 +303,12 @@ derive them by citation:
 - (P0) `Σ'.C = Σ.C` — ASN-0082 **D-I**, the content-store frame.
 
 *Frame.*
-- (DEL-CFRAME) `Σ'.L = Σ.L ∧ Σ'.E = Σ.E ∧ Σ'.R = Σ.R` — the frame discharge
-  named above, holding in both realisations (the K.μ⁻/K.μ⁺ frame clauses for
-  the composite, J2 for the `R = ∅` single step; ASN-0047). The link store is
-  fixed in both domain and per-address value (`dom(Σ'.L) = dom(Σ.L)` and
-  `(A a : a ∈ dom(Σ.L) : Σ'.L(a) = Σ.L(a))`); on the fixed entity set, P1
-  (EntityPermanence) and P8 (EntityHierarchy) survive DELETE trivially; on the
-  fixed provenance relation, P4★, P4a, and P7a hold at the post-state boundary
-  by ExtendedReachableStateInvariants (ASN-0047).
+- (DEL-CFRAME) `Σ'.L = Σ.L ∧ Σ'.E = Σ.E ∧ Σ'.R = Σ.R` — discharged for both
+  realisations in the *Effect* coupling paragraph above, which also draws the
+  boundary-properties conclusion (P4★, P4a, P7a at the post-state). The link
+  store is fixed in both domain and per-address value (`dom(Σ'.L) = dom(Σ.L)`
+  and `(A a : a ∈ dom(Σ.L) : Σ'.L(a) = Σ.L(a))`); on the fixed entity set, P1
+  (EntityPermanence) and P8 (EntityHierarchy) survive DELETE trivially.
 - (DEL-FSUB) `(A S' : S' ≠ S : {v ∈ dom(M'(d)) : subspace(v) = S'} =
   {v ∈ dom(M(d)) : subspace(v) = S'}` and `M'(d)` agrees there`)` —
   ASN-0082 **D-CS**. In particular the document's *links* (subspace `s_L`) are
@@ -807,7 +810,7 @@ only their placement in this one document's present view is withdrawn.
 | DEL-SHIFT | Suffix positions `v ∈ R` move to `σ(v) = q_{k−c}`, carrying their I-address (ASN-0082 D-SHIFT) | introduced |
 | DEL-LEFT | Prefix positions `v < p` are unchanged (ASN-0082 D-L) | introduced |
 | DEL-DOM | `V_S(d')` is the dense run `{q_1, …, q_{N−c}}` with the gap closed (ASN-0082 D-DOM, D-SEP) | introduced |
-| DEL-CFRAME | `Σ'.L = Σ.L ∧ Σ'.E = Σ.E ∧ Σ'.R = Σ.R` in both realisations — the K.μ⁻/K.μ⁺ frame clauses for the composite, J2 for the lone K.μ⁻ (ASN-0047); P1/P8 preserved on the fixed entity set, P4★/P4a/P7a at the post-state boundary | introduced |
+| DEL-CFRAME | `Σ'.L = Σ.L ∧ Σ'.E = Σ.E ∧ Σ'.R = Σ.R` in both realisations (discharged in the *Effect* coupling paragraph); P1/P8 preserved on the fixed entity set | introduced |
 | DEL-FSUB | Positions in subspaces `S' ≠ S` (notably links) are unchanged (ASN-0082 D-CS) | introduced |
 | DEL-FDOC | Arrangements of all documents `d' ≠ d` are unchanged (ASN-0082 D-CD) | introduced |
 
