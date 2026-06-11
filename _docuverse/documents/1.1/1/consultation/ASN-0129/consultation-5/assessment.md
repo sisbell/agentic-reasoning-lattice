@@ -1,0 +1,13 @@
+# Channel Assignment — ASN-0129 review-5
+
+**Date:** 2026-06-11 14:13
+
+## Issue 1: V-IDX's universal-attachment condition is unsatisfiable at every constructible registry, and the note reasons about it as a live case
+Reason: Internal. The vacuity is a mechanical check of the three mandatory registration records (R-C1/S1–S3, already quoted with full records in the review) against each behavior's shape/idem constraint, and the surviving `Reg`-body vocabulary is already enumerated in the note itself (core family, fixed-view slices, the class-unindexed `targets_keyed`, V-PRIM's `·[K]`); no design-intent or implementation question remains — note also that QD's own grammar (no `Reg` filters, no class operations) rules out the "rescope to a sub-registry" alternative, so stating the vacuity is the only repair consistent with existing content.
+
+## Issue 2: PC6's evaluation class never places V-TUP — the leaf enumeration and the node vocabulary disagree
+Reason: Internal. The note's own content forces the placement: FP already classifies V-TUP as reading the bound tuple's stored value (a state read, hence base material), and the converse direction already requires V-TUP leaves to normalize `Observe_K` — so adding V-TUP to the base enumeration (per-tuple reads of in-hand stored tuples) is a consistency repair fully determined by definitions and arguments already present, coordinated with whatever base Issue 3 settles.
+
+## Issue 3: PC6's forward direction — "atoms are base calls or bounded-iteration combinators over them" — is false for the base as enumerated
+Reason: Gregory is needed because the preferred repair — enlarging the base rather than collapsing it to `V_atom` — claims these operations are the substrate's genuine read primitives, and that claim needs implementation evidence: the review itself hedges on how home identification works ("T4 field extraction or zeros inspection"), and whether store-domain enumeration is a real read operation is not derivable from the ASN. Sub-issue (a) needs no consultation — ASN-0086's CoverageEqualityDecidable already cites TumblerAdd, so that base addition is citation-mechanical.
+Gregory question: What primitive tumbler operations does the read path actually perform when testing whether an address falls within a span and when deriving a link's home document and chain position from its address (field extraction around the `.0.3` link subspace? last-component increment? tumbler addition for span upper bounds?), and does any read operation enumerate the document or content store domains rather than only testing membership against them?
