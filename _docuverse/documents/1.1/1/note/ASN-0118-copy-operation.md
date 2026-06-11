@@ -59,7 +59,10 @@ image lies in the store appropriate to the V-position's subspace — content
 positions into `dom(Σ.C)`, link positions into `dom(Σ.L)` (ASN-0047, S3★
 GeneralizedReferentialIntegrity, refining ASN-0036's S3) — and it is the one
 component of state that may be edited in place. The *link store* `Σ.L : T ⇀ Link`
-(ASN-0043, ASN-0093) is permanent (L12 LinkImmutability). A document records,
+(ASN-0043, ASN-0093) is permanent (L12 LinkImmutability). The *entity set*
+`Σ.E ⊆ T` (ASN-0047) holds the allocated organisational addresses — nodes,
+accounts, documents — its document stratum coinciding with the arrangement
+domain, `E_doc = dom(Σ.M)` (ASN-0047, M1). A document records,
 besides its arrangement, a *provenance* relation `Σ.R ⊆ T × T` (ASN-0047): a pair
 `(a, d)` records that document `d` has referenced I-address `a`.
 
@@ -145,9 +148,11 @@ time rather than run-by-run, and every address it lists is the image
 `Σ.M(d_s)(v)` of a bound active position `v ∈ act(ρ, Σ)`. Fix one V-spec
 `ρ = (d_s, σ)`. Its runs `(vⱼ, aⱼ, nⱼ)` partition `act(ρ, Σ)` — the domain
 `dom(M(d_s)|⟦σ⟧)` — into
-disjoint maximal runs (ASN-0058, C1a), and the maximal-run lockstep property
-(ASN-0036, S8) fixes each run's images in step with its bound positions:
-`Σ.M(d_s)(vⱼ + k) = aⱼ + k` for every `0 ≤ k < nⱼ`. Hence the address `aⱼ + k`
+disjoint maximal runs (ASN-0058, C1a), and the per-run lockstep those runs carry
+(ASN-0058: MaximalRun condition 1 and decomposition consistency B3, extended to
+restrictions by the same C1a — the restriction-level analogue of ASN-0036's S8
+lockstep on whole arrangements) fixes each run's images in step with its bound
+positions: `Σ.M(d_s)(vⱼ + k) = aⱼ + k` for every `0 ≤ k < nⱼ`. Hence the address `aⱼ + k`
 that `expand` emits at interior offset `k` is *exactly* the image
 `Σ.M(d_s)(vⱼ + k)` of the bound position `vⱼ + k ∈ act(ρ, Σ)` — run interiors
 included. C1b (ResolutionSequenceOrder) lists the runs in strictly increasing
@@ -237,16 +242,18 @@ domain-equality conjunct does the same for the non-text subspaces). CP3c is the
 COPY analogue of ASN-0082's I3-V (PostInsertionVacating) and D-DOM (domain
 characterization), which COPY's displacement otherwise borrows wholesale.
 
-*Effect — provenance.* Each resolved address is referenced by `d` in the
-post-state:
+*Effect — provenance.* The provenance relation closes to the pre-state pairs plus
+exactly one pair per placed address:
 
-> `(A i : 0 ≤ i < W : (cᵢ, d) ∈ Σ'.R)`     (CP8)
+> `Σ'.R = Σ.R ∪ {(cᵢ, d) : 0 ≤ i < W}`     (CP8)
 
-CP8 is a *membership* postcondition, and to see that the membership is *produced*
-rather than merely *required*, we exhibit COPY as a valid ASN-0047 composite
-(ValidComposite) and read the obligation off its atomic steps. The decomposition
-splits on whether the insertion point has trailing content to displace; getting it
-right matters, because a single K.μ⁺ cannot realize the displacement.
+CP8's `⊇` direction is the membership `(A i : 0 ≤ i < W : (cᵢ, d) ∈ Σ'.R)`; its
+`⊆` direction pins `Σ'.R ∖ Σ.R` to pairs of placed addresses with `d`, so no
+spurious pair can enter. To see that the membership is *produced* rather than
+merely *required* — and the bound respected — we exhibit COPY as a valid ASN-0047
+composite (ValidComposite) and read the obligation off its atomic steps. The
+decomposition splits on whether the insertion point has trailing content to
+displace.
 
 *Append or empty case* (`p = max+1`, or `V_{s_C}(d) = ∅`). No prior position
 satisfies `v ≥ p`, so CP3a is vacuous and the effect is a pure extension: a single
@@ -366,7 +373,11 @@ fire at all. The membership still holds: by P4★ (`Contains_C(Σ) ⊆ R`, ASN-0
 available since `Σ` is a composite boundary (standing precondition),
 `(cᵢ, d) ∈ Σ.R` already, and provenance permanence (P2) carries it into `Σ'`.
 Across all three branches the membership `(cᵢ, d) ∈ Σ'.R` holds; fresh recording
-occurs exactly for the range-new addresses *not already in `Σ.R`*.
+occurs exactly for the range-new addresses *not already in `Σ.R`*. CP8's `⊆`
+direction holds by the same exhibition: the composite's only `Σ.R`-touching steps
+are these K.ρ recordings, each adding a placed pair `(cᵢ, d)`, so
+`Σ'.R ∖ Σ.R ⊆ {(cᵢ, d) : 0 ≤ i < W}` — with J1'★ independently confining any new
+pair to range-new content of its document.
 
 *Frame — left of the insertion point.*
 
@@ -375,6 +386,18 @@ occurs exactly for the range-new addresses *not already in `Σ.R`*.
 *Frame — content store.*
 
 > `dom(Σ'.C) = dom(Σ.C) ∧ (A a : a ∈ dom(Σ.C) : Σ'.C(a) = Σ.C(a))`     (CP1)
+
+*Frame — entity set.*
+
+> `Σ'.E = Σ.E`     (CP12)
+
+COPY mints no node, account, or document: the composite below contains no K.δ
+step, and every step it does contain (K.μ⁻, K.μ⁺, K.ρ) frames `E` unchanged
+(ASN-0047). CP12 and CP8's `⊆` direction together bound the two components the
+remaining clauses constrain only from below — without them a transition could
+satisfy every other clause while adding entities to `E` or spurious pairs to
+`Σ.R`. This is the standard CP3c sets for the arrangement domain: dischargeable
+from the postconditions alone, not only through the exhibited composite.
 
 *Frame — link store, other subspaces, other documents.*
 
@@ -442,7 +465,7 @@ they are the same bytes.
 ## What stays the source's, and what the destination makes its own
 
 The split the operation enforces is sharp, and it falls along the
-Istream/Vstream seam. We tabulate it because the question turns on it.
+Istream/Vstream seam.
 
 | Aspect | Status under COPY | By |
 |---|---|---|
@@ -536,9 +559,10 @@ extended, not corrupted.
 
 CP6 states that COPY modifies no document but the destination: every source `d_s`
 distinct from `d`, and every other document, has `Σ'.M(d_s) = Σ.M(d_s)`. Combined
-with the read-only character of resolution (CP0(b)) and the content and link
-frames (CP1, CP7a), this says the source is untouched by the act of being copied
-from. The COPY transition writes to `Σ.M(d)`, `Σ.R`, and nothing else.
+with the read-only character of resolution (CP0(b)) and the content, link, and
+entity frames (CP1, CP7a, CP12), this says the source is untouched by the act of
+being copied from. The COPY transition writes to `Σ.M(d)`, `Σ.R`, and nothing
+else.
 
 Yet *isolation of the act* is not *unawareness of the connection*, and the two
 must not be confused. Because the placed material shares the source's I-address
@@ -618,9 +642,8 @@ document that transcludes content covered by a link can discover that link, whic
 is the multi-endpoint, refraction-friendly behaviour Nelson requires of windowed
 content.
 
-This is the place for a non-trivial weakest precondition. Fix a link `a` not
-already discoverable from `d` at `Σ`, and ask what must hold of `Σ` for `a` to be
-discoverable from `d` after COPY. Pulling the post-state criterion back through
+Fix a link `a` not already discoverable from `d` at `Σ`, and ask what must hold
+of `Σ` for `a` to be discoverable from `d` after COPY. Pulling the post-state criterion back through
 the operation — `Σ'.L = Σ.L` (CP7a), and
 `ran(Σ'.M(d)) = ran(Σ.M(d)) ∪ {c₀, …, c_{W−1}}` (CP2 adds the placed addresses;
 CP3a/CP3b move prior positions but preserve their I-addresses, so the prior range
@@ -739,8 +762,8 @@ We check the claims numerically.
   addresses are therefore *range-new*: the placement (CP2) makes each new to
   `d`'s content-subspace range in `Σ'`, so J1★ obliges a K.ρ step for each, and
   J1'★ admits exactly those three. The composite thus runs three provenance steps,
-  yielding `(a₁, d), (a₂, d), (b₁, d) ∈ Σ'.R` — fresh recording for every
-  range-new address.
+  yielding `Σ'.R = Σ.R ∪ {(a₁, d), (a₂, d), (b₁, d)}` — fresh recording for every
+  range-new address, and nothing else enters (CP8's `⊆` direction).
 
   To exhibit the already-referenced branch, vary the spec-set to *re-place* `d`'s
   own `x₁`: append `(d, σ_x)` with `σ_x = ([1,1], δ(1,2))`, resolving the extra
@@ -762,16 +785,17 @@ sources.
 |-------|-----------|--------|
 | CP0 | `resolve(R, Σ)` reads each active source position through its arrangement, in spec-set order, yielding `⟨c₀,…,c_{W−1}⟩` with (a) every `cᵢ ∈ dom(Σ.C)`, (b) resolution a pure read of `Σ`, (c) non-contiguity of sources preserved as distinct runs | introduced |
 | CP1 | TransclusionFrame: `dom(Σ'.C) = dom(Σ.C) ∧ (A a ∈ dom(Σ.C) : Σ'.C(a) = Σ.C(a))` — COPY allocates no content; the placed material refers to existing I-addresses | introduced |
-| CP2 | Placement: `(A i : 0 ≤ i < W : Σ'.M(d)(p + i) = cᵢ)` — `W` fresh destination V-positions bind the resolved (pre-existing) I-addresses; the placed material shares the source's content identity | introduced |
+| CP2 | Placement: `(A i : 0 ≤ i < W : Σ'.M(d)(p + i) = cᵢ)` — `W` destination V-positions, freshly bound, carry the resolved (pre-existing) I-addresses; the placed material shares the source's content identity | introduced |
 | CP3 | PriorArrangementPreservation: left content unchanged (CP3b, `v < p`), trailing text content shifted forward by `W` with bindings intact (CP3a, `v ≥ p`), and the text-subspace domain closed to left ∪ placement ∪ shifted with the pre-shift positions vacated (CP3c) — so S2 functionality is dischargeable from the postconditions; order-preserving, injective, non-destructive | introduced |
 | CP4 | MultiplicityIncrease: total references into the placed set increase by exactly `W`; each placed `cᵢ`'s own reference count increases by its occurrence count in `resolve(R, Σ)` (≥ 1); distinct V-positions binding one address are permanently independent occurrences (S5, M14) | introduced |
 | CP5 | OriginInvariance: `origin(cᵢ)` is unchanged by COPY (S7(d)) and equals the document that *originally allocated* `cᵢ` — the spec-set source, a third document the source transcluded from, or `d` itself (copy-back / self-transclusion); attribution and ownership stay with that allocator | introduced |
 | CP6 | SourceIsolation: `(A d' ≠ d : Σ'.M(d') = Σ.M(d'))` and cross-subspace frame, the latter closing `d`'s non-`s_C` domain to its pre-state value (`{v ∈ dom(Σ'.M(d)) : subspace(v) ≠ s_C} = {v ∈ dom(Σ.M(d)) : subspace(v) ≠ s_C}`) with bindings preserved — every source and every other document is unmodified; the source's connectedness nonetheless grows (shared identity + provenance) | introduced |
 | CP7 | Links: (a) `Σ'.L = Σ.L`; (b) LinkSurvivalUnderReuse — any link whose endset coverage meets `{c₀,…,c_{W−1}}` becomes discoverable from `d` in `Σ'`; links to the destination's prior content remain discoverable (prior images retained in range via CP3a/CP3b, LP12) | introduced |
-| CP8 | ProvenanceRecording: `(A i : 0 ≤ i < W : (cᵢ, d) ∈ Σ'.R)` — J1★ demands the *membership* in `Σ'.R`, satisfied by a fresh K.ρ step for range-new addresses not already in `Σ.R` (J1'★-admissible), by permanence P2 for range-new addresses already in `Σ.R` (re-COPY of deleted content, K.ρ optional), and by P4★ + P2 for addresses already in `d`'s current range | introduced |
+| CP8 | ProvenanceClosure: `Σ'.R = Σ.R ∪ {(cᵢ, d) : 0 ≤ i < W}` — membership (`⊇`) by a fresh K.ρ step for range-new addresses not already in `Σ.R` (J1'★-admissible), by permanence P2 for range-new addresses already in `Σ.R` (re-COPY of deleted content, K.ρ optional), and by P4★ + P2 for addresses already in `d`'s current range; the `⊆` direction pins `Σ'.R ∖ Σ.R` to the placed pairs | introduced |
 | CP9 | SelfTransclusionAdmissibility: when `d_s = d`, resolution reads the pre-state, so placement adds independent V-positions of `d` referring to addresses `d` already bound; no content is duplicated | introduced |
 | CP10 | ImmutabilityPreservation: S0 preserved across COPY (corollary of CP1); reused content carries identical bytes into the destination because they are the same bytes | introduced |
 | CP11 | OriginMultisetPreservation: `⦃origin(cᵢ) : 0 ≤ i < W⦄` is preserved into the destination's arrangement; cross-origin blocks cannot merge (M16) | introduced |
+| CP12 | EntityFrame: `Σ'.E = Σ.E` — COPY mints no node, account, or document (the composite runs no K.δ step); with CP8's `⊆` direction, every state component is bounded above by the operation's own clauses | introduced |
 
 ## Open Questions
 
