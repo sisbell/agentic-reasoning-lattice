@@ -105,8 +105,7 @@ position introduced with the operation below). The ordering is part of the reque
 want to designate a separated series of items exactly, including nothing else, you
 do this by a span-set, which is a series of spans" (4/25): a spec-set is a
 *sequence*, not a set, and its "exactly" is the *exclusion* of unwanted
-intermediate content between the named pieces — a precision-of-boundary mechanism,
-not a demand that every named position be occupied.
+intermediate content between the named pieces.
 
 The *active positions* of a V-spec are those tumblers the span denotes that the
 source arrangement actually binds, `act(ρ, Σ) = dom(Σ.M(d_s)) ∩ ⟦σ⟧` — the
@@ -237,8 +236,9 @@ the three disjoint, abutting ordinal ranges (left, placement, shifted; their
 disjointness is the tiling argument given later under prior-arrangement
 preservation), so each text V-position carries exactly one binding and `d`'s
 per-state invariants — S2 functionality among them — are dischargeable from the
-postconditions alone, not only through the exhibited composite (CP6's
-domain-equality conjunct does the same for the non-text subspaces). CP3c is the
+postconditions alone, not only through the exhibited composite; the same closure
+role is played by CP6's domain-equality conjunct (for `d`'s non-text subspaces),
+CP8's `⊆` direction (for `Σ.R`), and CP12 (for `E`). CP3c is the
 COPY analogue of ASN-0082's I3-V (PostInsertionVacating) and D-DOM (domain
 characterization), which COPY's displacement otherwise borrows wholesale.
 
@@ -268,10 +268,7 @@ exhibition that follows the frame clauses (the next section).
 COPY mints no node, account, or document: the composite below contains no K.δ
 step, and every step it does contain (K.μ⁻, K.μ⁺, K.ρ) frames `E` unchanged
 (ASN-0047). CP12 and CP8's `⊆` direction together bound the two components the
-remaining clauses constrain only from below — without them a transition could
-satisfy every other clause while adding entities to `E` or spurious pairs to
-`Σ.R`. They play, for `E` and `Σ.R`, the closure role CP3c plays for the
-arrangement domain.
+remaining clauses constrain only from below.
 
 *Frame — link store, other subspaces, other documents.*
 
@@ -284,8 +281,7 @@ arrangement domain.
 
 The middle clause has two conjuncts. The pointwise conjunct preserves `d`'s
 *pre-state* non-text bindings; the domain-equality conjunct pins `d`'s non-`s_C`
-domain to exactly its pre-state value — the non-text instance of CP3c's closure
-principle.
+domain to exactly its pre-state value.
 
 The last clause includes every source document `d_s ≠ d` and every other document
 in the docuverse. The single self-reference case `d_s = d` — *self-transclusion* —
@@ -359,7 +355,10 @@ top of the retained prefix, both the `W` placement positions `[p, p+W)` bound to
 `c₀,…,c_{W−1}` (CP2) and the displaced trailing positions
 `{(min+i)+W : j ≤ i < N} = [p+W, max+W]` — the equality by shift composition
 (ASN-0034, TS3; ASN-0084, Extended Associativity), `(min+i)+W = min+(i+W)` —
-bound to their original images `Σ.M(d)(min+i)` (CP3a). Each retained mapping is
+bound to their original images `Σ.M(d)(min+i)` (CP3a). K.μ⁺'s image-membership
+precondition holds for these displaced bindings: S3★ at `Σ` places each trailing
+image `Σ.M(d)(min+i)` in `dom(Σ.C)`, and K.μ⁻'s content frame carries
+`dom(Σ₁.C) = dom(Σ.C)` to the state where K.μ⁺ fires. Each retained mapping is
 left intact — K.μ⁺'s strict-extension frame. The freshly added V-positions are
 well-formed (S8a) and carry the subspace common depth, by routes that differ
 between the two kinds: the displaced trailing positions
@@ -788,13 +787,9 @@ We check the claims numerically.
   To exhibit the already-referenced branch, vary the spec-set to *re-place* `d`'s
   own `x₁`: append `(d, σ_x)` with `σ_x = ([1,1], δ(1,2))`, resolving the extra
   address `x₁` (a self-transclusion, CP9). Now `x₁ ∈ ran(Σ.M(d))|_{s_C}` already in
-  the pre-state — it is *not* range-new — so the placement re-binds an address `d`
-  already references. No K.ρ step is needed for it: because `Σ` is a composite
-  boundary, P4★ (`Contains_C(Σ) ⊆ R`) gives `(x₁, d) ∈ Σ.R` already, and provenance
-  permanence P2 carries it into `Σ'`. The membership `(x₁, d) ∈ Σ'.R` holds without
-  any fresh record, and a redundant K.ρ would be a no-op on the relation — the pair
-  contributes nothing to `Σ'.R ∖ Σ.R`, so J1'★, which constrains only pairs
-  genuinely new to `R`, is indifferent to it.
+  the pre-state, so the not-range-new branch applies: `(x₁, d) ∈ Σ.R` by P4★
+  (`Σ` is a composite boundary), and provenance permanence P2 carries it into
+  `Σ'`. The membership `(x₁, d) ∈ Σ'.R` holds without any fresh K.ρ record.
 
 The numbers exhibit the whole point: the destination's V-positions are new, but
 every I-address and every origin in the assembly is borrowed, intact, from the
