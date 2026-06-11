@@ -94,9 +94,14 @@ alone and left to right:
 
 The leading conjunct is decidable by direct inspection of the component sequence — at most three
 zeros, none adjacent, `a₁ ≠ 0`, `a_{#a} ≠ 0` (T4, ASN-0034) — and is necessary by L0b (ASN-0043).
-It also guards the well-definedness of what follows: `subspace_I(·)` and the element-field
-projection `E(·)` are defined only on T4-valid tumblers (T4b, ASN-0034; SubspaceI, ASN-0043), so
-under the left-to-right reading the screen is evaluable on all of `T`, including tumblers such as
+The first two conjuncts jointly guard the well-definedness of what follows: `subspace_I(·)` and
+the element-field projection `E(·)` are defined on T4-valid tumblers with `zeros(·) = 3` and a
+non-empty element field (T4b, ASN-0034; SubspaceI, ASN-0043), and that last domain condition is
+itself discharged by the first two conjuncts — `T4-valid(a) ∧ zeros(a) = 3 ⟹ #E(a) ≥ 1`, since
+T4a's field-segment equivalence makes every field segment of a T4-valid tumbler non-empty, and
+T4b/T4c fix that the three separators delimit four fields of which the fourth is the element
+field, so `E(a)` exists and `E(a)₁` is defined. Under the left-to-right reading the screen is
+therefore evaluable on all of `T`, including tumblers such as
 `[1, 0, 0, 2, 0, 3]` on which the later conjuncts alone would have no value. The remaining
 conjuncts are necessary by L1, L0, and L1b (ASN-0043) respectively. *Every conjunct is necessary*
 — so a failed screen guarantees `⊥` without an invocation. *No satisfiable address-computable predicate is sufficient* — at the initial state `Σ₀`
@@ -231,11 +236,18 @@ Stability across `Σ →* Σ'` follows from LP13 (UnconditionalLinkPersistence, 
 
 A reader who has once read a link may rely on that reading permanently.
 
-*The failure branch carries no such stability.* `readlink(a, Σ) = ⊥` does not entail
-`readlink(a, Σ') = ⊥` for `Σ →* Σ'`: absence from `dom(Σ.L)` is not preserved by `→*` — a
-subsequent K.λ can allocate `a` itself (any screen-passing address at the frontier of an active
-link sub-allocator is a candidate), after which the read at `a` returns a link value. Only
-success-branch results are permanent; a caller must not cache `⊥`.
+*The failure branch's stability splits on the structural screen.* `readlink(a, Σ) = ⊥` does not in
+general entail `readlink(a, Σ') = ⊥` for `Σ →* Σ'`: for a *screen-passing* address, absence from
+`dom(Σ.L)` is not preserved by `→*` — a subsequent K.λ can allocate `a` itself (any screen-passing
+address at the frontier of an active link sub-allocator is a candidate), after which the read at
+`a` returns a link value. For a *screen-failing* address, by contrast, `⊥` is permanent: each
+screen conjunct is necessary for membership in `dom(Σ'.L)` at every reachable `Σ'` — the
+invariants behind RL0's necessity claims (L0b, L1, L0, L1b of ASN-0043) hold at every reachable
+state — so a screen-failing `a` satisfies `a ∉ dom(Σ'.L)` throughout the future, which is exactly
+the permanence that RL0's "a failed screen guarantees `⊥` without an invocation" already relies
+on. The caching discipline follows the split: a success-branch result may be cached permanently,
+`⊥` at a screen-failing address may be cached permanently, and `⊥` at a screen-passing address
+must not be cached.
 
 ## Recorded relationship versus resolved position
 
@@ -337,7 +349,7 @@ complete structure. The read thus distinguishes *the relationship is unwitnessed
 | RL2 | Role preservation — on `a ∈ dom(Σ.L)` the read preserves arity (`|readlink(a, Σ)| = |Σ.L(a)|`) and exposes slot position as a model primitive (L6); from/to/type grouping delivered as structure | introduced |
 | RL3 | Type-by-address — the type is interpreted via `coverage(e₃)`, not via content at those addresses; ghost types read completely | introduced |
 | RL4 | Nesting locality — `readlink` is a function of `(a, Σ.L(a))` alone: reachable `Σ₁, Σ₂` with `Σ₁.L(a) = Σ₂.L(a)` give `readlink(a, Σ₁) = readlink(a, Σ₂)`; corollary: covered link addresses are returned as addresses, never dereferenced, witnessed by an explicit branched-history state pair | introduced |
-| RL5 | Determinacy — pure function of `(a, Σ.L(a))` (RL4); success-branch results stable across all `Σ →* Σ'` by link immutability; the `⊥` result carries no stability (a later K.λ may allocate `a`) | introduced |
+| RL5 | Determinacy — pure function of `(a, Σ.L(a))` (RL4); success-branch results stable across all `Σ →* Σ'` by link immutability; `⊥` is permanent at screen-failing addresses (every screen conjunct is necessary at every reachable state) but carries no stability at screen-passing addresses (a later K.λ may allocate `a`) | introduced |
 | RL6 | Recorded, not resolved — the read depends only on `Σ.L(a)`, succeeds for orphaned links, and returns the complete structure independent of any arrangement | introduced |
 
 ## Open Questions
