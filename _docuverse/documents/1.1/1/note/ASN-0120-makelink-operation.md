@@ -142,14 +142,20 @@ depth `m = #u_j`, `u_j ⊕ ℓ_j = shift(u_j, n_j)` agrees with `u_j` on positio
 `v ∈ dom(Σ.M(d_j))` — has `subspace(v) = s_C`. Generalized referential integrity
 (S3★, ASN-0047) discharges containment on exactly these content-subspace positions
 (`subspace(v) = s_C ⟹ Σ.M(d_j)(v) ∈ dom(Σ.C)`), giving `ρ(R, Σ) ⊆ dom(Σ.C)`: every
-recovered address is real content. This is ASN-0058's `resolve` lifted to a spec-set: writing
-`resolve(d_j, σ_j)` for that ASN's recovery of the I-address runs under `σ_j`,
-`ρ(R, Σ)` is the union over `j` of the I-addresses those runs name. The one
-divergence: `resolve` is defined only for a *well-formed content reference* — one
-in which every depth-`m` position of `⟦σ_j⟧` is active in `d_j`'s arrangement —
-whereas `ρ` filters to the currently-active positions (`v ∈ dom(Σ.M(d_j))`) and so
-resolves *partial* spans as well, since MAKELINK must accept a span some of whose
-positions have since been deleted.
+recovered address is real content. This is ASN-0058's `resolve` lifted to a spec-set,
+with the correspondence scoped to `resolve`'s definedness domain: writing
+`resolve(d_j, σ_j)` for that ASN's recovery of the I-address runs under `σ_j`, the
+function is defined only when `(d_j, σ_j)` is a *ContentReference* — which requires,
+beyond T12, the non-empty subspace `V_{(u_j)₁}(d_j) ≠ ∅` and the depth match
+`#u_j = m` against the common arrangement depth, both of which `wf` above declines
+to impose — and *well-formed*, with every depth-`m` position of `⟦σ_j⟧` active in
+`d_j`'s arrangement. On that domain the two agree: `ρ`'s contribution for spec `j`
+is exactly the set of I-addresses `resolve(d_j, σ_j)`'s runs name. Off it `resolve`
+has no value, and `ρ` extends it along independent axes: the active-position filter
+(`v ∈ dom(Σ.M(d_j))`) resolves *partial* spans — MAKELINK must accept a span some of
+whose positions have since been deleted — and the same filter gives depth-mismatched
+and empty-subspace specs a value (possibly `∅`) where `resolve` is not defined at
+all.
 
 The resolved set is then packaged as an endset. The postcondition pins each
 stored endset's *coverage* exactly, while leaving its *span decomposition* free:
