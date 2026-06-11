@@ -159,6 +159,11 @@ every reachable state):
 
 > `coverage(e_j) ∩ F = ρ(R_j, Σ)`  (the *recovery equation*).
 
+At the boundary `ρ(R_j, Σ) = ∅` the span-shape clause admits no span at all —
+every span requires a root `s ∈ ρ(R_j, Σ)` — so `e_j = ∅` is the unique
+admissible record, and the equation holds with both sides empty; we return to
+this boundary below.
+
 We must say why the trace is taken on `F` rather than on the current store. A
 store-trace condition `coverage(e_j) ∩ dom(Σ.C) = ρ(R_j, Σ)` would leave coverage
 unpinned at the *unallocated frontier* of a content chain: with
@@ -228,11 +233,22 @@ equality over endsets-as-span-sets, L6, ASN-0043) is therefore *deliberately not
 pinned* by MAKELINK: for chain-adjacent resolved `a₁, a₂`, the records
 `{(a₁, δ(1, #a₁)), (a₂, δ(1, #a₂))}` and `{(a₁, δ(2, #a₁))}` are distinct
 link values with equal coverage, and either is a legal record of the same
-resolution. No admissible representation makes `coverage(e)` equal to
-`ρ(R, Σ)` itself: coverage is a union of order-convex intervals, while `ρ(R, Σ)` is a bare
-finite set, and ASN-0053 (S7, CoveringExistence) guarantees only *covering*,
-`coverage(e) ⊇ ρ(R, Σ)` (here a direct consequence of the recovery equation,
-since `ρ(R_j, Σ) ⊆ F`), never exact equality.
+resolution. For `ρ(R, Σ) ≠ ∅`, no admissible representation makes `coverage(e)`
+equal to `ρ(R, Σ)` itself: coverage is a union of order-convex intervals, each
+carrying the whole unit subtree of its chain addresses — and a resolved
+address's proper descendants lie outside `F` (LP-Fin Corollary at `n = 1`),
+hence outside `ρ(R, Σ) ⊆ F` — while `ρ(R, Σ)` is a bare finite set; ASN-0053
+(S7, CoveringExistence) likewise guarantees only *covering*,
+`coverage(e) ⊇ ρ(R, Σ)` (here a direct consequence of the recovery equation),
+and the containment is strict whenever any address is resolved. The boundary
+`ρ(R_j, Σ) = ∅` is the one case of exact equality, and it is in-model for the
+from and to slots: `wf` does not require a spec to capture any active position
+(nor even `p ≥ 1`), and only the type slot excludes the boundary (the
+non-empty type precondition, ML6 below). There, as noted at the recovery
+equation, `e_j = ∅` is the unique admissible record and
+`coverage(∅) = ∅ = ρ(R_j, Σ)` exactly. Under what conditions an empty from or
+to resolution may legitimately arise — and what it means for the link's
+connection — is deferred to the Open Questions.
 
 The covering surplus — the tumblers lying in a resolved address's subtree but
 strictly below it, `coverage(e_j) ∖ ρ(R_j, Σ)` under the extensional form — is
@@ -371,8 +387,10 @@ arguments, and nothing in the operation couples them. MAKELINK admits a home `d`
 together with endsets whose coverage is *disjoint* from everything under `d`'s
 prefix — a link living in document C that connects regions of A and B, touching
 nothing in C. Formally, the precondition imposes no constraint relating `d` to
-`ρ(R_j, Σ)`; the address `a` extends `d`'s prefix, while each `coverage(e_j)` is an
-arbitrary subset of allocated I-addresses (ASN-0043, L4 EndsetGenerality). We name
+`ρ(R_j, Σ)`: the address `a` extends `d`'s prefix, while the resolved sets range
+over finite subsets of `dom(Σ.C)` determined solely by the source arrangements —
+nothing relates any `ρ(R_j, Σ)` to `d`, and in particular all three may be
+disjoint from everything under `d`'s prefix. We name
 this **ML4 (ResidenceApplicationOrthogonality)**: a link's home document and the
 content its endsets reference are independent; connecting two documents never
 forces the link to live inside either, and a link need not point anywhere in its
@@ -399,9 +417,14 @@ endset symmetrically, so a
 reader at the to-side finds the link as readily as one at the from-side. The
 ordering is therefore a labeling the user may rely on, not a one-way valve. We
 record this as the directionality half of ML5: the recorded order fixes roles
-without restricting reachability. The degenerate one-sided case is consistent —
-when there is no meaningful from, the first endset alone designates what is
-pointed at.
+without restricting reachability. The design does contemplate a degenerate
+*one-sided* link — one with no second region — and fixes its slot convention:
+the first endset is the populated one, designating the matter pointed at, and
+the second is left empty. Nelson: "since it has only one side, we use the first
+endset to designate the matter pointed at. To call this 'from' is inane"
+(LM 4/48). What the empty non-type slot means for the link's connection — and
+under what conditions resolution may legitimately recover it empty — we defer
+to the first Open Question.
 
 The third endset reveals the difference between a *connection* and a *relation*.
 A link with only from and to asserts that two regions are tied together — a bare
