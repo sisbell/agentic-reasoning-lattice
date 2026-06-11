@@ -55,11 +55,9 @@ retrieval requests are all-that-is-there questions for which "nothing" is a legi
 Gregory's implementation concurs: a retrieval at an unallocated link address is answered with the
 protocol's distinguished failure reply, inside the operation's contract, not rejected as a
 violation of it. We therefore make the read total, over a codomain extended by one distinguished
-failure value `⊥` (with `⊥ ∉ Link`). Writing `𝒮` for the extended state space whose members are
-the states `Σ = (C, L, E, M, R)` (ASN-0047 — the substrate state of ASN-0093 as extended there;
-these are the states the standing precondition already ranges over, and the ones carrying the
-`Σ.L` component the definition consults), with the second argument restricted to reachable states
-per the standing precondition, for any address `a ∈ T` and reachable `Σ ∈ 𝒮`:
+failure value `⊥` (with `⊥ ∉ Link`). Writing `𝒮` for the extended state space of ASN-0047, whose
+members are the states `Σ = (C, L, E, M, R)`, for any address `a ∈ T` and reachable `Σ ∈ 𝒮` (the
+standing precondition):
 
 > `readlink : T × 𝒮 → Link ∪ {⊥}`
 > `readlink(a, Σ) = Σ.L(a)`   when `a ∈ dom(Σ.L)`
@@ -197,10 +195,24 @@ one a candidate implementation can be checked against.
 
 > `readlink(a, Σ₁) = readlink(a, Σ₂)`
 
-— `readlink` is a function of `(a, Σ.L(a))` alone, immediate from the definition
-`readlink(a, Σ) = Σ.L(a)` on the success branch. Note that "pure function of `(a, Σ.L)`" would be
+— immediate from the definition `readlink(a, Σ) = Σ.L(a)` on the success branch. The failure
+branch supplies the complementary congruence: for `a ∉ dom(Σ₁.L) ∧ a ∉ dom(Σ₂.L)`, the definition
+gives `readlink(a, Σ₁) = ⊥ = readlink(a, Σ₂)`. Together the two branches make `readlink` a
+function of `(a, Σ.L(a))` alone, with `Σ.L(a)` read as a value in `Link` extended by
+"undefined". Note that "pure function of `(a, Σ.L)`" would be
 strictly weaker: a function of the whole store may consult `Σ.L(a')` for covered addresses `a'`
 and flatten, yet still be a function of `(a, Σ.L)`; RL4 excludes this.
+
+Several constructions below must certify that a stipulated step sequence yields reachable states.
+The certification is the same each time, so we record it once.
+
+**SOV (Store-only composite validity).** A composite whose steps touch neither `dom(C)`, nor a
+content-subspace arrangement range, nor `R`, satisfies the coupling constraints J0, J1★, and J1'★
+vacuously at every boundary — J0 quantifies over fresh content addresses, and
+`dom(C') \ dom(C) = ∅`; J1★ over content-subspace range-new I-addresses, of which none arise;
+J1'★ over new provenance entries, and `R' \ R = ∅` — and is therefore a valid composite
+(ValidComposite★, ASN-0047) whenever each step's elementary precondition holds at its
+intermediate state.
 
 The exclusion has force only if the state pair RL4 quantifies over actually exists — two reachable
 states agreeing on the entry at the read address while disagreeing at a covered `a'` distinct from
@@ -226,10 +238,9 @@ K.λ's value-shape conjunct (`N ≥ 3`, each slot in `Endset`, `e₃ ≠ ∅`). 
 conjuncts of this step's precondition consult only `dom(L)` (the frontier maximum) and `dom(M)`,
 on which the branches agree; the value-shape conjunct is branch-independent and discharged by
 `ℓ_c`'s form. The step is therefore enabled identically in both branches, and it allocates the
-same address `c` in both. The steps of both branches — K.δ and K.λ alike — compose into valid
-composites: none touches `dom(C)`, a content-subspace arrangement range, or `R`, so J0, J1★, and
-J1'★ hold vacuously at every boundary (the same discharge covers the worked read's three bare K.λ
-steps below); both resulting states are therefore reachable, as RL4's quantification requires.
+same address `c` in both. The steps of both branches — K.δ and K.λ alike — touch neither
+`dom(C)`, nor a content-subspace arrangement range, nor `R`, so they compose into valid
+composites (SOV); both resulting states are therefore reachable, as RL4's quantification requires.
 Writing `Σ₁, Σ₂` for the
 resulting states (their entries frozen thereafter by L12):
 
@@ -323,9 +334,9 @@ every zero-free document field is realised this way, and each intermediate docum
 `E(a) = [s_L, k]`, the links homed at `d` form a contiguous initial segment
 `{[d.0.s_L.j] : 1 ≤ j ≤ j₀}` of `A_L(d)`'s chain (ChainMembershipForOrigin, ASN-0093) with
 `j₀ < k` since `a ∉ dom(Σ.L)`, and `k − j₀` K.λ steps at the frontier — each with any
-L3-conforming value — deposit `a` as the chain's `k`-th emission. The steps compose into valid
-composites: none touches `dom(C)`, a content-subspace arrangement range, or `R`, so J0, J1★, and
-J1'★ hold vacuously at every boundary. Hence at a residual-class member `⊥` is never permanent,
+L3-conforming value — deposit `a` as the chain's `k`-th emission. The steps touch neither
+`dom(C)`, nor a content-subspace arrangement range, nor `R`, so they compose into valid
+composites (SOV). Hence at a residual-class member `⊥` is never permanent,
 and no address-computable permanence test can exist for it.
 
 The caching discipline follows in three parts: (i) a success-branch result may be cached
@@ -396,7 +407,8 @@ exactly that range-new pair). A subsequent K.μ⁻ on each document with content
 (P0); the provenance entries persist through the contraction (P2), so P4★ and P7a hold at this
 and every subsequent composite boundary. The link
 addresses of this section — `a`, then `a' = inc(a, 0)` and `c = inc(a', 0)` below — are the first
-three emissions of `A_L(d₁)`'s chain, allocated by three K.λ steps.
+three emissions of `A_L(d₁)`'s chain, allocated by three bare K.λ steps, each a valid composite
+by SOV.
 
 A direct read returns the whole triple, grouped by slot:
 
@@ -455,7 +467,8 @@ complete structure. The read thus distinguishes *the relationship is unwitnessed
 | RL1 | Completeness — on `a ∈ dom(Σ.L)` the read returns every recorded span of every endset and no other; `readlink(a, Σ) = Σ.L(a)`; inherits L4-generality of the recorded spans. Corollaries (since the output is `Σ.L(a)`): satisfies L3 (arity ≥ 3, non-empty type slot, connective slots may be `∅`), L5 (membership not sequence within an endset), and Endset well-formedness (T12 spans) | introduced |
 | RL2 | Role preservation — on `a ∈ dom(Σ.L)` the read preserves arity (`|readlink(a, Σ)| = |Σ.L(a)|`) and exposes slot position as a model primitive (L6); from/to/type grouping delivered as structure | introduced |
 | RL3 | Type-by-address — the type is interpreted via `coverage(e₃)`, not via content at those addresses; ghost types read completely | introduced |
-| RL4 | Nesting locality — `readlink` is a function of `(a, Σ.L(a))` alone: reachable `Σ₁, Σ₂` with `Σ₁.L(a) = Σ₂.L(a)` give `readlink(a, Σ₁) = readlink(a, Σ₂)`; corollary: covered link addresses are returned as addresses, never dereferenced, witnessed by an explicit branched-history state pair | introduced |
+| SOV | Store-only composite validity — a composite whose steps touch neither `dom(C)`, nor a content-subspace arrangement range, nor `R` satisfies J0, J1★, and J1'★ vacuously, hence is a valid composite whenever each step's elementary precondition holds | introduced |
+| RL4 | Nesting locality — `readlink` is a function of `(a, Σ.L(a))` alone: reachable `Σ₁, Σ₂` with `a ∈ dom(Σ₁.L) ∩ dom(Σ₂.L)` and `Σ₁.L(a) = Σ₂.L(a)` give `readlink(a, Σ₁) = readlink(a, Σ₂)`, and `a ∉ dom(Σ₁.L) ∧ a ∉ dom(Σ₂.L)` gives `readlink(a, Σ₁) = ⊥ = readlink(a, Σ₂)`; corollary: covered link addresses are returned as addresses, never dereferenced, witnessed by an explicit branched-history state pair | introduced |
 | RL5 | Determinacy — pure function of `(a, Σ.L(a))` (RL4); success-branch results stable across all `Σ →* Σ'` by link immutability; the structural screen is a one-sided test (failure proves permanent absence; passage proves nothing about the future); three permanence families — depth `#E(a) > 2`, lineage `N(a)₁ ≠ 1`, user-field `#U(a) ≥ 2` — together with screen failure exhaust permanent absence, every member of the residual class (screen-passing, `#E(a) = 2`, `N(a)₁ = 1`, `#U(a) = 1`) being allocatable; `⊥` is cacheable exactly where one of these address-computable permanence proofs is in hand | introduced |
 | RL6 | Recorded, not resolved — the read depends only on `Σ.L(a)`, succeeds for orphaned links, and returns the complete structure independent of any arrangement | introduced |
 
