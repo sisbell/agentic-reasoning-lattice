@@ -130,8 +130,8 @@ contraction (ASN-0082 **ThreeRegions**) partition `V_S(d)` by trichotomy of T1:
 - `X = {v ∈ V_S(d) : p ≤ v < r}` — the deleted block, `|X| = c`;
 - `R = {v ∈ V_S(d) : v ≥ r}` — the suffix, shifted left.
 
-The displacement is then completely determined, and we do not re-derive it: it
-is the foundation contraction of ASN-0082. Reading off its clauses:
+The displacement is then completely determined: it is the foundation
+contraction of ASN-0082. Reading off its clauses:
 
 - **Suffix shifts uniformly left.** For `v = q_k ∈ R` (i.e. `k ≥ J + c`), the
   position moves to `σ(v) = vpos(S, ord(v) ⊖ w_ord) = q_{k−c}`, and *it carries
@@ -172,15 +172,18 @@ We collect the arrangement effect as a named operation.
 
 **DELETE(`d`, `p`, `w`).**
 
-*Precondition.* `Σ` is `→*`-reachable from the initial state `Σ₀` (so the
-per-state invariant package of ExtendedReachableStateInvariants, ASN-0047, holds
-at `Σ`); `d ∈ dom(M)`; `S = subspace(p) = s_C`; `m = #p = 2`, equal to
+*Precondition.* `Σ` is a *composite boundary of a valid transition trace* from
+the initial state `Σ₀` (P4a's sense, ASN-0047) — a state reached by elementary
+transitions drawn from valid composites, so by that hypothesis the per-state
+invariant package of ExtendedReachableStateInvariants (ASN-0047) holds at `Σ`,
+and the trace stands ready to be extended by a further valid composite;
+`d ∈ dom(M)`; `S = subspace(p) = s_C`; `m = #p = 2`, equal to
 the common depth S8-depth fixes on `V_S(d)`; `p ∈ V_S(d)` is S8a-well-formed;
 `w₁ = 0`, `#w = #p`, `Pos(w)`, with `c = ord(w) ≥ 1`; and *containment* — the
 deleted span lies within the arranged run: `p = q_J` and `r = p ⊕ w = q_{J+c}`
 with `1 ≤ J` and `J + c ≤ N + 1` (the case `J + c = N + 1` deletes a suffix,
 leaving `R = ∅`). This is exactly the foundation contraction's precondition
-(ASN-0082), together with the reachability hypothesis the invariant-preservation
+(ASN-0082), together with the boundary hypothesis the invariant-preservation
 argument below relies on.
 
 *Effect.* DELETE is one arrangement contraction realising ASN-0082's
@@ -240,24 +243,31 @@ all. For the `R ≠ ∅` composite we discharge ValidComposite clause 2 (J0, J1�
 evaluated *only* between the initial state `Σ` and the final state `Σ'`)
 explicitly, all vacuously. **J0** (every freshly allocated I-address appears in some
 arrangement) holds because DELETE allocates no content — `dom(C') = dom(C)` (P0)
-— so its antecedent `dom(C') ∖ dom(C)` is empty. **J1★** (every I-address *new to*
-`d`'s content-subspace range must be recorded in `R`) holds because DELETE
-introduces *no* range-new content: every survivor's I-address that the K.μ⁺ step
-re-places was already in the content-subspace range of `M(d)` at its old position
-in the initial state, so it fails J1★'s "new to the range" trigger — the conjunct
+— so its antecedent `dom(C') ∖ dom(C)` is empty. **J1★** quantifies over *every* document
+`d' ∈ E'_doc`: any I-address new to `d'`'s content-subspace range must be
+recorded in `R`. For `d' ≠ d` the discharge is immediate — DEL-FDOC gives
+`M'(d') = M(d')`, so no address is range-new for any other document. For the
+operated `d`, DELETE introduces *no* range-new content: every survivor's
+I-address that the K.μ⁺ step re-places was already in the content-subspace range
+of `M(d)` at its old position in the initial state, so it fails J1★'s "new to
+the range" trigger — the conjunct
 `¬(E v ∈ dom(M(d)) : subspace(v) = s_C ∧ M(d)(v) = a)` is false for each — and the
 deleted addresses are simply absent from the final range. **J1'★** (every new
 provenance entry requires range-new content) holds because DELETE adds no
 provenance, so its antecedent `R' ∖ R` is empty. Both component steps fix the
-entity set and the provenance relation (`E' = E`, `R' = R`: K.μ⁻'s frame and
-K.μ⁺'s frame each list both — clauses DEL-FENT, DEL-FPROV below), so the
-composite does too. With clause 2 thus discharged, DELETE is a valid composite
-from a `→*`-reachable pre-state, so its post-state is a composite boundary of a
-valid trace, and the three composite-boundary properties — **P4★**
-(`Contains_C(Σ') ⊆ R'`), **P4a** (TraceWitnessing), **P7a** (provenance
-coverage) — hold there directly by **ExtendedReachableStateInvariants**
-(ASN-0047); we do not re-derive them. We name DELETE's clauses but derive them
-by citation:
+link store, the entity set, and the provenance relation (`L' = L`, `E' = E`,
+`R' = R`: K.μ⁻'s per-subspace-scope frame and the amended K.μ⁺'s frame each
+list all three, ASN-0047), so the composite does too; together with J2's
+`L' = L ∧ E' = E ∧ R' = R` for the `R = ∅` single step, this is the *frame
+discharge* **(DEL-CFRAME)** that the frame clauses DEL-LIMM, DEL-FENT, and
+DEL-FPROV below cite. With clause 2 thus discharged, DELETE is a valid composite
+appended to the valid trace whose final boundary is the pre-state `Σ` (the
+precondition's boundary hypothesis), so the extended trace is itself valid and
+the post-state `Σ'` is a composite boundary of it; the three composite-boundary
+properties — **P4★** (`Contains_C(Σ') ⊆ R'`), **P4a** (TraceWitnessing),
+**P7a** (provenance coverage) — hold there directly by
+**ExtendedReachableStateInvariants** (ASN-0047). We name DELETE's clauses but
+derive them by citation:
 
 - (DEL-REMOVE) The arrangement loses exactly `c` V→I correspondences in subspace
   `S`: the surviving domain contracts by precisely the deletion width,
@@ -280,38 +290,39 @@ by citation:
 *Frame.*
 - (DEL-LIMM) `Σ'.L = Σ.L` — the link store is held entirely fixed, in both
   domain and per-address value: `dom(Σ'.L) = dom(Σ.L)` and
-  `(A a : a ∈ dom(Σ.L) : Σ'.L(a) = Σ.L(a))`. DELETE allocates no link and edits
-  none, so `dom(L)` neither grows nor shrinks.
+  `(A a : a ∈ dom(Σ.L) : Σ'.L(a) = Σ.L(a))` — DEL-CFRAME's `L' = L` clause
+  (the K.μ⁻/K.μ⁺ frames for the composite, J2 for the `R = ∅` single step;
+  ASN-0047).
 - (DEL-FSUB) `(A S' : S' ≠ S : {v ∈ dom(M'(d)) : subspace(v) = S'} =
   {v ∈ dom(M(d)) : subspace(v) = S'}` and `M'(d)` agrees there`)` —
   ASN-0082 **D-CS**. In particular the document's *links* (subspace `s_L`) are
   not moved by a text deletion.
 - (DEL-FDOC) `(A d' : d' ≠ d : M'(d') = M(d'))` — ASN-0082 **D-CD**.
-- (DEL-FENT) `Σ'.E = Σ.E` — the entity set is held fixed, by the composite-frame
-  argument given in the Effect section above. P1 (EntityPermanence) and P8
-  (EntityHierarchy) survive DELETE trivially.
-- (DEL-FPROV) `Σ'.R = Σ.R` — the provenance relation is held fixed, by the
-  composite-frame argument given in the Effect section above; P4★, P4a, and
-  P7a hold at the post-state boundary by ExtendedReachableStateInvariants
-  (ASN-0047).
+- (DEL-FENT) `Σ'.E = Σ.E` — the entity set is held fixed: DEL-CFRAME's `E' = E`
+  clause. P1 (EntityPermanence) and P8 (EntityHierarchy) survive DELETE
+  trivially.
+- (DEL-FPROV) `Σ'.R = Σ.R` — the provenance relation is held fixed: DEL-CFRAME's
+  `R' = R` clause; P4★, P4a, and P7a hold at the post-state boundary by
+  ExtendedReachableStateInvariants (ASN-0047).
 
 ## The document remains one coherent sequence
 
 We must check that the result is well-formed — that closing the gap has not
 left a hole, overlaid two positions, or broken the density that lets spans
-name contiguous regions. We do not re-derive the post-contraction domain: it is
-exactly ASN-0082's dense run **D-SEQ-post**,
+name contiguous regions. The post-contraction domain is exactly ASN-0082's
+dense run **D-SEQ-post**,
 
 > `V_S(d') = {q_1, …, q_{N−c}}`,
 
 of length `N' = N − c`. The prefix `L = {q_1, …, q_{J−1}}` abuts the shifted
 suffix `{q_J, …, q_{N−c}}` (the images of `q_{J+c}, …, q_N` under
 `σ(q_k) = q_{k−c}`) flush — the gap-closure `σ(q_{J+c}) = q_J` (D-SEP) seats the
-two with no hole and no overlap. We do not re-prove well-formedness either.
-The pre-state `Σ` is `→*`-reachable (DELETE's precondition), and DELETE is a
-valid composite of elementary K.μ⁻/K.μ⁺ steps (or a lone elementary K.μ⁻ when
-`R = ∅`), so its post-state is itself `→*`-reachable and satisfies the per-state
-invariant package of **ExtendedReachableStateInvariants** (ASN-0047).
+two with no hole and no overlap.
+The pre-state `Σ` is a composite boundary of a valid trace (DELETE's
+precondition), and DELETE is a valid composite of elementary K.μ⁻/K.μ⁺ steps
+(or a lone elementary K.μ⁻ when `R = ∅`), so the extended trace is valid, its
+post-state is a composite boundary of it, and the per-state invariant package
+of **ExtendedReachableStateInvariants** (ASN-0047) holds there.
 We name only the conjuncts the deletion actively reshapes, all of them
 ASN-0082's post-contraction preservation family: **D-SEQ-post**/**D-MIN-post**
 (`min(V_S(d')) = q_1`)/**D-CTG-post** for the dense run, **S8a-post** and
@@ -422,9 +433,9 @@ under DELETE on `d`.*
 **Link survival, and discoverability across documents.** A link's endsets
 reference I-addresses, not V-positions (4/42, 4/30). DELETE removes no I-address
 (P0) and adds, removes, or edits no link, so the link store is held entirely
-fixed — `Σ'.L = Σ.L` in both domain and value (DEL-LIMM). Coverage invariance is
-then the foundation's, not ours to re-derive: DELETE realises as a one- or
-two-step transition sequence, so **LP3★** (MultiStepCoverageInvariance,
+fixed — `Σ'.L = Σ.L` in both domain and value (DEL-LIMM). Coverage invariance
+is the foundation's: DELETE realises as a one- or two-step transition sequence,
+so **LP3★** (MultiStepCoverageInvariance,
 ASN-0098) gives `coverage(Σ'.L(a).eᵢ) = coverage(Σ.L(a).eᵢ)` at every slot
 `i`. Every link designates exactly the same content after the deletion as before.
 The link is anchored to bytes that still exist; the strap stays attached. This is
@@ -494,14 +505,14 @@ P4 already established the full-document range decomposition, accounting for
 *both* subspaces:
 `ran(M'(d)) = M(d)(L) ∪ M(d)(R) ∪ ran(M(d)|_{V_{s_L}(d)}) ⊆ ran(M(d))`
 (the two text summands from DEL-LEFT/DEL-SHIFT, the link summand from DEL-FSUB).
-We do not re-derive it; we only refine the subset to the *exact* loss. Writing
+We refine the subset to the *exact* loss. Writing
 `M(d)|_Y` for the image of the position set `Y`,
 
 > `ran(M'(d)) = ran(M(d)) \ A_del^{excl}`,
 
 where `A_del^{excl} = A_del \ M(d)(L ∪ R)` is the set of deleted I-addresses
 that *no surviving position of `d` also maps* — the addresses `d` loses from its
-range entirely. This refinement of P4's subset is justified, not asserted:
+range entirely.
 `A_del` consists of *text* content addresses (`subspace_I = s_C`, by S7b/L0),
 hence disjoint from the unchanged `s_L` images that P4's decomposition carries
 through verbatim, so removing exactly `A_del^{excl}` from the full prior range
@@ -752,11 +763,12 @@ only their placement in this one document's present view is withdrawn.
 | DEL-LEFT | Prefix positions `v < p` are unchanged (ASN-0082 D-L) | introduced |
 | DEL-DOM | `V_S(d')` is the dense run `{q_1, …, q_{N−c}}` with the gap closed (ASN-0082 D-DOM, D-SEP) | introduced |
 | DEL-CIMM | `Σ'.C = Σ.C` — the content store is a strict frame (ASN-0082 D-I) | introduced |
-| DEL-LIMM | `Σ'.L = Σ.L` — the link store is a strict frame, domain and value | introduced |
+| DEL-CFRAME | `L' = L ∧ E' = E ∧ R' = R` in both realisations — the K.μ⁻/K.μ⁺ frame clauses for the composite, J2 for the lone K.μ⁻ (ASN-0047) | introduced |
+| DEL-LIMM | `Σ'.L = Σ.L` — the link store is a strict frame, domain and value (DEL-CFRAME) | introduced |
 | DEL-FSUB | Positions in subspaces `S' ≠ S` (notably links) are unchanged (ASN-0082 D-CS) | introduced |
 | DEL-FDOC | Arrangements of all documents `d' ≠ d` are unchanged (ASN-0082 D-CD) | introduced |
-| DEL-FENT | `Σ'.E = Σ.E` — the entity set is a strict frame (the K.μ⁻+K.μ⁺ composite entity frames, ASN-0047); P1/P8 preserved | introduced |
-| DEL-FPROV | `Σ'.R = Σ.R` — the provenance relation is a strict frame (the K.μ⁻+K.μ⁺ composite provenance frames, ASN-0047); P4★/P7a preserved | introduced |
+| DEL-FENT | `Σ'.E = Σ.E` — the entity set is a strict frame (DEL-CFRAME); P1/P8 preserved | introduced |
+| DEL-FPROV | `Σ'.R = Σ.R` — the provenance relation is a strict frame (DEL-CFRAME); P4★/P7a preserved | introduced |
 
 ## Open Questions
 
