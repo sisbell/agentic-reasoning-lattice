@@ -314,7 +314,62 @@ pure rearrangement permutes `M(d)` while preserving `O(d) = dom(M(d))`; only the
 `M(d)(v)` are permuted, the extremes stand, and the reported span is *identical* before and
 after: reorder the document and its origin and extent do not move. *Composition
 sensitivity.* A composition change — adding or removing occupied positions — moves the span
-*iff* it moves an extreme, and it need not. In the single-subspace regime every composition
+*iff* it moves an extreme, and it need not. The two directions of this biconditional rest on
+different facts, and we must discharge them separately. The forward direction — the span
+moves only if an extreme moves — is the contrapositive of V9 itself: when both extremes
+stand, the span, a function of the extremes alone, is identical. The converse — an extreme
+moves only if the span moves — is not a functionality fact but an *injectivity* fact about
+the map `(min O(d), max O(d)) ↦ (origin_d, extent_d)`, and it requires proof. We record it
+as **V9a** (extremes recoverable) and argue by exhibiting an explicit inverse: the extremes
+are computable from the returned pair, so distinct extreme pairs cannot yield equal spans.
+
+The minimum is immediate: `min O(d) = origin_d`. The maximum we recover in two steps —
+first the constructed endpoint `reach_d` from the returned pair, then `max O(d)` from
+`reach_d`. Write `o = origin_d`, `e = extent_d`, `r = reach_d`; recall `#e = max(#o, #r)`
+(TA2), and observe that both `o` and `r` are zero-free with all components positive — `o`
+is an occupied position (V1, S8a), and `r = shift(max O(d), 1)` advances only the last
+component of one (OrdinalShift). The recovery must split on the relative depth of the
+endpoints, and the split is decided by the returned width itself, through its final
+component:
+
+> `e_{#e} > 0 ⟺ #o ≤ #r`.
+
+*If `#o ≤ #r`*, the final position `#e = #r` of `e` receives, by TumblerSub, either the
+action-point difference `r_{#r} − o_{#r}` (when `zpd(r, o) = #r`; positive because at the
+zpd `r_k > o_k`, with `o` zero-padded beyond `#o` contributing `0` in the sub-case
+`#o < #r`) or the tail copy `r_{#r}` (when `zpd(r, o) < #r`; positive by zero-freeness of
+`r`) — positive either way. *If `#o > #r`*, unequal extreme depths force the cross-subspace
+case (S8-depth makes single-subspace extremes equidepth) with `zpd(r, o) = 1` — the
+derivation at V2's second covering case — so TumblerSub zero-pads `e` at every position
+`#r < i ≤ #o`; in particular `e_{#e} = e_{#o} = 0`. The two cases of the recovery are then:
+
+- *Final component positive* (`#o ≤ #r`). D1 applies — its preconditions `o < r` and
+  `divergence(o, r) ≤ #o` were discharged at V2 — and the round-trip closes:
+  `o ⊕ e = o ⊕ (r ⊖ o) = r`. The reach is recovered as `r = o ⊕ e`.
+- *Final component zero* (`#o > #r`, so `#e = #o`). The round-trip fails (D0), and recovery
+  goes componentwise through TumblerSub's formula at `zpd(r, o) = 1`: `e₁ = r₁ − o₁`,
+  `eᵢ = rᵢ` for `2 ≤ i ≤ #r`, and `eᵢ = 0` for `#r < i ≤ #o`. Zero-freeness of `r` is now
+  load-bearing: the copied components `e₂, …, e_{#r}` are all positive and the padded tail
+  is all zero, so the rightmost nonzero position of `e` sits exactly at `#r` —
+  `sig(e) = #r` (TA5-SIG). The depth of `r` is therefore read off `e`, and no
+  zero-padded-equal collision across reach depths is possible: distinct reaches of distinct
+  depths against the same origin produce widths with distinct `sig`. Componentwise,
+  `r = [o₁ + e₁, e₂, …, e_{sig(e)}]`.
+
+In both cases `r` is a function of `(o, e)`. Finally `max O(d)` is a function of `r` alone:
+the shift is depth-preserving and advances exactly the final component (OrdinalShift), so
+`max O(d)` agrees with `r` on positions `1..#r − 1` and has final component `r_{#r} − 1`,
+well-defined in ℕ because `r_{#r} = (max O(d))_{#r} + 1 ≥ 2`. (Abstractly: TS2 gives
+injectivity of the shift within a depth, and depth preservation plus T3 separates reaches
+across depths; the explicit decrement is the inverse those two facts promise.) The
+composite `(o, e) ↦ (min O(d), max O(d))` inverts the extremes-to-span map; the map is
+injective, and an extreme cannot move while the span stands — the converse direction
+holds. As a by-product, the case discriminator is V-ReachTight's condition read off the
+returned value: the returned width's final component is positive exactly when
+`reach(σ_d) = reach_d`.
+
+With both directions discharged, the two regimes illustrate how often a composition change
+actually moves an extreme. In the single-subspace regime every composition
 change does: by D-SEQ★ the occupied set is the dense run `{[s,1,…,1,k] : 1 ≤ k ≤ n_s}`, so
 any change to `n_s` moves `max O(d) = [s,1,…,1,n_s]` and with it the final component of
 `extent_d`, which equals `n_s` (TumblerSub at `zpd = m_s` gives `extent_d = [0,…,0,n_s]`;
@@ -385,8 +440,9 @@ value TA6 forbids as an address.
 
 We record **V12** (information gain): the result of `RETRIEVEDOCVSPAN(d)` determines
 time-varying facts about the arrangement that the permanent identity `d` cannot, because `d`
-is fixed for the life of the document (V8) while the result is recomputed against the present
-state. Concretely, the returned span-set decides emptiness by the presence or absence of a
+is the query's fixed argument — a document address that persists unchanged across every
+transition (P1, EntityPermanence, ASN-0047) — while the result is recomputed against the
+present state. Concretely, the returned span-set decides emptiness by the presence or absence of a
 component span (`RETRIEVEDOCVSPAN(d) = ⟨⟩ ⟺ O(d) = ∅`, V11) and, when non-empty in the
 single-subspace regime, its span `σ_d` fixes the occupied count exactly, and the count is
 read off the returned value itself. The direct route is through the width: the endpoints
@@ -541,7 +597,9 @@ the *weakest* precondition directly:
 
 A caller can thus decide *before* querying whether the answer will be exact
 (check single-subspace occupancy) and whether its reach is the tight `reach_d` (check the
-endpoint depths), without inspecting the returned span.
+endpoint depths), without inspecting the returned span; tightness is also decidable *after*
+the fact from the returned value alone, the width's final component being positive exactly
+when the reach is tight (the V9a discriminator).
 
 ---
 
@@ -560,9 +618,10 @@ endpoint depths), without inspecting the returned span.
 | V5 | When all occupied positions share one subspace, `⟦σ_d⟧` contains no occupied-depth position outside `O(d)` (exact cover of a contiguous run) | introduced |
 | V6 | When occupied positions span more than one subspace, `⟦σ_d⟧` contains an occupied-depth position outside `O(d)` (witness `w⋆ = [s_C,1,…,1,n_C+1]` at depth `m_C`) — the negation of V5 (bounding box, not exact cover); corollary: `O(d) ⊊ ⟦σ_d⟧`; forced because a span denotes one convex region (ASN-0053 S0) and cannot trace a separated series | introduced |
 | V8 | While the content subspace is non-empty, `origin_d = [s_C,1,…,1]`, invariant under all editing that leaves content present (origin permanence) | introduced |
-| V9 | `origin_d` and `extent_d` are functions of the extremes `(min O(d), max O(d))` alone — never of the values `M(d)(v)` or the interior of `O(d)`; a pure rearrangement (preserving `O(d)`) returns the identical span, and a composition change moves the span iff it moves an extreme — always in the single-subspace regime (final component of `extent_d` equals `n_s`), but not in general in the cross-subspace regime, where content-side changes keeping `n'_{s_C} ≥ 1` leave the span fixed (the span is a function of the extremes) | introduced |
+| V9 | `origin_d` and `extent_d` are functions of the extremes `(min O(d), max O(d))` alone — never of the values `M(d)(v)` or the interior of `O(d)`; a pure rearrangement (preserving `O(d)`) returns the identical span, and a composition change moves the span iff it moves an extreme (forward direction by functionality of the extremes-to-span map, converse by V9a) — every composition change moves an extreme in the single-subspace regime (final component of `extent_d` equals `n_s`), but not in general in the cross-subspace regime, where content-side changes keeping `n'_{s_C} ≥ 1` leave the extremes, hence the span, fixed | introduced |
+| V9a | The extremes-to-span map `(min O(d), max O(d)) ↦ (origin_d, extent_d)` is injective, by explicit inverse: `min O(d) = origin_d`; `reach_d = origin_d ⊕ extent_d` when the returned width's final component is positive (`⟺ #origin_d ≤ #reach_d`, D1 round-trip), else `#reach_d = sig(extent_d)` and `reach_d` is read componentwise off TumblerSub's formula at `zpd = 1` (zero-freeness of `reach_d`, S8a); `max O(d)` is `reach_d` with final component decremented (OrdinalShift, TS2) — so a moved extreme always moves the span (extremes recoverable) | introduced |
 | V11 | The operation is total over allocated documents; `O(d) = ∅` yields the distinguished empty span-set `⟨⟩` (V0), with `origin_d` undefined and no extent — the implementation's zeros are a sentinel, not a legal address (TA6) | introduced |
-| V12 | The result of `RETRIEVEDOCVSPAN(d)` determines time-varying arrangement facts that the permanent identity `d` cannot: the returned span-set decides emptiness (`RETRIEVEDOCVSPAN(d) = ⟨⟩ ⟺ O(d) = ∅`, V11) and, when non-empty in the single-subspace regime, its span `σ_d` fixes the exact occupied count `|O(d)| = n_s` — the final component of the returned width `extent_d = [0,…,0,n_s]` (TumblerSub at `zpd = m_s`), equivalently the final component of `reach(σ_d) = reach_d` less one (V-ReachTight); `d` is invariant under every edit and reports none of these (information gain) | introduced |
+| V12 | The result of `RETRIEVEDOCVSPAN(d)` determines time-varying arrangement facts that the permanent identity `d` cannot: the returned span-set decides emptiness (`RETRIEVEDOCVSPAN(d) = ⟨⟩ ⟺ O(d) = ∅`, V11) and, when non-empty in the single-subspace regime, its span `σ_d` fixes the exact occupied count `|O(d)| = n_s` — the final component of the returned width `extent_d = [0,…,0,n_s]` (TumblerSub at `zpd = m_s`), equivalently the final component of `reach(σ_d) = reach_d` less one (V-ReachTight); `d` is invariant under every edit (P1, EntityPermanence, ASN-0047) and reports none of these (information gain) | introduced |
 | V13 | `σ_d` depends only on `O(d)`; two documents sharing content report independent spans; transcluded positions count toward the borrowing document's extent (independence) | introduced |
 | V14 | Every *occupied* position in `O(d)` maps through `M(d)` to a permanent, immutable image, by subspace (S3★): content positions to `dom(C)` (S0, P0), link positions to `dom(L)` (L12); covered-but-unoccupied positions in the cross-subspace case (V6) carry no `M(d)` image; sharing preserves what the span denotes (permanence) | introduced |
 | V16 | `σ_d` is a pure function of `O(d)`; equal arrangements return identical spans, independent of how the arrangement was built; the returned span is a snapshot, not a live view (determinism) | introduced |
