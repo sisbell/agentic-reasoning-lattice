@@ -1,0 +1,37 @@
+# Review of ASN-0129
+
+The technical core of this note checks out under scrutiny: V-AUD's lifts are correctly bounded, QD-fin's induction is complete (including the link-store finiteness re-derivation at extended-record states), PD0's ST/SF rules are each sound against the step effects and the transfer lemmas are cited at the right grain (B2/RP-b for transition invariants, RP-a for single-state facts), the five-state trace verifies — I recomputed every step, including the C3 discharge at Σ₄ via R0a on same-length siblings and the Φ-constancy point (Φ = {retired} at every state, with `is_filtered` vacuously false before Σ₄) — and the conjectures are honestly hedged rather than discharged by citation. The REVISE items below are anti-bloat findings (this note carries the classifier, and the patterns are present) plus one undischarged claim.
+
+## REVISE
+
+### Issue 1: Provenance accounting spread across three sections
+**ASN-0129, V / V-AUD / UV**: V closes with an inventory — "This note's own additions are six, each fenced where introduced: the audit readings of the core family (V-AUD), the behavior atoms' default-view readings (UV), the per-tuple projections (V-TUP), the state-independent primitives (V-PRIM), the residence atom (V-DOC), and `age`'s ⊥-totalization above." V-AUD opens by explaining why it exists: "so the audit reading is a gap this note must own as a definition rather than claim to inherit." UV defers the bookkeeping back: "(the provenance accounting — which default-view readings are inherited and which are this note's own — is V's)" and frames its upstream readings defensively: "get their reading here rather than a silent override."
+**Problem**: This is inheritance bookkeeping, not definition content. The V inventory is an exhaustiveness claim about the note's own novelty; the V-AUD sentence explains why the definition is needed rather than what it says; UV's parenthetical and "silent override" framing defend against an anticipated objection and defer to V, which defers back. Three sections carry the same meta-thread. (UV's *adopted readings* of BH2's walk sentence and BH1's scope are substantive and should stay — they fix what `chain` returns at default view; only the framing around them is noise.)
+**Required**: State V-AUD's and UV's definitions directly. If a provenance inventory is wanted at all, one line in one place (V), with the cross-deferrals removed.
+
+### Issue 2: Content-store exclusion stated twice with mutual citation
+**ASN-0129, QD-audit / Structural reads only**: QD-audit ends: "`dom(Σ.C)` has no base and no membership atom: no upstream contract consults it — the emit surface checks homes, never content occupancy — and content is reached only through arrangement (V→I) reads, ASN-0127's layer, which PL excludes (Structural reads only)." The Structural-reads-only paragraph then asserts the same commitment — "no read primitive touches the content store — value or domain (QD-audit)" — citing back.
+**Problem**: The same normative exclusion lives in two sections, each pointing at the other. A reader checking PC6's converse (which leans on the exclusion) must hold both and verify they agree.
+**Required**: One normative site — Structural reads only is the natural one, since PC6's converse cites it — with QD-audit reduced to a bare pointer.
+
+### Issue 3: The self-emit conjecture is buried inside a base-audit paragraph
+**ASN-0129, QD-audit**: "Whether some extensionally equal term computes the test anyway is the *self-emit conjecture* (Open Question 6): we conjecture none does, and since the grammar fact blocks only the direct spelling, a proof must be an invariance argument over every atom denotation, handling in particular the frontier-derived routes the vocabulary does admit — BH4's `age` is defined from the very quantity `f_d^Σ` … and the link-domain data of which `a_emit(Σ, d)` is a function enters term position through the reflected `L_dom` (QD-refl)."
+**Problem**: This is a conjecture of the same standing as C-reach — Open Question 6 lists the two side by side — but where C-reach gets a labeled item with its statement and proof-obligation assessment, the self-emit conjecture is an essay-length aside inside QD-audit, whose job is the per-base read accounting. OQ6's pointer ("assessed at QD-audit") resolves to the interior of an unrelated paragraph. The structure is inconsistent between the two conjectures, and QD-audit — already the note's longest single paragraph — is carrying essay content in an audit slot.
+**Required**: A labeled conjecture item (parallel to C-reach) holding the statement, the grammar-fact baseline, and the invariance-argument obligation including the `age`/`L_dom` routes. QD-audit keeps the grammar fact ("the vocabulary supplies no term spelling the test `a = a_emit(Σ, d)`") and a pointer.
+
+### Issue 4: Well-typing decidability asserted over an undefined judgment
+**ASN-0129, What this note doesn't cover (Normal forms)**: "well-typing is decidable already (signature unification against COD plus registry lookup, with `Reg`-quantified terms checked instance-wise per V-IDX)".
+**Problem**: The relation asserted decidable is never defined. Open terms appear throughout — QD's "a filter body may carry free arguments," PC2's state-indexed `g : C₁ × S → C₂`, V-IDX's class variables — but the note gives no typing contexts, no variable rule, and no judgment whose decidability could be checked; "signature unification" names a procedure over an unstated rule set. V-IDX discharges only the `Reg`-instance fragment ("the instance-wise condition remains decidable at construction"); the general claim is one sentence standing in for a definition plus an argument. By the note's own standard elsewhere (V-STAT gets a labeled proof for a comparably easy fact), this is a claim, not a result.
+**Required**: Either define the typing judgment — contexts assigning COD types to free variables, one rule per former; the content is already implicit in PC0–PC2a's stated signatures — and give the short decision argument, or restate the parenthetical as an explicit claim with its obligation recorded alongside the extensional-equivalence open half.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Positional access to walk order
+`chain`'s `Seq_fin(T)` value is consumable only order-forgettingly — `elems`, `count(elems(·))` — plus the `tip` verdict; no atom or primitive exposes the k-th element or the predecessor of the tip, so walk *order* is observable only at its endpoints. A protocol needing it (e.g., "the version superseded by the current head") cannot write it.
+**Why out of scope**: This is a vocabulary-axis gap of exactly the kind PC6's costs paragraph classifies as a deliberate, V-PRIM-style-closable omission — a future admission decision, not an error in this note.
+
+### Topic 2: Numeric monotonicity classes for measure construction
+PD0 classifies Boolean terms only. The ℕ-valued fact it proves inside its ground — "a count over a growing set never decreases" — is surfaced only through the literal-comparison rules, never as a class of monotone ℕ-valued terms, though a termination-measure argument over this substrate would consume exactly that (a non-decreasing `count(L_K)` as a progress witness).
+**Why out of scope**: Measure/variant theory for protocols is application-layer dynamics beyond the trigger/termination classification this note commits to; it extends PD0 rather than correcting it, and adjoins naturally to the note's Open Question 5.
+
+VERDICT: REVISE
