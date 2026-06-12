@@ -201,10 +201,18 @@ def _answer_path(consult_dir, index, role):
 
 
 def _save_answer(consult_dir, index, role, question, answer):
+    if not answer or not answer.strip():
+        # Write NO file on a failed call. A "[No answer]" placeholder
+        # would be loaded by _load_existing_answers as a valid cached
+        # answer — silently blocking retry forever and feeding the
+        # placeholder to the draft. Absent file = resume re-fires.
+        print(f"  [FAILED] Q{index + 1} ({role}): empty answer — "
+              f"not saved; a resumed run will re-fire it", file=sys.stderr)
+        return
     path = _answer_path(consult_dir, index, role)
     content = (f"## Question {index + 1} [{role}]\n\n"
                f"> {question}\n\n"
-               f"{answer.strip() if answer else '[No answer]'}\n")
+               f"{answer.strip()}\n")
     path.write_text(content)
     print(f"  [SAVED] {path.name}", file=sys.stderr)
 
@@ -226,6 +234,12 @@ def _load_existing_answers(consult_dir, questions):
                     body_start = j + 1
                     break
             answer = "\n".join(lines[body_start:]).strip()
+            if not answer or answer == "[No answer]":
+                # Poisoned file from a failed call (pre-fix runs wrote
+                # placeholders). Treat as missing so it re-fires.
+                print(f"  [STALE] answer-{i + 1:02d}-{role}.md: "
+                      f"empty/failed — will re-fire", file=sys.stderr)
+                continue
             existing[i] = (role, question, answer)
             print(f"  [CACHED] answer-{i + 1:02d}-{role}.md", file=sys.stderr)
     return existing
@@ -412,8 +426,18 @@ def _run_consult_for_inquiry(
         file=sys.stderr,
     )
     consult_start = time.time()
-    _run_consultations(questions, init_dir, asn_id)
+    results = _run_consultations(questions, init_dir, asn_id)
     consult_elapsed = time.time() - consult_start
+    missing = [i + 1 for i, r in enumerate(results)
+               if r is None or not (r[2] and r[2].strip())]
+    if missing:
+        # Refuse to complete with holes — completing would let the
+        # draft fire on a partial consultation. Saved answers are kept;
+        # the next consult fire resumes and re-runs only the missing.
+        print(f"  [ERROR] {len(missing)} consultation(s) failed "
+              f"(questions {missing}); not completing — next fire "
+              f"resumes from saved answers", file=sys.stderr)
+        return None
     print(f"  [CONSULT] All done ({consult_elapsed:.0f}s)", file=sys.stderr)
 
     session = open_session(LATTICE)
