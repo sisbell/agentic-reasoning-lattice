@@ -44,7 +44,7 @@ MODEL_FLAGS = {
 # unconstrained token spending, so reserve it for explicit overrides.
 # Raw ladder values pass through unchanged at the resolution site.
 EFFORT_LEVELS = {
-    "default": "xhigh",
+    "default": "max",
 }
 
 
