@@ -231,7 +231,7 @@ def _load_existing_answers(consult_dir, questions):
     return existing
 
 
-def _run_consultations(questions, consult_dir, asn_id, theory_model="default",
+def _run_consultations(questions, consult_dir, asn_id, theory_model="consult",
                        evidence_model="evidence", effort="default"):
     """Run all consultations. Theory in parallel, evidence sequential.
 
@@ -276,7 +276,7 @@ def _run_consultations(questions, consult_dir, asn_id, theory_model="default",
                 answer = load_channel_plugin(theory_channel).consult(
                     q,
                     label=f"Q{idx + 1}:theory",
-                    model=theory_model, effort=effort,
+                    model=theory_model, effort="consult",
                 )
                 results[idx] = (r, q, answer)
                 _save_answer(consult_dir, idx, r, q, answer)

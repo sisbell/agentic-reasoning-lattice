@@ -31,6 +31,7 @@ from lib.shared.paths import WORKSPACE
 MODEL_FLAGS = {
     # roles
     "default": "claude-fable-5[1m]",   # note/inquiry review-revise-consult-draft loop
+    "consult": "claude-opus-4-8[1m]",  # theory-channel consultations (inquiry phase)
     "evidence": "claude-sonnet-4-6",   # evidence-channel consultations
     "commit": "claude-sonnet-4-6",     # runner commit messages
     # tier aliases
@@ -45,6 +46,7 @@ MODEL_FLAGS = {
 # Raw ladder values pass through unchanged at the resolution site.
 EFFORT_LEVELS = {
     "default": "max",
+    "consult": "max",   # theory consultations: one-shot first contact, no tail
 }
 
 
