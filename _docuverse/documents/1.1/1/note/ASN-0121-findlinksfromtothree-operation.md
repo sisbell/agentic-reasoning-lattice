@@ -255,9 +255,13 @@ Nelson's most emphatic claim about link search is a scaling guarantee:
 > OTHERS." (4/60)
 
 We can state its abstract content precisely. `sat` is decided per link, independently of
-every other link in the store; a link's match status is a function of its own value, its
-own address, its own retraction status, and the fixed request. Consequently the result
-is insensitive to the presence of non-matching links.
+every other link in the store: a link's match status is a function of its own value, its
+own address, and the fixed request. Answer membership, however, conjoins a second test —
+addressability — and that conjunct is not per-link: `nullified(Σ)` is computed from
+retraction tuples stored at *other* addresses, so a non-matching link of retraction kind
+can grow it and thereby remove an existing match from the answer (exactly the exit route
+FL-WP(c) computes below). Insensitivity therefore holds for additions that nullify no
+existing link — which is precisely what the lemma's first hypothesis demands.
 
 **FL-JUNK (non-impedance).** Let `Σ →* Σ'` be any reachable sequence that retracts no
 *existing* link and whose added links — the set `dom(Σ'.L) \ dom(Σ.L)`, of arbitrary
@@ -653,8 +657,10 @@ retractor address `b ∈ dom(Σ'.L) \ dom(Σ.L)` lies outside it, so the self-re
 folding `a ∉ nullified(Σ) ∧ sat(a, q, Σ)` back into `a ∈ findlinks_FTT(q, Σ)` gives the stated
 wp: a found link survives a retraction step exactly when the retraction's to-coverage does
 not name it. Setting `a ∉ coverage(G')` to hold for all `a` already in the answer recovers
-FL-MON's no-retraction hypothesis; its failure is the sole route by which a match leaves
-the answer, which is FL-RET.
+FL-MON's no-retraction hypothesis. That this conjunct's failure is the *sole* route by
+which a match leaves the answer is the present analysis's own conclusion — case (a) bars
+exit under an ordinary K.λ, and F-PRES bars it under every other operation; FL-RET below
+is the downstream claim that an exit so taken is permanent.
 
 ## Stability under content editing
 
@@ -714,9 +720,16 @@ current line of descent.
 `Σ →* Σ'` and every request `q`, `a ∉ findlinks_FTT(q, Σ')`. The exclusion is total: even if
 `a`'s endsets would still satisfy every endpoint criterion, `a ∉ addressable(Σ')` removes
 it from FL-DEF, and the non-decrease of `nullified` across `→` and `→*` (recorded in "The
-answer is forced") keeps it out forever. A retracted
-link neither lingers as a phantom result nor obstructs retrieval of the links that still
-satisfy the inquiry (FL-JUNK applies to its absence as to any non-match).
+answer is forced") keeps it out forever. A retracted link does not linger as a phantom
+result, and its *exclusion* disturbs no other link's membership: for any `b ≠ a`, neither
+membership conjunct reads `a`'s status — `sat(b, q, ·)` reads only `b`'s own value and
+address, and `b ∈ nullified(·)` is an existential over the stored tuples of the audit
+slice `L_R`, which is selected by stored-value tests alone and is not edited by `a`'s
+nullification. That same fact bounds the claim: `a`'s *stored value* is not silenced by
+`a`'s exclusion. If `a` is itself a retraction tuple, it remains in `L_R^{Σ'}` after `a`
+is nullified and continues to nullify its targets — retraction-of-retraction is a
+non-fixpoint operation (R6b, ASN-0086) — so retracting a retractor removes *it* from
+every answer without restoring the `sat`-satisfying links its to-coverage excludes.
 
 The guarantee is *scoped* to current addressability, as Nelson's "not currently
 addressable" (4/9) demands and no more. A retracted link is removed from current
@@ -952,7 +965,7 @@ would be returned by `q` whenever no *standing* tuple covered it.)
 | FL-DEC | Decidability — `touch(e, r)` is decidable by ASN-0086's CoverageEqualityDecidable cell-decomposition run for intersection-nonemptiness, and `athome(a, H)` by the same T2 span-membership test; corollary at FL-DEF: `sat` is decidable per link, `nullified(Σ)` is computable by ASN-0086's ActiveSubset argument, and `findlinks_FTT(q, Σ) ⊆ dom(Σ.L)` is a finite, computable set (L-fin, ASN-0093) | introduced |
 | FL-SND | Soundness — `a ∈ findlinks_FTT(q, Σ) ⟹ a ∈ addressable(Σ) ∧ sat(a, q, Σ)`; no returned link is withdrawn or fails any criterion; no false positives | introduced |
 | FL-CMP | Completeness — every `a ∈ addressable(Σ)` with `sat(a, q, Σ)` is returned; the result is exactly the satisfying subset; no silent omission | introduced |
-| FL-JUNK | Non-impedance — across any `Σ →* Σ'` with `nullified(Σ') ∩ dom(Σ.L) = nullified(Σ)` (no existing link becomes nullified; added junk may itself be born-nullified) whose added links all fail the request, `findlinks_FTT(q, Σ') = findlinks_FTT(q, Σ)`: the result is invariant under such additions regardless of their quantity; match status is decided per link | introduced |
+| FL-JUNK | Non-impedance — across any `Σ →* Σ'` with `nullified(Σ') ∩ dom(Σ.L) = nullified(Σ)` (no existing link becomes nullified; added junk may itself be born-nullified) whose added links all fail the request, `findlinks_FTT(q, Σ') = findlinks_FTT(q, Σ)`: the result is invariant under such additions regardless of their quantity; `sat` is decided per link, and the first hypothesis is what holds the non-per-link addressability conjunct fixed | introduced |
 | FL-RES | Residence–endpoint independence — the home criterion is a function of the link address alone, the endpoint criteria of the link value alone; the four slots are orthogonal constraints | introduced |
 | FL-DIR | Positional directionality — `F` matches `e₁` only and `G` matches `e₂` only; reversing the from/to constraints can change the result, keeping "from X" and "to X" distinct queries | introduced |
 | FL-TYP | Type by address — the type criterion tests `coverage(e₃)` by address overlap, never reads stored content; ghost types are matchable, type may be constrained alone, and prefix-rooted type spans match subtype subtrees | introduced |
@@ -961,7 +974,7 @@ would be returned by `q` whenever no *standing* tuple covered it.)
 | FL-MON | Monotone accumulation absent retraction — an unretracted matching link, once found, stays found as the store grows | introduced |
 | FL-WP | Weakest preconditions for the unique result-changing transition K.λ — per-case wp's for the three result-changing cases, partitioned by retraction-relation membership; displayed in cases (a)–(c) | introduced |
 | FL-STB | Stability under editing — for any request, the result is invariant under any transition preserving `Σ.L`; FL-LOC routed through F-CIL (ComprehensionInvariantUnderΣL, ASN-0127), so retraction-set preservation follows from the single link-store hypothesis; pure-arrangement edits and content appends (F-PRES, ASN-0127) do not change which links are returned | introduced |
-| FL-RET | Retraction absence — a retracted link is permanently and completely absent from every subsequent current-state inquiry, and its absence does not impede other results | introduced |
+| FL-RET | Retraction absence — a retracted link is permanently and completely absent from every subsequent current-state inquiry; its exclusion disturbs no other link's membership conjuncts, though a retracted retractor's stored value continues to nullify its targets (R6b, ASN-0086) | introduced |
 | FL-REACH | Cross-document reach — for any request `findlinks_FTT` is independent of `Σ.M`: global over the store, finds transcluded content once, returns all links under a whole-docuverse home-set, and contains every satisfying, addressable link that any document surfaces — `findlinks_FTT(q, Σ) ⊇ ⋃_d { a : a ∈ addressable(Σ) ∧ sat(a, q, Σ) ∧ discoverable_from(a, d, Σ) }`, strict given satisfying orphans (not a superset of the bare, request-independent discoverable union) | introduced |
 
 ## Open Questions
