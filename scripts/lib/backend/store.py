@@ -220,6 +220,15 @@ class Store:
         # writes, we'll allocate via make_link's per-homedoc allocator
         # which tracks each homedoc's link subspace independently.
         self.state.links = load_jsonl(self.jsonl_path)
+        # Canonical-tail reconciliation high-water mark: everything up
+        # to this byte offset is reflected in the in-memory allocator
+        # cursors (via _reattach_doc_owners); emissions appended to
+        # canonical by OTHER stores after this point are folded in by
+        # _scan_canonical_tail before every emission.
+        self._canonical_offset = (
+            self.jsonl_path.stat().st_size if self.jsonl_path.exists() else 0
+        )
+        self._canonical_max_pos: Dict[str, int] = {}
         # Merge any per-worker pending emissions into the in-memory
         # LinkStore so queries see emissions that haven't been flushed
         # to canonical yet. The canonical jsonl is loaded first; per-
@@ -528,48 +537,81 @@ class Store:
         type_: TypeArg,
     ) -> Link:
         ts = _utcnow_unix()
-        # In worker context, take the cross-process emit lock to keep
-        # ID allocation atomic across concurrent workers. Workers share
-        # in-memory allocator state separately, so without this lock
-        # two workers running parallel fires on the same agent doc both
-        # see cursor at N, both emit at N → L11a violation in canonical.
-        # The lock briefly (microseconds) serializes the cursor
-        # reconcile + emit step.
-        if self.pending_jsonl_path is not None:
-            with _emit_lock(self.docuverse):
-                self._reconcile_link_cursor(homedoc)
-                link = self.state.make_link(
-                    homedoc, from_set, to_set, type_, ts=ts,
-                )
-                self._append_record(link, ts=ts)
-                return link
-        # Single-process (operator CLI, test harness, etc.): no race.
-        link = self.state.make_link(homedoc, from_set, to_set, type_, ts=ts)
-        self._append_record(link, ts=ts)
+        # Take the cross-process emit lock to keep ID allocation atomic
+        # across concurrent writers — runner workers AND operator CLIs
+        # (an operator script emitting while a runner is live races the
+        # workers exactly the way two workers race each other). Without
+        # the lock + reconcile, two writers both see cursor at N, both
+        # emit at N → L11a violation in canonical. The lock is held
+        # briefly (a tail scan + cursor update + one append).
+        with _emit_lock(self.docuverse):
+            self._reconcile_link_cursor(homedoc)
+            link = self.state.make_link(homedoc, from_set, to_set, type_, ts=ts)
+            self._append_record(link, ts=ts)
         return link
+
+    def _scan_canonical_tail(self) -> None:
+        """Fold canonical-jsonl lines appended since the last scan into
+        `_canonical_max_pos` (str(homedoc) → highest claimed position).
+
+        Covers the hole the pending-file scan can't: another store's
+        `flush_pending` appends to canonical and then TRUNCATES its
+        pending file, so by the time we reconcile, the claimed IDs are
+        in a part of canonical we never re-read (we loaded it at init).
+        This is how duplicate IDs 2194.0.2.6809 and 2195.0.2.19344 were
+        minted. Called under `_emit_lock`.
+
+        Reads only the bytes appended since `_canonical_offset`, and
+        only up to the last complete line (a concurrent append may
+        leave a torn final line; it's picked up next scan).
+        """
+        try:
+            size = self.jsonl_path.stat().st_size
+        except OSError:
+            return
+        if size <= self._canonical_offset:
+            return
+        with open(self.jsonl_path, "rb") as f:
+            f.seek(self._canonical_offset)
+            chunk = f.read()
+        nl = chunk.rfind(b"\n")
+        if nl < 0:
+            return
+        data, self._canonical_offset = chunk[:nl], self._canonical_offset + nl + 1
+        for raw in data.split(b"\n"):
+            raw = raw.strip()
+            if not raw:
+                continue
+            try:
+                link_id = json.loads(raw)["id"]
+                base, pos = link_id.rsplit(".0.2.", 1)
+                n = int(pos)
+            except (json.JSONDecodeError, KeyError, ValueError):
+                # Sub-position ids (e.g. …0.2.17.1) aren't sibling
+                # emissions claiming a new top-level position — skip.
+                continue
+            if n > self._canonical_max_pos.get(base, 0):
+                self._canonical_max_pos[base] = n
 
     def _reconcile_link_cursor(self, homedoc: Address) -> None:
         """Advance `homedoc`'s link-allocator cursor past any positions
-        already claimed in worker pending files.
+        already claimed by other writers since this store loaded state.
 
         Called under `_emit_lock` immediately before emitting a link
-        from `homedoc`'s link allocator. Scans every
-        `_workspace/links.worker-*.jsonl` for IDs of the form
-        `<homedoc>.0.2.<N>` and, if any exceeds the in-memory cursor,
-        advances the cursor past the max. This catches the case where
-        another worker emitted in the same allocator since we last
-        loaded state — without the catch, both workers would assign
-        the same position N.
+        from `homedoc`'s link allocator. Two sources of claims:
+        the canonical jsonl's tail (emissions flushed after our load —
+        see `_scan_canonical_tail`) and every
+        `_workspace/links.worker-*.jsonl` (emissions not yet flushed).
+        If any claimed position reaches the in-memory cursor, the
+        cursor advances past the max. Without the catch, two writers
+        would assign the same position N.
 
-        Idempotent on no-pending-conflict (cheap fall-through). Bounded
-        by per-pending-file size (each ~KB for typical fires).
+        Idempotent on no-conflict (cheap fall-through). Bounded by
+        bytes-appended-since-last-scan + per-pending-file size.
         """
         from .allocator import Allocator
         from .state import link_subspace_base
         from lib.shared.paths import WORKER_PENDING_DIR
-
-        if not WORKER_PENDING_DIR.exists():
-            return
 
         # Ensure the allocator exists; create if homedoc is new.
         if homedoc not in self.state._link_allocators:
@@ -578,11 +620,15 @@ class Store:
             )
         allocator = self.state._link_allocators[homedoc]
 
-        # IDs from this allocator look like `<homedoc>.0.2.<N>`. We need
-        # to find the max N across all pending files.
         homedoc_str = str(homedoc)
+        # Canonical tail: positions flushed to canonical since load.
+        self._scan_canonical_tail()
+        max_pos = self._canonical_max_pos.get(homedoc_str, 0)
+
+        # Pending files: positions claimed but not yet flushed. IDs
+        # from this allocator look like `<homedoc>.0.2.<N>`. (glob on
+        # a missing pending dir yields nothing — no existence check.)
         id_prefix = f'"id": "{homedoc_str}.0.2.'
-        max_pos = 0
         for pending_path in WORKER_PENDING_DIR.glob("links.worker-*.jsonl"):
             try:
                 if pending_path.stat().st_size == 0:

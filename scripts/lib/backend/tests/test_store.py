@@ -355,5 +355,56 @@ class RegisterVersionCursorReconcileTests(unittest.TestCase):
         )
 
 
+class ConcurrentWriterReconcileTests(unittest.TestCase):
+    """Two live stores over one canonical must never mint the same
+    link ID (the 2194.0.2.6809 / 2195.0.2.19344 duplicate-ID
+    incidents). A writer that loaded state before another writer's
+    emissions reached canonical only sees those claims by re-reading
+    the canonical tail at emit time (`_scan_canonical_tail`) — the
+    pending-file scan alone misses them once `flush_pending`
+    truncates the pending file.
+    """
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.lattice_dir = Path(self.tmp.name) / "test_lattice"
+        self.docuverse = self.lattice_dir / "_docuverse"
+        self.docuverse.mkdir(parents=True)
+        legacy = self.docuverse / "legacy_links.jsonl"
+        _seed_legacy_jsonl(legacy)
+        migrate(legacy, self.docuverse, lattice_name="test")
+
+    def test_second_store_skips_ids_emitted_after_its_load(self):
+        store_a = Store(self.lattice_dir)
+        store_b = Store(self.lattice_dir)  # same snapshot as A
+
+        doc_a = store_a.addr_for_path("claim/A.md")
+        doc_b = store_b.addr_for_path("claim/A.md")
+        emitted = {
+            store_a.make_link(
+                homedoc=doc_a, from_set=[doc_a], to_set=[], type_="finding",
+            ).addr
+            for _ in range(3)
+        }
+        # B's in-memory cursor predates A's emissions; only the
+        # canonical-tail scan can save it.
+        late = store_b.make_link(
+            homedoc=doc_b, from_set=[doc_b], to_set=[], type_="finding",
+        ).addr
+        self.assertNotIn(late, emitted)
+
+        # And A can come back after B without colliding either.
+        again = store_a.make_link(
+            homedoc=doc_a, from_set=[doc_a], to_set=[], type_="finding",
+        ).addr
+        self.assertNotEqual(again, late)
+
+        # Canonical log ends up duplicate-free.
+        with open(store_a.jsonl_path) as f:
+            ids = [json.loads(l)["id"] for l in f if l.strip()]
+        self.assertEqual(len(ids), len(set(ids)))
+
+
 if __name__ == "__main__":
     unittest.main()
