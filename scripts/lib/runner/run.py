@@ -131,16 +131,22 @@ def run_until_quiescent(
                 key = (trigger.name, str(addr))
                 if key in fired_this_pass:
                     continue
-                # File-based shutdown gate. Checked before starting any
-                # note-review fire so in-flight review→consult→revise
-                # chains complete naturally — consult/revise predicates
-                # remain True while their work exists. No new review
-                # cycle starts after the operator places the sentinel.
-                if trigger.name == "note-review" and shutdown_requested():
+                # File-based shutdown gate. Checked before any
+                # CHAIN-STARTING fire: note-review (starts a
+                # review→consult→revise cycle), inquiry-consult
+                # (starts a consultation campaign), and note-draft
+                # (starts a draft→review convergence run). In-flight
+                # chains still complete naturally — consult/revise
+                # predicates remain True while their work exists —
+                # but no new chain starts after the operator places
+                # the sentinel.
+                if (trigger.name in
+                        ("note-review", "inquiry-consult", "note-draft")
+                        and shutdown_requested()):
                     print(
                         f"  [RUNNER] shutdown sentinel detected — "
                         f"exiting after {len(fires)} fire(s) without "
-                        f"starting new review",
+                        f"starting new {trigger.name}",
                         file=sys.stderr,
                     )
                     return RunResult(
