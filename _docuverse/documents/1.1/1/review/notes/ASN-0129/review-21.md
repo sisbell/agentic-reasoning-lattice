@@ -1,0 +1,25 @@
+# Review of ASN-0129
+
+Summary of what was checked: the worked trace was re-derived state-by-state (Σ₀–Σ₄ values for `quiescent(t)` at active and default, and `ever_res`, all confirmed, including the C3-via-DR discharge at Σ₄ and the frontier indices a₁–a₄); PD0's ST/SF rules were each checked against the step effects (the ∀/SF and count-polarity rules are correct, and `count(D) = c` is rightly in neither class); QD-fin, V-IDX's vacuity argument via R-C1/S3, the `sources_to` reconstruction in "Two argument regimes," V-AUD's readings, UV's per-codomain split, FP's footprints (including the BH4 home-wide and `targets_keyed` cross-type exceptions PD2 names), and PC6's converse leaf inventory (Observe_K spelling, registry constant-folding, the `L_dom` recovery via P6) all hold. No technical errors found. The remaining issues are the forward-reference accretion patterns this note's classifier flags.
+
+## REVISE
+
+### Issue 1: Four separate locations defer to PC6's granularity/evaluation-class material, including a pure ordering-justification sentence inside PC6 itself
+**ASN-0129, V (AtomicVocabulary), V-TUP, QD-audit, PC6**: V closes with "Atoms may be *internally iterative* (`chain`; bounded behind the atom's own termination proof — the full statement is PC6's evaluation class)." V-TUP: "The arithmetic is the test's implementation, inside the leaf (PC6's base granularity); composition sees only the Boolean." QD-audit: "…which no atom exposes and prefix testing cannot characterize: PC6's base granularity…" PC6: "Why the stopping point sits here is the *granularity* entry under *What the relativization costs* below."
+**Problem**: This is the deferral-cluster pattern — multiple paragraphs in different sections pointing at the same downstream slot. The local sentences already carry their facts ("inside the leaf," "bounded behind the atom's own termination proof"); the appended pointers advance nothing. The PC6 sentence is the worst instance: it justifies the section's own internal ordering, deferring to material two sentences away in the same section.
+**Required**: The granularity/evaluation-class account lives once, at PC6. V, V-TUP, and QD-audit keep their local facts and drop the anticipatory pointers (one pointer at most, if any). Delete the PC6 self-deferral sentence outright — the "What the relativization costs" paragraph follows immediately and needs no advance billing.
+
+### Issue 2: One grammar fact stated twice with mutual citation, and downstream-consumer notes sitting in definition slots
+**ASN-0129, QD ("Reg is quantification-only"), V-IDX, V (BH3 bullet), V-DOC**: QD: "PC1's quantifiers are the only ones that bind a class variable — V-IDX defines class-variable bodies there and nowhere else." V-IDX: "PC1's `Reg` binders are the grammar's only class-variable positions (QD's `Reg` restriction)." V's BH3 bullet: "in `V_atom` iff some registered class attaches BH3 (the well-formedness condition V-IDX reads off this admission)." V-DOC: "Admission and restriction are both grounded at QD-audit."
+**Problem**: The first pair is the same fact in two sections, each instance citing the other — duplication plus circular deferral; a reader cannot tell which is the defining occurrence. The second pair are consumer inventories in definition slots: they announce who will read the clause (V-IDX, QD-audit) rather than advancing what the atom or admission *is*. V-IDX and QD-audit already cite their inputs at the point of use, so the announcements are redundant in both directions.
+**Required**: Give the class-variable-position fact one home — V-IDX, where the binder is defined — and let QD's restriction paragraph cite it once without restating it. Strip the consumer notes from V's BH3 bullet and V-DOC; if V-DOC needs its ground visible, the one-line residence ground ("the emit surface's own home validation") belongs there directly, not a pointer to where it is argued.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Upstream reconciliation of ASN-0128's D4 with PL's universal reverse-lookup composability
+The "Two argument regimes" paragraph correctly proves that `⋃({x ∈ A_K : target ∈ coverage_G(x)}, addrs_F)` denotes `sources_to(target)` for every registered K with no behavior attached, reducing D4's "deliberately opt-in" reverse access to an atom-shipping convention. **Why out of scope**: the demonstration is sound and honestly framed here; whether ASN-0128's D4 language should be restated upstream in light of it is a revision question for that ASN, not an error in this one.
+
+### Topic 2: Evaluation/transition interleaving semantics
+PC4 guarantees that two evaluators of the same term at the same Σ agree, and the note correctly assigns coordination to the emit side. What a term evaluated concurrently with a committing `→_sh` step observes — snapshot guarantees, read atomicity across the step boundary — is unaddressed. **Why out of scope**: this is operational machinery for the protocol layer the note explicitly leaves to builders; the state-at-a-time semantics is complete on its own terms.
+
+VERDICT: REVISE
