@@ -259,7 +259,7 @@ span-shape clause admits no span at all — every span requires a root
 `s ∈ ρ(R_j, Σ)` — so `e_j = ∅` is the unique admissible record, and the
 recovery equation holds with both sides empty, `coverage(∅) = ∅ = ρ(R_j, Σ)`.
 For the from and to slots the boundary is *admitted*: the operation's
-enabling condition (`enabled`, MLop below) constrains only the type slot's
+enabling condition `enabled` (MLop) constrains only the type slot's
 resolution, and `wf` does not require a spec to capture any active position
 (nor even `p ≥ 1`) — a well-formed spec all of whose positions have since
 been deleted, or that names a vacuous interval, resolves empty, and the
@@ -400,8 +400,7 @@ SubsequentEmissionFreshness, ASN-0093), and `dom(Σ.C)` is unchanged by `K.λ`.
 Neither branch admits `a`, so `a ∉ ran(M(d))`. Finally, the bound V-position
 `v_a`: its two-branch determination — fully substrate-determined when
 `V_{s_L}(d) ≠ ∅`, and carrying the one parameter the substrate leaves to its
-caller, the first-link depth, when `V_{s_L}(d) = ∅` — is stated once, with its
-rationale, in the operation contract (MLop below), and meets `K.μ⁺_L`'s
+caller, the first-link depth, when `V_{s_L}(d) = ∅` — meets `K.μ⁺_L`'s
 required form by construction.
 The home document is thereby the link's residence and the locus of its
 ownership.
@@ -444,8 +443,8 @@ side, we use the first endset to designate the matter pointed at. To call
 this 'from' is inane" (LM 4/48). The slot convention this states — populate
 the first endset, leave the second empty — is recorded here as informative
 Nelson usage, not enforced: no precondition of the operation carries it, and
-the empty-resolution boundary settled in the resolution section admits both
-degenerate forms. In this model the one-sided link is exactly that boundary
+both degenerate forms `(∅, e₂, e₃)` and `(e₁, ∅, e₃)` are legal link values.
+In this model the one-sided link is exactly the empty-resolution boundary
 case.
 
 The third endset reveals the difference between a *connection* and a *relation*.
@@ -468,9 +467,7 @@ recovery equation: the stored record satisfies
 `coverage(e₃) ∩ F = ρ(R₃, Σ) ≠ ∅`, so `coverage(e₃) ≠ ∅`; since
 `coverage(∅) = ∅`, it follows that `e₃ ≠ ∅`. Necessity and sufficiency
 together make `ρ(R₃, Σ) ≠ ∅` exactly the operation precondition that L3
-induces on the type argument — and the contrast with the from/to slots is now
-sharp: L3 constrains only slot 3, which is why the empty-resolution boundary
-is admitted there and excluded here. With the precondition met, every link
+induces on the type argument. With the precondition met, every link
 MAKELINK creates carries a classifier, and by L8
 (TypeByAddress) the type is matched by the *addresses* its endset covers, not by
 any content stored there. The type argument is `ρ`-resolved exactly as from and to
@@ -586,8 +583,7 @@ defined only for `d' ∈ dom(Σ.M)`,
 > `≡ enabled(makelink(d, R₁, R₂, R₃)) ∧ d' ∈ dom(Σ.M) ∧ (E i : 1 ≤ i ≤ 3 : ρ(R_i, Σ) ∩ ran(Σ.M(d')) ≠ ∅)`,
 
 where `enabled(makelink(d, R₁, R₂, R₃))` is the operation's enabling
-precondition, stated once at MLop below; conjoining it parallels the
-`enabled(K.μ⁻[d,R])` conjunct of ASN-0098 LP12a. The `wf` and `ρ(R₃, Σ) ≠ ∅` conjuncts
+precondition. The `wf` and `ρ(R₃, Σ) ≠ ∅` conjuncts
 remain essential: without them the formula would assert the postcondition reachable
 on inputs the operation rejects — e.g. an endset spec that escapes the content
 subspace, or an empty type spec (ML6).
@@ -674,7 +670,34 @@ so the choice falls to the operation, not to `K.μ⁺_L`. We fix it by
 convention: `m = 2`, the least depth S8a admits, giving first link V-position
 `v_a = [s_L, 1]`. Any fixed `m ≥ 2` would serve equally — no claim of this
 ASN consults the link-subspace depth — but the operation must name one, and
-the minimal choice adds no unforced structure. Everything else is frame,
+the minimal choice adds no unforced structure.
+
+The two branch selections just made are *independent*, and we must check the
+contract where they decouple. The `a`-branch is store-keyed: `K.λ` chooses
+first versus subsequent emission by the homed set
+`{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d}` (ASN-0093). The `v_a`-branch is
+arrangement-keyed: it tests `V_{s_L}(d)`. Agreement is forced in one
+direction only — an empty homed set forces `V_{s_L}(d) = ∅`, since every
+link-subspace image of `Σ.M(d)` lies in `dom(Σ.L)` with origin `d` (S3★ with
+CL-OWN, ASN-0047), so first emission never pairs with the successor position.
+The converse fails at a reachable boundary: a `K.μ⁻` on `d` with retention
+`n'_{s_L} = 0` empties `V_{s_L}(d)` while every homed link persists in
+`dom(Σ.L)` (P3/L12, ASN-0047) — the links are unseated, not unmade — and the
+link-subspace depth ceases to be pinned (`m_L(d)` is defined only while
+`V_{s_L}(d) ≠ ∅`, ASN-0047). At such a *contracted home* a single call takes
+the subsequent-emission branch for `a` — `a = inc(ℓ_prev, 0)` with
+`ℓ_prev = max{ℓ' ∈ dom(Σ.L) : origin(ℓ') = d}` — together with the
+first-position branch for `v_a = [s_L, 1]`, the depth re-pinned at the
+convention. The mixed case satisfies the contract unchanged: `a`'s freshness
+is against the whole store and never consults the arrangement
+(SubsequentEmissionFreshness, ASN-0093); the residence-section discharge of
+`K.μ⁺_L`'s precondition used only `a ∉ ran(M(d))`, which the contraction
+only makes easier to meet (the range shrank); and the post-state singleton
+`V_{s_L}(d) = {[s_L, 1]}` satisfies D-MIN★ and D-SEQ★ as any first seating
+does. The contracted home is a boundary of the selectors, not of the
+guarantees.
+
+Everything else is frame,
 exactly as ML10 states, and the operation returns `a`, the link's identity
 (ML0). ML0–ML10 are the per-facet guarantees of this contract.
 
@@ -755,7 +778,12 @@ binding `Σ'.M(C) = Σ.M(C) ∪ {[s_L, 1] ↦ a}`. At `Σ'` the link subspace of
 is `V_{s_L}(C) = {[s_L, 1]}`, checkable directly against the shape invariants:
 its minimum is `[s_L, 1]` (D-MIN★, ASN-0047) and it is the canonical initial
 segment `{[s_L, k] : 1 ≤ k ≤ 1}` (D-SEQ★) — the one branch of MLop this ASN
-fixes by its own convention, here verified against a concrete state.
+fixes by its own convention, here verified against a concrete state. The two
+selectors aligned here — first emission with first position — only because
+`C` is link-virgin: at a contracted home (links homed, link subspace cleared
+by a `K.μ⁻` with `n'_{s_L} = 0`) the `a`-branch reads the store and emits the
+*subsequent* sibling while the `v_a`-branch fires exactly as here — MLop's
+mixed case.
 
 *Discoverability (ML9).* Evaluate `discoverable_from(a, d', Σ')` for each document.
 From `A`: `coverage(e₁) ∩ ran(Σ'.M(A)) ⊇ {a₁} ≠ ∅` — discoverable. From `B`:
@@ -822,12 +850,12 @@ ML9's future-state consequence, concretely.
 | ML3 | UniformResolution: from, to, and type arguments are resolved by one procedure with no slot privileged at the V→I conversion step | introduced |
 | ML4 | ResidenceApplicationOrthogonality: home document and endset content are independent; the precondition relates `d` to no `ρ(R_j,Σ)`; a link may home anywhere and point anywhere, connecting two documents without residing in either | introduced |
 | ML5 | OrderedEndsets: the recorded triple is ordered, `(F,G,Θ) ≠ (G,F,Θ)` for `F ≠ G` (L6); the order fixes from/to roles semantically without restricting reachability (discovery is endset-symmetric); the one-sided slot convention (LM 4/48: populate the first slot, leave the second empty) is informative Nelson usage, not enforced — the operation admits both degenerate forms `(∅, e₂, e₃)` and `(e₁, ∅, e₃)` | introduced |
-| ML6 | TypedRelation: operation precondition `ρ(R₃,Σ) ≠ ∅`, necessary and sufficient for K.λ's `e₃ ≠ ∅` (L3) via the recovery equation (`coverage(e₃) ∩ F = ρ(R₃,Σ)` with `coverage(∅) = ∅`); L3 constrains only slot 3, so empty from/to resolution is admitted, forcing `e_j = ∅` — L3-legal and inert in ML9's test; the third endset, recorded like from/to but matched by address (L8), distinguishes a typed relation from a bare connection; the type resolves to stored content like any other endset (`ρ(R₃,Σ) ⊆ dom(Σ.C)`) | introduced |
+| ML6 | TypedRelation: operation precondition `ρ(R₃,Σ) ≠ ∅`, necessary and sufficient for K.λ's `e₃ ≠ ∅` (L3) via the recovery equation (`coverage(e₃) ∩ F = ρ(R₃,Σ)` with `coverage(∅) = ∅`); the third endset, recorded like from/to but matched by address (L8), distinguishes a typed relation from a bare connection; the type resolves to stored content like any other endset (`ρ(R₃,Σ) ⊆ dom(Σ.C)`) | introduced |
 | ML7 | Permanence: `(A Σ' → Σ'' : a ∈ dom(Σ'.L) : a ∈ dom(Σ''.L) ∧ Σ''.L(a) = Σ'.L(a))` — the made link is not broken by any editing of the content it connects | introduced |
 | ML8 | EndsetSurvivability: editing a source document changes `Σ.M` but never the recorded I-addresses, which by S0 denote their original content permanently — the endset reference survives all editing of the content it names (consequence of ML7 ∧ ML1) | introduced |
 | ML9 | DiscoverabilityDecoupledFromResidence: `wp(makelink, discoverable_from(a, d', ·)) ≡ enabled(makelink) ∧ d' ∈ dom(Σ.M) ∧ (E i : ρ(R_i,Σ) ∩ ran(Σ.M(d')) ≠ ∅)`, where `enabled(makelink)` is the operation's enabling precondition (MLop) — beyond enabledness, the home `d` does not appear in the discoverability test; the consequence persists at every later `Σ''` via the stable content trace (LP19a) together with the state-uniform link-store exclusion `coverage(eᵢ) ∩ dom(Σ''.L) = ∅` (LP-Fin Corollary subspace `s_C` versus LP-Sub/L0 subspace `s_L`) | introduced |
 | ML10 | Frame: `Σ'.C = Σ.C`; `Σ'.E = Σ.E ∧ Σ'.R = Σ.R` (inherited from the K.λ/K.μ⁺_L frames — the `R' = R` clause grounds J1'★'s vacuity); `(A d' ≠ d : Σ'.M(d') = Σ.M(d'))`; existing `Σ.L` entries unchanged; every source's content-subspace arrangement is unmodified by being linked into — a source coinciding with the home gains only the link-subspace seating `v_a ↦ a` (`v_a` as determined in MLop) | introduced |
-| MLop | MakelinkOperation (DEF, operation): signature `makelink(d, R₁, R₂, R₃)` — home document and three spec-set arguments (from, to, type), a partial operation on reachable states; precondition `enabled(makelink(d, R₁, R₂, R₃)) ≡ d ∈ dom(Σ.M) ∧ (A i : 1 ≤ i ≤ 3 : wf(R_i, Σ)) ∧ ρ(R₃, Σ) ≠ ∅`, where `wf` and `ρ` are as in ML1; effect (the ValidComposite★ of K.λ then K.μ⁺_L): `Σ'.L = Σ.L ∪ {a ↦ (e₁, e₂, e₃)}` with `a` the fresh emission of `A_L(d)` (ML0) and each `e_i` an admissible record of `ρ(R_i, Σ)` per ML1/ML2, plus the home seating `Σ'.M(d) = Σ.M(d) ∪ {v_a ↦ a}` with `v_a = shift(max(V_{s_L}(d)), 1)` when `V_{s_L}(d) ≠ ∅` and `v_a = [s_L, 1]` (first link V-position at the conventional depth `m = 2`) when `V_{s_L}(d) = ∅`; returns `a`; frame per ML10 | introduced |
+| MLop | MakelinkOperation (DEF, operation): signature `makelink(d, R₁, R₂, R₃)` — home document and three spec-set arguments (from, to, type), a partial operation on reachable states; precondition `enabled(makelink(d, R₁, R₂, R₃)) ≡ d ∈ dom(Σ.M) ∧ (A i : 1 ≤ i ≤ 3 : wf(R_i, Σ)) ∧ ρ(R₃, Σ) ≠ ∅`, where `wf` and `ρ` are as in ML1; effect (the ValidComposite★ of K.λ then K.μ⁺_L): `Σ'.L = Σ.L ∪ {a ↦ (e₁, e₂, e₃)}` with `a` the fresh emission of `A_L(d)` (ML0) and each `e_i` an admissible record of `ρ(R_i, Σ)` per ML1/ML2, plus the home seating `Σ'.M(d) = Σ.M(d) ∪ {v_a ↦ a}` with `v_a = shift(max(V_{s_L}(d)), 1)` when `V_{s_L}(d) ≠ ∅` and `v_a = [s_L, 1]` (first link V-position at the conventional depth `m = 2`) when `V_{s_L}(d) = ∅`; the `a`-branch (store-keyed: K.λ's emit predicate over `{ℓ' : origin(ℓ') = d}`) and the `v_a`-branch (arrangement-keyed: `V_{s_L}(d)`) are independent selectors, diverging at a contracted home — homed links present, `V_{s_L}(d) = ∅` after K.μ⁻ with `n'_{s_L} = 0` — where subsequent emission pairs soundly with the first position; returns `a`; frame per ML10 | introduced |
 
 ## Open Questions
 
