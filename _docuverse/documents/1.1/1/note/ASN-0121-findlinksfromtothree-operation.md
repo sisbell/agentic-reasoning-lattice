@@ -22,7 +22,7 @@ We write the system state as ASN-0047's five-tuple `Σ = (Σ.C, Σ.L, Σ.E, Σ.M
 the content store, the link store, the entity set, the family of document arrangements,
 and the provenance relation. This is the state the transition vocabulary `→` (below)
 operates on; the query itself reads only the link store `Σ.L` (FL-LOC, below). We use
-`coverage(e)` (ASN-0043) for the set of I-addresses an endset
+`coverage(e)` (ASN-0043) for the set of tumbler addresses an endset
 references, `home(a)` (ASN-0043) for the document-level prefix at which a link address
 `a` resides, and the total order and span machinery of ASN-0034 throughout.
 
@@ -211,9 +211,7 @@ monotone across `→*` (E-MONO, ASN-0127), whereas `findlinks_FTT` shrinks under
 (FL-WP(c), FL-RET below). Neither operation is a restriction of the other: a link
 touching the request only through a higher slot `e₄` is found by F-FIND yet fails `sat`,
 and a nullified link satisfying all four criteria is found by F-FIND yet excluded here.
-The subscript follows ASN-0127's own variant pattern (`findlinks_V`); where this ASN
-routes through ASN-0127's lemmas (F-PRES, F-CIL), each is applied on its own stated
-hypotheses to `findlinks_FTT`'s defining comprehension, and the second phase of
+The subscript follows ASN-0127's own variant pattern (`findlinks_V`); the second phase of
 `findlinks_V` (F-V) remains the foundation's bare `findlinks`, not the present operation.
 
 *Corollary (of FL-DEC): the answer is computable.* `sat(a, q, Σ)` is decidable per link:
