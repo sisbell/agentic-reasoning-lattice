@@ -650,8 +650,8 @@ present in `Σ.L`.
 and `Σ'.M(d') = Σ.M(d')` for every `d' ≠ d` (only the home document's link
 subspace is extended). The entity set and provenance relation are likewise
 untouched: `Σ'.E = Σ.E ∧ Σ'.R = Σ.R`, inherited from the frames of `K.λ` and
-`K.μ⁺_L` (ASN-0047) — MAKELINK creates no entity and records no provenance, and
-the `R' = R` clause is what discharges J1'★ above. Existing link-store entries are
+`K.μ⁺_L` (ASN-0047) — MAKELINK creates no entity and records no provenance.
+Existing link-store entries are
 untouched — the store only gains `a ↦ (e₁, e₂, e₃)`. The coordinates the endsets
 read — every source's *content-subspace* arrangement — are unmodified by the act
 of being linked into: the one arrangement change anywhere is the home's
@@ -669,10 +669,8 @@ operation on reachable states, defined exactly on its enabling precondition
 
 — `wf` and `ρ` as defined in the resolution section (ML1). When enabled, the
 effect is the composite `Σ →* Σ'` — a ValidComposite★ of two named elementary
-steps, `K.λ` followed by `K.μ⁺_L`, the arrow `→` remaining reserved for the
-elementary transitions themselves — and its net effect is two entries. The
-link store gains exactly
-one,
+steps, `K.λ` followed by `K.μ⁺_L` — and its net effect is two entries. The
+link store gains exactly one,
 
 > `Σ'.L = Σ.L ∪ {a ↦ (e₁, e₂, e₃)}`,
 
@@ -875,7 +873,7 @@ ML9's future-state consequence, concretely.
 | ML7 | Permanence: `(A Σ' → Σ'' : a ∈ dom(Σ'.L) : a ∈ dom(Σ''.L) ∧ Σ''.L(a) = Σ'.L(a))` — the made link is not broken by any editing of the content it connects | introduced |
 | ML8 | EndsetSurvivability: editing a source document changes `Σ.M` but never the recorded I-addresses, which by S0 denote their original content permanently — the endset reference survives all editing of the content it names (consequence of ML7 ∧ ML1) | introduced |
 | ML9 | DiscoverabilityDecoupledFromResidence: `wp(makelink, discoverable_from(a, d', ·)) ≡ enabled(makelink) ∧ d' ∈ dom(Σ.M) ∧ (E i : ρ(R_i,Σ) ∩ ran(Σ.M(d')) ≠ ∅)`, where `enabled(makelink)` is the operation's enabling precondition (MLop) — beyond enabledness, the home `d` does not appear in the discoverability test; the consequence persists at every later `Σ''` via the stable content trace (LP19a) together with the state-uniform link-store exclusion `coverage(eᵢ) ∩ dom(Σ''.L) = ∅` (LP-Fin Corollary subspace `s_C` versus LP-Sub/L0 subspace `s_L`) | introduced |
-| ML10 | Frame: `Σ'.C = Σ.C`; `Σ'.E = Σ.E ∧ Σ'.R = Σ.R` (inherited from the K.λ/K.μ⁺_L frames — the `R' = R` clause grounds J1'★'s vacuity); `(A d' ≠ d : Σ'.M(d') = Σ.M(d'))`; existing `Σ.L` entries unchanged; every source's content-subspace arrangement is unmodified by being linked into — a source coinciding with the home gains only the link-subspace seating `v_a ↦ a` (`v_a` as determined in MLop) | introduced |
+| ML10 | Frame: `Σ'.C = Σ.C`; `Σ'.E = Σ.E ∧ Σ'.R = Σ.R` (inherited from the K.λ/K.μ⁺_L frames); `(A d' ≠ d : Σ'.M(d') = Σ.M(d'))`; existing `Σ.L` entries unchanged; every source's content-subspace arrangement is unmodified by being linked into — a source coinciding with the home gains only the link-subspace seating `v_a ↦ a` (`v_a` as determined in MLop) | introduced |
 | MLop | MakelinkOperation (DEF, operation): signature `makelink(d, R₁, R₂, R₃)` — home document and three spec-set arguments (from, to, type), a partial operation on reachable states; precondition `enabled(makelink(d, R₁, R₂, R₃)) ≡ d ∈ dom(Σ.M) ∧ (A i : 1 ≤ i ≤ 3 : wf(R_i, Σ)) ∧ ρ(R₃, Σ) ≠ ∅`, where `wf` and `ρ` are as in ML1; effect (the composite `Σ →* Σ'`, a ValidComposite★ of elementary K.λ then K.μ⁺_L): `Σ'.L = Σ.L ∪ {a ↦ (e₁, e₂, e₃)}` with `a` the fresh emission of `A_L(d)` (ML0) and each `e_i` an admissible record of `ρ(R_i, Σ)` per ML1/ML2, plus the home seating `Σ'.M(d) = Σ.M(d) ∪ {v_a ↦ a}` with `v_a = shift(max(V_{s_L}(d)), 1)` when `V_{s_L}(d) ≠ ∅` and `v_a = [s_L, 1]` (first link V-position at the conventional depth `m = 2`) when `V_{s_L}(d) = ∅`; the `a`-branch (store-keyed: K.λ's emit predicate over `{ℓ' : origin(ℓ') = d}`) and the `v_a`-branch (arrangement-keyed: `V_{s_L}(d)`) are independent selectors, diverging at a contracted home — homed links present, `V_{s_L}(d) = ∅` after K.μ⁻ with `n'_{s_L} = 0` — where subsequent emission pairs soundly with the first position; returns `a`; frame per ML10 | introduced |
 
 ## Open Questions
