@@ -62,10 +62,14 @@ document `d ∈ dom(Σ.M)`, the link sub-allocator `A_L(d)` produces fresh
 link-subspace addresses scoped to `d`, with first emission `[d.0.s_L.1]` and
 successors `inc(·, 0)` (ASN-0093, K.λ; FirstEmission, ChainDiscipline).
 
-The link-creation transition is the substrate's `K.λ` (LinkAllocation, ASN-0093,
-ASN-0047) followed by the link-subspace arrangement extension `K.μ⁺_L` (ASN-0047)
-that seats the new link in its home document's V-stream. MAKELINK is the
-user-level operation those two transitions implement; our task is to say what it
+The link-creation effect is a composite `Σ →* Σ'` of two elementary
+transitions: the substrate's `K.λ` (LinkAllocation, ASN-0093, ASN-0047)
+followed by the link-subspace arrangement extension `K.μ⁺_L` (ASN-0047) that
+seats the new link in its home document's V-stream. We reserve `→`, as the
+foundations do (SequentialTransitionAxiom), for single elementary transitions;
+the composite passes through an intermediate state between its two steps and is
+written `Σ →* Σ'`. MAKELINK is the user-level operation those two elementary
+transitions implement; our task is to say what it
 must guarantee abstractly. As a composite it must satisfy both clauses of
 ASN-0047's ValidComposite★: the elementary preconditions of `K.λ` and `K.μ⁺_L`
 (discharged where each is invoked below) and the coupling constraints J0, J1★,
@@ -149,7 +153,20 @@ function is defined only when `(d_j, σ_j)` is a *ContentReference* — which re
 beyond T12, the non-empty subspace `V_{(u_j)₁}(d_j) ≠ ∅` and the depth match
 `#u_j = m` against the common arrangement depth, both of which `wf` above declines
 to impose — and *well-formed*, with every depth-`m` position of `⟦σ_j⟧` active in
-`d_j`'s arrangement. On that domain the two agree: `ρ`'s contribution for spec `j`
+`d_j`'s arrangement. On that domain the two agree, and the agreement is two
+short steps. First, the domains coincide by the definition of restriction:
+`resolve(d_j, σ_j)` decomposes `f = M(d_j)|⟦σ_j⟧` (ASN-0058, Resolution), and
+`dom(f) = {v ∈ dom(Σ.M(d_j)) : v ∈ ⟦σ_j⟧}` is exactly the active-filtered set
+whose images `ρ` collects for spec `j` — that contribution is `ran(f)`.
+Second, the I-addresses `resolve(d_j, σ_j)`'s runs name are exactly `ran(f)`,
+both inclusions from ASN-0058's decomposition conditions. Each run
+`(v_j, a_j, n_j)` satisfies B3 (Consistency): `f(v_j + k) = a_j + k` for
+`0 ≤ k < n_j` — which both places every block position `v_j + k` in `dom(f)`
+and exhibits every run-named address `a_j + k` as an image of `f`, so the
+run-named set lies in `ran(f)`. Conversely, every `v ∈ dom(f)` lies in
+exactly one block by B1 (Coverage), say `v = v_j + k` with `0 ≤ k < n_j`,
+whence `f(v) = a_j + k` by B3 is run-named, so `ran(f)` lies in the
+run-named set. Hence `ρ`'s contribution for spec `j`
 is exactly the set of I-addresses `resolve(d_j, σ_j)`'s runs name. Off it `resolve`
 has no value, and `ρ` extends it along independent axes: the active-position filter
 (`v ∈ dom(Σ.M(d_j))`) resolves *partial* spans — MAKELINK must accept a span some of
@@ -262,8 +279,10 @@ For the from and to slots the boundary is *admitted*: the operation's
 enabling condition `enabled` (MLop) constrains only the type slot's
 resolution, and `wf` does not require a spec to capture any active position
 (nor even `p ≥ 1`) — a well-formed spec all of whose positions have since
-been deleted, or that names a vacuous interval, resolves empty, and the
-operation is defined on it. The empty record is legal: `K.λ`'s value
+been deleted, or whose interval contains no active position at all
+(depth-mismatched, or beyond the arrangement's extent; the interval itself
+is never empty — T12 puts `u_j ∈ ⟦σ_j⟧` by TA-strict), resolves empty, and
+the operation is defined on it. The empty record is legal: `K.λ`'s value
 precondition constrains only slot 3 (`e₃ ≠ ∅`, L3; the non-type slots are
 unconstrained), so `(∅, e₂, e₃)` and `(e₁, ∅, e₃)` are both legal link
 values. And the empty slot is *inert* in ML9's discoverability test: with
@@ -649,8 +668,10 @@ operation on reachable states, defined exactly on its enabling precondition
 > `enabled(makelink(d, R₁, R₂, R₃)) ≡ d ∈ dom(Σ.M) ∧ (A i : 1 ≤ i ≤ 3 : wf(R_i, Σ)) ∧ ρ(R₃, Σ) ≠ ∅`
 
 — `wf` and `ρ` as defined in the resolution section (ML1). When enabled, the
-transition `Σ → Σ'` is the ValidComposite★ of `K.λ` followed
-by `K.μ⁺_L`, and its net effect is two entries. The link store gains exactly
+effect is the composite `Σ →* Σ'` — a ValidComposite★ of two named elementary
+steps, `K.λ` followed by `K.μ⁺_L`, the arrow `→` remaining reserved for the
+elementary transitions themselves — and its net effect is two entries. The
+link store gains exactly
 one,
 
 > `Σ'.L = Σ.L ∪ {a ↦ (e₁, e₂, e₃)}`,
@@ -855,7 +876,7 @@ ML9's future-state consequence, concretely.
 | ML8 | EndsetSurvivability: editing a source document changes `Σ.M` but never the recorded I-addresses, which by S0 denote their original content permanently — the endset reference survives all editing of the content it names (consequence of ML7 ∧ ML1) | introduced |
 | ML9 | DiscoverabilityDecoupledFromResidence: `wp(makelink, discoverable_from(a, d', ·)) ≡ enabled(makelink) ∧ d' ∈ dom(Σ.M) ∧ (E i : ρ(R_i,Σ) ∩ ran(Σ.M(d')) ≠ ∅)`, where `enabled(makelink)` is the operation's enabling precondition (MLop) — beyond enabledness, the home `d` does not appear in the discoverability test; the consequence persists at every later `Σ''` via the stable content trace (LP19a) together with the state-uniform link-store exclusion `coverage(eᵢ) ∩ dom(Σ''.L) = ∅` (LP-Fin Corollary subspace `s_C` versus LP-Sub/L0 subspace `s_L`) | introduced |
 | ML10 | Frame: `Σ'.C = Σ.C`; `Σ'.E = Σ.E ∧ Σ'.R = Σ.R` (inherited from the K.λ/K.μ⁺_L frames — the `R' = R` clause grounds J1'★'s vacuity); `(A d' ≠ d : Σ'.M(d') = Σ.M(d'))`; existing `Σ.L` entries unchanged; every source's content-subspace arrangement is unmodified by being linked into — a source coinciding with the home gains only the link-subspace seating `v_a ↦ a` (`v_a` as determined in MLop) | introduced |
-| MLop | MakelinkOperation (DEF, operation): signature `makelink(d, R₁, R₂, R₃)` — home document and three spec-set arguments (from, to, type), a partial operation on reachable states; precondition `enabled(makelink(d, R₁, R₂, R₃)) ≡ d ∈ dom(Σ.M) ∧ (A i : 1 ≤ i ≤ 3 : wf(R_i, Σ)) ∧ ρ(R₃, Σ) ≠ ∅`, where `wf` and `ρ` are as in ML1; effect (the ValidComposite★ of K.λ then K.μ⁺_L): `Σ'.L = Σ.L ∪ {a ↦ (e₁, e₂, e₃)}` with `a` the fresh emission of `A_L(d)` (ML0) and each `e_i` an admissible record of `ρ(R_i, Σ)` per ML1/ML2, plus the home seating `Σ'.M(d) = Σ.M(d) ∪ {v_a ↦ a}` with `v_a = shift(max(V_{s_L}(d)), 1)` when `V_{s_L}(d) ≠ ∅` and `v_a = [s_L, 1]` (first link V-position at the conventional depth `m = 2`) when `V_{s_L}(d) = ∅`; the `a`-branch (store-keyed: K.λ's emit predicate over `{ℓ' : origin(ℓ') = d}`) and the `v_a`-branch (arrangement-keyed: `V_{s_L}(d)`) are independent selectors, diverging at a contracted home — homed links present, `V_{s_L}(d) = ∅` after K.μ⁻ with `n'_{s_L} = 0` — where subsequent emission pairs soundly with the first position; returns `a`; frame per ML10 | introduced |
+| MLop | MakelinkOperation (DEF, operation): signature `makelink(d, R₁, R₂, R₃)` — home document and three spec-set arguments (from, to, type), a partial operation on reachable states; precondition `enabled(makelink(d, R₁, R₂, R₃)) ≡ d ∈ dom(Σ.M) ∧ (A i : 1 ≤ i ≤ 3 : wf(R_i, Σ)) ∧ ρ(R₃, Σ) ≠ ∅`, where `wf` and `ρ` are as in ML1; effect (the composite `Σ →* Σ'`, a ValidComposite★ of elementary K.λ then K.μ⁺_L): `Σ'.L = Σ.L ∪ {a ↦ (e₁, e₂, e₃)}` with `a` the fresh emission of `A_L(d)` (ML0) and each `e_i` an admissible record of `ρ(R_i, Σ)` per ML1/ML2, plus the home seating `Σ'.M(d) = Σ.M(d) ∪ {v_a ↦ a}` with `v_a = shift(max(V_{s_L}(d)), 1)` when `V_{s_L}(d) ≠ ∅` and `v_a = [s_L, 1]` (first link V-position at the conventional depth `m = 2`) when `V_{s_L}(d) = ∅`; the `a`-branch (store-keyed: K.λ's emit predicate over `{ℓ' : origin(ℓ') = d}`) and the `v_a`-branch (arrangement-keyed: `V_{s_L}(d)`) are independent selectors, diverging at a contracted home — homed links present, `V_{s_L}(d) = ∅` after K.μ⁻ with `n'_{s_L} = 0` — where subsequent emission pairs soundly with the first position; returns `a`; frame per ML10 | introduced |
 
 ## Open Questions
 
