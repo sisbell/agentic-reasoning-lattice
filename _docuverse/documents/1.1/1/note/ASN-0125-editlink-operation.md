@@ -306,13 +306,8 @@ Two remarks complete the comparison the question poses.
 *The menu was shorter than it looked.* "A separate supersession link" and "a
 typed relation distinct from these" are the same architecture: under L8 a link
 *is* typed, by its third endset's coverage, and a typed relation's tuples *are*
-links (ASN-0086, TypedRelation). The address-space candidate, closed in EL2(c),
-still earns a deeper point: the structural reading is refused even where nesting
-is *available*. Nelson refuses it for documents, where nesting genuinely
-exists — the version number is "only an accidental extension of the document
-number, and strictly implies no specific relationship of derivation" (LM 4/29).
-Where not even nesting exists — and for links, by EL2(c), it does not — the
-refusal is not a choice but a fact.
+links (ASN-0086, TypedRelation). The address-space candidate is closed outright
+by EL2(c).
 
 *The carrier costs nothing in mechanism, something in coordination.* The
 relation-space carrier requires zero substrate change — a coverage class is a
@@ -363,9 +358,15 @@ ASN-0086), together with the substrate's link-framing transitions
 neither `coverage(K_sup)` nor `coverage(R)`. Its one *discipline commitment*
 routes every emission into a disciplined class through that class's disciplined
 operation: every `[K_sup]` emission through `assert_sup` or `editlink` (under
-`DC`), every `[R]` emission through `Nullify` or `editlink` (under `DC`). A
-bare `Emit_{K_sup}`, a bare `Emit_R`, or a bare `K.λ` carrying either class
-is *not* an editing-layer operation; the layer does not issue them. A state is
+`DC`), every `[R]` emission through `Nullify`. A bare `Emit_{K_sup}`, a bare
+`Emit_R`, or a bare `K.λ` carrying either class is *not* an editing-layer
+operation; the layer does not issue them. The "bare `K.λ`" named here is the
+*standalone* original-creation operation, distinct from the `K.λ` step
+*internal* to `editlink` — which may carry `[K_sup]` under `DC`: the discipline
+commitment is read at the level of invoked layer operations (`editlink` is one
+operation, whose internal emissions `DC` governs), not as a predicate on
+individual transitions, which by EL1 cannot record whether a given `K.λ` "is
+part of an editlink." A state is
 *editing-layer-reachable* iff it is reached from the initial state `Σ₀` by a
 finite sequence of editing-layer operations. This mirrors ASN-0086's
 RelationalLayer and its LayerReachable states.
@@ -521,21 +522,24 @@ The edit operation is now one allocation ahead of the assertion.
 with the *discipline-conformance precondition* `DC(ℓ')` — a value-level
 predicate whose witnesses are drawn from the editlink pre-state `Σ`:
 
-> if `coverage(ℓ'.e₃) = coverage(K_sup)`, then
-> `(E x, y ∈ dom(Σ.L) : x ≠ y ∧ ℓ'.e₁ = {(x, δ(1, #x))} ∧ ℓ'.e₂ = {(y, δ(1, #y))})`;
-> if `coverage(ℓ'.e₃) = coverage(R)`, then `(E t ∈ dom(Σ.L) : ℓ'.e₂ = {(t, δ(1, #t))})`.
+> `coverage(ℓ'.e₃) ≠ coverage(R)`, and if `coverage(ℓ'.e₃) = coverage(K_sup)` then
+> `(E x, y ∈ dom(Σ.L) : x ≠ y ∧ ℓ'.e₁ = {(x, δ(1, #x))} ∧ ℓ'.e₂ = {(y, δ(1, #y))})`.
 
-The first clause is the claim schema of Df-DISC(ii) with both witnesses already
-in the pre-state link store; the second is ASN-0086's unit-depth retraction
-schema with target `t ∈ dom(Σ.L) = A_rel^Σ`. An edit may produce a corrected
-*claim* or a corrected *retraction*, but not a malformed inhabitant of either
-class — and the witnesses are pinned at `Σ` (not at the post-emission `Σ₁`),
-which is what makes them *pre-existing* links and lets the conformance transfer
-forward across the emission (EL7(vi)). If `coverage(ℓ'.e₃)` is neither
-`coverage(K_sup)` nor `coverage(R)`, `DC(ℓ')` is vacuous: `ℓ'` inhabits no
-disciplined class. `assert_sup`'s precondition is discharged at `Σ₁`:
-`a' ∈ dom(Σ₁.L)` by the emission, `a ∈ dom(Σ₁.L)` by monotonicity, `a' ≠ a` by
-freshness, `d_a ∈ dom(Σ₁.M)` by M1.
+The `[K_sup]` clause is the claim schema of Df-DISC(ii), its witnesses already
+in the pre-state link store and pinned at `Σ` (not the post-emission `Σ₁`) —
+what makes them *pre-existing* links and lets conformance transfer forward
+across the emission (EL7(vi)). The leading conjunct excludes a retraction-class
+successor: retraction is `Nullify`'s office (ASN-0086), and editlink is
+supersession — a new *reading* claimed to supersede the old. Superseding a
+retraction is a separate matter, and crucially *not* a retargeting: by R6a
+(RetractionStability, ASN-0086) a retraction's nullifying effect is permanent,
+so a successor retraction would *add* a nullified target rather than move one —
+a retraction-lifecycle question this note leaves to a dedicated treatment (Open
+Questions). If `coverage(ℓ'.e₃)` is neither `coverage(K_sup)` nor `coverage(R)`,
+`DC(ℓ')` imposes no schema constraint: `ℓ'` inhabits no disciplined class.
+`assert_sup`'s precondition is discharged at `Σ₁`: `a' ∈ dom(Σ₁.L)` by the
+emission, `a ∈ dom(Σ₁.L)` by monotonicity, `a' ≠ a` by freshness,
+`d_a ∈ dom(Σ₁.M)` by M1.
 
 **EL7 (EditContract).** When invoked at a reachable `Σ` satisfying its
 precondition, `editlink(a, ℓ', d_s, d_a)` yields `Σ₂` with:
@@ -569,15 +573,13 @@ class-marked statement.
 *(iv) The frame on the original.* `Σ₂.L(a) = Σ.L(a)` unconditionally (L12) — the
 original's value is permanent — and its listing is untouched (both steps frame
 `M`). For activity, the supersession step deactivates nothing
-(`nullified(·) ∩ dom(Σ.L)` is preserved across step 2, EL6(iv)); and when the
-successor value `ℓ'` is not of retraction class — the standard edit — the full
-frame `nullified(Σ₂) = nullified(Σ)` holds under edit-discipline on `Σ`: neither
-fresh address `a'` nor `b` is caught by any pre-existing `[R]`-tuple's unit-depth
-to-coverage (freshness + R0a, the wp Case 2 argument of EL6(iv) applied at each
-of the two emissions, the intermediate `Σ₁` disciplined by EL7(vi) below). (When
-`ℓ'` is itself a disciplined retraction, step 1 additionally performs exactly
-that retraction's declared single-target effect — its purpose, not a side effect
-— and `a` stays active unless `ℓ'` was written against `a`.)
+(`nullified(·) ∩ dom(Σ.L)` is preserved across step 2, EL6(iv)); and the full
+frame `nullified(Σ₂) = nullified(Σ)` holds under edit-discipline on `Σ`. By
+`DC(ℓ')` the successor is not of retraction class, so step 1 emits no `[R]`-tuple
+and nullifies nothing; and neither fresh address `a'` nor `b` is caught by any
+pre-existing `[R]`-tuple's unit-depth to-coverage (freshness + R0a, the wp
+Case 2 argument of EL6(iv) applied at each of the two emissions, the
+intermediate `Σ₁` disciplined by EL7(vi) below).
 
 *(v) Permanence.* At every `Σ₂ →* Σ₃`: `a`, `a'`, `b` all persist with fixed
 values, and `(a, a') ∈ succ_h(Σ₃)`.
@@ -593,16 +595,16 @@ transfers across the emission by `dom(Σ.L) ⊆ dom(Σ₁.L)` (Vocabulary fact V
 `K.λ` only extends the store at the fresh key `a'`): if `ℓ'`'s slot-3 coverage
 is `coverage(K_sup)`, `DC(ℓ')` supplies `x, y ∈ dom(Σ.L) ⊆ dom(Σ₁.L)` with
 `x ≠ y`, `ℓ'.e₁ = {(x, δ(1,#x))}`, `ℓ'.e₂ = {(y, δ(1,#y))}`, so the new claim at
-`a'` conforms to Df-DISC(ii) *at `Σ₁`*; if `coverage(R)`, `DC(ℓ')` supplies a target
-`t ∈ dom(Σ.L) ⊆ dom(Σ₁.L)` and `ℓ'` conforms to the unit-depth retraction
-schema at `Σ₁`; and if neither, `ℓ'` inhabits no disciplined class and Df-DISC
-constrains it not — so both clauses of edit-discipline survive at `Σ₁`. Step 2,
-`assert_sup`, preserves edit-discipline by EL6(v). Hence `Σ₂` is
-edit-disciplined.
+`a'` conforms to Df-DISC(ii) *at `Σ₁`* (clause ii preserved); otherwise
+`DC(ℓ')`'s leading conjunct gives `coverage(ℓ'.e₃) ≠ coverage(R)`, so `ℓ'`
+inhabits no disciplined class — Df-DISC constrains it not, and step 1 adds no
+`[R]`-tuple, leaving the retraction-slice clause (i) undisturbed. Either way
+both clauses of edit-discipline survive at `Σ₁`. Step 2, `assert_sup`,
+preserves edit-discipline by EL6(v). Hence `Σ₂` is edit-disciplined.
 
-Three remarks delimit the operation's generality. *First*, `ℓ' = Σ.L(a)` is
-admitted: a value-identical successor is a legitimate edit (re-homing a link,
-re-attributing it), and the claim — not a value diff — is what makes it an
+Three remarks delimit the operation's generality. *First*, a value-identical
+successor `ℓ' = Σ.L(a)` is a legitimate edit (re-homing a link, re-attributing
+it) wherever `DC` admits it — the claim, not a value diff, is what makes it an
 edit. *Second*, neither `d_s` nor `d_a` is constrained relative to `home(a)`:
 a third party edits another's link by exactly this composite, homing successor
 and claim under their own prefix — ownership of the original never moves, and
@@ -614,19 +616,14 @@ supersedes its replacement is `assert_sup(a, a', d)` — one claim, nothing else
 address. Under immutability, undo is just another statement.
 
 **Remark (no enforceable coupling).** Could the substrate *require* the
-assertion whenever an emission "is an edit"? The trigger would have to be a
-state predicate, and EL1 proves the distinguishing fact is not in the state: a
-coupling constraint in the style of ASN-0047's J-clauses, evaluated between
-composite boundary states, cannot mention intent. The one expressible
-surrogate — trigger on value resemblance — is both unsound (coincidences would
-acquire system-authored claims, violating RQ3's premise that claims have
-asserters) and trivially evadable (perturb one span). The substrate therefore
-*cannot* compel an editor to declare, and the completeness of the supersession
-record is a protocol property of the editing layer, not a substrate invariant.
-What the substrate guarantees is the standing of declarations once made:
-permanent, attributed, decidable. This is the writer-side mirror of the
-reader-side caveat in the design record — the canonical check answers from
-what was asserted; it cannot conjure what was not.
+assertion whenever an emission "is an edit"? A coupling constraint in the style
+of ASN-0047's J-clauses is evaluated between composite-boundary states, so its
+trigger must be a state predicate — and by EL1 the fact distinguishing an edit
+from an independent creation is absent from the state. No J-clause can mention
+intent. The completeness of the supersession record is therefore a protocol
+property of the editing layer, not a substrate invariant; what the substrate
+guarantees is only the standing of declarations once made — permanent,
+attributed, decidable.
 
 **EL8 (ClaimStanding).** For every claim `e ∈ S^Σ` in a disciplined state:
 
@@ -1007,15 +1004,15 @@ current view forgets; the record cannot.
 | Df-CLS | SupersessionClass: designated coverage class `[K_sup]` with `coverage(K_sup) ≠ coverage(R)`; historical slice `S^Σ = L_{K_sup}^Σ` (claims), operative subset `A_sup^Σ = {(b,F,G) ∈ S^Σ : b ∉ nullified(Σ)}` | introduced |
 | Df-DIR | ClaimDirectionality: from-set covers the superseding link, to-set the superseded ("F replaces G"), aligned with RetractionDirectionality; replacement-free withdrawal is class `[R]`, a distinct relation | introduced |
 | Df-DISC | EditDiscipline: a state is edit-disciplined iff unit-depth-retraction-disciplined and every claim has form `F = {(x, δ(1,#x))}`, `G = {(y, δ(1,#y))}` with `x, y ∈ dom(Σ.L)`, `x ≠ y`; a layer is edit-disciplined iff every reached state is | introduced |
-| Df-LAY | EditingLayer: the editing layer issues `{assert_sup, editlink, Nullify}` plus the link-framing substrate transitions (`K.α`, `K.δ`, `K.μ⁺`, `K.μ⁺_L`, `K.μ⁻`, `K.ρ`, `K.μ~`) and bare `K.λ` confined to original-link creation; its discipline commitment routes every `[K_sup]` emission through `assert_sup`/`editlink` (under `DC`) and every `[R]` emission through `Nullify`/`editlink` (under `DC`); bare `Emit_{K_sup}`/`Emit_R`/class-carrying `K.λ` are not layer operations — discipline is a protocol property, not substrate-enforced; editing-layer-reachable = reached from `Σ₀` by such operations (mirrors ASN-0086's RelationalLayer/LayerReachable) | introduced |
+| Df-LAY | EditingLayer: the editing layer issues `{assert_sup, editlink, Nullify}` plus the link-framing substrate transitions (`K.α`, `K.δ`, `K.μ⁺`, `K.μ⁺_L`, `K.μ⁻`, `K.ρ`, `K.μ~`) and bare `K.λ` confined to original-link creation; its discipline commitment routes every `[K_sup]` emission through `assert_sup`/`editlink` (under `DC`) and every `[R]` emission through `Nullify`; bare `Emit_{K_sup}`/`Emit_R`/class-carrying standalone `K.λ` are not layer operations (`editlink`'s internal `K.λ` may carry `[K_sup]` under `DC` — the commitment reads at the level of invoked operations, not individual transitions) — discipline is a protocol property, not substrate-enforced; editing-layer-reachable = reached from `Σ₀` by such operations (mirrors ASN-0086's RelationalLayer/LayerReachable) | introduced |
 | EL-DM | DisciplineMaintenance: every editing-layer-reachable state is edit-disciplined. Base — `Σ₀` (`L₀ = ∅`) is vacuously disciplined (`S^{Σ₀} = L_R^{Σ₀} = ∅`). Step — L-framing transitions and original-creating bare `K.λ` leave `S^Σ`/`L_R^Σ` undisturbed (Vocabulary fact V, L12, monotone `dom(L)`); `Nullify` adds only a unit-depth `[R]` tuple (no `[K_sup]` claim); `assert_sup` preserves by EL6(v); `editlink` by EL7(vi). Gives the "at disciplined `Σ`" conditionals below a reachable, non-vacuous domain | introduced |
 | EL4 | SingleTarget: for any *schema-conforming* claim (per-claim, no whole-state hypothesis) `coverage(F) ∩ dom(Σ.L) = {x}` and `coverage(G) ∩ dom(Σ.L) = {y}` (PrefixSpanCoverage + R0a), making `addr(e)`, `new(e)`, `old(e)` total on the schema-conforming subset `Ŝ^Σ` at every reachable state (`Ŝ^Σ = S^Σ` at disciplined states) | introduced |
 | Df-SUCC | Successor relations over the schema-conforming claims `Ŝ^Σ` (EL4): `succ_h(Σ) = {(old(e), new(e)) : e ∈ Ŝ^Σ}`; `succ_o(Σ)` the further restriction to `addr(e) ∉ nullified(Σ)`; finite, `succ_o ⊆ succ_h`; total at every reachable state (the `Ŝ^Σ` restriction excludes non-conforming `[K_sup]` tuples on which `old`/`new` are undefined), coinciding with the unrestricted form at disciplined states (`Ŝ^Σ = S^Σ`) | introduced |
 | EL5 | RecordMonotonicity: across `Σ →* Σ'`, (a) `S^Σ ⊆ S^{Σ'}`, `Ŝ^Σ ⊆ Ŝ^{Σ'}` (schema-conformance is value-and-domain-determined), and `succ_h(Σ) ⊆ succ_h(Σ')`; (b) `nullified(Σ) ⊆ nullified(Σ')` — demotion is one-way per claim; (c) `succ_o` is neither monotone nor antitone: the operative relation is the revisable view, the historical relation the unrevisable record | introduced |
 | ASSERTop | AssertSup (DEF, operation): `assert_sup(x, y, d_a) ≜ Emit_{K_sup}(Σ, d_a, {(x, δ(1,#x))}, {(y, δ(1,#y))})`, precondition `x, y ∈ dom(Σ.L) ∧ x ≠ y ∧ d_a ∈ dom(Σ.M)` — one `K.λ` emitting the claim "x supersedes y" at fresh `b = a_emit(Σ, d_a)` | introduced |
 | EL6 | AssertionContract: assert_sup allocates exactly one fresh address `b` with `home(b) = d_a`; puts `(y, x)` into `succ_h(Σ')`, and at disciplined states into `succ_o(Σ')` (active at birth, via ASN-0086 wp Case 2); frames `C, M, E, R` and every prior link entry; deactivates nothing — `nullified(Σ') ∩ dom(Σ.L) = nullified(Σ)` unconditionally (no `[R]` growth), and the full `nullified(Σ') = nullified(Σ)` under edit-discipline (fresh `b` escapes pre-existing unit-depth retraction coverage by R0a, wp Case 2); preserves discipline; the claim and the pair persist at every later state | introduced |
-| EDITop | Editlink (DEF, operation): `editlink(a, ℓ', d_s, d_a) ≜ K.λ(d_s, a_emit(Σ, d_s), ℓ') ; assert_sup(a', a, d_a)`, precondition `a ∈ dom(Σ.L) ∧ d_s, d_a ∈ dom(Σ.M) ∧ ℓ' L3-conforming ∧ DC(ℓ')` (class-discipline conformance of the successor value); returns `(Σ₂, a', b)`; `ℓ' = Σ.L(a)` admitted; homes unconstrained relative to `home(a)` (third-party edit-by-fork is the same composite); a revert is `assert_sup(a, a', d)` alone | introduced |
-| EL7 | EditContract: editlink allocates exactly two fresh link-subspace addresses (successor `a'`, claim `b`) and nothing else; `Σ₂.L(a') = ℓ'`; `(a, a') ∈ succ_h(Σ₂)` (and `succ_o` at disciplined states); frame `Σ₂.C = Σ.C ∧ Σ₂.M = Σ.M ∧ Σ₂.E = Σ.E ∧ Σ₂.R = Σ.R ∧ (A t ∈ dom(Σ.L) : Σ₂.L(t) = Σ.L(t))` unconditionally, with `nullified(Σ₂) = nullified(Σ)` under edit-discipline on `Σ` and non-retraction successor value (both fresh addresses escape pre-existing retraction coverage by R0a); preserves edit-discipline (vi): `Σ₂` disciplined when `Σ` is, via `DC(ℓ')` for step 1 and EL6(v) for step 2; all three addresses and the pair persist forever | introduced |
+| EDITop | Editlink (DEF, operation): `editlink(a, ℓ', d_s, d_a) ≜ K.λ(d_s, a_emit(Σ, d_s), ℓ') ; assert_sup(a', a, d_a)`, precondition `a ∈ dom(Σ.L) ∧ d_s, d_a ∈ dom(Σ.M) ∧ ℓ' L3-conforming ∧ DC(ℓ')` (successor not of retraction class; a `[K_sup]` successor conforms to the claim schema); returns `(Σ₂, a', b)`; `ℓ' = Σ.L(a)` admitted; homes unconstrained relative to `home(a)` (third-party edit-by-fork is the same composite); a revert is `assert_sup(a, a', d)` alone | introduced |
+| EL7 | EditContract: editlink allocates exactly two fresh link-subspace addresses (successor `a'`, claim `b`) and nothing else; `Σ₂.L(a') = ℓ'`; `(a, a') ∈ succ_h(Σ₂)` (and `succ_o` at disciplined states); frame `Σ₂.C = Σ.C ∧ Σ₂.M = Σ.M ∧ Σ₂.E = Σ.E ∧ Σ₂.R = Σ.R ∧ (A t ∈ dom(Σ.L) : Σ₂.L(t) = Σ.L(t))` unconditionally, with `nullified(Σ₂) = nullified(Σ)` under edit-discipline on `Σ` (`DC` bars a retraction-class successor, and both fresh addresses escape pre-existing retraction coverage by R0a); preserves edit-discipline (vi): `Σ₂` disciplined when `Σ` is, via `DC(ℓ')` for step 1 and EL6(v) for step 2; all three addresses and the pair persist forever | introduced |
 | EL8 | ClaimStanding: every claim is permanent (EL5a); attributed by its address alone (`home(addr(e))` via T4b, decidable T6 — the allocating document; resolving the home to a named owner is an optional ASN-0042 overlay, not a substrate-state function); open (no required relation among claim, original, successor homes); itself addressable — endorsable, disputable, retractable, editable — with no new machinery | introduced |
 | EL9 | ThreeAxes: for any link — (1) resolution is permanent and ungated (EL0); (2) listing (`listed(t, d, Σ)`, possible only at the home, CL-OWN) is mutable both ways via `K.μ⁻`/`K.μ⁺_L`; (3) activity (`∉ nullified`) is monotone downward with re-assertion as the only restoration; the axes are independent, and superseding moves none of them — retirement of the original is a separate, attributable act | introduced |
 | EL10 | PositionEpochality: reachable states exist where the same link-subspace V-position denotes `ℓ₁` and later `ℓ₂ ≠ ℓ₁` (contraction then extension reuses the canonical tail position), while addresses never re-bind; therefore surviving references — the claim schema included — must bind addresses, never positions | introduced |
@@ -1032,6 +1029,8 @@ current view forgets; the record cannot.
 What authority invariant must govern retraction of a supersession claim by a principal other than the claim's asserter?
 
 Must replacing a link ever entail a change to the original's activity status, or must supersession and retraction remain independent axes under every admissible layer discipline?
+
+What must the supersession of a retraction tuple guarantee, given that R6a fixes the retraction's nullifying effect permanently so that no successor can move an existing nullification?
 
 What invariants must hold when supersession claims target other supersession claims, and must currency resolution stratify such meta-claims to remain well-founded?
 
