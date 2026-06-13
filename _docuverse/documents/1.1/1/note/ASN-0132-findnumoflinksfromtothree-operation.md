@@ -79,8 +79,8 @@ cost, taken up in the final section; it does not bear on what the number *is*.)
 `Σ.L(a)` and the address projection `home(a)`, and `addressable(Σ)` is a function of
 `Σ.L` alone (FL-LOC, ASN-0121), the counted set — and therefore the count — is a function
 of `Σ.L` and `q` alone. The content store `Σ.C`, the arrangements `Σ.M`, the entity set
-`Σ.E`, and the provenance relation `Σ.R` are never read. We will lean on this repeatedly:
-whatever lives in those four components cannot move the number.
+`Σ.E`, and the provenance relation `Σ.R` are never read: whatever lives in those four
+components cannot move the number.
 
 A remark on the request as given. We take `q` to be a request already phrased over
 *addresses* — its four components are endsets (address coverages) or wildcards. A front
@@ -190,11 +190,7 @@ mentions the other; both bottom out at `sat`.
 > because both sides are the cardinality of the single set `{a ∈ addressable(Σ) :
 > sat(a, q, Σ)}` — the right side by FL-DEF (ASN-0121), the left by CN-DEF. The four-set
 > matching criterion lives once, in `sat`; each operation is a query over it — the
-> enumeration the *set* `sat` carves out, the count the *size* of that set — and this
-> shared factoring is what makes their agreement a theorem rather than an obligation. The
-> equality is not stipulated; it is the observation that the two operations are the size
-> and the contents of one set. There is exactly one set, so the count and the enumeration
-> cannot drift apart.
+> enumeration the *set* `sat` carves out, the count the *size* of that set.
 
 The qualifier *at one state* is essential and is the whole content of the consistency
 guarantee. The equality holds whenever both sides are evaluated against the *same* `Σ`.
@@ -211,8 +207,7 @@ measurements of a changing quantity.
 
 *Implementation note.* That same realisation drives the count and the enumeration through
 one shared matching routine, so the count carries no private copy of the four-set logic
-that could drift from the enumeration's — hence single-state agreement holds at the level
-of code, as CN-ENUM makes it hold at the level of specification.
+that could drift from the enumeration's.
 
 ## What a count of zero asserts
 
@@ -237,7 +232,7 @@ displaces a member from it. A zero is therefore a *verdict*, reached over the wh
 addressable store, not an exhaustion artifact.
 
 The reading "*none could be displayed*" — that nothing currently surfaces — is excluded by
-CN-LOC: surfacing is an `Σ.M`-property the count does not read. A link satisfying `q` but
+CN-LOC, surfacing being an `Σ.M` matter. A link satisfying `q` but
 displayed nowhere is still counted (we return to this under CN-ORPHAN). So a zero cannot
 mean "nothing fit on a screen."
 
@@ -288,10 +283,8 @@ a stale size. The discipline this implies is *recompute-on-read*, not *cache-as-
 permanence is a promise about *what exists*, a count a promise about *how many satisfy
 right now*, and the only way to know the current count is to take it again.
 
-*Implementation note.* Because that same realisation recomputes rather than caches, two
-inquiries separated by a mutation observe two states and may return different numbers; there
-is no snapshot tying a count to a later enumeration. The count is a function of whichever `Σ`
-is observed, and so must be read as *of the moment* it is taken.
+*Implementation note.* That same realisation recomputes the count at each inquiry rather
+than caching it.
 
 ## Stability under content editing
 
@@ -454,8 +447,8 @@ existence census and the discovery census visibly part.
 > not `discoverable_from(a, d, Σ)` holds for any `d`. The count is an *existence* quantity
 > over the addressable store, not a *discovery* quantity over arrangements.
 
-The link's eligibility turns on `sat` and `addressable`, both `Σ.L`-local; surfacing is an
-`Σ.M`-relation the count does not read. An orphaned link — one whose endpoint addresses lie
+The link's eligibility turns on `sat` and `addressable`, both `Σ.L`-local; an arrangement's
+surfacing of it does not enter (CN-LOC). An orphaned link — one whose endpoint addresses lie
 in no arrangement's range — remains in `dom(Σ.L)` with its value unchanged (LP17,
 ASN-0098), so if it is addressable and matches, it is counted. Symmetrically, content
 linked but not yet surfaced anywhere is still linked, and the link still counts. The count
