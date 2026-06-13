@@ -73,7 +73,7 @@ cardinality — that the counted set is finite. It is. The set
 no loop to terminate and no bound function to exhibit: the count is the cardinality of a
 finite comprehension, not the result of a search that might run away. (That a *particular*
 back end realises the cardinality by a search that does run over the store is a matter of
-cost, taken up in the final section; it does not bear on what the number *is*.)
+cost, and does not bear on what the number *is*.)
 
 **CN-LOC (link-store locality).** Because `sat(a, q, Σ)` consults only the stored value
 `Σ.L(a)` and the address projection `home(a)`, and `addressable(Σ)` is a function of
@@ -162,8 +162,7 @@ once, counted once, however many versions refract it.
 
 The four cases share a shape: each rejected unit is an `Σ.M`-quantity or an inside-`touch`
 quantity, and CN-LOC excludes the former while the existential structure of `touch`
-absorbs the latter. The count is keyed to identity because the satisfying *set* is keyed
-to identity.
+absorbs the latter.
 
 *Implementation note.* Gregory's back end realises the count by materialising the matching
 links into a list and walking it. The intended unit is identity — the walk is meant to
@@ -233,7 +232,7 @@ addressable store, not an exhaustion artifact.
 
 The reading "*none could be displayed*" — that nothing currently surfaces — is excluded by
 CN-LOC, surfacing being an `Σ.M` matter. A link satisfying `q` but
-displayed nowhere is still counted (we return to this under CN-ORPHAN). So a zero cannot
+displayed nowhere is still counted. So a zero cannot
 mean "nothing fit on a screen."
 
 There is, however, a second route to `0` that we must distinguish from store-emptiness,
@@ -457,7 +456,7 @@ reader can presently walk to it. Counting it tells you the link is part of the l
 structure; surfacing it is the front end's separate job, governed by the arrangement
 layer.
 
-This explains, finally, the asymmetry we deferred. A link can be counted yet not
+A link can be counted yet not
 discoverable; the counted *set* is a superset of what any document surfaces (the
 cross-document reach FL-REACH, ASN-0121), so the count is at least the number of links any
 one document surfaces. The gap is exactly the orphans. And it is
@@ -618,21 +617,15 @@ specification. One might hope that offering a count as its own service commits t
 to computing cardinality more cheaply than delivery — that "how many" should be answerable
 without producing "which ones." This is a genuine and attractive design aspiration: a cheap
 count is a planning primitive, letting a front end size a result before committing to the
-expense of retrieving it. But it is *not* a correctness obligation, and we decline to
-elevate it to a claim, because an alternative implementation that computes the cardinality
-by materialising the satisfying set and taking its length is *correct as to value* — it
-returns the same number CN-DEF specifies. The specification fixes *what* is computed (the
-cardinality of the satisfying set), not *how much it costs*. Cost-asymmetry is a quality an
-implementation may provide; it is not a property the answer must have, and so it is not
-among the claims below.
+expense of retrieving it. The specification fixes *what* is computed — the cardinality of
+the satisfying set — not *how much it costs*: cost-asymmetry is a quality of service an
+implementation may provide, not a correctness obligation, and so it is not among the claims
+below.
 
 *Implementation note.* That same realisation does *not* exploit the asymmetry — it pays
 full enumeration cost for the cardinality, so asking "how many?" costs what asking "which
 ones?" costs. This is a faithful implementation of the *value* CN-DEF specifies and an
-unrealised opportunity with respect to the *cost* aspiration. It confirms the position
-taken here: the number is determined by the specification, the price is left to the
-implementation, and a back end is free to pay full enumeration cost for a cardinality
-without being wrong.
+unrealised opportunity with respect to the *cost* aspiration.
 
 ## Claims Introduced
 
@@ -660,6 +653,6 @@ Under what conditions may a count be cached and reported as a durable fact witho
 
 What must the system guarantee for the reported number to remain the cardinality of distinct link identities when a single link's endsets are fragmented across non-contiguous address regions that the request overlaps?
 
-What relationship, if any, must hold between the cost of counting and the cost of enumeration for a count to serve as a planning primitive, and is any such relationship a correctness obligation or only a quality of service?
+What relationship between the cost of counting and the cost of enumeration would let a count serve as a planning primitive — a "how many" answerable without first producing the links themselves?
 
 What must a federated count guarantee across independently administered stores, so that a single four-set cardinality reflects links homed in stores other than the one receiving the inquiry rather than the satisfying set of one server's partial model?
