@@ -32,6 +32,8 @@ Two design decisions are packed into this definition, and we make them explicit.
 
 Whole-document comparison is not a separate notion. When `V_{s_C}(d) ≠ ∅`, D-SEQ★ gives positions `[s_C, 1, …, 1, k]` for `1 ≤ k ≤ n` at depth `m`, and the single span `σ_full = ([s_C, 1, …, 1], δ(n, m))` is T12-well-formed with `⟦σ_full⟧ ∩ V_{s_C}(d) = V_{s_C}(d)`: the span runs from the minimum position up to but not including its `n`-fold shift, so every depth-`m` position with final component in `1 … n` lies inside, and everything else is removed by the intersection. "Compare the two documents" is thus the window instance `ρ_i = {(d_i, {σ_full})}`, and nothing we prove about windows needs a whole-document special case. Both operands may name the same document; a spec-set may also name several documents, in which case its region simply unions their windows.
 
+The boundary cases are part of the definition, not exercises left to the reader. When `V_{s_C}(d) = ∅` no `σ_full` exists — `δ(n, m)` requires `n ≥ 1` — and the whole-document operand for an empty document is `(d, ∅)`, carrying the empty span-set. More generally a spec-set may itself be empty (`j = 0`), a span may clip to nothing against the current arrangement, and one or both regions may come out empty. All of these are legal operands, and they answer uniformly: with `P = ∅` or `Q = ∅` the rectangle `P × Q` is empty, so the relation defined below is the empty relation `corr = ∅`; the chain partition of X11 exists and is unique vacuously; and the canonical report is the empty list `⟨⟩`, which conforms. An empty report is a meaningful answer — no part of one region is the same as any part of the other — not an error condition.
+
 ## What "Correspond" Must Mean
 
 We now derive the relation rather than posit it. Suppose the report hands us a pair asserting that position `p` of the first region and position `q` of the second are "the same part." For intercomparison to be trustworthy, the assertion must satisfy three demands.
@@ -54,7 +56,7 @@ So we define:
 
 **X1 (IdentityBasis).** `(p, q) ∈ corr_Σ(P, Q) ⟺ res_Σ(p) = res_Σ(q)`; on content instances the shared address `a` lies in `dom(C)` (S3★), and both feet denote the single stored value `C(a)`. Value identity is entailed by membership and never consulted to decide it — the defining comprehension mentions `res` and nothing else. ∎
 
-**X2 (CoincidenceExclusion).** There are reachable states containing instances `p ≠ q` with `C(res p) = C(res q)` and `res p ≠ res q`; every such pair is excluded from `corr`. *Construction.* K.α constrains the address it allocates, never the value stored, so let two allocation events deposit the same `v ∈ Val` at `a₁` and `a₂`. Being distinct events, `a₁ ≠ a₂` by S4 — "regardless of whether `C(a₁) = C(a₂)`" — with GlobalUniqueness (ASN-0034) behind it. Arrange each by K.μ⁺ (its precondition `a_i ∈ dom(C)` holds) in documents `d₁, d₂`. The resulting instances resolve to distinct addresses and do not correspond. ∎
+**X2 (CoincidenceExclusion).** There are reachable states containing instances `p ≠ q` with `C(res p) = C(res q)` and `res p ≠ res q`; every such pair is excluded from `corr`. *Construction.* Fix documents `d₁, d₂ ∈ E_doc` — pre-existing, or each created by a K.δ step, itself a valid composite (it allocates no content, so J0, J1★, and J1'★ hold vacuously). K.α constrains the address it allocates, never the value stored, so for each `i` run one valid composite in the sense of ValidComposite★: K.α deposits the same `v ∈ Val` at a fresh `a_i`, K.μ⁺ installs `a_i` at a content-subspace position of `M(d_i)` (its precondition `a_i ∈ dom(C)` holds at the intermediate state), and K.ρ records `(a_i, d_i)`. Between the composite's endpoints J0 holds — the freshly allocated address is arranged in the post-state — and J1★/J1'★ hold — the range-new address and the new provenance entry are one and the same pair — so each composite is valid and the final state is reachable. Being distinct allocation events, `a₁ ≠ a₂` by S4 — "regardless of whether `C(a₁) = C(a₂)`" — with GlobalUniqueness (ASN-0034) behind it. The resulting instances resolve to distinct addresses and do not correspond. ∎
 
 X2 is the negative half of the basis, and it is normative: textual equivalence between independently authored passages is *never* sufficient. An implementation that matched by value would over-report, and its pairs could no longer be read as "the same part." Equivalence that a human judges — a translation, a parallel passage, two independent formulations of one idea — is real, but it is a different mechanism: an asserted relation owned by its asserter, no part of this operation. The machine recognizes sameness of origin; vouching for sameness of meaning is a human act.
 
@@ -64,7 +66,7 @@ We record kernel transitivity now, for the chain theorems: `res p = res q` and `
 
 ## Which Positions May Participate
 
-We restricted regions to the content subspace. We must show this loses nothing — that the link subspace, if admitted, would contribute only what is decidable from the operand syntax alone. Consider the unrestricted instance space and ask which pairs involving link instances can satisfy `res p = res q`.
+We restricted regions to the content subspace. We must say exactly what the restriction discards — and the answer will be: no sharing. The link subspace, if admitted, would contribute no cross-position and no cross-document pair; its entire contribution is a forced self-diagonal, fixed by the operand regions without consulting the resolution map. Consider the unrestricted instance space and ask which pairs involving link instances can satisfy `res p = res q`.
 
 *Cross-document link instances never correspond.* A link-subspace position arranges one of the document's own links: CL-OWN gives `origin(M(d)(v)) = d`. If `(d₁, v₁)` and `(d₂, v₂)` are link instances sharing address `ℓ`, then `d₁ = origin(ℓ) = d₂` — `origin` is a projection of the address itself (S7), hence single-valued — so the documents coincide.
 
@@ -72,9 +74,9 @@ We restricted regions to the content subspace. We must show this loses nothing �
 
 *Same-document link instances correspond only to themselves.* Within one document the link-subspace restriction of `M(d)` is injective (CL-UNIQ), so a shared address forces `v₁ = v₂`.
 
-**X9 (SubspaceVacuity).** Over unrestricted instances, `corr` decomposes as the content-subspace relation, disjointly unioned with the forced diagonal `{((d, v), (d, v))}` on link instances common to both regions. Restricting operands to the content subspace therefore discards only pairs whose membership was already decidable without consulting the arrangements — no information about the documents. ∎
+**X9 (SubspaceVacuity).** Over unrestricted instances, `corr` decomposes as the content-subspace relation, disjointly unioned with the forced diagonal `{((d, v), (d, v)) : (d, v) ∈ P ∩ Q ∩ Inst_L}`. By the three arguments above, for any pair with a link-instance foot the predicate `res p = res q` reduces to instance equality `p = q` — so the diagonal is determined by `P ∩ Q` alone, with the resolution map never consulted. We state the loss precisely. The discarded pairs do carry arrangement-domain information: that each such `(d, v)` is an instance at all is exactly what the region's clipping against `dom(M(d))` certified. What they carry none of is correspondence information — no sharing between distinct positions, distinct documents, or the two operand sides is expressible by a link-subspace foot. In that sense, and that sense exactly, the content-subspace restriction is lossless for this operation. ∎
 
-The content-subspace precondition is thus *semantic*, not defensive: over the link subspace the question "which parts are the same?" has only the empty or the self-evident answer. We will see in the implementation observations what happens when the precondition is violated rather than enforced — not extra answers but undefined behavior, exactly as one expects of a violated precondition.
+The content-subspace precondition is thus *semantic*, not defensive: over the link subspace the question "which parts are the same?" has only the empty or the reflexive answer. We will see in the implementation observations what happens when the precondition is violated rather than enforced — not extra answers but undefined behavior, exactly as one expects of a violated precondition.
 
 ## The Relation Is Finite, Decidable, and Local
 
@@ -122,7 +124,7 @@ What does comparing sub-extents reveal that comparing whole documents would not?
 
 **X10 (PairSemantics).** Let `γ = (d₁, u; d₂, w; n)` be consistent. Then:
 
-(a) *Equal extent, one width.* Both feet sets `{u + k : 0 ≤ k < n}` and `{w + k : 0 ≤ k < n}` have cardinality exactly `n`, since shift is injective and strictly increasing (TS2, TS4). A single width serves both sides structurally; there is no second width to disagree.
+(a) *Equal extent, one width.* Both feet sets `{u + k : 0 ≤ k < n}` and `{w + k : 0 ≤ k < n}` have cardinality exactly `n`: distinct offsets land on distinct positions, because for `0 ≤ k₁ < k₂ < n` we have `u + k₁ < u + k₂` — by TS4 alone when `k₁ = 0` (`u < shift(u, k₂)`), and for `k₁ ≥ 1` by composing shifts, `u + k₂ = shift(u + k₁, k₂ − k₁) > u + k₁` (TS3, then TS4; TS5 states this monotonicity in the amount directly). A single width serves both sides structurally; there is no second width to disagree.
 
 (b) *Offset alignment.* The `k`-th position of the first span corresponds to the `k`-th position of the second, for each `k`: within the pair, relative offset is shared. The two starts say *where the shared material sits in each document's current arrangement*; the absolute positions are unrelated to one another and may differ arbitrarily.
 
@@ -158,6 +160,37 @@ Nothing in the definitions requires distinct documents or distinct regions, so s
 
 So: is self-correspondence a trivial identity or a non-trivial diagonal? Both, with the boundary at injectivity. The diagonal part is trivial — it certifies only that the document is itself. The information lives entirely in the off-diagonal, and it exists precisely when the same stored content is arranged at more than one position, which the foundations not only permit but leave unbounded (S5 UnrestrictedSharing; ASN-0058 M13–M14: repeated occurrences are permanently independent arrangement entries). Nelson's reading concurs: applied to a single document, the substantive thing self-comparison reveals is where the same source material is used in more than one place, and it degenerates to the whole-extent identity exactly when there is no internal sharing. Windowed self-comparison (c) is the operational instrument — two disjoint windows ask "do these regions share material?" and receive the pairs themselves.
 
+## A Worked Example
+
+The machinery deserves to be run once on concrete data. Let `a`, `b`, `c` be three distinct content addresses in `dom(C)` — distinct allocation events, hence distinct tumblers by S4, whatever their stored values. Two documents arrange them at the common depth `m = 2`, where `[1, k]` abbreviates the depth-2 V-position with subspace component `s_C = 1` and final component `k`:
+
+`M(d₁): [1,1] ↦ a, [1,2] ↦ b, [1,3] ↦ c, [1,4] ↦ b`
+`M(d₂): [1,1] ↦ b, [1,2] ↦ c`
+
+Both arrangements are D-SEQ★-canonical, and `res` restricted to `d₁` is deliberately *not* injective: `b` is arranged twice.
+
+*The relation.* Compare whole extents: `P = {d₁} × V_{s_C}(d₁)` via `σ_full = ([1,1], δ(4,2))` and `Q = {d₂} × V_{s_C}(d₂)` via `([1,1], δ(2,2))`. Of the `4 × 2 = 8` candidate pairs in `P × Q`, exactly three satisfy `res p = res q`:
+
+`corr_Σ(P, Q) = {((d₁,[1,2]), (d₂,[1,1])), ((d₁,[1,3]), (d₂,[1,2])), ((d₁,[1,4]), (d₂,[1,1]))}`
+
+The repeated `b` produces *fan-out*: the one instance `(d₂,[1,1])` stands in two relation elements, one per arrangement of `b` in `d₁`. No element involves `(d₁,[1,1])`: `a` is arranged nowhere in `d₂` — and by X2 this would remain so even if `C(a)` happened to equal `C(b)` byte for byte.
+
+*Maximal pairs and the canonical report (X11).* Chase successors. `succ((d₁,[1,2]), (d₂,[1,1])) = ((d₁,[1,3]), (d₂,[1,2]))`, which lies in the relation — `b, c` advance in lockstep — while the next step `((d₁,[1,4]), (d₂,[1,3]))` does not, since `[1,3] ∉ dom(M(d₂))`. The remaining element `((d₁,[1,4]), (d₂,[1,1]))` has no predecessor within the relation (its second foot would require a position `w` with `w + 1 = [1,1]`, and `[1,0]` is excluded by S8a) and no successor (`[1,5] ∉ dom(M(d₁))`). The unique chain partition is therefore one width-2 pair and one width-1 pair,
+
+`γ₁ = (d₁, [1,2]; d₂, [1,1]; 2)` and `γ₂ = (d₁, [1,4]; d₂, [1,1]; 1)`,
+
+with `⟦γ₁⟧ ∪ ⟦γ₂⟧ = corr_Σ(P, Q)` exactly — sound, complete, confined. X10(c) on `γ₁`: both sides realize the single address trace `⟨b, c⟩`. The first feet are distinct (`[1,2] < [1,4]` under T1), so the primary key alone orders the list: `CANON(Σ, P, Q) = ⟨γ₁, γ₂⟩`.
+
+*The tie-break, exercised by the swap (X3).* The swapped comparison transposes pairwise: `γ₁ᵀ = (d₂, [1,1]; d₁, [1,2]; 2)` and `γ₂ᵀ = (d₂, [1,1]; d₁, [1,4]; 1)` now *share* their first foot `(d₂, [1,1])` — fan-out lands two chains on one start, exactly the situation X11's strictness clause anticipates — and the second-foot key separates them: `[1,2] < [1,4]` gives `CANON(Σ, Q, P) = ⟨γ₁ᵀ, γ₂ᵀ⟩`. Without the tie-break the canonical list would not be well-defined here.
+
+*Window clipping (X4, X4c).* Narrow the first operand to the span `([1,3], δ(2,2))`, so `P′ = {(d₁,[1,3]), (d₁,[1,4])}`, keeping `Q` whole. X4 predicts `corr_Σ(P′, Q) = corr_Σ(P, Q) ∩ (P′ × Q)` — the first element drops, two remain — and recomputing from the definition confirms it. The width-2 pair `γ₁` meets the window in only its `k = 1` element, so it clips to the single pair `(d₁, [1,3]; d₂, [1,2]; 1)` — at most one pair, as X4c bounds — and `CANON(Σ, P′, Q) = ⟨(d₁, [1,3]; d₂, [1,2]; 1), (d₁, [1,4]; d₂, [1,1]; 1)⟩`: the boundary-crossing correspondence is reported exactly on its in-window part, neither dropped nor extended.
+
+*Self-comparison and the sharing detector (X8).* Whole-extent self-comparison of `d₁` returns the four diagonal elements plus the off-diagonal witnesses of the repeated `b` — `((d₁,[1,2]), (d₁,[1,4]))` and its transpose — six elements in all; the departure from the bare diagonal is exactly the non-injectivity of `res|P` (X8(b)). X8(c)'s detector is the windowed form: the disjoint windows `P′ = {(d₁,[1,1]), (d₁,[1,2])}` and `Q′ = {(d₁,[1,3]), (d₁,[1,4])}` have empty diagonal, `ran(res|P′) ∩ ran(res|Q′) = {a, b} ∩ {c, b} = {b} ≠ ∅`, and the comparison returns precisely the internal sharing:
+
+`corr_Σ(P′, Q′) = {((d₁,[1,2]), (d₁,[1,4]))}` — the single pair `(d₁, [1,2]; d₁, [1,4]; 1)`.
+
+Every count above is forced by the definitions; one six-entry state exercises fan-out, maximality, the tie-break, clipping, and the self-comparison boundary.
+
 ## Stability: Edits Transport, Never Re-Pair
 
 We come to the dynamic obligations. The arrangement-edit vocabulary of the foundations is: extension (K.μ⁺, K.μ⁺_L), contraction (K.μ⁻, and ASN-0082's shifting contraction), and reordering (K.μ~); the non-arrangement transitions were dismissed by X5. Every edit transports stored addresses verbatim — none rewrites a binding (P0/S0, L12) — and each induces a *position map* on the surviving positions of the edited document. That single observation yields all the stability theorems at once.
@@ -172,9 +205,9 @@ The lemma says: wherever an edit provides a res-preserving relocation of the com
 
 **X7 (EditTransport).**
 
-*(i) Reordering.* K.μ~ on `d₁` carries an admissible bijection `π` with `Σ′.M(d₁)(π(v)) = Σ.M(d₁)(v)` on a fixed domain (K.μ~-FIX). With `τ(d₁, v) = (d₁, π(v))`, X-T gives `corr_{Σ′}(τ(P), Q) = (τ × id)(corr_Σ(P, Q))`. Nothing enters and nothing leaves: the witnessed shared addresses, the multiplicities, the entire relation are conserved under the permutation. In wp form, in the style of LP12a: `wp(K.μ~[d₁, π], (x, q) ∈ corr) ≡ enabled ∧ ((d₁, π⁻¹(x)), q) ∈ corr` — membership afterwards is membership before, pulled back through the edit.
+*(i) Reordering.* K.μ~ on `d₁` carries an admissible bijection `π` with `Σ′.M(d₁)(π(v)) = Σ.M(d₁)(v)` on a fixed domain (K.μ~-FIX). With `τ(d₁, v) = (d₁, π(v))`, X-T gives `corr_{Σ′}(τ(P), Q) = (τ × id)(corr_Σ(P, Q))`. Nothing enters and nothing leaves: the witnessed shared addresses, the multiplicities, the entire relation are conserved under the permutation. In wp form, in the style of LP12a — for the one-foot case, second foot `q` on a document other than `d₁`: `wp(K.μ~[d₁, π], ((d₁, x), q) ∈ corr) ≡ enabled ∧ ((d₁, π⁻¹(x)), q) ∈ corr` — membership afterwards is membership before, pulled back through the edit. When both feet lie on `d₁` (self-comparison, X8), both pull back: `wp(K.μ~[d₁, π], ((d₁, x), (d₁, y)) ∈ corr) ≡ enabled ∧ ((d₁, π⁻¹(x)), (d₁, π⁻¹(y))) ∈ corr`.
 
-*(ii) Contraction.* K.μ⁻ restricts `M(d₁)` to a retained set; survivors keep both their positions and their addresses, so `τ = id` on survivor instances and X-T degenerates to `corr_{Σ′} = corr_Σ ∩ (Surv × Q)` — *contraction acts on the relation exactly as a window* (X4). A pair survives iff its foot survives: `wp(K.μ⁻[d₁, n′], (p, q) ∈ corr) ≡ enabled ∧ p surviving ∧ (p, q) ∈ corr`.
+*(ii) Contraction.* K.μ⁻ restricts `M(d₁)` to a retained set; survivors keep both their positions and their addresses, so `τ = id` on survivor instances. With `Q` drawn off the edited document, X-T degenerates to `corr_{Σ′} = corr_Σ ∩ (Surv × Q)` — *contraction acts on the relation exactly as a window* (X4) — and a pair survives iff its `d₁`-foot survives: `wp(K.μ⁻[d₁, n′], (p, q) ∈ corr) ≡ enabled ∧ p surviving ∧ (p, q) ∈ corr`. When both operands draw on `d₁`, both feet are at risk: the relation becomes `corr_{Σ′} = corr_Σ ∩ (Surv × Surv)`, and the wp gains the symmetric conjunct — `enabled ∧ p surviving ∧ q surviving ∧ (p, q) ∈ corr`.
 
 *(iii) Shifting contraction.* ASN-0082's contraction removes a span and closes the gap: survivors relocate by `τ = id` on the left region and `τ = σ` on the right, and `M′(σ(v)) = M(v)` is the operation's own postcondition (D-SHIFT, D-L). X-T applies verbatim, so realistic deletion is covered: the surviving correspondence is the `σ`-image of the old.
 
@@ -186,9 +219,9 @@ The lemma says: wherever an edit provides a res-preserving relocation of the com
 
 (a) Each sharing step transports correspondence undiminished: at the post-state, `graph(φ) ⊆ corr(d_op extent, d_new extent)` — every copied position corresponds, at full width.
 
-(b) Steps compose: after `k` steps the composite `φ_k ∘ … ∘ φ₁` is again injective and res-preserving, so the endpoints correspond exactly on the transported material, with a bound independent of `k`. There is nothing in the state for chain length to act on: the address arriving at `d^k` is the *same tumbler* that left `d⁰` — no hop count, no generation marker, no attenuation exists to consult.
+(b) Steps compose, under two premises we state rather than leave implicit. *Endpoint persistence:* the conclusion compares the endpoints at the evaluation state, so `d⁰`'s restriction on the transported domain must persist from the chain's first step to that state — in a pure chain this is automatic, since each step's frame clause touches only its target document; an edit to `d⁰` itself is not excluded but enters the composite as one more X7 position map applied on the `d⁰` side. *Interleaved intermediate edits:* an edit striking an intermediate `d^i` *between* its incoming and outgoing steps enters the same way — the outgoing step copies from `d^i`'s current arrangement, so the edit's position map `π_i` is interposed and the composite reads `φ_k ∘ … ∘ φ_{i+1} ∘ π_i ∘ φ_i ∘ … ∘ φ₁`. Each factor is injective and res-preserving, hence so is the composite, on its (possibly shrunken) domain — a contraction's map carries only survivors. Under these premises X-T applies to the composite: the endpoints correspond exactly on the transported material, independently of `k`. There is nothing in the state for chain length to act on: the address arriving at `d^k` is the *same tumbler* that left `d⁰` — no hop count, no generation marker, no attenuation exists to consult.
 
-(c) By X5 the endpoint relation depends on the endpoint restrictions alone: every intermediate document may meanwhile be rearranged, contracted to nothing, or ignored — `corr(d⁰, d^k)` is unmoved. The middle of the chain can vanish; the correspondence cannot.
+(c) By X5 the endpoint relation depends on the endpoint restrictions alone: once material has arrived at `d^k`, every intermediate document may be rearranged, contracted to nothing, or ignored — `corr(d⁰, d^k)` is unmoved. (Edits that strike an intermediate between its own steps are premise two's case: their position maps join the composite, and what survives them is what transports.) The middle of the chain can vanish; the correspondence cannot.
 
 (d) Kernel transitivity gives the local composition law: `(p, q) ∈ corr(P, Q)` and `(q, r) ∈ corr(Q, R)` imply `(p, r) ∈ corr(P, R)` — pairwise reports compose soundly through a shared middle region. ∎
 
@@ -201,12 +234,13 @@ We can now write the contract. The operation is an *observation*: it computes a 
 **X12 (COMPARE — SHOWRELATIONOF2VERSIONS).**
 
 - *Operands:* spec-sets `ρ₁, ρ₂`. Each names one document — the two-version case — or several; `ρ₁` and `ρ₂` may name the same document, with equal, overlapping, or disjoint windows.
-- *Precondition:* every named `d ∈ E_doc`; every span T12-well-formed; every span confined to the content subspace (`subspace(start) = s_C`) — lossless by X9.
-- *Result:* the canonical report `CANON(Σ, R_Σ(ρ₁), R_Σ(ρ₂))` of X11.
-- *Postconditions:* (R1) *soundness* — every listed pair is consistent at Σ and confined to the regions; (R2) *completeness* — `⟦Γ⟧ ⊇ corr_Σ(R_Σ(ρ₁), R_Σ(ρ₂))`; jointly `⟦Γ⟧ = corr`; (R3) *determinism* — pairs are maximal and listed in canonical lexicographic order, first-operand-major; (R4) *form* — each pair carries (document, start) per side in operand order, and one shared width.
+- *Precondition:* every named `d ∈ E_doc`; every span T12-well-formed; every span confined to the content subspace (`subspace(start) = s_C`) — a restriction that loses no correspondence information (X9).
+- *Result:* a report `Γ` for `(Σ, R_Σ(ρ₁), R_Σ(ρ₂))`; the *reference result* is the canonical report `CANON(Σ, R_Σ(ρ₁), R_Σ(ρ₂))` of X11.
+- *Binding postconditions — required of every conforming implementation:* (R1) *soundness* — every listed pair is consistent at Σ and confined to the regions; (R2) *completeness* — `⟦Γ⟧ ⊇ corr_Σ(R_Σ(ρ₁), R_Σ(ρ₂))`; jointly with R1, `⟦Γ⟧ = corr`; (R3) *deterministic presentation* — the emitted report is a function of `(ρ₁, ρ₂, res_Σ|P, res_Σ|Q)`: X5 guarantees the relation admits this, and the implementation must fix one presentation of it, with no hidden input and no nondeterminism.
+- *Reference presentation — defines `CANON`, not required for conformance:* (R4) *canonical form* — the maximal pairs of X11, listed in lexicographic first-operand-major order with the second foot as tie-break, each record carrying (document, start) per side in operand order plus the one shared width. R4 names the unique reference result this specification reasons with; a conforming implementation may emit any presentation satisfying R1–R3 — finer-than-maximal pairs, a different packing of the record — since report equivalence is denotational.
 - *Frame:* `Σ′ = Σ`. COMPARE allocates nothing, arranges nothing, links nothing, records nothing. Moreover its value is a function of the operands and the two restricted arrangements alone (X5): it reads neither the values in `C` nor `L`, `E`, `R`, nor any other document's arrangement.
 
-Conformance for an alternative implementation is denotational: it may emit finer pairs than the maximal ones — granularity is free — so long as the denotation equals `corr`. Completeness, soundness, confinement, and the determinism of whatever presentation it fixes are non-negotiable.
+Conformance is thus denotational, exactly as for span-sets: granularity and packing are free (R4 is the reference, not an obligation), while soundness, completeness, confinement, and the determinism of the chosen presentation (R1–R3) are non-negotiable.
 
 ## Implementation Observations (udanax-green)
 
@@ -249,10 +283,10 @@ Gregory's `correspond.c` pipeline converts each spec-set's V-spans to address in
 | X6 | sharing chains transport correspondence undiminished; endpoints alone determine it; pairwise reports compose through a shared middle | introduced |
 | X7 | reorder/contract/shift/extend act by their position maps: survivors re-addressed, never re-paired; presentation may refragment | introduced |
 | X8 | diagonal forced; self-comparison trivial ⟺ restriction injective; disjoint windows detect internal sharing | introduced |
-| X9 | link-subspace instances yield only the forced self-diagonal; content-subspace operands are lossless | introduced |
+| X9 | link instances contribute only the forced self-diagonal on `P ∩ Q`, decided by instance equality without `res`; the restriction loses no correspondence information | introduced |
 | X10 | one width serves both sides; k-th↔k-th offset alignment; identical address (hence value) trace | introduced |
 | X11 | unique maximal-pair decomposition; lexicographic order yields a deterministic canonical report | introduced |
-| X12 | COMPARE: pure observation returning the canonical report — sound, complete, confined; Σ unchanged | introduced |
+| X12 | COMPARE: pure observation — binding: sound, complete, confined, deterministic presentation (R1–R3); CANON is the non-binding reference presentation (R4); Σ unchanged | introduced |
 
 ## Open Questions
 
