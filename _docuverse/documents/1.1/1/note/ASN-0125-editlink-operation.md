@@ -599,9 +599,7 @@ transfers across the emission by `dom(Σ.L) ⊆ dom(Σ₁.L)` (Vocabulary fact V
 `K.λ` only extends the store at the fresh key `a'`): if `ℓ'`'s slot-3 coverage
 is `coverage(K_sup)`, `DC(ℓ')` supplies `x, y ∈ dom(Σ.L) ⊆ dom(Σ₁.L)` with
 `x ≠ y`, `ℓ'.e₁ = {(x, δ(1,#x))}`, `ℓ'.e₂ = {(y, δ(1,#y))}`, so the new claim at
-`a'` conforms to Df-DISC(ii) *at `Σ₁`* (and since `a' ∉ dom(Σ.L)` is fresh,
-neither witness is `a'` — the new claim references two genuinely pre-existing
-links, never itself); if `coverage(R)`, `DC(ℓ')` supplies a target
+`a'` conforms to Df-DISC(ii) *at `Σ₁`*; if `coverage(R)`, `DC(ℓ')` supplies a target
 `t ∈ dom(Σ.L) ⊆ dom(Σ₁.L)` and `ℓ'` conforms to the unit-depth retraction
 schema at `Σ₁`; and if neither, `ℓ'` inhabits no disciplined class and Df-DISC
 constrains it not — so both clauses of edit-discipline survive at `Σ₁`. Step 2,
@@ -682,12 +680,28 @@ provenance appears in it. *Readable at its original address, exactly as it
 was* — an invariant, forever, for every link, superseded or not.
 
 *(2) Listing — mutable in both directions.* The home registry is current view,
-not record. `K.μ⁻` de-lists (existence: contract the link subspace below `a`'s
-position and re-extend the survivors in order — each re-seating satisfies
-`K.μ⁺_L`'s precondition in turn, and D-SEQ★ shapes the result); `K.μ⁺_L`
-re-lists (`origin(a) = d ∧ a ∉ ran(M(d))` holds after de-listing). De-listing
-is the model's "deleted link": gone from the current view, untouched in the
-record.
+not record — but de-listing is not surgical, because `K.μ⁻` retains a position
+*prefix* (its link-subspace retention set is `{[s_L, k] : 1 ≤ k ≤ n'_{s_L}}`,
+ASN-0047 per-subspace scope) and so can drop only a *suffix* of the listed
+chain. *Construction (de-list `a` at position `[s_L, j]`).* Let `a` sit at
+`[s_L, j]` in `V_{s_L}(d) = {[s_L, 1], …, [s_L, n]}`, with survivors
+`[s_L, j+i] ↦ ℓ_{j+i}` for `1 ≤ i ≤ n − j` above it. Apply `K.μ⁻` with
+`n'_{s_L} = j − 1` (content retained in full, so the link subspace strictly
+contracts, satisfying `K.μ⁻`'s precondition): this necessarily drops `a`
+*together with the whole suffix* `ℓ_{j+1}, …, ℓ_n`, retaining the prefix
+`{[s_L, 1], …, [s_L, j−1]}`. Then re-seat the `n − j` survivors in their old
+order by successive `K.μ⁺_L`. Each `ℓ_{j+i}` satisfies that operation's
+precondition — `origin(ℓ_{j+i}) = d` (it was homed at `d`, CL-OWN),
+`ℓ_{j+i} ∉ ran(M(d))` (just dropped, not yet re-added), and the assigned
+`v_ℓ = shift(max(V_{s_L}(d)), 1) = [s_L, j+i−1]` (the `j = 1` leading survivor
+taking `K.μ⁺_L`'s first-position branch to the same `[s_L, 1]`). So each survivor
+lands *one position below* its prior seat, and D-SEQ★ shapes the result into
+`{[s_L, k] : 1 ≤ k ≤ n−1}`: `a` is gone from `ran(M(d))` and the suffix has slid
+down by one — a position re-binding consistent with EL10. (When `a` is last or
+only, `j = n`: the suffix is empty and no survivor is re-seated.) Re-listing `a`
+is then one `K.μ⁺_L` (`origin(a) = d ∧ a ∉ ran(M(d))` holds after de-listing).
+De-listing is the model's "deleted link": gone from the current view, untouched
+in the record.
 
 *(3) Activity — monotone downward, per claim.* `active(a, Σ) ≡ a ∉
 nullified(Σ)` can only fall (EL5b), by an explicit, itself-permanent,
