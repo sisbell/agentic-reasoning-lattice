@@ -351,6 +351,19 @@ Four corollaries discharge the question's demands.
 
 *(iv) The boundary of the guarantee.* Anchors in the source's *link subspace* — links about links, arranged at `d_src` — do not carry, and cannot (V2b). The guarantee is precisely over content anchors: links anchored to content the version transcludes, which is what the design owes and all it owes.
 
+*A worked instance of carry-through* (same convention as the addressing instance above — the addresses are the implementation's, the arithmetic the abstraction's — and we reuse its source `d_src = 1.1.0.1.0.1`). Let `d_src` arrange three content positions over two addresses, the first shared:
+
+> `M(d_src) = { [1,1] ↦ a₁,  [1,2] ↦ a₂,  [1,3] ↦ a₁ }`,  with  `a₁ = 1.1.0.1.0.1.0.1.1`,  `a₂ = 1.1.0.1.0.1.0.1.2`
+
+— element-level content addresses (`zeros = 3`, element field `[s_C, k]`, subspace `s_C = 1`). Then `n = |V_{s_C}(d_src)| = 3`, while `A = {a₁, a₂}` has `|A| = 2 < n`: the repeat at `[1,3]` is the gap. Let `ℓ ∈ dom(L)` be a link whose from-slot anchors the shared address — `Σ.L(ℓ).e₁ = {(a₁, δ(1, #a₁))}`, the unit-depth span whose `coverage` is the subtree `{t : a₁ ≼ t}` (PrefixSpanCoverage) — its other slots immaterial here beyond L3's non-empty type. The fork is owned (`π = ω(d_src)`); with no prior versions, `v = nextv(E, d_src) = inc(d_src, 1) = 1.1.0.1.0.1.1`, the `v₁` of the addressing instance. The four content-connectivity postconditions, read against the named `Σ'`:
+
+> *V2* — `M'(v) = M(d_src)|_{V_{s_C}(d_src)}`: `M'(v)([1,1]) = a₁`, `M'(v)([1,2]) = a₂`, `M'(v)([1,3]) = a₁`; `ran(M'(v)) = A`.
+> *V13* — `R' ∖ R = {(a, v) : a ∈ A} = {(a₁, v), (a₂, v)}`: two rows for three transcribed positions, since the row `(a₁, v)` demanded by both `[1,1]` and `[1,3]` is one set element. Provenance counts shared addresses, not positions — `|R' ∖ R| = |A| = 2`, the concrete face of `|A| < n`.
+> *V9w* — at the boundary, `a₁ = M(d_src)([1,1])` gives `(a₁, d_src) ∈ Contains_C(Σ) ⊆ R` (P4★), and `(a₁, v) ∈ R' ∖ R` (V13); so `{(a₁, d_src), (a₁, v)} ⊆ R'`, and symmetrically for `a₂`. Each shared address is witnessed under both names, permanently (P2).
+> *V10* — by SA the sole stored member of `a₁`'s subtree is `a₁` itself (`a₁ ⋠ a₂`: they share length 9 and disagree at the final component), so `coverage(Σ.L(ℓ).e₁) ∩ ran(M'(v)) = {t : a₁ ≼ t} ∩ {a₁, a₂} = {a₁}`; the version positions holding `a₁` are `[1,1]` and `[1,3]`, whence `project(ℓ, 1, v, Σ') = {[1,1], [1,3]} ≠ ∅`. The biconditional's right side reads `coverage(Σ.L(ℓ).e₁) ∩ A = {a₁} ≠ ∅` — both sides true. The single link refracts onto the version, landing on *every* position that holds the shared address, not merely one.
+
+Refraction is then literal in both directions: the source arrangement is untouched (V3), so `project(ℓ, 1, d_src, Σ') = {[1,1], [1,3]}` equally — at `Σ'` the one link `ℓ` is discoverable from `d_src` and `v` at once, "a link to one version of a Prismatic Document is a link to all versions" [LM 2/26], exhibited on the specific shared addresses rather than by abstract instantiation of LP12.
+
 ## The Implementation Evidence
 
 Gregory's udanax-green realizes the contract with high fidelity; we record the correspondences and then the deviations, citing the consultation findings.
