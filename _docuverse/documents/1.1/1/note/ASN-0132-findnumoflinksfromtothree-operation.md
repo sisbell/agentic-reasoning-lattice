@@ -86,9 +86,7 @@ end that lets a reader phrase the query by pointing at content in a document mus
 *resolve* those pointings, through that document's arrangement, into the address sets of
 `q`; the implementation does exactly this V-to-I resolution against the arrangement at the
 instant of the call. That resolution is upstream of the operation we specify: it produces
-`q`. Everything we say about `countlinks_FTT(q, Σ)` is said of a *resolved* request. A fixed resolved `q` is what the operation measures, whereas
-re-phrasing the same intent can re-resolve to a *different* `q`. Any discrepancy a reader
-perceives between two such requests lives in the resolution, never in the count.
+`q`. Everything we say about `countlinks_FTT(q, Σ)` is said of a *resolved* request.
 
 ## The unit is identity
 
@@ -609,12 +607,8 @@ forever (ASN-0093) — but obtainability *on demand* is a promise the count does
 must not be read as making. The number lives on the discovery side; carrying a per-item
 retrieval guarantee across the delivery boundary would be a different and stronger claim.
 
-About *cost*, the honest answer is a deliberate non-claim, and saying so is part of the
-specification. One might hope that offering a count as its own service commits the design
-to computing cardinality more cheaply than delivery — that "how many" should be answerable
-without producing "which ones." The specification fixes *what* is computed — the cardinality of
-the satisfying set — not *how much it costs*: cost-asymmetry is a quality of service an
-implementation may provide, not a correctness obligation, and so it is not among the claims
+About *cost*, the specification is silent: cost-asymmetry is a quality of service an
+implementation may provide, not a correctness obligation, and is not among the claims
 below.
 
 *Implementation note.* That same realisation does *not* exploit the asymmetry — it pays
