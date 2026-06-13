@@ -403,8 +403,8 @@ of history (D-ZERO, ASN-0127). The anchoring may well exist, permanently, in lin
 content the region no longer arranges.
 
 This sits in apparent tension with the designer's reading, which calls the operation a
-report of *existence* rather than *discoverability*. The tension is only apparent, and
-resolving it is the point. The designer and the foundation are slicing different axes.
+report of *existence* rather than *discoverability*. The designer and the foundation are
+slicing different axes.
 
 - The foundation's axis is the **query mode**: is the I-argument a fixed set (existence)
   or read from the live arrangement (discovery)? On this axis RETRIEVEENDSETS is squarely
@@ -425,8 +425,6 @@ identity — the designer's existence reading). It uses the discovery machinery 
 existence-of-anchoring question. The right one-line characterisation is: *RETRIEVEENDSETS
 reads, off the region's present arrangement, the presence and shape of the anchoring that
 touches it — and stops short of the identities that would make that anchoring followable.*
-That it stops short is the whole reason the operation exists distinct from its
-link-naming sibling.
 
 ## Anchoring reached through borrowed content
 
@@ -510,16 +508,13 @@ a faithful tracker:
 
 - *Rearrangement* permutes the region's V-positions over the same content; the *region
   image*'s membership can swing (F-IMG-SWING, ASN-0127). This is the *only* way a
-  rearrangement changes the answer. Which `(i, e)` pairs are surfaced may change, because the image swings and some
-  endset newly meets it or ceases to; but every surfaced endset is returned with its spans
-  intact. RETRIEVEENDSETS reports content-identity endsets (RE-DEF, RE-IDENT), whose
-  coverage is permanent (L12, ASN-0043; LP3, ASN-0098), so under `K.μ~` no surfaced
-  endset's spans change shape — the answer moves by *membership alone*. (One *could*
-  display a contiguous run of content as several pieces by displacing it piecewise; but
-  that fragmentation is a property of the V-order *display* of the content (ASN-0082) — the
-  rendered mode deferred to open question 3 — not of the content-identity answer
-  RETRIEVEENDSETS returns here. In the content-identity answer the span footprint is fixed
-  by the link, and no arrangement edit touches it.)
+  rearrangement changes the answer. Which `(i, e)` pairs are surfaced may change, as the
+  image swings and some endset newly meets it or ceases to; but each surfaced endset's
+  coverage is permanent (RE-IDENT), so under `K.μ~` no surfaced endset's spans change
+  shape — the answer moves by *membership alone*. (A *rendered* answer — one resolved into
+  `d`'s present V-order rather than content identity, where piecewise displacement could
+  fragment a contiguous run (ASN-0082) — is the mode deferred to Open Question 3; the
+  content-identity answer returned here is unaffected.)
 
 Through all of this the invariant of the previous section holds: the *content identity* of
 each surfaced endset never moves, and it is that identity RETRIEVEENDSETS returns. What
@@ -723,9 +718,9 @@ bore). Neither is a defect to be engineered away; both are what it
 | RE-EXST | Existence-of-anchoring deliverable — by withholding identity the answer certifies the *presence and shape* of anchoring without making it followable; the foundation's existence/discovery axis (query mode: fixed vs arrangement-resolved) and the designer's existence/discovery axis (deliverable: structure vs named-and-followable) are orthogonal — RE is discovery on the first, existence-of-anchoring on the second | introduced |
 | RE-TRANS | Transclusion blindness — surfacing is by content identity, independent of the link's home and of the covered content's origin (LP16, ASN-0098): a link reaching the region only through transcluded content is surfaced identically to one reaching native content, and each returned span describes the content's permanent home identity, not the borrowing V-position | introduced |
 | RE-IDENT | Content-identity invariance — each surfaced endset's coverage is permanent (L12, ASN-0043; LP3, ASN-0098), so the content-level answer (which I-addresses each surfaced endset anchors to) is arrangement-independent, even though the *selection* of which endsets are surfaced is arrangement-mediated | introduced |
-| RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, the touch test composing on the region image, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (content-identity, RE-IDENT). Classified over the vocabulary {K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~, K.ρ} (ASN-0047): the content-subspace edits to `d` — insertion `K.μ⁺`, content deletion `K.μ⁻`, rearrangement `K.μ~` — move the answer *through the image* (F-IMG-MONO/-CONTR/-SWING, ASN-0127; LP9/LP10/LP12, ASN-0098); `K.λ` moves it *through `Σ.L`* (ordinary emission may add a pair, a retraction removes via the addressable population — RE-RET; the emitter may itself contribute `(3, Θ)` absent the net-removal-only hypothesis); every other transition fixes it — `K.α` (LP6), `K.δ` (LP8), `K.ρ` (LP14), edits to `d' ≠ d` (LP5, all ASN-0098), the link-subspace extension `K.μ⁺_L`, and a link-subspace-only `K.μ⁻` (both leaving the image fixed under `W ⊆ s_C`). `K.μ⁻` is thus dual-natured: a content-subspace contraction moves the answer, a link-subspace-only one fixes it. A region-local deletion is *not* the global orphaning/resurrection of LP17/LP18 (ASN-0098). Derivation in the *Stability* prose. | introduced |
-| RE-RET | Retraction stability — a retraction `Nullify(Σ, d_retr, ℓ) ≡ Emit_R(Σ, d_retr, ∅, {(ℓ, δ(1, #ℓ))})` is a `K.λ` step (Nullify/Emit_K, ASN-0086): it marks `ℓ` nullified — removing it from `addressable(Σ)` permanently (R6a) — and emits a fresh addressable retraction link `b` with endsets `(∅, {(ℓ, δ(1, #ℓ))}, Θ)`, writing `Θ` for ASN-0086's retraction type (distinct from RE-CWP's retention set `R`). **Core result:** because the answer deduplicates and discards identity (RE-UNIT), a pair `(i, e)` that `ℓ` bore drops **iff `ℓ` was its sole addressable bearer in `Σ`**. Backward (other bearer ⟹ survives) is *unconditional*: R0a/FlatLinkDomain and R-Scope/SingleTupleScope (ASN-0086) confine the fresh nullification to `ℓ`, so any other bearer survives with value fixed by L12 (ASN-0043). Forward (sole bearer ⟹ drops) holds for every surfaced pair *under the net-removal-only hypothesis* below — `b`'s only possible content-region contribution is the fresh pair `(3, Θ)`, which the hypothesis keeps unsurfaced, so `b` rescues no dropped pair — with one exception absent the hypothesis: `ℓ` itself a retraction link (`Σ.L(ℓ).e₃ = Θ`) with `coverage(Θ)` meeting the image, whereupon `b` re-witnesses `(3, Θ)`, the type-slot-against-content match routed to Open Question 6. **Net-removal-only (conditional):** for a content region (`W ⊆ s_C`) `b`'s from-set `∅` and to-set are content-disjoint *unconditionally* (the to-set is unit-depth, covering only `ℓ`'s `s_L`-subtree, by field-segment agreement along `≼`, Prefix/T4, ASN-0034), but its type-set `Θ` is content-disjoint only on the hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅` — a property the retraction layer (ASN-0086) must furnish (start-placement at a subspace `s_R ≠ s_C` suffices only for `s_R`-subtree-confined spans, e.g. unit-depth; a wide type span `(s, ℓ_s)` need not satisfy `s ≼ t`). Under that hypothesis `b` adds nothing and a retraction's net effect on `RE` is removal *via the addressable population* only; absent it, a `Θ` meeting the image surfaces the fresh pair `(3, Θ)`. Link-level permanence (R6a) is not pair-value-level permanence; an identical pair value re-enters only via a separately identified live link (R6c, ASN-0086). Derivation under *Under retraction*. | introduced |
-| RE-CWP | Contraction-stability weakest precondition — for a `K.μ⁻[d, R]` step, `RE(W, d, ·) = RE(W, d, Σ)` iff `enabled(K.μ⁻[d, R]) ∧ (∀ (i, e) ∈ Avail(Σ) : coverage(e) ∩ Δ ≠ ∅ ⟹ coverage(e) ∩ I_R ≠ ∅)`, where `I_R = {Σ.M(d)(v) : v ∈ W ∩ R}` (D-CWP bridge, ASN-0127), `Δ = image(W, d, Σ) ∖ I_R`, and `Avail(Σ)` is the region-independent pool of addressable slot-endsets; `RE` is monotone-decreasing under contraction (`RE(W, d, Σ') ⊆ RE(W, d, Σ)`), the condition is strictly finer than D-CWP's per-link condition, and `R = ∅` collapses it to `RE(W, d, Σ) = ∅` | introduced |
+| RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (RE-IDENT). Over the transition vocabulary (ASN-0047), only the content-subspace edits to `d` — insertion `K.μ⁺`, content deletion `K.μ⁻`, rearrangement `K.μ~` — and `K.λ` (emission may add a pair, retraction removes — RE-RET) can move the answer; every other transition leaves it fixed, including the link-subspace edits `K.μ⁺_L` and link-subspace-only `K.μ⁻` (image fixed under `W ⊆ s_C`). A region-local deletion is *not* the global orphaning/resurrection of LP17/LP18 (ASN-0098). | introduced |
+| RE-RET | Retraction stability — a retraction is a `K.λ` step (Nullify/Emit_K, ASN-0086) that marks `ℓ` nullified (removing it from `addressable(Σ)` permanently, R6a) and emits a fresh addressable retraction link `b` with endsets `(∅, {(ℓ, δ(1, #ℓ))}, Θ)` (`Θ` the retraction type, ASN-0086). Because the answer deduplicates and discards identity (RE-UNIT), a pair `(i, e)` that `ℓ` bore drops **iff `ℓ` was its sole addressable bearer in `Σ`**: backward (other bearer ⟹ survives) unconditional; forward (sole bearer ⟹ drops) under the net-removal-only hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅`, with sole exception the type-slot-against-content match routed to Open Question 6. Link-level permanence (R6a) is not pair-value-level permanence — an identical pair re-enters only via a separately identified live link (R6c, ASN-0086). | introduced |
+| RE-CWP | Contraction-stability weakest precondition — for a `K.μ⁻[d, R]` step, `RE(W, d, ·) = RE(W, d, Σ)` iff `enabled(K.μ⁻[d, R]) ∧ (∀ (i, e) ∈ Avail(Σ) : coverage(e) ∩ Δ ≠ ∅ ⟹ coverage(e) ∩ I_R ≠ ∅)`, where `I_R = {Σ.M(d)(v) : v ∈ W ∩ R}` (D-CWP bridge, ASN-0127), `Δ = image(W, d, Σ) ∖ I_R`, and `Avail(Σ)` is the region-independent pool of addressable slot-endsets. `RE` is monotone-decreasing under contraction, the condition is strictly finer than D-CWP's per-link form, and `R = ∅` collapses it to `RE(W, d, Σ) = ∅`. | introduced |
 | RE-DET | Determinism — `RE(W, d, Σ)` is a function of `(W, d, Σ)`; with no intervening state change the same region query returns the same anchoring, so every change in the answer is the image of a change in `Σ` | introduced |
 
 ## Open Questions
