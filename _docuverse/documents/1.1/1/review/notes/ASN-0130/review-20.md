@@ -1,0 +1,24 @@
+# Review of ASN-0130
+
+I worked the proofs claim by claim. The encoding/identity layer (PR-ENC, PR-ENC-uniq), the registration-order grounding of typing (PR-SIG, WT-ref), the acyclicity argument (PR2, run event-wise with self-reference excluded and the hit case closed), the substitution induction (PR3a, with WT-α/WT-W/PC2 discharged step by step), the view-independence scan (PR-VIEW), the born-nullified wp analyses (PR0, PR5a), and the lint's exactness-at-starts (PR5, via prefix-incomparability of allocator outputs) are all sound and use the foundations without reinvention. Boundaries — empty `A_def`, `n=1`, `k=0`, self-reference, de-registration, frontier-ghost (step 5), prefix/super-run presentations at PR0(ii) — are handled. One claim's framing does not hold up.
+
+## REVISE
+
+### Issue 1: PR1 claims permanence for a conjunct that de-registration withdraws without content change
+
+**ASN-0130, PR1 (ValidationPermanence)**: "the run addrs(G) … passed PR0's validation at its deposit's pre-state — parse-valid (ii), well-typed (iii), every reference registered (iv) — and holds the same values at Σ and at every →_sh*-successor. … A pdef tuple is therefore a permanent proof of validation: no re-validation path exists at runtime because none is needed — staleness would require the content to change, and the substrate has no operation that changes content."
+
+**Problem**: The *formal* claim — (validation passed at the deposit pre-state) ∧ (run values permanent) — is sound; "at every successor" attaches only to "holds the same values." But the justifying gloss "staleness would require the content to change" is false for conjunct (iv), and the proof never establishes (iv)-permanence — only (ii)/(iii).
+
+- (ii) parse-validity reads only the immutable run; (iii) well-typedness reads the run plus each consulted `sig(r)`, fixed at `r`'s first registration (PR-SIG). Both are content/signature-intrinsic, hence genuinely staleness-proof — re-validating them *would* require a content change the substrate forbids.
+- (iv) "every reference registered" reads `A_pdef^Σ` (active membership). A `Nullify_Binary` on a referent's pdef tuple de-registers it — PS2: "the tuple leaves `A_pdef^Σ` … PR0's condition (iv) thereafter refuses new references to it" — falsifying (iv) for a standing definition with **no content change at all**. This is precisely OpenQ3 (dangling live references).
+
+The note knows this and handles it correctly at the parallel surface: PR5a's permanence paragraph caveats its analogous active-registration conjunct — "What is not permanent is the target's active registration: a later de-registration leaves the certificate active while the condition-(i) fact recedes into history." PR1 lacks that caveat for its (iv), so the proof addresses the two easy conjuncts (content immutability) and skips the hard one. The headline "validation is validation forever" — echoed in the intro ("the platform's validation guarantees attach to them once, permanently"; "so a validated definition can never drift: validation at registration is validation forever") and the PR1 commit bullet — overstates: it holds for the run's parse-validity and well-typedness, not for the reference-endorsement.
+
+**Required**: Mirror PR5a in PR1. State that permanence covers (ii) and (iii) (content/signature-intrinsic, staleness-proof), and that (iv) is a deposit-time reference-endorsement that de-registration of a referent can falsify without any content change — harmless because evaluation (PR3) keys on ever-registration, not (iv)-currency, and new references re-check (iv) at their own registration, but not "permanent." Scope the gloss "staleness would require the content to change" to (ii)+(iii), and the intro's/commit's "validation forever" likewise.
+
+## OUT_OF_SCOPE
+
+(none)
+
+VERDICT: REVISE
