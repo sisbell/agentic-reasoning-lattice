@@ -487,7 +487,7 @@ precondition, `assert_sup(x, y, d_a)` yields `Σ'` with:
 simplification: the pre-existing-retraction conjunct holds vacuously at
 disciplined states, and `K_sup ≁ R` discharges the self-nullification guard.
 
-*(iv) Frame — and the independence of axes.* `Σ'.C = Σ.C`, `Σ'.M = Σ.M`,
+*(iv) Frame and activity.* `Σ'.C = Σ.C`, `Σ'.M = Σ.M`,
 `Σ'.E = Σ.E`, `Σ'.R = Σ.R`; every prior link-store entry — `x` and `y` in
 particular — is unchanged. Activity splits into a design-bearing half that holds
 unconditionally and a full-state half that needs the discipline hypothesis.
@@ -772,9 +772,8 @@ at every state and for any `y, x`, consulting no arrangement. For
 predicate (a no-op at disciplined states, where every `[K_sup]` tuple already
 conforms): on conforming claims `Observe` returns those with `old(e) ≼ y` (resp.
 `new(e) ≼ x`), and the antichain R0a collapses `≼` to `=` precisely because `y`
-(resp. `x`) lies in `dom(Σ.L)` — which every use here supplies (`in(a, ·)`,
-`in(aᵢ, ·)`, `in(ℓ₀, ·)`). It is the `Observe` *identification* that carries
-this qualification; the direct comprehension does not.
+(resp. `x`) lies in `dom(Σ.L)`. It is the `Observe` *identification* that
+carries this qualification; the direct comprehension does not.
 **The supersession question is answerable, completely and decidably, at every
 state, whatever every arrangement says.** A reader's protocol — before relying
 on a link, ask the record what targets it — is always executable; what
