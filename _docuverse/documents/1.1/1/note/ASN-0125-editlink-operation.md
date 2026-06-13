@@ -62,17 +62,12 @@ the designated retraction class `[R]` with `nullified(Σ)` and the active
 subsets `A_K^Σ`, the total emission-address function `a_emit(Σ, d)`, the
 operations `Emit_K`, `Observe_K` (views `hist`/`oper`), and `Nullify`.
 
-**Layer transfer.** The ASN-0086 facts this note invokes — R0a (FlatLinkDomain),
-the emission-address function `a_emit`, the `Emit`/`Observe`/`Nullify` contracts,
-`wp` Case 2, R3 (TypedSliceMonotonicity), and R6a — each reference only the link
-store and the document set `dom(M)`, never content values, arrangement interiors,
-or provenance. Both of those are evolved identically by the full ASN-0047
-vocabulary and by ASN-0086's `{K.σ, K.α, K.λ}`: the link store changes only by
-`K.λ`'s fresh appends (Vocabulary fact V below) and `dom(M)` is monotone (M1, with
-`K.δ`'s document case playing `K.σ`'s role). We therefore use these particular
-facts at full-vocabulary reachable states, reading "layer-reachable" over this
-vocabulary — without claiming anything of ASN-0086 results this note does not
-use.
+**Layer transfer.** ASN-0086's results depend only on the link store `Σ.L` and
+the document set `dom(M)`; both evolve identically under the full ASN-0047
+vocabulary and under ASN-0086's `{K.σ, K.α, K.λ}` — the link store changes only
+by `K.λ`'s fresh appends (Vocabulary fact V below), and `dom(M)` is monotone (M1,
+with `K.δ`'s document case playing `K.σ`'s role) — so those results hold at
+full-vocabulary reachable states, over which we read "layer-reachable."
 
 **Vocabulary fact V (the L-frame inventory).** By inspection of the ASN-0047
 transition contracts: every elementary transition other than `K.λ` carries the
@@ -370,6 +365,67 @@ the *claim schema*:
 claim is irreflexive. A layer is edit-disciplined iff every state it reaches
 is. (Self-supersession `x = y` is excluded as vacuous; cycles of length ≥ 2 are
 deliberately *not* excluded — they are reverts.)
+
+Df-DISC describes a property of states; we owe a demonstration that disciplined
+states are reachable and closed under editing, so that the "at disciplined `Σ`"
+conditionals below range over something the system can actually produce. We
+assemble it into an inductive invariant of a named layer.
+
+**Df-LAY (EditingLayer).** The *editing layer* issues exactly the operations
+`{assert_sup, editlink, Nullify}` (the first two defined below; `Nullify` from
+ASN-0086), together with the substrate's link-framing transitions
+`{K.α, K.δ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.ρ}` (and `K.μ~`, their composite) and the bare
+`K.λ` *confined to original-link creation* — emission whose slot-3 coverage is
+neither `coverage(K_sup)` nor `coverage(R)`. Its one *discipline commitment*
+routes every emission into a disciplined class through that class's disciplined
+operation: every `[K_sup]` emission through `assert_sup` or `editlink` (under
+`DC`), every `[R]` emission through `Nullify`. A bare `Emit_{K_sup}`, a bare
+`Emit_R`, or a bare `K.λ` carrying either class is *not* an editing-layer
+operation — the substrate cannot forbid such emissions (discipline is a protocol
+property, not a substrate invariant; see the Remark on no enforceable coupling
+below), but the layer does not issue them. A state is *editing-layer-reachable*
+iff it is reached from the initial state `Σ₀` by a finite sequence of
+editing-layer operations. This mirrors ASN-0086's RelationalLayer and its
+LayerReachable states.
+
+**EL-DM (DisciplineMaintenance).** Every editing-layer-reachable state is
+edit-disciplined — so the conditional claims that follow (EL6(iii), EL7(iii),
+the EL7(iv) full frame, EL14's active-at-birth, and EL8's disciplined-state
+hypothesis) are evaluated over a reachable, non-vacuous domain, not an assumed
+one. (EL11's contextual half rests instead on per-claim schema-conformance, which
+EL4 supplies without a whole-state hypothesis; at editing-layer-reachable states
+every claim conforms regardless, so it applies there too.)
+
+*Base.* The initial state `Σ₀` (ASN-0047) has `L₀ = ∅`, hence
+`S^{Σ₀} = L_{K_sup}^{Σ₀} = ∅` and `L_R^{Σ₀} = ∅`; both clauses of Df-DISC hold
+vacuously over an empty link store. `Σ₀` is the empty-store boundary case, and it
+is what makes a disciplined state reachable at all.
+
+*Step.* Edit-discipline is the conjunction of ASN-0086's unit-depth retraction
+discipline (clause i, a property of the `[R]`-slice `L_R^Σ`) and the claim schema
+(clause ii, a property of the `[K_sup]`-slice `S^Σ`); a transition out of a
+disciplined `Σ` preserves it iff it adds no non-unit-depth `[R]` tuple and no
+schema-violating `[K_sup]` claim, and disturbs no surviving tuple's conformance.
+We discharge this for each editing-layer operation.
+
+- *L-framing transitions and original-creating bare `K.λ`.* By Vocabulary fact V
+  the six framing transitions (and `K.μ~`) carry `L' = L`, leaving `S^Σ` and
+  `L_R^Σ` identical, so both clauses transfer verbatim. The bare
+  original-creating `K.λ` extends `dom(L)` at one fresh key whose slot-3 coverage
+  inhabits neither disciplined class, adding nothing to either slice; every prior
+  tuple keeps its value (L12) and its witnesses (the `x, y` of a claim, the `t`
+  of a retraction) remain in the grown `dom(L)`, so no surviving tuple's
+  conformance is disturbed. Both clauses preserved.
+- *`Nullify`.* Emits exactly one `[R]`-class tuple, with to-set
+  `{(t, δ(1, #t))}` and `t ∈ dom(Σ.L)` — its unit-depth retraction schema
+  (ASN-0086) — preserving clause (i); it deposits no `[K_sup]` claim, leaving
+  clause (ii) untouched.
+- *`assert_sup`.* EL6(v): `Σ'` is edit-disciplined when `Σ` is.
+- *`editlink`.* EL7(vi): `Σ₂` is edit-disciplined when `Σ` is — precisely what
+  the precondition `DC(ℓ')` secures, and what licenses chaining edits.
+
+By induction over the editing-layer operations, edit-discipline holds at every
+editing-layer-reachable state. ∎
 
 **EL4 (SingleTarget).** Each *schema-conforming* claim determines its endpoints
 uniquely — and the argument is per-claim, invoking no whole-state discipline
@@ -897,7 +953,8 @@ not as identity transfer.
 Two documents, `H` and `P`, both in `dom(Σ.M)`, owned by different principals.
 `H` homes one link, `ℓ₀ = H.0.s_L.1`, listed in its registry at
 `V_{s_L}(H) = {[s_L, 1]}` with `[s_L, 1] ↦ ℓ₀`. `P` homes nothing. The state
-is edit-disciplined; `S^Σ = ∅`.
+is edit-disciplined (EL-DM — reached from `Σ₀` by document registrations and
+original-link creations alone, no claim or retraction yet); `S^Σ = ∅`.
 
 *Edit by the owner.* `editlink(ℓ₀, ℓ'-value, H, H)`: the `H`-homed set is
 `{ℓ₀}`, so `a_emit` takes the subsequent-emission branch — successor
@@ -961,6 +1018,8 @@ current view forgets; the record cannot.
 | Df-CLS | SupersessionClass: designated coverage class `[K_sup]` with `coverage(K_sup) ≠ coverage(R)`; historical slice `S^Σ = L_{K_sup}^Σ` (claims), operative subset `A_sup^Σ = {(b,F,G) ∈ S^Σ : b ∉ nullified(Σ)}` | introduced |
 | Df-DIR | ClaimDirectionality: from-set covers the superseding link, to-set the superseded ("F replaces G"), aligned with RetractionDirectionality; replacement-free withdrawal is class `[R]`, a distinct relation | introduced |
 | Df-DISC | EditDiscipline: a state is edit-disciplined iff unit-depth-retraction-disciplined and every claim has form `F = {(x, δ(1,#x))}`, `G = {(y, δ(1,#y))}` with `x, y ∈ dom(Σ.L)`, `x ≠ y`; a layer is edit-disciplined iff every reached state is | introduced |
+| Df-LAY | EditingLayer: the editing layer issues `{assert_sup, editlink, Nullify}` plus the link-framing substrate transitions (`K.α`, `K.δ`, `K.μ⁺`, `K.μ⁺_L`, `K.μ⁻`, `K.ρ`, `K.μ~`) and bare `K.λ` confined to original-link creation; its discipline commitment routes every `[K_sup]` emission through `assert_sup`/`editlink` (under `DC`) and every `[R]` emission through `Nullify` (bare `Emit_{K_sup}`/`Emit_R`/class-carrying `K.λ` are not layer operations — discipline is a protocol property, not substrate-enforced); editing-layer-reachable = reached from `Σ₀` by such operations (mirrors ASN-0086's RelationalLayer/LayerReachable) | introduced |
+| EL-DM | DisciplineMaintenance: every editing-layer-reachable state is edit-disciplined. Base — `Σ₀` (`L₀ = ∅`) is vacuously disciplined (`S^{Σ₀} = L_R^{Σ₀} = ∅`). Step — L-framing transitions and original-creating bare `K.λ` leave `S^Σ`/`L_R^Σ` undisturbed (Vocabulary fact V, L12, monotone `dom(L)`); `Nullify` adds only a unit-depth `[R]` tuple (no `[K_sup]` claim); `assert_sup` preserves by EL6(v); `editlink` by EL7(vi). Gives every "at disciplined `Σ`" conditional (EL6iii, EL7iii, EL7iv full frame, EL14, EL8) a reachable, non-vacuous domain | introduced |
 | EL4 | SingleTarget: for any *schema-conforming* claim (per-claim, no whole-state hypothesis) `coverage(F) ∩ dom(Σ.L) = {x}` and `coverage(G) ∩ dom(Σ.L) = {y}` (PrefixSpanCoverage + R0a), making `addr(e)`, `new(e)`, `old(e)` total on the schema-conforming subset `Ŝ^Σ` at every reachable state (`Ŝ^Σ = S^Σ` at disciplined states) | introduced |
 | Df-SUCC | Successor relations over the schema-conforming claims `Ŝ^Σ` (EL4): `succ_h(Σ) = {(old(e), new(e)) : e ∈ Ŝ^Σ}`; `succ_o(Σ)` the further restriction to `addr(e) ∉ nullified(Σ)`; finite, `succ_o ⊆ succ_h`; total at every reachable state (the `Ŝ^Σ` restriction excludes non-conforming `[K_sup]` tuples on which `old`/`new` are undefined), coinciding with the unrestricted form at disciplined states (`Ŝ^Σ = S^Σ`) | introduced |
 | EL5 | RecordMonotonicity: across `Σ →* Σ'`, (a) `S^Σ ⊆ S^{Σ'}`, `Ŝ^Σ ⊆ Ŝ^{Σ'}` (schema-conformance is value-and-domain-determined), and `succ_h(Σ) ⊆ succ_h(Σ')`; (b) `nullified(Σ) ⊆ nullified(Σ')` — demotion is one-way per claim; (c) `succ_o` is neither monotone nor antitone: the operative relation is the revisable view, the historical relation the unrevisable record | introduced |
