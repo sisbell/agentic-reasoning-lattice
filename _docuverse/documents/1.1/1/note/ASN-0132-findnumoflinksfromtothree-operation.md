@@ -304,22 +304,18 @@ link value — it is the size of a query's answer, and the system makes no promi
 a stale size. The discipline this implies is *recompute-on-read*, not *cache-as-truth*:
 the only way to know the current count is to take it again.
 
-This is the right place to record what permanence does and does not cover, because the
-question invites the confusion. That the docuverse keeps everything it ever created does
-*not* mean it keeps every count it ever reported. Permanence is a promise about *what
-exists and can be found again*; a count is a promise about *how many satisfy, right now*.
-The first is honoured at the level of the store; the second is recomputed at each inquiry.
-Both are kept, and they are kept by being different kinds of statement.
+Permanence guarantees what exists and can be found again; a count is recomputed per
+inquiry. That the docuverse keeps everything it ever created does *not* mean it keeps every
+count it ever reported — permanence is a promise about *what exists*, a count a promise
+about *how many satisfy, right now*. The first is honoured at the level of the store; the
+second is recomputed at each inquiry. Both are kept, and they are kept by being different
+kinds of statement.
 
 *Implementation note.* Because the back end recomputes the count by re-running the search,
 two inquiries separated by a mutation observe two states and may return different numbers;
-nothing is cached, and there is no snapshot tying a count to a later enumeration. In the
-distributed setting the same definition holds against whatever model of the store a server
-currently presents, so even absent any edit the number a server reports is the size of the
-satisfying set *as that server currently sees it*. The snapshot semantics of CN-SNAP is
-thus visible twice: across edits in time, and across the inevitable lag of a replicated
-model. Neither weakens the per-state definition; both are why the number must be read as
-*of the moment and the vantage*.
+nothing is cached, and there is no snapshot tying a count to a later enumeration. The count
+is a function of whichever `Σ` is observed, and so must be read as *of the moment* it is
+taken.
 
 ## Stability under content editing
 
@@ -362,15 +358,15 @@ any edit to an arrangement. Residence is determined by identity, and identity do
 shift when content does.
 
 One caveat applies, and CN-STAB makes it precise. Stability is asserted for a *fixed* `q`.
-A reader who re-phrases the same intent
-after an edit — pointing again at the "same" content, now at a shifted position — submits a
-*different* request, because the resolution against the edited arrangement yields different
-addresses. The count of that different request may differ. What CN-STAB guarantees is that
-the link's *membership* in a *given* description is stable; what it does not guarantee, and
-should not, is that two different descriptions return the same number. A rearrangement that
-moves content while preserving its addresses leaves every address-phrased count exactly
-invariant; only a position-phrased re-resolution can appear to move the count, and that
-appearance is the request changing, not the link.
+A reader who re-phrases the same intent after an edit — pointing again at the "same"
+content, now at a shifted position — submits a *different* request, because the resolution
+against the edited arrangement yields different addresses. The count of that different
+request may differ. What CN-STAB guarantees is that the link's *membership* in a *given*
+description is stable; what it does not guarantee, and should not, is that two different
+descriptions return the same number. This is the resolution principle of the opening
+remark, applied to editing: any apparent movement under re-phrasing lives in the
+resolution, never in the count, so a rearrangement that preserves addresses leaves every
+address-phrased count exactly invariant.
 
 ## Retraction and permanence
 
@@ -394,9 +390,8 @@ about two different sets: the active view shrinks while the store does not. This
 count-level form of the view/store distinction the architecture maintains everywhere:
 withdrawal removes a thing from the current arrangement of what is active, never from the
 permanent record of what exists. A count taken against the active view excludes the
-withdrawn link at once; a count that could be taken against a prior view, or that scopes
-its home-set to a context that still holds the link, would still include it. Both are
-honest, because each counts the set it names.
+withdrawn link at once; a count that could be taken against a prior view would still
+include it. Both are honest, because each counts the set it names.
 
 The complementary direction — growth — is governed by the same per-link logic.
 
@@ -465,11 +460,10 @@ retraction alone.
 
 ## Counting the unsurfaced
 
-It remains to settle the case the question presses hardest: a link anchored to fresh
-content that no arrangement yet surfaces, or to content that has dropped out of every
-current view. Is it counted? It is — and this is forced by CN-LOC, but the consequence is
-worth stating on its own because it is where the existence census and the discovery census
-visibly part.
+One case remains: a link anchored to fresh content that no arrangement yet surfaces, or to
+content that has dropped out of every current view. Is it counted? It is — and this is
+forced by CN-LOC, but the consequence is worth stating on its own because it is where the
+existence census and the discovery census visibly part.
 
 > **CN-ORPHAN (orphans are counted).** A link `a ∈ addressable(Σ)` with `sat(a, q, Σ)` is
 > counted whether or not any document surfaces its endpoint content — that is, whether or
@@ -497,10 +491,10 @@ different signals, and FINDNUMOFLINKSFROMTOTHREE is the existence census.
 
 ## A census, computed
 
-The three rulings the question presses hardest on — that anchoring, transclusion, and
-appearance multiplicity each collapse to a contribution of one (CN-UNIT); that a nullified
-link contributes nothing yet persists (CN-RETRACT); and that an unsurfaced link is counted
-all the same (CN-ORPHAN) — are easiest to trust against a specific store. We exhibit one.
+The three central rulings — that anchoring, transclusion, and appearance multiplicity each
+collapse to a contribution of one (CN-UNIT); that a nullified link contributes nothing yet
+persists (CN-RETRACT); and that an unsurfaced link is counted all the same (CN-ORPHAN) —
+are easiest to trust against a specific store. We exhibit one.
 Fix a document-level prefix `d₁ = 1.0.1.0.1` and two of its neighbours `d₂ = 1.0.1.0.2`,
 `d₃ = 1.0.1.0.3` (each a `zeros = 2` document tumbler, T4). Write `⟨z⟩` for the unit-depth
 span `(z, δ(1, #z))` at address `z`, whose coverage is the subtree `{t : z ≼ t}`
@@ -623,8 +617,8 @@ points at (FL-RES, ASN-0121).
 
 ## Cost, and the meaning of asking for a number
 
-We close with what the question asks last: what does asking for a *number* instead of the
-links themselves reveal about the cost and the meaning of link discovery?
+We close with the cost and the meaning of asking for a *number* instead of the links
+themselves.
 
 About *meaning*, the answer is firm and abstract. A count of `N` asserts that exactly `N`
 addressable links satisfy `q` at `Σ` — an existence-and-cardinality claim about the store.
