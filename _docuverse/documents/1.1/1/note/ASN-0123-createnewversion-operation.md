@@ -143,16 +143,23 @@ Preconditions
                                          of whatever composite precedes it —
                                          whole-request serialization; see the
                                          atomicity remark and evidence section)
+  P-tier   ω(d_src) = π  ∨  zeros(pfx(π)) = 1   (the operation's domain: the
+           forker owns the source — served at any tier — or, forking across
+           ownership, already holds a document-creation namespace; the identity
+           clause branches on the same guard)
 
   — P-bdy fixes the invocation context, not a source-side condition; on the
   source side there is nothing further. In particular: no authority over
   d_src is required (the source is read without permission), and no condition
-  is placed on M(d_src) (the empty source is admitted, n = 0 below). The
-  identity clause's guard is total: ω(d_src) is defined at every reachable
-  state (PS — registry coverage makes ω total on E). One forker-side
-  requirement falls on the cross-owner branch alone: π must already hold a
-  document-creation namespace (zeros(pfx(π)) = 1), so the fork mints one
-  identity rather than an account-plus-version pair; the identity clause states it.
+  is placed on M(d_src) (the empty source is admitted, n = 0 below). P-tier is
+  the operation's domain delimiter, well-formed because ω(d_src) is defined at
+  every reachable state (PS — registry coverage makes ω total on E): its first
+  disjunct serves the owned fork at any forker tier, its second the cross-owner
+  fork, which falls on an account-tier forker alone (zeros(pfx(π)) = 1) so the
+  fork mints one identity rather than an account-plus-version pair. A node-tier
+  non-owner (zeros(pfx(π)) = 0, which O1a admits into Π) satisfies neither
+  disjunct and lies outside the domain — it must establish an account first, an
+  out-of-scope prior act VERSION does not cover; the identity clause states it.
 
 Abbreviations (evaluated at the initial state Σ)
   n  :=  |V_{s_C}(d_src)|
@@ -253,7 +260,7 @@ and we state the discipline under which the address decodes it:
 
 > **VD** — every allocation into a version namespace is a fork of its parent: `(A d ∈ E_doc, w ∈ E ∩ S(d, 1) :: w entered E as the output of a VERSION(·, d) invocation)`.
 
-Under VD, ancestry is decidable from the identity alone in the owned case: `derives(v, d) ⟺ v ∈ E ∧ v ∈ S(d, 1)`. Without VD, truncation still yields allocation lineage and nothing more — exactly T6's caution that the document field records who baptized which number, not whose content was copied. VD is coherent as a global discipline because version namespaces collide with nothing: distinct B6-valid namespaces are disjoint (B7), so `S(d, 1)` is untouched by document creation under the account (a different namespace) and by every other document's version stream. The numbers carry the genealogy because the operation is disciplined to make them do so — Nelson's own formulation of the stipulation.
+Under VD, ancestry is decidable from the identity alone for the *address-encoded* derivations — those whose result lies in the source's own version stream. Restricted to `v ∈ S(d, 1)`, the registry decides derivation: `derives(v, d) ⟺ v ∈ E`. The restriction is essential, and the *unrestricted* biconditional is false. Its forward direction `derives(v, d) ⟹ v ∈ S(d, 1)` is refuted by the severance theorem: a cross-owner fork `VERSION(π, d)` with `π ≠ ω(d)` makes `derives(v, d)` hold with `v ∈ E` (V0), yet `¬(d ≼ v)` (severance, V9), and since every member of the stream properly extends its parent (`S(d, 1) ⊆ {t : d ≼ t}`, ASN-0040 S1; cf. V4a), `v ∉ S(d, 1)`. Such a derivation is recoverable only through the shared-content witness (V9w), never the registry — the downward limit V7 records. Equivalently, writing `derives_addr(v, d) := derives(v, d) ∧ d ≼ v` for address-encoded derivation, the registry decides exactly that fragment: `derives_addr(v, d) ⟺ v ∈ E ∩ S(d, 1)`. Without VD, truncation still yields allocation lineage and nothing more — exactly T6's caution that the document field records who baptized which number, not whose content was copied. VD is coherent as a global discipline because version namespaces collide with nothing: distinct B6-valid namespaces are disjoint (B7), so `S(d, 1)` is untouched by document creation under the account (a different namespace) and by every other document's version stream. The numbers carry the genealogy because the operation is disciplined to make them do so — Nelson's own formulation of the stipulation.
 
 *A worked instance* (the addresses are the implementation's, but the arithmetic is the abstraction's): `d = 1.1.0.1.0.1`; first fork `v₁ = 1.1.0.1.0.1.1`; second fork `v₂ = 1.1.0.1.0.1.2`; fork of the first version `w = 1.1.0.1.0.1.1.1`. Then `trunc(w) = v₁`, `trunc(v₁) = d`, `trunc(d) = 1.1.0.1.0` — trailing zero, not T4-valid: the chain base is found. The account field `1.1.0.1` is identical throughout; the ranks 1, 2 read directly off the final components.
 
@@ -380,7 +387,7 @@ Four deviations from the abstract specification:
 | VERSION | the fork composite: one fresh identity, the source's content-subspace arrangement transcribed as a snapshot, provenance recorded; `C`, `L`, and every existing arrangement framed | introduced |
 | V-WF | VERSION is a valid composite at every reachable state with `d_src ∈ E_doc` (empty source included; the cross-owner branch additionally requires an account-tier forker, `zeros(pfx(π)) = 1`, so exactly one identity is minted); invoked at a composite boundary (P-bdy), its post-state is the terminal boundary, satisfying both the per-state invariants and the composite-boundary properties P4★ ∧ P4a ∧ P7a | introduced |
 | derives | `derives(v, d)` iff some `VERSION(·, d)` invocation produced `v` | introduced |
-| VD | version namespaces are populated only by VERSION with the parent as named source; under VD, `derives(v, d) ⟺ v ∈ E ∩ S(d, 1)` | introduced |
+| VD | version namespaces are populated only by VERSION with the parent as named source; under VD the registry decides address-encoded derivation — for `v ∈ S(d, 1)`, `derives(v, d) ⟺ v ∈ E` (equivalently `derives_addr(v, d) ⟺ v ∈ E ∩ S(d, 1)`); the unrestricted forward direction `derives(v, d) ⟹ v ∈ S(d, 1)` fails for cross-owner forks (severance, V9) | introduced |
 | V0 | exactly one fresh identity is allocated; globally unique across all allocation events; permanent and never renumbered | introduced |
 | V1 | `C' = C ∧ L' = L` — zero content/link allocation, one identity minted, regardless of source size; the arrangement and provenance deltas scale with content-position count, not byte volume | introduced |
 | V2 | `M'(v) = M(d_src)|_{V_{s_C}(d_src)}` — function-level snapshot at fork time; representation-free; content subspace only | introduced |
