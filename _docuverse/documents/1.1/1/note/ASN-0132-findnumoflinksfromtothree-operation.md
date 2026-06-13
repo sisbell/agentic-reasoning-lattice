@@ -95,10 +95,10 @@ end that lets a reader phrase the query by pointing at content in a document mus
 *resolve* those pointings, through that document's arrangement, into the address sets of
 `q`; the implementation does exactly this V-to-I resolution against the arrangement at the
 instant of the call. That resolution is upstream of the operation we specify: it produces
-`q`. Everything we say about `countlinks_FTT(q, Σ)` is said of a *resolved* request, and
-the separation matters — when we later find that the count is stable under content editing
-while a reader's *phrasing* of the query is not, the discrepancy will live precisely in
-the resolution, never in the count.
+`q`. Everything we say about `countlinks_FTT(q, Σ)` is said of a *resolved* request. The
+separation is load-bearing: a fixed resolved `q` is what the operation measures, whereas
+re-phrasing the same intent can re-resolve to a *different* `q`. Any discrepancy a reader
+perceives between two such requests lives in the resolution, never in the count.
 
 ## The unit is identity
 
@@ -272,9 +272,8 @@ the request, as resolved, names nothing. The link the reader meant to count may 
 fully addressable, with its endsets intact; it is simply not reached, because the request
 that was supposed to reach it collapsed during resolution. The substantive guarantee of
 CN-ZERO — "the store contains no such link" — attaches to a *non-degenerate* request, one
-whose constrained components have non-empty coverage. This is the same separation
-foreshadowed earlier: the instability lives in the resolution, not in the count, and a
-zero must be read against which kind of request produced it.
+whose constrained components have non-empty coverage. A zero must therefore be read against
+which kind of request produced it.
 
 For the contrast that makes the present-store reading precise: a zero count is a claim
 about *now*. It is not a prophecy. The docuverse grows; a satisfying link may be created
@@ -335,14 +334,11 @@ document's content without touching the link store.
 
 The proof is immediate from CN-LOC: the count is a function of `Σ.L` (through both `sat`
 and `addressable`), and the single hypothesis of link-store preservation fixes everything
-the count reads. We state no separate clause fixing `nullified`, and one would be
-redundant: `nullified(Σ)` is itself a function of `Σ.L` alone — it is selected from the
-retraction relation `L_R^Σ`, which `Σ.L` determines — so `Σ'.L = Σ.L` (as partial
-functions) already entails `nullified(Σ') = nullified(Σ)`. The equality of nullified sets
-is thus a *consequence* of the hypothesis, not an extra demand on it, which is exactly why
-F-PRES (ASN-0127) — which delivers only link-store preservation — discharges the whole
-precondition. The transitions this covers are exactly the ones that leave `Σ.L` intact.
-Content insertion, deletion, and rearrangement act on a document's arrangement `Σ.M(d)` and
+the count reads. Since `nullified(Σ)` is selected from the retraction relation `L_R^Σ`,
+which `Σ.L` determines, the hypothesis `Σ'.L = Σ.L` entails `nullified(Σ') = nullified(Σ)`;
+hence F-PRES (ASN-0127) — link-store preservation alone — discharges the precondition. The
+transitions this covers are exactly the ones that leave `Σ.L` intact. Content insertion,
+deletion, and rearrangement act on a document's arrangement `Σ.M(d)` and
 preserve `Σ.L` (F-PRES, ASN-0127); content allocation (K.α) and provenance recording (K.ρ)
 likewise leave the link store untouched. Every such transition leaves the count exactly
 where it was. Only link creation and retraction — transitions that grow `Σ.L` or
@@ -365,8 +361,8 @@ count — one whose home-set `H` selects that document — still includes the li
 any edit to an arrangement. Residence is determined by identity, and identity does not
 shift when content does.
 
-The one caveat is the one already drawn at the resolution boundary, and CN-STAB makes it
-precise. Stability is asserted for a *fixed* `q`. A reader who re-phrases the same intent
+One caveat applies, and CN-STAB makes it precise. Stability is asserted for a *fixed* `q`.
+A reader who re-phrases the same intent
 after an edit — pointing again at the "same" content, now at a shifted position — submits a
 *different* request, because the resolution against the edited arrangement yields different
 addresses. The count of that different request may differ. What CN-STAB guarantees is that
@@ -410,29 +406,24 @@ The complementary direction — growth — is governed by the same per-link logi
 > exactly `1`.
 
 This is the cardinality of FL-MON (ASN-0121): a matching, non-withdrawn link stays in the
-satisfying set as the store grows, so the count cannot fall. Each remaining fact is cited
-where it lives. That link creation is the only transition which can *add* to the satisfying
-set is CN-STAB read with F-PRES (ASN-0127) — every non-`K.λ` transition preserves `Σ.L`, and
-with it the count; that a single `K.λ` step contributes at most one address, fresh and so
-not already counted, is its effect and freshness clauses (ASN-0093); and the exact four-set
-increment, retraction-coverage condition and all, is FL-WP(a) (ASN-0121), which the next
-paragraph derives in full. We can make the
-increment exact by a weakest-precondition step. Consider a transition `Σ → Σ'` that creates
-a fresh ordinary link `ℓ` — *fresh*, so `ℓ ∉ dom(Σ.L)`, and *ordinary*, so it does not
-enter the retraction relation and `L_R^{Σ'} = L_R^Σ`.
+satisfying set as the store grows, so the count cannot fall. That link creation is the only
+transition which can *add* to the satisfying set is CN-STAB read with F-PRES (ASN-0127) —
+every non-`K.λ` transition preserves `Σ.L`, and with it the count; that a single `K.λ` step
+contributes at most one address, fresh and so not already counted, is its effect and
+freshness clauses (ASN-0093); and the exact four-set increment, retraction-coverage
+condition and all, is FL-WP(a) (ASN-0121), which the next paragraph derives in full. We can
+make the increment exact by a weakest-precondition step. Consider a transition `Σ → Σ'` that
+creates a fresh ordinary link `ℓ` — *fresh*, so `ℓ ∉ dom(Σ.L)`, and *ordinary*, so it does
+not enter the retraction relation and `L_R^{Σ'} = L_R^Σ`.
 
-First, every pre-existing link's contribution is unmoved — and we must cite the facts that
-actually fix it, not a discovery-side lemma about a different predicate. For `a ∈ dom(Σ.L)`
+First, every pre-existing link's contribution is unmoved. For `a ∈ dom(Σ.L)`
 the stored value survives creation, `Σ'.L(a) = Σ.L(a)` with `a ∈ dom(Σ'.L)` (L12, ASN-0043;
 LP13, ASN-0098); and `sat(a, q, ·)` reads only `Σ.L(a)` and the projection `home(a)` of the
 permanent address `a` (CN-LOC), so `sat(a, q, Σ') = sat(a, q, Σ)`. Its addressability is
 fixed too: because `ℓ` is not a retraction, `L_R^{Σ'} = L_R^Σ`, so the nullified set
 restricted to the old domain is unchanged, `nullified(Σ') ∩ dom(Σ.L) = nullified(Σ)`, and
 each pre-existing `a` is addressable at `Σ'` exactly when it was at `Σ`. The contributions
-of `dom(Σ.L)` therefore sum to the same total at both states. (This is the substance an
-earlier draft mis-attributed to E-INV, ASN-0127 — which speaks of the slot-agnostic
-`matches(a, I, ·)` predicate, not the four-slot `sat`, and which says nothing of
-addressability at all, so it delivers neither half of what the step needs.)
+of `dom(Σ.L)` therefore sum to the same total at both states.
 
 The whole change is thus the contribution of `ℓ` itself: `1` if `ℓ ∈ addressable(Σ') ∧
 sat(ℓ, q, Σ')`, and `0` otherwise. Now `ℓ ∈ dom(Σ'.L)` holds by creation, so `ℓ ∈
