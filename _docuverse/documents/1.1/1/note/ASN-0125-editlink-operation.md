@@ -301,20 +301,11 @@ alone (the scope of this attribution — home, not named principal — is fixed 
 EL8(b)). RQ5 is `K.λ`'s frame. RQ7 is
 freshness: every claim is a new address; nothing collides, merges, or ranks.
 
-Two remarks complete the comparison the question poses.
-
 *The menu was shorter than it looked.* "A separate supersession link" and "a
 typed relation distinct from these" are the same architecture: under L8 a link
 *is* typed, by its third endset's coverage, and a typed relation's tuples *are*
 links (ASN-0086, TypedRelation). The address-space candidate is closed outright
 by EL2(c).
-
-*The carrier costs nothing in mechanism, something in coordination.* The
-relation-space carrier requires zero substrate change — a coverage class is a
-convention over addresses the substrate already treats as opaque (Q19), minted
-and matched like any other type. Its price is that the class *is* a convention:
-refinements minted under a common prefix stay jointly queryable by one rooted
-span (L10), but the root itself must be agreed.
 
 ## The supersession relation
 
@@ -483,9 +474,8 @@ disciplined states, and `K_sup ≁ R` discharges the self-nullification guard.
 
 *(iv) Frame and activity.* `Σ'.C = Σ.C`, `Σ'.M = Σ.M`,
 `Σ'.E = Σ.E`, `Σ'.R = Σ.R`; every prior link-store entry — `x` and `y` in
-particular — is unchanged. Activity splits into a design-bearing half that holds
-unconditionally and a full-state half that needs the discipline hypothesis.
-*Unconditionally,* `nullified(Σ') ∩ dom(Σ.L) = nullified(Σ)`: the lone new tuple
+particular — is unchanged. *Unconditionally,*
+`nullified(Σ') ∩ dom(Σ.L) = nullified(Σ)`: the lone new tuple
 has slot-3 coverage `coverage(K_sup) ≠ coverage(R)`, so the `[R]`-slice does not
 grow and the nullification status of *no pre-existing address* changes — the
 superseded `y` is exactly as active as before. *Under edit-discipline on
@@ -554,8 +544,8 @@ seating it under `home(a') = d_s` is a separate `K.μ⁺_L` act, not part of the
 edit. How the successor is then discovered — from a document's current view, and
 from the record independently of any view — is characterised in EL11. (That the
 operation as defined leaves listing uncoupled is a fact of the definition;
-whether some layer *should* couple edit to listing is the separate question of
-Open Question 7.)
+whether some layer *should* couple edit to listing is the separate open
+question of edit-to-listing coupling.)
 
 *(iii) The relationship.* `(a, a') ∈ succ_h(Σ₂)`, witnessed by the claim at
 `b`; at edit-disciplined `Σ`, also `(a, a') ∈ succ_o(Σ₂)` — postcondition `R₂`
@@ -818,12 +808,9 @@ claims was asserted later: the trace knows, the state does not. Within one
 home the opposite holds: the chain enumeration is strictly increasing (T9;
 ChainEnumerationInjectivity, ASN-0093), so the claims homed at one *document*
 are totally ordered by their addresses — *per-home* "latest" is well-defined and
-state-recoverable — per-document-chain, not per-principal. The substrate carries
-no principal, and under an ownership overlay (ASN-0042) an owner's claims homed
-at two of its documents fall under the same commutation, so a per-asserter
-"latest" is a state function only when the asserter homes all its claims at a
-single document; absent that — like cross-home order itself — it is not a
-function of the state. The consequence specific to temporal
+state-recoverable — per-document-chain, not per-principal. (A per-asserter
+"latest" is not a state function: principal resolution is the ASN-0042 overlay's
+office, EL8(b), not a function of `Σ`.) The consequence specific to temporal
 erasure: no *temporal* selector — any "most-recent-wins" rule — is definable
 from state, the order it would read having no state witness; a global tie-break
 (say, T1-least claim address) remains definable but ranks namespaces, not
@@ -1044,7 +1031,7 @@ current view forgets; the record cannot.
 | EL10 | PositionEpochality: reachable states exist where the same link-subspace V-position denotes `ℓ₁` and later `ℓ₂ ≠ ℓ₁` (contraction then extension reuses the canonical tail position), while addresses never re-bind; therefore surviving references — the claim schema included — must bind addresses, never positions | introduced |
 | EL11 | TwoRegimeDiscovery: (a) contextual — a disciplined claim's to-side projects into `d` iff `d` currently lists the original (`project ≠ ∅ ⟺ listed(old(e), d, Σ)`, by LP12 + coverage trace `{old(e)}`), symmetrically for the from-side; (b) archival — `in(y, Σ)` and `out(x, Σ)` (over the schema-conforming `Ŝ^Σ`) are computable from `Σ.L` alone, completely and decidably, at every state; the record always answers, the context volunteers only while its registry lists the endpoint | introduced |
 | EL12 | ForkPermanence: independent edits of the same original yield distinct successors and claims, all permanent, co-operative at birth, never merged, ranked, or removed; the full competing set with asserters is one archival query; absent assertions the fork never exists in state (EL1) — fork visibility is exactly assertion-deep | introduced |
-| EL13 | TemporalErasure: cross-home emissions commute to identical states, so no state function recovers cross-home claim order ("global latest" is undefinable); within one home, claim order is totally recoverable from addresses (T9) — "latest" is per-home (per-document-chain) only, a per-asserter "latest" being state-recoverable only when the asserter homes all its claims at one document (the substrate tracks no principal; under an ASN-0042 ownership overlay, owner domains span many documents); global tie-breaks are definable but rank namespaces, not time | introduced |
+| EL13 | TemporalErasure: cross-home emissions commute to identical states, so no state function recovers cross-home claim order ("global latest" is undefinable); within one home, claim order is totally recoverable from addresses (T9) — "latest" is per-home (per-document-chain) only, not per-principal (principal resolution is the ASN-0042 overlay's office, EL8b, not a function of `Σ`); global tie-breaks are definable but rank namespaces, not time | introduced |
 | Df-CUR | Currency query: `reach_o(y, Σ)` the `succ_o`-closure of `{y}`; `current(y, Σ)` its operative sinks — total, finite, computable; the sink test reads only the *operative claims* out of `z` (a claim-activity filter), not `z`'s own activity (EL14e) | introduced |
 | EL14 | CurrencyRelational: `current` is irreducibly set-valued — cardinalities 1 (linear chain; `{y}` itself when unedited), ≥ 2 (fork), and 0 (mutual-supersession standoff) are all reachable; demotion repairs the operative view while history stands; no canonical selector exists (EL13), and forcing uniqueness would require refusing emissions or erasing claims; (e) membership is *activity-agnostic on members* — `succ_o` filters on *claim* activity (`addr(e) ∉ nullified`) only, so `z ∈ current(y)` need not satisfy `active(z)` (a successor may be `Nullify`'d as an endpoint while its claim stands; sink and member-activity are independent axes, EL9(3)); the layer owes disclosure with attribution *and each member's activity status*, the reader applies policy | introduced |
 | EL15 | ChainConnectivity: along asserted chains, members resolve forever, hops persist in `succ_h`, and each hop is recoverable from either endpoint alone — historical connectivity is monotone non-decreasing; completeness (unasserted hops) and operative integrity (demoted hops) are expressly not invariants, and member-to-ends operative traversability is a derived property, not a guarantee | introduced |
@@ -1068,4 +1055,4 @@ When an edit narrows or reshapes an endset, must the record carry span-level cor
 
 What coupling invariant, if any, should bind an edit to the home registry's listing of original and successor, given that assertion itself cannot be substrate-enforced?
 
-What closure guarantee must observation provide across a prefix-rooted family of supersession subtypes so that independently minted refinements remain jointly recognizable?
+Given that supersession subtypes minted under a common prefix stay jointly queryable by one rooted span (L10) only once that shared root is agreed, what closure guarantee must observation provide across a prefix-rooted family of subtypes so that independently minted refinements remain jointly recognizable?
