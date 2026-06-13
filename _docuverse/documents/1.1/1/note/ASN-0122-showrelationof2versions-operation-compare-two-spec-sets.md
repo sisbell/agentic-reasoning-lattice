@@ -8,7 +8,7 @@ Nelson specifies the operation's deliverable in a single sentence: "This returns
 
 We are therefore looking for three things. First, the *relation*: what fact about the state makes a position of one spec-set "the same as" a position of the other. Second, the *report*: what an ordered pair of spans is, and exactly what a reader may conclude from one. Third, the *binding* between them: what the returned list must contain, what it must not contain, how it must be arranged, and what keeps it true — when the comparison is restricted to portions of documents rather than full extents, when a spec-set is compared with itself, when the shared material reached the two operands through a chain of intermediaries, and when either operand is subsequently rearranged.
 
-A word on the standard we hold ourselves to. A line-diff utility *guesses* an alignment between two texts; its output is a heuristic, and "complete" is not a property one can demand of it. We will find that in this system correspondence is not a judgment to be approximated but a structural fact to be read off the state. Completeness and soundness then become obligations, not aspirations, and every stability property becomes a theorem.
+A word on the standard we hold ourselves to. A line-diff utility *guesses* an alignment between two texts; its output is a heuristic, and "complete" is not a property one can demand of it. We will find that in this system correspondence is not a judgment to be approximated but a structural fact to be read off the state. Completeness and soundness then become obligations, not aspirations.
 
 ## State, Instances, and Spec-Sets
 
@@ -52,7 +52,7 @@ So we define:
 
 `corr_Σ(P, Q) = {(p, q) ∈ P × Q : res_Σ(p) = res_Σ(q)}`
 
-`corr` is the *kernel* of the resolution map — the equivalence "resolves to the same address" — intersected with the operand rectangle `P × Q`. The kernel observation does real work: symmetry and transitivity of correspondence are inherited algebra, not properties to design in.
+`corr` is the *kernel* of the resolution map — the equivalence "resolves to the same address" — intersected with the operand rectangle `P × Q`.
 
 **X1 (IdentityBasis).** `(p, q) ∈ corr_Σ(P, Q) ⟺ res_Σ(p) = res_Σ(q)`; on content instances the shared address `a` lies in `dom(C)` (S3★), and both feet denote the single stored value `C(a)`. Value identity is entailed by membership and never consulted to decide it — the defining comprehension mentions `res` and nothing else. ∎
 
@@ -62,7 +62,7 @@ X2 is the negative half of the basis, and it is normative: an implementation tha
 
 **X3 (Symmetry).** `corr_Σ(Q, P) = corr_Σ(P, Q)⁻¹`. Equality of addresses is symmetric, so swapping the operands transposes every member. The *within-pair* order is therefore semantic, not decorative: slot `i` of a reported pair draws from operand `i`, and that convention is exactly what makes the converse statement contentful. ∎
 
-We record kernel transitivity now, for the chain theorems: `res p = res q` and `res q = res r` give `res p = res r` — correspondence composes through a shared instance.
+Equality of addresses is also transitive: `res p = res q` and `res q = res r` give `res p = res r` — correspondence composes through a shared instance.
 
 ## Which Positions May Participate
 
