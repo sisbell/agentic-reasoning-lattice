@@ -150,12 +150,14 @@ Abbreviations (evaluated at the initial state Σ)
 
 Identity clause
   if  ω(d_src) = π  →  v := nextv(E, d_src)                  (fork in place)
-  []  ω(d_src) ≠ π  →  v := a fresh document identity with
-                        Document(v) ∧ v ∉ E ∧ pfx(π) ≼ v,
-                        drawn from the forker's own document-creation
-                        namespace; those mechanics are out of scope here,
-                        and the three constraints suffice for every claim
-                        below                                 (fork across ownership)
+  []  ω(d_src) ≠ π  →  v := a fresh document identity that π allocates in its
+                        own document-creation namespace: allocated_by(π, v).
+                        This one hypothesis yields Document(v), v ∉ E, and — by
+                        O5 — both pfx(π) ≼ v (O5(i)) and the maximality
+                        (A π'' ∈ Π : pfx(π'') ≼ v ⟹ #pfx(π'') ≤ #pfx(π)) (O5(ii)).
+                        The namespace mechanics are out of scope; what V9's
+                        severance theorem consumes is the maximality — which the
+                        structural facts alone do not supply   (fork across ownership)
   fi
 
 Effect (net, from Σ to Σ')
@@ -248,7 +250,7 @@ There is no ownership record to create because there is no ownership ledger in t
 
 **V9 (CrossOwnerFork and the Severance Theorem).** When the forker `π'` does not own the source, three things hold — the first of them a theorem, not a design choice:
 
-> Let `ω(d_src) = π ≠ π'`, and let `v` be the identity `π'` allocates (so O5 gives `pfx(π') ≼ v` and the maximality condition). Then:
+> Let `ω(d_src) = π ≠ π'`, and let `v` be the identity `π'` allocates — `allocated_by(π', v)`, the cross-owner clause's operative hypothesis — so O5 gives both `pfx(π') ≼ v` (O5(i)) and the maximality `(A π'' ∈ Π : pfx(π'') ≼ v ⟹ #pfx(π'') ≤ #pfx(π'))` (O5(ii)). Then:
 > (a) **Severance** — `¬(d_src ≼ v)`: the new identity *cannot* lie in the source's subtree, so prefix-encoded ancestry is unattainable, not merely omitted;
 > (b) **Ownership** — `ω'(v) = π'`: the forker owns the fork outright;
 > (c) **Editability** — the forker's right to edit `v` follows from (b) and from nothing about the source's permissions, which the operation never consulted (P-src is the entire source-side precondition).
