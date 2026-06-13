@@ -70,7 +70,8 @@ operations `Emit_K`, `Observe_K` (views `hist`/`oper`), and `Nullify`.
 **Layer transfer.** ASN-0086 proves its facts over the substrate vocabulary
 `{K.σ, K.α, K.λ}`. Every ASN-0086 fact we cite — totality of `a_emit`, tuple
 freshness R0, the flat-domain antichain R0a, the chain freshness lemmas, the
-disciplined simplification of wp Case 2, one-way growth of `nullified` —
+disciplined simplification of wp Case 2, the monotone growth of typed slices
+(R3) and one-way growth of `nullified` (R6a) —
 depends on exactly two properties of state evolution: the link store changes
 only by `K.λ`'s fresh appends, and the document set `dom(M)` is monotone. Both
 hold of the full ASN-0047 vocabulary (Vocabulary fact V below; M1, with `K.δ`'s
@@ -105,20 +106,17 @@ it. Fix a reachable `Σ₀`, a link `a ∈ dom(Σ₀.L)`, and write
 
 > `R_mut ≡ a ∈ dom(L) ∧ L(a) = w`
 
-Consider the predicate `J ≡ a ∈ dom(L) ∧ L(a) = ℓ₀`. It holds at `Σ₀` by
-construction. We show every elementary transition preserves it. For the
-transitions of clause (i) of Vocabulary fact V the link store is framed, so `J`
-carries over verbatim. For `K.λ(d, ℓ_f, v)`: from `J`, `a ∈ dom(L)`; the
-binding precondition gives `ℓ_f ∉ dom(L)`; hence `ℓ_f ≠ a`, so
-`L'(a) = L(a) = ℓ₀` and `a ∈ dom(L')`. `J` is therefore inductive along every
-trace from `Σ₀`:
+Write `J ≡ a ∈ dom(L) ∧ L(a) = ℓ₀`; it holds at `Σ₀` by construction. That `J`
+persists along every trace from `Σ₀` is not a fact this note must prove anew: it
+is L12 (LinkImmutability, ASN-0043/0093) closed under `→*` — exactly LP13
+(UnconditionalLinkPersistence, ASN-0098) — instantiated at `a`, giving
 
 > `(A Σ' : Σ₀ →* Σ' : a ∈ dom(Σ'.L) ∧ Σ'.L(a) = ℓ₀)`
 
-— which is L12 closed under `→*` (the link-store instance of ASN-0098's LP13),
-re-derived here to expose its wp consequence. Since `[J ⟹ ¬R_mut]` (a partial
-function has one value per key, and `w ≠ ℓ₀`), and `J` holds at every state of
-every schedule from `Σ₀`:
+What this note contributes is the reading of that invariant as a weakest
+precondition — the consequence for *editing* that LP13's persistence form
+leaves implicit. Since `[J ⟹ ¬R_mut]` (a partial function has one value per
+key, and `w ≠ ℓ₀`), and `J` holds at every state of every schedule from `Σ₀`:
 
 **EL0 (MutationExclusion).** For every finite program `S` over the closed
 elementary vocabulary, `wp(S, R_mut)` evaluated at `Σ₀` is `false`. The
@@ -416,12 +414,12 @@ whole supersession slice and coincide with the unrestricted reading.
 
 **EL5 (RecordMonotonicity).** For every `Σ →* Σ'`:
 
-*(a)* `S^Σ ⊆ S^{Σ'}`, `Ŝ^Σ ⊆ Ŝ^{Σ'}`, and `succ_h(Σ) ⊆ succ_h(Σ')`. Membership
-in the slice is a function of the stored value alone — arity, slot identity,
-slot-3 coverage — and values are fixed while the domain only grows (L12, L12a);
-schema-conformance is likewise value-and-domain-determined — a conforming
-claim's witnesses satisfy `x, y ∈ dom(Σ.L) ⊆ dom(Σ'.L)`, so it stays conforming
-at `Σ'` with the same `old`/`new`. Claims accumulate; none is ever lost.
+*(a)* `S^Σ ⊆ S^{Σ'}`, `Ŝ^Σ ⊆ Ŝ^{Σ'}`, and `succ_h(Σ) ⊆ succ_h(Σ')`. The slice
+inclusion is R3 (TypedSliceMonotonicity, ASN-0086) at `[K_sup]`, lifted across
+`→*` by finite composition; schema-conformance rides along, being
+value-and-domain-determined — a conforming claim's witnesses satisfy
+`x, y ∈ dom(Σ.L) ⊆ dom(Σ'.L)`, so it stays conforming at `Σ'` with the same
+`old`/`new`. Claims accumulate; none is ever lost.
 
 *(b)* `nullified(Σ) ⊆ nullified(Σ')`. The `[R]`-slice likewise only grows, so
 nullification is one-way (R6a, ASN-0086): a claim once retracted from operative
@@ -940,7 +938,7 @@ current view forgets; the record cannot.
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| EL0 | MutationExclusion: for reachable `Σ₀`, `a ∈ dom(Σ₀.L)`, `ℓ₀ = Σ₀.L(a)`, the predicate `J ≡ a ∈ dom(L) ∧ L(a) = ℓ₀` is inductive over the closed vocabulary (only `K.λ` writes `L`, at fresh keys), so `(A Σ' : Σ₀ →* Σ' : Σ'.L(a) = ℓ₀)` and `wp(S, L(a) = w) = false` at `Σ₀` for every `w ≠ ℓ₀` and every finite program `S` — link mutation is unimplementable, and the original remains readable at its address with its exact value forever | introduced |
+| EL0 | MutationExclusion: for reachable `Σ₀`, `a ∈ dom(Σ₀.L)`, `ℓ₀ = Σ₀.L(a)`, the persistence invariant `(A Σ' : Σ₀ →* Σ' : Σ'.L(a) = ℓ₀)` is L12 closed under `→*` — LP13 (ASN-0098) at `a`; read as a weakest precondition it gives `wp(S, L(a) = w) = false` at `Σ₀` for every `w ≠ ℓ₀` and every finite program `S` — link mutation is unimplementable, and the original remains readable at its address with its exact value forever | introduced |
 | EL1 | IntentInvisibility: a successor emission performed "as an edit" and an independent creation with the same parameters are the same transition with the same post-state, so no state predicate (hence no observation) distinguishes them; value resemblance, up to byte-identity (L11b), carries zero relational information; relationships enter the state only by explicit assertion | introduced |
 | EL2 | NoInPlaceCarrier: the supersession record can live (a) not in the original's value (L12), (b) not appended to the successor's value after birth (L12), (c) not in the address relation — allocated link addresses have `#E = 2` on flat home chains and `dom(Σ.L)` is a prefix antichain (R0a), so address structure encodes only same-home and per-home emission order, neither semantic, and version-of-link nesting is unreachable — and (d) not in any index marker, the state having no component beyond the append-only stores; the record must be a freshly allocated entity | introduced |
 | RQ1–RQ7 | RecordRequirements: post-hoc assertability; open authorship; decidable attribution; non-destructive disputability; endpoint frame; decidable specificity with subtype refinement; plurality of (possibly conflicting) claims — distilled from design intent as the obligations any supersession carrier must meet | introduced |
