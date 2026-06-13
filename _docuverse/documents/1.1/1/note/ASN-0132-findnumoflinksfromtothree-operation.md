@@ -336,12 +336,9 @@ recomputed over `addressable(Σ)` at each inquiry (CN-SNAP), and the instant a r
 tuple enters and places `a` in `nullified`, the next count omits `a` (FL-RET, ASN-0121).
 There is no window in which a retracted link is still counted, and none in which it is lost
 from the store. The two statements — *gone from the count* and *kept in the store* — are
-about two different sets: the active view shrinks while the store does not. This is the
-count-level form of the view/store distinction the architecture maintains everywhere:
-withdrawal removes a thing from the current arrangement of what is active, never from the
-permanent record of what exists. A count taken against the active view excludes the
-withdrawn link at once; a count that could be taken against a prior view would still
-include it. Both are honest, because each counts the set it names.
+about two different sets: the active view shrinks while the store does not. A count taken
+against the active view excludes the withdrawn link at once; a count that could be taken
+against a prior view would still include it.
 
 The complementary direction — growth — is governed by the same per-link logic.
 
@@ -460,9 +457,13 @@ structure; surfacing it is the front end's separate job, governed by the arrange
 layer.
 
 A link can be counted yet not
-discoverable; the counted *set* is a superset of what any document surfaces (the
-cross-document reach FL-REACH, ASN-0121), so the count is at least the number of links any
-one document surfaces. The gap is exactly the orphans. And it is
+discoverable. The counted *set* is a superset of the cross-document union of surfaced
+satisfying links — `⋃_d {a : a ∈ addressable(Σ) ∧ sat(a, q, Σ) ∧ discoverable_from(a, d,
+Σ)}` (the cross-document reach FL-REACH, ASN-0121) — and the count exceeds the cardinality
+of that *union* by exactly the orphans, the satisfying addressable links no document
+surfaces. Measured instead against a *single* document's surfaced count, the gap is at
+least the orphans and in general larger, since any satisfying link surfaced by some other
+document but not this one widens it too. Orphanhood is
 not permanent in either direction: an orphan becomes discoverable the moment some
 arrangement is extended to reach its content (resurrection, LP18, ASN-0098). But note what
 that resurrection does *not* do — it does not change the count, because the link was
@@ -684,7 +685,7 @@ unrealised opportunity with respect to the *cost* aspiration.
 | CN-STAB | (THM) For fixed `q`, any link-store-preserving transition (content insertion/deletion/rearrangement, content allocation, provenance recording — F-PRES ASN-0127) leaves the count invariant; in particular a reverse-orphaned link still contributes to a home-bounded count, residence being a projection of the permanent address | introduced |
 | CN-RETRACT | (THM) A nullified link contributes `0` to every count immediately and permanently (R6a ASN-0086, FL-RET ASN-0121) while remaining in `dom(Σ.L)` with fixed value (L12 ASN-0043); the count ranges over the active view `addressable(Σ)`, reconciling immediate exclusion with store permanence | introduced |
 | CN-MONO | (THM) Absent retraction of counted links, the count is non-decreasing across `Σ →* Σ'`; creating a fresh *ordinary* link increments it by `1` iff that link satisfies `q` and is not already retraction-covered (`wp(create ℓ, Δcount = +1) = sat(ℓ, q, Σ') ∧ ¬(E (b, F', G') ∈ L_R^Σ :: ℓ ∈ coverage(G'))` — the FL-WP(a) conjunct of ASN-0121; automatic under the unit-depth retraction discipline, R0a ASN-0086, where it collapses to `sat(ℓ, q, Σ')`), and a fresh *retraction* link increments under FL-WP(b)'s stronger self-retraction precondition; `K.λ` is the only count-changing transition | introduced |
-| CN-ORPHAN | (THM) A satisfying addressable link is counted regardless of whether any arrangement surfaces it (`discoverable_from` irrelevant); the count is an existence census over `addressable(Σ)` whose counted set is a superset of what any document surfaces, the gap being exactly the orphans | introduced |
+| CN-ORPHAN | (THM) A satisfying addressable link is counted regardless of whether any arrangement surfaces it (`discoverable_from` irrelevant); the count is an existence census over `addressable(Σ)` whose counted set is a superset of the cross-document union of surfaced satisfying links (FL-REACH, ASN-0121), exceeding that union's cardinality by exactly the orphans | introduced |
 | CN-OBT | (THM) `countlinks_FTT(q, Σ) = N` asserts that `N` satisfying links exist in the addressable store at `Σ`; it does not warrant that those links are deliverable on demand | introduced |
 
 ## Open Questions
