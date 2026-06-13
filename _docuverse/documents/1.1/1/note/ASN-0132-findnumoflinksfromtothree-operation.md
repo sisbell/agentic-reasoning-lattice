@@ -17,8 +17,7 @@ through content transcluded into many documents. It may surface at many places i
 arrangements, and refract into many versions. Each of these admits its own count. We must
 decide which count the operation reports — and, this being a *specification* and not a
 program, we must decide it in a way an alternative implementation could not reasonably
-deviate from. The decision is not free. It is forced by what a link *is*, and most of
-this note is the argument that forces it.
+deviate from. The decision is not free. It is forced by what a link *is*.
 
 We write the system state as ASN-0047's five-tuple `Σ = (Σ.C, Σ.L, Σ.E, Σ.M, Σ.R)` — the
 content store, the link store, the entity set, the family of document arrangements, and
@@ -39,8 +38,7 @@ settled. ASN-0121 fixes the *satisfaction predicate*
 the AND of the ORs: each constrained slot demands a single-address overlap (`touch`)
 between the link's endset and the request set, or, for the home slot, residence of
 `home(a)` in the request region (`athome`); a wildcard slot drops out. The relation
-ranges over *a link and a request* — not over any particular command. This is the load-
-bearing fact for everything below: the description of *which links match* exists once, as
+ranges over *a link and a request* — not over any particular command. The description of *which links match* exists once, as
 a property of links and requests, prior to and independent of any operation that consumes
 it. We will count by consulting this relation directly, never by appeal to the operation
 that enumerates.
@@ -61,7 +59,7 @@ them.
 > The operation reads `Σ` and returns a natural number; its frame is `Σ` — it writes
 > nothing, mutating no component of the state. Counting is observation, not transition.
 
-One point deserves immediate emphasis: the definition quantifies over `addressable(Σ)`,
+The definition quantifies over `addressable(Σ)`,
 so a withdrawn link is excluded before it is ever weighed against the four sets.
 
 **Well-definedness.** We must establish that the argument of `|·|` lies in the domain of
@@ -88,8 +86,7 @@ end that lets a reader phrase the query by pointing at content in a document mus
 *resolve* those pointings, through that document's arrangement, into the address sets of
 `q`; the implementation does exactly this V-to-I resolution against the arrangement at the
 instant of the call. That resolution is upstream of the operation we specify: it produces
-`q`. Everything we say about `countlinks_FTT(q, Σ)` is said of a *resolved* request. The
-separation is load-bearing: a fixed resolved `q` is what the operation measures, whereas
+`q`. Everything we say about `countlinks_FTT(q, Σ)` is said of a *resolved* request. A fixed resolved `q` is what the operation measures, whereas
 re-phrasing the same intent can re-resolve to a *different* `q`. Any discrepancy a reader
 perceives between two such requests lives in the resolution, never in the count.
 
@@ -191,8 +188,8 @@ mentions the other; both bottom out at `sat`.
 > matching criterion lives once, in `sat`; each operation is a query over it — the
 > enumeration the *set* `sat` carves out, the count the *size* of that set.
 
-The qualifier *at one state* is essential and is the whole content of the consistency
-guarantee. The equality holds whenever both sides are evaluated against the *same* `Σ`.
+The qualifier *at one state* fixes the scope of the equality: it holds whenever both
+sides are evaluated against the *same* `Σ`.
 The sibling enumeration, asked at a later state `Σ'`, returns `findlinks_FTT(q, Σ')`,
 whose size is `countlinks_FTT(q, Σ')` — equal to `|findlinks_FTT(q, Σ')|`, not necessarily
 to `countlinks_FTT(q, Σ)`. If a link is created or retracted between a count inquiry and a
@@ -325,7 +322,7 @@ count — one whose home-set `H` selects that document — still includes the li
 any edit to an arrangement. Residence is determined by identity, and identity does not
 shift when content does.
 
-One caveat applies, and CN-STAB makes it precise. Stability is asserted for a *fixed* `q`.
+Stability is asserted for a *fixed* `q`.
 A reader who re-phrases the same intent after an edit — pointing again at the "same"
 content, now at a shifted position — submits a *different* request, because the resolution
 against the edited arrangement yields different addresses. The count of that different
@@ -615,9 +612,7 @@ retrieval guarantee across the delivery boundary would be a different and strong
 About *cost*, the honest answer is a deliberate non-claim, and saying so is part of the
 specification. One might hope that offering a count as its own service commits the design
 to computing cardinality more cheaply than delivery — that "how many" should be answerable
-without producing "which ones." This is a genuine and attractive design aspiration: a cheap
-count is a planning primitive, letting a front end size a result before committing to the
-expense of retrieving it. The specification fixes *what* is computed — the cardinality of
+without producing "which ones." The specification fixes *what* is computed — the cardinality of
 the satisfying set — not *how much it costs*: cost-asymmetry is a quality of service an
 implementation may provide, not a correctness obligation, and so it is not among the claims
 below.
