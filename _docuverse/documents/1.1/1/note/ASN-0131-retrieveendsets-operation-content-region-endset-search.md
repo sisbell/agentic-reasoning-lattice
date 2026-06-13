@@ -588,6 +588,21 @@ and the condition collapses to `(∀ (i, e) ∈ Avail(Σ) : coverage(e) ∩ Δ �
 i.e. no available endset touches `image(W, d, Σ)` at all, which is `RE(W, d, Σ) = ∅`.
 Clearing the region preserves the answer exactly when the answer was already empty.
 
+**Under link emission.** The one population-*growing* mover is a `K.λ` step that emits a
+fresh link `ℓ_new`. Allocation gives `ℓ_new ∉ dom(Σ.L)`, so `ℓ_new` enters `dom(Σ'.L)` and
+is addressable there — `ℓ_new ∉ nullified(Σ')` — by the discipline-and-`R0a` reasoning the
+retraction emitter `b` will instance below: under ASN-0086's unit-depth retraction
+discipline every pre-existing retraction to-set is unit-depth at a prior target, while
+R0a/FlatLinkDomain (ASN-0086) makes `dom(Σ'.L)` a prefix-antichain, so no such to-set covers
+the fresh, distinct address `ℓ_new`. The step frames the arrangement (`M' = M`, ASN-0093),
+so the image — and every `touch_W` it determines — holds fixed; only the available pool can
+move. If some endset `Σ.L(ℓ_new).eᵢ` touches the region, the pair `(i, Σ.L(ℓ_new).eᵢ)` is
+*added* to the answer; if none does, the answer is unchanged. Either way the move is
+monotone — a fresh emission can only add pairs, never remove one — the population-grow
+analogue of the discovery query's E-MONO/F-LAMBDA (ASN-0127). Retraction is the
+distinguished sub-case in which the emitted link is a *withdrawal*; there the same `K.λ`
+machinery produces a *net* removal, which we take up now.
+
 **Under retraction.** A link is never deleted (L12, ASN-0043), but it can be *withdrawn*:
 a retraction marks it nullified (ASN-0086), and we range only over `addressable(Σ) =
 dom(Σ.L) ∖ nullified(Σ)`. Retraction is permanent at the *link* level — once nullified, a
@@ -626,15 +641,13 @@ designated retraction type only as a type endset whose coverage selects the conv
 retraction address set, carrying no structural disjointness from content. Nor does ASN-0086
 confine `Θ`'s spans to unit depth, and this is decisive: a *wide* type span `(s, ℓ_s)`
 denotes the half-open interval `{t : s ≤ t < s ⊕ ℓ_s}`, whose members need not satisfy
-`s ≼ t`. Seating the span-*starts* of `Θ` in a dedicated element-level subspace `s_R ≠ s_C`
-therefore does *not*, on its own, place the whole interval outside content — the
-field-agreement argument transfers to a span-start but not across a wide span's interior, so
-"exactly as the worked instance seated `θ`" (whose `e₃` span *was* unit-depth) does not carry
-over to an arbitrary `Θ`. Hence `coverage(Θ) ∩ dom(Σ.C) = ∅` is neither a consequence of
-`Θ`'s being a type nor secured by start-placement alone; it is a property the retraction
-layer (ASN-0086) must *furnish* — e.g. by confining `Θ`'s spans to the `s_R`-subtree (where
-unit depth, or any span with `s ≼ t` throughout, makes `s_R`-seating suffice) — the
-placement being that layer's mechanics, not ours to impose here.
+`s ≼ t`. Placing the span-*starts* of `Θ` outside content therefore does *not*, on its own, place
+the whole interval outside content — the field-agreement argument transfers to a span-start
+but not across a wide span's interior, so "exactly as the worked instance seated `θ`" (whose
+`e₃` span *was* unit-depth) does not carry over to an arbitrary `Θ`. Hence
+`coverage(Θ) ∩ dom(Σ.C) = ∅` is neither a consequence of `Θ`'s being a type nor secured by
+start-placement alone; this note does not establish it, carrying it only as a hypothesis
+whose exception — a type-slot match against content — is taken up by Open Question 6.
 
 We therefore record the emitter's harmlessness **conditionally**, on the hypothesis
 `coverage(Θ) ∩ dom(Σ.C) = ∅`. *Under* it, against a content image `I ⊆ dom(Σ.C)` the test
@@ -696,9 +709,10 @@ slip RE-UNIT's deduplication guards against.
 So the answer's stability has exactly two faces, and both are consequences of its being a
 present-tense reading of the live state: it tracks the *arrangement* (content moving in
 and out of the region as it is inserted, deleted, and rearranged) and it respects the
-*active population* (a withdrawn link vanishing from it, and with it any pair it solely
-bore). Neither is a defect to be engineered away; both are what it
-*means* for the operation to answer, faithfully, "what anchoring touches here, now."
+*active population* (a freshly emitted link adding the pairs it newly witnesses, a withdrawn
+link vanishing from it and taking with it any pair it solely bore). Neither is a defect to be
+engineered away; both are what it *means* for the operation to answer, faithfully, "what
+anchoring touches here, now."
 
 ## Claims Introduced
 
