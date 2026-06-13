@@ -362,10 +362,7 @@ permanent address `a` (CN-LOC), so `sat(a, q, Σ') = sat(a, q, Σ)`. Its address
 fixed too: because `ℓ` is not a retraction, `L_R^{Σ'} = L_R^Σ`, so the nullified set
 restricted to the old domain is unchanged, `nullified(Σ') ∩ dom(Σ.L) = nullified(Σ)`, and
 each pre-existing `a` is addressable at `Σ'` exactly when it was at `Σ`. The contributions
-of `dom(Σ.L)` therefore sum to the same total at both states. Note where that came from: the
-CN-MONO hypothesis that no currently-counted link is nullified is here *automatic*, falling
-out for free from `L_R^{Σ'} = L_R^Σ`; we never had to invoke it. The retraction case below is
-where it earns its keep.
+of `dom(Σ.L)` therefore sum to the same total at both states.
 
 The whole change is thus the contribution of `ℓ` itself: `1` if `ℓ ∈ addressable(Σ') ∧
 sat(ℓ, q, Σ')`, and `0` otherwise. Now `ℓ ∈ dom(Σ'.L)` holds by creation, so `ℓ ∈
@@ -394,22 +391,19 @@ prefix-antichain structure of the link domain (R0a, ASN-0086) — already establ
 freshly emitted link address lies in no standing retraction tuple's to-coverage, so we
 inherit that conclusion rather than re-deriving it here.
 
-The companion case is a fresh *retraction* link `b`, and it diverges from the ordinary case
-at exactly the step that pinned the pre-existing total — so we walk it rather than cite it.
-`Nullify ≡ Emit_R` is itself a `K.λ` step (ASN-0086), so a retraction tuple too can satisfy
-`q` and be counted: its empty from-endset simply drops out under a from-wildcard, as the
-worked example's `a_R` will show. But creating `b` *grows* the retraction relation —
-`L_R^{Σ'} = L_R^Σ ∪ {(b, F', G')}` — and a larger `L_R` can nullify more. Concretely, `b`'s
-own to-coverage `coverage(G')` may name a *pre-existing, currently-counted* link: any
-`a ∈ dom(Σ.L)` with `a ∈ coverage(G')` that satisfies `q` and is addressable at `Σ` would, at
-`Σ'`, enter `nullified(Σ')`, drop out of `addressable(Σ')`, and lower the pre-existing total.
-The step the ordinary case got for free — every link counted at `Σ` is still addressable at
-`Σ'` — is therefore *not* automatic here, precisely because `L_R^{Σ'} ⊋ L_R^Σ`. What rescues
-it is exactly the CN-MONO hypothesis *no currently-counted link becomes nullified*, which
-forbids this collateral withdrawal: under it every link counted at `Σ` remains addressable at
-`Σ'`, the pre-existing links again sum to the same total, and the precondition that was idle
-in the ordinary case is here the sole guard against the new retractor pulling a counted link
-out from under the tally.
+The companion case is a fresh *retraction* link `b`; because it diverges from the ordinary
+case, we walk it in full rather than cite it. `Nullify ≡ Emit_R` is itself a `K.λ` step
+(ASN-0086), so a retraction tuple too can satisfy `q` and be counted: its empty from-endset
+simply drops out under a from-wildcard, as the worked example's `a_R` will show. But creating
+`b` *grows* the retraction relation — `L_R^{Σ'} = L_R^Σ ∪ {(b, F', G')}` — and a larger `L_R`
+can nullify more. Concretely, `b`'s own to-coverage `coverage(G')` may name a *pre-existing,
+currently-counted* link: any `a ∈ dom(Σ.L)` with `a ∈ coverage(G')` that satisfies `q` and is
+addressable at `Σ` would, at `Σ'`, enter `nullified(Σ')`, drop out of `addressable(Σ')`, and
+lower the pre-existing total. The CN-MONO hypothesis *no currently-counted link becomes
+nullified* forbids exactly this collateral withdrawal: under it every link counted at `Σ`
+remains addressable at `Σ'`, and the pre-existing links again sum to the same total. The
+hypothesis is vacuous for ordinary links — `L_R` is unchanged — and essential for retraction
+links, which may withdraw a counted link.
 
 With the pre-existing total so pinned, the whole change is once more `b`'s own contribution.
 Its addressability is governed not by FL-WP(a) but by FL-WP(b) (ASN-0121): because `b` enters
@@ -646,17 +640,17 @@ themselves.
 About *meaning*, the answer is firm and abstract. A count of `N` asserts that exactly `N`
 addressable links satisfy `q` at `Σ` — an existence-and-cardinality claim about the store.
 
-> **CN-OBT (the count is an existence assertion, not a retrieval warranty).**
-> `countlinks_FTT(q, Σ) = N` asserts that `|{a ∈ addressable(Σ) : sat(a, q, Σ)}| = N`. It
-> does not assert that those `N` links are deliverable on demand. Delivery is a separate
-> concern across a separate boundary (out of scope here), subject to availability the count
-> never speaks to. The count promises *that `N` satisfying links exist in the store*, not
-> *here are `N` handles you may fetch*.
+> **CN-OBT (each counted identity is a permanent handle; delivery is a separate boundary).**
+> The `N` counted by `countlinks_FTT(q, Σ) = N` are `N` distinct link addresses, and each
+> address is permanent — valid at every reachable successor state (ASN-0093) with its stored
+> value fixed (L12, ASN-0043). A count of `N` therefore warrants more than a tally: it
+> warrants `N` durable identities answering `q`, each obtainable *in principle* because its
+> handle never expires. This is the derived content the count carries beyond its cardinality;
+> what it does *not* carry is on-demand delivery of those links, a separate concern across a
+> separate boundary (out of scope here) subject to availability the count never speaks to.
 
-Permanence makes the counted links obtainable *in principle* — their addresses are valid
-forever (ASN-0093) — but obtainability *on demand* is a promise the count does not make and
-must not be read as making. The number lives on the discovery side; carrying a per-item
-retrieval guarantee across the delivery boundary would be a different and stronger claim.
+The number lives on the discovery side; carrying a per-item retrieval guarantee across the
+delivery boundary would be a different and stronger claim.
 
 About *cost*, the specification is silent: cost-asymmetry is a quality of service an
 implementation may provide, not a correctness obligation, and is not among the claims
@@ -682,7 +676,7 @@ unrealised opportunity with respect to the *cost* aspiration.
 | CN-RETRACT | (THM) A nullified link contributes `0` to every count immediately and permanently (R6a ASN-0086, FL-RET ASN-0121) while remaining in `dom(Σ.L)` with fixed value (L12 ASN-0043); the count ranges over the active view `addressable(Σ)`, reconciling immediate exclusion with store permanence | introduced |
 | CN-MONO | (THM) Absent retraction of counted links, the count is non-decreasing across `Σ →* Σ'`; creating a fresh *ordinary* link increments it by `1` iff that link satisfies `q` and is not already retraction-covered (`wp(create ℓ, Δcount = +1) = sat(ℓ, q, Σ') ∧ ¬(E (b, F', G') ∈ L_R^Σ :: ℓ ∈ coverage(G'))` — the FL-WP(a) conjunct of ASN-0121; automatic under the unit-depth retraction discipline, R0a ASN-0086, where it collapses to `sat(ℓ, q, Σ')`), and a fresh *retraction* link increments under FL-WP(b)'s stronger self-retraction precondition; `K.λ` is the only count-changing transition | introduced |
 | CN-ORPHAN | (THM) A satisfying addressable link is counted regardless of whether any arrangement surfaces it (`discoverable_from` irrelevant); the count is an existence census over `addressable(Σ)` whose counted set is a superset of the cross-document union of surfaced satisfying links (FL-REACH, ASN-0121), exceeding that union's cardinality by exactly the orphans | introduced |
-| CN-OBT | (THM) `countlinks_FTT(q, Σ) = N` asserts that `N` satisfying links exist in the addressable store at `Σ`; it does not warrant that those links are deliverable on demand | introduced |
+| CN-OBT | (THM) Each of the `N` counted identities is a permanent address (ASN-0093) with fixed value (L12, ASN-0043), so a count of `N` warrants `N` durable handles answering `q`, obtainable in principle; it does not warrant on-demand delivery, which crosses a separate boundary | introduced |
 
 ## Open Questions
 
