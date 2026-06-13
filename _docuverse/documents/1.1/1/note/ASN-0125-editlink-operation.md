@@ -312,22 +312,15 @@ typed relation distinct from these" are the same architecture: under L8 a link
 links (ASN-0086, TypedRelation). The genuinely distinct candidates were three:
 carry the claim in the **value space** (a slot of the successor), in the
 **address space** (nesting), or in the **relation space** (a typed tuple). The
-value space fails RQ1, RQ2, RQ4, and RQ7 — the claim could only ever be made
-once, at birth, by the successor's own author, fused undetachably with the
-content it qualifies, so that disputing the claim and disputing the content
-become the same act. The address space fails RQ1 and RQ2 (a version-of
-address is settled at the successor's one-time baptism — EL2(c) shows the
-substrate never reaches such an address at all, and an existing link can never
-retroactively *become* a version-of, so the relationship can be neither added
-post-hoc nor authored by an outside party), fails RQ4 absolutely (baptized
-addresses are irrevocable — B0, T8, ASN-0040/0034 — an address cannot be
-unsaid), and fails RQ6 (one relation kind hard-wired into namespace structure,
-no siblings, no subtypes). Nelson refuses the structural reading even for documents, where
-nesting genuinely exists: the version number is "only an accidental extension
-of the document number, and strictly implies no specific relationship of
-derivation" (LM 4/29). Where not even nesting
-exists — and for links, by EL2(c), it does not — the refusal is not a choice
-but a fact.
+first two are already closed and need no re-derivation here: the value-space
+slot is fixed at the successor's birth (EL2(b)), the address-space nesting is an
+address the substrate never reaches (EL2(c)), and EL3 records the named RQs each
+violates. What the address case still earns is the deeper point — the structural
+reading is refused even where nesting is *available*. Nelson refuses it for
+documents, where nesting genuinely exists: the version number is "only an
+accidental extension of the document number, and strictly implies no specific
+relationship of derivation" (LM 4/29). Where not even nesting exists — and for
+links, by EL2(c), it does not — the refusal is not a choice but a fact.
 
 *The carrier costs nothing in mechanism, something in coordination.* The
 relation-space carrier requires zero substrate change — a coverage class is a
@@ -366,10 +359,9 @@ claim is irreflexive. A layer is edit-disciplined iff every state it reaches
 is. (Self-supersession `x = y` is excluded as vacuous; cycles of length ≥ 2 are
 deliberately *not* excluded — they are reverts.)
 
-Df-DISC describes a property of states; we owe a demonstration that disciplined
-states are reachable and closed under editing, so that the "at disciplined `Σ`"
-conditionals below range over something the system can actually produce. We
-assemble it into an inductive invariant of a named layer.
+Df-DISC describes a property of states; the next definition names a layer whose
+operations preserve it, and EL-DM establishes it holds wherever that layer
+reaches.
 
 **Df-LAY (EditingLayer).** The *editing layer* issues exactly the operations
 `{assert_sup, editlink, Nullify}` (the first two defined below; `Nullify` from
@@ -522,9 +514,14 @@ listed, exactly as active, exactly as readable as before; if its author also
 wants it retired from operative standing, that is a separate `Nullify(y)` —
 composable, never implied.
 
-*(v) Discipline and permanence.* `Σ'` is edit-disciplined when `Σ` was; and at
-every `Σ' →* Σ''`, `e_b ∈ S^{Σ''}` with value fixed and
-`(y, x) ∈ succ_h(Σ'')` (EL5a).
+*(v) Discipline and permanence.* `Σ'` is edit-disciplined when `Σ` was:
+`assert_sup` emits one `[K_sup]` claim
+`e_b = (b, {(x, δ(1,#x))}, {(y, δ(1,#y))})` with `x ≠ y` (precondition) and
+`x, y ∈ dom(Σ.L) ⊆ dom(Σ'.L)`, which is exactly the claim-schema form of
+Df-DISC(ii), so clause (ii) is preserved; it adds no `[R]` tuple, so clause (i)
+is untouched, and every prior tuple keeps its value (L12) — so no surviving
+tuple's conformance is disturbed. And at every `Σ' →* Σ''`, `e_b ∈ S^{Σ''}` with
+value fixed and `(y, x) ∈ succ_h(Σ'')` (EL5a).
 
 The edit operation is now one allocation ahead of the assertion.
 
@@ -784,10 +781,16 @@ membership; EL4). Hence the claim sets
 
 > `in(y, Σ) = {e ∈ Ŝ^Σ : old(e) = y}`  and  `out(x, Σ) = {e ∈ Ŝ^Σ : new(e) = x}`
 
-are computable from `Σ.L` alone — this is `Observe_{K_sup}` at pattern
-`Ĝ = {y}` (resp. `F̂ = {x}`), view `hist`, filtered by the decidable
-schema-conformance predicate (a no-op at disciplined states, where every
-`[K_sup]` tuple already conforms), and consulting no arrangement.
+are computable directly from `Σ.L` alone — by the comprehensions just written —
+at every state and for any `y, x`, consulting no arrangement. For
+`y, x ∈ dom(Σ.L)` they coincide with `Observe_{K_sup}` at pattern `Ĝ = {y}`
+(resp. `F̂ = {x}`), view `hist`, filtered by the decidable schema-conformance
+predicate (a no-op at disciplined states, where every `[K_sup]` tuple already
+conforms): on conforming claims `Observe` returns those with `old(e) ≼ y` (resp.
+`new(e) ≼ x`), and the antichain R0a collapses `≼` to `=` precisely because `y`
+(resp. `x`) lies in `dom(Σ.L)` — which every use here supplies (`in(a, ·)`,
+`in(aᵢ, ·)`, `in(ℓ₀, ·)`). It is the `Observe` *identification* that carries
+this qualification; the direct comprehension does not.
 **The supersession question is answerable, completely and decidably, at every
 state, whatever every arrangement says.** A reader's protocol — before relying
 on a link, ask the record what targets it — is always executable; what
@@ -1014,7 +1017,7 @@ current view forgets; the record cannot.
 | Df-DIR | ClaimDirectionality: from-set covers the superseding link, to-set the superseded ("F replaces G"), aligned with RetractionDirectionality; replacement-free withdrawal is class `[R]`, a distinct relation | introduced |
 | Df-DISC | EditDiscipline: a state is edit-disciplined iff unit-depth-retraction-disciplined and every claim has form `F = {(x, δ(1,#x))}`, `G = {(y, δ(1,#y))}` with `x, y ∈ dom(Σ.L)`, `x ≠ y`; a layer is edit-disciplined iff every reached state is | introduced |
 | Df-LAY | EditingLayer: the editing layer issues `{assert_sup, editlink, Nullify}` plus the link-framing substrate transitions (`K.α`, `K.δ`, `K.μ⁺`, `K.μ⁺_L`, `K.μ⁻`, `K.ρ`, `K.μ~`) and bare `K.λ` confined to original-link creation; its discipline commitment routes every `[K_sup]` emission through `assert_sup`/`editlink` (under `DC`) and every `[R]` emission through `Nullify` (bare `Emit_{K_sup}`/`Emit_R`/class-carrying `K.λ` are not layer operations — discipline is a protocol property, not substrate-enforced); editing-layer-reachable = reached from `Σ₀` by such operations (mirrors ASN-0086's RelationalLayer/LayerReachable) | introduced |
-| EL-DM | DisciplineMaintenance: every editing-layer-reachable state is edit-disciplined. Base — `Σ₀` (`L₀ = ∅`) is vacuously disciplined (`S^{Σ₀} = L_R^{Σ₀} = ∅`). Step — L-framing transitions and original-creating bare `K.λ` leave `S^Σ`/`L_R^Σ` undisturbed (Vocabulary fact V, L12, monotone `dom(L)`); `Nullify` adds only a unit-depth `[R]` tuple (no `[K_sup]` claim); `assert_sup` preserves by EL6(v); `editlink` by EL7(vi). Gives every "at disciplined `Σ`" conditional (EL6iii, EL7iii, EL7iv full frame, EL14, EL8) a reachable, non-vacuous domain | introduced |
+| EL-DM | DisciplineMaintenance: every editing-layer-reachable state is edit-disciplined. Base — `Σ₀` (`L₀ = ∅`) is vacuously disciplined (`S^{Σ₀} = L_R^{Σ₀} = ∅`). Step — L-framing transitions and original-creating bare `K.λ` leave `S^Σ`/`L_R^Σ` undisturbed (Vocabulary fact V, L12, monotone `dom(L)`); `Nullify` adds only a unit-depth `[R]` tuple (no `[K_sup]` claim); `assert_sup` preserves by EL6(v); `editlink` by EL7(vi). Gives the "at disciplined `Σ`" conditionals below a reachable, non-vacuous domain | introduced |
 | EL4 | SingleTarget: for any *schema-conforming* claim (per-claim, no whole-state hypothesis) `coverage(F) ∩ dom(Σ.L) = {x}` and `coverage(G) ∩ dom(Σ.L) = {y}` (PrefixSpanCoverage + R0a), making `addr(e)`, `new(e)`, `old(e)` total on the schema-conforming subset `Ŝ^Σ` at every reachable state (`Ŝ^Σ = S^Σ` at disciplined states) | introduced |
 | Df-SUCC | Successor relations over the schema-conforming claims `Ŝ^Σ` (EL4): `succ_h(Σ) = {(old(e), new(e)) : e ∈ Ŝ^Σ}`; `succ_o(Σ)` the further restriction to `addr(e) ∉ nullified(Σ)`; finite, `succ_o ⊆ succ_h`; total at every reachable state (the `Ŝ^Σ` restriction excludes non-conforming `[K_sup]` tuples on which `old`/`new` are undefined), coinciding with the unrestricted form at disciplined states (`Ŝ^Σ = S^Σ`) | introduced |
 | EL5 | RecordMonotonicity: across `Σ →* Σ'`, (a) `S^Σ ⊆ S^{Σ'}`, `Ŝ^Σ ⊆ Ŝ^{Σ'}` (schema-conformance is value-and-domain-determined), and `succ_h(Σ) ⊆ succ_h(Σ')`; (b) `nullified(Σ) ⊆ nullified(Σ')` — demotion is one-way per claim; (c) `succ_o` is neither monotone nor antitone: the operative relation is the revisable view, the historical relation the unrevisable record | introduced |
