@@ -12,7 +12,7 @@ We will find that every one of these questions is answered by a single design de
 
 This note is the document-containment sibling of ASN-0127's content-region link query. The two share the two-phase shape — a named V-region resolves through a live arrangement to an I-address set, and a comprehension is taken against that set — but the comprehensions run over different stores with inverted stability profiles: ASN-0127's ranges over links, whose endset coverages are immutable store values, so its fixed-`I` query only ever grows; ours ranges over documents keyed by their *arrangement ranges*, which are mutable state, so the live answer breathes in and out. That inversion is the heart of the soundness story, and we do not rebuild ASN-0127's machinery — we cite its image primitive and its resolution-drift results where they apply.
 
-**Scope.** We specify the containment query alone. Link discovery and endset search, version comparison, origin reporting, content delivery, the editing operations themselves, and inter-server replication (BEBE) are out of scope; we touch the editing transitions only as the K-vocabulary events against which stability must be stated, and we cite ASN-0127's image layer rather than re-deriving it. The state is the single unified docuverse state; partial visibility of a distributed realization is a refinement concern noted only in the evidence section.
+**Scope.** We specify the containment query alone. Link discovery and endset search, version comparison, origin reporting, content delivery, the editing operations themselves, and inter-server replication (BEBE) are out of scope; we touch the editing transitions only as the K-vocabulary events against which stability must be stated. The state is the single unified docuverse state; partial visibility of a distributed realization is a refinement concern noted only in the evidence section.
 
 ## State and Local Apparatus
 
@@ -100,7 +100,7 @@ The operation's contract, stated as the two named obligations the topic demands 
 
 ## Query Algebra
 
-The comprehension inherits a small, exact algebra from the shape of its predicate. Each law below is the document-side analogue of an ASN-0127 Phase-2 law, derived independently because the predicate differs (arrangement ranges, not stored coverages).
+The comprehension inherits a small, exact algebra from the shape of its predicate.
 
 **FD-UDIST (UnionDistributivity).** *For all `I₁, I₂ ⊆ T` — no disjointness required:*
 
@@ -160,7 +160,7 @@ A vspec-set may name several non-contiguous regions — across one document or s
 
 ## Dynamics: Stability Under Editing
 
-We now fix the material `I` and ask which transitions can move `finddocs(I, ·)`, and by how much. The methodology mirrors ASN-0127's existence lane: the *resolved* I-set is the stable object — its subject matter cannot be destroyed (P0: `dom(C)` only grows and values never change, so a grounded `I` remains grounded forever) — and all dynamics are stated against it. The two-phase operation adds one further motion, through resolution, which we take up at the end.
+We now fix the material `I` and ask which transitions can move `finddocs(I, ·)`, and by how much. The *resolved* I-set is the stable object — its subject matter cannot be destroyed (P0: `dom(C)` only grows and values never change, so a grounded `I` remains grounded forever) — and all dynamics are stated against it. The two-phase operation adds one further motion, through resolution.
 
 **FD-FRAME (NonArrangementInertness).** *Every transition that fixes the content-subspace arrangement family fixes the answer: for every `I`,* K.α, K.λ, K.ρ *(arrangement frames `M' = M`),* K.δ *(Node/Account cases frame `M`; the Document case adds `d_new` with `M'(d_new) = ∅`, never a member, others framed), and* K.μ⁺_L *(adds only `s_L`-positions to one document, so `V_{s_C}(d)` and its images are unchanged) all satisfy `finddocs(I, Σ') = finddocs(I, Σ)`. Derivation: in each case `χ(d, I, ·)` is unchanged for every `d` (FD-LOCAL), and the comprehension's domain either is unchanged or gains only non-members. Allocating content, creating links, recording provenance, registering documents — none of it moves containment.*
 
@@ -190,7 +190,7 @@ We now fix the material `I` and ask which transitions can move `finddocs(I, ·)`
 
 *Derivation, step by step from FD-FRAME and FD-STEP. The K.α steps: FD-FRAME — no motion. The clear: FD-STEP's contraction clause at `ran_Ret = ∅` (no content position retained) — `d` drops iff it was a member, every other document framed (FD-LOCAL). The rebuild: FD-STEP's growth clause with new-image set `N_step = ran_C(d, Σ_pre) ∪ A_new`; K.α's freshness gives `A_new ∩ dom(Σ_pre.C) = ∅ ⊇ A_new ∩ I`, so `N_step ∩ I ≠ ∅ ⟺ ran_C(d, Σ_pre) ∩ I ≠ ∅` — `d` re-enters exactly iff it dropped. The K.ρ steps: FD-FRAME. Net: identity. The deep reason is that the membership criterion contains no V-position term at all (FD-LOCAL reads only the* range *of the content arrangement): positional shift is invisible by construction, and fresh allocation is outside any pre-existing query by the monotone freshness of allocation (ASN-0093). The pure append (`p = N + 1`) needs no clear at all — a bare K.μ⁺ extending the segment with images in `A_new` — with the same conclusion.*
 
-**FD-NONMONO (LiveNonMonotonicity).** *Across `Σ →* Σ'` neither inclusion holds in general: the transclusion step grows the answer (FD-STEP, K.μ⁺ with `N ∩ I ≠ ∅` — realized in the FD-CHAIN propagation), and the contraction step shrinks it (FD-CWP's failing branch — realized in the FD-NEUT(c) construction). The live answer breathes with the arrangements — Nelson's live set "shrinks (deletions) and grows (new inclusions)" by design [Q8 consultation]. For the two-phase operation there is one further motion: the* resolution *itself is present-tense — editing a* named *document moves `resolve(Q, ·)` even while every containment fact is fixed (D-PRES, ASN-0127). The motion enters through the pointing, not through the containing — which is why this section fixed `I` first.*
+**FD-NONMONO (LiveNonMonotonicity).** *Across `Σ →* Σ'` neither inclusion holds in general: the transclusion step grows the answer (FD-STEP, K.μ⁺ with `N ∩ I ≠ ∅` — realized in the FD-CHAIN propagation), and the contraction step shrinks it (FD-CWP's failing branch — realized in the FD-NEUT(c) construction). The live answer breathes with the arrangements — Nelson's live set "shrinks (deletions) and grows (new inclusions)" by design [Q8 consultation]. For the two-phase operation there is one further motion: the* resolution *itself is present-tense — editing a* named *document moves `resolve(Q, ·)` even while every containment fact is fixed (D-PRES, ASN-0127).*
 
 **FD-VDYN (TwoPhasePerTransitionDynamics).** *Fix a vspec-set `Q` with every named document registered at Σ — so `finddocs_V(Q, ·)` is defined at both ends of any transition, `dom(M)` being monotone (M1) — call `d` named when `(d, W) ∈ Q` for some `W`, and across a transition `Σ → Σ'` write `I = resolve(Q, Σ)`, `I' = resolve(Q, Σ')`. FD-IMGC's defining comprehension consults only `W` and the content-subspace restriction of `Σ.M(d)`, so the resolution moves only when some named document's content-subspace arrangement moves. Four cases exhaust the vocabulary.*
 
@@ -299,7 +299,7 @@ Deviations:
 | FD-STEP | K.μ⁺ grows the answer by at most the edited document; K.μ⁻ shrinks it by at most the edited document; K.μ~ never moves it | introduced |
 | FD-CWP | `wp(K.μ⁻[d, Ret], d ∈ finddocs(I, ·)) ≡ enabled ∧ ran_Ret ∩ I ≠ ∅`; answer preserved iff membership held implies a retained witness | introduced |
 | FD-FRESH | the in-vocabulary insertion composite (iterated K.α; full-content-clear K.μ⁻; one rebuild K.μ⁺; K.ρ) — net effect = ASN-0082's I3/I3-L/I3-V/I3-CS initial-to-final — leaves `finddocs(I, ·)` unchanged for every pre-resolved grounded `I`; the criterion has no V-position term | introduced |
-| FD-NONMONO | the live answer is non-monotone in both directions across `→*`; additional two-phase motion enters only through resolution drift (D-PRES), composed per transition by FD-VDYN | introduced |
+| FD-NONMONO | the live answer is non-monotone in both directions across `→*`; additional two-phase motion enters only through resolution drift (D-PRES) | introduced |
 | FD-VDYN | per-transition two-phase dynamics: K.μ⁺ on a named document grows `finddocs_V`, K.μ⁻ on one shrinks it, K.μ~ on one moves it only through the swing `image_C(W, d, Σ') = image_C(π⁻¹(W), d, Σ)` (fixed-`I` answers invariant; unchanged when π fixes each named region setwise); all other transitions reduce to fixed-`I` motion | introduced |
 | FD-HIST | `finddocs_R(I, Σ) = {d ∈ dom(Σ.M) : (E a ∈ I : (a, d) ∈ Σ.R)}` — the provenance-keyed historical query | introduced |
 | FD-RMONO | `Σ →* Σ' ⟹ finddocs_R(I, Σ) ⊆ finddocs_R(I, Σ')` — the historical answer never loses a member | introduced |
