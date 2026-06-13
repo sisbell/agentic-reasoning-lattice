@@ -823,13 +823,12 @@ no principal, and under an ownership overlay (ASN-0042) an owner's claims homed
 at two of its documents fall under the same commutation, so a per-asserter
 "latest" is a state function only when the asserter homes all its claims at a
 single document; absent that — like cross-home order itself — it is not a
-function of the state. The design
-consequence: any global most-recent-wins rule is
-undefinable from state; any definable global tie-break (say, T1-least claim
-address) ranks namespaces, not times, and carries no authority. The substrate
-will not manufacture a clock it does not have — so it cannot, even in
-principle, crown a winner among independent claimants. Adjudication is pushed
-where the design wants it: to readers, and to further, attributable claims.
+function of the state. The consequence specific to temporal
+erasure: no *temporal* selector — any "most-recent-wins" rule — is definable
+from state, the order it would read having no state witness; a global tie-break
+(say, T1-least claim address) remains definable but ranks namespaces, not
+times. What this forecloses for canonical selection in general, and what the
+reader is owed instead, is EL14(d).
 
 **Df-CUR (Currency query).** For `y ∈ dom(Σ.L)`: `reach_o(y, Σ)` is the least
 subset of `dom(Σ.L)` containing `y` and closed under `succ_o(Σ)`-images —
