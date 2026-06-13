@@ -135,12 +135,11 @@ endpoint content is transcluded — shared by reference — into `N` documents. 
 is a property of the arrangements `Σ.M`: the same I-addresses appear in the ranges of `N`
 documents' arrangements, the content itself stored once (ASN-0058, ASN-0036). It adds no
 link address to `Σ.L`. By CN-LOC the count never consults `Σ.M`, so the `N` documents are
-structurally invisible to it; `a` is one address in `Σ.L`, counted once.
-
-> **CN-TRANSCL (transclusion invariance).** A link whose endpoint content is reachable
-> through any number of documents by transclusion contributes `1` to the count. The
-> quantity that grows with sharing — *how many documents reach the content* — is a count
-> of documents, not of links, and is measured by an operation over `Σ.M`, not by this one.
+structurally invisible to it; `a` is one address in `Σ.L`, counted once. The quantity that
+grows with sharing — *how many documents reach the content* — is a count of documents, not
+of links, and is measured by an operation over `Σ.M`, not by this one. This is the whole
+content of CN-UNIT clause (b): a consequence of CN-LOC, carrying nothing beyond it, and so
+needing no claim of its own.
 
 This is exactly the conflation Nelson warns against: "many documents" is real, but it is
 attached to the wrong noun. The link is one; what proliferates is the set of windows onto
@@ -457,11 +456,10 @@ and reading off the precondition for the count to rise,
 is exactly the FL-WP(a) condition of ASN-0121 (which carries that second conjunct precisely
 for a fresh ordinary link), not a weakening of it. Under the unit-depth retraction
 discipline (ASN-0086) the second conjunct is automatic, and the precondition collapses to
-`sat(ℓ, q, Σ')`: a unit-depth retraction's to-coverage is a prefix subtree `{s : t ≼ s}`,
-so `ℓ ∈ coverage(G')` would force `t ≼ ℓ`; but `t ∈ dom(Σ.L) ⊆ dom(Σ'.L)` (link-store
-monotonicity, L12a ASN-0043 / Store Monotonicity★ ASN-0098) and `ℓ ∈ dom(Σ'.L)`, so R0a
-applied to `dom(Σ'.L)` — a prefix antichain (ASN-0086) — forces `t = ℓ` from `t ≼ ℓ`,
-contradicting freshness. The
+`sat(ℓ, q, Σ')`: ASN-0086's disciplined-domain simplification (wp Case 2) — resting on the
+prefix-antichain structure of the link domain (R0a, ASN-0086) — already establishes that a
+freshly emitted link address lies in no standing retraction tuple's to-coverage, so we
+inherit that conclusion rather than re-deriving it here. The
 census grows by precisely the links that are made, match, and are not born
 already-retracted, and shrinks by precisely the matching links that are withdrawn; it moves
 under nothing else.
@@ -679,8 +677,7 @@ back end is free to pay full enumeration cost for a cardinality without being wr
 |-------|-----------|--------|
 | CN-DEF | (DEF) `countlinks_FTT(q, Σ) ≡ \|{ a : a ∈ addressable(Σ) ∧ sat(a, q, Σ) }\|`; the operation reads `Σ`, returns ℕ, and has frame `Σ` (writes nothing); defined through the shared relation `sat` (ASN-0121), not through the enumeration operation; well-defined because the counted set is a finite, computable subset of `dom(Σ.L)` (L-fin ASN-0093, FL-DEC ASN-0121) | introduced |
 | CN-LOC | (LEMMA) Link-store locality — for fixed `q`, `countlinks_FTT(q, Σ)` is a function of `Σ.L` alone; `Σ.C`, `Σ.M`, `Σ.E`, `Σ.R` are never consulted (from FL-LOC, ASN-0121) | introduced |
-| CN-UNIT | (THM) The unit is link identity — each addressable satisfying link contributes exactly `1`, independent of endset span/address multiplicity (absorbed by the existential in `touch`), transclusion multiplicity, arrangement-appearance multiplicity, and version-refraction multiplicity (the latter three excluded by CN-LOC; forking shares content (references the same I-addresses via J4's K.μ⁺ step, no K.α), not links — J4 ASN-0047 — so the version DAG adds no link address) | introduced |
-| CN-TRANSCL | (THM) Transclusion invariance — a link reachable through any number of documents by transclusion contributes `1`; document-reach is an `Σ.M` quantity, not a link count (corollary of CN-LOC, CN-UNIT) | introduced |
+| CN-UNIT | (THM) The unit is link identity — each addressable satisfying link contributes exactly `1`, independent of endset span/address multiplicity (absorbed by the existential in `touch`), transclusion multiplicity, arrangement-appearance multiplicity, and version-refraction multiplicity (the latter three excluded by CN-LOC; forking shares content (references the same I-addresses via J4's K.μ⁺ step, no K.α), not links — J4 ASN-0047 — so the version DAG adds no link address). Clause (b) is transclusion invariance: a link reachable through any number of documents contributes `1`, document-reach being an `Σ.M` quantity, not a link count | introduced |
 | CN-SHARED | (META) The four-set match-description lives once in `sat` (ASN-0121); both the count and the enumeration are queries over `sat`, and neither operation's specification appeals to the other | introduced |
 | CN-ENUM | (THM) `countlinks_FTT(q, Σ) = \|findlinks_FTT(q, Σ)\|` — count equals enumeration length at a single state, structurally (both are the cardinality of one set), and may differ across distinct states evaluated by separate inquiries | introduced |
 | CN-ZERO | (THM) `countlinks_FTT(q, Σ) = 0 ⟺ (A a : a ∈ addressable(Σ) : ¬sat(a, q, Σ))` — a positive present-store existential (no addressable link satisfies `q`), distinct from "not found" (excluded by FL-JUNK) and "not displayed" (excluded by CN-LOC); a degenerate empty-coverage request also yields `0` (FL-EMP) but asserts only that the request names nothing | introduced |
