@@ -271,7 +271,7 @@ The first conjunct holds at `Σ` already: `d_src` contains `a` in its content su
 
 > `C' = C  ∧  L' = L`
 
-and consequently its entire state delta is independent of content volume: `ΔE = {v}`; `ΔM` is one arrangement function whose every image is a pre-existing address; `ΔR = A × {v}` with `|A| ≤ n`. A source of any size forks at the same cost in allocated substance: none. The G2 derivation showed this clause is not an economy but a prohibition — fresh-address duplication voids carry-through, correspondence, and attribution simultaneously — and the frame equality `C' = C` is that prohibition stated positively. The unchanged material keeps its original addresses; only content later *written into* the version (out-of-scope operations) would earn new addresses, under the version's own number.
+and consequently no *allocated* substance scales with the source: `ΔE = {v}` mints exactly one identity, and `C' = C ∧ L' = L` allocates zero content and link addresses, whatever the source's extent. What scales is arrangement and bookkeeping — not allocation, and by content-*position* count rather than byte volume: `ΔM` is one arrangement function on the `n` canonical positions, every image a pre-existing address; `ΔR = A × {v}` with `|A| ≤ n`. The implementation's *block* representation compresses even this storage to span count, never byte volume, by V2's representation invariance. A source of any size forks at the same cost in allocated substance: none. The G2 derivation showed this clause is not an economy but a prohibition — fresh-address duplication voids carry-through, correspondence, and attribution simultaneously — and the frame equality `C' = C` is that prohibition stated positively. The unchanged material keeps its original addresses; only content later *written into* the version (out-of-scope operations) would earn new addresses, under the version's own number.
 
 **V2 (ArrangementTranscription).** The version's initial arrangement is the source's content-subspace arrangement — the function itself:
 
@@ -361,7 +361,7 @@ Four deviations from the abstract specification:
 | derives | `derives(v, d)` iff some `VERSION(·, d)` invocation produced `v` | introduced |
 | VD | version namespaces are populated only by VERSION with the parent as named source; under VD, `derives(v, d) ⟺ v ∈ E ∩ S(d, 1)` | introduced |
 | V0 | exactly one fresh identity is allocated; globally unique across all allocation events; permanent and never renumbered | introduced |
-| V1 | `C' = C ∧ L' = L` — zero content/link allocation; the fork's state delta is independent of content volume | introduced |
+| V1 | `C' = C ∧ L' = L` — zero content/link allocation, one identity minted, regardless of source size; the arrangement and provenance deltas scale with content-position count, not byte volume | introduced |
 | V2 | `M'(v) = M(d_src)|_{V_{s_C}(d_src)}` — function-level snapshot at fork time; representation-free; content subspace only | introduced |
 | V2b | no reachable transition seats a foreign-origin link in a document's link subspace; content anchoring is the only cross-fork connectivity channel | introduced |
 | V3 | source frame: every `d_src`-indexed state component is unchanged; the fork is strictly additive and writes no forward pointer | introduced |
