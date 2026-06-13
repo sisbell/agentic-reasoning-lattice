@@ -191,13 +191,10 @@ sides are evaluated against the *same* `Σ`.
 The sibling enumeration, asked at a later state `Σ'`, returns `findlinks_FTT(q, Σ')`,
 whose size is `countlinks_FTT(q, Σ')` — equal to `|findlinks_FTT(q, Σ')|`, not necessarily
 to `countlinks_FTT(q, Σ)`. If a link is created or retracted between a count inquiry and a
-later enumeration, the two answers describe two different stores and need not agree. This
-is not a failure of CN-ENUM; it is the same theorem applied twice, once per state. A
-caller who needs `count = length` to hold *across* two separate inquiries needs the two
-inquiries to observe one state, which is a property of the surrounding concurrency
-discipline, not of either operation. The operations themselves guarantee single-state
-agreement and nothing stronger, because there is nothing stronger to guarantee about two
-measurements of a changing quantity.
+later enumeration, the two answers describe two different stores and need not agree.
+Forcing two separate inquiries to observe one state — so that count-equals-length holds
+across the pair, not merely within each — is a concurrency-discipline matter outside
+either operation, deferred to the open questions below.
 
 *Implementation note.* That same realisation drives the count and the enumeration through
 one shared matching routine, so the count carries no private copy of the four-set logic
