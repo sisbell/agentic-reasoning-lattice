@@ -16,7 +16,7 @@ So a version must be a third thing, and the consultation record shows Nelson des
 
 This note derives the operation from the guarantees it must keep, states its contract, and proves the invariants the topic demands: the permanence and untouchedness of the source; the ancestry encoded in the new identity; the ownership and editability that follow the fork; what forking reveals about the boundary between identity and content; the carry-through of links anchored to content the version transcludes; and the navigability of the ancestry chain across iterated forks.
 
-**Scope.** We specify the fork alone. Creating documents from nothing, comparing versions, the editing operations themselves, link creation, content delivery, and replication are all out of scope; we touch them only where a frame condition or a foundation invariant of theirs bears on the fork's guarantees.
+**Scope.** We specify the fork alone. Creating documents from nothing, establishing accounts or principals, comparing versions, the editing operations themselves, link creation, content delivery, and replication are all out of scope; we touch them only where a frame condition or a foundation invariant of theirs bears on the fork's guarantees.
 
 ## State and Local Apparatus
 
@@ -138,11 +138,14 @@ Preconditions
   P-src    d_src ∈ E_doc                (the source is an allocated document)
   P-prin   π ∈ Π                        (the forking principal)
 
-  — and nothing further. In particular: no authority over d_src is required
-  (the source is read without permission), and no condition is placed on
-  M(d_src) (the empty source is admitted, n = 0 below). The identity
-  clause's guard is total: ω(d_src) is defined at every reachable state
-  (PS — registry coverage makes ω total on E).
+  — and nothing further on the source side. In particular: no authority over
+  d_src is required (the source is read without permission), and no condition
+  is placed on M(d_src) (the empty source is admitted, n = 0 below). The
+  identity clause's guard is total: ω(d_src) is defined at every reachable
+  state (PS — registry coverage makes ω total on E). One forker-side
+  requirement falls on the cross-owner branch alone: π must already hold a
+  document-creation namespace (zeros(pfx(π)) = 1), so the fork mints one
+  identity rather than an account-plus-version pair; the identity clause states it.
 
 Abbreviations (evaluated at the initial state Σ)
   n  :=  |V_{s_C}(d_src)|
@@ -150,8 +153,17 @@ Abbreviations (evaluated at the initial state Σ)
 
 Identity clause
   if  ω(d_src) = π  →  v := nextv(E, d_src)                  (fork in place)
-  []  ω(d_src) ≠ π  →  v := a fresh document identity that π allocates in its
-                        own document-creation namespace: allocated_by(π, v).
+  []  ω(d_src) ≠ π  →  branch requires zeros(pfx(π)) = 1 — π already holds a
+                        document-creation namespace (its account, pfx(π) ∈ E, with
+                        its document sub-allocator). A node-tier principal
+                        (zeros(pfx(π)) = 0, which O1a admits into Π) holds no such
+                        namespace: reaching a document from a node prefix would
+                        first baptize an intermediate account, a second permanent
+                        entity (P1), breaking the single-mint guarantee — so such a
+                        principal must establish an account first, an out-of-scope
+                        prior act VERSION does not cover. Given the namespace,
+                        v := the fresh document identity π allocates in it as a
+                        single K.δ: allocated_by(π, v).
                         This one hypothesis yields Document(v), v ∉ E, and — by
                         O5 — both pfx(π) ≼ v (O5(i)) and the maximality
                         (A π'' ∈ Π : pfx(π'') ≼ v ⟹ #pfx(π'') ≤ #pfx(π)) (O5(ii)).
@@ -174,7 +186,7 @@ Result
   source is recoverable from it:  trunc(v) = d_src.
 ```
 
-**V-WF (WellFormedness).** `VERSION` is realizable as a valid composite at every reachable `Σ` with `d_src ∈ E_doc`. The step sequence is an identity allocation, then — when `n ≥ 1` — one K.μ⁺ and `|A|` K.ρ steps. The identity allocation is a *single* K.δ in the owned case and for an account-tier cross-owner forker (`zeros(pfx(π)) = 1`); a node-tier forker (`zeros(pfx(π)) = 0`, which O1a admits into `Π`) has no account document sub-allocator to draw from, so it reaches a fresh document only through an out-of-scope, possibly multi-step document-creation composite — baptizing an intermediate account before the document. That sub-composite's sole consumed contract is `Document(v) ∧ v ∉ E ∧` O5, precisely the structural facts the couplings and V9 invoke; its internal step structure is out of scope, exactly as the operation's cross-owner clause declares. We discharge ValidComposite★'s two clauses. *Clause 1, preconditions at intermediate states.* K.δ at `Σ`: in the owned branch the operand is the stream frontier — sub-case `k = 1` with `t = d_src ∈ E_doc` when the namespace is empty, sub-case `k = 0` with `t = max(E ∩ S(d_src, 1))` otherwise (`t ∈ E`, `¬Node(t)`); `parent(v) = parent(d_src) ∈ E` by K.δ-ID.parent-0/1 and P8; freshness `v ∉ E` by the `nextv` choice (B2). In the cross-owner branch, an account-tier forker allocates the identity as one K.δ from its account document sub-allocator (a `k = 2` descent or `k = 0` sibling there — its detail out of scope); a node-tier forker allocates through the out-of-scope document-creation composite noted above. Either way the produced `v` satisfies `Document(v)`, `v ∉ E`, and O5's placement — all the remaining steps and the couplings require of it. K.μ⁺ at the post-K.δ state: `v ∈ E_doc` holds, the extension is strict (`n ≥ 1`), every image lies in `dom(C)` (S3★ at `Σ`, and `C` is unchanged), the transcribed positions are the canonical set `{[s_C, 1, …, 1, k] : 1 ≤ k ≤ n}` so S8a, S8-depth, D-CTG★, D-MIN★ and the content-subspace restriction are immediate. Each K.ρ: `a ∈ dom(C)` and `v ∈ E_doc` hold. *Clause 2, couplings initial-to-final.* J0 is vacuous (`dom(C') = dom(C)`); J1★ and J1'★ are discharged exactly by the `R'` clause, as derived in G3. When `n = 0` the composite is the identity allocation alone and every coupling is vacuous. The post-state is therefore reachable and satisfies every per-state invariant (ExtendedReachableStateInvariants). ∎
+**V-WF (WellFormedness).** `VERSION` is realizable as a valid composite at every reachable `Σ` with `d_src ∈ E_doc` — the owned branch at any forker tier, the cross-owner branch presupposing an account-tier forker (per the identity clause). The step sequence is an identity allocation, then — when `n ≥ 1` — one K.μ⁺ and `|A|` K.ρ steps. The identity allocation is a *single* K.δ in both covered cases: the owned case (a version step in `d_src`'s existing namespace) and the account-tier cross-owner case (`zeros(pfx(π)) = 1` — one `k = 2` descent or `k = 0` sibling in `π`'s account document sub-allocator). The cross-owner branch is restricted to forkers that already hold a document-creation namespace, and the restriction is *forced*: a node-tier forker (`zeros(pfx(π)) = 0`, which O1a admits into `Π`) has no account document sub-allocator, and reaching a document (`zeros = 2`) from a node prefix (`zeros = 0`) over the algebra's `k ≤ 2` increments would first baptize an intermediate account (`zeros = 1`) — a *second* entity, which P1 makes permanent, so the registry would grow by both account and version and `E' = E ∪ {v}`, V0, and V1 would all fail. We therefore exclude that path from VERSION: establishing the account is an out-of-scope prior act (a special case of document-creation-from-nothing, already out of scope), after which the now-account-tier forker takes the single-K.δ cross-owner path. Under this restriction every covered VERSION allocates exactly one identity, and that single K.δ's sole consumed contract is `Document(v) ∧ v ∉ E ∧` O5 — precisely the structural facts the couplings and V9 invoke; its internal placement detail is out of scope, exactly as the operation's cross-owner clause declares. We discharge ValidComposite★'s two clauses. *Clause 1, preconditions at intermediate states.* K.δ at `Σ`: in the owned branch the operand is the stream frontier — sub-case `k = 1` with `t = d_src ∈ E_doc` when the namespace is empty, sub-case `k = 0` with `t = max(E ∩ S(d_src, 1))` otherwise (`t ∈ E`, `¬Node(t)`); `parent(v) = parent(d_src) ∈ E` by K.δ-ID.parent-0/1 and P8; freshness `v ∉ E` by the `nextv` choice (B2). In the cross-owner branch — account-tier by the identity clause's restriction — the forker allocates the identity as one K.δ from its account document sub-allocator (a `k = 2` descent or `k = 0` sibling there — its detail out of scope). The produced `v` satisfies `Document(v)`, `v ∉ E`, and O5's placement — all the remaining steps and the couplings require of it. K.μ⁺ at the post-K.δ state: `v ∈ E_doc` holds, the extension is strict (`n ≥ 1`), every image lies in `dom(C)` (S3★ at `Σ`, and `C` is unchanged), the transcribed positions are the canonical set `{[s_C, 1, …, 1, k] : 1 ≤ k ≤ n}` so S8a, S8-depth, D-CTG★, D-MIN★ and the content-subspace restriction are immediate. Each K.ρ: `a ∈ dom(C)` and `v ∈ E_doc` hold. *Clause 2, couplings initial-to-final.* J0 is vacuous (`dom(C') = dom(C)`); J1★ and J1'★ are discharged exactly by the `R'` clause, as derived in G3. When `n = 0` the composite is the identity allocation alone and every coupling is vacuous. The post-state is therefore reachable and satisfies every per-state invariant (ExtendedReachableStateInvariants). ∎
 
 *Remark (relation to the foundation's fork composite).* ASN-0047's J4 has the same three-step shape. Where J4's bookkeeping ties its content operand to the version frontier, CREATENEWVERSION fixes the content operand to the *named source* at every invocation; the two coincide on first forks and whenever the source is unmodified between forks. The operation specified here follows the request's semantics: each call snapshots the document named in it.
 
@@ -192,7 +204,7 @@ Result
 
 > `E' = E ∪ {v}` with `v ∉ E`; `v` is distinct from the output of every other allocation event; and `(A Σ'' : Σ' →* Σ'' : v ∈ Σ''.E)`.
 
-Freshness is the `nextv` choice (owned case) or the explicit constraint (cross-owner case). Distinctness from *all* other allocation events — versions of other documents, documents, accounts, content, links — is GlobalUniqueness (ASN-0034); within one version namespace it is B8's same-namespace case under the owner's serialized commits (B-Seq), and across namespaces it is unconditional (B7, B8). Permanence is P1 (EntityPermanence): no transition removes an entity. Immutability of the identity itself needs no separate mechanism: identities are the *keys* of `E` and `M`, not stored values; P3 admits no contraction and no rewriting, so "renumbering" — removal plus reinsertion — is unavailable in the transition vocabulary. This is Nelson's permanence claim made structural: "New items may be continually inserted in tumbler-space while the other addresses remain valid" [LM 4/19].
+Freshness is the `nextv` choice (owned case) or the explicit constraint (cross-owner case). The count is exactly one in both branches: the owned branch is a single version K.δ, and the cross-owner branch's restriction to an account-tier forker (`zeros(pfx(π)) = 1`) makes its allocation a single document K.δ — a node-tier forker, lacking a document namespace, would have to baptize an intermediate account first, a second permanent entity, which is precisely why VERSION excludes that path (identity clause, V-WF). Distinctness from *all* other allocation events — versions of other documents, documents, accounts, content, links — is GlobalUniqueness (ASN-0034); within one version namespace it is B8's same-namespace case under the owner's serialized commits (B-Seq), and across namespaces it is unconditional (B7, B8). Permanence is P1 (EntityPermanence): no transition removes an entity. Immutability of the identity itself needs no separate mechanism: identities are the *keys* of `E` and `M`, not stored values; P3 admits no contraction and no rewriting, so "renumbering" — removal plus reinsertion — is unavailable in the transition vocabulary. This is Nelson's permanence claim made structural: "New items may be continually inserted in tumbler-space while the other addresses remain valid" [LM 4/19].
 
 **V4 (AncestryPrefix).** For the owned fork, the version's identity bears to the source's identity the relation *daughter by single-component extension*, and the relation is total — every identifying field is accounted for:
 
@@ -248,7 +260,7 @@ Under VD, ancestry is decidable from the identity alone in the owned case: `deri
 
 There is no ownership record to create because there is no ownership ledger in the state: ownership is positional (O1, PrefixDetermination), carried by the account-determining fields — and those fields the fork provably does not touch (V4c, V4d). The fork is ownership *exercised*, not transferred: "Whoever owns a specific node, account, document or version may in turn designate (respectively) new … versions, by forking their integers" [LM 4/17].
 
-**V9 (CrossOwnerFork and the Severance Theorem).** When the forker `π` does not own the source, three things hold — the first of them a theorem, not a design choice. Write `π_o := ω(d_src)` for the source's owner (the forker is `π`, matching the operation signature `VERSION(π, d_src)`):
+**V9 (CrossOwnerFork and the Severance Theorem).** When the forker `π` does not own the source — and, per the identity clause's restriction, holds its own document-creation namespace (`zeros(pfx(π)) = 1`), so no principal is minted and `Π' = Π` — three things hold, the first of them a theorem, not a design choice. Write `π_o := ω(d_src)` for the source's owner (the forker is `π`, matching the operation signature `VERSION(π, d_src)`):
 
 > Let `π_o := ω(d_src) ≠ π`, and let `v` be the identity `π` allocates — `allocated_by(π, v)`, the cross-owner clause's operative hypothesis — so O5 gives both `pfx(π) ≼ v` (O5(i)) and the maximality `(A π'' ∈ Π : pfx(π'') ≼ v ⟹ #pfx(π'') ≤ #pfx(π))` (O5(ii)). Then:
 > (a) **Severance** — `¬(d_src ≼ v)`: the new identity *cannot* lie in the source's subtree, so prefix-encoded ancestry is unattainable, not merely omitted;
@@ -273,7 +285,7 @@ The first conjunct holds at `Σ` already: `d_src` contains `a` in its content su
 
 > `C' = C  ∧  L' = L`
 
-and consequently no *allocated* substance scales with the source: `ΔE = {v}` mints exactly one identity, and `C' = C ∧ L' = L` allocates zero content and link addresses, whatever the source's extent. What scales is arrangement and bookkeeping — not allocation, and by content-*position* count rather than byte volume: `ΔM` is one arrangement function on the `n` canonical positions, every image a pre-existing address; `ΔR = A × {v}` with `|A| ≤ n`. The implementation's *block* representation compresses even this storage to span count, never byte volume, by V2's representation invariance. A source of any size forks at the same cost in allocated substance: none. The G2 derivation showed this clause is not an economy but a prohibition — fresh-address duplication voids carry-through, correspondence, and attribution simultaneously — and the frame equality `C' = C` is that prohibition stated positively. The unchanged material keeps its original addresses; only content later *written into* the version (out-of-scope operations) would earn new addresses, under the version's own number.
+and consequently no *allocated* substance scales with the source: `ΔE = {v}` mints exactly one identity (V0 — the cross-owner branch's account-tier restriction is what holds the count to one, rather than minting an account alongside the version), and `C' = C ∧ L' = L` allocates zero content and link addresses, whatever the source's extent. What scales is arrangement and bookkeeping — not allocation, and by content-*position* count rather than byte volume: `ΔM` is one arrangement function on the `n` canonical positions, every image a pre-existing address; `ΔR = A × {v}` with `|A| ≤ n`. The implementation's *block* representation compresses even this storage to span count, never byte volume, by V2's representation invariance. A source of any size forks at the same cost in allocated substance: none. The G2 derivation showed this clause is not an economy but a prohibition — fresh-address duplication voids carry-through, correspondence, and attribution simultaneously — and the frame equality `C' = C` is that prohibition stated positively. The unchanged material keeps its original addresses; only content later *written into* the version (out-of-scope operations) would earn new addresses, under the version's own number.
 
 **V2 (ArrangementTranscription).** The version's initial arrangement is the source's content-subspace arrangement — the function itself:
 
@@ -359,7 +371,7 @@ Four deviations from the abstract specification:
 | nextv | `nextv(E, d) = next(E, d, 1)` — the version-namespace frontier, a function of the registry and the source address alone | introduced |
 | VN-B1 | `E ∩ S(d, 1)` is a contiguous prefix of the version stream at every reachable state: K.δ's freshness and operand constraints admit only frontier arrivals into a version namespace | introduced |
 | VERSION | the fork composite: one fresh identity, the source's content-subspace arrangement transcribed as a snapshot, provenance recorded; `C`, `L`, and every existing arrangement framed | introduced |
-| V-WF | VERSION is a valid composite at every reachable state with `d_src ∈ E_doc` (empty source included); its post-state satisfies all per-state invariants | introduced |
+| V-WF | VERSION is a valid composite at every reachable state with `d_src ∈ E_doc` (empty source included; the cross-owner branch additionally requires an account-tier forker, `zeros(pfx(π)) = 1`, so exactly one identity is minted); its post-state satisfies all per-state invariants | introduced |
 | derives | `derives(v, d)` iff some `VERSION(·, d)` invocation produced `v` | introduced |
 | VD | version namespaces are populated only by VERSION with the parent as named source; under VD, `derives(v, d) ⟺ v ∈ E ∩ S(d, 1)` | introduced |
 | V0 | exactly one fresh identity is allocated; globally unique across all allocation events; permanent and never renumbered | introduced |
