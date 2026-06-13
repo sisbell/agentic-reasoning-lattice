@@ -410,9 +410,14 @@ The complementary direction — growth — is governed by the same per-link logi
 > and each newly created link that satisfies `q` and is addressable increments the count by
 > exactly `1`.
 
-This is the cardinality of FL-MON (ASN-0121) together with the K.λ increment (F-LAMBDA,
-ASN-0127): link creation is the only transition that can add to the satisfying set, and it
-adds at most one address, which by freshness was not already present. We can make the
+This is the cardinality of FL-MON (ASN-0121): a matching, non-withdrawn link stays in the
+satisfying set as the store grows, so the count cannot fall. Each remaining fact is cited
+where it lives. That link creation is the only transition which can *add* to the satisfying
+set is CN-STAB read with F-PRES (ASN-0127) — every non-`K.λ` transition preserves `Σ.L`, and
+with it the count; that a single `K.λ` step contributes at most one address, fresh and so
+not already counted, is its effect and freshness clauses (ASN-0093); and the exact four-set
+increment, retraction-coverage condition and all, is FL-WP(a) (ASN-0121), which the next
+paragraph derives in full. We can make the
 increment exact by a weakest-precondition step. Consider a transition `Σ → Σ'` that creates
 a fresh ordinary link `ℓ` — *fresh*, so `ℓ ∉ dom(Σ.L)`, and *ordinary*, so it does not
 enter the retraction relation and `L_R^{Σ'} = L_R^Σ`.
