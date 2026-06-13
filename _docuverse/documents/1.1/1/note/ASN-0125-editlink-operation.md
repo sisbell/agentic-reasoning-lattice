@@ -24,19 +24,14 @@ must any choice maintain about the original's continued resolution and
 discoverability, about chains under repeated edits, about multiple editors in
 conflict, and about a reader's ability to identify the current successor?
 
-We shall find that EDITLINK names no substrate mutation and no new substrate
-mechanism at all. It is a *derived composite*: one allocation that gives the
+EDITLINK is a *derived composite*: one allocation that gives the
 edited reading a fresh, permanent identity, and one allocation that makes the
 relationship between old and new exist — as a first-class, owned, disputable
 *claim* in a typed relation. The apparent menu of mechanisms collapses: a
 "separate supersession link" and a "typed relation" are the same object seen
 from two sides, and the genuinely distinct alternatives — a field in the
 successor's value, a nesting convention in the address space — are each
-eliminated by requirements we derive from the design intent. The deepest
-finding is negative and structural: *the relationship between an edited link
-and its original is not a fact the system can observe; it is a statement
-someone must make.* Everything else — chain semantics, fork tolerance, the
-refusal to name a unique "current" — follows from taking that seriously.
+eliminated by requirements we derive from the design intent.
 
 ## The substrate we build on
 
@@ -68,16 +63,12 @@ subsets `A_K^Σ`, the total emission-address function `a_emit(Σ, d)`, the
 operations `Emit_K`, `Observe_K` (views `hist`/`oper`), and `Nullify`.
 
 **Layer transfer.** ASN-0086 proves its facts over the substrate vocabulary
-`{K.σ, K.α, K.λ}`. Every ASN-0086 fact we cite — totality of `a_emit`, tuple
-freshness R0, the flat-domain antichain R0a, the chain freshness lemmas, the
-disciplined simplification of wp Case 2, the monotone growth of typed slices
-(R3) and one-way growth of `nullified` (R6a) —
-depends on exactly two properties of state evolution: the link store changes
-only by `K.λ`'s fresh appends, and the document set `dom(M)` is monotone. Both
-hold of the full ASN-0047 vocabulary (Vocabulary fact V below; M1, with `K.δ`'s
-document case playing `K.σ`'s role). We therefore use those facts at
-full-vocabulary reachable states, reading "layer-reachable" over this
-vocabulary.
+`{K.σ, K.α, K.λ}`, and every such fact depends on exactly two properties of
+state evolution: the link store changes only by `K.λ`'s fresh appends, and the
+document set `dom(M)` is monotone. Both hold of the full ASN-0047 vocabulary
+(Vocabulary fact V below; M1, with `K.δ`'s document case playing `K.σ`'s role).
+We therefore use the ASN-0086 facts at full-vocabulary reachable states,
+reading "layer-reachable" over this vocabulary.
 
 **Vocabulary fact V (the L-frame inventory).** By inspection of the ASN-0047
 transition contracts: every elementary transition other than `K.λ` carries the
@@ -89,12 +80,10 @@ that forces `ℓ_f ∉ dom(L)` (ASN-0093, FirstEmissionFreshness and
 SubsequentEmissionFreshness). The link store admits exactly one kind of change:
 extension at a fresh key.
 
-Finally, scope. This note does not specify link creation as a user surface,
-link discovery, or the read operations; we work directly with the substrate
-transitions and the state functions. Where a reader capability must be named —
-"the claims targeting `y` are computable" — we cite the foundations' existing
-operators (`Observe_K`, the projection lemmas of ASN-0098) rather than define
-query machinery of our own.
+**Scope.** This note works directly with the substrate transitions and state
+functions; it does not specify link creation, discovery, or read operations as
+user surfaces, citing existing foundation operators (`Observe_K`, ASN-0098)
+where a reader capability must be named.
 
 ## The mutation postcondition is unachievable
 
@@ -145,10 +134,6 @@ standing as the revision of the old one* — and `R₁` captures only the first.
 The candidate strengthening is:
 
 > `R₂ ≡ R₁ ∧ "the pair (a, a') stands, in the state, in a relation recognizable as supersession"`
-
-The remainder of this note determines what the quoted conjunct can mean, proves
-what it cannot mean, and derives the unique carrier compatible with the
-substrate.
 
 ## An unasserted edit does not exist
 
@@ -325,17 +310,14 @@ value space fails RQ1, RQ2, RQ4, and RQ7 — the claim could only ever be made
 once, at birth, by the successor's own author, fused undetachably with the
 content it qualifies, so that disputing the claim and disputing the content
 become the same act. The address space fails RQ1 and RQ2 (allocation under a
-prefix is the prefix owner's monopoly — T10, ASN-0042 — and an existing link
+prefix is the prefix owner's monopoly — O5, ASN-0042 — and an existing link
 can never *become* a version-of), fails RQ4 absolutely (baptized addresses are
 irrevocable — B0, T8, ASN-0040/0034 — an address cannot be unsaid), and fails
 RQ6 (one relation kind hard-wired into namespace structure, no siblings, no
-subtypes); and it has a defect deeper than any single requirement: *an address
-cannot be false.* A claim is the kind of thing that can be wrong, disputed,
-withdrawn; namespace structure is none of these. A representation incapable of
-being mistaken cannot represent an assertion. Nelson refuses the structural
-reading even for documents, where nesting genuinely exists: the version number
-is "only an accidental extension of the document number, and strictly implies
-no specific relationship of derivation" (LM 4/29). Where not even nesting
+subtypes). Nelson refuses the structural reading even for documents, where
+nesting genuinely exists: the version number is "only an accidental extension
+of the document number, and strictly implies no specific relationship of
+derivation" (LM 4/29). Where not even nesting
 exists — and for links, by EL2(c), it does not — the refusal is not a choice
 but a fact.
 
@@ -366,8 +348,8 @@ operative subset. We call the members of `S^Σ` *claims*.
 replaces `G`." This aligns with the layer's RetractionDirectionality
 (ASN-0086): the to-side is the side acted upon. A withdrawal with no
 replacement is not a degenerate supersession but a retraction, class `[R]`;
-the two acts remain distinct relations, and — as EL6(iv) will make exact —
-asserting the first never performs the second.
+the two acts remain distinct relations, and asserting the first never performs
+the second.
 
 **Df-DISC (EditDiscipline).** A state `Σ` is *edit-disciplined* iff (i) it is
 unit-depth-retraction-disciplined (ASN-0086) and (ii) every claim conforms to
@@ -378,7 +360,7 @@ the *claim schema*:
 — both endsets are canonical unit-depth spans at link-store addresses, and the
 claim is irreflexive. A layer is edit-disciplined iff every state it reaches
 is. (Self-supersession `x = y` is excluded as vacuous; cycles of length ≥ 2 are
-deliberately *not* excluded — they are reverts, and we shall need them.)
+deliberately *not* excluded — they are reverts.)
 
 **EL4 (SingleTarget).** Each *schema-conforming* claim determines its endpoints
 uniquely — and the argument is per-claim, invoking no whole-state discipline
@@ -862,20 +844,6 @@ record retains the bytes and loses the literature — retention without
 correspondence, the "frozen and dead" copy. The asserted edit is the unique
 point between: the past stays exact, and the future is reachable — as data,
 not as identity transfer.
-
-That is what the architectural commitment reveals, stated once without
-formalism. Editing-as-mutation treats identity as a container whose contents
-change; editing-as-permanence treats identity as a fixed point and represents
-change as *more identity* — a new entity, plus a first-class statement binding
-new to old. Under this substrate three things became theorems that elsewhere
-are slogans: **change is addition** (EL7's frame — nothing pre-existing
-alters); **relationship is assertion** (EL1, EL3 — never inferred from
-resemblance, never read off the namespace, never fused into a value one party
-controls); and **currency is judgment** (EL13, EL14 — a revisable query over
-permanent claims, answered with attribution and left, at last, to the
-reader). The substrate's entire contribution to "edit" is to make statements
-permanent and attributable. Everything editorial about editing lives above
-it, in the open, where it can be disputed.
 
 ## A worked example
 
