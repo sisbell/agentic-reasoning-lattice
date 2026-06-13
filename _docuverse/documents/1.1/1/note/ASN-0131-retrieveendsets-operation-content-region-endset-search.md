@@ -54,9 +54,8 @@ region drawn from such positions would resolve to an image inside `dom(Σ.L)`, a
 test would then surface anchoring aimed at *links*: the to-endsets of retraction emitters,
 type endsets, any endset whose spans cover link addresses. That is a coherent query, but it
 is not the one this note develops — *what anchoring touches this **content**?* Confining `W`
-to `s_C` keeps "content-image" literally accurate and keeps the whole development — the
-worked instance, the exactness of retraction stability (below), the completeness phrasing —
-on content. A link-subspace region is the coherent but separate query Open Question 7 takes
+to `s_C` keeps the image content-valued — `I ⊆ dom(Σ.C)` — so "content-image" is literally
+accurate. A link-subspace region is the coherent but separate query Open Question 7 takes
 up; we do not develop it here.
 
 ## When does an endset touch the region?
@@ -338,9 +337,7 @@ and each of the operation's distinctive claims can be read off it directly:
   cannot separate them: a *touching-spans-only* implementation would surface only the
   touching span, returning `{(a₂, δ(2, #a₂))}` — honest about extent (RE-CLIP) yet silent
   about the `a₄` span — whereas the *whole-endset* reading we adopt returns
-  `{(a₂, δ(2, #a₂)),  (a₄, δ(1, #a₄))}` in full. That `a₄`-span — present under one reading,
-  absent under the other — is precisely the volunteered out-of-region anchoring Open
-  Question 1 weighs; we report it provisionally with RE-WHOLE.
+  `{(a₂, δ(2, #a₂)),  (a₄, δ(1, #a₄))}` in full.
 - **Per-endset surfacing (RE-OVL).** Only slot 1 appears, and from each link separately. Of
   `L₁`, the to-endset `e₂` and the type-endset `e₃` miss the region and are absent, so the
   link's from-end is reported without its to-end. Of `L₂`, the two non-from slots `e₂′` and
@@ -574,30 +571,25 @@ fixed (`L' = L`), so the available pool does not move either. It is the one arra
 on `d` that cannot perturb a content-region answer, and the content-subspace restriction is
 exactly what secures it.
 
-The full taxonomy of what moves the answer is then: a *content-subspace* arrangement edit
-to `d` — insertion `K.μ⁺` (content-only by amendment, ASN-0047), a content-subspace deletion
-`K.μ⁻`, or rearrangement `K.μ~` — changes `RE` *through the image*. Two arrangement edits on
-`d`, by contrast, leave a content-region answer fixed: the link-subspace extension `K.μ⁺_L`,
-which adds only an `s_L` V-position outside `W` and frames `Σ.L` (just shown), and a
-*link-subspace-only* contraction `K.μ⁻` (one retaining every content position,
-`n'_{s_C} = n_{s_C}`, while dropping only link positions, `n'_{s_L} < n_{s_L}`, ASN-0047),
-which leaves `W ∩ dom(Σ.M(d))` and hence the image untouched — equivalently the `Δ = ∅`
-case of RE-CWP below, where the contraction-stability precondition holds vacuously. (The
-single transition kind `K.μ⁻` is thus dual-natured for a content region: it moves the answer
-when it contracts the content subspace and leaves it fixed when it contracts only the link
-subspace. Where the extension side divides into two transition kinds — `K.μ⁺` for content,
-`K.μ⁺_L` for link — contraction handles both subspaces within the one per-subspace `K.μ⁻`.)
+The full taxonomy of what moves the answer is then a classification by channel. A
+*content-subspace* arrangement edit to `d` — insertion `K.μ⁺` (content-only by amendment,
+ASN-0047), a content-subspace deletion `K.μ⁻`, or rearrangement `K.μ~` — changes `RE`
+*through the image*. Two arrangement edits on `d`, by contrast, leave a content-region answer
+fixed: the link-subspace extension `K.μ⁺_L`, which adds only an `s_L` V-position outside `W`
+and frames `Σ.L` (just shown), and a *link-subspace-only* contraction `K.μ⁻` (one retaining
+every content position, `n'_{s_C} = n_{s_C}`, while dropping only link positions,
+`n'_{s_L} < n_{s_L}`, ASN-0047), which leaves `W ∩ dom(Σ.M(d))` and hence the image
+untouched. `K.μ⁻` is thus dual-natured for a content region: it moves the answer when it
+contracts the content subspace and leaves it fixed when it contracts only the link subspace.
 A link emission (`K.λ`) whose coverage meets the present image may *add* a pair *through
 `Σ.L`* (a new live link enters `sel`); and a retraction, being itself a `K.λ`
 (Nullify = Emit_R, ASN-0086), is the one transition that may remove pairs *via the
 addressable population* — the `Σ.L` channel: it marks its target nullified, dropping it from
-`addressable`, while its emitter re-witnesses no pair the answer already carries (shown
-under *Under retraction*, below). (A content-subspace `K.μ⁻` *also* removes pairs, but *through the image* —
-the deletion motion above, made exact in RE-CWP — not by shrinking the population; the two
-removal channels are distinct. The population claim is sound because
-`addressable = dom(Σ.L) ∖ nullified` can lose a member only when a retraction enlarges
+`addressable`. The two removal channels are distinct — a content-subspace `K.μ⁻` removes
+through the image, a retraction through the population — and the population channel is sound
+because `addressable = dom(Σ.L) ∖ nullified` can lose a member only when a retraction enlarges
 `nullified`: `dom(Σ.L)` only grows (L12a, ASN-0043) and `nullified` only grows (R6a,
-ASN-0086).) Finally `K.α`, `K.δ`, `K.ρ`, together with edits to documents other than `d`,
+ASN-0086). Finally `K.α`, `K.δ`, `K.ρ`, together with edits to documents other than `d`,
 leave `RE` fixed.
 
 **The weakest precondition for contraction-stability.** The qualitative tracking above can
@@ -687,32 +679,34 @@ layer (ASN-0086) must *furnish* — e.g. by confining `Θ`'s spans to the `s_R`-
 unit depth, or any span with `s ≼ t` throughout, makes `s_R`-seating suffice) — the
 placement being that layer's mechanics, not ours to impose here.
 
-We therefore record the emitter's harmlessness **conditionally**. *If*
-`coverage(Θ) ∩ dom(Σ.C) = ∅`, then against a content image all three of `b`'s endsets are
-content-disjoint, `b` is never surfaced by a content-region query, and a retraction's *net*
-effect on `RE` is removal only; *absent* that hypothesis, a `Θ` meeting the image would
-surface the emitter as the fresh pair `(3, Θ)`, making the retraction *add* anchoring as well
-as remove it. But the hypothesis governs only this net-removal-only flavour. The core
-stability result below does not rest on it: the emitter's *only* possible content-region
-contribution is the single pair `(3, Θ)`, carrying the retraction type — a value distinct
-from any anchoring endset a retracted link bears — so `b` can re-witness no pair `(i, e)`
-that `ℓ` itself bore. Whether or not `Θ` meets content, the emitter cannot keep alive a pair
-that would otherwise drop; `Θ`'s placement decides only whether the retraction *also* adds
-`(3, Θ)`.
+We therefore record the emitter's harmlessness **conditionally**, on the hypothesis
+`coverage(Θ) ∩ dom(Σ.C) = ∅`. *Under* it, against a content image `I ⊆ dom(Σ.C)` the test
+`touch_W(Θ)` is false, so all three of `b`'s endsets are content-disjoint, `b` is never
+surfaced by a content-region query, and a retraction's *net* effect on `RE` is removal only.
+*Absent* it, a `Θ` meeting the image surfaces the emitter as the fresh pair `(3, Θ)`, making
+the retraction *add* anchoring as well as remove it. The emitter's *only* possible
+content-region contribution is that single pair `(3, Θ)` — and, contrary to what one might
+hope, it need not be distinct from a pair the retracted link itself bore: when `ℓ` is
+*itself* a retraction link, `Σ.L(ℓ).e₃ = Θ`, so `ℓ` bears `(3, Θ)` too. The forward direction
+of the stability result below therefore rests on the hypothesis. Under it `(3, Θ)` is never a
+surfaced pair and the coincidence is invisible to a content-region query, so the emitter
+keeps no surfaced pair alive; absent it, `b` re-witnesses the very `(3, Θ)` its target bore —
+the lone exception to the forward direction, and exactly the type-slot-against-content match
+that Open Question 6 takes up.
 
 But the answer deduplicates, and we must read its stability at the granularity it actually
 has. Its elements are `(role, endset)` pairs with link identity discarded (RE-UNIT): a
 pair `(i, e)` is present exactly when *some* addressable link bears `e` in slot `i` and `e`
 touches the region. So withdrawing one link `ℓ` does not, by itself, remove the pairs it
 bore. Retracting `ℓ` removes `ℓ` from `addressable(Σ)` permanently (R6a); the same step adds
-the emitter `b`, but `b`'s only possible content-region contribution is the fresh pair
-`(3, Θ)` (just shown), distinct in value from any anchoring endset a retracted link bears, so
-it can re-witness no pair the answer already carries. A pair `(i, e)` that `ℓ` contributed
-therefore leaves the answer **iff `ℓ` was its sole addressable bearer in `Σ`**. The
-forward half — sole bearer ⟹ the pair drops — is the conjunction just assembled: `ℓ`
-leaves `addressable` permanently (R6a) and the emitter `b` re-witnesses no pair `ℓ` bore
-(its sole possible contribution `(3, Θ)` being a distinct pair), so neither keeps `(i, e)`
-alive. The backward half — some *other* live bearer ⟹
+the emitter `b`, whose only possible content-region contribution is the fresh pair `(3, Θ)`
+(just shown). Under the net-removal-only hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅` — adopted
+for this result, its sole exception flagged above — that pair fails the touch test against a
+content image, so `b` surfaces nothing and re-witnesses no pair the answer carries. A pair
+`(i, e)` that `ℓ` contributed therefore leaves the answer **iff `ℓ` was its sole addressable
+bearer in `Σ`**. The forward half — sole bearer ⟹ the pair drops — is the conjunction just
+assembled: `ℓ` leaves `addressable` permanently (R6a) and, under the hypothesis, the emitter
+`b` surfaces nothing, so neither keeps `(i, e)` alive. The backward half — some *other* live bearer ⟹
 the pair survives — is not free: it asserts that the other bearer outlives the very step
 that withdraws `ℓ`, and a retraction, being a state transition, could a priori nullify
 more than its named target. We discharge it by bounding the retraction's reach. Take
@@ -768,7 +762,7 @@ bore). Neither is a defect to be engineered away; both are what it
 | RE-TRANS | Transclusion blindness — surfacing is by content identity, independent of the link's home and of the covered content's origin (LP16, ASN-0098): a link reaching the region only through transcluded content is surfaced identically to one reaching native content, and each returned span describes the content's permanent home identity, not the borrowing V-position | introduced |
 | RE-IDENT | Content-identity invariance — each surfaced endset's coverage is permanent (L12, ASN-0043; LP3, ASN-0098), so the content-level answer (which I-addresses each surfaced endset anchors to) is arrangement-independent, even though the *selection* of which endsets are surfaced is arrangement-mediated | introduced |
 | RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, the touch test composing on the region image, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (content-identity, RE-IDENT). Classified over the vocabulary {K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~, K.ρ} (ASN-0047): the content-subspace edits to `d` — insertion `K.μ⁺`, content deletion `K.μ⁻`, rearrangement `K.μ~` — move the answer *through the image* (F-IMG-MONO/-CONTR/-SWING, ASN-0127; LP9/LP10/LP12, ASN-0098); `K.λ` moves it *through `Σ.L`* (ordinary emission may add a pair, a retraction removes via the addressable population); every other transition fixes it — `K.α` (LP6), `K.δ` (LP8), `K.ρ` (LP14), edits to `d' ≠ d` (LP5, all ASN-0098), the link-subspace extension `K.μ⁺_L`, and a link-subspace-only `K.μ⁻` (both leaving the image fixed under `W ⊆ s_C`). `K.μ⁻` is thus dual-natured: a content-subspace contraction moves the answer, a link-subspace-only one fixes it. A region-local deletion is *not* the global orphaning/resurrection of LP17/LP18 (ASN-0098). Derivation in the *Stability* prose. | introduced |
-| RE-RET | Retraction stability — a retraction `Nullify(Σ, d_retr, ℓ) ≡ Emit_R(Σ, d_retr, ∅, {(ℓ, δ(1, #ℓ))})` is a `K.λ` step (Nullify/Emit_K, ASN-0086): it marks `ℓ` nullified — removing it from `addressable(Σ)` permanently (R6a) — and emits a fresh addressable retraction link `b` with endsets `(∅, {(ℓ, δ(1, #ℓ))}, Θ)`, writing `Θ` for ASN-0086's retraction type (distinct from RE-CWP's retention set `R`). **Core result (unconditional):** because the answer deduplicates and discards identity (RE-UNIT), a pair `(i, e)` that `ℓ` bore drops **iff `ℓ` was its sole addressable bearer in `Σ`** — backward by R0a/FlatLinkDomain and R-Scope/SingleTupleScope (ASN-0086) confining the fresh nullification to `ℓ`, so any other bearer survives with value fixed by L12 (ASN-0043); and the emitter `b` cannot rescue a dropped pair, its sole possible content-region contribution being the fresh pair `(3, Θ)`, distinct from any anchoring endset a retracted link bears. **Net-removal-only (conditional):** for a content region (`W ⊆ s_C`) `b`'s from-set `∅` and to-set are content-disjoint *unconditionally* (the to-set is unit-depth, covering only `ℓ`'s `s_L`-subtree, by field-segment agreement along `≼`, Prefix/T4, ASN-0034), but its type-set `Θ` is content-disjoint only on the hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅` — a property the retraction layer (ASN-0086) must furnish (start-placement at a subspace `s_R ≠ s_C` suffices only for `s_R`-subtree-confined spans, e.g. unit-depth; a wide type span `(s, ℓ_s)` need not satisfy `s ≼ t`). Under that hypothesis `b` adds nothing and a retraction's net effect on `RE` is removal *via the addressable population* only; absent it, a `Θ` meeting the image surfaces the fresh pair `(3, Θ)`. Link-level permanence (R6a) is not pair-value-level permanence; an identical pair value re-enters only via a separately identified live link (R6c, ASN-0086). Derivation under *Under retraction*. | introduced |
+| RE-RET | Retraction stability — a retraction `Nullify(Σ, d_retr, ℓ) ≡ Emit_R(Σ, d_retr, ∅, {(ℓ, δ(1, #ℓ))})` is a `K.λ` step (Nullify/Emit_K, ASN-0086): it marks `ℓ` nullified — removing it from `addressable(Σ)` permanently (R6a) — and emits a fresh addressable retraction link `b` with endsets `(∅, {(ℓ, δ(1, #ℓ))}, Θ)`, writing `Θ` for ASN-0086's retraction type (distinct from RE-CWP's retention set `R`). **Core result:** because the answer deduplicates and discards identity (RE-UNIT), a pair `(i, e)` that `ℓ` bore drops **iff `ℓ` was its sole addressable bearer in `Σ`**. Backward (other bearer ⟹ survives) is *unconditional*: R0a/FlatLinkDomain and R-Scope/SingleTupleScope (ASN-0086) confine the fresh nullification to `ℓ`, so any other bearer survives with value fixed by L12 (ASN-0043). Forward (sole bearer ⟹ drops) holds for every surfaced pair *under the net-removal-only hypothesis* below — `b`'s only possible content-region contribution is the fresh pair `(3, Θ)`, which the hypothesis keeps unsurfaced, so `b` rescues no dropped pair — with one exception absent the hypothesis: `ℓ` itself a retraction link (`Σ.L(ℓ).e₃ = Θ`) with `coverage(Θ)` meeting the image, whereupon `b` re-witnesses `(3, Θ)`, the type-slot-against-content match routed to Open Question 6. **Net-removal-only (conditional):** for a content region (`W ⊆ s_C`) `b`'s from-set `∅` and to-set are content-disjoint *unconditionally* (the to-set is unit-depth, covering only `ℓ`'s `s_L`-subtree, by field-segment agreement along `≼`, Prefix/T4, ASN-0034), but its type-set `Θ` is content-disjoint only on the hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅` — a property the retraction layer (ASN-0086) must furnish (start-placement at a subspace `s_R ≠ s_C` suffices only for `s_R`-subtree-confined spans, e.g. unit-depth; a wide type span `(s, ℓ_s)` need not satisfy `s ≼ t`). Under that hypothesis `b` adds nothing and a retraction's net effect on `RE` is removal *via the addressable population* only; absent it, a `Θ` meeting the image surfaces the fresh pair `(3, Θ)`. Link-level permanence (R6a) is not pair-value-level permanence; an identical pair value re-enters only via a separately identified live link (R6c, ASN-0086). Derivation under *Under retraction*. | introduced |
 | RE-CWP | Contraction-stability weakest precondition — for a `K.μ⁻[d, R]` step, `RE(W, d, ·) = RE(W, d, Σ)` iff `enabled(K.μ⁻[d, R]) ∧ (∀ (i, e) ∈ Avail(Σ) : coverage(e) ∩ Δ ≠ ∅ ⟹ coverage(e) ∩ I_R ≠ ∅)`, where `I_R = {Σ.M(d)(v) : v ∈ W ∩ R}` (D-CWP bridge, ASN-0127), `Δ = image(W, d, Σ) ∖ I_R`, and `Avail(Σ)` is the region-independent pool of addressable slot-endsets; `RE` is monotone-decreasing under contraction (`RE(W, d, Σ') ⊆ RE(W, d, Σ)`), the condition is strictly finer than D-CWP's per-link condition, and `R = ∅` collapses it to `RE(W, d, Σ) = ∅` | introduced |
 | RE-DET | Determinism — `RE(W, d, Σ)` is a function of `(W, d, Σ)`; with no intervening state change the same region query returns the same anchoring, so every change in the answer is the image of a change in `Σ` | introduced |
 
