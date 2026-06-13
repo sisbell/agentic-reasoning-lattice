@@ -275,7 +275,8 @@ standard triple `L₁ = (e₁, e₂, e₃)`:
   (PrefixSpanCoverage, ASN-0043) is disjoint from content — the example needs exactly
   `coverage(e₃) ∩ dom(Σ.C) = ∅` — and the argument runs over content addresses alone, the
   only addresses we intersect `coverage(e₃)` with. Take any `c ∈ dom(Σ.C)`: by S7b (ASN-0036)
-  it is T4-valid with `zeros(c) = 3`, and by content allocation `E(c)₁ = s_C`. Were `c ∈
+  it is T4-valid with `zeros(c) = 3`, and by content allocation `E(c)₁ = s_C` (L0,
+ASN-0093). Were `c ∈
   coverage(e₃)`, i.e. `θ ≼ c`, then `c` agrees with `θ` on positions `1..#θ` (Prefix,
   ASN-0034). The agreement carries all three of `θ`'s separator zeros onto `c`; as `c` has
   only three zeros in all (`zeros(c) = 3`), these *are* `c`'s separators, so `θ` and `c`
