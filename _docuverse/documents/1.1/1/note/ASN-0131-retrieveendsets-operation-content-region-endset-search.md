@@ -170,7 +170,7 @@ a corner an alternative implementation must also get right.
   surfaced. The operation reports anchoring only where some span genuinely covers a region
   address.
 
-## Faithfulness: the surfaced endset is the link's own, entire
+## Faithfulness: the surfaced endset is the link's own, unclipped
 
 A returned endset must be the link's *actual* anchoring, not an approximation of it, and
 not a fragment of it trimmed to the region. Two demands sharpen this.
@@ -182,22 +182,29 @@ witnesses a real `a` with `Σ.L(a).eᵢ = e` — but it is the substantive contr
 who receives `(1, e)` may rely that some live link really attaches its from-end at the
 spans of `e`, and that those spans really reach the region.
 
-The second is **faithfulness of extent**: a surfaced endset is reported *entire*. We
-return `e = Σ.L(a).eᵢ` itself — all of its spans, at their full extent — not the slice of
-`e` that happens to fall inside `W`. We do not clip. The reasoning is Nelson's, and it is
-decisive: clipping would *misrepresent the anchoring*. An endset whose span straddles the
-region boundary would be reported as a shorter span than the link actually attaches to; a
-discontiguous endset would lose the spans pointing outside, which are precisely the parts
-that say where else this anchoring lives. One searches *from* a region in order to learn
-the true shape of what attaches there — including how far it reaches beyond. To clip would
-be to answer a falsehood about the link's grip. So the spans of a surfaced endset are
-reported at the extent recorded in the link, never truncated to the region.
+The second concerns **extent**, and here we must separate two invariants of different
+strength, because the operation rests squarely on one and merely adopts the other.
 
-(That the *whole* endset is surfaced is the faithful reading we adopt here; an
+The load-bearing invariant is **no clipping (RE-CLIP)**: whatever span the answer
+reports, it reports at the full extent recorded in the link, never truncated to the
+region boundary. The reasoning is Nelson's, and it is decisive: clipping would
+*misrepresent the anchoring*. An endset whose span straddles the region boundary would be
+reported as a shorter span than the link actually attaches to — a falsehood about the
+link's grip. One searches *from* a region in order to learn the true shape of what
+attaches there, including how far it reaches beyond; to clip would be to answer that
+falsehood. So no reported span is ever shortened to fit the query, and this holds under
+*every* reading of the operation.
+
+The reading we *adopt* makes a stronger, separable commitment — **whole-endset surfacing
+(RE-WHOLE)**: we return `e = Σ.L(a).eᵢ` in full, *all* of its spans, not merely the slice
+of `e` whose spans fall inside `W`. A discontiguous endset is then surfaced with the spans
+pointing outside the region intact, since those are precisely the parts that say where
+else this anchoring lives. But this is a *convention*, not a forced consequence: an
 implementation that surfaces only the touching spans of a touching endset — economical,
-but volunteering less of the anchoring's true extent — is discussed under open questions.
-Either way, no span is *clipped*: whatever spans are reported are reported whole. That
-weaker invariant is the one both readings share, and the one we hold load-bearing.)
+volunteering less of the anchoring's extent — would still honour no clipping, violating
+only whole-endset surfacing. Whether entirety is demanded, or only the touching spans, is
+reopened as Open Question 1; we therefore hold RE-WHOLE **provisional** pending its
+resolution, while RE-CLIP stands firm under either answer.
 
 ## Soundness and completeness: the answer is exactly the touching anchoring
 
@@ -241,8 +248,14 @@ inhabit the store. The first, at address `ℓ₁`, is the standard triple
 - to-endset `e₂ = {(a₁, δ(1, #a₁))}` — with `coverage(e₂) = {t : a₁ ≼ t}`
   (PrefixSpanCoverage, ASN-0043), containing neither `a₂` nor `a₃` (both are siblings of
   `a₁`, not descendants);
-- type-endset `e₃ = {(θ, δ(1, #θ))}` — `θ` a classifying address disjoint from content
-  (`θ ∉ dom(Σ.C)`), non-empty as L3 demands.
+- type-endset `e₃ = {(θ, δ(1, #θ))}` — `θ` a classifying address drawn from a *type*
+  subspace distinct from the content subspace `s_C`, non-empty as L3 demands. Its coverage
+  `coverage(e₃) = {t : θ ≼ t}` (PrefixSpanCoverage, ASN-0043) is therefore disjoint from
+  content: every address extending `θ` carries `θ`'s element-subspace identifier — not the
+  content identifier `s_C` — so none is a content address (T7, ASN-0034). We record the
+  consequence the example needs: `coverage(e₃) ∩ dom(Σ.C) = ∅`. (Note this is a property of
+  the *coverage*, strictly stronger than `θ ∉ dom(Σ.C)`: a `θ` merely absent from `dom(Σ.C)`
+  — say a document-level prefix of `a₂` — could still satisfy `θ ≼ a₂` and so cover `a₂`.)
 
 The second, at a distinct address `ℓ₂ ≠ ℓ₁`, is `L₂ = (e₁, e₂′, e₃′)`: it carries the
 *same from-endset value* `e₁` in slot 1, which the non-injective store permits (L11b,
@@ -259,8 +272,8 @@ Run the touch test against each endset in play:
   it neither helps nor hinders the test.
 - `touch_W(e₂) = {t : a₁ ≼ t} ∩ {a₂} = ∅` — `e₂` reaches `a₁`, arranged at `[1,1] ∉ W`,
   and does not reach `a₂`; it **misses**.
-- `touch_W(e₃) = {t : θ ≼ t} ∩ {a₂} = ∅` — the type address is disjoint from content; it
-  **misses**.
+- `touch_W(e₃) = {t : θ ≼ t} ∩ {a₂} = ∅` — `a₂ ∈ dom(Σ.C)` and `coverage(e₃) ∩ dom(Σ.C) = ∅`,
+  so `a₂ ∉ coverage(e₃)`; it **misses**.
 
 The answer is therefore a single role-tagged endset,
 
@@ -272,10 +285,13 @@ and each of the operation's distinctive claims can be read off it directly:
   covers `a₃`, which the region does not. A single shared address, `a₂`, sufficed. Under a
   containment test (`coverage(e₁) ⊆ I`) the from-endset would have been wrongly discarded,
   precisely because it straddles the boundary.
-- **Unclipped extent (RE-CLIP).** The surfaced `e₁` is returned *entire* — the width-2
-  span `(a₂, δ(2, #a₂))`, reaching across `a₃` — not trimmed to the region. A clipping
-  implementation would have returned the width-1 span `(a₂, δ(1, #a₂))` covering `a₂`
-  alone, falsely shrinking the link's grip to fit the query.
+- **Unclipped extent (RE-CLIP).** The surfaced `e₁` is returned at its full recorded
+  extent — the width-2 span `(a₂, δ(2, #a₂))`, reaching across `a₃` — not trimmed to the
+  region. A clipping implementation would have returned the width-1 span `(a₂, δ(1, #a₂))`
+  covering `a₂` alone, falsely shrinking the link's grip to fit the query. (This endset is
+  single-span, so it exercises *no-clipping* (RE-CLIP), not whole-endset surfacing
+  (RE-WHOLE): both the whole-endset and touching-spans-only readings return this same
+  single span unclipped.)
 - **Per-endset surfacing (RE-OVL).** Only slot 1 appears. The to-endset `e₂` and the
   type-endset `e₃` of the very same link `L₁` miss the region and are absent; the link's
   from-end is reported without its to-end.
@@ -458,10 +474,18 @@ a faithful tracker:
 
 - *Deletion* of region content unmaps its I-addresses from `d`'s arrangement; the *region
   image* shrinks (F-IMG-CONTR, ASN-0127), and endsets that touched only through the
-  departed content cease to be surfaced. The link persists in the store, its endset
-  coverage unchanged — it is merely no longer reachable through `d`. It is *orphaned* from
-  this region (LP17, ASN-0098), not destroyed; should the content be re-arranged into `d`,
-  the endset is surfaced again (resurrection, LP18, ASN-0098).
+  departed content cease to be surfaced — the contracted image no longer meets their
+  coverage, so the touch test fails where it formerly held (the contraction direction of
+  LP10 and the discoverability characterisation LP12, ASN-0098). The link persists in the
+  store (L12, ASN-0043), its endset coverage unchanged; it is merely no longer reachable
+  *through this region of `d`*. This is a region-local loss of reach, **not** the global
+  *orphaning* of LP17 (ASN-0098), whose premise — that the content is reachable from *no*
+  document — a single-region deletion does not establish: the link may still touch other
+  regions of `d`, or be reachable from other documents. Should the content be re-arranged
+  into `d`, the region image grows again (F-IMG-MONO, LP9, ASN-0098) and the endset is
+  surfaced once more. The genuinely global *orphaning* of LP17 — and the *resurrection* of
+  LP18 (ASN-0098) on later re-arrangement — obtains only in the limiting case where the
+  departed content comes to be arranged by no document at all.
 
 - *Rearrangement* permutes the region's V-positions over the same content; the *region
   image*'s membership can swing (F-IMG-SWING, ASN-0127). This is the *only* way a
@@ -579,7 +603,8 @@ bore). Neither is a defect to be engineered away; both are what it
 | RE-LOC | Locality — for fixed `(W, d)`, `RE` is a function of `(Σ.M, Σ.L)` alone: it reads `Σ.M(d)` for the image and `Σ.L` for endsets and (via `nullified`) addressability; the content *values* `Σ.C`, the entity set `Σ.E`, and the provenance relation `Σ.R` are never consulted | introduced |
 | RE-UNIT | Anchoring without names — the answer's elements are `(role, endset)` pairs (anchoring structure), never link identities; the link address is withheld, distinct links sharing an endset value collapse to one pair, link multiplicity is not recoverable, and a surfaced from-endset cannot be paired with the to-endset of the same link | introduced |
 | RE-OVL | Overlap matching — an endset is surfaced iff at least one address it covers lies in the region's image (overlap, not containment); partial, single-address overlap suffices; the test is existential *within* an endset and applied *per-endset* against the one region, with no per-slot request differentiation | introduced |
-| RE-CLIP | Unclipped extent — a surfaced endset is reported entire, its spans at their full recorded coverage extent, never truncated to the region boundary; clipping would misrepresent the link's anchoring (a straddling or discontiguous endset would be falsified) | introduced |
+| RE-CLIP | No clipping (load-bearing) — no reported span is ever truncated to the region boundary; every surfaced span is reported at the full extent recorded in the link. This is universal across both the whole-endset (RE-WHOLE) and touching-spans-only readings; clipping would misrepresent the link's grip (a straddling span would be falsely shortened) | introduced |
+| RE-WHOLE | Whole-endset surfacing (adopted convention) — the reading adopted here returns a surfaced endset in full, *all* of its spans (not only those intersecting `W`), so a discontiguous endset retains the spans pointing outside the region. This is a convention, not a forced consequence of RE-CLIP: a touching-spans-only implementation would still satisfy RE-CLIP while violating RE-WHOLE. Held **provisional** pending Open Question 1 | introduced (provisional) |
 | RE-BND | Boundary cases — `RE(W, d, Σ) = ∅` whenever the image is empty (`W ∩ dom(Σ.M(d)) = ∅`, in particular a freshly registered document with empty arrangement) or `addressable(Σ) = ∅` (no links, or all nullified); and an empty endset slot (`∅`, admitted in non-type slots by ASN-0043, only the type-slot non-empty per L3) has `coverage(∅) = ∅`, so `touch_W(∅)` is false and it is never surfaced | introduced |
 | RE-SND | Soundness — `(i, e) ∈ RE(W, d, Σ) ⟹ e` is a genuine slot-`i` endset of an addressable link ∧ `touch_W(e)`; no anchoring is fabricated and none is reported that does not genuinely reach the region (no false positives) | introduced |
 | RE-CMP | Completeness — every addressable link `a` and slot `i` with `touch_W(Σ.L(a).eᵢ)` has `(i, Σ.L(a).eᵢ) ∈ RE(W, d, Σ)`; the answer is *exactly* the touching set, with no silent omission, whether reached by native or transcluded content | introduced |
@@ -588,7 +613,7 @@ bore). Neither is a defect to be engineered away; both are what it
 | RE-EXST | Existence-of-anchoring deliverable — by withholding identity the answer certifies the *presence and shape* of anchoring without making it followable; the foundation's existence/discovery axis (query mode: fixed vs arrangement-resolved) and the designer's existence/discovery axis (deliverable: structure vs named-and-followable) are orthogonal — RE is discovery on the first, existence-of-anchoring on the second | introduced |
 | RE-TRANS | Transclusion blindness — surfacing is by content identity, independent of the link's home and of the covered content's origin (LP16, ASN-0098): a link reaching the region only through transcluded content is surfaced identically to one reaching native content, and each returned span describes the content's permanent home identity, not the borrowing V-position | introduced |
 | RE-IDENT | Content-identity invariance — each surfaced endset's coverage is permanent (L12, ASN-0043; LP3, ASN-0098), so the content-level answer (which I-addresses each surfaced endset anchors to) is arrangement-independent, even though the *selection* of which endsets are surfaced is arrangement-mediated | introduced |
-| RE-EDIT | Present-tense stability under editing — the answer tracks `d`'s current arrangement, the touch test composing on top of the region image: insertion surfaces newly-reachable anchoring (region image grows, F-IMG-MONO, ASN-0127), deletion orphans anchoring whose content departs the region (region image shrinks, F-IMG-CONTR, ASN-0127; orphaning LP17, resurrection LP18, ASN-0098), rearrangement swings the *membership* of surfaced `(i, e)` pairs via the image swing (F-IMG-SWING, ASN-0127) while every surfaced endset's spans remain invariant — footprint fragmentation is a V-order *display* effect (ASN-0082), deferred to the rendered mode of open question 3, not a change to this content-identity answer; content identity is preserved throughout; edits to other documents leave the answer fixed (LP5, ASN-0098), as does content allocation `K.α` (LP6, ASN-0098) | introduced |
+| RE-EDIT | Present-tense stability under editing — the answer tracks `d`'s current arrangement, the touch test composing on top of the region image: insertion surfaces newly-reachable anchoring (region image grows, F-IMG-MONO, ASN-0127), deletion drops anchoring whose content departs the region (region image shrinks, F-IMG-CONTR, ASN-0127; the contracted image no longer meets the coverage, so the touch test fails — LP10, LP12, ASN-0098 — the link nonetheless persisting, L12, ASN-0043, and re-surfaced on re-arrangement, F-IMG-MONO/LP9, ASN-0098), a region-local loss of reach, *not* the global orphaning/resurrection of LP17/LP18 (ASN-0098), whose premise of reach from no document a single-region deletion does not meet; rearrangement swings the *membership* of surfaced `(i, e)` pairs via the image swing (F-IMG-SWING, ASN-0127) while every surfaced endset's spans remain invariant — footprint fragmentation is a V-order *display* effect (ASN-0082), deferred to the rendered mode of open question 3, not a change to this content-identity answer; content identity is preserved throughout; edits to other documents leave the answer fixed (LP5, ASN-0098), as does content allocation `K.α` (LP6, ASN-0098) | introduced |
 | RE-RET | Retraction stability — retraction removes link `ℓ` from `addressable(Σ)` permanently (R6a, ASN-0086); but the answer deduplicates `(role, endset)` pairs and discards link identity (RE-UNIT), so a pair `(i, e)` that `ℓ` bore leaves the answer **iff `ℓ` was its sole addressable bearer** — a pair still borne by another live link persists, and an identical pair value may re-enter via a freshly emitted, distinctly-identified link (R6c, ASN-0086); link-level permanence (R6a) is not pair-value-level permanence | introduced |
 | RE-CWP | Contraction-stability weakest precondition — for a `K.μ⁻[d, R]` step, `RE(W, d, ·) = RE(W, d, Σ)` iff `enabled(K.μ⁻[d, R]) ∧ (∀ (i, e) ∈ Avail(Σ) : coverage(e) ∩ Δ ≠ ∅ ⟹ coverage(e) ∩ I_R ≠ ∅)`, where `I_R = {Σ.M(d)(v) : v ∈ W ∩ R}` (D-CWP bridge, ASN-0127), `Δ = image(W, d, Σ) ∖ I_R`, and `Avail(Σ)` is the region-independent pool of addressable slot-endsets; `RE` is monotone-decreasing under contraction (`RE(W, d, Σ') ⊆ RE(W, d, Σ)`), the condition is strictly finer than D-CWP's per-link condition, and `R = ∅` collapses it to `RE(W, d, Σ) = ∅` | introduced |
 | RE-DET | Determinism — `RE(W, d, Σ)` is a function of `(W, d, Σ)`; with no intervening state change the same region query returns the same anchoring, so every change in the answer is the image of a change in `Σ` | introduced |
