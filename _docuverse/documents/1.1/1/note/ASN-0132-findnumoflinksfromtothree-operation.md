@@ -363,10 +363,9 @@ content, now at a shifted position — submits a *different* request, because th
 against the edited arrangement yields different addresses. The count of that different
 request may differ. What CN-STAB guarantees is that the link's *membership* in a *given*
 description is stable; what it does not guarantee, and should not, is that two different
-descriptions return the same number. This is the resolution principle of the opening
-remark, applied to editing: any apparent movement under re-phrasing lives in the
-resolution, never in the count, so a rearrangement that preserves addresses leaves every
-address-phrased count exactly invariant.
+descriptions return the same number. By that same resolution principle of the opening
+remark, a rearrangement that preserves addresses leaves every address-phrased count exactly
+invariant; any apparent movement is the request re-resolving, not the link.
 
 ## Retraction and permanence
 
