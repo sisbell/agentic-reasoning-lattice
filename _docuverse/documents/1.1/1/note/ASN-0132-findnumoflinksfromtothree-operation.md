@@ -458,8 +458,10 @@ is exactly the FL-WP(a) condition of ASN-0121 (which carries that second conjunc
 for a fresh ordinary link), not a weakening of it. Under the unit-depth retraction
 discipline (ASN-0086) the second conjunct is automatic, and the precondition collapses to
 `sat(ℓ, q, Σ')`: a unit-depth retraction's to-coverage is a prefix subtree `{s : t ≼ s}`,
-so `ℓ ∈ coverage(G')` would force `t ≼ ℓ`; but `t ∈ dom(Σ.L)` and `ℓ ∈ dom(Σ'.L)` with
-`dom(Σ'.L)` a prefix antichain (R0a, ASN-0086) forces `t = ℓ`, contradicting freshness. The
+so `ℓ ∈ coverage(G')` would force `t ≼ ℓ`; but `t ∈ dom(Σ.L) ⊆ dom(Σ'.L)` (link-store
+monotonicity, L12a ASN-0043 / Store Monotonicity★ ASN-0098) and `ℓ ∈ dom(Σ'.L)`, so R0a
+applied to `dom(Σ'.L)` — a prefix antichain (ASN-0086) — forces `t = ℓ` from `t ≼ ℓ`,
+contradicting freshness. The
 census grows by precisely the links that are made, match, and are not born
 already-retracted, and shrinks by precisely the matching links that are withdrawn; it moves
 under nothing else.
