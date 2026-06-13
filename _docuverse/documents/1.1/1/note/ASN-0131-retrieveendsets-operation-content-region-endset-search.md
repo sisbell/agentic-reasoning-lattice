@@ -571,27 +571,6 @@ fixed (`L' = L`), so the available pool does not move either. It is the one arra
 on `d` that cannot perturb a content-region answer, and the content-subspace restriction is
 exactly what secures it.
 
-The full taxonomy of what moves the answer is then a classification by channel. A
-*content-subspace* arrangement edit to `d` — insertion `K.μ⁺` (content-only by amendment,
-ASN-0047), a content-subspace deletion `K.μ⁻`, or rearrangement `K.μ~` — changes `RE`
-*through the image*. Two arrangement edits on `d`, by contrast, leave a content-region answer
-fixed: the link-subspace extension `K.μ⁺_L`, which adds only an `s_L` V-position outside `W`
-and frames `Σ.L` (just shown), and a *link-subspace-only* contraction `K.μ⁻` (one retaining
-every content position, `n'_{s_C} = n_{s_C}`, while dropping only link positions,
-`n'_{s_L} < n_{s_L}`, ASN-0047), which leaves `W ∩ dom(Σ.M(d))` and hence the image
-untouched. `K.μ⁻` is thus dual-natured for a content region: it moves the answer when it
-contracts the content subspace and leaves it fixed when it contracts only the link subspace.
-A link emission (`K.λ`) whose coverage meets the present image may *add* a pair *through
-`Σ.L`* (a new live link enters `sel`); and a retraction, being itself a `K.λ`
-(Nullify = Emit_R, ASN-0086), is the one transition that may remove pairs *via the
-addressable population* — the `Σ.L` channel: it marks its target nullified, dropping it from
-`addressable`. The two removal channels are distinct — a content-subspace `K.μ⁻` removes
-through the image, a retraction through the population — and the population channel is sound
-because `addressable = dom(Σ.L) ∖ nullified` can lose a member only when a retraction enlarges
-`nullified`: `dom(Σ.L)` only grows (L12a, ASN-0043) and `nullified` only grows (R6a,
-ASN-0086). Finally `K.α`, `K.δ`, `K.ρ`, together with edits to documents other than `d`,
-leave `RE` fixed.
-
 **The weakest precondition for contraction-stability.** The qualitative tracking above can
 be made exact for one editing motion — a deletion. Fix a `K.μ⁻[d, R]` step on the queried
 document: a contraction retaining exactly the arrangement positions in the retention set
@@ -646,8 +625,11 @@ the population. Withdrawing `ℓ` is realised as `Nullify(Σ, d_retr, ℓ) ≡ E
 ∅, {(ℓ, δ(1, #ℓ))})` (ASN-0086), and `Emit_R` *is* a `K.λ` step (Emit_K, ASN-0086): it
 emits a fresh **retraction link** `b`, with `Σ'.L(b) = (∅, {(ℓ, δ(1, #ℓ))}, Θ)` — writing
 `Θ` for ASN-0086's designated retraction type, kept distinct from the retention set `R` of
-the contraction analysis above — that enters `dom(Σ'.L)` and is itself addressable in `Σ'`
-(`b ∉ nullified(Σ')`). So a single retraction
+the contraction analysis above — that enters `dom(Σ'.L)` and is itself addressable in `Σ'`.
+Its addressability — `b ∉ nullified(Σ')` — is not free: it holds because no pre-existing
+retraction to-set covers the fresh emitter (the vacuity of `wp` Case 2's third conjunct
+under ASN-0086's unit-depth retraction discipline and R0a/FlatLinkDomain), and `b`'s own
+unit-depth to-set covers `ℓ`, not `b` (`ℓ ≠ b`, both in the flat antichain). So a single retraction
 does two things at once — it removes `ℓ` from `addressable` (through the nullified marking)
 *and* adds the emitter `b` to it. We must ask what the emitter `b` can contribute. Its three
 endsets are the empty from-set `∅`, a to-set `{(ℓ, δ(1, #ℓ))}` whose single span covers `ℓ`
