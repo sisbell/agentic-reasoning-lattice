@@ -419,7 +419,13 @@ Both are finite (L-fin) relations on `dom(Σ.L)`, with
 `succ_o(Σ) ⊆ succ_h(Σ)`. Restricting the comprehension to `Ŝ^Σ` keeps the
 relations total at *every* reachable state, not only disciplined ones: the
 accessors are undefined on a non-conforming `[K_sup]`-class tuple — multi-span,
-or covering several link addresses or none — and a bare `K.λ` can emit one.
+or covering several link addresses or none — and at a full-substrate-reachable
+state outside the editing layer, where Df-LAY's confinement does not apply, a
+full-vocabulary `K.λ` (one not routed through the editing-layer discipline) can
+emit one. (Df-LAY's *bare* `K.λ` cannot: it is confined to original-link
+creation, slot-3 coverage neither `coverage(K_sup)` nor `coverage(R)`. The
+totality concern is precisely the states the editing layer does not govern; at
+editing-layer-reachable states every claim conforms and `Ŝ^Σ = S^Σ`, EL4.)
 
 **EL5 (RecordMonotonicity).** For every `Σ →* Σ'`:
 
