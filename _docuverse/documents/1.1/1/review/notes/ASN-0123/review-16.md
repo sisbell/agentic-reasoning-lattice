@@ -1,0 +1,29 @@
+# Review of ASN-0123
+
+I checked the apparatus (VN-B1, SA, Z-mono, nextv, PS), the validity argument (V-WF), and every numbered claim V0–V13 including the severance proof (V9). The proofs are, with one exception below, complete and correctly grounded in the foundations. Specifically I verified:
+
+- **VN-B1** — the induction over K.δ correctly rules out node/`k=2`/`k=1`/`k=0` mis-arrivals (penultimate-component and length arguments hold); contiguity is established without ASN-0040's global B1, and `nextv = c_{hwm+1}` is reconstructed from VN-B1 + S0 without B2's unavailable global precondition. Sound.
+- **SA** — the antichain proof correctly drives `zeros(d') ≥ 3` from a swallowed separator. Sound, and load-bearing for G2/V10.
+- **V9 severance** — the assume-`d_src ≼ v` contradiction closes both Covering-chain branches via O5(ii), O1b, Z-mono+O1a, and O2 maximality. Airtight.
+- **V8 / PS** — coverer-set equality and the re-derivation of registry coverage (`pfx(π₀) ≼ n₀ ≼ e` by the position-1 induction) correctly make `ω` total over ASN-0047 states; O2's uniqueness argument is consumed legitimately.
+- **V-WF** — ValidComposite★ clauses 1 and 2 are discharged step-by-step; delegating per-state invariants to ExtendedReachableStateInvariants is the right move.
+- **V9w** — the load-bearing role of P-bdy (P4★ may fail at interiors) is correctly identified and argued.
+
+The two worked instances are correct (I re-checked `a₁ ⋠ a₂`, `|A| = 2 < n = 3`, the `{[1,1],[1,3]}` projection). Scope is respected; the open questions are genuinely future-facing.
+
+## REVISE
+
+### Issue 1: The cross-owner branch — the ASN's most novel postconditions — is never exercised against a concrete instance
+
+**ASN-0123, worked instances vs. V9 / V9w**: Both worked instances (the addressing instance `d = 1.1.0.1.0.1 → …1.1 → …1.2`, and the link carry-through instance) exercise the **owned** fork exclusively — `v = nextv(E, d_src) ∈ S(d_src, 1)`, `trunc(v) = d_src`. The **cross-owner** branch is verified by no specific scenario, despite carrying the ASN's most surprising claims: the severance theorem V9(a) (`¬(d_src ≼ v)`, billed as "a theorem, not a design choice"), the single-identity mint under the account-tier restriction (V0/V1), the placement of `v` in `π`'s *own* namespace, and V9w's dual provenance over addresses that are now structurally *severed* from the source.
+
+**Problem**: The rubric makes concrete verification of key postconditions mandatory ("Depth is mandatory"; "verify its key postconditions against at least one specific scenario"). The owned-fork instances exercise none of the cross-owner mechanics — every digit in them satisfies `d_src ≼ v`, the exact opposite of what severance asserts. A reader is asked to accept the centerpiece theorem and the qualitatively distinct allocation path (a fresh document in a *different* account's namespace, no `trunc` relationship, attribution surviving only through symmetric `R`-rows) on proof alone, with no instantiation that would catch a slip in the construction or make the severed geometry legible. The immediately preceding revision added an owned-fork carry-through instance for V2/V9w/V10/V13; the parallel obligation for the cross-owner postconditions is outstanding.
+
+**Required**: A brief cross-owner worked instance with concrete tumblers — e.g. `d_src = 1.1.0.1.0.1` owned by account `1.1`, forked by account `1.2` (`zeros(pfx(π)) = 1`, `π ≠ ω(d_src)`), producing `v` under `1.2`'s document namespace (some `1.2.0.k`) — checking against the result: (V9a) `¬(d_src ≼ v)` exhibited at the divergence position; (V0/V1) exactly one identity minted, `C' = C ∧ L' = L`; (V9) `ω'(v) = π`; and (V9w) `{(a, d_src), (a, v)} ⊆ R'` for a shared content address `a`, with `a`'s digits unchanged (the same `a₁`/`a₂` would serve) so that carry-through (V10) still lands even though `d_src ⋠ v`. This would close the concrete-verification gap for the branch where the ASN's hardest guarantees live.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Concurrent forks, source-tracking windows, withdrawal, and version-comparison
+**Why out of scope**: The eight Open Questions (interleaving at the K.δ/K.μ⁺ interior, location-fixed windowing, supersession under permanence, symmetric-witness orientation, etc.) are correctly future territory, not defects in this ASN. The interior-observability concern is honestly flagged rather than papered over, and the ASN explicitly declines to lean on the strictly-stronger interior-unobservability convention. No action.
+
+VERDICT: REVISE
