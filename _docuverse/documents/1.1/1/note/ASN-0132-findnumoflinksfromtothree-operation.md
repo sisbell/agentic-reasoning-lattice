@@ -61,15 +61,8 @@ them.
 > The operation reads `Σ` and returns a natural number; its frame is `Σ` — it writes
 > nothing, mutating no component of the state. Counting is observation, not transition.
 
-Two things deserve immediate emphasis. First, the definition is phrased *through `sat`*,
-not through the enumeration operation. We did not write "`countlinks_FTT(q, Σ) =
-|findlinks_FTT(q, Σ)|`," though that equation is true (we prove it below). To define the
-count as "the length of what the find returns" would make one operation conceptually
-subordinate to the other, and would turn their agreement into a theorem we must re-prove
-every time either is edited. Defining both as views of the one set `{a : a ∈
-addressable(Σ) ∧ sat(a, q, Σ)}` makes the agreement structural. Second, the definition
-quantifies over `addressable(Σ)`, so a withdrawn link is excluded before it is ever
-weighed against the four sets.
+One point deserves immediate emphasis: the definition quantifies over `addressable(Σ)`,
+so a withdrawn link is excluded before it is ever weighed against the four sets.
 
 **Well-definedness.** We must establish that the argument of `|·|` lies in the domain of
 cardinality — that the counted set is finite. It is. The set
@@ -137,9 +130,7 @@ documents' arrangements, the content itself stored once (ASN-0058, ASN-0036). It
 link address to `Σ.L`. By CN-LOC the count never consults `Σ.M`, so the `N` documents are
 structurally invisible to it; `a` is one address in `Σ.L`, counted once. The quantity that
 grows with sharing — *how many documents reach the content* — is a count of documents, not
-of links, and is measured by an operation over `Σ.M`, not by this one. This is the whole
-content of CN-UNIT clause (b): a consequence of CN-LOC, carrying nothing beyond it, and so
-needing no claim of its own.
+of links, and is measured by an operation over `Σ.M`, not by this one.
 
 This is exactly the conflation Nelson warns against: "many documents" is real, but it is
 attached to the wrong noun. The link is one; what proliferates is the set of windows onto
@@ -192,24 +183,18 @@ We have now defined two operations over the same satisfaction relation: the enum
 count `countlinks_FTT(q, Σ) = |{a ∈ addressable(Σ) : sat(a, q, Σ)}|` (CN-DEF). Neither
 mentions the other; both bottom out at `sat`.
 
-> **CN-SHARED (the match-description lives in the satisfaction relation).** The four-set
-> matching criterion is `sat` (ASN-0121), a predicate on a link, a request, and a state.
-> The enumeration is the *set* it carves out; the count is the *size* of that set. The
-> specification of each is a query over `sat`; the specification of neither appeals to the
-> behaviour of the other.
-
-This factoring is what makes the relationship between count and enumeration a theorem
-rather than an obligation.
-
 > **CN-ENUM (count is the cardinality of the enumeration, at one state).**
 >
 >   `countlinks_FTT(q, Σ) = |findlinks_FTT(q, Σ)|`,
 >
 > because both sides are the cardinality of the single set `{a ∈ addressable(Σ) :
-> sat(a, q, Σ)}` — the right side by FL-DEF (ASN-0121), the left by CN-DEF. The equality
-> is not stipulated; it is the observation that the two operations are the size and the
-> contents of one set. There is exactly one set, so the count and the enumeration cannot
-> drift apart.
+> sat(a, q, Σ)}` — the right side by FL-DEF (ASN-0121), the left by CN-DEF. The four-set
+> matching criterion lives once, in `sat`; each operation is a query over it — the
+> enumeration the *set* `sat` carves out, the count the *size* of that set — and this
+> shared factoring is what makes their agreement a theorem rather than an obligation. The
+> equality is not stipulated; it is the observation that the two operations are the size
+> and the contents of one set. There is exactly one set, so the count and the enumeration
+> cannot drift apart.
 
 The qualifier *at one state* is essential and is the whole content of the consistency
 guarantee. The equality holds whenever both sides are evaluated against the *same* `Σ`.
@@ -224,12 +209,10 @@ discipline, not of either operation. The operations themselves guarantee single-
 agreement and nothing stronger, because there is nothing stronger to guarantee about two
 measurements of a changing quantity.
 
-*Implementation note.* Gregory's back end computes the count by invoking the *same*
-matching routine the enumeration invokes, taking its materialised result, and reporting
-its length. There is one matching routine, shared; the count carries no private copy of
-the four-set logic that could drift from the enumeration's. This is the implementation's
-realisation of CN-SHARED, and it makes single-state agreement automatic at the level of
-code, for the same reason CN-ENUM makes it automatic at the level of specification.
+*Implementation note.* That same realisation drives the count and the enumeration through
+one shared matching routine, so the count carries no private copy of the four-set logic
+that could drift from the enumeration's — hence single-state agreement holds at the level
+of code, as CN-ENUM makes it hold at the level of specification.
 
 ## What a count of zero asserts
 
@@ -302,14 +285,8 @@ stored, are immutable (S0, ASN-0036); link values, once created, are fixed (L12,
 ASN-0043). A count is none of these. It is not an identity, not a content value, not a
 link value — it is the size of a query's answer, and the system makes no promise to honour
 a stale size. The discipline this implies is *recompute-on-read*, not *cache-as-truth*:
-the only way to know the current count is to take it again.
-
-Permanence guarantees what exists and can be found again; a count is recomputed per
-inquiry. That the docuverse keeps everything it ever created does *not* mean it keeps every
-count it ever reported — permanence is a promise about *what exists*, a count a promise
-about *how many satisfy, right now*. The first is honoured at the level of the store; the
-second is recomputed at each inquiry. Both are kept, and they are kept by being different
-kinds of statement.
+permanence is a promise about *what exists*, a count a promise about *how many satisfy
+right now*, and the only way to know the current count is to take it again.
 
 *Implementation note.* Because that same realisation recomputes rather than caches, two
 inquiries separated by a mutation observe two states and may return different numbers; there
@@ -393,8 +370,10 @@ The complementary direction — growth — is governed by the same per-link logi
 
 > **CN-MONO (monotone accumulation absent retraction).** Across any `Σ →* Σ'` in which no
 > currently-counted link becomes nullified, `countlinks_FTT(q, Σ) ≤ countlinks_FTT(q, Σ')`,
-> and each newly created link that satisfies `q` and is addressable increments the count by
-> exactly `1`.
+> and each newly created *ordinary* link that satisfies `q` and is addressable increments
+> the count by exactly `1`; a newly created *retraction* link that satisfies `q` and is
+> addressable likewise increments it by `1`, under the stronger precondition FL-WP(b)
+> (ASN-0121) records.
 
 This is the cardinality of FL-MON (ASN-0121): a matching, non-withdrawn link stays in the
 satisfying set as the store grows, so the count cannot fall. That link creation is the only
@@ -441,10 +420,19 @@ discipline (ASN-0086) the second conjunct is automatic, and the precondition col
 `sat(ℓ, q, Σ')`: ASN-0086's disciplined-domain simplification (wp Case 2) — resting on the
 prefix-antichain structure of the link domain (R0a, ASN-0086) — already establishes that a
 freshly emitted link address lies in no standing retraction tuple's to-coverage, so we
-inherit that conclusion rather than re-deriving it here. The
-census grows by precisely the links that are made, match, and are not born
-already-retracted, and shrinks by precisely the matching links that are withdrawn; it moves
-under nothing else.
+inherit that conclusion rather than re-deriving it here.
+
+The companion case is a fresh *retraction* link. `Nullify ≡ Emit_R` is itself a `K.λ` step
+(ASN-0086), so a retraction tuple too can satisfy `q` and be counted — its empty from-endset
+simply drops out under a from-wildcard, as the worked example's `a_R` will show. Its
+increment is governed not by FL-WP(a) but by FL-WP(b) (ASN-0121): because creating it
+*grows* `L_R^{Σ'}` rather than leaving it fixed, the precondition carries an additional
+*self-retraction* conjunct requiring the fresh address to lie outside its own to-coverage,
+without which the tuple would nullify itself on arrival and be excluded from
+`addressable(Σ')`. With both `K.λ` cases in hand, the census grows by precisely the links —
+ordinary or retraction — that are made, match, and are addressable at the post-state, and
+shrinks by precisely the matching links that are withdrawn; it moves under nothing else,
+`K.λ` being the only count-changing transition (CN-STAB).
 
 A note on what retraction does *not* undo. Nullifying a link removes it from the active
 count, but it does not restore any link the retracted one had itself withdrawn; a retracted
@@ -477,8 +465,9 @@ structure; surfacing it is the front end's separate job, governed by the arrange
 layer.
 
 This explains, finally, the asymmetry we deferred. A link can be counted yet not
-discoverable; the count is a *superset* of what any document surfaces (the cross-document
-reach FL-REACH, ASN-0121, made a cardinality). The gap is exactly the orphans. And it is
+discoverable; the counted *set* is a superset of what any document surfaces (the
+cross-document reach FL-REACH, ASN-0121), so the count is at least the number of links any
+one document surfaces. The gap is exactly the orphans. And it is
 not permanent in either direction: an orphan becomes discoverable the moment some
 arrangement is extended to reach its content (resurrection, LP18, ASN-0098). But note what
 that resurrection does *not* do — it does not change the count, because the link was
@@ -644,12 +633,13 @@ cardinality of the satisfying set), not *how much it costs*. Cost-asymmetry is a
 implementation may provide; it is not a property the answer must have, and so it is not
 among the claims below.
 
-*Implementation note.* Gregory's back end does *not* realise the asymmetry: that same
-full-enumeration realisation computes the count, so asking "how many?" costs what asking
-"which ones?" costs. This is a faithful implementation of the *value* CN-DEF specifies and an
-unrealised opportunity with respect to the *cost* aspiration. It confirms the position taken here: the
-number is determined by the specification, the price is left to the implementation, and a
-back end is free to pay full enumeration cost for a cardinality without being wrong.
+*Implementation note.* That same realisation does *not* exploit the asymmetry — it pays
+full enumeration cost for the cardinality, so asking "how many?" costs what asking "which
+ones?" costs. This is a faithful implementation of the *value* CN-DEF specifies and an
+unrealised opportunity with respect to the *cost* aspiration. It confirms the position
+taken here: the number is determined by the specification, the price is left to the
+implementation, and a back end is free to pay full enumeration cost for a cardinality
+without being wrong.
 
 ## Claims Introduced
 
@@ -658,14 +648,13 @@ back end is free to pay full enumeration cost for a cardinality without being wr
 | CN-DEF | (DEF) `countlinks_FTT(q, Σ) ≡ \|{ a : a ∈ addressable(Σ) ∧ sat(a, q, Σ) }\|`; the operation reads `Σ`, returns ℕ, and has frame `Σ` (writes nothing); defined through the shared relation `sat` (ASN-0121), not through the enumeration operation; well-defined because the counted set is a finite, computable subset of `dom(Σ.L)` (L-fin ASN-0093, FL-DEC ASN-0121) | introduced |
 | CN-LOC | (LEMMA) Link-store locality — for fixed `q`, `countlinks_FTT(q, Σ)` is a function of `Σ.L` alone; `Σ.C`, `Σ.M`, `Σ.E`, `Σ.R` are never consulted (from FL-LOC, ASN-0121) | introduced |
 | CN-UNIT | (THM) The unit is link identity — each addressable satisfying link contributes exactly `1`, independent of anchoring (endset span/address) multiplicity, transclusion multiplicity, arrangement-appearance multiplicity, and version-refraction multiplicity | introduced |
-| CN-SHARED | (META) The four-set match-description lives once in `sat` (ASN-0121); both the count and the enumeration are queries over `sat`, and neither operation's specification appeals to the other | introduced |
 | CN-ENUM | (THM) `countlinks_FTT(q, Σ) = \|findlinks_FTT(q, Σ)\|` — count equals enumeration length at a single state, structurally (both are the cardinality of one set), and may differ across distinct states evaluated by separate inquiries | introduced |
 | CN-ZERO | (THM) `countlinks_FTT(q, Σ) = 0 ⟺ (A a : a ∈ addressable(Σ) : ¬sat(a, q, Σ))` — a positive present-store existential (no addressable link satisfies `q`), distinct from "not found" (excluded by FL-JUNK) and "not displayed" (excluded by CN-LOC); a degenerate empty-coverage request also yields `0` (FL-EMP) but asserts only that the request names nothing | introduced |
 | CN-SNAP | (THM) The count is a measurement of `Σ`, recomputed per inquiry, recorded in no state component; it may change under any mutation and the specification imposes no obligation that a prior count remain valid (recompute-on-read) | introduced |
 | CN-STAB | (THM) For fixed `q`, any link-store-preserving transition (content insertion/deletion/rearrangement, content allocation, provenance recording — F-PRES ASN-0127) leaves the count invariant; in particular a reverse-orphaned link still contributes to a home-bounded count, residence being a projection of the permanent address | introduced |
 | CN-RETRACT | (THM) A nullified link contributes `0` to every count immediately and permanently (R6a ASN-0086, FL-RET ASN-0121) while remaining in `dom(Σ.L)` with fixed value (L12 ASN-0043); the count ranges over the active view `addressable(Σ)`, reconciling immediate exclusion with store permanence | introduced |
-| CN-MONO | (THM) Absent retraction of counted links, the count is non-decreasing across `Σ →* Σ'`, and creating a fresh ordinary link increments it by `1` iff that link satisfies `q` and is not already retraction-covered (`wp(create ℓ, Δcount = +1) = sat(ℓ, q, Σ') ∧ ¬(E (b, F', G') ∈ L_R^Σ :: ℓ ∈ coverage(G'))` — the FL-WP(a) conjunct of ASN-0121; automatic under the unit-depth retraction discipline, R0a ASN-0086, where it collapses to `sat(ℓ, q, Σ')`) | introduced |
-| CN-ORPHAN | (THM) A satisfying addressable link is counted regardless of whether any arrangement surfaces it (`discoverable_from` irrelevant); the count is an existence census over `addressable(Σ)`, a superset of what any document surfaces, with the gap being exactly the orphans | introduced |
+| CN-MONO | (THM) Absent retraction of counted links, the count is non-decreasing across `Σ →* Σ'`; creating a fresh *ordinary* link increments it by `1` iff that link satisfies `q` and is not already retraction-covered (`wp(create ℓ, Δcount = +1) = sat(ℓ, q, Σ') ∧ ¬(E (b, F', G') ∈ L_R^Σ :: ℓ ∈ coverage(G'))` — the FL-WP(a) conjunct of ASN-0121; automatic under the unit-depth retraction discipline, R0a ASN-0086, where it collapses to `sat(ℓ, q, Σ')`), and a fresh *retraction* link increments under FL-WP(b)'s stronger self-retraction precondition; `K.λ` is the only count-changing transition | introduced |
+| CN-ORPHAN | (THM) A satisfying addressable link is counted regardless of whether any arrangement surfaces it (`discoverable_from` irrelevant); the count is an existence census over `addressable(Σ)` whose counted set is a superset of what any document surfaces, the gap being exactly the orphans | introduced |
 | CN-OBT | (THM) `countlinks_FTT(q, Σ) = N` asserts that `N` satisfying links exist in the addressable store at `Σ`; it does not warrant that those links are deliverable on demand | introduced |
 
 ## Open Questions
