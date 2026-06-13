@@ -107,17 +107,17 @@ extensionality a set contains each member once, so the cardinality counts *disti
 addresses* — distinct link identities. A link's identity is its address `a ∈ dom(Σ.L)`,
 fixed at creation and permanent thereafter (L12, ASN-0043): the address neither moves nor
 is reissued. The census counts identities, and each qualifying identity contributes
-exactly one. The competing units — anchorings and appearances — are ruled out, each by a
-distinct property, and it is worth walking the three cases rather than asserting the
-conclusion.
+exactly one. The competing units — anchoring, transclusion, appearance, and version-refraction — are
+ruled out, each by a distinct property, and it is worth walking the four cases rather than
+asserting the conclusion.
 
 > **CN-UNIT (the unit of counting is link identity).** For every request `q` and state
 > `Σ`, each `a ∈ addressable(Σ)` with `sat(a, q, Σ)` contributes exactly `1` to
 > `countlinks_FTT(q, Σ)`, and each `a` with `¬sat(a, q, Σ)` or `a ∉ addressable(Σ)`
 > contributes `0`. The contribution of a link is independent of (a) the number of spans
 > or addresses its endsets reference, (b) the number of documents through which its
-> endpoint content is reachable, and (c) the number of arrangement positions at which it
-> surfaces.
+> endpoint content is reachable, (c) the number of arrangement positions at which it
+> surfaces, and (d) the number of versions into which the documents it touches refract.
 
 *(a) Anchoring multiplicity does not multiply the contribution.* Whether `a` is in the
 counted set is the truth value of `sat(a, q, Σ)`, a single Boolean. Its from-clause is
@@ -154,7 +154,23 @@ CN-LOC, `discoverable_from` does not enter the count. Display and surfacing are 
 concerns; the back-end census counts what is *stored and owned*, not what a viewer is
 *shown*.
 
-The three cases share a shape: each rejected unit is an `Σ.M`-quantity or an inside-`touch`
+*(d) Version-refraction multiplicity does not multiply the contribution.* A document may be
+forked into many versions, and the design has a link *refract* across them — a link made
+against one version reaches the corresponding places in all, so "a link to one version of a
+document is a link to all versions." One might fear this mints a distinct link per version.
+It does not. The fork composite (J4, ASN-0047) allocates the new version and populates its
+arrangement over the *content* subspace alone — its V-to-I step ranges over `V_{s_C}`, and
+by "no other elementary steps" it performs no link allocation (`K.λ`) and no link-subspace
+extension — so a link homed at the source yields *no* copy at the new version, and `Σ.L` is
+untouched by forking. A link's identity is its single address (L12, ASN-0043), and the
+version DAG does not multiply it. What "refraction into many versions" actually denotes is
+that each version, sharing the source's content I-addresses, *surfaces* the same one link;
+that is appearance multiplicity (c) over a family of documents that happen to be versions,
+already excluded by CN-LOC because the count never reads `Σ.M`. Versions are therefore not a
+fourth independent unit but a special case of the third — the link is one address, stored
+once, counted once, however many versions refract it.
+
+The four cases share a shape: each rejected unit is an `Σ.M`-quantity or an inside-`touch`
 quantity, and CN-LOC excludes the former while the existential structure of `touch`
 absorbs the latter. The count is keyed to identity because the satisfying *set* is keyed
 to identity.
@@ -572,6 +588,43 @@ census is the *maximum* any request attains over a fixed store, just as the empt
 zero (FL-EMP) is the minimum. Our `q` sits between them: from-set `F` admits `a₁` and `a₃`,
 declines `a₄` (disjoint) and `a_R` (empty), and never sees `a₂` (withdrawn).
 
+The home-set, wildcard in every request so far, exercises the one structurally distinct
+slot — `liftH(a, H) ≡ athome(a, H) ≡ home(a) ∈ coverage(H)`, a membership test on the
+*address projection* `home(a)`, not the endset overlap `touch` the other three slots use.
+Bind it to `d₁`. Let `H₁ = {⟨d₁⟩}`, with coverage `{t : d₁ ≼ t}` (PrefixSpanCoverage), and
+ask
+
+  `q_H = (H₁, F, ∗, ∗)`.
+
+Every stored link is homed under `d₁`: `home(aᵢ) = 1.0.1.0.1 = d₁` for each of the five, the
+projection `N(·).0.U(·).0.D(·)` stripping the link-subspace element field `0.2.k`. Since
+`d₁ ≼ d₁` reflexively, `home(aᵢ) ∈ coverage(H₁)`, so `athome(aᵢ, H₁)` holds across the store
+— the home-clause admits every link and `sat(a, q_H, Σ)` falls back to the from-clause:
+`countlinks_FTT(q_H, Σ) = |{a₁, a₃}| = 2`, exactly as for `q`. The home bound selecting `d₁`
+filters nothing, because the store is wholly homed at `d₁`; but the clause is genuinely
+evaluated, true link by link, not silently dropped. In particular the orphan `a₃` is
+admitted: its residence is read off the permanent address `a₃` and stands whether or not any
+arrangement surfaces it — were `a₃`'s own entry in `d₁`'s arrangement removed
+(reverse-orphaning it), `athome(a₃, H₁)` and hence this home-bounded count would not budge,
+because the test consults `home(a₃)`, never `Σ.M`. This is CN-STAB's home-bounded instance
+and CN-ORPHAN made concrete at once: residence is fixed by identity.
+
+Bind the home-set to `d₂` instead and it bites. Let `H₂ = {⟨d₂⟩}`, coverage `{t : d₂ ≼ t}`,
+and ask
+
+  `q_H' = (H₂, F, ∗, ∗)`.
+
+Now `athome(aᵢ, H₂)` demands `home(aᵢ) = d₁ ∈ {t : d₂ ≼ t}`, i.e. `d₂ ≼ d₁`; but `d₁` and
+`d₂` are equal-length and diverge at the document component (`1` vs `2`), so neither
+prefixes the other and the membership fails for every link. The home-clause is false across
+the store, the AND drags every `sat` to `false`, and `countlinks_FTT(q_H', Σ) = 0`. This is
+a genuine CN-ZERO, not a degenerate one: `coverage(H₂)` is the whole non-empty `d₂` subtree,
+so the request is non-degenerate and the zero asserts *no addressable link is homed under
+`d₂`* — not that the request named nothing (the empty-request zero of FL-EMP). Observe that
+`a₄`, whose from-span points into `d₂` content, is excluded all the same: it is *homed* at
+`d₁` and only *references* `d₂`, and the home-set tests where a link lives, never what it
+points at (FL-RES, ASN-0121).
+
 ## Cost, and the meaning of asking for a number
 
 We close with what the question asks last: what does asking for a *number* instead of the
@@ -619,7 +672,7 @@ back end is free to pay full enumeration cost for a cardinality without being wr
 |-------|-----------|--------|
 | CN-DEF | (DEF) `countlinks_FTT(q, Σ) ≡ \|{ a : a ∈ addressable(Σ) ∧ sat(a, q, Σ) }\|`; the operation reads `Σ`, returns ℕ, and has frame `Σ` (writes nothing); defined through the shared relation `sat` (ASN-0121), not through the enumeration operation; well-defined because the counted set is a finite, computable subset of `dom(Σ.L)` (L-fin ASN-0093, FL-DEC ASN-0121) | introduced |
 | CN-LOC | (LEMMA) Link-store locality — for fixed `q`, `countlinks_FTT(q, Σ)` is a function of `Σ.L` alone; `Σ.C`, `Σ.M`, `Σ.E`, `Σ.R` are never consulted (from FL-LOC, ASN-0121) | introduced |
-| CN-UNIT | (THM) The unit is link identity — each addressable satisfying link contributes exactly `1`, independent of endset span/address multiplicity (absorbed by the existential in `touch`), transclusion multiplicity, and arrangement-appearance multiplicity (both excluded by CN-LOC) | introduced |
+| CN-UNIT | (THM) The unit is link identity — each addressable satisfying link contributes exactly `1`, independent of endset span/address multiplicity (absorbed by the existential in `touch`), transclusion multiplicity, arrangement-appearance multiplicity, and version-refraction multiplicity (the latter three excluded by CN-LOC; forking copies content, not links — J4 ASN-0047 — so the version DAG adds no link address) | introduced |
 | CN-TRANSCL | (THM) Transclusion invariance — a link reachable through any number of documents by transclusion contributes `1`; document-reach is an `Σ.M` quantity, not a link count (corollary of CN-LOC, CN-UNIT) | introduced |
 | CN-SHARED | (META) The four-set match-description lives once in `sat` (ASN-0121); both the count and the enumeration are queries over `sat`, and neither operation's specification appeals to the other | introduced |
 | CN-ENUM | (THM) `countlinks_FTT(q, Σ) = \|findlinks_FTT(q, Σ)\|` — count equals enumeration length at a single state, structurally (both are the cardinality of one set), and may differ across distinct states evaluated by separate inquiries | introduced |
