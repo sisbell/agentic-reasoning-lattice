@@ -551,16 +551,31 @@ neither the image nor the available pool moves. Provenance recording `K.ρ` writ
 `Σ.R` (ASN-0047), which `RE` never reads (RE-LOC), so it cannot move the answer (LP14,
 ASN-0098).
 
-The full taxonomy of what moves the answer is then: an arrangement edit to `d` changes `RE`
-*through the image*; a link emission (`K.λ`) whose coverage meets the present image may
-*add* a pair *through `Σ.L`* (a new live link enters `sel`) — and a retraction, being
+Finally, one arrangement edit to `d` *itself* leaves a content-region answer fixed — by a
+route particular to the content-subspace restriction rather than to locality. The
+link-subspace extension `K.μ⁺_L` adds a single V-position `v_ℓ` with `subspace(v_ℓ) = s_L`,
+mapped to a link address (ASN-0047). Because `W ⊆ s_C`, we have `v_ℓ ∉ W`, so the selecting
+set `W ∩ dom(Σ.M(d))` — and with it the image `image(W, d, Σ)` — is unchanged
+(F-IMG-MONO sharpened to equality under `W ⊆ s_C`, ASN-0127); and its frame leaves `Σ.L`
+fixed (`L' = L`), so the available pool does not move either. It is the one arrangement edit
+on `d` that cannot perturb a content-region answer, and the content-subspace restriction is
+exactly what secures it.
+
+The full taxonomy of what moves the answer is then: an arrangement edit to `d`'s *content*
+subspace — insertion `K.μ⁺`, deletion `K.μ⁻`, or rearrangement `K.μ~` — changes `RE`
+*through the image*; the link-subspace extension `K.μ⁺_L`, though also an arrangement edit on
+`d`, leaves a content-region answer fixed, since it adds only an `s_L` V-position outside `W`
+and frames `Σ.L` (just shown); a link emission (`K.λ`) whose coverage meets the present image
+may *add* a pair *through `Σ.L`* (a new live link enters `sel`) — and a retraction, being
 itself a `K.λ` (Nullify = Emit_R, ASN-0086), is the one transition that may *remove* pairs:
 it marks its target nullified, dropping it from the addressable population, while its
 emitter, touching no content (shown under *Under retraction*, below), adds none; and `K.α`,
 `K.δ`, `K.ρ`, together with edits to documents other than `d`, leave `RE` fixed. This is
-the complete vocabulary {K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~, K.ρ} (ASN-0047): the
-three arrangement edits on `d` move it through the image, `K.λ` (ordinary or retracting)
-through `Σ.L` and the addressable population, and the rest leave it fixed.
+the complete vocabulary {K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~, K.ρ} (ASN-0047), every
+member now classified: the three content-subspace arrangement edits on `d` (`K.μ⁺`, `K.μ⁻`,
+`K.μ~`) move it through the image, the link-subspace extension `K.μ⁺_L` leaves the content
+image fixed, `K.λ` (ordinary or retracting) moves it through `Σ.L` and the addressable
+population, and `K.α`, `K.δ`, `K.ρ` (with other-document edits) leave it fixed.
 
 **The weakest precondition for contraction-stability.** The qualitative tracking above can
 be made exact for one editing motion — a deletion. Fix a `K.μ⁻[d, R]` step on the queried
@@ -618,18 +633,33 @@ emits a fresh **retraction link** `b`, with `Σ'.L(b) = (∅, {(ℓ, δ(1, #ℓ)
 `dom(Σ'.L)` and is itself addressable in `Σ'` (`b ∉ nullified(Σ')`). So a single retraction
 does two things at once — it removes `ℓ` from `addressable` (through the nullified marking)
 *and* adds the emitter `b` to it. We must check the addition cannot perturb the answer. For
-a content region it cannot, and the reason is exactly the subspace restriction. The
-emitter's three endsets are the empty from-set `∅`, a to-set `{(ℓ, δ(1, #ℓ))}` whose single
-span covers `ℓ` and `ℓ`'s extensions, and the retraction type-set `R`. Against a content
-image `I ⊆ dom(Σ.C)`: `coverage(∅) = ∅` touches nothing; the to-set covers only the *link*
-address `ℓ` (subspace `s_L`) and its extensions, none of which is a content address — by the
-field-agreement argument used for `e₃` above, a content `c` with `ℓ ≼ c` would force
-`E(c)₁ = E(ℓ)₁ = s_L ≠ s_C`; and `R` lies in the type subspace, disjoint from content for
-the same reason. So `b` is never surfaced by a content-region query, and a retraction's
-*net* effect on `RE` is removal only. (Were `W` drawn from the link subspace instead, the
-emitter's to-set — covering `ℓ`'s `s_L`-subtree — could meet the image, and the analysis
-below would acquire a term for `b`; this is one of the points the content-subspace
-restriction buys us.)
+a content region it cannot — provided the retraction type is seated outside content, a point
+we now make explicit rather than wave through. The emitter's three endsets are the empty
+from-set `∅`, a to-set `{(ℓ, δ(1, #ℓ))}` whose single span covers `ℓ` and `ℓ`'s extensions,
+and the retraction type-set `R`. Against a content image `I ⊆ dom(Σ.C)`: `coverage(∅) = ∅`
+touches nothing; the to-set covers only the *link* address `ℓ` (subspace `s_L`) and its
+extensions, none of which is a content address — by the field-agreement argument used for
+`e₃` above, a content `c` with `ℓ ≼ c` would force `E(c)₁ = E(ℓ)₁ = s_L ≠ s_C`, a step that
+is rigorous here because `ℓ` is genuinely element-level with `E(ℓ)₁ = s_L` (L0, L1,
+ASN-0093) and ASN-0086's `Nullify` targets a link address `ℓ ∈ dom(Σ.L)`. The type-set `R`,
+however, is the one slot the same argument does *not* reach on its own. A type endset may, by
+design, point *anywhere* in the address space — content included (L4 EndsetGenerality, L9
+TypeGhostPermission, ASN-0043); the three endsets are symmetric, and ASN-0086 fixes the
+designated retraction type only as "any `R ∈ T_admissible` whose coverage selects the
+conventional retraction address set," carrying no structural disjointness from content. So
+`coverage(R) ∩ dom(Σ.C) = ∅` is not a consequence of `R`'s being a type; it is a property
+`R` must be *given*. We give it by **discipline**, seating the designated retraction type at
+a dedicated element-level subspace `s_R ≠ s_C` (`zeros = 3`, identifier `s_R`), exactly as
+the worked instance seated `θ`; the field-agreement argument then transfers to each
+span-start of `R` and yields `coverage(R) ∩ dom(Σ.C) = ∅`. This is an *imposed layer
+convention*, not a structural fact about the address space: drop it and the conclusion is
+conditional — an `R` whose coverage met the content image would surface the emitter as the
+pair `(3, R)`, making the retraction *add* anchoring as well as remove it. With the seating
+discipline in force, `b` carries no content-touching endset, so it is never surfaced by a
+content-region query, and a retraction's *net* effect on `RE` is removal only. (Were `W`
+drawn from the link subspace instead, the emitter's to-set — covering `ℓ`'s `s_L`-subtree —
+could meet the image, and the analysis below would acquire a term for `b`; this is one of
+the points the content-subspace restriction buys us.)
 
 But the answer deduplicates, and we must read its stability at the granularity it actually
 has. Its elements are `(role, endset)` pairs with link identity discarded (RE-UNIT): a
@@ -680,8 +710,8 @@ bore). Neither is a defect to be engineered away; both are what it
 | RE-EXST | Existence-of-anchoring deliverable — by withholding identity the answer certifies the *presence and shape* of anchoring without making it followable; the foundation's existence/discovery axis (query mode: fixed vs arrangement-resolved) and the designer's existence/discovery axis (deliverable: structure vs named-and-followable) are orthogonal — RE is discovery on the first, existence-of-anchoring on the second | introduced |
 | RE-TRANS | Transclusion blindness — surfacing is by content identity, independent of the link's home and of the covered content's origin (LP16, ASN-0098): a link reaching the region only through transcluded content is surfaced identically to one reaching native content, and each returned span describes the content's permanent home identity, not the borrowing V-position | introduced |
 | RE-IDENT | Content-identity invariance — each surfaced endset's coverage is permanent (L12, ASN-0043; LP3, ASN-0098), so the content-level answer (which I-addresses each surfaced endset anchors to) is arrangement-independent, even though the *selection* of which endsets are surfaced is arrangement-mediated | introduced |
-| RE-EDIT | Present-tense stability under editing — the answer tracks `d`'s current arrangement, the touch test composing on top of the region image: insertion surfaces newly-reachable anchoring (region image grows, F-IMG-MONO, ASN-0127), deletion drops anchoring whose content departs the region (region image shrinks, F-IMG-CONTR, ASN-0127; the contracted image no longer meets the coverage, so the touch test fails — LP10, LP12, ASN-0098 — the link nonetheless persisting, L12, ASN-0043, and re-surfaced on re-arrangement, F-IMG-MONO/LP9, ASN-0098), a region-local loss of reach, *not* the global orphaning/resurrection of LP17/LP18 (ASN-0098), whose premise of reach from no document a single-region deletion does not meet; rearrangement swings the *membership* of surfaced `(i, e)` pairs via the image swing (F-IMG-SWING, ASN-0127) while every surfaced endset's spans remain invariant — footprint fragmentation is a V-order *display* effect (ASN-0082), deferred to the rendered mode of open question 3, not a change to this content-identity answer; content identity is preserved throughout; edits to other documents leave the answer fixed (LP5, ASN-0098), as do content allocation `K.α` (LP6), entity creation `K.δ` (LP8, node/account creation also having frame `M' = M`), and provenance recording `K.ρ` (LP14, writing only `Σ.R`, which RE-LOC excludes) — all ASN-0098; with the three arrangement edits to `d` and `K.λ` (ordinary or retracting), this exhausts the vocabulary {K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~, K.ρ} (ASN-0047) | introduced |
-| RE-RET | Retraction stability — a retraction is a `K.λ` emission, `Nullify(Σ, d_retr, ℓ) ≡ Emit_R(Σ, d_retr, ∅, {(ℓ, δ(1, #ℓ))})` (Nullify/Emit_K, ASN-0086): the same step marks `ℓ` nullified — removing it from `addressable(Σ)` permanently (R6a) — *and* emits a fresh, addressable retraction link `b` with endsets `(∅, {(ℓ, δ(1, #ℓ))}, R)`. For a content region (`W ⊆ s_C`, so `I ⊆ dom(Σ.C)`), `b` touches nothing — from-set `∅`, a to-set covering only the link address `ℓ` and its `s_L`-extensions, a type-set in the type subspace, all disjoint from content by field-segment agreement along `≼` (Prefix/T4, ASN-0034: a content `c` with `ℓ ≼ c` would force `E(c)₁ = s_L ≠ s_C`) — so the emitter is never surfaced and a retraction's net effect on `RE` is removal only. Because the answer deduplicates `(role, endset)` pairs and discards identity (RE-UNIT), a pair `(i, e)` that `ℓ` bore leaves the answer **iff `ℓ` was its sole addressable bearer in `Σ`** (the emitter `b` cannot re-witness it; any other live bearer keeps it); an identical pair value may re-enter only via a separately, distinctly-identified live link (R6c, ASN-0086). Link-level permanence (R6a) is not pair-value-level permanence. (For a link-subspace region, `b`'s to-set can meet the image, so the "iff" would acquire an emitter conjunct — see the content-subspace restriction.) | introduced |
+| RE-EDIT | Present-tense stability under editing — the answer tracks `d`'s current arrangement, the touch test composing on top of the region image: insertion surfaces newly-reachable anchoring (region image grows, F-IMG-MONO, ASN-0127), deletion drops anchoring whose content departs the region (region image shrinks, F-IMG-CONTR, ASN-0127; the contracted image no longer meets the coverage, so the touch test fails — LP10, LP12, ASN-0098 — the link nonetheless persisting, L12, ASN-0043, and re-surfaced on re-arrangement, F-IMG-MONO/LP9, ASN-0098), a region-local loss of reach, *not* the global orphaning/resurrection of LP17/LP18 (ASN-0098), whose premise of reach from no document a single-region deletion does not meet; rearrangement swings the *membership* of surfaced `(i, e)` pairs via the image swing (F-IMG-SWING, ASN-0127) while every surfaced endset's spans remain invariant — footprint fragmentation is a V-order *display* effect (ASN-0082), deferred to the rendered mode of open question 3, not a change to this content-identity answer; content identity is preserved throughout; edits to other documents leave the answer fixed (LP5, ASN-0098), as do content allocation `K.α` (LP6), entity creation `K.δ` (LP8, node/account creation also having frame `M' = M`), and provenance recording `K.ρ` (LP14, writing only `Σ.R`, which RE-LOC excludes) — all ASN-0098; the link-subspace extension `K.μ⁺_L`, though it edits `Σ.M(d)`, likewise leaves a content-region answer fixed (it adds only an `s_L` V-position `v_ℓ ∉ W`, so the image is unchanged — F-IMG-MONO sharpened to equality under `W ⊆ s_C`, ASN-0127 — and frames `Σ.L`); with the three *content-subspace* arrangement edits to `d` (`K.μ⁺`, `K.μ⁻`, `K.μ~`) and `K.λ` (ordinary or retracting), this classifies every member of the vocabulary {K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.μ~, K.ρ} (ASN-0047) | introduced |
+| RE-RET | Retraction stability — a retraction is a `K.λ` emission, `Nullify(Σ, d_retr, ℓ) ≡ Emit_R(Σ, d_retr, ∅, {(ℓ, δ(1, #ℓ))})` (Nullify/Emit_K, ASN-0086): the same step marks `ℓ` nullified — removing it from `addressable(Σ)` permanently (R6a) — *and* emits a fresh, addressable retraction link `b` with endsets `(∅, {(ℓ, δ(1, #ℓ))}, R)`. For a content region (`W ⊆ s_C`, so `I ⊆ dom(Σ.C)`), the from-set `∅` and the to-set are disjoint from content *unconditionally*: the to-set covers only the link address `ℓ` and its `s_L`-extensions, by field-segment agreement along `≼` (Prefix/T4, ASN-0034: a content `c` with `ℓ ≼ c` would force `E(c)₁ = s_L ≠ s_C`), with `ℓ` genuinely `s_L` element-level (L0, L1, ASN-0093). The type-set `R` is *not* reached by that argument — a type endset may point anywhere, content included (L4, L9, ASN-0043), and ASN-0086's designated retraction type carries no structural disjointness — so `coverage(R) ∩ dom(Σ.C) = ∅` is an **imposed discipline** (seat `R` at a dedicated element-level subspace `s_R ≠ s_C`, after which field-segment agreement transfers), not a derivation. Under that discipline `b` touches nothing and a retraction's net effect on `RE` is removal only; an undisciplined `R` meeting the content image would instead surface `b` as `(3, R)` and *add* anchoring. Because the answer deduplicates `(role, endset)` pairs and discards identity (RE-UNIT), a pair `(i, e)` that `ℓ` bore leaves the answer **iff `ℓ` was its sole addressable bearer in `Σ`** (under the discipline the emitter `b` cannot re-witness it; any other live bearer keeps it); an identical pair value may re-enter only via a separately, distinctly-identified live link (R6c, ASN-0086). Link-level permanence (R6a) is not pair-value-level permanence. (For a link-subspace region, `b`'s to-set can meet the image, so the "iff" would acquire an emitter conjunct — see the content-subspace restriction.) | introduced |
 | RE-CWP | Contraction-stability weakest precondition — for a `K.μ⁻[d, R]` step, `RE(W, d, ·) = RE(W, d, Σ)` iff `enabled(K.μ⁻[d, R]) ∧ (∀ (i, e) ∈ Avail(Σ) : coverage(e) ∩ Δ ≠ ∅ ⟹ coverage(e) ∩ I_R ≠ ∅)`, where `I_R = {Σ.M(d)(v) : v ∈ W ∩ R}` (D-CWP bridge, ASN-0127), `Δ = image(W, d, Σ) ∖ I_R`, and `Avail(Σ)` is the region-independent pool of addressable slot-endsets; `RE` is monotone-decreasing under contraction (`RE(W, d, Σ') ⊆ RE(W, d, Σ)`), the condition is strictly finer than D-CWP's per-link condition, and `R = ∅` collapses it to `RE(W, d, Σ) = ∅` | introduced |
 | RE-DET | Determinism — `RE(W, d, Σ)` is a function of `(W, d, Σ)`; with no intervening state change the same region query returns the same anchoring, so every change in the answer is the image of a change in `Σ` | introduced |
 
