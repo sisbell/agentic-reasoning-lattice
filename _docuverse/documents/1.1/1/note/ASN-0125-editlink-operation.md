@@ -838,6 +838,13 @@ the operative sinks reachable from it:
 
 > `current(y, Σ) = {z ∈ reach_o(y, Σ) : ¬(E w :: (z, w) ∈ succ_o(Σ))}`
 
+The sink test `¬(E w :: (z, w) ∈ succ_o(Σ))` reads only the *operative claims*
+out of `z` — and `succ_o`'s sole activity filter is on *claim* addresses
+(`addr(e) ∉ nullified(Σ)`, Df-SUCC), never on the endpoint links an `e`
+relates. The closure and the sink test therefore consult no member link's own
+activity: `current` is *activity-agnostic on its members*, a property made
+precise and consequential in EL14(e).
+
 **EL14 (CurrencyRelational).** `current` is a total, computable,
 *set-valued* query, and the set is irreducibly a set:
 
@@ -861,10 +868,38 @@ operative graph is repairable precisely because the historical graph is not.
 forcing `|current| = 1` as an invariant would require refusing well-formed
 emissions or erasing claims — the substrate does neither. What the layer owes
 the reader is therefore *disclosure, not decision*: `current(y, Σ)` entire,
-each member with its supporting claims and their homes (EL8b), the original
-always still readable beside them (EL9(1)), and any narrowing — trust only the
-original owner's claims, prefer this curator, follow per-home latest —
-applied as the reader's declared policy, not the substrate's silent one.
+each member with its supporting claims and their homes (EL8b) *and its own
+activity status* (`active(·)`, EL9(3) — an axis membership does not settle,
+EL14(e)), the original always still readable beside them (EL9(1)), and any
+narrowing — trust only the original owner's claims, prefer this curator,
+follow per-home latest, drop members that are themselves retracted — applied
+as the reader's declared policy, not the substrate's silent one.
+
+*(e) Activity-agnostic membership.* `current(y, Σ)` is built from `succ_o(Σ)`,
+whose only activity filter is the *claim*-address test `addr(e) ∉ nullified(Σ)`
+(Df-SUCC) — never a test on the endpoint links `old(e)`, `new(e)`. A successor
+is a link like any other, so its activity (EL9(3)) is an independent axis, and
+`Nullify` (ASN-0086) may target any `z ∈ dom(Σ.L)`, depositing a unit-depth
+`[R]`-tuple that preserves edit-discipline (EL-DM step) and puts
+`z ∈ nullified(Σ)` while adding no *claim* address to `nullified` (its
+to-coverage meets `dom(Σ.L)` in `{z}` alone, R0a). The standoff is reachable
+inside the disciplined layer: from a disciplined `Σ`, `editlink(a, ·, d_s, d_a)`
+gives successor `a'`, claim `b`, with `(a, a') ∈ succ_o` and `current(a) = {a'}`
+(EL7(iii) at the disciplined post-state); a following `Nullify(·, d, a')` puts
+`a' ∈ nullified` yet leaves `b ∉ nullified`, so `(a, a')` *stays* in `succ_o`
+and `current(a)` remains `{a'}` — its sole member now retracted. Hence
+
+> `z ∈ current(y, Σ)` does not imply `active(z, Σ)`:
+
+the supersession sink and the sink's own activity are independent — EL9's
+three-axis independence read at the successor, which is resolvable (EL9(1)) and
+a current sink yet may be inactive (EL9(3)). `current` answers *which readings
+are supersession-sinks under the operative claims*, not *which readings are
+themselves operative*; a reader needing the latter layers the separate query
+`active(·)` over each member, exactly the status (d) now obliges the layer to
+disclose. (EL15(d) records the dual gap on the other factor — a nullified
+*claim* leaving `succ_o`; this clause records the nullified *endpoint*, which
+`succ_o` does not inspect at all.)
 
 **EL15 (ChainConnectivity).** For a chain of asserted edits
 `a₀, a₁, …, aₙ` with each `(aᵢ, aᵢ₊₁) ∈ succ_h(Σ)`:
@@ -1010,8 +1045,8 @@ current view forgets; the record cannot.
 | EL11 | TwoRegimeDiscovery: (a) contextual — a disciplined claim's to-side projects into `d` iff `d` currently lists the original (`project ≠ ∅ ⟺ listed(old(e), d, Σ)`, by LP12 + coverage trace `{old(e)}`), symmetrically for the from-side; (b) archival — `in(y, Σ)` and `out(x, Σ)` (over the schema-conforming `Ŝ^Σ`) are computable from `Σ.L` alone, completely and decidably, at every state; the record always answers, the context volunteers only while its registry lists the endpoint | introduced |
 | EL12 | ForkPermanence: independent edits of the same original yield distinct successors and claims, all permanent, co-operative at birth, never merged, ranked, or removed; the full competing set with asserters is one archival query; absent assertions the fork never exists in state (EL1) — fork visibility is exactly assertion-deep | introduced |
 | EL13 | TemporalErasure: cross-home emissions commute to identical states, so no state function recovers cross-home claim order ("global latest" is undefinable); within one home, claim order is totally recoverable from addresses (T9) — "latest" is per-home (per-document-chain) only, a per-asserter "latest" being state-recoverable only when the asserter homes all its claims at one document (the substrate tracks no principal; under an ASN-0042 ownership overlay, owner domains span many documents); global tie-breaks are definable but rank namespaces, not time | introduced |
-| Df-CUR | Currency query: `reach_o(y, Σ)` the `succ_o`-closure of `{y}`; `current(y, Σ)` its operative sinks — total, finite, computable | introduced |
-| EL14 | CurrencyRelational: `current` is irreducibly set-valued — cardinalities 1 (linear chain; `{y}` itself when unedited), ≥ 2 (fork), and 0 (mutual-supersession standoff) are all reachable; demotion repairs the operative view while history stands; no canonical selector exists (EL13), and forcing uniqueness would require refusing emissions or erasing claims; the layer owes disclosure with attribution, the reader applies policy | introduced |
+| Df-CUR | Currency query: `reach_o(y, Σ)` the `succ_o`-closure of `{y}`; `current(y, Σ)` its operative sinks — total, finite, computable; the sink test reads only the *operative claims* out of `z` (a claim-activity filter), not `z`'s own activity (EL14e) | introduced |
+| EL14 | CurrencyRelational: `current` is irreducibly set-valued — cardinalities 1 (linear chain; `{y}` itself when unedited), ≥ 2 (fork), and 0 (mutual-supersession standoff) are all reachable; demotion repairs the operative view while history stands; no canonical selector exists (EL13), and forcing uniqueness would require refusing emissions or erasing claims; (e) membership is *activity-agnostic on members* — `succ_o` filters on *claim* activity (`addr(e) ∉ nullified`) only, so `z ∈ current(y)` need not satisfy `active(z)` (a successor may be `Nullify`'d as an endpoint while its claim stands; sink and member-activity are independent axes, EL9(3)); the layer owes disclosure with attribution *and each member's activity status*, the reader applies policy | introduced |
 | EL15 | ChainConnectivity: along asserted chains, members resolve forever, hops persist in `succ_h`, and each hop is recoverable from either endpoint alone — historical connectivity is monotone non-decreasing; completeness (unasserted hops) and operative integrity (demoted hops) are expressly not invariants, and member-to-ends operative traversability is a derived property, not a guarantee | introduced |
 | EL16 | ReferenceSurvival: any pre-existing reference to the original keeps its value, coverage, and referent across the edit and all evolution, and reaches the successor by one archival observation; mutation would silently re-point every reference (excluded by EL0), silent re-creation leaves references intact but the road forward empty (EL1) — the asserted edit is the unique regime preserving both the exact past and the reachable future | introduced |
 
