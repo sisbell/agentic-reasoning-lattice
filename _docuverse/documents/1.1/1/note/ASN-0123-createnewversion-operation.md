@@ -26,6 +26,16 @@ We work in the extended state of the transition-model foundation (ASN-0047):
 
 with `C : T ⇀ Val` the content store (immutable and append-only, P0), `L : T ⇀ Link` the link store (immutable, L12), `E ⊆ T` the entity set with its document stratum `E_doc = {e ∈ E : Document(e)}` (so `zeros(e) = 2` and T4-valid, per ASN-0045), `M` the per-document arrangements with content subspace `s_C` and link subspace `s_L` (`s_C = 1`, `s_L = 2` by SubspaceConventionAxiom), and `R ⊆ T_elem × E_doc` the provenance relation. A document's content-subspace positions are canonical and gap-free: `V_{s_C}(d) = {[s_C, 1, …, 1, k] : 1 ≤ k ≤ n}` for some `n ≥ 0` (D-SEQ★). Composite transitions are finite sequences of the atomic vocabulary, valid when each step's precondition holds at its intermediate state and the couplings J0, J1★, J1'★ hold initial-to-final (ValidComposite★). Ownership is the prefix model of ASN-0042: principals `Π` with account-tier prefixes (`zeros(pfx(π)) ≤ 1`, O1a), effective owner `ω(a)` the unique most-specific covering principal (O2), and allocation authority confined to one's own domain (O5).
 
+Reading ASN-0042's ownership vocabulary over ASN-0047's states is a hybrid the two foundations do not assemble for us — O2's totality of `ω` is a theorem about ASN-0042's *own* reachable states, resting on its bootstrap and delegation dynamics — so we state the standing assumptions under which the reading is sound.
+
+**PS (PrincipalStructure).** Every reachable docuverse state carries an ASN-0042-conforming principal structure:
+
+> (i) *Dynamics* — `Π` and `pfx` satisfy O1a (account-tier prefixes) and O1b (prefix injectivity), and evolve per O12, O13, O15 across every atomic transition: principals persist, no prefix ever changes, and at most one principal enters per transition, by delegation.
+> (ii) *Authority* — `allocated_by` attaches to K.δ: every entity-creating step is performed by some existing principal (O16) inside its own domain (O5).
+> (iii) *Bootstrap coverage* — some `π₀ ∈ Π₀` covers the bootstrap node: `pfx(π₀) ≼ n₀`.
+
+From (i)–(iii), coverage of the registry — O4 with `E` in the registry role — is derived, not assumed: every `e ∈ E` extends `n₀`. For the bootstrap itself this is reflexive; for nodes it is NodeBaptism(b) directly; for K.δ case (ii) outputs it propagates by induction, because no increment disturbs position 1 — a `k > 0` step appends positions (TA5(b), TA5(d)), and a `k = 0` step modifies only `sig(t) = #t` (TA5-SigValid on the T4-valid operand), with `#t ≥ 3` since the operand is a non-node entity (`zeros(t) ≥ 1`) — and `n₀ = [1]` asks agreement at position 1 alone. Transitivity of `≼` then gives `pfx(π₀) ≼ n₀ ≼ e`. Coverage is exactly what O2's uniqueness argument consumes, so it applies verbatim over these states: **`ω : E → Π` is total and single-valued at every reachable state**. In particular `ω(d_src)` is defined at the operation's branch guard, and O2, O5, O15 are available to V8 and V9. PS is Nelson's design read structurally — a number exists only because some account-holder forked it into being [LM 4/17], so ownership in the allocation sense is total *by construction*; PS adds only that baptism is the sole entrance. And it is load-bearing, not decorative: the implementation does not enforce it (deviation 4 in the evidence section), so a conforming implementation must supply what udanax-green leaves to front-end cooperation.
+
 For allocation we use the baptism apparatus of ASN-0040. The **version namespace** of a document `d` is the sibling stream at depth 1:
 
 > `S(d, 1) = c₁, c₂, c₃, …` where `c₁ = inc(d, 1)` and `cₙ₊₁ = inc(cₙ, 0)`,
@@ -46,13 +56,32 @@ Membership `trunc(t) ∈ T` is immediate from T0 — a finite sequence over ℕ 
 
 since `q` agrees with `p` on positions `1 … #p` — so every zero of `p` is a zero of `q` — and `q`'s further positions can only contribute more.
 
+**SA (StoredAddressAntichain).** No stored address extends another: at every reachable state `dom(C) ∪ dom(L)` is an antichain under `≼`, so for every stored `a`
+
+> `{t ∈ T : a ≼ t} ∩ (dom(C) ∪ dom(L)) = {a}`.
+
+*Proof.* By LP-Sub (ASN-0098) every stored address has the structural form `[d, 0, s, k]`: a T4-valid document tumbler `d` with `zeros(d) = 2`, the field separator, a subspace identifier, one ordinal. Suppose `a = [d₀, 0, s, k]` and `b = [d', 0, s', k']` are both stored with `a ≺ b`. Then `#d' = #b − 3 > #a − 3 = #d₀`, and `b` agrees with `a` on positions `1 … #a` — in particular `b` carries `a`'s separator zero at position `#d₀ + 1`. Since `#d' ≥ #d₀ + 1`, that position lies inside `b`'s document prefix `d'`, whose positions `1 … #d₀` already carry `d₀`'s two zeros; so `zeros(d') ≥ 3`, contradicting `zeros(d') = 2`. No proper extension exists, and the displayed intersection is `{a}` by reflexivity of `≼`. ∎ (G2 uses SA to convert subtree coverage into address identity.)
+
 **nextv (VersionFrontier).** The next unallocated member of `d`'s version namespace, given the registry:
 
 > `nextv(E, d) = next(E, d, 1)`
 
-with `next` as in ASN-0040: `inc(d, 1)` when `E ∩ S(d, 1) = ∅`, else `inc(max(E ∩ S(d, 1)), 0)`. Well-definedness obligations: `E` is finite at every reachable state (it grows from the finite `E₀` by at most one element per atomic transition, SequentialTransitionAxiom); and `(d, 1)` is a B6-valid namespace — `d` is T4-valid with `zeros(d) = 2` (M0), depth `1 ∈ {1, 2}`, and `zeros(d) + (1 − 1) = 2 ≤ 3`. The realized children `E ∩ S(d, 1)` form a contiguous prefix `{c₁, …, c_m}` of the stream (ASN-0040's B1, maintained here because every allocation into the stream is a K.δ step on the stream's frontier: the `k = 1` sub-case fires only when the namespace is empty and the `k = 0` sub-case extends its maximal member — FrontierEquivalence, ASN-0047), so by B2:
+with `next` as in ASN-0040: `inc(d, 1)` when `E ∩ S(d, 1) = ∅`, else `inc(max(E ∩ S(d, 1)), 0)`. Well-definedness obligations: `E` is finite at every reachable state (it grows from the finite `E₀` by at most one element per atomic transition, SequentialTransitionAxiom); and `(d, 1)` is a B6-valid namespace — `d` is T4-valid with `zeros(d) = 2` (M0), depth `1 ∈ {1, 2}`, and `zeros(d) + (1 − 1) = 2 ≤ 3`. The realized children `E ∩ S(d, 1)` form a contiguous prefix `{c₁, …, c_m}` of the stream — this is VN-B1, stated and proved next — so by B2:
 
 > `nextv(E, d) = c_{hwm(E, d, 1) + 1}` — the gap-free successor.
+
+**VN-B1 (VersionNamespaceContiguity).** ASN-0040's B1 is an invariant of *its* transition system (Bop, B0a, seed conformance); it does not transfer to ASN-0047's K.δ vocabulary by citation, so we prove its analog. At every reachable state, for every T4-valid `d` with `zeros(d) = 2`:
+
+> `E ∩ S(d, 1) = {c₁, …, c_m}` for some `m ≥ 0` — the realized children are a contiguous prefix of the stream.
+
+*Proof, by induction over the atomic transitions.* *Base:* `E₀ = {n₀}` with `zeros(n₀) = 0`, while every stream member has `zeros = 2`; the intersection is the empty prefix. *Step:* only K.δ changes `E`, adding one fresh `e ∉ E`; if `e ∉ S(d, 1)` the intersection is unchanged, so suppose `e ∈ S(d, 1)`, i.e. `e = d·j = [d₁, …, d_{#d}, j]` with `j ≥ 1`. Which K.δ instances can land there?
+
+> *Case (i), `Node(e)`* — impossible: `zeros(e) = 0 ≠ 2`.
+> *`k = 2` (descent)* — impossible: by TA5(d) the output's penultimate component is the appended separator `0`, while `d·j`'s penultimate component is `d_{#d} ≠ 0` (T4 forbids a trailing zero in `d`).
+> *`k = 1` (version)* — the output is `t·1` for an operand `t ∈ E_doc`; `t·1 = d·j` forces `#t = #d`, then `t = d` componentwise (T3), then `j = 1`. The only `k = 1` arrival is `c₁ = inc(d, 1)`; freshness `c₁ ∉ E` gives `m = 0`, and the intersection becomes `{c₁}`.
+> *`k = 0` (sibling)* — the operand `t ∈ E` is T4-valid (every member of `Σ.E` is), so `sig(t) = #t` (TA5-SigValid) and the output is `t` with its final component incremented (TA5(c)). Output `= d·j` forces `#t = #d + 1`, agreement with `d` on positions `1 … #d`, and final component `j − 1 ≥ 1` (a trailing zero would break `t`'s T4-validity) — i.e. `t = c_{j−1}`. The operand constraint puts `c_{j−1} ∈ E`, so `j − 1 ≤ m` by the induction hypothesis; freshness `c_j ∉ E` gives `j > m`. Hence `j = m + 1` — the frontier, and nothing but (this is FrontierEquivalence, ASN-0047, read in stream coordinates).
+
+In both arriving cases the new intersection is `{c₁, …, c_{m+1}}`: contiguity is preserved. ∎ Note what the proof did *not* assume: VD (below). Contiguity of the namespace is forced by K.δ's freshness and operand constraints alone, whatever composite fires the step — VD governs what the arrivals *mean*, not where they land.
 
 We note now, for use later (V5), the *shape of the argument list*: `nextv` consults the set of allocated identities and the source's address, and nothing else.
 
@@ -68,7 +97,7 @@ Nelson's stipulation is a postcondition on the result: "The new document's id wi
 
 and we reason backward. `trunc(v) = d_src` fixes `#v = #d_src + 1` and component agreement on positions `1 … #d_src`: the candidates are exactly the single-component extensions `d_src·x`. `Document(v)` requires T4-validity, which at the last position requires `x ≠ 0`; conversely every `x ≥ 1` introduces no new zero and no adjacent-zero pattern, so `zeros(d_src·x) = zeros(d_src) = 2` and every such candidate is a T4-valid document. The candidate set `{d_src·x : x ≥ 1}` is therefore precisely the sibling stream `S(d_src, 1)` — and B6(d_src, 1) holds, so the stream is a legitimate baptismal namespace whose every member is T4-valid (B6(a)).
 
-Freshness strikes out the members already in `E`. Among the fresh candidates the choice is still not free: if the allocator may skip, the realized children cease to be a contiguous prefix of the stream, the high-water mark loses its meaning, and the enumeration of a document's versions can no longer terminate at the first absentee (B1, B2). Contiguity forces the minimal fresh candidate:
+Freshness strikes out the members already in `E`. Among the fresh candidates the choice is still not free: if the allocator may skip, the realized children cease to be a contiguous prefix of the stream, the high-water mark loses its meaning, and the enumeration of a document's versions can no longer terminate at the first absentee (VN-B1, B2). Contiguity forces the minimal fresh candidate:
 
 > `v = nextv(E, d_src)`
 
@@ -78,7 +107,7 @@ The allocation clause is thereby derived, not designed. Note also what it does *
 
 The guarantee owed is "links may be refractively followed from a point or span in one version to corresponding places in any other version. Thus a link to one version of a Prismatic Document is a link to all versions" [LM 2/26] — owed not only to links existing at the fork, but to links not yet made, since an endset may later be formed over any addresses whatever (L4, EndsetGenerality).
 
-Let `A = {M(d_src)(u) : u ∈ V_{s_C}(d_src)}` be the content addresses the source currently arranges. Fix any `a ∈ A`. The unit-depth span `(a, δ(1, #a))` is T12-well-formed (its action point is `#a ≤ #a`), an endset containing it alone is admissible in any slot of a future link, and its coverage contains `a`. For that link to be discoverable from the version `v`, LP12 requires `coverage ∩ ran(Σ'.M(v)) ≠ ∅`; since the construction works uniformly for every `a ∈ A`, the guarantee forces
+Let `A = {M(d_src)(u) : u ∈ V_{s_C}(d_src)}` be the content addresses the source currently arranges. Fix any `a ∈ A`. The unit-depth span `(a, δ(1, #a))` is T12-well-formed (its action point is `#a ≤ #a`), an endset containing it alone is admissible in any slot of a future link, and its coverage contains `a`. For that link to be discoverable from the version `v`, LP12 requires `coverage ∩ ran(Σ'.M(v)) ≠ ∅`. That alone does not yet name `a`: the span's coverage is the full subtree `{t : a ≼ t}` (PrefixSpanCoverage, ASN-0043), not the singleton. SA closes the gap. Every member of `ran(Σ'.M(v))` is a stored address (S3★), and `a` is itself stored (`a ∈ A ⊆ dom(C)` by S3★ at `Σ`, persisting by P0); by SA the only stored member of `a`'s subtree is `a`, so the required intersection is non-empty exactly when `a ∈ ran(Σ'.M(v))`. Since the construction works uniformly for every `a ∈ A`, the guarantee forces
 
 > `A ⊆ ran(Σ'.M(v))` — range preservation is *necessary*.
 
@@ -111,7 +140,9 @@ Preconditions
 
   — and nothing further. In particular: no authority over d_src is required
   (the source is read without permission), and no condition is placed on
-  M(d_src) (the empty source is admitted, n = 0 below).
+  M(d_src) (the empty source is admitted, n = 0 below). The identity
+  clause's guard is total: ω(d_src) is defined at every reachable state
+  (PS — registry coverage makes ω total on E).
 
 Abbreviations (evaluated at the initial state Σ)
   n  :=  |V_{s_C}(d_src)|
@@ -145,7 +176,13 @@ Result
 
 *Remark (relation to the foundation's fork composite).* ASN-0047's J4 has the same three-step shape. Where J4's bookkeeping ties its content operand to the version frontier, CREATENEWVERSION fixes the content operand to the *named source* at every invocation; the two coincide on first forks and whenever the source is unmodified between forks. The operation specified here follows the request's semantics: each call snapshots the document named in it.
 
-*Remark (atomicity).* Per SequentialTransitionAxiom the steps commit indivisibly and in order; the identity `v` is the operation's value only of the completed composite — there is no observable state in which the version exists without its snapshot.
+*Remark (atomicity — what the foundations do and do not supply).* SequentialTransitionAxiom makes each *atomic* step indivisible; it does not make the composite a unit. The sequence has a genuine interior state — after K.δ, before K.μ⁺ — at which `v ∈ E_doc` with `M(v) = ∅`, and nothing in the foundation forbids another composite from beginning there (what serialization concurrent forks require is among the open questions). What the foundations do supply is boundary-level: the couplings are evaluated initial-to-final over the valid composite, so the final boundary — the first state at which `v` is the operation's value — carries the snapshot and its provenance rows in full. No composite boundary of a valid VERSION exhibits the version without its snapshot; only interior states do, and at those the operation has not returned. Any stronger reading — that the interior states are unobservable absolutely — is a composite-isolation convention the foundations do not state; we do not lean on it, and the implementation happens to realize exactly it (whole-request serialization; see the evidence section).
+
+**V3 (SourceFrame).** The Effect clause *stipulates* the net frame G3 demands; we verify the step sequence *delivers* it. Every `d_src`-indexed observable is unchanged from `Σ` to `Σ'`:
+
+> `d_src ∈ E'`;  `M'(d_src) = M(d_src)`;  `C' = C` and `L' = L` (stores and their values untouched);  `{(a, d) ∈ R' : d = d_src} = {(a, d) ∈ R : d = d_src}` — the fork is strictly additive and writes no forward pointer.
+
+*Proof, by composing the step frames.* K.δ frames `C`, `L`, `R` outright and extends `E` by `{v}` alone, so `d_src ∈ E'`; its arrangement clause adds only the fresh key `v` with `M'(v) = ∅`, and `v ≠ d_src` — `v ∉ E` at the step while `d_src ∈ E` — so `M(d_src)` is untouched. K.μ⁺ (present when `n ≥ 1`) names `v` and frames every other document's arrangement, and frames `C`, `E`, `R`. Each K.ρ frames `C`, `L`, `E`, and every arrangement, and grows `R` by one pair; across the composite `R' ∖ R = A × {v}`, every added pair carrying second component `v ≠ d_src`, so the `d_src` provenance row survives verbatim. Conjoining the per-step frames yields the displayed equalities. The "no forward pointer" reading is the same fact stated negatively: the state's `d_src`-indexed components are exactly its registry membership, its arrangement, the stores its arrangement reaches into, and its provenance row — each unchanged — so at `Σ'` nothing `d_src`-indexed mentions `v`, which is what V7's navigation asymmetry exploits. ∎
 
 ## The Identity: Ancestry, Rank, Chains, Navigation
 
@@ -165,13 +202,13 @@ Freshness is the `nextv` choice (owned case) or the explicit constraint (cross-o
 
 (a) and (b) are the SiblingStream postcondition with B5/B5a (depth 1 adds no separator; sibling steps preserve zeros) and B6(a) (T4-validity of every stream member). For (c): `v` agrees with `d_src` on positions `1 … #d_src` and appends one nonzero component, so the zero positions of `v` are exactly those of `d_src`; T4b's unique parse is determined by the zero positions, so the node and user fields are component-identical and the document field gains exactly the final component. (d) follows from (c) by the AccountField definition. So **the version differs from the source in the document field alone** — the address records descent precisely where Nelson said it would: "The Document field of the tumbler may be continually subdivided, with new subfields in the tumbler indicating daughter documents and versions" [LM 4/29]. The ancestry is readable by truncation, and — see V5 — the final component is readable as the version's rank.
 
-**V5 (ChronologicalRank).** The ordinal in the identity records creation order, and nothing else:
+**V5 (ChronologicalRank).** The ordinal in the identity records allocation order in the version namespace, and nothing else:
 
-> (a) the k-th fork of `d_src` (counting forks performed in the owned branch, in commit order) receives `v = d_src·k`, the k-th stream member;
+> (a) the k-th allocation into `S(d_src, 1)` (in commit order) receives the k-th stream member `d_src·k`; reading rank as *fork* order is exact precisely under VD below — when forks of `d_src` are the namespace's only allocations;
 > (b) the allocator is *registry-pure*: `(A Σ₁, Σ₂ : Σ₁.E ∩ S(d, 1) = Σ₂.E ∩ S(d, 1) : nextv(Σ₁.E, d) = nextv(Σ₂.E, d))` — `C`, `M`, `L`, `R` are not arguments;
 > (c) ranks are never reused: identities never leave `E` (P1), so a rank once taken is taken forever.
 
-(a) is B1 + B2 under the owner's serialized authority (B-Seq): each fork takes the frontier, so rank = `hwm + 1` = creation order, and the stream is strictly T1-increasing (S0, StreamOrdering). (b) is the argument list of `nextv`, observed when we derived it. The consequence of (b) deserves emphasis: *rank and content state are orthogonal.* Two forks separated by an edit of the source transcribe different snapshots (V2) yet take consecutive ranks; the address arithmetic never looks at the arrangement. And per (c), even a version later abandoned by its owner — its arrangement contracted to nothing — holds its rank forever. Time itself is not encoded: the stream order is creation order, but "'time' is not included in the tumbler. Time is kept track of separately" [LM 4/18].
+(a) is VN-B1 + B2 under serialized commits (B-Seq): every arrival in the namespace is a frontier arrival (VN-B1's preservation argument), so the j-th arrival lands at rank `hwm + 1 = j`, and the stream is strictly T1-increasing (S0, StreamOrdering). The fork-counting reading needs VD because the namespace has other lawful clients — ASN-0047's own J4 composite allocates on `A_v(d_src)`, and any discipline-conforming K.δ may take the frontier — so one interleaved non-VERSION allocation gives the k-th fork a rank exceeding k. (b) is the argument list of `nextv`, observed when we derived it. The consequence of (b) deserves emphasis: *rank and content state are orthogonal.* Two forks separated only by an edit of the source transcribe different snapshots (V2) yet take consecutive ranks; the address arithmetic never looks at the arrangement. And per (c), even a version later abandoned by its owner — its arrangement contracted to nothing — holds its rank forever. Time itself is not encoded: the stream order is creation order, but "'time' is not included in the tumbler. Time is kept track of separately" [LM 4/18].
 
 **V6 (IterativeClosure and UnboundedDepth).** The operation is closed over its own output, and composes without structural bound:
 
@@ -182,7 +219,7 @@ Each fork appends exactly one component, and — the structurally decisive point
 **V7 (NavigationAsymmetry).** The two directions of ancestry navigation rest on different resources, and neither is the source's own state:
 
 > *Upward* — from any version, every ancestor is computed by iterated truncation: a pure function of the identity, consulting no state (the same intrinsic-computation discipline as T2).
-> *Downward* — the versions of `d` are the registry query `E ∩ S(d, 1) = {c₁, …, c_{hwm}}`, gap-free (B1), so enumeration terminates at the first absentee; the full descendant set `{e ∈ E : d ≺ e}` is T1-contiguous (T5), a single range scan of the ordered registry.
+> *Downward* — the versions of `d` are the registry query `E ∩ S(d, 1) = {c₁, …, c_{hwm}}`, gap-free (VN-B1), so enumeration terminates at the first absentee; the full descendant set `{e ∈ E : d ≺ e}` is T1-contiguous (T5), a single range scan of the ordered registry.
 > *Never* — a read of the source's own components: by V3 no `d_src`-indexed state mentions `v`, so there is nothing there to read.
 
 A boundary condition worth recording: in a system whose document-creation discipline emits single-component document fields, the truncation chain bottoms out *syntactically* — truncating the chain's base document strips the last document-field component and leaves a trailing zero, which is not T4-valid — so the base of a version chain is decidable from the identity alone. And a disambiguation: the version has two "parents" in two senses. Its entity-hierarchy parent is the *account* — `parent(v) = parent(d_src)` by K.δ-ID.parent-0/1 — while its derivation ancestor is the *source*, `trunc(v) = d_src`. The address encodes both at once: the account by the unchanged N/U fields (V4c), the derivation by the extended D field.
@@ -264,7 +301,7 @@ The map from identity to content-subspace arrangement is therefore non-injective
 
 **V11 (EditIndependence).** The version is independently editable from the instant of its creation, and the independence is mutual:
 
-> (a) *Immediacy* — `v ∈ E'_doc` with `ω'(v)` the forker: every arrangement transition's structural precondition is satisfiable on `v` at `Σ'` with no further allocation; mutation authority follows ownership ("only the owner has a right to … change it" [LM 2/29]), a discipline the ownership model layers on the transition vocabulary.
+> (a) *Immediacy* — `v ∈ E'_doc` with `ω'(v)` the forker: the version stands under the same enabling conditions as any allocated document, with nothing `v`-specific outstanding. K.μ⁺ is enabled at `v` whenever `dom(C) ≠ ∅` (after a non-empty fork, `dom(C') ⊇ A ≠ ∅` guarantees it); K.μ⁻ whenever its arrangement is non-empty (`n ≥ 1`); K.μ~ whenever its content image takes two distinct values — the same boundary conditions every document faces, with no allocation, registration, or unlock owed first on `v`'s account (an `n = 0` fork has nothing to contract or reorder, exactly as an empty document does not). Mutation authority follows ownership ("only the owner has a right to … change it" [LM 2/29]), a discipline the ownership model layers on the transition vocabulary.
 > (b) *Isolation, both directions* — every arrangement transition names one document `d` and frames all others: `(A d' : d' ≠ d : M''(d') = M'(d'))` (the K.μ family). By induction over any subsequent transition sequence, edits scoped to `v` leave `M(d_src)` pointwise fixed, and edits scoped to `d_src` leave `M(v)` pointwise fixed.
 > (c) *The shared substance is beyond reach from either side* — `(A a ∈ dom(C) :: C''(a) = C'(a))` (P0): "deletion" at either document is contraction of that document's own arrangement, never a write to the store or to the other's arrangement. The bytes "remain in all other documents where they have been included" [LM 4/11].
 
@@ -280,7 +317,7 @@ Four corollaries discharge the question's demands.
 
 *(i) Totality and refraction.* Every link any of whose slots covers at least one carried address is discoverable from the version at the fork boundary; and since the source's arrangement is untouched (V3), it remains discoverable from the source — shared anchors make a link discoverable from both documents at once (the LP16 shape). This is "a link to one version of a Prismatic Document is a link to all versions" [LM 2/26], scoped exactly as the architecture can honor it: to the versions holding the anchor's address.
 
-*(ii) Zero per-link work.* The operation neither reads nor writes `L` (frame). Carry-through is not a migration the fork performs per link; it is a consequence of the address algebra — the link "is not between points, but between spans of data … a strap between bytes" [LM 4/42], the version holds the very same bytes, so the straps hold in the version. The guarantee extends, by the same equation evaluated at later states, to links created *after* the fork against the shared addresses: the version did not exist when such a link is conceived, yet the link reaches it.
+*(ii) Zero per-link work.* The operation neither reads nor writes `L` (frame). Carry-through is not a migration the fork performs per link; it is a consequence of the address algebra — the link "is not between points, but between spans of data … a strap between bytes" [LM 4/42], the version holds the very same bytes, so the straps hold in the version. The guarantee extends to links created *after* the fork against the shared addresses: such a link did not exist when the version was forked — the fork could not have migrated it, knowing nothing of it — yet it reaches the version, by LP12 evaluated at the later state, *provided* the version still arranges the anchor's address there; if an intervening contraction has removed it, corollary (iii) governs.
 
 *(iii) Conditionality, exactly Nelson's.* "If any of the bytes are left to which a link is attached, that link remains on them" [LM 4/42]. Should the version's owner later contract `M(v)` off some addresses, links anchored only there cease to be discoverable *from the version* (LP10) while persisting unchanged in the store (L12, LP13) and remaining discoverable from every document still arranging the addresses — the source included, whose hold the fork never weakens.
 
@@ -296,23 +333,29 @@ Gregory's udanax-green realizes the contract with high fidelity; we record the c
 
 *Transcription is re-derived, which the spec licenses.* `docopyinternal` does not copy the source's tree nodes; it resolves the source's V-span to I-spans (`specset2ispanset`) and inserts them into the fresh POOM (`insertpm`), where same-origin adjacent runs may coalesce. The mapping is preserved; the decomposition may differ — exactly the freedom V2's function-level statement grants via representation invariance.
 
-*The source is read-only, without authority.* The source is read via `NOBERTREQUIRED` — no permission check of any kind — and nothing is written to its orgl or POOM: no forward pointer, no child list, no flag (V3, V7). The ownership check (`isthisusersdocument`) selects only the allocation hint. In the cross-owner branch the source's address is discarded before allocation (`makehint(ACCOUNT, DOCUMENT, …)`), the `homedoc` field of the copied spans is cleared, and no back-pointer of any kind is stored: the version is structurally indistinguishable from a fresh document, and ancestry is recoverable only through shared I-addresses — the implementation living out the severance theorem (V9) and its witness (V9w).
+*The source is read-only, without authority.* The source is read via `NOBERTREQUIRED` — no permission check of any kind — and nothing is written to its orgl or POOM: no forward pointer, no child list, no flag (V3, V7). The ownership check (`isthisusersdocument`) selects only the allocation hint. In the cross-owner branch the hint switches to account-anchored document creation (`makehint(ACCOUNT, DOCUMENT, …)`) — though which tumbler actually anchors it differs by code path, and the FEBE path gets it wrong (deviation 4) — the `homedoc` field of the copied spans is cleared, and no back-pointer of any kind is stored: the version is structurally indistinguishable from a fresh document, and ancestry is recoverable only through shared I-addresses — the open-mode path living out the severance theorem (V9) and its witness (V9w).
 
 *Snapshot semantics.* The golden test `modify_original_after_version` shows the version frozen at the source's fork-time content while the source moves on; two successive forks bracketing an edit hold different mappings under consecutive ranks (V2, V5, V11).
 
-Three deviations from the abstract specification:
+*Whole-request isolation.* The backend is single-threaded and run-to-completion: one event loop dispatches one request handler at a time, and `docreatenewversion`'s allocate–retrieve–populate steps all execute, in memory, within one invocation before any other request from any session can be dispatched; disk writes are deferred to idle. The composite's interior state — orgl allocated, POOM unpopulated — exists only inside that invocation: the composite-isolation convention named in the atomicity remark, realized architecturally rather than specified. One edge the architecture leaves open: a failure between allocation and population returns early without cleanup, leaving an orphaned empty document in the granfilade — a committed K.δ without the rest of its composite — though the request reports failure and the orphan's address is never released to a client.
+
+Four deviations from the abstract specification:
 
 1. **Bounded fork depth.** `NPLACES = 16` caps the tumbler mantissa; `tumblerincrement` aborts fatally on overflow, bounding fork depth at roughly ten levels above a six-component document. The comment "increased from 11 to support deeper version chains" records that the previous bound bound in practice. This violates V6's unbounded-depth requirement (T0(b)); a conforming implementation must remove or outgrow the cap.
 2. **The subspace boundary is unimplemented at extraction.** `doretrievedocvspanfoo` — self-described "a kluge not yet kluged" — returns the source's *total* V-extent with no subspace logic; its body is identical to the whole-document retrieval. For text-only sources this coincides with V2's clause; for a links-only source the link extent is mis-transcribed as if it were content, and `acceptablevsa`, the would-be validator, is a stub returning TRUE. V2's content-subspace restriction is the specification the kluge acknowledges it owes. (Versioning an empty document, by contrast, behaves exactly as the degenerate `n = 0` case prescribes.)
 3. **Session-layer ceremony.** The `addtoopen` / `logbertmodified` / `doclose` dance around the new version exists to keep the fresh document from being garbage-collected as created-but-unwritten. The abstract model has no such collection — identities are permanent unconditionally (P1) — so this machinery has no specification counterpart.
+4. **The principal structure is cooperative, not enforced.** PS has no backend mechanism behind it. The account validator (`validaccount`) is a stub returning TRUE; the `XACCOUNT` handler discards even that result and installs the client-supplied account tumbler unconditionally; the multi-user daemon never initializes a session's account at connection (the call is commented out). Allocation is containment-checked against the *claimed* account — the allocator verifies the new address lands under the session's account prefix — but never legitimacy-checked: nothing verifies the prefix names any principal. And the FEBE CREATENEWVERSION handler passes the *source document's* address as the cross-owner placement anchor (the open-mode `doopen` path correctly passes the session account), seating the fork inside the foreign document's own namespace — violating the O5 confinement PS assumes, and with it the severance theorem's hypothesis. A conforming implementation must enforce what udanax-green leaves to front-end cooperation: a real `Π`, coverage of `E`, allocation confined to the allocator's domain.
 
 ## Claims Introduced
 
 | Label | Statement | Status |
 |-------|-----------|--------|
+| PS | standing assumption: an ASN-0042-conforming principal structure rides the docuverse states — O1a/O1b with O12/O13/O15 dynamics, `allocated_by` on K.δ under O5/O16, bootstrap coverage `pfx(π₀) ≼ n₀` — whence `ω : E → Π` is total at every reachable state | introduced |
 | trunc | `trunc(t)` is the `(#t − 1)`-prefix of `t`; for every `v ∈ S(d, 1)`, `trunc(v) = d` | introduced |
 | Z-mono | `p ≼ q ⟹ zeros(p) ≤ zeros(q)` | introduced |
+| SA | stored addresses form a prefix antichain: for `a ∈ dom(C) ∪ dom(L)`, `{t : a ≼ t} ∩ (dom(C) ∪ dom(L)) = {a}` | introduced |
 | nextv | `nextv(E, d) = next(E, d, 1)` — the version-namespace frontier, a function of the registry and the source address alone | introduced |
+| VN-B1 | `E ∩ S(d, 1)` is a contiguous prefix of the version stream at every reachable state: K.δ's freshness and operand constraints admit only frontier arrivals into a version namespace | introduced |
 | VERSION | the fork composite: one fresh identity, the source's content-subspace arrangement transcribed as a snapshot, provenance recorded; `C`, `L`, and every existing arrangement framed | introduced |
 | V-WF | VERSION is a valid composite at every reachable state with `d_src ∈ E_doc` (empty source included); its post-state satisfies all per-state invariants | introduced |
 | derives | `derives(v, d)` iff some `VERSION(·, d)` invocation produced `v` | introduced |
@@ -323,14 +366,14 @@ Three deviations from the abstract specification:
 | V2b | no reachable transition seats a foreign-origin link in a document's link subspace; content anchoring is the only cross-fork connectivity channel | introduced |
 | V3 | source frame: every `d_src`-indexed state component is unchanged; the fork is strictly additive and writes no forward pointer | introduced |
 | V4 | owned fork: `v ∈ S(d_src, 1)`, `trunc(v) = d_src`, `zeros(v) = 2`, node/user fields preserved, document field extended by exactly one component, `acct(v) = acct(d_src)` | introduced |
-| V5 | the version's rank equals creation order; allocation is registry-pure (content-blind); ranks are never reused; time is not encoded | introduced |
+| V5 | the version's rank equals its allocation order in the namespace — fork order exactly under VD; allocation is registry-pure (content-blind); ranks are never reused; time is not encoded | introduced |
 | V6 | closure: the output satisfies the operation's preconditions; depth-1 forking never consumes the separator budget; fork depth must be unbounded; ancestors are recovered by iterated truncation | introduced |
 | V7 | navigation asymmetry: child→ancestor is stateless address arithmetic; ancestor→descendant is a registry query (contiguous, gap-free); neither reads the source's state | introduced |
 | V8 | owned fork inherits ownership: `ω'(v) = ω(d_src)` via coverer-set equality; no ownership record is created | introduced |
 | V9 | cross-owner fork: `ω'(v)` is the forker; `¬(d_src ≼ v)` is a theorem (severance); no authority over the source is consulted; editability follows from owning the fork | introduced |
 | V9w | dual provenance `{(a, d_src), (a, v)} ⊆ R'` for every carried `a`; permanent, identity-based, and symmetric — it does not orient derivation | introduced |
-| V10 | link carry-through: `project(a, i, v, Σ') ≠ ∅ ⟺ coverage(Σ.L(a).eᵢ) ∩ A ≠ ∅` — total over content anchors, zero per-link work, valid for links created after the fork | introduced |
-| V11 | the version is editable from the instant of creation; per-document frames isolate both edit directions; shared content is immutable from either side; source-tracking is a query, not a channel | introduced |
+| V10 | link carry-through: `project(a, i, v, Σ') ≠ ∅ ⟺ coverage(Σ.L(a).eᵢ) ∩ A ≠ ∅` — total over content anchors, zero per-link work; extends to links created after the fork while the version still arranges the anchor | introduced |
+| V11 | the version stands under the same edit-enabling conditions as any document from the instant of creation, nothing `v`-specific outstanding; per-document frames isolate both edit directions; shared content is immutable from either side; source-tracking is a query, not a channel | introduced |
 | V12 | identity/content boundary: two distinct identities over one content body; identity is not a function of content; the address asserts allocation lineage, the operation supplies derivation | introduced |
 | V13 | `R' = R ∪ {(a, v) : a ∈ A}`, pinned from below by J1★ and from above by J1'★ | introduced |
 
