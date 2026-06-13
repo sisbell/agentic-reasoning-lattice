@@ -30,7 +30,7 @@ from lib.shared.paths import WORKSPACE
 # remain for explicit overrides and CLI flags.
 MODEL_FLAGS = {
     # roles
-    "default": "claude-fable-5[1m]",   # note/inquiry review-revise-consult-draft loop
+    "default": "claude-opus-4-8[1m]",  # note/inquiry review-revise-consult-draft loop (fable-5 disabled by Anthropic 2026-06-12)
     "consult": "claude-opus-4-8[1m]",  # theory-channel consultations (inquiry phase)
     "evidence": "claude-sonnet-4-6",   # evidence-channel consultations
     "commit": "claude-sonnet-4-6",     # runner commit messages
