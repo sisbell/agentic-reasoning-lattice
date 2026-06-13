@@ -311,11 +311,10 @@ about *how many satisfy, right now*. The first is honoured at the level of the s
 second is recomputed at each inquiry. Both are kept, and they are kept by being different
 kinds of statement.
 
-*Implementation note.* Because the back end recomputes the count by re-running the search,
-two inquiries separated by a mutation observe two states and may return different numbers;
-nothing is cached, and there is no snapshot tying a count to a later enumeration. The count
-is a function of whichever `Σ` is observed, and so must be read as *of the moment* it is
-taken.
+*Implementation note.* Because that same realisation recomputes rather than caches, two
+inquiries separated by a mutation observe two states and may return different numbers; there
+is no snapshot tying a count to a later enumeration. The count is a function of whichever `Σ`
+is observed, and so must be read as *of the moment* it is taken.
 
 ## Stability under content editing
 
@@ -363,9 +362,7 @@ content, now at a shifted position — submits a *different* request, because th
 against the edited arrangement yields different addresses. The count of that different
 request may differ. What CN-STAB guarantees is that the link's *membership* in a *given*
 description is stable; what it does not guarantee, and should not, is that two different
-descriptions return the same number. By that same resolution principle of the opening
-remark, a rearrangement that preserves addresses leaves every address-phrased count exactly
-invariant; any apparent movement is the request re-resolving, not the link.
+descriptions return the same number.
 
 ## Retraction and permanence
 
@@ -647,11 +644,10 @@ cardinality of the satisfying set), not *how much it costs*. Cost-asymmetry is a
 implementation may provide; it is not a property the answer must have, and so it is not
 among the claims below.
 
-*Implementation note.* Gregory's back end does *not* realise the asymmetry: it computes the
-count by running the full matching search, materialising every match into a list, and
-returning the list's length — so asking "how many?" costs what asking "which ones?" costs.
-This is a faithful implementation of the *value* CN-DEF specifies and an unrealised
-opportunity with respect to the *cost* aspiration. It confirms the position taken here: the
+*Implementation note.* Gregory's back end does *not* realise the asymmetry: that same
+full-enumeration realisation computes the count, so asking "how many?" costs what asking
+"which ones?" costs. This is a faithful implementation of the *value* CN-DEF specifies and an
+unrealised opportunity with respect to the *cost* aspiration. It confirms the position taken here: the
 number is determined by the specification, the price is left to the implementation, and a
 back end is free to pay full enumeration cost for a cardinality without being wrong.
 
@@ -661,7 +657,7 @@ back end is free to pay full enumeration cost for a cardinality without being wr
 |-------|-----------|--------|
 | CN-DEF | (DEF) `countlinks_FTT(q, Σ) ≡ \|{ a : a ∈ addressable(Σ) ∧ sat(a, q, Σ) }\|`; the operation reads `Σ`, returns ℕ, and has frame `Σ` (writes nothing); defined through the shared relation `sat` (ASN-0121), not through the enumeration operation; well-defined because the counted set is a finite, computable subset of `dom(Σ.L)` (L-fin ASN-0093, FL-DEC ASN-0121) | introduced |
 | CN-LOC | (LEMMA) Link-store locality — for fixed `q`, `countlinks_FTT(q, Σ)` is a function of `Σ.L` alone; `Σ.C`, `Σ.M`, `Σ.E`, `Σ.R` are never consulted (from FL-LOC, ASN-0121) | introduced |
-| CN-UNIT | (THM) The unit is link identity — each addressable satisfying link contributes exactly `1`, independent of endset span/address multiplicity (absorbed by the existential in `touch`), transclusion multiplicity, arrangement-appearance multiplicity, and version-refraction multiplicity (the latter three excluded by CN-LOC; forking shares content (references the same I-addresses via J4's K.μ⁺ step, no K.α), not links — J4 ASN-0047 — so the version DAG adds no link address). Clause (b) is transclusion invariance: a link reachable through any number of documents contributes `1`, document-reach being an `Σ.M` quantity, not a link count | introduced |
+| CN-UNIT | (THM) The unit is link identity — each addressable satisfying link contributes exactly `1`, independent of anchoring (endset span/address) multiplicity, transclusion multiplicity, arrangement-appearance multiplicity, and version-refraction multiplicity | introduced |
 | CN-SHARED | (META) The four-set match-description lives once in `sat` (ASN-0121); both the count and the enumeration are queries over `sat`, and neither operation's specification appeals to the other | introduced |
 | CN-ENUM | (THM) `countlinks_FTT(q, Σ) = \|findlinks_FTT(q, Σ)\|` — count equals enumeration length at a single state, structurally (both are the cardinality of one set), and may differ across distinct states evaluated by separate inquiries | introduced |
 | CN-ZERO | (THM) `countlinks_FTT(q, Σ) = 0 ⟺ (A a : a ∈ addressable(Σ) : ¬sat(a, q, Σ))` — a positive present-store existential (no addressable link satisfies `q`), distinct from "not found" (excluded by FL-JUNK) and "not displayed" (excluded by CN-LOC); a degenerate empty-coverage request also yields `0` (FL-EMP) but asserts only that the request names nothing | introduced |
