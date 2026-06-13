@@ -381,20 +381,15 @@ routes every emission into a disciplined class through that class's disciplined
 operation: every `[K_sup]` emission through `assert_sup` or `editlink` (under
 `DC`), every `[R]` emission through `Nullify`. A bare `Emit_{K_sup}`, a bare
 `Emit_R`, or a bare `K.λ` carrying either class is *not* an editing-layer
-operation — the substrate cannot forbid such emissions (discipline is a protocol
-property, not a substrate invariant; see the Remark on no enforceable coupling
-below), but the layer does not issue them. A state is *editing-layer-reachable*
-iff it is reached from the initial state `Σ₀` by a finite sequence of
-editing-layer operations. This mirrors ASN-0086's RelationalLayer and its
-LayerReachable states.
+operation — the substrate cannot enforce this (see EL1 and the Remark on no
+enforceable coupling below), but the layer does not issue them. A state is
+*editing-layer-reachable* iff it is reached from the initial state `Σ₀` by a
+finite sequence of editing-layer operations. This mirrors ASN-0086's
+RelationalLayer and its LayerReachable states.
 
 **EL-DM (DisciplineMaintenance).** Every editing-layer-reachable state is
-edit-disciplined — so the conditional claims that follow (EL6(iii), EL7(iii),
-the EL7(iv) full frame, EL14's active-at-birth, and EL8's disciplined-state
-hypothesis) are evaluated over a reachable, non-vacuous domain, not an assumed
-one. (EL11's contextual half rests instead on per-claim schema-conformance, which
-EL4 supplies without a whole-state hypothesis; at editing-layer-reachable states
-every claim conforms regardless, so it applies there too.)
+edit-disciplined — so the "at disciplined `Σ`" conditionals below are
+non-vacuous.
 
 *Base.* The initial state `Σ₀` (ASN-0047) has `L₀ = ∅`, hence
 `S^{Σ₀} = L_{K_sup}^{Σ₀} = ∅` and `L_R^{Σ₀} = ∅`; both clauses of Df-DISC hold
@@ -761,7 +756,7 @@ complies; the construction shows the compliance is load-bearing, not stylistic.
 different conditions — and the split is exactly the design's distinction
 between the *record answering* and the *context volunteering*.
 
-*(a) Contextual (arrangement-gated).* For a disciplined claim `e` and any
+*(a) Contextual (arrangement-gated).* For a schema-conforming claim `e` and any
 document `d`, the to-side of `e` projects into `d` iff `d` currently lists the
 original:
 
