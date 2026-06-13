@@ -1,0 +1,29 @@
+## Question 2 [theory]
+
+> Is every document intended to be created under an existing account, making ownership total over all allocated documents, or does the design admit documents with no owning account?
+
+**Short answer: yes — under my design a document cannot come into existence anywhere except under an account, and ownership over the allocated subtree is total.** Allocation under an owner is not an administrative policy layered on top of the system; it is the creation mechanism itself. But the question deserves a careful split, because "owning account" means two different things, and the design admits gaps in one of them: the *account position* above every document is structurally inescapable, while the *identified, paying, royalty-collecting owner* is not — I explicitly admit anonymous publication and "non-owned" public-domain documents, and an account itself may be a ghost element with nothing stored for it.
+
+## Allocation is ownership, by construction
+
+The tumbler address has four fields: "There are four major fields, each expandable indefinitely, with three major dividers between them. These fields are Server, User, Document and Contents" [LM 4/26]. The grammar offers no position for a document except beneath a User field — there is no document address that does not pass through an account on its way down from the node.
+
+And new numbers come into existence only by forking under an owner: "The basic principle is that of owned numbers... Whoever owns a specific node, account, document or version may in turn designate (respectively) new nodes, accounts, documents and versions, by forking their integers. We often call this the 'baptism' of new numbers" [LM 4/17]. "The owner of a given item controls the allocation of the numbers under it" [LM 4/20]. Accounts themselves arise the same way — "nodes can spin off nodes; accounts can spin off accounts; nodes can spin off accounts; and so on" [LM 4/19] — so there is no orphan pool of unallocated documents anywhere: "So the docuverse is all really one big forking document" [LM 4/18]. Likewise at the content level, "everything in the system is part of a document. No free-floating materials exist" [LM 2/29].
+
+The protocol reflects this. CREATENEWDOCUMENT — "This creates an empty document. It returns the id of the new document" [LM 4/65] — returns a tumbler, and a tumbler necessarily carries the node and account fields above the document field. (How the session knows *which* account it is operating under is something I deliberately left to the implementors; I specified the address semantics, not a login protocol.)
+
+Ownership over what is allocated is then total as doctrine: "Every document has an owner, the person who created and stored it (or someone who arranged it to be created and stored, such as a publishing company)... Only the owner has a right to withdraw a document or change it" [LM 2/29]. And it is permanent: "once assigned a User account, the user will have full control over its subdivision forevermore" [LM 4/29].
+
+## Three qualifications on what "owning account" means
+
+1. **An "existing account" need not be a stored object.** Accounts and documents are conceptually assigned positions on the tumbler line; "no specific element need be stored in tumbler-space to correspond to them," and "It is possible to link to a node, or an account, even though there is nothing stored in the docuverse corresponding to them" [LM 4/23]. The *operational* account — passwords, billing, the cash register — belongs to the contractual layer: the cash register "is in the user's system area, along with passwords and accounting information" [LM 5/13]. So "every document is created under an account" means under an assigned account *number* whose holder did the baptizing, not necessarily under a fully furnished identity record.
+
+2. **The owner may be anonymous.** "There is no reason that anonymous publication by walk-in and transient users of this system should not be allowed. We may call this 'John Doe publication'" [LM 2/60]. John Doe's document still sits under an account position at some storage vendor — what is missing is an accountable identity behind it. That is precisely why such material is more vulnerable to peremptory challenge for removal, and I concede my text leaves the economics unresolved (who collects the royalty, who keeps paying the storage rental).
+
+3. **Copyright ownership may be vacant even though account ownership is not.** I explicitly contemplate public-domain material: "When bytes are taken from an unpublished document (one in the public domain), this surcharge is added to the Author's Fund," an escrow account that can fund "the costs of input and proofreading of non-owned documents" [LM 5/12]. A "non-owned document" in this sense still lives under the account of whoever input it; what it lacks is an author collecting nibs. The Author's Fund stands in where the beneficial owner is absent.
+
+## Conclusion
+
+The design does not admit documents with no owning account in the allocation sense — that case is unconstructible, since the only way a document number comes to exist is that some account-holder forked it into being, and that holder's control over the subtree is total and perpetual. What the design *does* admit is ownership thinning out above a perfectly well-formed address: the account may be a ghost position with nothing stored for it, its holder may be an unaccountable John Doe, and the copyright interest may belong to no one, with the Author's Fund absorbing the royalties. Those gaps are handled socially (peremptory challenge) and economically (the Author's Fund), never by permitting an unowned address.
+
+One honesty note: the XU.87.1 implementation had not yet built the account-level protections — "Private documents. (Currently all documents are visible to all users.)" [LM 4/79], with accounting and royalty likewise unimplemented — but that is an implementation gap, not the intent.
