@@ -196,10 +196,6 @@ Forcing two separate inquiries to observe one state — so that count-equals-len
 across the pair, not merely within each — is a concurrency-discipline matter outside
 either operation, deferred to the open questions below.
 
-*Implementation note.* That same realisation drives the count and the enumeration through
-one shared matching routine, so the count carries no private copy of the four-set logic
-that could drift from the enumeration's.
-
 ## What a count of zero asserts
 
 A returned `0` is the most informative answer the operation gives, because it makes a
@@ -273,9 +269,6 @@ link value — it is the size of a query's answer, and the system makes no promi
 a stale size. The discipline this implies is *recompute-on-read*, not *cache-as-truth*:
 permanence is a promise about *what exists*, a count a promise about *how many satisfy
 right now*, and the only way to know the current count is to take it again.
-
-*Implementation note.* That same realisation recomputes the count at each inquiry rather
-than caching it.
 
 ## Stability under content editing
 
@@ -362,13 +355,13 @@ The complementary direction — growth — is governed by the same per-link logi
 This is the cardinality of FL-MON (ASN-0121): a matching, non-withdrawn link stays in the
 satisfying set as the store grows, so the count cannot fall. That link creation is the only
 transition which can *add* to the satisfying set is CN-STAB read with F-PRES (ASN-0127) —
-every non-`K.λ` transition preserves `Σ.L`, and with it the count; that a single `K.λ` step
-contributes at most one address, fresh and so not already counted, is its effect and
-freshness clauses (ASN-0093); and the exact four-set increment, retraction-coverage
-condition and all, is FL-WP(a) (ASN-0121), which the next paragraph derives in full. We can
-make the increment exact by a weakest-precondition step. Consider a transition `Σ → Σ'` that
-creates a fresh ordinary link `ℓ` — *fresh*, so `ℓ ∉ dom(Σ.L)`, and *ordinary*, so it does
-not enter the retraction relation and `L_R^{Σ'} = L_R^Σ`.
+every non-`K.λ` transition preserves `Σ.L`, and with it the count; and that a single `K.λ`
+step contributes at most one address, fresh and so not already counted, is its effect and
+freshness clauses (ASN-0093). The exact increment we now derive by a weakest-precondition
+step, in two cases — first a fresh *ordinary* link, then a fresh *retraction* link, which
+differ in one step that turns out to be load-bearing. Consider first a transition `Σ → Σ'`
+that creates a fresh ordinary link `ℓ` — *fresh*, so `ℓ ∉ dom(Σ.L)`, and *ordinary*, so it
+does not enter the retraction relation and `L_R^{Σ'} = L_R^Σ`.
 
 First, every pre-existing link's contribution is unmoved. For `a ∈ dom(Σ.L)`
 the stored value survives creation, `Σ'.L(a) = Σ.L(a)` with `a ∈ dom(Σ'.L)` (L12, ASN-0043;
@@ -377,7 +370,10 @@ permanent address `a` (CN-LOC), so `sat(a, q, Σ') = sat(a, q, Σ)`. Its address
 fixed too: because `ℓ` is not a retraction, `L_R^{Σ'} = L_R^Σ`, so the nullified set
 restricted to the old domain is unchanged, `nullified(Σ') ∩ dom(Σ.L) = nullified(Σ)`, and
 each pre-existing `a` is addressable at `Σ'` exactly when it was at `Σ`. The contributions
-of `dom(Σ.L)` therefore sum to the same total at both states.
+of `dom(Σ.L)` therefore sum to the same total at both states. Note where that came from: the
+CN-MONO hypothesis that no currently-counted link is nullified is here *automatic*, falling
+out for free from `L_R^{Σ'} = L_R^Σ`; we never had to invoke it. The retraction case below is
+where it earns its keep.
 
 The whole change is thus the contribution of `ℓ` itself: `1` if `ℓ ∈ addressable(Σ') ∧
 sat(ℓ, q, Σ')`, and `0` otherwise. Now `ℓ ∈ dom(Σ'.L)` holds by creation, so `ℓ ∈
@@ -406,16 +402,31 @@ prefix-antichain structure of the link domain (R0a, ASN-0086) — already establ
 freshly emitted link address lies in no standing retraction tuple's to-coverage, so we
 inherit that conclusion rather than re-deriving it here.
 
-The companion case is a fresh *retraction* link. `Nullify ≡ Emit_R` is itself a `K.λ` step
-(ASN-0086), so a retraction tuple too can satisfy `q` and be counted — its empty from-endset
-simply drops out under a from-wildcard, as the worked example's `a_R` will show. Its
-increment is governed not by FL-WP(a) but by FL-WP(b) (ASN-0121): because creating it
-*grows* `L_R^{Σ'}` rather than leaving it fixed, the precondition carries an additional
-*self-retraction* conjunct requiring the fresh address to lie outside its own to-coverage,
-without which the tuple would nullify itself on arrival and be excluded from
-`addressable(Σ')`. With both `K.λ` cases in hand, the census grows by precisely the links —
-ordinary or retraction — that are made, match, and are addressable at the post-state, and
-shrinks by precisely the matching links that are withdrawn; it moves under nothing else,
+The companion case is a fresh *retraction* link `b`, and it diverges from the ordinary case
+at exactly the step that pinned the pre-existing total — so we walk it rather than cite it.
+`Nullify ≡ Emit_R` is itself a `K.λ` step (ASN-0086), so a retraction tuple too can satisfy
+`q` and be counted: its empty from-endset simply drops out under a from-wildcard, as the
+worked example's `a_R` will show. But creating `b` *grows* the retraction relation —
+`L_R^{Σ'} = L_R^Σ ∪ {(b, F', G')}` — and a larger `L_R` can nullify more. Concretely, `b`'s
+own to-coverage `coverage(G')` may name a *pre-existing, currently-counted* link: any
+`a ∈ dom(Σ.L)` with `a ∈ coverage(G')` that satisfies `q` and is addressable at `Σ` would, at
+`Σ'`, enter `nullified(Σ')`, drop out of `addressable(Σ')`, and lower the pre-existing total.
+The step the ordinary case got for free — every link counted at `Σ` is still addressable at
+`Σ'` — is therefore *not* automatic here, precisely because `L_R^{Σ'} ⊋ L_R^Σ`. What rescues
+it is exactly the CN-MONO hypothesis *no currently-counted link becomes nullified*, which
+forbids this collateral withdrawal: under it every link counted at `Σ` remains addressable at
+`Σ'`, the pre-existing links again sum to the same total, and the precondition that was idle
+in the ordinary case is here the sole guard against the new retractor pulling a counted link
+out from under the tally.
+
+With the pre-existing total so pinned, the whole change is once more `b`'s own contribution.
+Its addressability is governed not by FL-WP(a) but by FL-WP(b) (ASN-0121): because `b` enters
+`L_R` it must clear an additional *self-retraction* conjunct — `b ∉ coverage(G')`, the fresh
+address lying outside its own to-coverage — without which the tuple would nullify *itself* on
+arrival and be excluded from `addressable(Σ')`. So `b` adds `1` exactly when it satisfies `q`
+and clears that conjunct. With both `K.λ` cases in hand, the census grows by precisely the
+links — ordinary or retraction — that are made, match, and are addressable at the post-state,
+and shrinks by precisely the matching links that are withdrawn; it moves under nothing else,
 `K.λ` being the only count-changing transition (CN-STAB).
 
 A note on what retraction does *not* undo. Nullifying a link removes it from the active
@@ -583,6 +594,53 @@ so the request is non-degenerate and the zero asserts *no addressable link is ho
 `a₄`, whose from-span points into `d₂` content, is excluded all the same: it is *homed* at
 `d₁` and only *references* `d₂`, and the home-set tests where a link lives, never what it
 points at (FL-RES, ASN-0121).
+
+**The census in motion.** The store above is frozen, and the count's *static* rulings —
+CN-UNIT, CN-RETRACT, CN-ORPHAN, CN-ZERO — are all it can exhibit. The two *dynamic* rulings,
+CN-MONO's increment and CN-STAB's invariance, speak about a transition and need a
+before-and-after to instantiate. We take three in sequence from `Σ`, tracking the from-only
+request `q = (∗, F, ∗, ∗)` whose count there is `2` (contributors `a₁`, `a₃`).
+
+*A link is made — `2 → 3` (CN-MONO, ordinary case).* A `K.λ` step allocates a fresh ordinary
+link at the next free sibling on `d₁`'s link chain, `a₅ = 1.0.1.0.1.0.2.6`, a standard triple
+`(e₁, e₂, Θ₀)` with from-endset `e₁ = {⟨1.0.1.0.1.0.1.10⟩}`; call the post-state `Σ'`. Being
+*ordinary* (`Θ₀ ≠ R`) it leaves the retraction relation fixed, `L_R^{Σ'} = L_R^Σ`, so
+`nullified(Σ') = {a₂}` is unchanged and `a₅` — equal-length to `a₂` and distinct, hence
+outside `a_R`'s to-coverage `{t : a₂ ≼ t}` — is born addressable. Its from-address
+`1.0.1.0.1.0.1.10` lies in `coverage(F)` (`5 ≤ 10 < 13`), so `sat(a₅, q, Σ')` holds. The
+ordinary-link precondition is met on both conjuncts,
+
+  `sat(a₅, q, Σ') ∧ ¬(E (b, F', G') ∈ L_R^Σ :: a₅ ∈ coverage(G'))`
+
+— `a₅` satisfies `q`, and the lone standing retraction `a_R` covers `a₂` alone, not `a₅`. The
+pre-existing total holds at `2` (no `L_R` growth), `a₅` adds its `1`, and
+`countlinks_FTT(q, Σ') = 3`, contributors `{a₁, a₃, a₅}`.
+
+*Content is deleted, and the count holds — `3 → 3` (CN-STAB).* From `Σ'` a `K.μ⁻` contraction
+acts on `d₁`'s arrangement, removing text V-positions in `d₁` — among them ones surfacing
+content that `a₁` and `a₅` point into; call the post-state `Σ''`. The contraction mutates
+`Σ.M(d₁)` and leaves `Σ.L` wholly fixed (F-PRES, ASN-0127). The deleted content vanishes from
+`d₁`'s *view* but persists in `Σ.C` (the Istream is append-only), and the links' from-endsets
+still reference those permanent I-addresses, so `coverage(F)` and every `sat` value stand;
+with `Σ.L` fixed, `addressable` is fixed too. By CN-STAB the count does not move:
+`countlinks_FTT(q, Σ'') = 3`. That the edit unsurfaces content a counted link points into is
+invisible to the census, which reads `Σ.L` and never `Σ.M` (CN-LOC). Editing moved content;
+it did not move the number.
+
+*A retractor is made, and a counted link falls out — `3 → 2` (collateral nullification).* From
+`Σ''` a `K.λ` step emits a *retraction* tuple `a_R' = (∅, {⟨a₁⟩}, R)` at the next sibling
+`1.0.1.0.1.0.2.7`, its to-endset targeting the *counted* link `a₁`; call the post-state
+`Σ'''`. This is the case the ordinary derivation could not borrow. Creating `a_R'` *grows* the
+retraction relation, `L_R^{Σ'''} = L_R^{Σ''} ∪ {(a_R', ∅, {⟨a₁⟩})}`, and the larger relation
+nullifies more: `a₁ ∈ coverage(⟨a₁⟩)` by reflexivity of `≼`, so `nullified(Σ''') = {a₂, a₁}`
+and `a₁` drops out of `addressable(Σ''')`. The CN-MONO hypothesis — *no currently-counted link
+becomes nullified* — is exactly what fails: `a₁` was counted at `Σ''` and is withdrawn at
+`Σ'''`. So CN-MONO does not apply, and the count is *not* monotone: it *falls*,
+`countlinks_FTT(q, Σ''') = |{a₃, a₅}| = 2`. The retractor contributes nothing itself — its
+from-endset is `∅`, so `touch(∅, F)` fails and `sat(a_R', q, Σ''')` is false; and it does not
+self-nullify (`a_R' ∉ {t : a₁ ≼ t}`), so it sits addressable but uncounted under `q`. The net
+`−1` is the collateral withdrawal of `a₁` alone — the load-bearing precondition of CN-MONO
+made concrete, the worked twin of the retraction sub-case derived above.
 
 ## Cost, and the meaning of asking for a number
 
