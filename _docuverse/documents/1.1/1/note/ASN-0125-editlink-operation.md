@@ -62,13 +62,17 @@ the designated retraction class `[R]` with `nullified(Σ)` and the active
 subsets `A_K^Σ`, the total emission-address function `a_emit(Σ, d)`, the
 operations `Emit_K`, `Observe_K` (views `hist`/`oper`), and `Nullify`.
 
-**Layer transfer.** ASN-0086 proves its facts over the substrate vocabulary
-`{K.σ, K.α, K.λ}`, and every such fact depends on exactly two properties of
-state evolution: the link store changes only by `K.λ`'s fresh appends, and the
-document set `dom(M)` is monotone. Both hold of the full ASN-0047 vocabulary
-(Vocabulary fact V below; M1, with `K.δ`'s document case playing `K.σ`'s role).
-We therefore use the ASN-0086 facts at full-vocabulary reachable states,
-reading "layer-reachable" over this vocabulary.
+**Layer transfer.** The ASN-0086 facts this note invokes — R0a (FlatLinkDomain),
+the emission-address function `a_emit`, the `Emit`/`Observe`/`Nullify` contracts,
+`wp` Case 2, R3 (TypedSliceMonotonicity), and R6a — each reference only the link
+store and the document set `dom(M)`, never content values, arrangement interiors,
+or provenance. Both of those are evolved identically by the full ASN-0047
+vocabulary and by ASN-0086's `{K.σ, K.α, K.λ}`: the link store changes only by
+`K.λ`'s fresh appends (Vocabulary fact V below) and `dom(M)` is monotone (M1, with
+`K.δ`'s document case playing `K.σ`'s role). We therefore use these particular
+facts at full-vocabulary reachable states, reading "layer-reachable" over this
+vocabulary — without claiming anything of ASN-0086 results this note does not
+use.
 
 **Vocabulary fact V (the L-frame inventory).** By inspection of the ASN-0047
 transition contracts: every elementary transition other than `K.λ` carries the
@@ -80,11 +84,15 @@ that forces `ℓ_f ∉ dom(L)` (ASN-0093, FirstEmissionFreshness and
 SubsequentEmissionFreshness). The link store admits exactly one kind of change:
 extension at a fresh key.
 
-**Scope.** This note works directly with the substrate transitions and state
-functions; it does not specify link creation, discovery, or read operations as
-user surfaces, citing existing foundation operators (`Observe_K`, ASN-0086;
-`project`/`discoverable_from`, ASN-0098) where a reader capability must be
-named.
+**K.λ-only composites are valid.** Both operations below are sequences of `K.λ`
+steps alone, and a `K.λ`-only sequence is a valid ASN-0047 composite: its
+coupling clauses hold vacuously — J0 because no `K.α` runs, so no content is
+allocated (`dom(C') \ dom(C) = ∅`); J1★ because no content-subspace `K.μ⁺`
+extends an arrangement, so no I-address is new to any content-subspace range;
+and J1'★ because no `K.ρ` runs, so `R' = R` records no provenance. The output
+state of each `K.λ` step is therefore reachable, so `assert_sup`'s `Σ'` and
+`editlink`'s `Σ₁` and `Σ₂` are reachable states at which the lifted invariants
+(R0a, L12, the per-state package, ASN-0086's `wp` results) apply.
 
 ## The mutation postcondition is unachievable
 
@@ -326,16 +334,12 @@ derivation" (LM 4/29). Where not even nesting
 exists — and for links, by EL2(c), it does not — the refusal is not a choice
 but a fact.
 
-*The commitment costs nothing in mechanism and something in coordination.* The
-relation-space carrier requires zero substrate change: a coverage class is a
-convention over addresses the substrate already treats as opaque (Q19 — a
-client can mint a "supersedes" type with no backend modification, and the
-backend will index and match it like any other). The price is that the class
-*is* a convention: communities that point their type slots at different
-addresses fragment the canonical check. The mitigation is structural —
-refinements minted under a common prefix remain jointly queryable by a single
-rooted span (L10) — but the root itself must be agreed, a coordination problem
-the substrate deliberately declines to solve.
+*The carrier costs nothing in mechanism, something in coordination.* The
+relation-space carrier requires zero substrate change — a coverage class is a
+convention over addresses the substrate already treats as opaque (Q19), minted
+and matched like any other type. Its price is that the class *is* a convention:
+refinements minted under a common prefix stay jointly queryable by one rooted
+span (L10), but the root itself must be agreed.
 
 ## The supersession relation
 
@@ -780,16 +784,12 @@ claims was asserted later: the trace knows, the state does not. Within one
 home the opposite holds: the chain enumeration is strictly increasing (T9;
 ChainEnumerationInjectivity, ASN-0093), so the claims homed at one *document*
 are totally ordered by their addresses — *per-home* "latest" is well-defined and
-state-recoverable. This is per-document-chain, not per-principal — and the
-substrate state `Σ = (C, L, E, M, R)` carries no principal at all, so any
-per-asserter notion is a fortiori not a function of `Σ`. Even under an ownership
-overlay (ASN-0042), where an owner's domain spans many document prefixes
-(account-tier prefix and `odom`), two claims one owner homes at two of its
-documents fall under the commutation argument above, so *their* order is not a
-state function. A per-asserter "latest" is therefore state-recoverable only
-under the added assumption that the asserter homes all its claims at a single
-document; absent that, it is at best an approximation a reader policy may adopt,
-never a fact of the state. The design
+state-recoverable — per-document-chain, not per-principal. The substrate carries
+no principal, and under an ownership overlay (ASN-0042) an owner's claims homed
+at two of its documents fall under the same commutation, so a per-asserter
+"latest" is a state function only when the asserter homes all its claims at a
+single document; absent that — like cross-home order itself — it is not a
+function of the state. The design
 consequence: any global most-recent-wins rule is
 undefinable from state; any definable global tie-break (say, T1-least claim
 address) ranks namespaces, not times, and carries no authority. The substrate
