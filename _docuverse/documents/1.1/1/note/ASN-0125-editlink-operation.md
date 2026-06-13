@@ -1,0 +1,924 @@
+# ASN-0125: The EDITLINK Operation — Editing Under Link Immutability
+
+*2026-06-12*
+
+## The problem
+
+A user holds a link and wants its endsets changed — an endpoint widened, a target
+corrected, a type refined. Every other editable thing in the system has a place
+where editing happens: a document's arrangement is the one component of state
+revisable in place. A link has no such place. The substrate's invariant L12
+(LinkImmutability, ASN-0043, ASN-0093) says that once a link exists, its address
+persists and its value — the whole sequence of endsets — is permanently fixed:
+
+> `(A Σ → Σ' : (A t : t ∈ dom(Σ.L) : t ∈ dom(Σ'.L) ∧ Σ'.L(t) = Σ.L(t)))`
+
+So what can EDITLINK possibly denote? We are asked to be exact: what is
+allocated when a link is "edited," and what record is made of the relationship
+between what was and what is now? Must the original remain readable at its
+address? Must a reader be able to recognize the edit as supersession rather
+than as an unrelated new link — and by what mechanism is that relationship
+expressed, among a field on the new link's structure, a version-of-link
+addressing convention, a separate supersession link, or a typed relation? What
+must any choice maintain about the original's continued resolution and
+discoverability, about chains under repeated edits, about multiple editors in
+conflict, and about a reader's ability to identify the current successor?
+
+We shall find that EDITLINK names no substrate mutation and no new substrate
+mechanism at all. It is a *derived composite*: one allocation that gives the
+edited reading a fresh, permanent identity, and one allocation that makes the
+relationship between old and new exist — as a first-class, owned, disputable
+*claim* in a typed relation. The apparent menu of mechanisms collapses: a
+"separate supersession link" and a "typed relation" are the same object seen
+from two sides, and the genuinely distinct alternatives — a field in the
+successor's value, a nesting convention in the address space — are each
+eliminated by requirements we derive from the design intent. The deepest
+finding is negative and structural: *the relationship between an edited link
+and its original is not a fact the system can observe; it is a statement
+someone must make.* Everything else — chain semantics, fork tolerance, the
+refusal to name a unique "current" — follows from taking that seriously.
+
+## The substrate we build on
+
+**Standing precondition (reachability).** Throughout, every state `Σ` ranges
+over states reachable from the initial state under the sequential transition
+order (ASN-0047, SequentialTransitionAxiom): transitions are atomic and totally
+ordered, `→` is a single elementary transition, and `Σ →* Σ'` is a finite
+(possibly empty) sequence of them drawn from valid composites.
+
+The state is `Σ = (Σ.C, Σ.L, Σ.E, Σ.M, Σ.R)` (ASN-0047). The link store
+`Σ.L : T ⇀ Link` binds link addresses to link values; a link value is a finite
+sequence of `N ≥ 3` endsets with the type slot non-empty (L3, ASN-0043), each
+endset a finite set of T12-well-formed spans (ASN-0034, ASN-0043). The
+*coverage* of an endset is the union of its span denotations,
+`coverage(e) = (∪ (s,ℓ) : (s,ℓ) ∈ e : {t : s ≤ t < s ⊕ ℓ})` (ASN-0043,
+ASN-0098). For a link address `t`, `home(t) = N(t).0.U(t).0.D(t)` is the
+document-level prefix recovered by field projection (ASN-0043), coinciding with
+`origin(t)` on link addresses (ASN-0086, HomeOriginCoincidence). We fix the
+subspace identifiers `s_C ≠ s_L` (ASN-0047, SubspaceConventionAxiom) and write
+`δ(n, m)` for the ordinal displacement (ASN-0034). The elementary vocabulary is
+ASN-0047's: `K.α`, `K.δ`, `K.λ`, `K.μ⁺`, `K.μ⁺_L`, `K.μ⁻`, `K.ρ`, with `K.μ~`
+a named composite of `K.μ⁻` and `K.μ⁺`.
+
+Above the substrate we take the typed-relation layer of ASN-0086 as given:
+coverage classes `[K]` of admissible type endsets, the typed slices
+`L_K^Σ = {(b, F, G) : b ∈ dom(Σ.L) ∧ |Σ.L(b)| = 3 ∧ Σ.L(b).e₁ = F ∧ Σ.L(b).e₂ = G ∧ coverage(Σ.L(b).e₃) = coverage(K)}`,
+the designated retraction class `[R]` with `nullified(Σ)` and the active
+subsets `A_K^Σ`, the total emission-address function `a_emit(Σ, d)`, the
+operations `Emit_K`, `Observe_K` (views `hist`/`oper`), and `Nullify`.
+
+**Layer transfer.** ASN-0086 proves its facts over the substrate vocabulary
+`{K.σ, K.α, K.λ}`. Every ASN-0086 fact we cite — totality of `a_emit`, tuple
+freshness R0, the flat-domain antichain R0a, the chain freshness lemmas, the
+disciplined simplification of wp Case 2, one-way growth of `nullified` —
+depends on exactly two properties of state evolution: the link store changes
+only by `K.λ`'s fresh appends, and the document set `dom(M)` is monotone. Both
+hold of the full ASN-0047 vocabulary (Vocabulary fact V below; M1, with `K.δ`'s
+document case playing `K.σ`'s role). We therefore use those facts at
+full-vocabulary reachable states, reading "layer-reachable" over this
+vocabulary.
+
+**Vocabulary fact V (the L-frame inventory).** By inspection of the ASN-0047
+transition contracts: every elementary transition other than `K.λ` carries the
+frame clause `L' = L` (`K.α`: `L' = L`; `K.δ`: `L' = L`; amended `K.μ⁺`,
+`K.μ⁺_L`, `K.μ⁻`: `L' = L`; `K.ρ`: `L' = L`; `K.μ~` inherits from its
+decomposition). The one transition that writes the link store,
+`K.λ(d, ℓ_f, v)`, has effect `L' = L ∪ {ℓ_f ↦ v}` under a binding precondition
+that forces `ℓ_f ∉ dom(L)` (ASN-0093, FirstEmissionFreshness and
+SubsequentEmissionFreshness). The link store admits exactly one kind of change:
+extension at a fresh key.
+
+Finally, scope. This note does not specify link creation as a user surface,
+link discovery, or the read operations; we work directly with the substrate
+transitions and the state functions. Where a reader capability must be named —
+"the claims targeting `y` are computable" — we cite the foundations' existing
+operators (`Observe_K`, the projection lemmas of ASN-0098) rather than define
+query machinery of our own.
+
+## The mutation postcondition is unachievable
+
+We begin where a specification should: with the postcondition the user wants,
+and the weakest precondition under which the available vocabulary establishes
+it. Fix a reachable `Σ₀`, a link `a ∈ dom(Σ₀.L)`, and write
+`ℓ₀ = Σ₀.L(a)`. The user's EDITLINK wants, for some intended new value
+`w ≠ ℓ₀`:
+
+> `R_mut ≡ a ∈ dom(L) ∧ L(a) = w`
+
+Consider the predicate `J ≡ a ∈ dom(L) ∧ L(a) = ℓ₀`. It holds at `Σ₀` by
+construction. We show every elementary transition preserves it. For the
+transitions of clause (i) of Vocabulary fact V the link store is framed, so `J`
+carries over verbatim. For `K.λ(d, ℓ_f, v)`: from `J`, `a ∈ dom(L)`; the
+binding precondition gives `ℓ_f ∉ dom(L)`; hence `ℓ_f ≠ a`, so
+`L'(a) = L(a) = ℓ₀` and `a ∈ dom(L')`. `J` is therefore inductive along every
+trace from `Σ₀`:
+
+> `(A Σ' : Σ₀ →* Σ' : a ∈ dom(Σ'.L) ∧ Σ'.L(a) = ℓ₀)`
+
+— which is L12 closed under `→*` (the link-store instance of ASN-0098's LP13),
+re-derived here to expose its wp consequence. Since `[J ⟹ ¬R_mut]` (a partial
+function has one value per key, and `w ≠ ℓ₀`), and `J` holds at every state of
+every schedule from `Σ₀`:
+
+**EL0 (MutationExclusion).** For every finite program `S` over the closed
+elementary vocabulary, `wp(S, R_mut)` evaluated at `Σ₀` is `false`. The
+postcondition "the link at `a` now reads `w`" is not unimplemented but
+unimplementable; and dually, the original is readable at its own address, with
+exactly its original value, in every future state, unconditionally.
+
+> *Implementation note.* Gregory's backend is this fact in C: the FEBE surface
+> has CREATELINK and the read/search calls but no UPDATELINK, MODIFYLINK, or
+> DELETELINK opcode; a link orgl's endsets are written once, at creation, by
+> the only call chain that ever writes them, and no function in the codebase
+> relocates or rewrites a granfilade entry afterwards (Q11). The absence of
+> the operation is not an unfinished corner of the implementation; it is the
+> implementation of an absence in the design.
+
+So EDITLINK, if it is to exist, denotes something else. We weaken the
+postcondition to the strongest thing the vocabulary *can* establish. The first
+weakening keeps the new reading and drops the address identity:
+
+> `R₁ ≡ (E a' : a' ∈ dom(L) : L(a') = w)`
+
+`R₁` is achievable — one `K.λ` — but it is transparently too weak: it is
+equally established by an edit of `a` and by an unrelated creation that never
+heard of `a`. The user's intent had two parts — *a new reading* and *its
+standing as the revision of the old one* — and `R₁` captures only the first.
+The candidate strengthening is:
+
+> `R₂ ≡ R₁ ∧ "the pair (a, a') stands, in the state, in a relation recognizable as supersession"`
+
+The remainder of this note determines what the quoted conjunct can mean, proves
+what it cannot mean, and derives the unique carrier compatible with the
+substrate.
+
+## An unasserted edit does not exist
+
+Before asking where the relationship can be recorded, we must establish that it
+*needs* recording — that nothing about performing the edit leaves a trace.
+
+Each elementary transition, given its parameters, is a partial *function* of
+the pre-state (the operation signature of ASN-0034's NoDeallocation; ASN-0047's
+SequentialTransitionAxiom), and under the layer's emission rule the fresh
+address is itself a function of state and home, `a' = a_emit(Σ, d_s)`
+(ASN-0086). Now compare two descriptions of the same morning's work: "I edited
+the link at `a`, producing the corrected value `ℓ'` homed at `d_s`," and "I
+created a brand-new link with value `ℓ'` homed at `d_s`." Both denote the very
+same transition instance, `K.λ(d_s, a_emit(Σ, d_s), ℓ')`, applied to the very
+same state — hence they produce the *same* post-state `Σ₁`. Every predicate on
+states agrees on the two; there is no predicate of `Σ₁` that holds iff `ℓ'`
+"was derived from" `Σ.L(a)`. Intent is not a component of `Σ`, and what is not
+in `Σ` does not exist for any observer of `Σ`.
+
+**EL1 (IntentInvisibility).** Emission alone records no relationship: for the
+post-state `Σ₁` of any single link allocation, every state predicate — and
+hence every observation, present or future — is invariant under whether the
+allocation was an edit of some existing link or an independent creation.
+Consequently value resemblance carries no relational information: the store
+legitimately holds distinct addresses with identical values (L11b,
+NonInjectivity, ASN-0043), and the state after a resembling independent
+creation coincides with the state after an unasserted "edit." Two links that
+agree byte for byte are, to the system, exactly as related as two links that
+share nothing.
+
+This is a refusal, not a gap. A system that inferred derivation from
+resemblance would manufacture relationships its users never asserted —
+coincidences and independent convergence flagged as descent — and would make
+the *system* the author of claims that rightfully have authors. Nelson's
+position is categorical: relationships in the docuverse are made, not
+inferred; "if you want supersession to be readable, you must write it down"
+(Q4). EL1 is that position as a theorem: under this substrate the alternative
+is not merely undesirable but *undefinable* — the distinguishing fact is absent
+from the state.
+
+So the edit must be two acts: produce the successor, and *say so*. Editing
+under immutability is allocation plus assertion.
+
+## Where no record can live
+
+The assertion must be somewhere in `Σ`. We first survey the places the
+substrate has already closed off; the surviving candidates are then assessed
+against requirements.
+
+**EL2 (NoInPlaceCarrier).** In every reachable state:
+
+*(a) Not in the original's value.* `Σ.L(a)` is fixed by L12 from the moment of
+creation. No "superseded-by" annotation can ever be attached to `a`.
+
+*(b) Not appended to the successor's value later.* The same invariant binds the
+successor the instant it exists: its slots are fixed at emission. A slot-borne
+record is expressible only *at birth* — an option we assess (and reject) below.
+
+*(c) Not in the address relation between them.* One might hope the successor's
+address could nest under the original's — a version-of-link convention
+analogous to document versioning, `a' = inc(a, 1)`. The tumbler algebra admits
+such addresses (`zeros(a) = 3` permits `inc(a, 1)` with T4 preserved, TA5a,
+ASN-0034), but the substrate never allocates them: every allocated link address
+is an emission of its home document's flat sibling chain `A_L(d)` — first
+emission `[d.0.s_L.1]` with element-field depth `#E = 2`, successors by
+`inc(·, 0)` which preserves length (FirstEmission, ChainDiscipline, TA5(c),
+ASN-0093) — and at every reachable state the homed links form a contiguous
+initial segment of that chain (ChainMembershipForOrigin, ASN-0093). So every
+allocated link address has `#E = 2` exactly, while a nested version-of-link
+address would need `#E ≥ 3`; stronger, `dom(Σ.L)` is a tumbler-prefix antichain
+(R0a, FlatLinkDomain, ASN-0086) — no allocated link address prefixes another.
+The address relation between any two allocated links carries exactly two
+readable facts: whether they share a home (T6-decidable from the prefixes), and,
+within one home, their emission order (T9, ASN-0034). Neither is semantic: the
+first names a registry, the second a time of arrival at it.
+
+*(d) Not in an index marker.* There is no further component to carry a flag:
+the stored entities are exhausted by `dom(Σ.C) ∪ dom(Σ.L)` (L14, DualPrimitive,
+ASN-0043); the entity set `E` holds organizational addresses with no payload;
+the provenance relation `R` holds (content-address, document) pairs whose
+precondition `a ∈ dom(C)` excludes link targets outright (K.ρ, ASN-0047, with
+SD store disjointness); arrangement entries are V→I bindings within one
+document. The stores are append-only maps of values; there is no status field
+anywhere, and the only systematic asymmetry between two link entries is their
+addresses — case (c).
+
+> *Implementation note.* All four closures are visible in udanax-green. The
+> link orgl contains exactly three endsets at fixed internal positions and
+> nothing else — no predecessor slot, no spare subspace (Q14). Successor links
+> are forced to flat siblings `2.N+1` by the molecule allocator's
+> `tumblerincrement(lowerbound, 0, 1)`; the nesting allocator exists only for
+> documents and is unreachable from link creation (Q13). And the spanfilade
+> holds the old and new links' entries as structurally identical, equally live
+> records — the one attempt to filter by version sits disabled behind
+> `if (FALSE /* trying to kluge links followable thru versions */)` (Q16).
+
+The record, then, must be a *freshly allocated entity*. The question is of what
+kind.
+
+## What the record must satisfy
+
+The consultation record yields seven requirements on any carrier of the
+supersession relationship. Each is a distillation of design intent; we name
+them so the architecture comparison can be conducted claim by claim rather than
+by taste.
+
+- **RQ1 (Post-hoc assertability).** The relationship must be assertable at any
+  state where both endpoints exist — not only at the successor's creation.
+  Relationships are discovered late, asserted by third parties, repaired after
+  omission; a carrier writable only at birth cannot serve them.
+- **RQ2 (Open authorship).** Any principal with a home document may assert.
+  The same mechanism that lets an outsider claim, from outside a document, that
+  its author is really someone else (Q4, Q5) must admit an outsider's claim
+  that *their* revision supersedes another's link (Q9).
+- **RQ3 (Attribution).** The asserter must be decidable from the record alone.
+  A claim nobody owns is not a claim; it is a rumor with system privileges.
+- **RQ4 (Non-destructive disputability).** A claim must be withdrawable from
+  current standing, and contestable, without erasing it or either endpoint.
+  The history of claims is itself permanent record — the design's standing
+  defense against silent rewriting (Q3).
+- **RQ5 (Endpoint frame).** Asserting must modify neither endpoint. The
+  original's owner keeps the original; the successor's content is not hostage
+  to the claim about it.
+- **RQ6 (Decidable specificity).** The relationship must be recognizable as
+  supersession *specifically* — distinguishable from comment, counterpart, or
+  coincidence — by the substrate's interpretation-free mechanisms: address and
+  coverage comparison, never content exegesis. And it must be refinable: a
+  correction is not a restyling, and the vocabulary must be able to grow
+  subtypes.
+- **RQ7 (Plurality).** Arbitrarily many claims over the same endpoints,
+  including mutually contradictory ones, must be co-representable. Competing
+  claims are resolved socially, never structurally (Q9).
+
+**EL3 (RelationSpaceNecessity).** Under this substrate, any carrier satisfying
+RQ1–RQ7 is a freshly allocated link-store entity, distinct from both endpoints,
+referencing each endpoint by address through its endsets, and bearing its kind
+as the coverage class of a designated slot — that is, a typed link-to-link
+tuple. The derivation:
+
+RQ1 and RQ2 require the carrier to be created by a transition, at arbitrary
+later states, by arbitrary principals — so it is a fresh store entity, and the
+vocabulary offers exactly two entity-creating store writers, `K.α` (content)
+and `K.λ` (links); `K.δ` and `K.ρ` were closed off in EL2(d). RQ6 eliminates
+the content store: a claim encoded as content bytes ("this supersedes that,"
+written down in a document) has, to the substrate, no structure beyond an
+address and an origin — its relational content lives in `Val`, which nothing in
+the system interprets; type machinery reads slot-3 *coverage* only (L8,
+TypeByAddress, ASN-0043), and Gregory's backend never dereferences a type to
+look at what is stored there (Q19). So the carrier is a link. RQ1 makes it a
+link *other than the successor* — a third entity — since the successor's slots
+close at its birth (EL2(b)). Its reference to the endpoints must be
+substrate-visible, and the one mechanism links have for referencing anything is
+endset coverage; endsets may target link addresses (L4(c), ASN-0043), with the
+unit-depth span at an address as the canonical reference (L13, R5). RQ6 then
+fixes how the kind is carried: the only interpretation-free, decidable,
+refinable kind mechanism in the system is the coverage class of the type slot
+(L8; decidability by CoverageEqualityDecidable, ASN-0086; refinement by prefix
+containment, L10). RQ4 is satisfied precisely because the carrier has its own
+address: it can be individually targeted — disputed by further links, retracted
+from operative standing by the layer's `Nullify` — while L12 holds it, and both
+endpoints, in the permanent record. RQ3 is its home prefix (T4b projection,
+decidable by T6; ownership by ASN-0042). RQ5 is `K.λ`'s frame. RQ7 is
+freshness: every claim is a new address; nothing collides, merges, or ranks.
+
+Two remarks complete the comparison the question poses.
+
+*The menu was shorter than it looked.* "A separate supersession link" and "a
+typed relation distinct from these" are the same architecture: under L8 a link
+*is* typed, by its third endset's coverage, and a typed relation's tuples *are*
+links (ASN-0086, TypedRelation). The genuinely distinct candidates were three:
+carry the claim in the **value space** (a slot of the successor), in the
+**address space** (nesting), or in the **relation space** (a typed tuple). The
+value space fails RQ1, RQ2, RQ4, and RQ7 — the claim could only ever be made
+once, at birth, by the successor's own author, fused undetachably with the
+content it qualifies, so that disputing the claim and disputing the content
+become the same act. The address space fails RQ1 and RQ2 (allocation under a
+prefix is the prefix owner's monopoly — T10, ASN-0042 — and an existing link
+can never *become* a version-of), fails RQ4 absolutely (baptized addresses are
+irrevocable — B0, T8, ASN-0040/0034 — an address cannot be unsaid), and fails
+RQ6 (one relation kind hard-wired into namespace structure, no siblings, no
+subtypes); and it has a defect deeper than any single requirement: *an address
+cannot be false.* A claim is the kind of thing that can be wrong, disputed,
+withdrawn; namespace structure is none of these. A representation incapable of
+being mistaken cannot represent an assertion. Nelson refuses the structural
+reading even for documents, where nesting genuinely exists: the version number
+is "only an accidental extension of the document number, and strictly implies
+no specific relationship of derivation" (LM 4/29). Where not even nesting
+exists — and for links, by EL2(c), it does not — the refusal is not a choice
+but a fact.
+
+*The commitment costs nothing in mechanism and something in coordination.* The
+relation-space carrier requires zero substrate change: a coverage class is a
+convention over addresses the substrate already treats as opaque (Q19 — a
+client can mint a "supersedes" type with no backend modification, and the
+backend will index and match it like any other). The price is that the class
+*is* a convention: communities that point their type slots at different
+addresses fragment the canonical check. The mitigation is structural —
+refinements minted under a common prefix remain jointly queryable by a single
+rooted span (L10) — but the root itself must be agreed, a coordination problem
+the substrate deliberately declines to solve.
+
+## The supersession relation
+
+We now fix the layer's definitions.
+
+**Df-CLS (SupersessionClass).** Fix a coverage class `[K_sup]`,
+`K_sup ∈ T_admissible`, with `coverage(K_sup) ≠ coverage(R)` — distinct from
+the retraction class (ASN-0086). Write `S^Σ := L_{K_sup}^Σ` for the
+*supersession slice* at `Σ` — the historical record of claims — and
+`A_sup^Σ := A_{K_sup}^Σ = {(b, F, G) ∈ S^Σ : b ∉ nullified(Σ)}` for its
+operative subset. We call the members of `S^Σ` *claims*.
+
+**Df-DIR (ClaimDirectionality).** For a claim `(b, F, G) ∈ S^Σ`: the from-set
+`F` covers the *superseding* link, the to-set `G` the *superseded* — read "`F`
+replaces `G`." This aligns with the layer's RetractionDirectionality
+(ASN-0086): the to-side is the side acted upon. A withdrawal with no
+replacement is not a degenerate supersession but a retraction, class `[R]`;
+the two acts remain distinct relations, and — as EL6(iv) will make exact —
+asserting the first never performs the second.
+
+**Df-DISC (EditDiscipline).** A state `Σ` is *edit-disciplined* iff (i) it is
+unit-depth-retraction-disciplined (ASN-0086) and (ii) every claim conforms to
+the *claim schema*:
+
+> `(A (b, F, G) ∈ S^Σ : (E x, y ∈ dom(Σ.L) : x ≠ y ∧ F = {(x, δ(1, #x))} ∧ G = {(y, δ(1, #y))}))`
+
+— both endsets are canonical unit-depth spans at link-store addresses, and the
+claim is irreflexive. A layer is edit-disciplined iff every state it reaches
+is. (Self-supersession `x = y` is excluded as vacuous; cycles of length ≥ 2 are
+deliberately *not* excluded — they are reverts, and we shall need them.)
+
+**EL4 (SingleTarget).** In an edit-disciplined state each claim determines its
+endpoints uniquely: for `e = (b, F, G) ∈ S^Σ` with schema witnesses `x, y`,
+
+> `coverage(F) ∩ dom(Σ.L) = {x}` and `coverage(G) ∩ dom(Σ.L) = {y}`.
+
+*Proof.* `coverage({(x, δ(1, #x))}) = {t : x ≼ t}` (PrefixSpanCoverage,
+ASN-0043); for `t ∈ dom(Σ.L)` with `x ≼ t`, the antichain R0a forces `t = x`.
+∎  We may therefore write `addr(e) = b`, `new(e) = x`, `old(e) = y` as total
+accessors on disciplined claims.
+
+**Df-SUCC (Successor relations).** At any state `Σ`:
+
+> `succ_h(Σ) = {(old(e), new(e)) : e ∈ S^Σ}`  — the historical relation;
+> `succ_o(Σ) = {(old(e), new(e)) : e ∈ S^Σ ∧ addr(e) ∉ nullified(Σ)}`  — the operative relation.
+
+Both are finite (L-fin) relations on `dom(Σ.L)`, with
+`succ_o(Σ) ⊆ succ_h(Σ)`.
+
+**EL5 (RecordMonotonicity).** For every `Σ →* Σ'`:
+
+*(a)* `S^Σ ⊆ S^{Σ'}` and `succ_h(Σ) ⊆ succ_h(Σ')`. Membership in the slice is
+a function of the stored value alone — arity, slot identity, slot-3 coverage —
+and values are fixed while the domain only grows (L12, L12a). Claims
+accumulate; none is ever lost.
+
+*(b)* `nullified(Σ) ⊆ nullified(Σ')`. The `[R]`-slice likewise only grows, so
+nullification is one-way (R6a, ASN-0086): a claim once retracted from operative
+standing never silently regains it (re-assertion is a *new* claim at a fresh
+address — the shape of R6c).
+
+*(c)* `succ_o` is neither monotone nor antitone: emission adds operative pairs
+(EL6), `Nullify` removes them. The operative relation is the one revisable
+view; the historical relation is the unrevisable record. This split — and not
+any deletion — is how the design reconciles "claims can be wrong" with "nothing
+is ever erased."
+
+## The operations: assertion, and the edit composite
+
+The assertion operation is an instance of the layer's emission, specialized to
+the class and the schema.
+
+**ASSERTop (assert_sup).** For `x, y ∈ dom(Σ.L)` with `x ≠ y` and
+`d_a ∈ dom(Σ.M)`:
+
+> `assert_sup(x, y, d_a) ≜ Emit_{K_sup}(Σ, d_a, {(x, δ(1, #x))}, {(y, δ(1, #y))})`
+
+— one `K.λ` at home `d_a`, emitting the claim "`x` supersedes `y`" at the fresh
+address `b = a_emit(Σ, d_a)`. The spans are T12-well-formed (`Pos(δ(1, #x))`;
+action point `#x ≤ #x`), the slots are endsets, the arity is 3, and slot 3 is
+`K_sup ≠ ∅`, so `K.λ`'s L3 precondition is discharged.
+
+**EL6 (AssertionContract).** When invoked at a reachable `Σ` satisfying its
+precondition, `assert_sup(x, y, d_a)` yields `Σ'` with:
+
+*(i) Allocation.* Exactly one fresh address: `b ∉ dom(Σ.L) ∪ dom(Σ.C)`
+(emission freshness, ASN-0093), `home(b) = d_a`.
+
+*(ii) Record.* `e_b = (b, {(x, δ(1,#x))}, {(y, δ(1,#y))}) ∈ S^{Σ'}` with
+`new(e_b) = x`, `old(e_b) = y`; hence `(y, x) ∈ succ_h(Σ')`.
+
+*(iii) Active at birth.* If `Σ` is edit-disciplined, `b ∉ nullified(Σ')`, so
+`(y, x) ∈ succ_o(Σ')`. This is ASN-0086's wp Case 2 under its disciplined
+simplification: the pre-existing-retraction conjunct holds vacuously at
+disciplined states, and `K_sup ≁ R` discharges the self-nullification guard.
+
+*(iv) Frame — and the independence of axes.* `Σ'.C = Σ.C`, `Σ'.M = Σ.M`,
+`Σ'.E = Σ.E`, `Σ'.R = Σ.R`; every prior link-store entry — `x` and `y` in
+particular — is unchanged. Moreover `nullified(Σ') = nullified(Σ)`: the new
+tuple's slot-3 coverage is `coverage(K_sup) ≠ coverage(R)`, so the
+`[R]`-slice did not grow. **Asserting supersession deactivates nothing.** The
+original remains exactly as listed, exactly as active, exactly as readable as
+before; if its author also wants it retired from operative standing, that is a
+separate `Nullify(y)` — composable, never implied.
+
+*(v) Discipline and permanence.* `Σ'` is edit-disciplined when `Σ` was; and at
+every `Σ' →* Σ''`, `e_b ∈ S^{Σ''}` with value fixed and
+`(y, x) ∈ succ_h(Σ'')` (EL5a).
+
+The edit operation is now one allocation ahead of the assertion.
+
+**EDITop (editlink).** For `a ∈ dom(Σ.L)`, a target value `ℓ' ∈ Link`
+(L3-conforming), and homes `d_s, d_a ∈ dom(Σ.M)`:
+
+> `editlink(a, ℓ', d_s, d_a) ≜`
+> `  a' := a_emit(Σ, d_s);  Σ₁ := K.λ(d_s, a', ℓ');`
+> `  (Σ₂, b) := assert_sup(a', a, d_a) at Σ₁;`
+> `  return (Σ₂, a', b)`
+
+with the *discipline-conformance precondition* `DC(ℓ')`: if
+`coverage(ℓ'.e₃) = coverage(K_sup)` then `ℓ'` itself satisfies the claim schema
+of Df-DISC(ii), and if `coverage(ℓ'.e₃) = coverage(R)` then `ℓ'` satisfies the
+unit-depth retraction schema — an edit may produce a corrected *claim* or a
+corrected *retraction*, but not a malformed inhabitant of either class.
+`assert_sup`'s precondition is discharged at `Σ₁`: `a' ∈ dom(Σ₁.L)` by the
+emission, `a ∈ dom(Σ₁.L)` by monotonicity, `a' ≠ a` by freshness,
+`d_a ∈ dom(Σ₁.M)` by M1.
+
+**EL7 (EditContract).** When invoked at a reachable `Σ` satisfying its
+precondition, `editlink(a, ℓ', d_s, d_a)` yields `Σ₂` with:
+
+*(i) What is allocated.* Exactly **two** fresh link-subspace addresses — the
+successor `a'` on `A_L(d_s)` and the claim `b` on `A_L(d_a)` — pairwise
+distinct from each other and from everything prior. No content address, no
+entity, no provenance entry, no arrangement change: `Σ₂.C = Σ.C`,
+`Σ₂.M = Σ.M`, `Σ₂.E = Σ.E`, `Σ₂.R = Σ.R`. (The successor's unedited slots are
+*values* — span sets coverage-equal to the original's — not new content;
+re-using them allocates nothing.)
+
+*(ii) The new reading.* `Σ₂.L(a') = ℓ'`, `home(a') = d_s` — postcondition `R₁`
+achieved with a permanent, fresh identity.
+
+*(iii) The relationship.* `(a, a') ∈ succ_h(Σ₂)`, witnessed by the claim at
+`b`; at edit-disciplined `Σ`, also `(a, a') ∈ succ_o(Σ₂)` — postcondition `R₂`
+achieved in the one sense the substrate admits: as an owned, addressed,
+class-marked statement.
+
+*(iv) The frame on the original.* `Σ₂.L(a) = Σ.L(a)`, `a` as listed and as
+active as before (`nullified(Σ₂) = nullified(Σ)`, EL6(iv)). The edit *adds*;
+it touches nothing.
+
+*(v) Permanence.* At every `Σ₂ →* Σ₃`: `a`, `a'`, `b` all persist with fixed
+values, and `(a, a') ∈ succ_h(Σ₃)`.
+
+Three remarks delimit the operation's generality. *First*, `ℓ' = Σ.L(a)` is
+admitted: a value-identical successor is a legitimate edit (re-homing a link,
+re-attributing it), and the claim — not a value diff — is what makes it an
+edit. *Second*, neither `d_s` nor `d_a` is constrained relative to `home(a)`:
+a third party edits another's link by exactly this composite, homing successor
+and claim under their own prefix — ownership of the original never moves, and
+attribution (EL8) keeps the claim visibly the third party's. Editing-by-fork
+is not a special case; it is the same operation invoked by someone else.
+*Third*, a *revert* allocates no successor at all: to assert that the original
+supersedes its replacement is `assert_sup(a, a', d)` — one claim, nothing else
+— since the "new" value, being the old one, already exists at its permanent
+address. Under immutability, undo is just another statement.
+
+**Remark (no enforceable coupling).** Could the substrate *require* the
+assertion whenever an emission "is an edit"? The trigger would have to be a
+state predicate, and EL1 proves the distinguishing fact is not in the state: a
+coupling constraint in the style of ASN-0047's J-clauses, evaluated between
+composite boundary states, cannot mention intent. The one expressible
+surrogate — trigger on value resemblance — is both unsound (coincidences would
+acquire system-authored claims, violating RQ3's premise that claims have
+asserters) and trivially evadable (perturb one span). The substrate therefore
+*cannot* compel an editor to declare, and the completeness of the supersession
+record is a protocol property of the editing layer, not a substrate invariant.
+What the substrate guarantees is the standing of declarations once made:
+permanent, attributed, decidable. This is the writer-side mirror of the
+reader-side caveat in the design record — the canonical check answers from
+what was asserted; it cannot conjure what was not.
+
+**EL8 (ClaimStanding).** For every claim `e ∈ S^Σ` in a disciplined state:
+
+*(a)* it is permanent in membership and value (EL5a);
+*(b)* it is attributed: `home(addr(e))` is computable from the address alone by
+field projection (T4b), decidably (T6), and the effective owner follows by
+prefix (ASN-0042) — the claim is signed by its address;
+*(c)* it is open: the schema imposes no relation among `home(addr(e))`,
+`home(old(e))`, `home(new(e))` — first-party, second-party, and third-party
+claims are structurally identical, differing only in their visible provenance;
+*(d)* it is itself addressable: `addr(e) ∈ dom(Σ.L)`, so claims can be the
+targets of endsets (L4(c)) — endorsed, disputed, commented, retracted
+(`Nullify`), or themselves edited (`editlink` applies to a claim, `DC`
+permitting) — with no new machinery;
+*(e)* it is a claim, not a verdict: the substrate records who said what and
+adjudicates nothing. Recognition of *standing* is structural; recognition of
+*truth* is the reader's.
+
+## The original after the edit: three independent axes
+
+The question "must the original remain readable at its original address?"
+dissolves, under this model, into three questions with three different answers
+— and the precision matters, because the design record gives a nuanced verdict
+(Q2: links are "non-destructibly recoverable," not "forever live in the current
+view") that the axes reproduce exactly.
+
+**Df-LISTED.** `listed(t, d, Σ) ≡ (E v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) = t)` —
+`t` appears in `d`'s current arrangement. For a link, only its home can list
+it: a link-subspace image has `origin = d` (CL-OWN, ASN-0047, with
+HomeOriginCoincidence), and a content-subspace image lies in `dom(C)` (S3★),
+which is disjoint from `dom(L)` (SD).
+
+**EL9 (ThreeAxes).** For a link `a ∈ dom(Σ.L)`:
+
+*(1) Resolution — permanent and unconditional.*
+`(A Σ' : Σ →* Σ' : a ∈ dom(Σ'.L) ∧ Σ'.L(a) = Σ.L(a))` (EL0's invariant `J`).
+Nothing gates the lookup: no arrangement state, no activity status, no
+provenance appears in it. *Readable at its original address, exactly as it
+was* — an invariant, forever, for every link, superseded or not.
+
+*(2) Listing — mutable in both directions.* The home registry is current view,
+not record. `K.μ⁻` de-lists (existence: contract the link subspace below `a`'s
+position and re-extend the survivors in order — each re-seating satisfies
+`K.μ⁺_L`'s precondition in turn, and D-SEQ★ shapes the result); `K.μ⁺_L`
+re-lists (`origin(a) = d ∧ a ∉ ran(M(d))` holds after de-listing). De-listing
+is the model's "deleted link": gone from the current view, untouched in the
+record.
+
+*(3) Activity — monotone downward, per claim.* `active(a, Σ) ≡ a ∉
+nullified(Σ)` can only fall (EL5b), by an explicit, itself-permanent,
+itself-attributed retraction tuple; restoration is re-assertion at a fresh
+address, never reinstatement in place (R6c).
+
+The axes are independent, and — by EL6(iv) — *superseding moves none of them*.
+An edit, as such, leaves the original resolvable, listed, and active. Each
+demotion is a separate act by an authorized party, separately attributed,
+separately permanent in the record. The composite "supersede and retire" is
+available; it is never implied.
+
+> *Implementation note.* Axis (1) is Gregory's Q17: resolving a link orgl by
+> its address is a pure granfilade descent — no surviving POOM entry required,
+> no opened home document, the BERT gate explicitly bypassed
+> (`NOBERTREQUIRED`). Axis (2) is his reverse-orphan state: DELETEVSPAN on the
+> link's `2.x` position removes the registry entry and nothing else.
+
+**EL10 (PositionEpochality).** Listing positions are not identifiers. There
+exist reachable `Σ →* Σ' →* Σ''`, a document `d`, a position `v`, and links
+`ℓ₁ ≠ ℓ₂` — both permanently resolvable throughout — with
+
+> `Σ.M(d)(v) = ℓ₁,  v ∉ dom(Σ'.M(d)),  Σ''.M(d)(v) = ℓ₂.`
+
+*Construction.* Let `d` list two links, `V_{s_L}(d) = {[s_L,1], [s_L,2]}` with
+`[s_L,2] ↦ ℓ₁`, and let `ℓ₂` be homed at `d` but unlisted (a bare `K.λ`).
+Apply `K.μ⁻` with link-subspace retention `n'_{s_L} = 1` (content retained in
+full); then `K.μ⁺_L` for `ℓ₂`: the substrate assigns
+`v_ℓ = shift(max(V_{s_L}(d)), 1) = shift([s_L,1], 1) = [s_L,2]` — the very
+position `ℓ₁` vacated, now bound to `ℓ₂`. ∎
+
+Addresses, by contrast, never re-bind: every allocation is fresh (Vocabulary
+fact V) and every binding is permanent (L12) — GlobalUniqueness (ASN-0034) at
+the link layer. The corollary is a constraint on every reference that intends
+to survive editing — and on the claim schema in particular: *bind addresses,
+never positions.* A position-bound "supersedes entry 2.2" would, across one
+contraction and one extension, silently re-target a stranger. Df-DISC already
+complies; the construction shows the compliance is load-bearing, not stylistic.
+
+> *Implementation note.* This is Q12 verbatim: `findnextlinkvsa` recomputes
+> the next link V-position from the live document extent, which DELETEVSPAN
+> shrinks, while I-addresses advance monotonically against the append-only
+> granfilade — so V-position `2.N` can denote two different link orgls across
+> time, and only the ISA is identity.
+
+**EL11 (TwoRegimeDiscovery).** A claim is findable in two ways with two
+different conditions — and the split is exactly the design's distinction
+between the *record answering* and the *context volunteering*.
+
+*(a) Contextual (arrangement-gated).* For a disciplined claim `e` and any
+document `d`, the to-side of `e` projects into `d` iff `d` currently lists the
+original:
+
+> `project(Σ.L(addr(e)).e₂, d, Σ) ≠ ∅ ⟺ listed(old(e), d, Σ)`
+
+*Proof.* By the projection characterisation (LP12, ASN-0098) the left side is
+`coverage(G) ∩ ran(Σ.M(d)) ≠ ∅` with `G` the to-set. `coverage(G) = {t :
+old(e) ≼ t}` (EL4's computation). Any member of `ran(Σ.M(d))` lies in
+`dom(Σ.C) ∪ dom(Σ.L)` (S3★). No content address extends `old(e)`: writing `y =
+old(e)`, a `t ≽ y` agrees with `y` on its three zero positions, and a content
+address has exactly three zeros (C1) — so `t`'s element field starts where
+`y`'s does and `E(t)₁ = E(y)₁ = s_L` (L0, link side), contradicting
+`E(t)₁ = s_C` (L0, content side; SC-NEQ). And a link address extends `y` only
+if equal (R0a). So the intersection is `{y} ∩ ran(Σ.M(d))`, nonempty iff `y`
+is listed — and by Df-LISTED only at `d = home(y)`. ∎ Symmetrically for the
+from-side and `new(e)`. So the claim is visible *in context* exactly at the
+homes currently listing its endpoints: de-list the original and the claim's
+to-side goes contextually dark there; re-list it and visibility returns — the
+orphan/resurrection pattern of LP17/LP18 at the link layer.
+
+*(b) Archival (arrangement-independent).* The predicates `e ∈ S^Σ` and
+`old(e) = y` are functions of stored values, decidable by coverage comparison
+(CoverageEqualityDecidable; T2 span membership; EL4). Hence the claim sets
+
+> `in(y, Σ) = {e ∈ S^Σ : old(e) = y}`  and  `out(x, Σ) = {e ∈ S^Σ : new(e) = x}`
+
+are computable from `Σ.L` alone — this is `Observe_{K_sup}` at pattern
+`Ĝ = {y}` (resp. `F̂ = {x}`), view `hist`, which consults no arrangement.
+**The supersession question is answerable, completely and decidably, at every
+state, whatever every arrangement says.** A reader's protocol — before relying
+on a link, ask the record what targets it — is always executable; what
+arrangement state modulates is only whether a given document's current view
+volunteers the pointer unprompted.
+
+The reader-facing contract of the architecture is the conjunction of EL9(1),
+EL11(b), and EL8(b): the old link gives no *forced* sign of replacement — it is
+unchanged, that is the point — but the sign *exists*, is always findable, and
+arrives with its asserter's name attached.
+
+## Repeated edits, many editors, and the meaning of "current"
+
+**EL12 (ForkPermanence).** Two editors independently superseding the same link
+produce a permanent, co-visible fork. Run `editlink(a, ·, ·, ·)` twice from any
+disciplined reachable state, in any combination of homes: freshness yields
+distinct successors `a'₁ ≠ a'₂` and distinct claims `e₁ ≠ e₂` (same home: the
+chain advances past the first emission; different homes: cross-document
+disjointness with T10); both `(a, a'₁)` and `(a, a'₂)` enter `succ_h` —
+permanently (EL5a) — and `succ_o` at birth (EL6(iii)); and the vocabulary
+contains no transition that merges, ranks, or removes either. The complete
+competing-claim set, with asserters, is one archival query: `in(a, Σ)`.
+Conversely — and this is Q18 made abstract — *without* the assertion steps the
+same two emissions leave `succ_h` untouched: by EL1 the "fork" of intentions
+never existed in state, and no enfilade, here or in any implementation of this
+substrate, could have recorded it. Fork *visibility* is exactly
+assertion-deep.
+
+**EL13 (TemporalErasure).** Cross-home claim order is not a fact of the state.
+For `d₁ ≠ d₂ ∈ dom(Σ.M)` and values `v₁, v₂`, the two interleavings of the
+emissions commute to the same state:
+
+> `K.λ(d₂, a_emit(·, d₂), v₂) ∘ K.λ(d₁, a_emit(·, d₁), v₁) (Σ) = K.λ(d₁, a_emit(·, d₁), v₁) ∘ K.λ(d₂, a_emit(·, d₂), v₂) (Σ)`
+
+*Proof.* `a_emit(Σ', d)` depends only on the `d`-homed subset of `dom(Σ'.L)`
+(ASN-0086, EmitAddress, with HomeOriginCoincidence); an emission homed at
+`d₁` leaves the `d₂`-homed subset unchanged, so each address is the same in
+both orders; the enabledness of each step consults only its own home's set and
+`dom(M)`; and the two map-unions at distinct fresh keys commute, all other
+components being framed. ∎ Consequently no function of the final state — no
+selector, no tie-break, no "latest" — distinguishes which of two cross-home
+claims was asserted later: the trace knows, the state does not. Within one
+home the opposite holds: the chain enumeration is strictly increasing (T9;
+ChainEnumerationInjectivity, ASN-0093), so one asserter's claims are totally
+ordered by their addresses — *per-asserter* "latest" is well-defined and
+state-recoverable. The design consequence: any global most-recent-wins rule is
+undefinable from state; any definable global tie-break (say, T1-least claim
+address) ranks namespaces, not times, and carries no authority. The substrate
+will not manufacture a clock it does not have — so it cannot, even in
+principle, crown a winner among independent claimants. Adjudication is pushed
+where the design wants it: to readers, and to further, attributable claims.
+
+**Df-CUR (Currency query).** For `y ∈ dom(Σ.L)`: `reach_o(y, Σ)` is the least
+subset of `dom(Σ.L)` containing `y` and closed under `succ_o(Σ)`-images —
+finite and computable (the closure grows within finite `dom(Σ.L)`; bound
+function `|dom(Σ.L)| − |computed set|`). The *current successors* of `y` are
+the operative sinks reachable from it:
+
+> `current(y, Σ) = {z ∈ reach_o(y, Σ) : ¬(E w :: (z, w) ∈ succ_o(Σ))}`
+
+**EL14 (CurrencyRelational).** `current` is a total, computable,
+*set-valued* query, and the set is irreducibly a set:
+
+*(a)* `|current(y, Σ)| = 1` at states with one asserted, unretracted, linear
+chain from `y` — and `current(y, Σ) = {y}` when `y` has no operative
+successor: an unedited link is its own current version.
+
+*(b)* `|current(y, Σ)| ≥ 2` at any fork state (EL12).
+
+*(c)* `current(y, Σ) = ∅` is reachable: assert `x` supersedes `y`, then —
+a revert, by anyone — `y` supersedes `x`. Both claims are permanent; while
+both are operative, `reach_o(y) = {y, x}` has no sink. The operative record
+then says "each replaces the other," and the honest answer to "which is
+current?" is *none, pending judgment*. The repair is not deletion (there is
+none) but demotion: `Nullify` one claim, and a sink — hence a current —
+reappears. The two-view structure is what makes the standoff survivable: the
+operative graph is repairable precisely because the historical graph is not.
+
+*(d)* No canonical selector exists. Any selector is a function of the state;
+"the most recently asserted" is not such a function across homes (EL13); and
+forcing `|current| = 1` as an invariant would require refusing well-formed
+emissions or erasing claims — the substrate does neither. What the layer owes
+the reader is therefore *disclosure, not decision*: `current(y, Σ)` entire,
+each member with its supporting claims and their homes (EL8b), the original
+always still readable beside them (EL9(1)), and any narrowing — trust only the
+original owner's claims, prefer this curator, follow per-asserter latest —
+applied as the reader's declared policy, not the substrate's silent one.
+
+**EL15 (ChainConnectivity).** For a chain of asserted edits
+`a₀, a₁, …, aₙ` with each `(aᵢ, aᵢ₊₁) ∈ succ_h(Σ)`:
+
+*(a)* every member is permanently resolvable at its own address with its
+original value (EL0) — the far end of history is never lost;
+*(b)* every asserted hop is permanently in `succ_h` (EL5a), so *historical
+connectivity is monotone*: the `succ_h`-component of any member never loses a
+node or an edge, at any future state;
+*(c)* every hop is locally recoverable from either endpoint alone — `in(aᵢ, Σ)`
+and `out(aᵢ, Σ)` are single arrangement-free observations (EL11b) — so the
+historical component is traversable edge-by-edge in both directions from any
+member, with no privileged entry point;
+*(d)* what is *not* guaranteed is completeness and operative integrity:
+an edit whose author omitted the assertion contributes no hop (EL1 — the
+relationship does not exist, and resemblance cannot reconstruct it), and a
+nullified claim drops from `succ_o` while remaining in `succ_h`. Member-to-ends
+traversability of the *operative* chain is therefore a derived property —
+holding exactly when the chain was fully asserted and no hop demoted — and any
+specification that promised it unconditionally would be promising what no
+implementation of this substrate can keep. The invariants to hold are (a)–(c);
+the design intent (Q7) asks for exactly these and warns against more.
+
+## The criterion: permanence-preserving versus mutating edit
+
+We can now state the test that separates an editing discipline that preserves
+permanence from one that merely simulates editing — and verify that the
+composite passes it while both failure modes fail it. The test (Q10) is
+*reference survival*: point a reference at the original, perform the edit,
+follow the reference.
+
+**EL16 (ReferenceSurvival).** Let `c ∈ dom(Σ.L)` be any link with
+`a ∈ coverage(Σ.L(c).eᵢ)` for some slot `i` — a pre-existing reference to the
+original, made by anyone, anywhere. Across `editlink(a, ℓ', d_s, d_a)` and
+arbitrary further evolution `Σ →* Σ'`:
+
+*(i)* the referring slot is unchanged in value and coverage (L12; LP2, LP3★) —
+nobody's context is rewritten by someone else's edit;
+*(ii)* the referent still resolves, to the identical value:
+`Σ'.L(a) = Σ.L(a)` (EL0) — the reference means today what it meant when made;
+*(iii)* the road forward exists and is one observation long:
+`in(a, Σ') ∋ e` with `new(e) = a'`, attributed to `home(addr(e))` — the
+reference reaches the successor not by being re-pointed but by *composition
+with the record*.
+
+Against this, the two rejected regimes fail at named clauses. **Mutation**
+(excluded by EL0) would preserve the reference's *spelling* while silently
+re-pointing its *meaning* — every citation, comment, and dispute attached to
+`a` would come to qualify content its authors never saw; this is the global
+rewrite the immutability invariant exists to make impossible, and it is why
+EL0 is the first claim of this note rather than a lamented limitation.
+**Silent re-creation** — step 1 without step 2, the delete-and-recreate
+simulation — passes (i) and (ii) vacuously and fails (iii): the successor
+exists, fresh and disconnected, indistinguishable from a stranger (EL1); the
+old references keep their exact referent and gain no road anywhere. The
+record retains the bytes and loses the literature — retention without
+correspondence, the "frozen and dead" copy. The asserted edit is the unique
+point between: the past stays exact, and the future is reachable — as data,
+not as identity transfer.
+
+That is what the architectural commitment reveals, stated once without
+formalism. Editing-as-mutation treats identity as a container whose contents
+change; editing-as-permanence treats identity as a fixed point and represents
+change as *more identity* — a new entity, plus a first-class statement binding
+new to old. Under this substrate three things became theorems that elsewhere
+are slogans: **change is addition** (EL7's frame — nothing pre-existing
+alters); **relationship is assertion** (EL1, EL3 — never inferred from
+resemblance, never read off the namespace, never fused into a value one party
+controls); and **currency is judgment** (EL13, EL14 — a revisable query over
+permanent claims, answered with attribution and left, at last, to the
+reader). The substrate's entire contribution to "edit" is to make statements
+permanent and attributable. Everything editorial about editing lives above
+it, in the open, where it can be disputed.
+
+## A worked example
+
+Two documents, `H` and `P`, both in `dom(Σ.M)`, owned by different principals.
+`H` homes one link, `ℓ₀ = H.0.s_L.1`, listed in its registry at
+`V_{s_L}(H) = {[s_L, 1]}` with `[s_L, 1] ↦ ℓ₀`. `P` homes nothing. The state
+is edit-disciplined; `S^Σ = ∅`.
+
+*Edit by the owner.* `editlink(ℓ₀, ℓ'-value, H, H)`: the `H`-homed set is
+`{ℓ₀}`, so `a_emit` takes the subsequent-emission branch — successor
+`ℓ₁ = inc(ℓ₀, 0) = H.0.s_L.2` — and the claim follows on the same chain,
+`c₁ = H.0.s_L.3` with value `({(ℓ₁, δ(1,#ℓ₁))}, {(ℓ₀, δ(1,#ℓ₀))}, K_sup)`.
+Now `succ_h = succ_o = {(ℓ₀, ℓ₁)}` and `current(ℓ₀) = {ℓ₁}`. Note the
+addresses already archive the per-home order: `ℓ₁ < c₁` on `H`'s chain — `H`'s
+acts are totally ordered by T9 — while nothing yet involves a second home.
+The registry is untouched: `ℓ₀` is still `H`'s one listed link, still active;
+the edit changed nothing about it (EL7(iv)).
+
+*Fork by a third party.* `P`'s owner disagrees with the correction and issues
+their own: `editlink(ℓ₀, ℓ''-value, P, P)` — first emissions on `P`'s chain,
+successor `ℓ₂ = P.0.s_L.1`, claim `c₂ = P.0.s_L.2`. Now
+`succ_o = {(ℓ₀, ℓ₁), (ℓ₀, ℓ₂)}` and `current(ℓ₀) = {ℓ₁, ℓ₂}` — a fork, both
+branches operative, the query `in(ℓ₀, ·) = {c₁, c₂}` returning both claims
+with their provenance legible in their addresses: `home(c₁) = H` (the
+original's own home), `home(c₂) = P` (an outsider). Had `c₁` and `c₂` been
+asserted in the other order, the state would be *identical* (EL13): which
+claimant moved first is not a question the docuverse can answer, and any
+front end that pretends otherwise is inventing history.
+
+*Demotion.* `H`'s owner finds `P`'s claim spurious and retracts it from
+operative standing: `Nullify(Σ, H, c₂)` emits `r₁ = H.0.s_L.4` of class `[R]`
+targeting `c₂`. Now `c₂ ∈ nullified`, so `succ_o = {(ℓ₀, ℓ₁)}` and
+`current(ℓ₀) = {ℓ₁}` — while the historical view still returns `c₂` *and*
+`r₁`: a reader sees that `P` claimed, and that `H` retracted `P`'s claim, each
+act owned. Nothing was erased; standing changed, attributably.
+
+*Revert, standoff, repair.* Later `H`'s owner repents of the original edit and
+reverts — no allocation of content or successor, just the statement:
+`assert_sup(ℓ₀, ℓ₁, H)` emits `c₃ = H.0.s_L.5` claiming `ℓ₀` supersedes `ℓ₁`.
+While `c₁` and `c₃` are both operative, `reach_o(ℓ₀) = {ℓ₀, ℓ₁}` has no sink:
+`current(ℓ₀) = ∅` — the record says each replaces the other, and the honest
+answer is *pending*. `Nullify(Σ, H, c₁)` (emitting `r₂ = H.0.s_L.6`) demotes
+the first claim; now `succ_o = {(ℓ₁, ℓ₀)}`, and `current(ℓ₀) = current(ℓ₁) =
+{ℓ₀}` — the original is current again, by statement, not by time travel. Five
+permanent entries — `c₁, c₂, c₃, r₁, r₂` — narrate the whole episode to any
+future reader.
+
+*Registry churn, and why claims bind addresses.* Suppose `H`'s owner re-curates
+the registry: `K.μ⁻` with `n'_{s_L} = 0` de-lists `ℓ₀`, then `K.μ⁺_L` seats
+`ℓ₁` — the first-position branch assigns `[s_L, 1] ↦ ℓ₁`. The position
+`[s_L, 1]` has now denoted `ℓ₀` and later `ℓ₁` (EL10). Every claim above is
+unperturbed — each binds `H.0.s_L.k` addresses, which never re-bind — whereas
+a position-bound claim "supersedes `H`'s entry `[s_L,1]`" would now
+accidentally indict `ℓ₁`. Contextually, `c₁`'s to-side no longer projects into
+`H` (`ℓ₀` unlisted, EL11a), so `H`'s current view no longer volunteers the
+old dispute; archivally, `in(ℓ₀, ·)` still returns everything (EL11b). The
+current view forgets; the record cannot.
+
+## Claims Introduced
+
+| Label | Statement | Status |
+|-------|-----------|--------|
+| EL0 | MutationExclusion: for reachable `Σ₀`, `a ∈ dom(Σ₀.L)`, `ℓ₀ = Σ₀.L(a)`, the predicate `J ≡ a ∈ dom(L) ∧ L(a) = ℓ₀` is inductive over the closed vocabulary (only `K.λ` writes `L`, at fresh keys), so `(A Σ' : Σ₀ →* Σ' : Σ'.L(a) = ℓ₀)` and `wp(S, L(a) = w) = false` at `Σ₀` for every `w ≠ ℓ₀` and every finite program `S` — link mutation is unimplementable, and the original remains readable at its address with its exact value forever | introduced |
+| EL1 | IntentInvisibility: a successor emission performed "as an edit" and an independent creation with the same parameters are the same transition with the same post-state, so no state predicate (hence no observation) distinguishes them; value resemblance, up to byte-identity (L11b), carries zero relational information; relationships enter the state only by explicit assertion | introduced |
+| EL2 | NoInPlaceCarrier: the supersession record can live (a) not in the original's value (L12), (b) not appended to the successor's value after birth (L12), (c) not in the address relation — allocated link addresses have `#E = 2` on flat home chains and `dom(Σ.L)` is a prefix antichain (R0a), so address structure encodes only same-home and per-home emission order, neither semantic, and version-of-link nesting is unreachable — and (d) not in any index marker, the state having no component beyond the append-only stores; the record must be a freshly allocated entity | introduced |
+| RQ1–RQ7 | RecordRequirements: post-hoc assertability; open authorship; decidable attribution; non-destructive disputability; endpoint frame; decidable specificity with subtype refinement; plurality of (possibly conflicting) claims — distilled from design intent as the obligations any supersession carrier must meet | introduced |
+| EL3 | RelationSpaceNecessity: any carrier satisfying RQ1–RQ7 under this substrate is a freshly allocated link-store tuple, distinct from both endpoints, referencing each endpoint by address through endset coverage, kind-marked by the coverage class of its type slot — i.e., a typed link-to-link claim; content-encoded, slot-at-birth, and address-form carriers each violate named RQs; "separate supersession link" and "typed relation" are one architecture (L8) | introduced |
+| Df-CLS | SupersessionClass: designated coverage class `[K_sup]` with `coverage(K_sup) ≠ coverage(R)`; historical slice `S^Σ = L_{K_sup}^Σ` (claims), operative subset `A_sup^Σ = {(b,F,G) ∈ S^Σ : b ∉ nullified(Σ)}` | introduced |
+| Df-DIR | ClaimDirectionality: from-set covers the superseding link, to-set the superseded ("F replaces G"), aligned with RetractionDirectionality; replacement-free withdrawal is class `[R]`, a distinct relation | introduced |
+| Df-DISC | EditDiscipline: a state is edit-disciplined iff unit-depth-retraction-disciplined and every claim has form `F = {(x, δ(1,#x))}`, `G = {(y, δ(1,#y))}` with `x, y ∈ dom(Σ.L)`, `x ≠ y`; a layer is edit-disciplined iff every reached state is | introduced |
+| EL4 | SingleTarget: in disciplined states `coverage(F) ∩ dom(Σ.L) = {x}` and `coverage(G) ∩ dom(Σ.L) = {y}` (PrefixSpanCoverage + R0a), making the accessors `addr(e)`, `new(e)`, `old(e)` total and unambiguous | introduced |
+| Df-SUCC | Successor relations: `succ_h(Σ) = {(old(e), new(e)) : e ∈ S^Σ}`; `succ_o(Σ)` the restriction to claims with `addr(e) ∉ nullified(Σ)`; finite, `succ_o ⊆ succ_h` | introduced |
+| EL5 | RecordMonotonicity: across `Σ →* Σ'`, (a) `S^Σ ⊆ S^{Σ'}` and `succ_h(Σ) ⊆ succ_h(Σ')`; (b) `nullified(Σ) ⊆ nullified(Σ')` — demotion is one-way per claim; (c) `succ_o` is neither monotone nor antitone: the operative relation is the revisable view, the historical relation the unrevisable record | introduced |
+| ASSERTop | AssertSup (DEF, operation): `assert_sup(x, y, d_a) ≜ Emit_{K_sup}(Σ, d_a, {(x, δ(1,#x))}, {(y, δ(1,#y))})`, precondition `x, y ∈ dom(Σ.L) ∧ x ≠ y ∧ d_a ∈ dom(Σ.M)` — one `K.λ` emitting the claim "x supersedes y" at fresh `b = a_emit(Σ, d_a)` | introduced |
+| EL6 | AssertionContract: assert_sup allocates exactly one fresh address `b` with `home(b) = d_a`; puts `(y, x)` into `succ_h(Σ')`, and at disciplined states into `succ_o(Σ')` (active at birth, via ASN-0086 wp Case 2); frames `C, M, E, R`, every prior link entry, and `nullified` — asserting supersession deactivates nothing; preserves discipline; the claim and the pair persist at every later state | introduced |
+| EDITop | Editlink (DEF, operation): `editlink(a, ℓ', d_s, d_a) ≜ K.λ(d_s, a_emit(Σ, d_s), ℓ') ; assert_sup(a', a, d_a)`, precondition `a ∈ dom(Σ.L) ∧ d_s, d_a ∈ dom(Σ.M) ∧ ℓ' L3-conforming ∧ DC(ℓ')` (class-discipline conformance of the successor value); returns `(Σ₂, a', b)`; `ℓ' = Σ.L(a)` admitted; homes unconstrained relative to `home(a)` (third-party edit-by-fork is the same composite); a revert is `assert_sup(a, a', d)` alone | introduced |
+| EL7 | EditContract: editlink allocates exactly two fresh link-subspace addresses (successor `a'`, claim `b`) and nothing else; `Σ₂.L(a') = ℓ'`; `(a, a') ∈ succ_h(Σ₂)` (and `succ_o` at disciplined states); total frame `Σ₂.C = Σ.C ∧ Σ₂.M = Σ.M ∧ Σ₂.E = Σ.E ∧ Σ₂.R = Σ.R ∧ (A t ∈ dom(Σ.L) : Σ₂.L(t) = Σ.L(t)) ∧ nullified(Σ₂) = nullified(Σ)`; all three addresses and the pair persist forever | introduced |
+| EL8 | ClaimStanding: every claim is permanent (EL5a); attributed by its address alone (`home(addr(e))` via T4b, decidable T6, owner by prefix per ASN-0042); open (no required relation among claim, original, successor homes); itself addressable — endorsable, disputable, retractable, editable — with no new machinery; and a claim, never a verdict: the substrate records, readers adjudicate | introduced |
+| EL9 | ThreeAxes: for any link — (1) resolution is permanent and ungated (EL0); (2) listing (`listed(t, d, Σ)`, possible only at the home, CL-OWN) is mutable both ways via `K.μ⁻`/`K.μ⁺_L`; (3) activity (`∉ nullified`) is monotone downward with re-assertion as the only restoration; the axes are independent, and superseding moves none of them — retirement of the original is a separate, attributable act | introduced |
+| EL10 | PositionEpochality: reachable states exist where the same link-subspace V-position denotes `ℓ₁` and later `ℓ₂ ≠ ℓ₁` (contraction then extension reuses the canonical tail position), while addresses never re-bind; therefore surviving references — the claim schema included — must bind addresses, never positions | introduced |
+| EL11 | TwoRegimeDiscovery: (a) contextual — a disciplined claim's to-side projects into `d` iff `d` currently lists the original (`project ≠ ∅ ⟺ listed(old(e), d, Σ)`, by LP12 + coverage trace `{old(e)}`), symmetrically for the from-side; (b) archival — `in(y, Σ)` and `out(x, Σ)` are computable from `Σ.L` alone, completely and decidably, at every state; the record always answers, the context volunteers only while its registry lists the endpoint | introduced |
+| EL12 | ForkPermanence: independent edits of the same original yield distinct successors and claims, all permanent, co-operative at birth, never merged, ranked, or removed; the full competing set with asserters is one archival query; absent assertions the fork never exists in state (EL1) — fork visibility is exactly assertion-deep | introduced |
+| EL13 | TemporalErasure: cross-home emissions commute to identical states, so no state function recovers cross-home claim order ("global latest" is undefinable); within one home, claim order is totally recoverable from addresses (T9) — "latest" is per-asserter only; global tie-breaks are definable but rank namespaces, not time | introduced |
+| Df-CUR | Currency query: `reach_o(y, Σ)` the `succ_o`-closure of `{y}`; `current(y, Σ)` its operative sinks — total, finite, computable | introduced |
+| EL14 | CurrencyRelational: `current` is irreducibly set-valued — cardinalities 1 (linear chain; `{y}` itself when unedited), ≥ 2 (fork), and 0 (mutual-supersession standoff) are all reachable; demotion repairs the operative view while history stands; no canonical selector exists (EL13), and forcing uniqueness would require refusing emissions or erasing claims; the layer owes disclosure with attribution, the reader applies policy | introduced |
+| EL15 | ChainConnectivity: along asserted chains, members resolve forever, hops persist in `succ_h`, and each hop is recoverable from either endpoint alone — historical connectivity is monotone non-decreasing; completeness (unasserted hops) and operative integrity (demoted hops) are expressly not invariants, and member-to-ends operative traversability is a derived property, not a guarantee | introduced |
+| EL16 | ReferenceSurvival: any pre-existing reference to the original keeps its value, coverage, and referent across the edit and all evolution, and reaches the successor by one archival observation; mutation would silently re-point every reference (excluded by EL0), silent re-creation leaves references intact but the road forward empty (EL1) — the asserted edit is the unique regime preserving both the exact past and the reachable future | introduced |
+
+## Open Questions
+
+What authority invariant must govern retraction of a supersession claim by a principal other than the claim's asserter?
+
+Must replacing a link ever entail a change to the original's activity status, or must supersession and retraction remain independent axes under every admissible layer discipline?
+
+What invariants must hold when supersession claims target other supersession claims, and must currency resolution stratify such meta-claims to remain well-founded?
+
+Under what assertion discipline is the operative currency query guaranteed a non-empty answer, and is any such discipline compatible with open authorship?
+
+What temporal witness, if any, must the system attach to claims beyond per-home emission order, given that cross-home order is not recoverable from state?
+
+When an edit narrows or reshapes an endset, must the record carry span-level correspondence between the old and new endsets, and in what space does that correspondence live?
+
+What coupling invariant, if any, should bind an edit to the home registry's listing of original and successor, given that assertion itself cannot be substrate-enforced?
+
+What closure guarantee must observation provide across a prefix-rooted family of supersession subtypes so that independently minted refinements remain jointly recognizable?
