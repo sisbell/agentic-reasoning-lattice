@@ -315,16 +315,23 @@ document's content without touching the link store.
 
 > **CN-STAB (invariance under arrangement editing).** For a fixed request `q`, any
 > transition `Σ → Σ'` that preserves the link store — `dom(Σ'.L) = dom(Σ.L)` and
-> `Σ'.L(a) = Σ.L(a)` for all `a`, and `nullified(Σ') = nullified(Σ)` — satisfies
+> `Σ'.L(a) = Σ.L(a)` for all `a` — satisfies
 > `countlinks_FTT(q, Σ') = countlinks_FTT(q, Σ)`.
 
 The proof is immediate from CN-LOC: the count is a function of `Σ.L` (through both `sat`
-and `addressable`), and the hypothesis fixes everything the count reads. The transitions
-this covers are exactly the ones that leave `Σ.L` intact. Content insertion, deletion, and
-rearrangement act on a document's arrangement `Σ.M(d)` and preserve `Σ.L` (F-PRES,
-ASN-0127); content allocation (K.α) and provenance recording (K.ρ) likewise leave the link
-store untouched. Every such transition leaves the count exactly where it was. Only link
-creation and retraction — transitions that grow `Σ.L` or `nullified` — can move it.
+and `addressable`), and the single hypothesis of link-store preservation fixes everything
+the count reads. We state no separate clause fixing `nullified`, and one would be
+redundant: `nullified(Σ)` is itself a function of `Σ.L` alone — it is selected from the
+retraction relation `L_R^Σ`, which `Σ.L` determines — so `Σ'.L = Σ.L` (as partial
+functions) already entails `nullified(Σ') = nullified(Σ)`. The equality of nullified sets
+is thus a *consequence* of the hypothesis, not an extra demand on it, which is exactly why
+F-PRES (ASN-0127) — which delivers only link-store preservation — discharges the whole
+precondition. The transitions this covers are exactly the ones that leave `Σ.L` intact.
+Content insertion, deletion, and rearrangement act on a document's arrangement `Σ.M(d)` and
+preserve `Σ.L` (F-PRES, ASN-0127); content allocation (K.α) and provenance recording (K.ρ)
+likewise leave the link store untouched. Every such transition leaves the count exactly
+where it was. Only link creation and retraction — transitions that grow `Σ.L` or
+`nullified` — can move it.
 
 This is the count-level expression of the survivability of links under editing. A link
 strapped to bytes by content identity does not change which four-set descriptions it
@@ -391,21 +398,50 @@ This is the cardinality of FL-MON (ASN-0121) together with the K.λ increment (F
 ASN-0127): link creation is the only transition that can add to the satisfying set, and it
 adds at most one address, which by freshness was not already present. We can make the
 increment exact by a weakest-precondition step. Consider a transition `Σ → Σ'` that creates
-a fresh ordinary link `ℓ` (not a retraction, so `nullified` is unchanged and `ℓ` is
-addressable at `Σ'`). The membership of every pre-existing link is unmoved (their values
-and addressability are fixed across K.λ — E-INV, ASN-0127), so
+a fresh ordinary link `ℓ` — *fresh*, so `ℓ ∉ dom(Σ.L)`, and *ordinary*, so it does not
+enter the retraction relation and `L_R^{Σ'} = L_R^Σ`.
 
-  `countlinks_FTT(q, Σ') = countlinks_FTT(q, Σ) + 1`  if `sat(ℓ, q, Σ')`, and
-  `countlinks_FTT(q, Σ') = countlinks_FTT(q, Σ)`      if `¬sat(ℓ, q, Σ')`.
+First, every pre-existing link's contribution is unmoved — and we must cite the facts that
+actually fix it, not a discovery-side lemma about a different predicate. For `a ∈ dom(Σ.L)`
+the stored value survives creation, `Σ'.L(a) = Σ.L(a)` with `a ∈ dom(Σ'.L)` (L12, ASN-0043;
+LP13, ASN-0098); and `sat(a, q, ·)` reads only `Σ.L(a)` and the projection `home(a)` of the
+permanent address `a` (CN-LOC), so `sat(a, q, Σ') = sat(a, q, Σ)`. Its addressability is
+fixed too: because `ℓ` is not a retraction, `L_R^{Σ'} = L_R^Σ`, so the nullified set
+restricted to the old domain is unchanged, `nullified(Σ') ∩ dom(Σ.L) = nullified(Σ)`, and
+each pre-existing `a` is addressable at `Σ'` exactly when it was at `Σ`. The contributions
+of `dom(Σ.L)` therefore sum to the same total at both states. (This is the substance an
+earlier draft mis-attributed to E-INV, ASN-0127 — which speaks of the slot-agnostic
+`matches(a, I, ·)` predicate, not the four-slot `sat`, and which says nothing of
+addressability at all, so it delivers neither half of what the step needs.)
 
-Reading off the precondition for the count to rise,
+The whole change is thus the contribution of `ℓ` itself: `1` if `ℓ ∈ addressable(Σ') ∧
+sat(ℓ, q, Σ')`, and `0` otherwise. Now `ℓ ∈ dom(Σ'.L)` holds by creation, so `ℓ ∈
+addressable(Σ')` reduces to `ℓ ∉ nullified(Σ')`; and since `L_R^{Σ'} = L_R^Σ`, this is
 
-  `wp(create ℓ, countlinks_FTT(q, ·) = countlinks_FTT(q, Σ) + 1) = sat(ℓ, q, Σ')`
+  `¬(E (b, F', G') ∈ L_R^Σ :: ℓ ∈ coverage(G'))`
 
-— the new link must itself satisfy the four sets (the FL-WP(a) condition of ASN-0121,
-specialised to a fresh non-retraction link). The census grows by precisely the links that
-are made and match, and shrinks by precisely the matching links that are withdrawn; it
-moves under nothing else.
+— *no pre-existing retraction tuple already covers `ℓ`'s address*. This clause is not free:
+"ordinary" buys `L_R^{Σ'} = L_R^Σ`, which forbids a *new* retraction, but leaves wide open
+that a *standing* one already names the fresh address. Hence
+
+  `countlinks_FTT(q, Σ') = countlinks_FTT(q, Σ) + 1`  if `sat(ℓ, q, Σ') ∧ ℓ ∉ nullified(Σ')`, and
+  `countlinks_FTT(q, Σ') = countlinks_FTT(q, Σ)`      otherwise,
+
+and reading off the precondition for the count to rise,
+
+  `wp(create ℓ, countlinks_FTT(q, ·) = countlinks_FTT(q, Σ) + 1)
+        = sat(ℓ, q, Σ') ∧ ¬(E (b, F', G') ∈ L_R^Σ :: ℓ ∈ coverage(G'))`
+
+— the new link must itself satisfy the four sets *and* not be born already-retracted. This
+is exactly the FL-WP(a) condition of ASN-0121 (which carries that second conjunct precisely
+for a fresh ordinary link), not a weakening of it. Under the unit-depth retraction
+discipline (ASN-0086) the second conjunct is automatic, and the precondition collapses to
+`sat(ℓ, q, Σ')`: a unit-depth retraction's to-coverage is a prefix subtree `{s : t ≼ s}`,
+so `ℓ ∈ coverage(G')` would force `t ≼ ℓ`; but `t ∈ dom(Σ.L)` and `ℓ ∈ dom(Σ'.L)` with
+`dom(Σ'.L)` a prefix antichain (R0a, ASN-0086) forces `t = ℓ`, contradicting freshness. The
+census grows by precisely the links that are made, match, and are not born
+already-retracted, and shrinks by precisely the matching links that are withdrawn; it moves
+under nothing else.
 
 A note on what retraction does *not* undo. Nullifying a link removes it from the active
 count, but it does not restore any link the retracted one had itself withdrawn; a retracted
@@ -446,6 +482,95 @@ arrangement is extended to reach its content (resurrection, LP18, ASN-0098). But
 that resurrection does *not* do — it does not change the count, because the link was
 counted all along. Discoverability rose; existence did not. The two censuses move on
 different signals, and FINDNUMOFLINKSFROMTOTHREE is the existence census.
+
+## A census, computed
+
+The three rulings the question presses hardest on — that anchoring, transclusion, and
+appearance multiplicity each collapse to a contribution of one (CN-UNIT); that a nullified
+link contributes nothing yet persists (CN-RETRACT); and that an unsurfaced link is counted
+all the same (CN-ORPHAN) — are easiest to trust against a specific store. We exhibit one.
+Fix a document-level prefix `d₁ = 1.0.1.0.1` and two of its neighbours `d₂ = 1.0.1.0.2`,
+`d₃ = 1.0.1.0.3` (each a `zeros = 2` document tumbler, T4). Write `⟨z⟩` for the unit-depth
+span `(z, δ(1, #z))` at address `z`, whose coverage is the subtree `{t : z ≼ t}`
+(PrefixSpanCoverage, ASN-0043).
+
+The request constrains the from-set alone:
+
+  `q = (∗, F, ∗, ∗)`,  `F = {(1.0.1.0.1.0.1.5, δ(8, 8))}`,
+
+so `coverage(F) = {t : 1.0.1.0.1.0.1.5 ≤ t < 1.0.1.0.1.0.1.13}` — a contiguous content
+region in the text subspace (`s_C = 1`) of `d₁`, holding the eight ordinals `5..12`. With
+three slots wildcard, `sat(a, q, Σ)` reduces to `lift(Σ.L(a).e₁, F) ≡ touch(Σ.L(a).e₁, F)`:
+a link qualifies exactly when its from-endset's coverage meets `coverage(F)`.
+
+The link store `Σ.L` holds five addresses, all homed under `d₁` (link subspace `s_L = 2`).
+Each ordinary `aᵢ` is a standard triple `(e₁, e₂, Θ₀)` with non-empty type `Θ₀` and some
+to-endset `e₂`; only `e₁` is shown, the other slots being immaterial to this `q`.
+
+| address | from-endset `e₁` | note |
+|---|---|---|
+| `a₁ = 1.0.1.0.1.0.2.1` | `{⟨1.0.1.0.1.0.1.6⟩, ⟨1.0.1.0.1.0.1.7⟩, ⟨1.0.1.0.1.0.1.9⟩}` | addressable; its content at `…1.7` transcluded into `d₂, d₃` |
+| `a₂ = 1.0.1.0.1.0.2.2` | `{⟨1.0.1.0.1.0.1.8⟩}` | nullified by `a_R` |
+| `a₃ = 1.0.1.0.1.0.2.3` | `{⟨1.0.1.0.1.0.1.11⟩}` | addressable; orphan (surfaced by no arrangement) |
+| `a₄ = 1.0.1.0.1.0.2.4` | `{⟨1.0.1.0.2.0.1.3⟩}` | addressable; references `d₂` content |
+| `a_R = 1.0.1.0.1.0.2.5` | `∅` (to-endset `{⟨a₂⟩}`, type `R`) | addressable; retractor of `a₂` |
+
+`a_R` is a retraction tuple `(∅, {⟨a₂⟩}, R)` whose to-coverage `{t : a₂ ≼ t}` meets
+`dom(Σ.L)` only at `a₂` (the other addresses are equal-length and distinct, hence
+prefix-incomparable). So `nullified(Σ) = {a₂}` and `addressable(Σ) = {a₁, a₃, a₄, a_R}`. We
+read each contribution off `sat` and `addressable`, consulting nothing else (CN-LOC).
+
+*`a₁` contributes `1`, three multiplicities notwithstanding.* Its from-endset seizes three
+pairwise-disjoint spans, and every one of them meets `F`: each of `1.0.1.0.1.0.1.6`, `.7`,
+`.9` lies in `coverage(F)`, so `coverage(e₁) ∩ coverage(F) ≠ ∅` holds three times over.
+But the from-clause is a single existential `touch(e₁, F)`, so three reasons to match yield
+one yes, not three — `a₁` enters the satisfying set once (CN-UNIT (a)). Suppose further
+that the content at `1.0.1.0.1.0.1.7` is transcluded into `d₂` and `d₃` — it lies in
+`ran(M(d₁))`, `ran(M(d₂))`, `ran(M(d₃))` — and surfaces at several arrangement positions in
+each. Every such fact lives in `Σ.M`, which the count does not read (CN-LOC); `a₁` is one
+address in `Σ.L`, weighed once (CN-UNIT (b), (c)). Contribution: `1`.
+
+*`a₂` contributes `0`, though it satisfies `q`.* Its from-endset meets `F`
+(`1.0.1.0.1.0.1.8 ∈ coverage(F)`), so `sat(a₂, q, Σ)` is `true`. But `a₂ ∈ nullified(Σ)`,
+hence `a₂ ∉ addressable(Σ)`, and CN-DEF ranges over `addressable(Σ)`: `a₂` is filtered out
+before its `sat` value is ever weighed. It nonetheless remains in `dom(Σ.L)` with its value
+fixed (L12, ASN-0043) — gone from the count, kept in the store (CN-RETRACT). Contribution:
+`0`.
+
+*`a₃` contributes `1`, surfaced nowhere.* Its from-endset meets `F`
+(`1.0.1.0.1.0.1.11 ∈ coverage(F)`) and it is addressable, so it is counted. That the
+content at `1.0.1.0.1.0.1.11` sits in no arrangement's range — `discoverable_from(a₃, d, Σ)`
+fails for every `d`, making `a₃` an orphan — is invisible to the count, which reads `Σ.L`
+and not `Σ.M` (CN-ORPHAN). Contribution: `1`.
+
+*`a₄` contributes `0`, disjoint from the request.* Its sole from-span references content
+under `d₂`, whose address `1.0.1.0.2.0.1.3` exceeds `coverage(F)`'s upper bound — it diverges
+from the region at the document component (`2 > 1`), so it is `> 1.0.1.0.1.0.1.13`. Thus
+`coverage(e₄) ∩ coverage(F) = ∅`, `touch(e₄, F)` is `false`, and `sat(a₄, q, Σ)` fails.
+Addressable but non-matching, `a₄` is excluded. Contribution: `0`.
+
+*`a_R` contributes `0`, for want of a from-endset.* The retractor's from-endset is `∅`, and
+`lift(∅, F) ≡ touch(∅, F) ≡ ∅ ∩ coverage(F) = ∅` is `false` (FL-EMP, ASN-0121): an empty
+constrained slot annihilates the match. So `a_R`, addressable though it is, fails `sat`.
+Contribution: `0`.
+
+Summing the contributions, `countlinks_FTT(q, Σ) = 2`, the contributors being `a₁` and
+`a₃`. The same number arrives through CN-DEF directly —
+`|{a ∈ addressable(Σ) : sat(a, q, Σ)}| = |{a₁, a₃}| = 2` — and through CN-ENUM, since
+`findlinks_FTT(q, Σ) = {a₁, a₃}` has cardinality `2`. The satisfying orphan `a₃` is in this
+set while the satisfying-but-nullified `a₂` is not — exactly the gap CN-ORPHAN and
+CN-RETRACT predict.
+
+The all-wildcard request closes the boundary at the other end. With `q* = (∗, ∗, ∗, ∗)`
+every slot drops out and `sat(a, q*, Σ)` is `true` for every `a`, so the count is the size
+of the whole active view:
+
+  `countlinks_FTT(q*, Σ) = |addressable(Σ)| = |{a₁, a₃, a₄, a_R}| = 4`
+
+— nullified `a₂` alone excluded. Constraining a slot can only narrow this, so the wildcard
+census is the *maximum* any request attains over a fixed store, just as the empty-coverage
+zero (FL-EMP) is the minimum. Our `q` sits between them: from-set `F` admits `a₁` and `a₃`,
+declines `a₄` (disjoint) and `a_R` (empty), and never sees `a₂` (withdrawn).
 
 ## Cost, and the meaning of asking for a number
 
@@ -502,7 +627,7 @@ back end is free to pay full enumeration cost for a cardinality without being wr
 | CN-SNAP | (THM) The count is a measurement of `Σ`, recomputed per inquiry, recorded in no state component; it may change under any mutation and the specification imposes no obligation that a prior count remain valid (recompute-on-read) | introduced |
 | CN-STAB | (THM) For fixed `q`, any link-store-preserving transition (content insertion/deletion/rearrangement, content allocation, provenance recording — F-PRES ASN-0127) leaves the count invariant; in particular a reverse-orphaned link still contributes to a home-bounded count, residence being a projection of the permanent address | introduced |
 | CN-RETRACT | (THM) A nullified link contributes `0` to every count immediately and permanently (R6a ASN-0086, FL-RET ASN-0121) while remaining in `dom(Σ.L)` with fixed value (L12 ASN-0043); the count ranges over the active view `addressable(Σ)`, reconciling immediate exclusion with store permanence | introduced |
-| CN-MONO | (THM) Absent retraction of counted links, the count is non-decreasing across `Σ →* Σ'`, and creating a fresh addressable link increments it by `1` iff that link satisfies `q` (`wp(create ℓ, Δcount = +1) = sat(ℓ, q, Σ')`) | introduced |
+| CN-MONO | (THM) Absent retraction of counted links, the count is non-decreasing across `Σ →* Σ'`, and creating a fresh ordinary link increments it by `1` iff that link satisfies `q` and is not already retraction-covered (`wp(create ℓ, Δcount = +1) = sat(ℓ, q, Σ') ∧ ¬(E (b, F', G') ∈ L_R^Σ :: ℓ ∈ coverage(G'))` — the FL-WP(a) conjunct of ASN-0121; automatic under the unit-depth retraction discipline, R0a ASN-0086, where it collapses to `sat(ℓ, q, Σ')`) | introduced |
 | CN-ORPHAN | (THM) A satisfying addressable link is counted regardless of whether any arrangement surfaces it (`discoverable_from` irrelevant); the count is an existence census over `addressable(Σ)`, a superset of what any document surfaces, with the gap being exactly the orphans | introduced |
 | CN-OBT | (THM) `countlinks_FTT(q, Σ) = N` asserts that `N` satisfying links exist in the addressable store at `Σ`; it does not warrant that those links are deliverable on demand | introduced |
 
