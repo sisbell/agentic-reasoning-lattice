@@ -1,26 +1,30 @@
 # ASN-0130 Claim Statements
 
-*Source: ASN-0130-predicate-definitions-as-substrate-content.md (revised unknown) — Extracted: 2026-06-12*
+*Source: ASN-0130-predicate-definitions-as-substrate-content.md (revised unknown) — Extracted: 2026-06-13*
 
-## PR-ENC — EncodingDiscipline (AXIOM, axiom)
+## PR-ENC — EncodingDiscipline (DEF, definition)
 
-An *encoding* is an injective map from *signed syntactic terms* — a pair of an ordered, sorted parameter context `Γ_D = ⟨x₁ : C₁, …, x_k : C_k⟩` (each `Cᵢ ∈ Codom`; `k = 0` for closed terms) and a body in ASN-0129's grammar extended with *applied definitional references* (PR-SIG), and no view component — to finite content-value sequences, with a decidable parse and **prefix-freeness**: no parse-valid sequence is a proper prefix of another; equivalently, the parse is *self-delimiting*, determining its own extent from its start.
+An *encoding* is an injective map from *signed syntactic terms* — a pair of an ordered, sorted parameter context `Γ_D = ⟨x₁ : C₁, …, x_k : C_k⟩` (each `Cᵢ ∈ Codom`, COD of ASN-0129; `k = 0` for closed terms) and a body in ASN-0129's grammar extended with *applied definitional references* (PR-SIG), and no view component (PR-VIEW) — to finite content-value sequences, with a decidable parse and **prefix-freeness**: no parse-valid sequence is a proper prefix of another; equivalently, the parse is *self-delimiting*, determining its own extent from its start.
 
-The domain is *syntax only* — grammatical well-formedness, no typing requirement.
+The domain is *syntax only*: grammatical well-formedness, no typing requirement.
 
-The discipline reserves a countable supply of *expansion names* `ν₁, ν₂, …`, which no recorded parameter name and no body binder may inhabit.
+The discipline also reserves a countable supply of *expansion names* `ν₁, ν₂, …`, which no recorded parameter name and no body binder may inhabit.
 
-A *definition artifact* is a contiguous run `A_def = {shift(a, k) : 0 ≤ k < n}` (`n ≥ 1`) of content addresses holding a parse-valid encoding, identified by its start `a` — *the definition's address*. The run is one segment of `a`'s origin K.α chain, because on T4-valid content addresses `shift(x, 1) = inc(x, 0)`.
+A *definition artifact* is a contiguous run `A_def = {shift(a, k) : 0 ≤ k < n}` (`n ≥ 1`) of content addresses holding a parse-valid encoding, identified by its start `a` — *the definition's address*.
 
 ---
 
-## PR-ENC-uniq — EncodingUniqueness (LEMMA, lemma)
+## PR-ENC-uniq — EncodingUniqueness (LEMMA, uniqueness)
 
-At most one parse-valid run starts at any address.
+At most one parse-valid run starts at any address: were `{shift(a, k) : 0 ≤ k < n}` and `{shift(a, k) : 0 ≤ k < n'}` both parse-valid with `n < n'`, the shorter's value sequence would be a proper prefix of the longer's — both parse-valid encodings — contradicting prefix-freeness.
 
-**Proof sketch:** Were `{shift(a, k) : 0 ≤ k < n}` and `{shift(a, k) : 0 ≤ k < n'}` both parse-valid with `n < n'`, the shorter's value sequence would be a proper prefix of the longer's — both parse-valid encodings — contradicting prefix-freeness.
+---
 
-**Corollary:** Runs may overlap (a suffix of a run may itself decode), but identity and resolution are start-anchored, so a definition starting mid-run is a different definition at a different start, never confused with the containing one.
+## PR-DISC — RegistrationDiscipline (DEF, scoping hypothesis)
+
+A derivation is *registration-disciplined* iff every `L_pdef`-growing step along it is the deposit branch of a `register_pred` call (PR0) and every `L_pd_stable`-growing step the deposit branch of a `certify_pd_stable` call (PR5a).
+
+On such a derivation every active `pdef` tuple is the trace of a validated registration, and every active `pd_stable` tuple the trace of a validated certification.
 
 ---
 
@@ -28,260 +32,211 @@ At most one parse-valid run starts at any address.
 
 `sig(a) = (Γ_D, C_D)`: the parse layer's recorded context, paired with the result sort the WT + WT-ref pass derives for `a`'s body *at `a`'s first registration*.
 
-`sig` is defined exactly on the *ever-registered* addresses, by induction on first-registration order. At `a`'s first registration, PR0 (iv) has every referenced address `r` carrying an active tuple at the pre-state — so `sig(r)` is already defined by the induction: every signature WT-ref consults is grounded, the pass is a terminating syntax-directed walk, and `C_D` is determined — unique, WT being syntax-directed.
+`sig` is defined exactly on the *ever-registered* addresses, by induction on first-registration order — well-founded, registration events being totally ordered along the derivation (PR2). At `a`'s first registration, PR0 (iv) has every referenced address `r` carrying an active tuple at the pre-state; so `r`'s first registration is strictly earlier (PR2(a)) and `sig(r)` is already defined by the induction: every signature WT-ref consults is grounded, the pass is a terminating syntax-directed walk, and `C_D` is determined — unique, WT being syntax-directed.
 
 Once defined, `sig(a)` never changes, and it re-derives identically at every later deposit event for `a`: the body is content-fixed (S0), each consulted `sig(r)` was fixed at its own earlier first registration, and the pass is deterministic.
 
 ---
 
-## PR-SIG — SignaturesAndReferences (SPEC, spec)
+## Definition — WTRef
 
-The *parse layer* is content-intrinsic: wherever a parse-valid run starts, the self-delimiting parse returns the recorded parameter context `Γ_D` and the body — functions of the immutable values (S0, PR-ENC), defined at every state alike.
+For a context `Γ`, an address `r` with `sig(r)` *defined* and `sig(r) = (⟨x₁ : C₁, …, x_k : C_k⟩, C_r)`, and `Γ ⊢ eᵢ : Cᵢ` for each `1 ≤ i ≤ k`: `Γ ⊢ r(e₁, …, e_k) : C_r`.
 
-The syntax PL gains is the *applied reference*: for an address `r` and terms `e₁, …, e_k`, the form `r(e₁, …, e_k)`, bare `r` when `k = 0` — a grammatical form, parsed with no store consulted.
-
-The *type layer* cannot be content-intrinsic: typing a reference needs the referent's parameter sorts and result sort, so a reference-bearing body's well-typing is not a property of its own run's values. Registration order grounds the type layer (see `sig` definition above).
+Definedness of `sig(r)` is the rule's domain condition — a reference to a never-registered address has no typing judgment, not a false one.
 
 ---
 
-## WT-ref — WTRef (RULE, rule)
-
-For a context `Γ`, an address `r` with `sig(r)` *defined* and `sig(r) = (⟨x₁ : C₁, …, x_k : C_k⟩, C_r)`, and `Γ ⊢ eᵢ : Cᵢ` for each `1 ≤ i ≤ k`:
-
-`Γ ⊢ r(e₁, …, e_k) : C_r`
-
-Definedness of `sig(r)` is the rule's domain condition — a reference to a never-registered address has no typing judgment.
-
----
-
-## PR0 — DefinitionRegistration (SPEC, spec)
+## PR0 — DefinitionRegistration (DEF, operation contract)
 
 The operation surface exposes `register_pred(d, A_def)`: *validate, then emit through the `pdef`-class emit it wraps*, returning the classifier tuple's address.
 
-*Validation* runs in full on every call at the call state Σ, writing `a := min(A_def)` (T1) and `n := |A_def|`:
+*Validation* runs in full on every call at the call state Σ:
 
-**(i)** the run is resident and chain-contiguous: `A_def ⊆ dom(Σ.C)` and `A_def = {shift(a, k) : 0 ≤ k < n}`, one segment of one origin's K.α chain (PR-ENC);
+- (0) `A_def` is a non-empty finite address set (`A_def ≠ ∅`, `|A_def| < ∞`)
+- Writing `a := min(A_def)` (T1) and `n := |A_def|`:
+  - (i) the run is resident and chain-contiguous — `A_def ⊆ dom(Σ.C)` and `A_def = {shift(a, k) : 0 ≤ k < n}`
+  - (ii) the run's values are exactly one parse-valid encoding — the self-delimiting parse from `a` succeeds and consumes precisely the presented extent
+  - (iii) the decoded term well-types, `Γ_D ⊢ body : C_D`, under WT + WT-ref
+  - (iv) every definitional reference names an *actively*-registered definition: for each referenced address `r`, some `(b, F, G) ∈ A_pdef^Σ` with `r ∈ addrs(F)`
 
-**(ii)** the run's values are exactly one parse-valid encoding — the self-delimiting parse from `a` succeeds and consumes precisely the presented extent, and by PR-ENC-uniq no other extent could;
+On success: `Emit_pdef(Σ, d, {a}, A_def)` with deposited endsets `F = enc({a})` and `G = enc(A_def)`.
 
-**(iii)** the decoded signed term well-types, `Γ_D ⊢ body : C_D`, under WT plus WT-ref (PR-SIG);
+*Weakest precondition* — on registration-disciplined derivations (PR-DISC), for `POST-ref ≡ (E (b, F', G') ∈ A_pdef^{Σ'} :: addrs(F') = {a})`:
 
-**(iv)** every definitional reference names an *already-registered* definition: for each referenced address `r`, some `(b, F, G) ∈ A_pdef^Σ` with `r ∈ addrs(F)`.
+```
+wp(register_pred(d, A_def), POST-ref)
+  ≡ (E (b, F', G') ∈ A_pdef^Σ :: addrs(F') = {a})
+  ∨ (VALID(Σ, A_def) ∧ d ∈ dom(Σ.M) ∧ C3(Σ, d))
+```
 
-On any validation failure the call is rejected — no step, no tuple, no address, *even when an I0-equal active tuple exists*.
+with `VALID` conditions (0)–(iv). On surface-disciplined derivations (DR), C3 vanishes:
 
-On success:
-
-`Emit_pdef(Σ, d, {a}, A_def)`
-
-depositing `(enc({a}), enc(A_def), pdef)` on a miss, with `addrs(F) = {a}` and `addrs(G) = A_def`.
-
-**POST-ref:**
-
-`POST-ref ≡ (∃ (b, F', G') ∈ A_pdef^{Σ'} :: addrs(F') = {a})`
-
-**wp (on registration-disciplined derivations):**
-
-`wp(register_pred(d, A_def), POST-ref) ≡ VALID(Σ, A_def) ∧ (hit(Σ, a) ∨ (d ∈ dom(Σ.M) ∧ C3(Σ, d)))`
-
-with `VALID` = conditions (i)–(iv) and `hit` = I1's branch condition at the `pdef` class.
-
-**wp reduced (on surface-disciplined derivations, where DR empties C3):**
-
-`wp(register_pred(d, A_def), POST-ref) ≡ VALID(Σ, A_def) ∧ (hit(Σ, a) ∨ d ∈ dom(Σ.M))`
-
-*Discipline and uniqueness:* A derivation is *registration-disciplined* iff every `L_pdef`-growing step along it is the deposit branch of a `register_pred` call and every `L_pd_stable`-growing step the deposit branch of a `certify_pd_stable` call. On such derivations: at most one active `pdef` tuple per I0 class at every state reached; all validated tuples at one start are I0-equal (PR-ENC-uniq) — *at most one active registration per definition address*.
+```
+wp(register_pred(d, A_def), POST-ref)
+  ≡ (E (b, F', G') ∈ A_pdef^Σ :: addrs(F') = {a})
+  ∨ (VALID(Σ, A_def) ∧ d ∈ dom(Σ.M))
+```
 
 ---
 
-## PR1 — ValidationPermanence (LEMMA, lemma)
+## PR1 — ValidationPermanence (LEMMA, permanence)
 
-At any state Σ reached by a registration-disciplined derivation, if `(b, F, G) ∈ L_pdef^Σ`, then the run `addrs(G)`, with start `addrs(F) = {a}`, passed PR0's validation at its deposit's pre-state — parse-valid (ii), well-typed (iii), every reference registered (iv) — and holds the same values at Σ and at every `→_sh*`-successor.
+At any state Σ reached by a registration-disciplined derivation (PR-DISC), if `(b, F, G) ∈ L_pdef^Σ`, then the run `addrs(G)`, with start `addrs(F) = {a}`, passed PR0's validation at its deposit's pre-state — parse-valid (ii), well-typed (iii), every reference registered (iv) — and holds the same values at Σ and at every `→_sh*`-successor.
 
-**Proof structure:** Each step of the substrate relation either frames the content store — K.σ and K.λ_sh carry `Σ'.C = Σ.C` in their frames — or is a K.α step with `C' = C ∪ {a' ↦ v}` at a key fresh against `dom(Σ.C)`, leaving every existing binding intact. By induction along the derivation, every already-stored content address remains resident with value fixed. The tuple persists via L12 as a transition invariant (B2 with RP-b), inducted along the derivation.
-
----
-
-## PR2 — AcyclicReference (LEMMA, lemma)
-
-Under PR0's discipline, deposits into the `pdef` class are `→_sh` steps, totally ordered along any derivation. For an ever-registered definition D, write `e₁(D)` for its *earliest* deposit event.
-
-**(a)** *Every deposit event sees each referent registered strictly earlier.*
-
-A deposit is the miss branch of a `register_pred` whose validation (iv) had just passed at the pre-state: each referenced address `r` carries an active tuple there, which entered `L_pdef` at some strictly earlier deposit event. Hence `e₁(r) <` the current event; instantiating at D's earliest event, `e₁(r) < e₁(D)`.
-
-**(b)** *Self-reference fails at every deposit event.*
-
-Deposits occur only on a dedup miss, and all validated tuples at one start are I0-equal (PR-ENC-uniq), so at a deposit event for D every existing tuple denoting D's start is inactive — and the depositing tuple does not yet exist during its own validation. Condition (iv) therefore has no witness for a reference to D's own start: a self-referencing term is rejected at every would-be deposit event.
-
-**Consequence:** The reference relation on ever-registered definitions embeds in the strict order `e₁(r) < e₁(D)` — irreflexive, acyclic, a DAG with no cycle check ever run. Definitional expansion terminates: expansion descends reference edges, `e₁` strictly decreasing among the finitely many deposit events.
+Permanence divides across conjuncts:
+- Conjuncts (ii) and (iii) are *content/signature-intrinsic*: parse-validity reads only the immutable run; well-typedness reads the run plus each consulted `sig(r)`, fixed at `r`'s first registration (PR-SIG). These are validation forever.
+- Conjunct (iv) is a *deposit-time reference-endorsement* — permanent as a fact about the deposit's pre-state, not as a standing fact at Σ.
 
 ---
 
-## Definition — Expand
+## PR2 — AcyclicReference (LEMMA, DAG)
 
-`expand(a)`: in `body`, replace each applied reference by the referent's expansion with the expanded arguments substituted for its parameters.
+Under the registration discipline (PR-DISC), deposits into the `pdef` class are `→_sh` steps, totally ordered along any derivation.
 
-Processing order: references bottom-up, siblings left to right (arguments fully expanded before the node they feed).
+For an ever-registered definition D, write `e₁(D)` for its *earliest* deposit event.
 
-At a node `r(·)` with expanded arguments `E₁, …, E_k`:
+- (a) *Every deposit event sees each referent registered strictly earlier.* A deposit is the miss branch of a `register_pred` whose validation (iv) had just passed at the pre-state: each referenced address `r` carries an active tuple there, which entered `L_pdef` at some strictly earlier deposit event. Hence `e₁(r) < e₁(D)`.
 
-1. Take `expand(r)` — recursion well-founded because descent strictly decreases first-registration rank (PR2).
-2. Rename `expand(r)`'s parameters *and* every binding site in it to expansion names from PR-ENC's reserved supply: the least-indexed names occurring nowhere in the term under construction, the `Eⱼ`, or `expand(r)` itself, assigned in a fixed order (parameters first in signature order, then binding sites depth-first, left to right).
-3. Substitute `Eⱼ` simultaneously for the renamed `j`-th parameter.
+- (b) *Self-reference fails at every deposit event.* At a deposit event for D every existing tuple denoting D's start is inactive — and the depositing tuple does not yet exist during its own validation. Condition (iv) therefore has no witness for a reference to D's own start.
 
-The renaming is total — a referent's free variables are among its parameters (PR-SIG), and all parameters are renamed — and capture-free by construction: every introduced name is fresh for everything in scope, and no author-written name inhabits the expansion-name supply (PR-ENC).
+The reference relation on ever-registered definitions thus embeds in the strict order `e₁(r) < e₁(D)` — irreflexive, acyclic, a DAG with no cycle check ever run.
 
-`expand` is a *function* of content — two evaluators expanding the same address at any two states obtain the same concrete term, not merely α-equivalent ones.
+*Consequently definitional expansion terminates*: expansion (PR3) descends reference edges, `e₁` strictly decreasing among the finitely many deposit events, each term finite; the expanded result is a pure PL term (no references).
 
 ---
 
-## Definition — Evaluate
+## PR3 — EvaluationByReference (DEF, three-layer operation)
 
-`evaluate(a, args, view, Σ)`:
+**Resolution** — address to signed term: read content values from `a` along its origin chain — successive addresses `shift(a, k)` — feeding the self-delimiting parse, which determines the run's extent from content alone and yields `(Γ_D, body)`. Resolution consults no slice and no tuple.
 
-**Precondition:** `a` is *ever-registered* at Σ — spelled as the audit-slice fact: some `(b, F, G) ∈ L_pdef^Σ` with `addrs(F) = {a}` (in PL: `(∃ x ∈ L_pdef :: a ∈ addrs_F(x))`; equivalently `a ∈ M_pdef` at view `audit`, V-AUD). Active registration is *not* required of `a` or any referent.
+**Expansion** — `expand(a)`: in `body`, replace each applied reference by the referent's expansion with the expanded arguments substituted for its parameters. References are processed bottom-up, siblings left to right. At a node `r(·)` with expanded arguments `E₁, …, E_k`: take `expand(r)` — the recursion is well-founded because descent strictly decreases first-registration rank (PR2) — rename its parameters *and* every binding site in it to expansion names from PR-ENC's reserved supply, the least-indexed names occurring nowhere in the term under construction, the `Eⱼ`, or `expand(r)` itself, assigned in a fixed order (parameters first in signature order, then binding sites depth-first, left to right); then substitute `Eⱼ` simultaneously for the renamed j-th parameter.
 
-`args` is a `Γ_D`-*environment*: one value of sort `Cᵢ` per parameter `xᵢ`, per `sig(a) = (Γ_D, C_D)`.
+`expand` is *determinate*: the parses are content (S0), the reference DAG is fixed by the parses, and every processing order and name choice above is fixed, so `expand` is a function of immutable content.
 
-**Result:** the ASN-0129 denotation of `expand(a)` at `(args, view, Σ)` — a denotation that exists at the signature's result sort because `expand(a)` is a PL term with `Γ_D ⊢ expand(a) : C_D` (PR3a), the view fixed at the top level per PC3.
+**Evaluation** — `evaluate(a, args, view, Σ)`. Precondition: `a` is *ever-registered* at Σ — spelled as: some `(b, F, G) ∈ L_pdef^Σ` with `addrs(F) = {a}` (equivalently `a ∈ M_pdef` at view `audit`, V-AUD). Active registration is *not* required.
 
-Purity (PC4), termination (PC5), decidability, and the ceiling (PC6) hold verbatim — the expansion is a pure PL term fixed by immutable content before evaluation begins.
+`args` is a `Γ_D`-*environment*: one value of sort `Cᵢ` per parameter `xᵢ`, per `sig(a) = (Γ_D, C_D)` (PR-SIG).
 
----
-
-## PR3 — EvaluationByReference (SPEC, spec)
-
-Three layers:
-
-**Resolution** — address to signed term: read content values from `a` along its origin chain — successive addresses `shift(a, k)`, the chain's `inc(·, 0)` siblings (PR-ENC) — feeding the self-delimiting parse, which determines the run's extent from content alone and yields `(Γ_D, body)`. Resolution consults no slice and no tuple.
-
-**Expansion** — `expand(a)` as defined above. `expand` is a *function* of immutable content — two evaluators expanding the same address at any two states obtain the same concrete term, not merely α-equivalent ones.
-
-**Evaluation** — `evaluate(a, args, view, Σ)` as defined above. References are *view-transparent*: a referent contributes spelling, never scope — the artifact fixes the term, the reader fixes which state the term's parameterized reads see.
-
-**PR-VIEW applies:** the view binding every view-parameterized constituent in every inlined referent is the evaluating *caller's*, not anything the referent's author chose.
+`evaluate(a, args, view, Σ)` is the ASN-0129 denotation of `expand(a)` at `(args, view, Σ)`.
 
 ---
 
-## PR3a — ExpansionWellTyping (LEMMA, lemma)
+## PR3a — ExpansionWellTyping (LEMMA, well-typing)
 
-On registration-disciplined derivations: for every ever-registered `a` with `sig(a) = (Γ_D, C_D)`,
+On registration-disciplined derivations (PR-DISC): for every ever-registered `a` with `sig(a) = (Γ_D, C_D)`, `expand(a)` is a pure PL term with `Γ_D ⊢ expand(a) : C_D`.
 
-`expand(a)` is a pure PL term with `Γ_D ⊢ expand(a) : C_D`.
+Uses two auxiliary lemmas:
 
-**Sub-lemma WT-α (renaming):** If `Γ ⊢ u : C` and `ρ` renames variables sort-preservingly and injectively — acting on `dom(Γ)` and on `u`'s binding sites, its image names pairwise distinct and occurring nowhere in `u` — then `ρΓ ⊢ ρu : C`.
+**WT-α (renaming).** If `Γ ⊢ u : C` and `ρ` renames variables sort-preservingly and injectively — acting on `dom(Γ)` and on `u`'s binding sites, its image names pairwise distinct and occurring nowhere in `u` — then `ρΓ ⊢ ρu : C`.
 
-**Sub-lemma WT-W (weakening):** If `Γ ⊢ u : C`, `y ∉ dom(Γ)`, and `y` occurs nowhere in `u` as a binder, then `Γ, y : C′ ⊢ u : C` for any sort `C′`.
+**WT-W (weakening).** If `Γ ⊢ u : C`, `y ∉ dom(Γ)`, and `y` occurs nowhere in `u` as a binder, then `Γ, y : C′ ⊢ u : C` for any sort `C′`.
 
-**Proof structure (by induction on first-registration rank, nested structural induction on body):** For a reference node `r(e₁, …, e_k)` typed at context `Γ` by WT-ref with premises `Γ ⊢ eᵢ : Cᵢ` and `sig(r) = (⟨x₁ : C₁, …, x_k : C_k⟩, C_r)`:
+*Proof structure* — induction on first-registration rank (well-founded by PR2) with nested structural induction on the body. At a reference node `r(e₁, …, e_k)` typed by WT-ref as `Γ ⊢ r(e₁, …, e_k) : C_r` with `sig(r) = (⟨x₁ : C₁, …, x_k : C_k⟩, C_r)`:
 
-- *Arguments:* structural induction gives `Γ ⊢ Eᵢ : Cᵢ` for each `i`.
-- *Referent:* rank induction gives `expand(r) ∈ PL` with `⟨x₁ : C₁, …, x_k : C_k⟩ ⊢ expand(r) : C_r`.
-- *Rename (WT-α):* yields `⟨y₁ : C₁, …, y_k : C_k⟩ ⊢ u : C_r` where `u` is the renamed term with fresh `yⱼ` outside `dom(Γ)`.
-- *Weaken (WT-W iterated):* yields `Γ, y₁ : C₁, …, y_k : C_k ⊢ u : C_r`.
-- *Substitute (PC2 iterated, last parameter first):* Write `Γⱼ := Γ ∪ {y₁ : C₁, …, yⱼ : Cⱼ}`; at step `j = k, …, 1`, lift `Γ ⊢ Eⱼ : Cⱼ` to `Γ_{j−1} ⊢ Eⱼ : Cⱼ` by WT-W, apply PC2 to lower the judgment one context at a time. After step `1`: `Γ ⊢ u[y₁ ↦ E₁, …, y_k ↦ E_k] : C_r`. ∎
+- *Arguments*: structural induction gives `Γ ⊢ Eᵢ : Cᵢ` for each `i`
+- *Referent*: rank induction gives `expand(r) ∈ PL` with `⟨x₁ : C₁, …, x_k : C_k⟩ ⊢ expand(r) : C_r`; WT-α at the parameter-and-binder renaming yields `⟨y₁ : C₁, …, y_k : C_k⟩ ⊢ u : C_r`
+- *Weaken*: iterated WT-W adjoins `dom(Γ)`, giving `Γ, y₁ : C₁, …, y_k : C_k ⊢ u : C_r`
+- *Substitute*: `k` applications of WT's PC2 plain-composition rule, last parameter first, discharge to `Γ ⊢ u[y₁ ↦ E₁, …, y_k ↦ E_k] : C_r`
 
----
-
-## PR-VIEW — ViewTransparency (DEF, definition)
-
-A signed term records no view (PR-ENC) and `evaluate` takes one (PR3). The view binding every view-parameterized constituent (`members`, `targets_of`, `is_K`, `M_K` — PC3's list) in every inlined referent is the evaluating *caller's*, not anything the referent's author chose.
-
-Call a term *view-independent* iff it contains no view-parameterized constituent and no collection-valued behavior atom on UV's rewrite list (`succs`, `sources_to`, `chain`, `stale`; the verdict-valued behavior atoms UV never rewrites are admissible): a syntactic condition, decided by the same finite scan that decides well-typing.
-
-A view-independent term's denotation is invariant in the view argument — by structural induction, PC3 and UV locate all view-sensitivity in exactly the excluded constituents — so for such a term the `view` argument is inert.
+Result: `Γ_D ⊢ expand(a) : C_D`, with `expand(a) ∈ PL`.
 
 ---
 
-## PR4 — VersioningBySupersession (SPEC, spec)
+## Definition — WTAlpha
+
+If `Γ ⊢ u : C` and `ρ` renames variables sort-preservingly and injectively — acting on `dom(Γ)` and on `u`'s binding sites, its image names pairwise distinct and occurring nowhere in `u` — then `ρΓ ⊢ ρu : C`.
+
+---
+
+## Definition — WTWeaken
+
+If `Γ ⊢ u : C`, `y ∉ dom(Γ)`, and `y` occurs nowhere in `u` as a binder, then `Γ, y : C′ ⊢ u : C` for any sort `C′`.
+
+---
+
+## PR-VIEW — ViewTransparency (DEF, view discipline)
+
+A signed term records no view (PR-ENC) and `evaluate` takes one (PR3). PC3 (ASN-0129) gives every PL term exactly one view, fixed at the top level; expansion yields one pure term; so the view binding every view-parameterized constituent in every inlined referent is the evaluating *caller's*.
+
+Call a term *view-independent* iff it contains no view-parameterized constituent and no collection-valued behavior atom on UV's rewrite list (`succs`, `sources_to`, `chain`, `stale`): a syntactic condition, decided by the same finite scan that decides well-typing. A view-independent term's denotation is invariant in the view argument.
+
+---
+
+## PR4 — VersioningBySupersession (DEF, versioning)
 
 Definitions are never edited; they are *succeeded*. To update a predicate: register the successor (PR0), then emit `supersedes` (the shipped S2 class, ASN-0128) from the old definition's address to the new.
 
-`tip(a)` resolves the current version of the lineage rooted at `a`; competing successors make a branch and `tip` returns `⊥` — the multiplicity is *reported*, adjudicating among competing updates belongs to readers (BH2's stance).
+`tip(a)` resolves the current version of the lineage rooted at `a`; competing successors make a branch and `tip` returns ⊥.
 
 ---
 
-## PR5 — DynamicsCertification (SPEC, spec)
+## PR5 — DynamicsCertification (DEF, certification)
 
-A second validated surface — `certify_pd_stable` (operation contract PR5a) — classifies a registered definition's PD class (ASN-0129, PD0–PD2) by emitting a certification classifier, asserting membership in PD0's **ST** class.
+`certify_pd_stable` certifies a definition's expansion `ST⁺`.
+
+**ST⁺** is a *sound superset* of PD0's literal closed-term **ST**: every literal-ST closed term is ST⁺, ST⁺ additionally admits parametrized terms, and the two coincide exactly at `k = 0`.
 
 Three qualifications:
 
-**Purity:** The certified object is the definition's *expansion* (PR3, well-typed by PR3a) — the pure term `expand(a)`, not the artifact's literal reference-bearing spelling.
+- *Purity*: the certified object is the definition's expansion `expand(a)` (PR3, well-typed by PR3a), not the artifact's literal reference-bearing spelling.
+- *View*: the surface certifies only *view-independent* expansions (PR-VIEW's syntactic class). A view-independent term's denotation is invariant in the view argument, and the certificate binds at every `evaluate` call whatever view the caller passes.
+- *Parameters*: ST⁺'s parameter reading is per-instantiation — the checker runs PD0's rules with each parameter treated as a bound constant of its declared sort. The certificate asserts that *every* `Γ_D`-instantiation of `expand(a)` is ⊤-stable: once true at a reachable Σ for given `args`, true at every `→_sh*`-successor for the same `args`.
 
-**View:** The surface certifies only *view-independent* expansions (PR-VIEW's syntactic class). Such a term denotes identically at every view, and the certificate binds at every `evaluate` call whatever view the caller passes.
+The aggregate rule extension: the threshold position is extended from "ℕ literal" to *an ℕ literal or an environment-bound parameter*.
 
-**Parameters:** The checker runs PD0's rules with each parameter treated as a bound constant of its declared sort, and the certificate asserts that *every* `Γ_D`-instantiation of `expand(a)` is ⊤-stable: once true at a reachable Σ for given `args`, true at every `→_sh*`-successor for the same `args`. At `k = 0` the convention degenerates to PD0's statement itself.
+The universal lint form — "every registered definition carries `pd_stable`" — is the one-quantifier PL term:
 
-**Lint term** ("every registered definition carries `pd_stable`", view `active`):
+`(A t ∈ M_pdef :: is_pd_stable(t))` — one term, view `active`
 
-`(∀ t ∈ M_pdef :: is_pd_stable(t))`
-
-where coverage is exact at starts: `t ∈ subtree(t')` between starts forces `t' = t`, because same-origin K.α chain addresses share their length (`inc(·, 0)` rewrites only the terminal sig position, TA5(c), TA5-SigValid, ASN-0034) and two prefixes of one tumbler are length-ordered.
-
-**Permanence:** `expand(a)` is determined by immutable content alone — the certified object is one fixed pure spelling, frozen exactly as the artifact is.
+where `is_pd_stable(t)` is true iff some active certificate's F covers `t`, and the coverage test is exact at starts: `t ∈ subtree(t')` between starts forces `t' = t`.
 
 ---
 
-## PR5a — CertificationSurface (SPEC, spec)
+## PR5a — CertificationSurface (DEF, operation contract)
 
 The surface exposes `certify_pd_stable(d, a)`: *validate, then emit through the `pd_stable`-class emit it wraps*, returning the certificate tuple's address.
 
-*Validation* runs in full at call state Σ, in this order:
+*Validation* at call state Σ, in order:
 
-**(i)** *Target status:* `a` is *actively* registered — some `(b, F, G) ∈ A_pdef^Σ` with `addrs(F) = {a}`.
+- (0) *Predicate sort*: `sig(a)` is defined with Boolean result sort — `sig(a) = (Γ_D, Bool)`
+- (i) *Target status*: `a` is *actively* registered — some `(b, F, G) ∈ A_pdef^Σ` with `addrs(F) = {a}`
+- (ii) *Well-posedness*: `expand(a)` is view-independent: PR-VIEW's syntactic scan, no view-parameterized constituent and no UV-rewritten collection atom
+- (iii) *Class membership*: the checker's verdict `expand(a) ∈ ST⁺`, by PD0's rules under PR5's *Parameters* reading
 
-**(ii)** *Well-posedness:* `expand(a)` is view-independent (PR-VIEW's syntactic scan — no view-parameterized constituent and no UV-rewritten collection atom).
+On success: `Emit_pd_stable(Σ, d, {a}, ∅)` with deposit `(enc({a}), ∅, pd_stable)`.
 
-**(iii)** *Class membership:* the checker's verdict `expand(a) ∈ ST` by PD0's rules — parameters read as bound constants of their declared sorts.
+*Weakest precondition* — for `POST-cert ≡ (E (b, F', G') ∈ A_pd_stable^{Σ'} :: addrs(F') = {a})`, on registration-disciplined derivations (PR-DISC):
 
-Checks run in the stated order; the first failure rejects — no step, no tuple, no address — and rejection asserts nothing about the definition or any standing certificate.
+```
+wp(certify_pd_stable(d, a), POST-cert)
+  ≡ (E (b, F', G') ∈ A_pd_stable^Σ :: addrs(F') = {a})
+  ∨ (CVALID(Σ, a) ∧ d ∈ dom(Σ.M) ∧ C3(Σ, d))
+```
 
-On success:
+with `CVALID` the conjunction (0)–(iii). C3 vanishes on surface-disciplined derivations (DR).
 
-`Emit_pd_stable(Σ, d, {a}, ∅)`
-
-Unary shape conformant (`|F| = 1`, `G = ∅`), under I1's idem-⊤ contract.
-
-**POST-cert:**
-
-`POST-cert ≡ (∃ (b, F', G') ∈ A_pd_stable^{Σ'} :: addrs(F') = {a})`
-
-**wp (on registration-disciplined derivations):**
-
-`wp(certify_pd_stable(d, a), POST-cert) ≡ CVALID(Σ, a) ∧ (hit(Σ, a) ∨ (d ∈ dom(Σ.M) ∧ C3(Σ, d)))`
-
-with `CVALID` = conjunction of (i)–(iii); on surface-disciplined derivations, C3 vanishes (DR).
-
-**Permanence for the slice:** At any state Σ reached by a registration-disciplined derivation, if `(b, F, G) ∈ L_pd_stable^Σ` with `addrs(F) = {a}`, then at the deposit's pre-state: `a` was actively registered, `expand(a)` was view-independent, and `expand(a) ∈ ST` held — and all three facts are permanent, because `expand(a)` is the same concrete term at every state (PR3's determinacy), view-independence is a syntactic property of that fixed term, and the ST verdict is PD0's classification of that fixed spelling.
+*Permanence for the slice*: At any state Σ reached by a registration-disciplined derivation, if `(b, F, G) ∈ L_pd_stable^Σ` with `addrs(F) = {a}`, then at the deposit's pre-state: `a` was actively registered with `sig(a)` Boolean, `expand(a)` was view-independent, and `expand(a) ∈ ST⁺` held. These facts are permanent: `expand(a)` is the same concrete term at every state (PR3's determinacy), view-independence is a syntactic property of that fixed term, the ST⁺ verdict is PD0's classification of that fixed spelling, and the Boolean sort is fixed at `a`'s first registration.
 
 ---
 
-## PS1 — PredicateDefinition (DEF, registration)
+## PS1 — PredicateDefinition (DEF, class specification)
 
 `pdef` — Multi, idem=⊤, behaviors=∅.
 
-Slot convention: F = `enc({a})` denotes the definition's address — identity by start — and G = `enc(A_def)` denotes its run. `addrs(F) = {a}` and `addrs(G) = A_def`.
+Slot convention: `F = enc({a})` denotes the definition's address — identity by start — and `G = enc(A_def)` denotes its run. `|F| = 1`, `|G| = n < ∞` (Multi shape conformance).
 
-Marks a content run as a validated predicate definition.
+Marks a content run as a validated predicate definition. Dedup is by I0 coverage identity on both slots — same start, same run. No read-filter.
 
-`M_pdef` enumerates the registered definitions (D1): under PR0's discipline, exactly the registered definition addresses at view `active`.
-
-Idempotent: re-registering the same run while its tuple is active and the presentation still validates dedups to the existing tuple (I0's coverage identity on both slots — same start, same run); a re-presentation whose referents have since been de-registered fails (iv) and is *rejected*, the incumbent untouched.
-
-The exposed `Emit_K` rejects every `pdef`-class call — so `register_pred` is the one surface route into the `pdef` slice.
+Emitted only through `register_pred` (entry-point seal: the exposed `Emit_K` rejects every `pdef`-class call by the uniform class-exclusion mechanism).
 
 ---
 
-## PS2 — StabilityCertificate (DEF, registration)
+## PS2 — StabilityCertificate (DEF, class specification)
 
 `pd_stable` — Unary, idem=⊤, behaviors=∅.
 
-Slot convention: F = `enc({a})`, the certified definition's address; G = ∅ (Unary).
+Slot convention: `F = enc({a})`, the certified definition's address; `G = ∅` (Unary).
 
-Asserts ST-class certification (PD0, ASN-0129) of the *expansion* — view-independent, per PR5 — of the definition at `a`.
+Asserts **ST⁺** certification (PR5) of the view-independent expansion of the definition at `a`. Identity is by slot-F coverage `subtree(a)` alone — the Unary `G = ∅` collapsing the slot-2 coverage test.
 
-`is_pd_stable(t)` is true iff some active certificate's F covers `t` (D2). Coverage is exact at starts: a certificate's F-coverage is `subtree(t')` (PrefixSpanCoverage), and distinct content-run starts are prefix-incomparable, so `t ∈ subtree(t')` between starts forces `t' = t`.
-
-Emitted only by `certify_pd_stable` (PR5a). The exposed `Emit_K` rejects every `pd_stable`-class call — so `certify_pd_stable` is the one surface route into the `pd_stable` slice.
+Emitted only by `certify_pd_stable` (PR5a) (entry-point seal: same uniform class-exclusion mechanism extends to `K ≁ R ∧ K ≁ pdef ∧ K ≁ pd_stable`).
