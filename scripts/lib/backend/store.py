@@ -31,6 +31,7 @@ import fcntl
 import json
 import os
 import re
+import tempfile
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -517,15 +518,41 @@ class Store:
         return new_addr
 
     def _persist_paths(self) -> None:
-        """Write the current path map back to paths.json."""
+        """Write the current path map back to paths.json — atomically.
+
+        Serialize to a temp file in the same directory, fsync, then
+        os.replace() onto the canonical path. os.replace is atomic on
+        POSIX, so a concurrent reader — another worker's Store.__init__
+        doing json.load(paths.json), which does NOT hold the
+        register-path lock — sees either the complete old file or the
+        complete new file, never the torn mid-write bytes. The prior
+        open("w")+json.dump truncated-then-wrote in place, exposing a
+        window in which a reader caught a half-written file and crashed
+        with JSONDecodeError at session open (observed under multi-worker
+        runs). Writers are already serialized by _register_path_lock;
+        this closes the reader race the lock never covered.
+        """
         out = {
             "_meta": self._meta,
             "paths": {
                 p: str(a) for p, a in sorted(self.path_to_addr.items())
             },
         }
-        with open(self.paths_path, "w") as f:
-            json.dump(out, f, indent=2, sort_keys=True)
+        fd, tmp = tempfile.mkstemp(
+            dir=str(self.paths_path.parent), prefix=".paths.", suffix=".tmp",
+        )
+        try:
+            with os.fdopen(fd, "w") as f:
+                json.dump(out, f, indent=2, sort_keys=True)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp, self.paths_path)
+        except BaseException:
+            try:
+                os.unlink(tmp)
+            except OSError:
+                pass
+            raise
 
     # ----- writes -----
 
