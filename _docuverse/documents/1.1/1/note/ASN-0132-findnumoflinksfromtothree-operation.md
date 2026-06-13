@@ -40,8 +40,7 @@ between the link's endset and the request set, or, for the home slot, residence 
 `home(a)` in the request region (`athome`); a wildcard slot drops out. The relation
 ranges over *a link and a request* — not over any particular command. The description of *which links match* exists once, as
 a property of links and requests, prior to and independent of any operation that consumes
-it. We will count by consulting this relation directly, never by appeal to the operation
-that enumerates.
+it.
 
 ASN-0121 also fixes *which* links are eligible to be matched at all. A link withdrawn from
 the current arrangement is not eligible; the eligible set is
@@ -67,11 +66,7 @@ cardinality — that the counted set is finite. It is. The set
 `{a : a ∈ addressable(Σ) ∧ sat(a, q, Σ)}` is a subset of `dom(Σ.L)`, which is finite
 (L-fin, ASN-0093); a subset of a finite set is finite; and `sat` is decidable per link
 (FL-DEC, ASN-0121), so the set is not merely finite but computable. Hence
-`countlinks_FTT(q, Σ) ∈ ℕ` is well-defined for every `q` and every reachable `Σ`. There is
-no loop to terminate and no bound function to exhibit: the count is the cardinality of a
-finite comprehension, not the result of a search that might run away. (That a *particular*
-back end realises the cardinality by a search that does run over the store is a matter of
-cost, and does not bear on what the number *is*.)
+`countlinks_FTT(q, Σ) ∈ ℕ` is well-defined for every `q` and every reachable `Σ`.
 
 **CN-LOC (link-store locality).** Because `sat(a, q, Σ)` consults only the stored value
 `Σ.L(a)` and the address projection `home(a)`, and `addressable(Σ)` is a function of
@@ -665,7 +660,8 @@ retrieval guarantee across the delivery boundary would be a different and strong
 
 About *cost*, the specification is silent: cost-asymmetry is a quality of service an
 implementation may provide, not a correctness obligation, and is not among the claims
-below.
+below. That a *particular* back end realises the cardinality by a search that does run
+over the store is a matter of cost, and does not bear on what the number *is*.
 
 *Implementation note.* That same realisation does *not* exploit the asymmetry — it pays
 full enumeration cost for the cardinality, so asking "how many?" costs what asking "which
