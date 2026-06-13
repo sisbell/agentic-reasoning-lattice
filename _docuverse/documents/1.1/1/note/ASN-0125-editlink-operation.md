@@ -352,10 +352,8 @@ slot-3 coverage is neither `coverage(K_sup)` nor `coverage(R)`. Its one
 *discipline commitment* routes every emission into a disciplined class through
 that class's disciplined operation: every `[K_sup]` emission through
 `assert_sup` or `editlink` (under `DC`), every `[R]` emission through `Nullify`.
-A bare `Emit_{K_sup}`, a bare `Emit_R`, or a standalone `K.λ` carrying either
-class is *not* an editing-layer operation; the layer does not issue them. A
-state is *editing-layer-reachable* iff it is reached from the initial state `Σ₀`
-by a finite sequence of editing-layer operations. This mirrors ASN-0086's
+A state is *editing-layer-reachable* iff it is reached from the initial state
+`Σ₀` by a finite sequence of editing-layer operations. This mirrors ASN-0086's
 RelationalLayer and its LayerReachable states.
 
 **EL-DM (DisciplineMaintenance).** Every editing-layer-reachable state is
@@ -814,7 +812,7 @@ office, EL8(b), not a function of `Σ`.) The consequence specific to temporal
 erasure: no *temporal* selector — any "most-recent-wins" rule — is definable
 from state, the order it would read having no state witness; a global tie-break
 (say, T1-least claim address) remains definable but ranks namespaces, not
-times. What this forecloses for canonical selection in general, and what the
+times. What this forecloses for selecting a single latest edit, and what the
 reader is owed instead, is EL14(d).
 
 **Df-CUR (Currency query).** For `y ∈ dom(Σ.L)`: `reach_o(y, Σ)` is the least
@@ -850,10 +848,16 @@ none) but demotion: `Nullify` one claim, and a sink — hence a current —
 reappears. The two-view structure is what makes the standoff survivable: the
 operative graph is repairable precisely because the historical graph is not.
 
-*(d)* No canonical selector exists. Any selector is a function of the state;
-"the most recently asserted" is not such a function across homes (EL13); and
-forcing `|current| = 1` as an invariant would require refusing well-formed
-emissions or erasing claims — the substrate does neither. What the layer owes
+*(d)* No state-definable selector canonically identifies the latest edit. A
+selector that picked out *the* current successor as the latest edit would have
+to read assertion order from the state, and across homes that order has no state
+witness (EL13) — so no *temporal*, recency-respecting selector is a function of
+`Σ`. This does not contradict EL13's definable tie-break: an arbitrary order
+such as T1-least claim address *is* state-definable, but it ranks namespaces,
+not times, returning a representative without identifying *the latest* edit —
+definable, yet not canonical. Nor can structure force the issue: making
+`|current| = 1` an invariant would require refusing well-formed emissions or
+erasing claims, and the substrate does neither. What the layer owes
 the reader is therefore *disclosure, not decision*: `current(y, Σ)` entire,
 each member with its supporting claims and their homes (EL8b) *and its own
 activity status* (`active(·)`, EL9(3) — an axis membership does not settle,
@@ -1017,7 +1021,7 @@ current view forgets; the record cannot.
 | Df-CLS | SupersessionClass: designated coverage class `[K_sup]` with `coverage(K_sup) ≠ coverage(R)`; historical slice `S^Σ = L_{K_sup}^Σ` (claims), operative subset `A_sup^Σ = {(b,F,G) ∈ S^Σ : b ∉ nullified(Σ)}` | introduced |
 | Df-DIR | ClaimDirectionality: from-set covers the superseding link, to-set the superseded ("F replaces G"), aligned with RetractionDirectionality; replacement-free withdrawal is class `[R]`, a distinct relation | introduced |
 | Df-DISC | EditDiscipline: a state is edit-disciplined iff unit-depth-retraction-disciplined and every claim has form `F = {(x, δ(1,#x))}`, `G = {(y, δ(1,#y))}` with `x, y ∈ dom(Σ.L)`, `x ≠ y`; a layer is edit-disciplined iff every reached state is | introduced |
-| Df-LAY | EditingLayer: the editing layer issues `{assert_sup, editlink, Nullify}` plus the link-framing substrate transitions (`K.α`, `K.δ`, `K.μ⁺`, `K.μ⁺_L`, `K.μ⁻`, `K.ρ`, `K.μ~`) and the bare (standalone) `K.λ` — distinct from `editlink`'s internal `K.λ` step, which may carry `[K_sup]` under `DC` — confined to original-link creation; its discipline commitment routes every `[K_sup]` emission through `assert_sup`/`editlink` (under `DC`) and every `[R]` emission through `Nullify`; bare `Emit_{K_sup}`/`Emit_R`/class-carrying standalone `K.λ` are not layer operations — discipline is a protocol property, not substrate-enforced; editing-layer-reachable = reached from `Σ₀` by such operations (mirrors ASN-0086's RelationalLayer/LayerReachable) | introduced |
+| Df-LAY | EditingLayer: the editing layer issues `{assert_sup, editlink, Nullify}` plus the link-framing substrate transitions (`K.α`, `K.δ`, `K.μ⁺`, `K.μ⁺_L`, `K.μ⁻`, `K.ρ`, `K.μ~`) and the bare (standalone) `K.λ` — distinct from `editlink`'s internal `K.λ` step, which may carry `[K_sup]` under `DC` — confined to original-link creation; its discipline commitment routes every `[K_sup]` emission through `assert_sup`/`editlink` (under `DC`) and every `[R]` emission through `Nullify` — discipline is a protocol property, not substrate-enforced; editing-layer-reachable = reached from `Σ₀` by such operations (mirrors ASN-0086's RelationalLayer/LayerReachable) | introduced |
 | EL-DM | DisciplineMaintenance: every editing-layer-reachable state is edit-disciplined. Base — `Σ₀` (`L₀ = ∅`) is vacuously disciplined (`S^{Σ₀} = L_R^{Σ₀} = ∅`). Step — L-framing transitions and original-creating bare `K.λ` leave `S^Σ`/`L_R^Σ` undisturbed (Vocabulary fact V, L12, monotone `dom(L)`); `Nullify` adds only a unit-depth `[R]` tuple (no `[K_sup]` claim); `assert_sup` preserves by EL6(v); `editlink` by EL7(vi). Gives the "at disciplined `Σ`" conditionals below a reachable, non-vacuous domain | introduced |
 | EL4 | SingleTarget: for any *schema-conforming* claim (per-claim, no whole-state hypothesis) `coverage(F) ∩ dom(Σ.L) = {x}` and `coverage(G) ∩ dom(Σ.L) = {y}` (PrefixSpanCoverage + R0a), making `addr(e)`, `new(e)`, `old(e)` total on the schema-conforming subset `Ŝ^Σ` at every reachable state (`Ŝ^Σ = S^Σ` at disciplined states) | introduced |
 | Df-SUCC | Successor relations over the schema-conforming claims `Ŝ^Σ` (EL4): `succ_h(Σ) = {(old(e), new(e)) : e ∈ Ŝ^Σ}`; `succ_o(Σ)` the further restriction to `addr(e) ∉ nullified(Σ)`; finite, `succ_o ⊆ succ_h`; total at every reachable state (the `Ŝ^Σ` restriction excludes non-conforming `[K_sup]` tuples on which `old`/`new` are undefined), coinciding with the unrestricted form at disciplined states (`Ŝ^Σ = S^Σ`) | introduced |
@@ -1033,7 +1037,7 @@ current view forgets; the record cannot.
 | EL12 | ForkPermanence: independent edits of the same original yield distinct successors and claims, all permanent, co-operative at birth, never merged, ranked, or removed; the full competing set with asserters is one archival query; absent assertions the fork never exists in state (EL1) — fork visibility is exactly assertion-deep | introduced |
 | EL13 | TemporalErasure: cross-home emissions commute to identical states, so no state function recovers cross-home claim order ("global latest" is undefinable); within one home, claim order is totally recoverable from addresses (T9) — "latest" is per-home (per-document-chain) only, not per-principal (principal resolution is the ASN-0042 overlay's office, EL8b, not a function of `Σ`); global tie-breaks are definable but rank namespaces, not time | introduced |
 | Df-CUR | Currency query: `reach_o(y, Σ)` the `succ_o`-closure of `{y}`; `current(y, Σ)` its operative sinks — total, finite, computable; the sink test reads only the *operative claims* out of `z` (a claim-activity filter), not `z`'s own activity (EL14e) | introduced |
-| EL14 | CurrencyRelational: `current` is irreducibly set-valued — cardinalities 1 (linear chain; `{y}` itself when unedited), ≥ 2 (fork), and 0 (mutual-supersession standoff) are all reachable; demotion repairs the operative view while history stands; no canonical selector exists (EL13), and forcing uniqueness would require refusing emissions or erasing claims; (e) membership is *activity-agnostic on members* — `succ_o` filters on *claim* activity (`addr(e) ∉ nullified`) only, so `z ∈ current(y)` need not satisfy `active(z)` (a successor may be `Nullify`'d as an endpoint while its claim stands; sink and member-activity are independent axes, EL9(3)); the layer owes disclosure with attribution *and each member's activity status*, the reader applies policy | introduced |
+| EL14 | CurrencyRelational: `current` is irreducibly set-valued — cardinalities 1 (linear chain; `{y}` itself when unedited), ≥ 2 (fork), and 0 (mutual-supersession standoff) are all reachable; demotion repairs the operative view while history stands; no state-definable selector canonically identifies the latest edit — a temporal/recency selector is not a state function across homes (EL13), while the definable global tie-break (T1-least) ranks namespaces not times; structural uniqueness would require refusing emissions or erasing claims; (e) membership is *activity-agnostic on members* — `succ_o` filters on *claim* activity (`addr(e) ∉ nullified`) only, so `z ∈ current(y)` need not satisfy `active(z)` (a successor may be `Nullify`'d as an endpoint while its claim stands; sink and member-activity are independent axes, EL9(3)); the layer owes disclosure with attribution *and each member's activity status*, the reader applies policy | introduced |
 | EL15 | ChainConnectivity: along asserted chains, members resolve forever, hops persist in `succ_h`, and each hop is recoverable from either endpoint alone — historical connectivity is monotone non-decreasing; completeness (unasserted hops) and operative integrity (demoted hops) are expressly not invariants, and member-to-ends operative traversability is a derived property, not a guarantee | introduced |
 | EL16 | ReferenceSurvival: any pre-existing reference to the original keeps its value, coverage, and referent across the edit and all evolution, and reaches the successor by one archival observation; mutation would silently re-point every reference (excluded by EL0), silent re-creation leaves references intact but the road forward empty (EL1) — the asserted edit is the unique regime preserving both the exact past and the reachable future | introduced |
 
