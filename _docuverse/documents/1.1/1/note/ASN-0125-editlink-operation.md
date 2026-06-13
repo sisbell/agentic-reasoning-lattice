@@ -434,9 +434,7 @@ Both are finite (L-fin) relations on `dom(Σ.L)`, with
 `succ_o(Σ) ⊆ succ_h(Σ)`. Restricting the comprehension to `Ŝ^Σ` keeps the
 relations total at *every* reachable state, not only disciplined ones: the
 accessors are undefined on a non-conforming `[K_sup]`-class tuple — multi-span,
-or covering several link addresses or none — and a bare `K.λ` can emit one. At
-an edit-disciplined state `Ŝ^Σ = S^Σ`, so the comprehensions range over the
-whole supersession slice and coincide with the unrestricted reading.
+or covering several link addresses or none — and a bare `K.λ` can emit one.
 
 **EL5 (RecordMonotonicity).** For every `Σ →* Σ'`:
 
@@ -556,16 +554,13 @@ achieved with a permanent, fresh identity. The successor is *born unlisted*:
 both composite steps are `K.λ`, neither touches `M` (so `Σ₂.M = Σ.M`), and the
 fresh `a'` lies in no arrangement range — `ran(Σ₂.M(d)) = ran(Σ.M(d)) ⊆
 dom(Σ.C) ∪ dom(Σ.L)` (S3★), which `a'` is fresh against — so `listed(a', d, Σ₂)`
-is false for every `d` (Df-LISTED). The edited reading is therefore *archivally*
-present from birth — `out(a', Σ₂) ∋ e_b` with `new(e_b) = a'` (EL11b), the
-successor named as its claim's superseding endpoint — yet *contextually dark* in
-every current view: its from-side projects into no document (the symmetric
-EL11a for `new`, the gate `listed(a', d, Σ₂)` empty everywhere), so nothing
-volunteers it until a separate `K.μ⁺_L` seats it under `home(a') = d_s`. Listing
-the successor is a further, deliberate act, not part of the edit. (That the
-operation as defined leaves it uncoupled is a fact of the definition; whether
-some layer *should* couple edit to listing is the separate question of Open
-Question 7.)
+is false for every `d` (Df-LISTED). It is therefore auto-listed by no document;
+seating it under `home(a') = d_s` is a separate `K.μ⁺_L` act, not part of the
+edit. How the successor is then discovered — from a document's current view, and
+from the record independently of any view — is characterised in EL11. (That the
+operation as defined leaves listing uncoupled is a fact of the definition;
+whether some layer *should* couple edit to listing is the separate question of
+Open Question 7.)
 
 *(iii) The relationship.* `(a, a') ∈ succ_h(Σ₂)`, witnessed by the claim at
 `b`; at edit-disciplined `Σ`, also `(a, a') ∈ succ_o(Σ₂)` — postcondition `R₂`
