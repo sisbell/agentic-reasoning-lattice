@@ -382,30 +382,46 @@ claim is irreflexive. A layer is edit-disciplined iff every state it reaches
 is. (Self-supersession `x = y` is excluded as vacuous; cycles of length ≥ 2 are
 deliberately *not* excluded — they are reverts, and we shall need them.)
 
-**EL4 (SingleTarget).** In an edit-disciplined state each claim determines its
-endpoints uniquely: for `e = (b, F, G) ∈ S^Σ` with schema witnesses `x, y`,
+**EL4 (SingleTarget).** Each *schema-conforming* claim determines its endpoints
+uniquely — and the argument is per-claim, invoking no whole-state discipline
+hypothesis. For `e = (b, F, G) ∈ S^Σ` whose endsets meet the Df-DISC(ii) form
+with witnesses `x, y` (so `F = {(x, δ(1,#x))}`, `G = {(y, δ(1,#y))}`,
+`x, y ∈ dom(Σ.L)`, `x ≠ y`):
 
 > `coverage(F) ∩ dom(Σ.L) = {x}` and `coverage(G) ∩ dom(Σ.L) = {y}`.
 
 *Proof.* `coverage({(x, δ(1, #x))}) = {t : x ≼ t}` (PrefixSpanCoverage,
 ASN-0043); for `t ∈ dom(Σ.L)` with `x ≼ t`, the antichain R0a forces `t = x`.
-∎  We may therefore write `addr(e) = b`, `new(e) = x`, `old(e) = y` as total
-accessors on disciplined claims.
+Both facts are properties of the single claim `e` and of `dom(Σ.L)` at the
+ambient reachable state — no *other* claim need conform — so the hypothesis is
+schema-conformance of `e` alone, not edit-discipline of `Σ`. ∎  We may therefore
+write `addr(e) = b`, `new(e) = x`, `old(e) = y` as total accessors on any
+schema-conforming claim, at any reachable state. Write
+`Ŝ^Σ = {e ∈ S^Σ : e is schema-conforming}` for the schema-conforming claims; at
+an edit-disciplined state every claim conforms, so `Ŝ^Σ = S^Σ`.
 
-**Df-SUCC (Successor relations).** At any state `Σ`:
+**Df-SUCC (Successor relations).** At any state `Σ`, ranging over the
+schema-conforming claims `Ŝ^Σ` (EL4), on which `old`/`new`/`addr` are total:
 
-> `succ_h(Σ) = {(old(e), new(e)) : e ∈ S^Σ}`  — the historical relation;
-> `succ_o(Σ) = {(old(e), new(e)) : e ∈ S^Σ ∧ addr(e) ∉ nullified(Σ)}`  — the operative relation.
+> `succ_h(Σ) = {(old(e), new(e)) : e ∈ Ŝ^Σ}`  — the historical relation;
+> `succ_o(Σ) = {(old(e), new(e)) : e ∈ Ŝ^Σ ∧ addr(e) ∉ nullified(Σ)}`  — the operative relation.
 
 Both are finite (L-fin) relations on `dom(Σ.L)`, with
-`succ_o(Σ) ⊆ succ_h(Σ)`.
+`succ_o(Σ) ⊆ succ_h(Σ)`. Restricting the comprehension to `Ŝ^Σ` keeps the
+relations total at *every* reachable state, not only disciplined ones: the
+accessors are undefined on a non-conforming `[K_sup]`-class tuple — multi-span,
+or covering several link addresses or none — and a bare `K.λ` can emit one. At
+an edit-disciplined state `Ŝ^Σ = S^Σ`, so the comprehensions range over the
+whole supersession slice and coincide with the unrestricted reading.
 
 **EL5 (RecordMonotonicity).** For every `Σ →* Σ'`:
 
-*(a)* `S^Σ ⊆ S^{Σ'}` and `succ_h(Σ) ⊆ succ_h(Σ')`. Membership in the slice is
-a function of the stored value alone — arity, slot identity, slot-3 coverage —
-and values are fixed while the domain only grows (L12, L12a). Claims
-accumulate; none is ever lost.
+*(a)* `S^Σ ⊆ S^{Σ'}`, `Ŝ^Σ ⊆ Ŝ^{Σ'}`, and `succ_h(Σ) ⊆ succ_h(Σ')`. Membership
+in the slice is a function of the stored value alone — arity, slot identity,
+slot-3 coverage — and values are fixed while the domain only grows (L12, L12a);
+schema-conformance is likewise value-and-domain-determined — a conforming
+claim's witnesses satisfy `x, y ∈ dom(Σ.L) ⊆ dom(Σ'.L)`, so it stays conforming
+at `Σ'` with the same `old`/`new`. Claims accumulate; none is ever lost.
 
 *(b)* `nullified(Σ) ⊆ nullified(Σ')`. The `[R]`-slice likewise only grows, so
 nullification is one-way (R6a, ASN-0086): a claim once retracted from operative
@@ -449,12 +465,22 @@ disciplined states, and `K_sup ≁ R` discharges the self-nullification guard.
 
 *(iv) Frame — and the independence of axes.* `Σ'.C = Σ.C`, `Σ'.M = Σ.M`,
 `Σ'.E = Σ.E`, `Σ'.R = Σ.R`; every prior link-store entry — `x` and `y` in
-particular — is unchanged. Moreover `nullified(Σ') = nullified(Σ)`: the new
-tuple's slot-3 coverage is `coverage(K_sup) ≠ coverage(R)`, so the
-`[R]`-slice did not grow. **Asserting supersession deactivates nothing.** The
-original remains exactly as listed, exactly as active, exactly as readable as
-before; if its author also wants it retired from operative standing, that is a
-separate `Nullify(y)` — composable, never implied.
+particular — is unchanged. Activity splits into a design-bearing half that holds
+unconditionally and a full-state half that needs the discipline hypothesis.
+*Unconditionally,* `nullified(Σ') ∩ dom(Σ.L) = nullified(Σ)`: the lone new tuple
+has slot-3 coverage `coverage(K_sup) ≠ coverage(R)`, so the `[R]`-slice does not
+grow and the nullification status of *no pre-existing address* changes — the
+superseded `y` is **exactly as active as before**. *Under edit-discipline on
+`Σ`,* the full `nullified(Σ') = nullified(Σ)` follows: the only candidate new
+member is the fresh `b`, and the unit-depth retraction discipline together with
+the antichain R0a discharges wp Case 2's third conjunct (ASN-0086) — every
+pre-existing `[R]`-tuple's to-coverage is a unit-depth subtree rooted at a single
+*existing* link address, and the fresh `b ∉ dom(Σ.L)` is prefix-incomparable to
+each (R0a at `Σ'`), so no such to-coverage reaches `b` and `b ∉ nullified(Σ')`.
+**Asserting supersession deactivates nothing.** The original remains exactly as
+listed, exactly as active, exactly as readable as before; if its author also
+wants it retired from operative standing, that is a separate `Nullify(y)` —
+composable, never implied.
 
 *(v) Discipline and permanence.* `Σ'` is edit-disciplined when `Σ` was; and at
 every `Σ' →* Σ''`, `e_b ∈ S^{Σ''}` with value fixed and
@@ -498,12 +524,34 @@ achieved with a permanent, fresh identity.
 achieved in the one sense the substrate admits: as an owned, addressed,
 class-marked statement.
 
-*(iv) The frame on the original.* `Σ₂.L(a) = Σ.L(a)`, `a` as listed and as
-active as before (`nullified(Σ₂) = nullified(Σ)`, EL6(iv)). The edit *adds*;
-it touches nothing.
+*(iv) The frame on the original.* `Σ₂.L(a) = Σ.L(a)` unconditionally (L12) — the
+original's value is permanent — and its listing is untouched (both steps frame
+`M`). For activity, the supersession step deactivates nothing
+(`nullified(·) ∩ dom(Σ.L)` is preserved across step 2, EL6(iv)); and when the
+successor value `ℓ'` is not of retraction class — the standard edit — the full
+frame `nullified(Σ₂) = nullified(Σ)` holds under edit-discipline on `Σ`: neither
+fresh address `a'` nor `b` is caught by any pre-existing `[R]`-tuple's unit-depth
+to-coverage (freshness + R0a, the wp Case 2 argument of EL6(iv) applied at each
+of the two emissions, the intermediate `Σ₁` disciplined by EL7(vi) below). (When
+`ℓ'` is itself a disciplined retraction, step 1 additionally performs exactly
+that retraction's declared single-target effect — its purpose, not a side effect
+— and `a` stays active unless `ℓ'` was written against `a`.) In every case the
+edit *adds*; it touches nothing of the original.
 
 *(v) Permanence.* At every `Σ₂ →* Σ₃`: `a`, `a'`, `b` all persist with fixed
 values, and `(a, a') ∈ succ_h(Σ₃)`.
+
+*(vi) Discipline preservation.* `Σ₂` is edit-disciplined when `Σ` is — this is
+what `DC(ℓ')` secures, and it is what licenses chaining edits. The composite
+reaches `Σ₂` through `Σ₁` in two steps. Step 1, the bare `K.λ(d_s, a', ℓ')`,
+preserves Df-DISC: every prior claim keeps its witnesses
+(`x, y ∈ dom(Σ.L) ⊆ dom(Σ₁.L)`, values fixed by L12), every prior retraction
+likewise persists, and the one new value `ℓ'` is governed by `DC(ℓ')` — if its
+slot-3 coverage is `coverage(K_sup)` it satisfies the claim schema (clause ii),
+if `coverage(R)` it satisfies the unit-depth retraction schema (clause i), and
+if neither it inhabits no disciplined class and Df-DISC constrains it not — so
+both clauses of edit-discipline survive at `Σ₁`. Step 2, `assert_sup`, preserves
+edit-discipline by EL6(v). Hence `Σ₂` is edit-disciplined.
 
 Three remarks delimit the operation's generality. *First*, `ℓ' = Σ.L(a)` is
 admitted: a value-identical successor is a legitimate edit (re-homing a link,
@@ -649,14 +697,17 @@ homes currently listing its endpoints: de-list the original and the claim's
 to-side goes contextually dark there; re-list it and visibility returns — the
 orphan/resurrection pattern of LP17/LP18 at the link layer.
 
-*(b) Archival (arrangement-independent).* The predicates `e ∈ S^Σ` and
-`old(e) = y` are functions of stored values, decidable by coverage comparison
-(CoverageEqualityDecidable; T2 span membership; EL4). Hence the claim sets
+*(b) Archival (arrangement-independent).* The predicates `e ∈ Ŝ^Σ` (slice
+membership *and* schema-conformance) and `old(e) = y` are functions of stored
+values, decidable by coverage comparison (CoverageEqualityDecidable; T2 span
+membership; EL4). Hence the claim sets
 
-> `in(y, Σ) = {e ∈ S^Σ : old(e) = y}`  and  `out(x, Σ) = {e ∈ S^Σ : new(e) = x}`
+> `in(y, Σ) = {e ∈ Ŝ^Σ : old(e) = y}`  and  `out(x, Σ) = {e ∈ Ŝ^Σ : new(e) = x}`
 
 are computable from `Σ.L` alone — this is `Observe_{K_sup}` at pattern
-`Ĝ = {y}` (resp. `F̂ = {x}`), view `hist`, which consults no arrangement.
+`Ĝ = {y}` (resp. `F̂ = {x}`), view `hist`, filtered by the decidable
+schema-conformance predicate (a no-op at disciplined states, where every
+`[K_sup]` tuple already conforms), and consulting no arrangement.
 **The supersession question is answerable, completely and decidably, at every
 state, whatever every arrangement says.** A reader's protocol — before relying
 on a link, ask the record what targets it — is always executable; what
@@ -676,8 +727,10 @@ disciplined reachable state, in any combination of homes: freshness yields
 distinct successors `a'₁ ≠ a'₂` and distinct claims `e₁ ≠ e₂` (same home: the
 chain advances past the first emission; different homes: cross-document
 disjointness with T10); both `(a, a'₁)` and `(a, a'₂)` enter `succ_h` —
-permanently (EL5a) — and `succ_o` at birth (EL6(iii)); and the vocabulary
-contains no transition that merges, ranks, or removes either. The complete
+permanently (EL5a) — and `succ_o` at birth (EL6(iii), the second invocation's
+active-at-birth conclusion resting on EL7(vi): the first `editlink` leaves the
+intermediate state edit-disciplined, which is the hypothesis EL6(iii) needs);
+and the vocabulary contains no transition that merges, ranks, or removes either. The complete
 competing-claim set, with asserters, is one archival query: `in(a, Σ)`.
 Conversely — and this is Q18 made abstract — *without* the assertion steps the
 same two emissions leave `succ_h` untouched: by EL1 the "fork" of intentions
@@ -700,9 +753,17 @@ components being framed. ∎ Consequently no function of the final state — no
 selector, no tie-break, no "latest" — distinguishes which of two cross-home
 claims was asserted later: the trace knows, the state does not. Within one
 home the opposite holds: the chain enumeration is strictly increasing (T9;
-ChainEnumerationInjectivity, ASN-0093), so one asserter's claims are totally
-ordered by their addresses — *per-asserter* "latest" is well-defined and
-state-recoverable. The design consequence: any global most-recent-wins rule is
+ChainEnumerationInjectivity, ASN-0093), so the claims homed at one *document*
+are totally ordered by their addresses — *per-home* "latest" is well-defined and
+state-recoverable. This is per-document-chain, not per-principal: an asserter's
+ownership domain spans many documents (account-tier prefix and `odom`, ASN-0042
+— the very framework EL8(b) invokes to resolve a home to its owner), and two
+claims one principal homes at two of its documents fall under the commutation
+argument above, so *their* order is not a state function. A per-asserter
+"latest" is therefore state-recoverable only under the added assumption that the
+asserter homes all its claims at a single document; absent that, it is at best an
+approximation a reader policy may adopt, never a fact of the state. The design
+consequence: any global most-recent-wins rule is
 undefinable from state; any definable global tie-break (say, T1-least claim
 address) ranks namespaces, not times, and carries no authority. The substrate
 will not manufacture a clock it does not have — so it cannot, even in
@@ -742,7 +803,7 @@ emissions or erasing claims — the substrate does neither. What the layer owes
 the reader is therefore *disclosure, not decision*: `current(y, Σ)` entire,
 each member with its supporting claims and their homes (EL8b), the original
 always still readable beside them (EL9(1)), and any narrowing — trust only the
-original owner's claims, prefer this curator, follow per-asserter latest —
+original owner's claims, prefer this curator, follow per-home latest —
 applied as the reader's declared policy, not the substrate's silent one.
 
 **EL15 (ChainConnectivity).** For a chain of asserted edits
@@ -887,19 +948,19 @@ current view forgets; the record cannot.
 | Df-CLS | SupersessionClass: designated coverage class `[K_sup]` with `coverage(K_sup) ≠ coverage(R)`; historical slice `S^Σ = L_{K_sup}^Σ` (claims), operative subset `A_sup^Σ = {(b,F,G) ∈ S^Σ : b ∉ nullified(Σ)}` | introduced |
 | Df-DIR | ClaimDirectionality: from-set covers the superseding link, to-set the superseded ("F replaces G"), aligned with RetractionDirectionality; replacement-free withdrawal is class `[R]`, a distinct relation | introduced |
 | Df-DISC | EditDiscipline: a state is edit-disciplined iff unit-depth-retraction-disciplined and every claim has form `F = {(x, δ(1,#x))}`, `G = {(y, δ(1,#y))}` with `x, y ∈ dom(Σ.L)`, `x ≠ y`; a layer is edit-disciplined iff every reached state is | introduced |
-| EL4 | SingleTarget: in disciplined states `coverage(F) ∩ dom(Σ.L) = {x}` and `coverage(G) ∩ dom(Σ.L) = {y}` (PrefixSpanCoverage + R0a), making the accessors `addr(e)`, `new(e)`, `old(e)` total and unambiguous | introduced |
-| Df-SUCC | Successor relations: `succ_h(Σ) = {(old(e), new(e)) : e ∈ S^Σ}`; `succ_o(Σ)` the restriction to claims with `addr(e) ∉ nullified(Σ)`; finite, `succ_o ⊆ succ_h` | introduced |
-| EL5 | RecordMonotonicity: across `Σ →* Σ'`, (a) `S^Σ ⊆ S^{Σ'}` and `succ_h(Σ) ⊆ succ_h(Σ')`; (b) `nullified(Σ) ⊆ nullified(Σ')` — demotion is one-way per claim; (c) `succ_o` is neither monotone nor antitone: the operative relation is the revisable view, the historical relation the unrevisable record | introduced |
+| EL4 | SingleTarget: for any *schema-conforming* claim (per-claim, no whole-state hypothesis) `coverage(F) ∩ dom(Σ.L) = {x}` and `coverage(G) ∩ dom(Σ.L) = {y}` (PrefixSpanCoverage + R0a), making `addr(e)`, `new(e)`, `old(e)` total on the schema-conforming subset `Ŝ^Σ` at every reachable state (`Ŝ^Σ = S^Σ` at disciplined states) | introduced |
+| Df-SUCC | Successor relations over the schema-conforming claims `Ŝ^Σ` (EL4): `succ_h(Σ) = {(old(e), new(e)) : e ∈ Ŝ^Σ}`; `succ_o(Σ)` the further restriction to `addr(e) ∉ nullified(Σ)`; finite, `succ_o ⊆ succ_h`; total at every reachable state (the `Ŝ^Σ` restriction excludes non-conforming `[K_sup]` tuples on which `old`/`new` are undefined), coinciding with the unrestricted form at disciplined states (`Ŝ^Σ = S^Σ`) | introduced |
+| EL5 | RecordMonotonicity: across `Σ →* Σ'`, (a) `S^Σ ⊆ S^{Σ'}`, `Ŝ^Σ ⊆ Ŝ^{Σ'}` (schema-conformance is value-and-domain-determined), and `succ_h(Σ) ⊆ succ_h(Σ')`; (b) `nullified(Σ) ⊆ nullified(Σ')` — demotion is one-way per claim; (c) `succ_o` is neither monotone nor antitone: the operative relation is the revisable view, the historical relation the unrevisable record | introduced |
 | ASSERTop | AssertSup (DEF, operation): `assert_sup(x, y, d_a) ≜ Emit_{K_sup}(Σ, d_a, {(x, δ(1,#x))}, {(y, δ(1,#y))})`, precondition `x, y ∈ dom(Σ.L) ∧ x ≠ y ∧ d_a ∈ dom(Σ.M)` — one `K.λ` emitting the claim "x supersedes y" at fresh `b = a_emit(Σ, d_a)` | introduced |
-| EL6 | AssertionContract: assert_sup allocates exactly one fresh address `b` with `home(b) = d_a`; puts `(y, x)` into `succ_h(Σ')`, and at disciplined states into `succ_o(Σ')` (active at birth, via ASN-0086 wp Case 2); frames `C, M, E, R`, every prior link entry, and `nullified` — asserting supersession deactivates nothing; preserves discipline; the claim and the pair persist at every later state | introduced |
+| EL6 | AssertionContract: assert_sup allocates exactly one fresh address `b` with `home(b) = d_a`; puts `(y, x)` into `succ_h(Σ')`, and at disciplined states into `succ_o(Σ')` (active at birth, via ASN-0086 wp Case 2); frames `C, M, E, R` and every prior link entry; deactivates nothing — `nullified(Σ') ∩ dom(Σ.L) = nullified(Σ)` unconditionally (no `[R]` growth), and the full `nullified(Σ') = nullified(Σ)` under edit-discipline (fresh `b` escapes pre-existing unit-depth retraction coverage by R0a, wp Case 2); preserves discipline; the claim and the pair persist at every later state | introduced |
 | EDITop | Editlink (DEF, operation): `editlink(a, ℓ', d_s, d_a) ≜ K.λ(d_s, a_emit(Σ, d_s), ℓ') ; assert_sup(a', a, d_a)`, precondition `a ∈ dom(Σ.L) ∧ d_s, d_a ∈ dom(Σ.M) ∧ ℓ' L3-conforming ∧ DC(ℓ')` (class-discipline conformance of the successor value); returns `(Σ₂, a', b)`; `ℓ' = Σ.L(a)` admitted; homes unconstrained relative to `home(a)` (third-party edit-by-fork is the same composite); a revert is `assert_sup(a, a', d)` alone | introduced |
-| EL7 | EditContract: editlink allocates exactly two fresh link-subspace addresses (successor `a'`, claim `b`) and nothing else; `Σ₂.L(a') = ℓ'`; `(a, a') ∈ succ_h(Σ₂)` (and `succ_o` at disciplined states); total frame `Σ₂.C = Σ.C ∧ Σ₂.M = Σ.M ∧ Σ₂.E = Σ.E ∧ Σ₂.R = Σ.R ∧ (A t ∈ dom(Σ.L) : Σ₂.L(t) = Σ.L(t)) ∧ nullified(Σ₂) = nullified(Σ)`; all three addresses and the pair persist forever | introduced |
+| EL7 | EditContract: editlink allocates exactly two fresh link-subspace addresses (successor `a'`, claim `b`) and nothing else; `Σ₂.L(a') = ℓ'`; `(a, a') ∈ succ_h(Σ₂)` (and `succ_o` at disciplined states); frame `Σ₂.C = Σ.C ∧ Σ₂.M = Σ.M ∧ Σ₂.E = Σ.E ∧ Σ₂.R = Σ.R ∧ (A t ∈ dom(Σ.L) : Σ₂.L(t) = Σ.L(t))` unconditionally, with `nullified(Σ₂) = nullified(Σ)` under edit-discipline on `Σ` and non-retraction successor value (both fresh addresses escape pre-existing retraction coverage by R0a); preserves edit-discipline (vi): `Σ₂` disciplined when `Σ` is, via `DC(ℓ')` for step 1 and EL6(v) for step 2; all three addresses and the pair persist forever | introduced |
 | EL8 | ClaimStanding: every claim is permanent (EL5a); attributed by its address alone (`home(addr(e))` via T4b, decidable T6, owner by prefix per ASN-0042); open (no required relation among claim, original, successor homes); itself addressable — endorsable, disputable, retractable, editable — with no new machinery; and a claim, never a verdict: the substrate records, readers adjudicate | introduced |
 | EL9 | ThreeAxes: for any link — (1) resolution is permanent and ungated (EL0); (2) listing (`listed(t, d, Σ)`, possible only at the home, CL-OWN) is mutable both ways via `K.μ⁻`/`K.μ⁺_L`; (3) activity (`∉ nullified`) is monotone downward with re-assertion as the only restoration; the axes are independent, and superseding moves none of them — retirement of the original is a separate, attributable act | introduced |
 | EL10 | PositionEpochality: reachable states exist where the same link-subspace V-position denotes `ℓ₁` and later `ℓ₂ ≠ ℓ₁` (contraction then extension reuses the canonical tail position), while addresses never re-bind; therefore surviving references — the claim schema included — must bind addresses, never positions | introduced |
-| EL11 | TwoRegimeDiscovery: (a) contextual — a disciplined claim's to-side projects into `d` iff `d` currently lists the original (`project ≠ ∅ ⟺ listed(old(e), d, Σ)`, by LP12 + coverage trace `{old(e)}`), symmetrically for the from-side; (b) archival — `in(y, Σ)` and `out(x, Σ)` are computable from `Σ.L` alone, completely and decidably, at every state; the record always answers, the context volunteers only while its registry lists the endpoint | introduced |
+| EL11 | TwoRegimeDiscovery: (a) contextual — a disciplined claim's to-side projects into `d` iff `d` currently lists the original (`project ≠ ∅ ⟺ listed(old(e), d, Σ)`, by LP12 + coverage trace `{old(e)}`), symmetrically for the from-side; (b) archival — `in(y, Σ)` and `out(x, Σ)` (over the schema-conforming `Ŝ^Σ`) are computable from `Σ.L` alone, completely and decidably, at every state; the record always answers, the context volunteers only while its registry lists the endpoint | introduced |
 | EL12 | ForkPermanence: independent edits of the same original yield distinct successors and claims, all permanent, co-operative at birth, never merged, ranked, or removed; the full competing set with asserters is one archival query; absent assertions the fork never exists in state (EL1) — fork visibility is exactly assertion-deep | introduced |
-| EL13 | TemporalErasure: cross-home emissions commute to identical states, so no state function recovers cross-home claim order ("global latest" is undefinable); within one home, claim order is totally recoverable from addresses (T9) — "latest" is per-asserter only; global tie-breaks are definable but rank namespaces, not time | introduced |
+| EL13 | TemporalErasure: cross-home emissions commute to identical states, so no state function recovers cross-home claim order ("global latest" is undefinable); within one home, claim order is totally recoverable from addresses (T9) — "latest" is per-home (per-document-chain) only, a per-asserter "latest" being state-recoverable only when the asserter homes all its claims at one document (ownership domains span many, ASN-0042); global tie-breaks are definable but rank namespaces, not time | introduced |
 | Df-CUR | Currency query: `reach_o(y, Σ)` the `succ_o`-closure of `{y}`; `current(y, Σ)` its operative sinks — total, finite, computable | introduced |
 | EL14 | CurrencyRelational: `current` is irreducibly set-valued — cardinalities 1 (linear chain; `{y}` itself when unedited), ≥ 2 (fork), and 0 (mutual-supersession standoff) are all reachable; demotion repairs the operative view while history stands; no canonical selector exists (EL13), and forcing uniqueness would require refusing emissions or erasing claims; the layer owes disclosure with attribution, the reader applies policy | introduced |
 | EL15 | ChainConnectivity: along asserted chains, members resolve forever, hops persist in `succ_h`, and each hop is recoverable from either endpoint alone — historical connectivity is monotone non-decreasing; completeness (unasserted hops) and operative integrity (demoted hops) are expressly not invariants, and member-to-ends operative traversability is a derived property, not a guarantee | introduced |
