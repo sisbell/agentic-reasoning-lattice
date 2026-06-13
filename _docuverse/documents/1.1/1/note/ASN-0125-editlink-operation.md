@@ -106,10 +106,8 @@ is L12 (LinkImmutability, ASN-0043/0093) closed under `→*` — exactly LP13
 
 > `(A Σ' : Σ₀ →* Σ' : a ∈ dom(Σ'.L) ∧ Σ'.L(a) = ℓ₀)`
 
-What this note contributes is the reading of that invariant as a weakest
-precondition — the consequence for *editing* that LP13's persistence form
-leaves implicit. Since `[J ⟹ ¬R_mut]` (a partial function has one value per
-key, and `w ≠ ℓ₀`), and `J` holds at every state of every schedule from `Σ₀`:
+Since `[J ⟹ ¬R_mut]` (a partial function has one value per key, and
+`w ≠ ℓ₀`), and `J` holds at every state of every schedule from `Σ₀`:
 
 **EL0 (MutationExclusion).** For every finite program `S` over the closed
 elementary vocabulary, `wp(S, R_mut)` evaluated at `Σ₀` is `false`. The
@@ -309,18 +307,13 @@ Two remarks complete the comparison the question poses.
 *The menu was shorter than it looked.* "A separate supersession link" and "a
 typed relation distinct from these" are the same architecture: under L8 a link
 *is* typed, by its third endset's coverage, and a typed relation's tuples *are*
-links (ASN-0086, TypedRelation). The genuinely distinct candidates were three:
-carry the claim in the **value space** (a slot of the successor), in the
-**address space** (nesting), or in the **relation space** (a typed tuple). The
-first two are already closed and need no re-derivation here: the value-space
-slot is fixed at the successor's birth (EL2(b)), the address-space nesting is an
-address the substrate never reaches (EL2(c)), and EL3 records the named RQs each
-violates. What the address case still earns is the deeper point — the structural
-reading is refused even where nesting is *available*. Nelson refuses it for
-documents, where nesting genuinely exists: the version number is "only an
-accidental extension of the document number, and strictly implies no specific
-relationship of derivation" (LM 4/29). Where not even nesting exists — and for
-links, by EL2(c), it does not — the refusal is not a choice but a fact.
+links (ASN-0086, TypedRelation). The address-space candidate, closed in EL2(c),
+still earns a deeper point: the structural reading is refused even where nesting
+is *available*. Nelson refuses it for documents, where nesting genuinely
+exists — the version number is "only an accidental extension of the document
+number, and strictly implies no specific relationship of derivation" (LM 4/29).
+Where not even nesting exists — and for links, by EL2(c), it does not — the
+refusal is not a choice but a fact.
 
 *The carrier costs nothing in mechanism, something in coordination.* The
 relation-space carrier requires zero substrate change — a coverage class is a
@@ -501,17 +494,13 @@ unconditionally and a full-state half that needs the discipline hypothesis.
 *Unconditionally,* `nullified(Σ') ∩ dom(Σ.L) = nullified(Σ)`: the lone new tuple
 has slot-3 coverage `coverage(K_sup) ≠ coverage(R)`, so the `[R]`-slice does not
 grow and the nullification status of *no pre-existing address* changes — the
-superseded `y` is **exactly as active as before**. *Under edit-discipline on
+superseded `y` is exactly as active as before. *Under edit-discipline on
 `Σ`,* the full `nullified(Σ') = nullified(Σ)` follows: the only candidate new
 member is the fresh `b`, and the unit-depth retraction discipline together with
 the antichain R0a discharges wp Case 2's third conjunct (ASN-0086) — every
 pre-existing `[R]`-tuple's to-coverage is a unit-depth subtree rooted at a single
 *existing* link address, and the fresh `b ∉ dom(Σ.L)` is prefix-incomparable to
 each (R0a at `Σ'`), so no such to-coverage reaches `b` and `b ∉ nullified(Σ')`.
-**Asserting supersession deactivates nothing.** The original remains exactly as
-listed, exactly as active, exactly as readable as before; if its author also
-wants it retired from operative standing, that is a separate `Nullify(y)` —
-composable, never implied.
 
 *(v) Discipline and permanence.* `Σ'` is edit-disciplined when `Σ` was:
 `assert_sup` emits one `[K_sup]` claim
@@ -594,8 +583,7 @@ to-coverage (freshness + R0a, the wp Case 2 argument of EL6(iv) applied at each
 of the two emissions, the intermediate `Σ₁` disciplined by EL7(vi) below). (When
 `ℓ'` is itself a disciplined retraction, step 1 additionally performs exactly
 that retraction's declared single-target effect — its purpose, not a side effect
-— and `a` stays active unless `ℓ'` was written against `a`.) In every case the
-edit *adds*; it touches nothing of the original.
+— and `a` stays active unless `ℓ'` was written against `a`.)
 
 *(v) Permanence.* At every `Σ₂ →* Σ₃`: `a`, `a'`, `b` all persist with fixed
 values, and `(a, a') ∈ succ_h(Σ₃)`.
