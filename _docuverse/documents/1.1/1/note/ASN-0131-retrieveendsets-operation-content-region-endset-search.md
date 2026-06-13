@@ -249,22 +249,26 @@ the touching anchoring, all of it and only it.
 
 It is worth grounding these claims in a state small enough to compute by hand, yet
 arranged to exercise every distinctive postcondition at once. Let `d ∈ dom(Σ.M)` arrange
-three pieces of text content at consecutive V-positions of its text subspace (`s_C = 1`):
+four pieces of text content at consecutive V-positions of its text subspace (`s_C = 1`):
 
-> `Σ.M(d) = { [1,1] ↦ a₁,  [1,2] ↦ a₂,  [1,3] ↦ a₃ }`,
+> `Σ.M(d) = { [1,1] ↦ a₁,  [1,2] ↦ a₂,  [1,3] ↦ a₃,  [1,4] ↦ a₄ }`,
 
-with `a₁ < a₂ < a₃` three content I-addresses in `dom(Σ.C)`, consecutive siblings under
-`d`'s content sub-allocator (so `a₂ = shift(a₁, 1)`, `a₃ = shift(a₂, 1)`). Two links
-inhabit the store. The first, at address `ℓ₁`, is the standard triple
-`L₁ = (e₁, e₂, e₃)`:
+with `a₁ < a₂ < a₃ < a₄` four content I-addresses in `dom(Σ.C)`, consecutive siblings
+under `d`'s content sub-allocator (so `a₂ = shift(a₁, 1)`, `a₃ = shift(a₂, 1)`,
+`a₄ = shift(a₃, 1)`). Two links inhabit the store. The first, at address `ℓ₁`, is the
+standard triple `L₁ = (e₁, e₂, e₃)`:
 
-- from-endset `e₁ = {(a₂, δ(2, #a₂))}` — a single width-2 ordinal span reaching from `a₂`
-  across its successor, so that `{a₂, a₃} ⊆ coverage(e₁)`. This span *straddles the region
-  boundary* we are about to draw: it covers `a₂`, which the region will hold, and `a₃`,
-  which it will not;
+- from-endset `e₁ = {(a₂, δ(2, #a₂)),  (a₄, δ(1, #a₄))}` — a *discontiguous* endset of two
+  spans, one touching the region we are about to draw and one pointing wholly outside it.
+  Its first span is width-2 ordinal, reaching from `a₂` across its successor so that
+  `{a₂, a₃} ⊆ coverage(e₁)` (the upper bound is exclusive, so this span stops short of
+  `a₄`); it *straddles the region boundary*, covering `a₂`, which the region will hold, and
+  `a₃`, which it will not. Its second span is unit-depth at `a₄`, with
+  `coverage({(a₄, δ(1, #a₄))}) = {t : a₄ ≼ t}` (PrefixSpanCoverage, ASN-0043), reaching
+  only `a₄` and its descendants — content the region does not reach;
 - to-endset `e₂ = {(a₁, δ(1, #a₁))}` — with `coverage(e₂) = {t : a₁ ≼ t}`
-  (PrefixSpanCoverage, ASN-0043), containing neither `a₂` nor `a₃` (both are siblings of
-  `a₁`, not descendants);
+  (PrefixSpanCoverage, ASN-0043), containing none of `a₂`, `a₃`, `a₄` (each is a sibling of
+  `a₁`, not a descendant);
 - type-endset `e₃ = {(θ, δ(1, #θ))}` — `θ` a classifying address in a *type* subspace,
   T4-valid and element-level (`zeros(θ) = 3`) with subspace identifier `E(θ)₁ = s_type ≠
   s_C`, non-empty as L3 demands. Its coverage `coverage(e₃) = {t : θ ≼ t}`
@@ -290,7 +294,15 @@ inhabit the store. The first, at address `ℓ₁`, is the standard triple
 
 The second, at a distinct address `ℓ₂ ≠ ℓ₁`, is `L₂ = (e₁, e₂′, e₃′)`: it carries the
 *same from-endset value* `e₁` in slot 1, which the non-injective store permits (L11b,
-ASN-0043). Both links are addressable.
+ASN-0043). Its remaining two slots we leave abstract but constrain exactly where the
+argument needs it — both *miss the region we draw below*:
+
+> `coverage(e₂′) ∩ {a₂} = coverage(e₃′) ∩ {a₂} = ∅`
+
+(equivalently, neither `e₂′` nor `e₃′` covers `a₂`). Concretely one may take `e₂′ = e₂`
+and `e₃′ = e₃`, making `L₂` a value-identical twin of `L₁` — which L11b permits, the
+distinct address notwithstanding — but the analysis below uses only the stated
+disjointness. Both links are addressable.
 
 We ask of the single middle position, `W = {[1,2]}`. The region resolves to its image
 
@@ -298,34 +310,52 @@ We ask of the single middle position, `W = {[1,2]}`. The region resolves to its 
 
 Run the touch test against each endset in play:
 
-- `touch_W(e₁) = coverage(e₁) ∩ {a₂}`. Since `a₂ ∈ coverage(e₁)`, this is non-empty —
-  `e₁` **touches**, through `a₂`. Its other covered address `a₃` lies outside the region;
-  it neither helps nor hinders the test.
+- `touch_W(e₁) = coverage(e₁) ∩ {a₂}`. Since `a₂ ∈ coverage(e₁)` — via the first, width-2
+  span — this is non-empty: `e₁` **touches**, through `a₂`. Its other covered addresses lie
+  outside the region: `a₃` (also under the first span) and `a₄` together with its
+  descendants (under the second span); none helps or hinders the test.
 - `touch_W(e₂) = {t : a₁ ≼ t} ∩ {a₂} = ∅` — `e₂` reaches `a₁`, arranged at `[1,1] ∉ W`,
   and does not reach `a₂`; it **misses**.
 - `touch_W(e₃) = {t : θ ≼ t} ∩ {a₂} = ∅` — `a₂ ∈ dom(Σ.C)` and `coverage(e₃) ∩ dom(Σ.C) = ∅`,
   so `a₂ ∉ coverage(e₃)`; it **misses**.
+- `touch_W(e₂′) = coverage(e₂′) ∩ {a₂} = ∅` and `touch_W(e₃′) = coverage(e₃′) ∩ {a₂} = ∅`
+  — directly by the disjointness stipulated on `L₂`'s two non-from slots; both **miss**.
 
-The answer is therefore a single role-tagged endset,
+The only endset that touches the region is `e₁`, carried in slot 1 by both `ℓ₁` and `ℓ₂`;
+every other slot of either link — `e₂`, `e₃`, `e₂′`, `e₃′` — misses. The answer is
+therefore a single role-tagged endset,
 
 > `RE(W, d, Σ) = { (1, e₁) }`,
 
 and each of the operation's distinctive claims can be read off it directly:
 
 - **Overlap, not containment (RE-OVL).** `e₁` is surfaced although `coverage(e₁) ⊋ I` — it
-  covers `a₃`, which the region does not. A single shared address, `a₂`, sufficed. Under a
-  containment test (`coverage(e₁) ⊆ I`) the from-endset would have been wrongly discarded,
-  precisely because it straddles the boundary.
-- **Unclipped extent (RE-CLIP).** The surfaced `e₁` is returned at its full recorded
-  extent — the width-2 span `(a₂, δ(2, #a₂))`, reaching across `a₃` — not trimmed to the
-  region. A clipping implementation would have returned the width-1 span `(a₂, δ(1, #a₂))`
-  covering `a₂` alone, falsely shrinking the link's grip to fit the query. (This endset is
-  single-span, so it exercises *no-clipping* (RE-CLIP), not whole-endset surfacing
-  (RE-WHOLE): both the whole-endset and touching-spans-only readings return this same
-  single span unclipped.)
-- **Per-endset surfacing (RE-OVL).** Only slot 1 appears. The to-endset `e₂` and the
-  type-endset `e₃` of the very same link `L₁` miss the region and are absent; the link's
-  from-end is reported without its to-end.
+  covers `a₃` and `a₄`, which the region does not. A single shared address, `a₂`, sufficed.
+  Under a containment test (`coverage(e₁) ⊆ I`) the from-endset would have been wrongly
+  discarded, precisely because it straddles the boundary.
+- **Unclipped extent (RE-CLIP).** The touching (first) span of the surfaced `e₁` is
+  returned at its full recorded extent — the width-2 span `(a₂, δ(2, #a₂))`, reaching
+  across `a₃` — not trimmed to the region. A clipping implementation would have returned
+  the width-1 span `(a₂, δ(1, #a₂))` covering `a₂` alone, falsely shrinking the link's grip
+  to fit the query. No-clipping holds under *either* reading of the operation: both the
+  whole-endset and the touching-spans-only readings return this touching span unclipped.
+- **Whole-endset surfacing (RE-WHOLE).** The surfaced `e₁` is returned *entire* — both
+  spans, including the unit span at `a₄`, which touches nothing the region holds. Here the
+  reading is exercised in earnest, and its distinctive consequence is concrete: the answer
+  volunteers anchoring — `a₄` and its descendants — that points *wholly outside* the
+  queried region. This is exactly where the two readings part, and where RE-CLIP alone
+  cannot separate them: a *touching-spans-only* implementation would surface only the
+  touching span, returning `{(a₂, δ(2, #a₂))}` — honest about extent (RE-CLIP) yet silent
+  about the `a₄` span — whereas the *whole-endset* reading we adopt returns
+  `{(a₂, δ(2, #a₂)),  (a₄, δ(1, #a₄))}` in full. That `a₄`-span — present under one reading,
+  absent under the other — is precisely the volunteered out-of-region anchoring Open
+  Question 1 weighs; we report it provisionally with RE-WHOLE.
+- **Per-endset surfacing (RE-OVL).** Only slot 1 appears, and from each link separately. Of
+  `L₁`, the to-endset `e₂` and the type-endset `e₃` miss the region and are absent, so the
+  link's from-end is reported without its to-end. Of `L₂`, the two non-from slots `e₂′` and
+  `e₃′` likewise miss — by the disjointness stipulated above — leaving only its shared
+  slot-1 `e₁` to contribute. No slot but the first survives the touch test, from either
+  link.
 - **Anchoring without names (RE-UNIT).** `ℓ₁` and `ℓ₂` both bear `e₁` in slot 1; they
   contribute the *one* pair `(1, e₁)`, which appears once. The answer holds no `ℓ₁`, no
   `ℓ₂`, no count. From `{(1, e₁)}` alone one cannot tell that two links grip here, cannot
