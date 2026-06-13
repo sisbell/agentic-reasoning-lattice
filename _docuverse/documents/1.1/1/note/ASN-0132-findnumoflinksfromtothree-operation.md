@@ -90,8 +90,8 @@ extensionality a set contains each member once, so the cardinality counts *disti
 addresses* — distinct link identities. A link's identity is its address `a ∈ dom(Σ.L)`,
 fixed at creation and permanent thereafter (L12, ASN-0043): the address neither moves nor
 is reissued. The census counts identities, and each qualifying identity contributes
-exactly one. The competing units — anchoring, transclusion, appearance, and version-refraction — are
-ruled out, each by a distinct property, and it is worth walking the four cases rather than
+exactly one. The competing units — anchoring, transclusion, and appearance — are
+ruled out, each by a distinct property, and it is worth walking the three cases rather than
 asserting the conclusion.
 
 > **CN-UNIT (the unit of counting is link identity).** For every request `q` and state
@@ -99,8 +99,8 @@ asserting the conclusion.
 > `countlinks_FTT(q, Σ)`, and each `a` with `¬sat(a, q, Σ)` or `a ∉ addressable(Σ)`
 > contributes `0`. The contribution of a link is independent of (a) the number of spans
 > or addresses its endsets reference, (b) the number of documents through which its
-> endpoint content is reachable, (c) the number of arrangement positions at which it
-> surfaces, and (d) the number of versions into which the documents it touches refract.
+> endpoint content is reachable, and (c) the number of arrangement positions at which it
+> surfaces.
 
 *(a) Anchoring multiplicity does not multiply the contribution.* Whether `a` is in the
 counted set is the truth value of `sat(a, q, Σ)`, a single Boolean. Its from-clause is
@@ -134,23 +134,17 @@ CN-LOC, `discoverable_from` does not enter the count. Display and surfacing are 
 concerns; the back-end census counts what is *stored and owned*, not what a viewer is
 *shown*.
 
-*(d) Version-refraction multiplicity does not multiply the contribution.* A document may be
-forked into many versions, and the design has a link *refract* across them — a link made
-against one version reaches the corresponding places in all, so "a link to one version of a
-document is a link to all versions." One might fear this mints a distinct link per version.
-It does not. The fork composite (J4, ASN-0047) allocates the new version and populates its
-arrangement over the *content* subspace alone — its V-to-I step ranges over `V_{s_C}`, and
-by "no other elementary steps" it performs no link allocation (`K.λ`) and no link-subspace
-extension — so a link homed at the source yields *no* copy at the new version, and `Σ.L` is
-untouched by forking. A link's identity is its single address (L12, ASN-0043), and the
-version DAG does not multiply it. What "refraction into many versions" actually denotes is
-that each version, sharing the source's content I-addresses, *surfaces* the same one link;
-that is appearance multiplicity (c) over a family of documents that happen to be versions,
-already excluded by CN-LOC because the count never reads `Σ.M`. Versions are therefore not a
-fourth independent unit but a special case of the third — the link is one address, stored
-once, counted once, however many versions refract it.
+Version-refraction is an instance of this same multiplicity, over a family of documents that
+happen to be versions. Forking is link-store-inert: the fork composite (J4, ASN-0047)
+allocates the new version and populates its arrangement over the *content* subspace alone —
+its V-to-I step ranges over `V_{s_C}`, and by "no other elementary steps" it performs no link
+allocation (`K.λ`) and no link-subspace extension — so `Σ.L` is untouched and a link homed at
+the source is *not* copied to the new version. What the design's "a link to one version of a
+document is a link to all versions" denotes is that each version, sharing the source's content
+I-addresses, *surfaces* the same one link — appearance multiplicity again, excluded by CN-LOC
+because the count never reads `Σ.M`.
 
-The four cases share a shape: each rejected unit is an `Σ.M`-quantity or an inside-`touch`
+The three cases share a shape: each rejected unit is an `Σ.M`-quantity or an inside-`touch`
 quantity, and CN-LOC excludes the former while the existential structure of `touch`
 absorbs the latter.
 
@@ -649,18 +643,14 @@ addressable links satisfy `q` at `Σ` — an existence-and-cardinality claim abo
 > what it does *not* carry is on-demand delivery of those links, a separate concern across a
 > separate boundary (out of scope here) subject to availability the count never speaks to.
 
-The number lives on the discovery side; carrying a per-item retrieval guarantee across the
-delivery boundary would be a different and stronger claim.
+About *cost*, the specification is silent: cost is a quality-of-service concern an
+implementation may offer, not a correctness obligation specified here (open question 5). The
+count fixes a *value*, not a cost.
 
-About *cost*, the specification is silent: cost-asymmetry is a quality of service an
-implementation may provide, not a correctness obligation, and is not among the claims
-below. That a *particular* back end realises the cardinality by a search that does run
-over the store is a matter of cost, and does not bear on what the number *is*.
-
-*Implementation note.* That same realisation does *not* exploit the asymmetry — it pays
-full enumeration cost for the cardinality, so asking "how many?" costs what asking "which
-ones?" costs. This is a faithful implementation of the *value* CN-DEF specifies and an
-unrealised opportunity with respect to the *cost* aspiration.
+*Implementation note.* Gregory's back end realises the cardinality by running the full
+enumeration over the store and taking its size — it pays the "which ones?" cost to answer
+"how many?", exploiting no asymmetry. This faithfully implements the *value* CN-DEF
+specifies, while leaving the *cost* aspiration unrealised.
 
 ## Claims Introduced
 
@@ -668,13 +658,13 @@ unrealised opportunity with respect to the *cost* aspiration.
 |-------|-----------|--------|
 | CN-DEF | (DEF) `countlinks_FTT(q, Σ) ≡ \|{ a : a ∈ addressable(Σ) ∧ sat(a, q, Σ) }\|`; the operation reads `Σ`, returns ℕ, and has frame `Σ` (writes nothing); defined through the shared relation `sat` (ASN-0121), not through the enumeration operation; well-defined because the counted set is a finite, computable subset of `dom(Σ.L)` (L-fin ASN-0093, FL-DEC ASN-0121) | introduced |
 | CN-LOC | (LEMMA) Link-store locality — for fixed `q`, `countlinks_FTT(q, Σ)` is a function of `Σ.L` alone; `Σ.C`, `Σ.M`, `Σ.E`, `Σ.R` are never consulted (from FL-LOC, ASN-0121) | introduced |
-| CN-UNIT | (THM) The unit is link identity — each addressable satisfying link contributes exactly `1`, independent of anchoring (endset span/address) multiplicity, transclusion multiplicity, arrangement-appearance multiplicity, and version-refraction multiplicity | introduced |
+| CN-UNIT | (THM) The unit is link identity — each addressable satisfying link contributes exactly `1`, independent of anchoring (endset span/address) multiplicity, transclusion multiplicity, and arrangement-appearance multiplicity (cross-version surfacing being an instance of the last, forking being link-store-inert by J4, ASN-0047) | introduced |
 | CN-ENUM | (THM) `countlinks_FTT(q, Σ) = \|findlinks_FTT(q, Σ)\|` — count equals enumeration length at a single state, structurally (both are the cardinality of one set), and may differ across distinct states evaluated by separate inquiries | introduced |
 | CN-ZERO | (THM) `countlinks_FTT(q, Σ) = 0 ⟺ (A a : a ∈ addressable(Σ) : ¬sat(a, q, Σ))` — a positive present-store existential (no addressable link satisfies `q`), distinct from "not found" (excluded by FL-JUNK) and "not displayed" (excluded by CN-LOC); a degenerate empty-coverage request also yields `0` (FL-EMP) but asserts only that the request names nothing | introduced |
 | CN-SNAP | (THM) The count is a measurement of `Σ`, recomputed per inquiry, recorded in no state component; it may change under any mutation and the specification imposes no obligation that a prior count remain valid (recompute-on-read) | introduced |
 | CN-STAB | (THM) For fixed `q`, any link-store-preserving transition (content insertion/deletion/rearrangement, content allocation, provenance recording — F-PRES ASN-0127) leaves the count invariant; in particular a reverse-orphaned link still contributes to a home-bounded count, residence being a projection of the permanent address | introduced |
 | CN-RETRACT | (THM) A nullified link contributes `0` to every count immediately and permanently (R6a ASN-0086, FL-RET ASN-0121) while remaining in `dom(Σ.L)` with fixed value (L12 ASN-0043); the count ranges over the active view `addressable(Σ)`, reconciling immediate exclusion with store permanence | introduced |
-| CN-MONO | (THM) Absent retraction of counted links, the count is non-decreasing across `Σ →* Σ'`; creating a fresh *ordinary* link increments it by `1` iff that link satisfies `q` and is not already retraction-covered (`wp(create ℓ, Δcount = +1) = sat(ℓ, q, Σ') ∧ ¬(E (b, F', G') ∈ L_R^Σ :: ℓ ∈ coverage(G'))` — the FL-WP(a) conjunct of ASN-0121; automatic under the unit-depth retraction discipline, R0a ASN-0086, where it collapses to `sat(ℓ, q, Σ')`), and a fresh *retraction* link increments under FL-WP(b)'s stronger self-retraction precondition; `K.λ` is the only count-changing transition | introduced |
+| CN-MONO | (THM) Absent retraction of counted links, the count is non-decreasing across `Σ →* Σ'`; a fresh link that satisfies `q` and is addressable increments it by `1` (the body derives the wp precondition, which differs for ordinary vs. retraction links); `K.λ` is the only count-changing transition | introduced |
 | CN-ORPHAN | (THM) A satisfying addressable link is counted regardless of whether any arrangement surfaces it (`discoverable_from` irrelevant); the count is an existence census over `addressable(Σ)` whose counted set is a superset of the cross-document union of surfaced satisfying links (FL-REACH, ASN-0121), exceeding that union's cardinality by exactly the orphans | introduced |
 | CN-OBT | (THM) Each of the `N` counted identities is a permanent address (ASN-0093) with fixed value (L12, ASN-0043), so a count of `N` warrants `N` durable handles answering `q`, obtainable in principle; it does not warrant on-demand delivery, which crosses a separate boundary | introduced |
 
