@@ -103,14 +103,11 @@ span `{(t, δ(1, #t))}` at a single prior target. The bridge to ASN-0086 — cal
 movers (`K.μ` family), entity creation `K.δ`,
 provenance recording `K.ρ`, and content allocation `K.α` all frame the link store
 (`L' = L`). So the link store evolves identically under ASN-0086's transition relation and
-under ASN-0047's. This identity reaches even past "`Σ.L` alone" — to lemmas whose
-`Σ.L`/`nullified` conclusions carry hypotheses over `dom(Σ.M)` or the derived emitter
-`a_emit(Σ, d)` read from `(Σ.M, Σ.L)` — because `dom(Σ.M)` is the *same* ASN-0093 document
-substrate (`dom(M) = E_doc`, M1, ASN-0047) that both ASN-0086 and ASN-0047 extend, and
-`K.λ` computes `a_emit(Σ, d)` from the document operand `d` by one formula under either
-transition relation. So the bridge's standing conclusion is this: every ASN-0086 lemma
-whose conclusion constrains `Σ.L` or `nullified` holds at every ASN-0047-reachable state,
-including the lemmas whose hypotheses name `dom(Σ.M)` or the derived emitter `a_emit(Σ, d)`.
+under ASN-0047's, and every ASN-0086 lemma whose conclusion constrains `Σ.L` or `nullified`
+holds at every ASN-0047-reachable state. This carries even the lemmas whose hypotheses
+additionally name `dom(Σ.M)` — R-Scope's `d_retr ∈ dom(Σ.M)`, the one we rely on below,
+among them — because `dom(Σ.M)` is the *same* ASN-0093 document substrate
+(`dom(M) = E_doc`, M1, ASN-0047) that both ASN-0086 and ASN-0047 extend.
 
 One consequence of that shared `K.λ` semantics recurs. Write `Θ` for ASN-0086's designated
 retraction type (ASN-0086's own symbol is `R`, which this note reserves for other uses, so we
@@ -565,11 +562,18 @@ non-monotone *as a class*, and a single shift may make the fixed region's image 
 content the region held at a position `v ≥ p` is carried up to `shift(v, n)` and so possibly
 out of `W` — a loss — while a position above the gap takes on content carried up from below
 it, a *gain* to the fixed image when that donor lay below `W`. The vacated positions
-`[p, shift(p, n))` the shift does *not* backfill (I3-V): the fresh content a full insert places
-there is a separate content-placing step, not part of the primitive (and, a new `K.α`
-allocation, it is excluded from a *tight* endset's coverage by LP19a, ASN-0098); so an insert
-whose unbackfilled gap falls under `W` can strip the image without replacement — down to `∅`
-when the gap swallows `W` entirely (`W ∩ dom(Σ'.M(d)) = ∅`). The delete is *not* the insert's
+`[p, shift(p, n))` the shift primitive does *not* backfill (I3-V), so the bare shift leaves an
+interior gap in `V_{s_C}(d)` that violates the standing contiguity invariants D-CTG★/D-SEQ★
+(ASN-0047) — and indeed ASN-0082 supplies no D-CTG-preservation lemma for the insertion shift
+(only for the gap-closing delete, D-CTG-post). That gap configuration is therefore not a
+reachable state; by the atomicity of transitions (SequentialTransitionAxiom, ASN-0047) it is a
+non-queryable intermediate of the *non-atomic* full insert, not a state at which `RE` is
+evaluated. The full insert is shift **then** backfill: the freshly placed content refills
+`[p, shift(p, n))`, restoring contiguity, so at the post-insert reachable state the image under
+`W` is *replaced* where the gap falls — never stripped, and the region never emptied, since the
+full operation only grows `V_{s_C}(d)`. That refilling content is a new `K.α` allocation, which
+a *tight* endset's coverage excludes (LP19a, ASN-0098); so a tight endset does not newly touch
+the refilled gap, whereas a non-tight one may. The delete is *not* the insert's
 mirror: it *closes* its gap, carrying the content above the removed span back down to fill it
 (D-SHIFT), and can likewise have the fixed image gain, lose, or both, according to where it
 falls relative to `W`. The full case split is not needed here — the load-bearing conclusion
@@ -768,7 +772,7 @@ The answer's stability thus reduces to two tracked motions: the region's image u
 | RE-SEL | Discovery-side selection — `sel(W, d, Σ) = findlinks_V(W, d, Σ) ∩ addressable(Σ)` (F-V, ASN-0127): the contributing links are the addressable links discoverable through the region, so `RE` is discovery-anchored — present-tense, non-monotone (D-NONMONO, D-ZERO, ASN-0127), not existence-anchored | introduced |
 | RE-TRANS | Transclusion blindness — surfacing is by content identity, independent of the link's home and the covered content's origin (LP16, ASN-0098): a link reaching the region through transcluded content is surfaced identically to one on native content, each span describing content identity, not the borrowing V-position | introduced |
 | RE-IDENT | Content-identity invariance — each surfaced endset's coverage is permanent (L12, ASN-0043; LP3, ASN-0098), so the content-level answer (which I-addresses each surfaced endset anchors to) is arrangement-independent, even though the *selection* of surfaced endsets is arrangement-mediated | introduced |
-| RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (RE-IDENT). Over ASN-0047's atomic movers, only the content-subspace movers on `d` (extension, contraction, reordering) and `K.λ` emission/retraction (RE-RET) can move the answer; every other transition — including all **link-subspace-confined** edits on `d` under `W ⊆ s_C` (`K.μ⁺_L` and content-retaining `K.μ⁻`) — leaves it fixed. Extension to ASN-0082's shift-based insert/delete holds unconditionally: their `(C, M)` primitives write only `Σ.M(d)`, so the unique full-state lift frames `L`, `E`, `R` (an M-only edit), with delete scoped to text depth `#p = 2` by the foundation's displacement coverage | introduced |
+| RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (RE-IDENT). Over ASN-0047's atomic movers, only the content-subspace movers on `d` (extension, contraction, reordering) and `K.λ` emission/retraction (RE-RET) can move the answer; every other transition — including all **link-subspace-confined** edits on `d` under `W ⊆ s_C` (`K.μ⁺_L` and content-retaining `K.μ⁻`) — leaves it fixed. Extension to ASN-0082's shift-based insert/delete is M-only at every content depth: their `(C, M)` primitives write only `Σ.M(d)`, so the unique full-state lift *unconditionally* frames `L`, `E`, `R` (an M-only edit). What the foundation scopes is the *displacement's existence* — delete to text depth `#p = 2`, insert to every `#p ≥ 2` — not this lift; and `RE` is evaluated at the post-insert reachable state (backfill restoring the contiguity D-CTG★/D-SEQ★ that the bare shift's gap breaks), not at the non-queryable bare-shift intermediate | introduced |
 | RE-RET | Retraction stability — withdrawing a link `ℓ` (Nullify, ASN-0086) marks it nullified, removing it from `addressable(Σ)` permanently (R6a). Under the standing unit-depth discipline and the net-removal-only hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅` (`Θ` the retraction type, the sole remaining exception), a pair `(i, e)` that `ℓ` bore drops **iff `ℓ` was its sole addressable bearer in `Σ`** (RE-UNIT) | introduced |
 | RE-CWP | Contraction-stability weakest precondition — for a `K.μ⁻[d, R]` step, `RE(W, d, ·) = RE(W, d, Σ)` iff `enabled(K.μ⁻[d, R]) ∧ (∀ (i, e) ∈ Avail(Σ) : coverage(e) ∩ Δ ≠ ∅ ⟹ coverage(e) ∩ I_R ≠ ∅)`, where `I_R = {Σ.M(d)(v) : v ∈ W ∩ R}` (D-CWP bridge, ASN-0127) and `Δ = image(W, d, Σ) ∖ I_R`. The boundary `R = ∅` collapses to `RE(W, d, Σ) = ∅` | introduced |
 
