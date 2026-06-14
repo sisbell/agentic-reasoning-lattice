@@ -1,0 +1,26 @@
+I worked through the digest against the note, the extracted claims, and the verified Green evidence. I checked each "forced" commitment against its cited lemma, re-derived the load-bearing approach arguments (the dense‑V‑position analysis, the symmetric-deletion mirror, the LP‑Fin finiteness reasoning), and verified every Green-sourced claim against the evidence answers. I could not find a misread, a mis-stated guarantee, an ungrounded Green claim, an altitude slip, or a missing load-bearing commitment. The items below are all genuine but non-load-bearing refinements.
+
+**Sections I verified as solid (stating and moving on):**
+
+- *Design commitments.* The forced/conventional split is correct throughout — tightness ("construction discipline") and the subspace partition ("rests on a convention," green's `acceptablevsa` stub) are correctly marked builder-owned; everything else is correctly forced to its lemma. No mismarking.
+- *Arrangement + edits (dense-V-position analysis).* This is the digest's strongest passage. It correctly establishes that LP9–LP11, LP20, LP21 use only E1/E2, subset+agreement, the bijection, and coverage — never D‑CTG★/D‑SEQ★ — so relaxing the contiguous shape is free *for those laws*; and it correctly identifies LP12a's retention set `R` as the one casualty (R is exactly the per-subspace D‑SEQ★ prefix, so dense positions reshape it), while noting `project(e,d,Σ′)=project(e,d,Σ)∩R` survives for any `R`. Verified sound.
+- *Symmetric-deletion mirror.* The claim that emptying the **link** subspace while retaining content cleanly orphans a link-canonical link (`project ⊆ V_{s_L}`, `R ⊆ V_{s_C}`, disjoint ⇒ wp false) is a correct mirror of LP12b, and it is correctly distinguished from the genuinely-open Q7 (empty-content/retain-link). Verified sound.
+- *Projection finiteness.* The split — termination from `ran(M(d))` finite at every state, cheapness/≤n only from LP‑Fin and only when `s ∈ F` — is precise and correctly scoped ("not arbitrary endsets").
+- *Multimap point.* V→I non-injectivity ⇒ inverse index must be a multimap and `project` returns a set; grounded in the POOM-multimap evidence and load-bearing.
+- *Grounding.* Every Green-sourced claim (`permute` uniformity, spanfilade as content→link reverse index, INSERT shift via `makegappm`, `acceptablevsa` stub, home-doc filter no-op, emergent tightness, empty/zero-width endset handling, content-only link-discovery query domain) is backed by the evidence answers.
+
+---
+
+# Revision list
+
+1. **`[SHARPENING]` "Discoverability + reverse index" / Decision 3 — sharpen "over-approximates (false positives only)."** The statement is true in the worst case but the common case is exact, and a builder benefits from knowing it: a query that *starts from a live V-position* (map V→I through `M(d)`, then stab) returns only links whose projection genuinely contains that position — zero false positives, because `M(d)(v) ∈ coverage` directly witnesses `v ∈ project`. The over-approximation is confined to queries about a bare I-address that may currently be arranged nowhere (orphan addresses). Add this distinction so the builder doesn't pay for a live-filter pass when the query origin already guarantees exactness.
+
+2. **`[SHARPENING]` "What must be built" / commitment 7 — surface LP8(b) explicitly.** The digest says registration "never moves" projection (true for existing projections) but folds away the second half of LP8: a freshly registered document has **empty** projection for *every* link, since its arrangement starts ∅. State it — a new document is never a discovery site until content is arranged into it — because that is a fact a builder acts on (no need to index or query a just-created document).
+
+3. **`[SHARPENING]` "discoverability test" build item — attribute the positive-coverage need to the substrate gap, not the model.** The instruction to enforce "positive-coverage type endsets, not merely a non-empty span set" is right *as build advice*, but tighten the framing: under the note's own span well-formedness (`Pos(ℓ)`, and the "TA-strict on `s ⊕ ℓ > s`" the proofs rely on), a non-empty endset already has positive coverage. The gap is purely that the substrate doesn't enforce well-formedness — per Green it accepts empty endsets and mishandles zero-width. Framing it as "close a substrate gap (enforce well-formedness + L3 at K.λ)" rather than "the span set might be non-empty yet empty-coverage in the model" makes the requirement land more precisely.
+
+4. **`[SHARPENING]` "Survival of reach…" commitment — flag "followability" as the digest's coined term.** "Universal *followability* of every endpoint" is a useful contrast, but it is the digest's gloss, not the note's vocabulary (the note formalizes only existential `discoverable_from` and the informal "anything is left at each end"). Mark it as the digest's term so a builder doesn't go hunting for a followability lemma that isn't there.
+
+5. **`[SHARPENING]` Implementation approaches — generalize the repeated "Rust/`im`" framing.** One mention reads "e.g. a Rust/`im`-style one" (good); others read "For a Rust/`im` build" more committally. Normalize to "a persistent-collection library (e.g. Rust's `im`)" so the data-structure guidance isn't read as an ecosystem mandate. Purely presentational.
+
+VERDICT: CONVERGED
