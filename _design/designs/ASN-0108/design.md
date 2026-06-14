@@ -1,0 +1,80 @@
+## What this is
+
+The windowed (paginated) link-search read protocol — `FINDNEXTNLINKSFROMTOTHREE`. It defines how the substrate hands back a potentially huge set of query-matching links a bounded batch at a time, letting a reader resume exactly past where it stopped, and states what *resumable enumeration of a state-dependent matching set under a total order* must guarantee. It is the contract on delivery, not the index that does the matching.
+
+## Design commitments
+
+These are the locks. I'm explicit about what is *forced* versus merely conventional.
+
+- **The protocol is stateless; the entire continuation lives in the client's cursor** (W3). No server-side iterator, no cached result list, no per-reader generation counter. **Forced** — this is the central architectural decision against which every other property is read. A server-side materialized list is permitted *only* as a droppable hint that never becomes authoritative.
+- **The cursor is a link identity (a permanent address), never a positional offset** (W2). Resumption is "past *that link*," not "items 100–200." **Forced** over a mutable set: an offset cursor's correctness precondition (no net count change at or below the cut) is silently broken by any insertion or orphaning between calls; an identity cursor's only precondition is that its key still be computable.
+- **The matching set is a live, present-tense view, not a frozen snapshot** (M-mut, W7). It gains members (links created) and loses them (links orphaned when their endpoint content leaves the consulted region). **Forced** by the discoverability reading inherited from ASN-0127. Completeness is therefore *per-call-state*, never against one global population.
+- **Enumeration is by a single total, injective ordering key, drawn from permanent identity, not current position** (W0/W1, W5/W8). **Forced for correctness**: a position-derived key skips live links a rearrangement moves below the cursor, goes dark when the cursor's content is deleted, and makes the empty window ambiguous. *Which* permanent key — link address vs least-covered content tumbler — is a genuine **design parameter**, not forced.
+- **Termination is a short window (fewer than N, zero included), with no terminal marker** (W9). **Forced** minimal mechanism; the exact-multiple case must be read as "≤ N including 0" or the reader loops forever.
+- **The reply carries no absolute progress** — no rank, no total (W10). "k of m" is a front-end synthesis over a separate cardinality query. Convention (Nelson's "handled invisibly"), but locked here as a frame condition.
+- **Window boundaries are objective** (W11): same `(q, c, N, Σ)` → same batch and same next cursor for every reader. Follows by construction from determinism.
+
+## What must be built
+
+Described functionally:
+
+- A **discoverability query** that, given a query (from/to/type content region) and the current state, yields the finite set of links presently reachable. (This is ASN-0127's `findlinks_V`; windowing consumes it whole.)
+- An **ordering key** assigning every matching link a value in a totally-ordered space — defined on every matcher (total) and separating distinct ones (injective), with an address tiebreaker restoring injectivity when the primary key is content-drawn.
+- A **windowing function**: given (query, cursor, N, state), compute the successor set (matchers whose key exceeds the cursor's), return its ≺-least `min(N, |successor|)`, and report the batch's ≺-max as the next cursor (or the cursor unchanged when empty).
+- **Cursor evaluation**: recompute the cursor's key against the current state — robustly, even after the cursor link has itself left the matching set.
+- **Exhaustion detection**: recognize a short/empty batch as terminal.
+- (Referenced, out of scope) a **cardinality query** for progress, and the front-end tally that pairs with it.
+
+## Implementation approaches
+
+**1. The matching-set query — how much to recompute per window.**
+
+- **(A) Full re-materialization each call** — the proven udanax-green path: re-execute the full search, build the entire ordered list, linear-scan to the cursor, truncate. Dead simple, trivially stateless, obviously correct. Cost is O(|Match|) per window, O(|Match|·W) over W windows — quadratic in the very avalanche windowing exists to tame. Pick for small/medium result sets or a first cut.
+- **(B) Cursor-seeked index walk** — exploit that the cursor is a *key*: seek into a key-ordered index and walk only N matches forward, O(N + seek) per window. This is available precisely *because* W2 made the cursor a key rather than an offset. udanax-green pointedly does **not** do this (the cursor never enters the spanfilade search; it is consumed as a post-materialization linear-scan bookmark), but the design permits it. Requires the index's native order to coincide with the enumeration key; multi-endpoint intersection (from ∩ to ∩ type) turns it into a merge of ordered streams. Pick when result sets are large and the index is key-aligned.
+- **(C) Hint-cache** — keep a materialized ordered list keyed by (query, state-generation); seek on hit, re-derive on miss. Honors W3's *observable* statelessness while amortizing repeat paging. It must stay a true hint — droppable, never authoritative, invalidated by any state change; the moment it becomes the system of record you've reintroduced the eviction/invalidation/divergence costs W3 was built to avoid. Use only as an optimization atop (A) or (B).
+
+Recommendation: **(B) when index order matches your key; (A) as the correct fallback for intersection-heavy queries; (C) sparingly.**
+
+**2. The link index.** The proven structure is the **spanfilade**: a content-address-keyed index recording each link under all three of its endsets (from/to/type) at fixed structural tags written once at creation — the query selects which tag to filter on, never re-indexing. It is **append-only**: orphaning never deletes index entries; a link leaves the *view* by losing its content mapping, not by leaving the index. For a Rust/`im` realization, a persistent, structurally-shared **ordered map keyed by (endset-slot, content I-address) → link address** gives the least-covered-tumbler ordering for free and supports approach (B). Recovery follows this repo's own substrate pattern: journal link creations to an append-only write log (the `links.jsonl` analogue) and **rebuild the index by replay on load** — the index is a *hint*, recomputable from the journal plus content/arrangement state, never the system of record.
+
+**3. The ordering key — the central choice.**
+
+- **Address key** κ(a)=a: value-total (key computable from the held cursor value with *zero* state lookup → W8 free), state-stable (both cut-point and tail-order frozen by construction → W5 free), and allocation-monotone within one home document (new links append at the tail → delivered in later windows, W6). Cost: not globally monotone across multiple home documents (blind spot reopens cross-document, Open Q1), and it does **not** align with a content-addressed index, so approach (B) needs a separate address-ordered index or a per-window sort. Pick when "show me what's arrived since I last looked" matters most and results cluster in a home document.
+- **Least-covered-tumbler key** (least content tumbler covered by a fixed endset slice, with link address as low-order tiebreaker): permanent, hence state-stable (W5) and computable through orphaning (W8) — nearly the address key's robustness — *and* aligned with the content-addressed index, making (B) cheap. Cost: not allocation-monotone (W6), so a newly created link whose covered content sorts below the cursor is **silently skipped for this pass** — a permanent blind spot. To stay total the slice must include the type slot (every link has a non-empty type endset), so even links with empty from/to endsets get a key. Pick when index-aligned paging outweighs guaranteed delivery of mid-pass creations.
+- **Content-position (V-position) key**: **rejected.** Mutable — fails cut-point stability (skips live links), fails cursor survival (κ(c) uncomputable once the cursor's content is deleted → empty window indistinguishable from exhaustion), fails append-at-tail. The only structure that yields it naturally is a position-ordered POOM walk; do not route link search through it. *(Evidence note: udanax-green's result order is produced by an insertion-sort on the matched endpoint's permanent content I-address — the spanfilade's content dimension — with link-ISA dedup as the de-facto tiebreaker, i.e. the least-covered-tumbler reading, not a V-position key. The composite-with-address-tiebreaker is exactly what makes any content key injective.)*
+
+**4. Cursor token format.** The cursor is a link address. Minimal token = the bare address; recompute κ(c) on resume (zero lookups for the address key; one immutable-endset read for the least-covered key — always available by L12/LP13). Builder option: a **fattened opaque token** carrying (link address, cached key) to skip the lookup — safe *precisely because a permanent key never goes stale*; this is the cheapest correct optimization, a hint cached in the client. Never fatten a position-derived key: it would resume against a stale cut.
+
+**5. Exhaustion signaling.** Short window = terminal, zero included. Either return the delivered count explicitly (friendlier) or let the client compare batch size to requested N (udanax-green drops the count on the wire and relies on the client). Whichever — the client must stop on `|batch| < N` *including* `|batch| = 0`, or it loops forever on exact multiples. With a permanent key the empty window is unambiguous (the cursor key stays computable, so empty = exhaustion); only a position key creates the empty-vs-invalid ambiguity, which then needs an extra signal.
+
+## Guarantees to uphold
+
+- **No skip / no duplicate of continuously-matching links** (W4/W5) — by construction for either permanent key (their comparisons never move); requires active enforcement only if you stray to a position key.
+- **Cursor survives orphaning** (W8) — by construction for permanent keys; lost for position keys.
+- **Append-at-tail for new links** (W6) — by construction *only* for the allocation-monotone address key, and *only* within a home document; not guaranteed for content keys. State the blind spot, don't hide it.
+- **Determinism / boundary objectivity** (W3/W11) — by construction from a pure windowing function reading no hidden state.
+- **Termination** (W9a/W9b) — by construction against a fixed set; over mutation it requires finite cumulative tail inflow *plus* cut-point preservation (a still-matching delivered link re-ascending above a later cursor loops forever — W9c). Bounded *instantaneous* size is not enough — this is the trap to actively guard.
+- **Index permanence** — links never renumber, never reuse addresses, endsets immutable; orphaning is view-loss, not deletion. By construction from ASN-0043.
+
+## How it fits
+
+A *read protocol* layered above the link index and the arrangement/content stores. It leans on:
+- **ASN-0127** for the matching predicate (which links are discoverable from a content region) — windowing delivers that set, never re-derives it.
+- **ASN-0043** for the link store's permanence: finite, append-only domain, immutable entries, total tumbler line (T1) — the bedrock the permanent keys stand on.
+- **ASN-0098** for content-region projection and its monotonicity (LP9), orphaning (LP12), and link residence after orphaning (LP13).
+- **ASN-0093** for the creation frame (a new link disturbs no delivered link — W6a).
+- **ASN-0086** / query construction for the type refinement and which region a query fixes — both upstream, out of scope.
+
+It hands to a separate cardinality operation and the front-end, which synthesize "k of m" (W10), and to the substrate's journaling/recovery layer, which rebuilds the index as a hint.
+
+## Decisions for the builder
+
+1. **Which permanent key** — address (strongest delivery, append-at-tail, but index-misaligned and not cross-document monotone) vs least-covered-tumbler (index-aligned and robust, but new-link blind spot). The note's central open parameter.
+2. **Re-derive vs seek-walk vs hint-cache** per window — simple-correct vs fast-common-case vs amortized.
+3. **Index representation** — port the spanfilade, or a persistent ordered map keyed by (slot, I-address); recovery by journal replay.
+4. **Designated endset slice** (least-covered key only) — which slots; must include the type slot for totality.
+5. **Cursor token shape** — bare address vs fattened opaque token carrying the cached key.
+6. **Count signaling** — explicit delivered-count field vs client-side item count.
+7. **Variable window sizes** — the operation already permits per-call N (W4 is schedule-independent); decide whether to expose it.
+
+These are distinct from the note's own spec-level open questions (multi-document monotone ordering; an eventual-delivery guarantee under a non-monotone key; the cross-call completeness invariant over a mutating set; distinguishing empty from invalid for position keys; delivery/sizing correspondence) — those remain unknowns to resolve in the spec, not choices to make at the keyboard.
