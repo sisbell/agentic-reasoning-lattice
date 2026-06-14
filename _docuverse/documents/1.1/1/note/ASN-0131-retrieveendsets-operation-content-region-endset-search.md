@@ -176,13 +176,10 @@ We adopt, as a **standing assumption** scoped to the addressability results, ASN
 First, since `Nullify` emits a tuple whose to-set is a single unit-depth span `{(t, δ(1, #t))}` at
 a prior link target `t` (ASN-0086's `Nullify`/`Emit_Θ`), and only `Nullify` grows `L_Θ`, *every*
 `L_Θ` to-set is unit-depth at a link target. Second, `nullified(Σ)` is an existential over that
-slice `L_Θ^Σ ⊆ Σ.L` alone (ASN-0086). We *posit* the commitment of ASN-0047's own system rather
-than transport it across reachable-state models: it is the regime under which we study
-addressability, and ASN-0086 — where the commitment holds at every layer-reachable state — is its
-source and consistency witness.
+slice `L_Θ^Σ ⊆ Σ.L` alone (ASN-0086).
 
-Two further facts feed the addressability argument, and neither needs ASN-0086's reachable
-states. The first is an *inventory*: `Σ.L` evolves only through `K.λ` — the arrangement movers
+Two further facts feed the addressability argument. The first is an *inventory*: `Σ.L` evolves
+only through `K.λ` — the arrangement movers
 (`K.μ` family), entity creation `K.δ`, provenance recording `K.ρ`, and content allocation `K.α`
 all frame the link store (`L' = L`, ASN-0047/ASN-0093). The second is **structural** — that
 `dom(Σ.L)` is a tumbler-prefix antichain — and it belongs to the link sub-allocator discipline
@@ -194,8 +191,7 @@ ASN-0034). Two on different documents' chains extend prefix-incomparable anchors
 `b_L(d) ⋠ b_L(d') ⋠ b_L(d)` for `d ≠ d'` (CrossDocumentDisjointness, ASN-0093) — while themselves
 lying under those anchors (ChainPrefixExtension, ASN-0093); a common extension would force the two
 anchors into a prefix relation, contradicting their incomparability. Hence distinct stored links
-never nest. This is the content of ASN-0086's R0a/FlatLinkDomain, obtained here from ASN-0093's
-model-agnostic discipline directly — no cross-model transport.
+never nest. This is the content of ASN-0086's R0a/FlatLinkDomain.
 
 A `K.λ` step emits a *fresh* link — allocation gives `ℓ_new ∉ dom(Σ.L)`, so `ℓ_new` enters
 `dom(Σ'.L)` — and whether that fresh output is *addressable* in its post-state
@@ -744,8 +740,7 @@ its width at `δ(1, #ℓ)` — so the argument applies to it directly: a content
 would force `E(c)₁ = E(ℓ)₁ = s_L ≠ s_C`, rigorous because `ℓ` is genuinely element-level with
 `E(ℓ)₁ = s_L` (L0, L1, ASN-0093) and `Nullify` targets a link address `ℓ ∈ dom(Σ.L)`. So
 against a content image `I ⊆ dom(Σ.C)`, neither the from-set nor the to-set can touch. (This
-content-disjointness is exactly what the standing `W ⊆ s_C` obligation buys; the link-subspace
-case `W ⊆ s_L` lies outside this note's content-region scope and is reopened as Open Question 7.)
+content-disjointness is exactly what the standing `W ⊆ s_C` obligation buys.)
 
 The type-set `Θ` is the slot that same argument does *not* reach. A type endset may, by
 design, point *anywhere* in the address space, content included (L4 EndsetGenerality, L9
