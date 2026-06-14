@@ -63,25 +63,23 @@ exactly such an anchoring we most want to see. Containment answers a different q
 ("which anchorings live *wholly within* here?"), not ours.
 
 The relation we want is *overlap*: the endset touches the region exactly when it covers
-at least one address the region also covers. We define, for the fixed region,
+at least one address the region also covers — the disjunction Nelson phrases as matching
+"all or any part of" the requested set, where a single shared address is already real
+contact and the endset need neither lie inside the region nor contain it. We define, for
+the fixed region,
 
 > `touch_W(e)  ≡  coverage(e) ∩ image(W, d, Σ) ≠ ∅`
 
 — the subscript naming the region's V-position set `W`, the one parameter that varies when
 we later compose regions.
 
-First, **overlap, not containment**. A single shared address suffices; partial overlap
-is real contact. The endset need not lie inside the region, and the region need not lie
-inside the endset. This is the disjunction Nelson phrases as matching "all or any part
-of" the requested set: one span falling within the region qualifies the endset.
-
-Second, the relation is **existential within an endset**. An endset is a finite *set* of
+First, the relation is **existential within an endset**. An endset is a finite *set* of
 spans, possibly discontiguous (ASN-0043). `touch_W(e)` asks that *some* address in
 `coverage(e)` lies in `I` — not that every span does. The other spans of a touching
 endset legitimately point elsewhere; they do not disqualify it, and they are not
 clipped away from it.
 
-Third, the relation is **per-endset, not per-link**. We judge each endset on its own
+Second, the relation is **per-endset, not per-link**. We judge each endset on its own
 coverage against the region. A link carries several endsets — by convention a from-endset
 `e₁`, a to-endset `e₂`, a type-endset `e₃`, and possibly more (L3). RETRIEVEENDSETS asks
 its one region of *each* endset independently. A link's from-endset may touch while its
@@ -116,7 +114,7 @@ the region, that endset, tagged by the slot it occupies:
 The answer is a set of `(role, endset)` pairs. Each pair names the slot `i` — from, to,
 type, or higher — and the endset value `e` that occupies it in some touching link.
 
-The answer just defined is **finite unconditionally**: it is drawn from the finite supply of
+The answer just defined is **finite unconditionally** (RE-FIN): it is drawn from the finite supply of
 slot-endset pairs the store affords — `dom(Σ.L)` is finite (L-fin, ASN-0093) and each link
 carries finitely many endsets (L3, ASN-0043), so only finitely many `(i, e)` pairs can ever
 appear, whatever the region. **Computability** carries one further premise — that region
@@ -797,6 +795,7 @@ slip RE-UNIT's deduplication guards against.
 | RE-CLIP | No clipping — every surfaced span is reported at the full extent recorded in the link, never truncated to the region boundary; universal across both the whole-endset (RE-WHOLE) and touching-spans-only readings | introduced |
 | RE-WHOLE | Whole-endset surfacing (adopted convention) — a surfaced endset is returned in full, *all* its spans (not only those intersecting `W`); not forced by RE-CLIP, held **provisional** pending Open Question 1 | introduced (provisional) |
 | RE-BND | Boundary cases — `RE(W, d, Σ) = ∅` whenever the image is empty (`W ∩ dom(Σ.M(d)) = ∅`) or `addressable(Σ) = ∅`; an empty endset slot has `coverage(∅) = ∅`, so `touch_W(∅)` is false and it is never surfaced | introduced |
+| RE-FIN | Finiteness and computability — `RE(W, d, Σ)` is finite *unconditionally* (drawn from the finite supply of slot-endset pairs: `dom(Σ.L)` finite by L-fin, ASN-0093, and each link bears finitely many endsets by L3, ASN-0043); and given a *finitely presented* `W` (region membership `v ∈ W` decidable, e.g. `W` given as finitely many spans), it is computed by finitely many decidable tests over the finite store — image construction over the finite `dom(Σ.M(d))` (S8-fin, ASN-0036), `coverage`-membership by intrinsic comparison on half-open T1-intervals (T12, T2, ASN-0034), and addressability via the computable `nullified` (ASN-0086) | introduced |
 | RE-ADDR | Fresh-output addressability — a fresh `K.λ` output that does not retract its own emitter address is addressable in its post-state (`ℓ_new ∉ nullified(Σ')`); in particular every non-retraction emission (`K ≁ Θ`) is addressable, at every arity. Conditions: the standing discipline commitment's unit-depth to-set, scoped to the retraction slice `L_Θ` (all that `nullified` consults), and R0a/FlatLinkDomain (ASN-0086) | introduced |
 | RE-SND | Soundness — `(i, e) ∈ RE(W, d, Σ) ⟹ e` is a genuine slot-`i` endset of an addressable link ∧ `touch_W(e)`; no false positives | introduced |
 | RE-CMP | Completeness — every addressable link `a` and slot `i` with `touch_W(Σ.L(a).eᵢ)` has `(i, Σ.L(a).eᵢ) ∈ RE(W, d, Σ)`; the answer is *exactly* the touching set, native or transcluded content alike | introduced |
