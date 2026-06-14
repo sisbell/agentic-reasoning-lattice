@@ -466,16 +466,25 @@ restriction such as injectivity therefore **provably cannot** recover
 > `(∀ (i, e) ∈ Avail(Σ) : touch_{W₁}(e) ∧ touch_{W₂}(e) ⟹ touch_{W₁ ∩ W₂}(e))`,
 
 every available endset that meets both region images also meeting the image of their
-intersection. This is a joint condition on the available endsets' coverages and the three
-region images — *not* a property of `Σ.M(d)`, which the injective counterexample violates
-under a perfectly injective arrangement. It factors along the two obstructions just seen:
-the *split-witness* obstruction is closed by constraining coverage — requiring each available
-endset's coverage to meet the union image `image(W₁) ∪ image(W₂)` in at most one address
-forces the two meetings, when both occur, to coincide — while the residual *image-distribution*
-gap (`image(W₁) ∩ image(W₂) ⊇ image(W₁ ∩ W₂)`, possibly strict) is exactly what injectivity
-closes; equality needs *both* discharged, and — as the two counterexamples show — neither
-lever alone suffices. The weakest condition of this joint form characterising
-intersection-equality is the reframed Open Question 4.
+intersection. This biconditional is **settled, not open**: with the `⊆` half unconditional
+and the pool `Avail(Σ)` region-independent, the touch-implication is the *exact* — necessary
+and sufficient — characterisation of intersection-equality, and nothing in it remains to be
+discovered. Its defect is not soundness but *form*: it quantifies the `touch` predicate over
+every available endset, reading the three region images one endset at a time, so it is a
+joint condition on the available endsets' coverages and the three region images — *not* a
+property of `Σ.M(d)`, which the injective counterexample violates under a perfectly injective
+arrangement, and not one checkable without inspecting coverage. What one would prefer is a
+*structural* condition that discharges the touch-implication without the per-endset
+quantifier, and the two obstructions show the shape such a condition must take — a two-lever
+sufficient form: the *split-witness* obstruction is closed by constraining coverage —
+requiring each available endset's coverage to meet the union image `image(W₁) ∪ image(W₂)`
+in at most one address forces the two meetings, when both occur, to coincide — while the
+residual *image-distribution* gap (`image(W₁) ∩ image(W₂) ⊇ image(W₁ ∩ W₂)`, possibly
+strict) is exactly what injectivity closes; the touch-implication needs *both* discharged,
+and — as the two counterexamples show — neither lever alone suffices. The weakest such
+*structurally-restricted sufficient* condition — phrased on coverage and image structure
+directly, with the per-endset `touch` quantifier eliminated — is what Open Question 4 asks
+for; the exact touch-implication itself is settled here and is not at issue there.
 
 ## Existence and discoverability: which side does this answer for?
 
@@ -812,7 +821,7 @@ and retraction (RE-RET).
 | RE-SND | Soundness — `(i, e) ∈ RE(W, d, Σ) ⟹ e` is a genuine slot-`i` endset of an addressable link ∧ `touch_W(e)`; no false positives | introduced |
 | RE-CMP | Completeness — every addressable link `a` and slot `i` with `touch_W(Σ.L(a).eᵢ)` has `(i, Σ.L(a).eᵢ) ∈ RE(W, d, Σ)`; the answer is *exactly* the touching set, native or transcluded content alike | introduced |
 | RE-UDIST | Union-distributivity — `RE(W₁ ∪ W₂, d, Σ) = RE(W₁, d, Σ) ∪ RE(W₂, d, Σ)`, the RE-level analogue of F-UDIST/F-VDIST (ASN-0127) | introduced |
-| RE-UDIST-∩ | Intersection (one-sided) — `RE(W₁ ∩ W₂, d, Σ) ⊆ RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)` holds unconditionally, by the image `⊆` law; the reverse `⊇` **fails in general** and *no arrangement restriction recovers it* — the failure stems from `touch_W`'s existential meet-test, not from non-injectivity. Two obstructions are exhibited: a non-injective counterexample (image non-distribution) and an *injective* one (split witnesses — an endset meeting `image(W₁)` and `image(W₂)` at distinct addresses), the latter defeating `⊇` under a perfectly injective `Σ.M(d)`. Equality holds exactly when `(∀ (i,e) ∈ Avail(Σ) : touch_{W₁}(e) ∧ touch_{W₂}(e) ⟹ touch_{W₁ ∩ W₂}(e))`, a joint condition on endset coverage relative to the region images, not on the arrangement (Open Question 4) | introduced |
+| RE-UDIST-∩ | Intersection (one-sided) — `RE(W₁ ∩ W₂, d, Σ) ⊆ RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)` holds unconditionally, by the image `⊆` law; the reverse `⊇` **fails in general** and *no arrangement restriction recovers it* — the failure stems from `touch_W`'s existential meet-test, not from non-injectivity. Two obstructions are exhibited: a non-injective counterexample (image non-distribution) and an *injective* one (split witnesses — an endset meeting `image(W₁)` and `image(W₂)` at distinct addresses), the latter defeating `⊇` under a perfectly injective `Σ.M(d)`. Equality holds **exactly** when `(∀ (i,e) ∈ Avail(Σ) : touch_{W₁}(e) ∧ touch_{W₂}(e) ⟹ touch_{W₁ ∩ W₂}(e))` — this is *settled*, the necessary-and-sufficient characterisation (a joint condition on endset coverage relative to the region images, not on the arrangement); what remains open is only the weakest *structurally-restricted sufficient* form of it — phrased on coverage and image structure with the per-endset `touch` quantifier eliminated (Open Question 4) | introduced |
 | RE-SEL | Discovery-side selection — `sel(W, d, Σ) = findlinks_V(W, d, Σ) ∩ addressable(Σ)` (F-V, ASN-0127): the contributing links are the addressable links discoverable through the region, so `RE` is discovery-anchored — present-tense, non-monotone (D-NONMONO, D-ZERO, ASN-0127), not existence-anchored | introduced |
 | RE-TRANS | Transclusion blindness — surfacing is by content identity, independent of the link's home and the covered content's origin (LP16, ASN-0098): a link reaching the region through transcluded content is surfaced identically to one on native content, each span describing content identity, not the borrowing V-position | introduced |
 | RE-IDENT | Content-identity invariance — each surfaced endset's coverage is permanent (L12, ASN-0043; LP3★, ASN-0098), so the content-level answer (which I-addresses each surfaced endset anchors to) is arrangement-independent, even though the *selection* of surfaced endsets is arrangement-mediated | introduced |
@@ -828,7 +837,7 @@ and retraction (RE-RET).
 
 3. When a surfaced endset is rendered into the querying document's V-positions rather than content identity, what must the answer guarantee for endset content the document does not currently arrange?
 
-4. What is the weakest condition on the available endsets' coverages relative to the region images `image(W₁)`, `image(W₂)`, `image(W₁ ∩ W₂)` — equivalently, the weakest specialisation of `(∀ (i, e) ∈ Avail(Σ) : touch_{W₁}(e) ∧ touch_{W₂}(e) ⟹ touch_{W₁ ∩ W₂}(e))` — under which intersection-equality `RE(W₁ ∩ W₂, d, Σ) = RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)` is recovered, given that no restriction on the arrangement `Σ.M(d)` alone suffices, the injective counterexample of RE-UDIST-∩ defeating `⊇` even under a perfectly injective arrangement?
+4. Given that the per-endset touch-implication `(∀ (i, e) ∈ Avail(Σ) : touch_{W₁}(e) ∧ touch_{W₂}(e) ⟹ touch_{W₁ ∩ W₂}(e))` is *already* the exact, necessary-and-sufficient condition for intersection-equality `RE(W₁ ∩ W₂, d, Σ) = RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)` (RE-UDIST-∩, settled), and that no restriction on the arrangement `Σ.M(d)` alone suffices for it — the injective counterexample of RE-UDIST-∩ defeating `⊇` even under a perfectly injective arrangement — what is the weakest *structurally-restricted sufficient* condition for it, phrased directly on the available endsets' coverages and the three region images `image(W₁)`, `image(W₂)`, `image(W₁ ∩ W₂)` (for instance, a single-meet cardinality bound on each coverage against the union image together with the image-distribution gap `image(W₁) ∩ image(W₂) ⊇ image(W₁ ∩ W₂)`), with the per-endset `touch` quantifier eliminated?
 
 5. What completeness guarantee must hold when anchoring that touches a region resides in a link store not co-resident with the queried document?
 
