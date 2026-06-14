@@ -105,10 +105,10 @@ span `{(t, δ(1, #t))}` at a single prior target. The bridge to ASN-0086 is that
 evolves only through `K.λ`: the arrangement movers (`K.μ` family), entity creation `K.δ`,
 provenance recording `K.ρ`, and content allocation `K.α` all frame the link store
 (`L' = L`). So the link store evolves identically under ASN-0086's transition relation and
-under ASN-0047's — the very transitions that populate an arrangement leave `Σ.L` fixed — and
-every ASN-0086 lemma that constrains `Σ.L` alone holds verbatim at every ASN-0047-reachable
-state, including the *populated-arrangement* states whose arrangements ASN-0086's own
-(empty-arrangement) layer never reaches. A withdrawn link's anchoring should not be
+under ASN-0047's, and every ASN-0086 lemma that constrains `Σ.L` alone holds verbatim at
+every ASN-0047-reachable state, including the *populated-arrangement* states whose
+arrangements ASN-0086's own (empty-arrangement) layer never reaches. A withdrawn link's
+anchoring should not be
 reported as live — a design decision that fixes the
 operation as a report over the *active* population, not the full permanent store. So we range
 over the links that are present and not withdrawn — the **addressable** links:
@@ -532,15 +532,28 @@ neither the image nor the available pool moves. Provenance recording `K.ρ` writ
 `Σ.R` (ASN-0047), which `RE` never reads (RE-LOC), so it cannot move the answer (LP14,
 ASN-0098).
 
-Finally, one arrangement edit to `d` *itself* leaves a content-region answer fixed — by a
-route particular to the content-subspace restriction rather than to locality. The
+Finally, a whole *class* of arrangement edits to `d` *itself* leaves a content-region answer
+fixed — by a route particular to the content-subspace restriction rather than to locality:
+the **link-subspace-confined** edits, those touching only `d`'s link subspace. The
 link-subspace extension `K.μ⁺_L` adds a single V-position `v_ℓ` with `subspace(v_ℓ) = s_L`,
 mapped to a link address (ASN-0047). Because `W ⊆ s_C`, we have `v_ℓ ∉ W`, so the selecting
 set `W ∩ dom(Σ.M(d))` — and with it the image `image(W, d, Σ)` — is unchanged
 (F-IMG-MONO sharpened to equality under `W ⊆ s_C`, ASN-0127); and its frame leaves `Σ.L`
-fixed (`L' = L`), so the available pool does not move either. It is the one arrangement edit
-on `d` that cannot perturb a content-region answer, and the content-subspace restriction is
-exactly what secures it.
+fixed (`L' = L`), so the available pool does not move either. A **link-subspace-only
+contraction** `K.μ⁻` is secured by the identical route — one retaining the whole content
+subspace (`n'_{s_C} = n_{s_C}`) while strictly contracting the link subspace
+(`n'_{s_L} < n_{s_L}`, admissible whenever `V_{s_L}(d) ≠ ∅`, since `K.μ⁻` requires at least
+one subspace to strictly contract): for `W ⊆ s_C`, retained-position agreement gives
+`W ∩ dom(Σ'.M(d)) = W ∩ V_{s_C}(d) = W ∩ dom(Σ.M(d))`, so `image(W, d, Σ') = image(W, d, Σ)`,
+while `K.μ⁻`'s frame leaves `Σ.L` fixed and `Avail(Σ)` with it. Either edit gives
+`RE(W, d, Σ') = RE(W, d, Σ)`. The contraction case is exactly RE-CWP's `Δ = ∅` instance read
+for a content-fully-retaining step: no content position is dropped, so `I_R = image(W, d, Σ)`
+and `Δ = ∅`, whence the weakest precondition holds vacuously — the prose and RE-CWP agree.
+(Arrangement reordering `K.μ~` is *not* link-confined: it is link-subspace-fixing by
+admissibility and requires a non-trivial content effect by its precondition, so it always
+touches content — the two link-subspace-confined edits are exactly `K.μ⁺_L` and link-only
+`K.μ⁻`.) The content-subspace restriction is what secures the entire class: every
+link-subspace-confined arrangement edit on `d` leaves a content-region answer fixed.
 
 **The weakest precondition for contraction-stability.** The qualitative tracking above can
 be made exact for one editing motion — a deletion. Fix a `K.μ⁻[d, R]` step on the queried
@@ -722,7 +735,7 @@ and taking with it any pair it solely bore).
 | RE-SEL | Discovery-side selection — `sel(W, d, Σ) = findlinks_V(W, d, Σ) ∩ addressable(Σ)` (F-V, ASN-0127): the contributing links are the addressable links discoverable through the region, so the operation is discovery-anchored — present-tense, non-monotone, arrangement-mediated (D-NONMONO, D-ZERO, ASN-0127), not existence-anchored (fixed-`I`, historical, monotone) | introduced |
 | RE-TRANS | Transclusion blindness — surfacing is by content identity, independent of the link's home and of the covered content's origin (LP16, ASN-0098): a link reaching the region only through transcluded content is surfaced identically to one reaching native content, and each returned span describes the content's permanent home identity, not the borrowing V-position | introduced |
 | RE-IDENT | Content-identity invariance — each surfaced endset's coverage is permanent (L12, ASN-0043; LP3, ASN-0098), so the content-level answer (which I-addresses each surfaced endset anchors to) is arrangement-independent, even though the *selection* of which endsets are surfaced is arrangement-mediated | introduced |
-| RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (RE-IDENT). Over the combined vocabulary of ASN-0047's atomic arrangement movers and ASN-0082's shift-based insert/delete — the latter, lifted from ASN-0082's `(C, M)` model, frame `Σ.L`, `Σ.E`, `Σ.R` as `Σ.M`-only edits, so `addressable`/`Avail` hold fixed and only the image swings — only the content-subspace movers on `d` (extension, contraction, reordering, and the shifts) together with `K.λ` emission and retraction (RE-RET) can move the answer; every other transition — including the link-subspace edit `K.μ⁺_L` under `W ⊆ s_C` — leaves it fixed. | introduced |
+| RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (RE-IDENT). Over the combined vocabulary of ASN-0047's atomic arrangement movers and ASN-0082's shift-based insert/delete — the latter, lifted from ASN-0082's `(C, M)` model, frame `Σ.L`, `Σ.E`, `Σ.R` as `Σ.M`-only edits, so `addressable`/`Avail` hold fixed and only the image swings — only the content-subspace movers on `d` (extension, contraction, reordering, and the shifts) together with `K.λ` emission and retraction (RE-RET) can move the answer; every other transition leaves it fixed — including the whole class of **link-subspace-confined** arrangement edits on `d` under `W ⊆ s_C`: link-subspace extension `K.μ⁺_L` and any link-subspace-only `K.μ⁻` contraction (one retaining all content positions), each of which leaves the content image and `Avail` fixed. The contraction member is precisely RE-CWP's `Δ = ∅` instance (no content position dropped), consistent with it. | introduced |
 | RE-RET | Retraction stability — withdrawing a link `ℓ` is a `K.λ` step (Nullify, ASN-0086) that marks `ℓ` nullified, removing it from `addressable(Σ)` permanently (R6a). Under the standing unit-depth discipline and the net-removal-only hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅` (`Θ` the retraction type), a pair `(i, e)` that `ℓ` bore drops **iff `ℓ` was its sole addressable bearer in `Σ`** — the answer deduplicating and discarding identity (RE-UNIT). The `coverage(Θ)` hypothesis is the sole remaining exception, a type-slot match against content. | introduced |
 | RE-CWP | Contraction-stability weakest precondition — for a `K.μ⁻[d, R]` step, `RE(W, d, ·) = RE(W, d, Σ)` iff `enabled(K.μ⁻[d, R]) ∧ (∀ (i, e) ∈ Avail(Σ) : coverage(e) ∩ Δ ≠ ∅ ⟹ coverage(e) ∩ I_R ≠ ∅)`, where `I_R = {Σ.M(d)(v) : v ∈ W ∩ R}` (D-CWP bridge, ASN-0127), `Δ = image(W, d, Σ) ∖ I_R`, and `Avail(Σ)` is the region-independent pool of addressable slot-endsets. `RE` is monotone-decreasing under contraction, and `R = ∅` collapses it to `RE(W, d, Σ) = ∅`. | introduced |
 
