@@ -374,8 +374,7 @@ We discharge this for each editing-layer operation.
   evaluates its membership, so clause (i) is preserved; it deposits no `[K_sup]`
   claim, leaving clause (ii) untouched.
 - *`assert_sup`.* EL6(v): `Σ'` is edit-disciplined when `Σ` is.
-- *`editlink`.* EL7(vi): `Σ₂` is edit-disciplined when `Σ` is — precisely what
-  the precondition `DC(ℓ')` secures, and what licenses chaining edits.
+- *`editlink`.* EL7(vi): `Σ₂` is edit-disciplined when `Σ` is.
 
 By induction over the editing-layer operations, edit-discipline holds at every
 editing-layer-reachable state. ∎
