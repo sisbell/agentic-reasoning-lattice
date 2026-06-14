@@ -1,0 +1,19 @@
+I checked the digest against ASN-0123, its claim statements, and the verified Green evidence. This is a strong digest: accurate reads of the commitments, well-grounded Green claims, sound approaches, and no altitude slips. My adversarial passes turned up no material defect — only two genuine precision tightenings. Details below.
+
+## Revision list
+
+**1. [SHARPENING] Implementation approaches → Provenance recording.** The digest juxtaposes "one entry per contiguous shared span — exactly udanax-green's spanfilade DOCISPAN family" with "Deduplicate to the address set so… `|R'∖R| = |A|`, not `n`." Both clauses are true, but they sit at two different granularities and "exactly" invites conflation: the abstract relation `R'∖R` has `|A|` distinct *address*-pairs, while a span-keyed store *coalesces I-contiguous addresses* into one entry and is therefore generally **coarser than `|A|`** (e.g., four distinct I-contiguous addresses → one span entry, four `R` pairs). Add a half-sentence separating the levels: the abstract relation is `|A|` address-pairs (deduped from `n` V-positions — the repeat case); the span-storage realization is a coarsening of that, with entry-count ≤ |A|. The load-bearing instruction (append-only, per-span, repeats collapse to one fact) is already correct.
+
+**2. [SHARPENING] Guarantees → Global uniqueness.** The reconciliation with V0 is sound and the bottom line (you must serialize concurrent forks; uniqueness is not "free" at the implementation level — OQ4) is correct and valuable. It can be one notch sharper by distinguishing the two senses it currently folds together: V0's same-allocator case proves two *distinct stream members* are distinct addresses (`c₃ ≠ c₅`) — that genuinely "needs no serialization assumption," as the note says; serialization is needed *separately* to ensure two concurrent allocation *attempts* target distinct members rather than both resolving to `c_{hwm+1}` against a stale registry. Framing it as "distinct members are distinct (no serialization) / concurrent attempts must reach distinct members (serialization)" removes the apparent tension more cleanly than "V0's unconditionality holds within the serialized model."
+
+## What's solid (affirmations)
+
+- **Forced/conventional tagging is well-calibrated.** Every `[forced]` checks out against the note's derivations, and the digest correctly singles out the *one* genuinely conventional/scoping choice — single-mint with the node-tier cross-owner case pushed out of domain (P-tier) — rather than over-claiming it as physically forced.
+- **Green claims are uniformly grounded.** Every source-level reference (`findisatoinsertnonmolecule`/`findpreviousisagr`, `doretrievedocvspanfoo` "kluge not yet kluged," DOCISPAN coexistence, `validaccount` stub + FEBE cross-owner mis-anchor, `NPLACES=16` bumped from 11, single-threaded run-to-completion, the orphan-on-failure) traces to the evidence answers (Q2/Q8/Q11–20) or the note's deviation list. No ungrounded function-name or behavior claims.
+- **The orphan-gap analysis is precise.** Correctly attributes closure to **B's publish-on-commit**, not to durability journaling and *not* to single-threading — and names Green as the cautionary case where A (run-to-completion) alone leaves the orphan. This is the kind of distinction a careless digest gets wrong.
+- **The forbidden approach is flagged, not proposed.** The origin-addressed-not-content-addressed caution and the explicit warning against git-blob value-dedup correctly enforce G2/S4 rather than violating it.
+- **Completeness across V0–V13, VD, PS, and the builder-relevant OQs is good**, and the digest properly separates implementation choices from the note's spec-level open questions.
+
+Both list items are sharpenings; nothing material is broken.
+
+VERDICT: CONVERGED
