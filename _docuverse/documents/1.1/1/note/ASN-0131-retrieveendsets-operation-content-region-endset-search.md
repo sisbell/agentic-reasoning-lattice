@@ -106,8 +106,7 @@ evolves only through `K.λ`: the arrangement movers (`K.μ` family), entity crea
 provenance recording `K.ρ`, and content allocation `K.α` all frame the link store
 (`L' = L`). So the link store evolves identically under ASN-0086's transition relation and
 under ASN-0047's, and every ASN-0086 lemma that constrains `Σ.L` alone holds verbatim at
-every ASN-0047-reachable state, including the *populated-arrangement* states whose
-arrangements ASN-0086's own (empty-arrangement) layer never reaches. A withdrawn link's
+every ASN-0047-reachable state. A withdrawn link's
 anchoring should not be
 reported as live — a design decision that fixes the
 operation as a report over the *active* population, not the full permanent store. So we range
@@ -429,9 +428,8 @@ seen through `d` and through `d_src` and through every co-transcluder. This is t
 property that lets one make a link against borrowed content and have it hold, automatically,
 on the original and on every other document that includes those bytes.
 
-This connects to a general invariant — independent of transclusion, and governing the
-stability analysis below as well — which we state once here: **each surfaced endset's
-coverage is permanent**. Links are immutable (L12, ASN-0043) and no transition alters an
+This connects to a general invariant — independent of transclusion — which we state once
+here: **each surfaced endset's coverage is permanent**. Links are immutable (L12, ASN-0043) and no transition alters an
 endset's coverage (LP3, ASN-0098), so once an endset is surfaced the I-addresses it
 anchors are a fixed fact about a permanent link (RE-IDENT). The transclusion case is one
 reading of it: the *content-level* answer — which content each surfaced endset anchors to
@@ -478,9 +476,7 @@ reordering — each acting as a faithful tracker would:
   document — a single-region contraction does not establish: the link may still touch other
   regions of `d`, or be reachable from other documents. Should the content be re-arranged
   into `d`, the region image grows again (F-IMG-MONO, LP9, ASN-0098) and the endset is
-  surfaced once more. The genuinely global *orphaning* of LP17 — and the *resurrection* of
-  LP18 (ASN-0098) on later re-arrangement — obtains only in the limiting case where the
-  departed content comes to be arranged by no document at all. When the fixed region lies
+  surfaced once more. When the fixed region lies
   wholly within the retained prefix `R`, the truncation drops nothing under `W`: the
   inclusion is equality, and `RE` is unchanged.
 
@@ -713,11 +709,8 @@ The answer tracks the anchoring values of the active *population*, not the fate 
 link; conflating link-level permanence (R6a) with pair-value-level removal is exactly the
 slip RE-UNIT's deduplication guards against.
 
-So the answer's stability has two components, both consequences of its being a present-tense
-reading of the live state: it tracks the *arrangement* (content moving in and out of the
-region as it is inserted, deleted, and rearranged) and it respects the *active population* (a
-freshly emitted link adding the pairs it newly witnesses, a withdrawn link vanishing from it
-and taking with it any pair it solely bore).
+The answer's stability thus reduces to two tracked motions: the region's image under editing
+(RE-CWP) and the active population under emission and retraction (RE-RET).
 
 ## Claims Introduced
 
