@@ -116,8 +116,8 @@ retraction type (ASN-0086's own symbol is `R`, which this note reserves for othe
 rename it `Θ`). A `K.λ` step emits a *fresh* link — allocation gives `ℓ_new ∉ dom(Σ.L)`, so
 `ℓ_new` enters `dom(Σ'.L)` — and whether that fresh output is *addressable* in its post-state
 (`ℓ_new ∉ nullified(Σ')`) turns on whether some retraction to-set covers it. The standing
-commitment's unit-depth to-set settles this for an output of *any* arity, with no appeal to
-triple structure: every retraction to-set in `Σ'.L` is unit-depth at some link `t ∈ dom(Σ'.L)`,
+commitment's unit-depth to-set settles this for an output of *any* arity: every retraction
+to-set in `Σ'.L` is unit-depth at some link `t ∈ dom(Σ'.L)`,
 covering `{u : t ≼ u}`, and R0a/FlatLinkDomain (ASN-0086) makes `dom(Σ'.L)` a prefix-antichain,
 so any `t` distinct from `ℓ_new` is prefix-incomparable to it (`t ⋠ ℓ_new`) and cannot cover
 it. The only retraction to-set that could cover `ℓ_new` is its own — present only if `ℓ_new`
@@ -544,12 +544,15 @@ So delete-stability is scoped to text depth `#p = 2` and insert-stability to eve
 an asymmetry in which displacement primitives ASN-0082 supplies, not in the stability
 argument itself. What that argument requires of
 either is not the displacement's specifics but only that it is an *arrangement edit confined to
-`Σ.M(d)`* — an **M-only edit**. And this is *settled*, not assumed. ASN-0082 models these
-primitives over a `(C, M)` state with no link, entity, or provenance store, and proves they
-write only `Σ.M(d)` and frame `Σ.C` (I3-C, D-I: `Σ.C` unchanged). The full state
-`(C, L, E, M, R)` adds only the stores `Σ.L`, `Σ.E`, `Σ.R`, which the `(C, M)` primitives
-never name; so the unique lift to the full state writes `Σ.M(d)` and frames `L`, `E`, `R` —
-there is nothing else for such a lift to write. The lifted edit therefore acts exactly as
+`Σ.M(d)`* — an **M-only edit**. ASN-0082 establishes this confinement only over its own
+modelling state: it models these primitives over a `(C, M)` state with no link, entity, or
+provenance store, and proves they write only `Σ.M(d)` and frame `Σ.C` (I3-C, D-I: `Σ.C`
+unchanged). That settles the `(C, M)` behaviour but cannot speak to the three stores `Σ.L`,
+`Σ.E`, `Σ.R` that the full state `(C, L, E, M, R)` adds and the `(C, M)` primitives never
+name — a `(C, M)`-spec leaves a primitive's action on stores absent from its model entirely
+unconstrained. We therefore **adopt as a modelling assumption** the *conservative lift*: we
+treat shift-based insert/delete as edits touching no store but `Σ.M(d)`, framing `Σ.L`,
+`Σ.E`, `Σ.R`. Under that assumption the lifted edit acts exactly as
 every ASN-0047 atomic mover above does, at any content depth. The addressable population is
 unmoved across the shift: `addressable(Σ)` and the region-independent pool `Avail(Σ)` are
 functions of `Σ.L` (through `nullified`) alone, so only the region's image can move. Content
@@ -560,11 +563,11 @@ effect on the image is not one-signed the way `K.μ⁺`/`K.μ⁻` are: the shift
 non-monotone *as a class*, and a single shift may make the fixed region's image *gain*,
 *lose*, or *both*, according to where the edit falls relative to `W`. `RE` is evaluated only at reachable states — those satisfying the standing contiguity
 invariants D-CTG★/D-SEQ★ (ASN-0047) — at which the net effect of an insert or delete is an
-M-only, gap-free arrangement edit; the bare shift's un-backfilled interior vacancy (I3-V) is a
-non-queryable intermediate of the *non-atomic* full edit (SequentialTransitionAxiom,
-ASN-0047), never a state at which `RE` is evaluated. At each reachable post-edit state, then,
-`RE` tracks the image's motion by membership, each surfaced endset's spans held fixed
-(RE-IDENT), by the depth-independent M-only lift established above.
+M-only, gap-free arrangement edit; the bare shift's un-backfilled interior vacancy (I3-V), on
+the same modelling stance, we read as a non-queryable intermediate of the *non-atomic* full
+edit (SequentialTransitionAxiom, ASN-0047), never a state at which `RE` is evaluated. At each
+reachable post-edit state, then, `RE` tracks the image's motion by membership, each surfaced
+endset's spans held fixed (RE-IDENT), by the depth-independent M-only lift adopted above.
 
 Editing of *other* documents does not perturb the answer: the image reads only `Σ.M(d)`,
 and a transition touching `d' ≠ d` leaves `Σ.M(d)` fixed (LP5, ASN-0098). Three further
@@ -714,9 +717,7 @@ that withdraws `ℓ`, and a retraction, being a state transition, could a priori
 more than its named target. We discharge it by bounding the retraction's reach. Take
 `ℓ' ∈ addressable(Σ)` with `ℓ' ≠ ℓ`, bearing `e` in slot `i`. A single Nullify contributes
 *exactly* its target to the nullified set — `{t : ℓ ≼ t} ∩ dom(Σ'.L) = {ℓ}` (R-Scope
-SingleTupleScope, ASN-0086, arity-independent — carried to this ASN-0047 state by the
-`Σ.L`-evolution bridge, R-Scope's `d_retr ∈ dom(Σ.M)` hypothesis meaningful here because
-`dom(Σ.M) = E_doc` (M1, ASN-0047) is the same ASN-0093 document substrate ASN-0086 names) —
+SingleTupleScope, ASN-0086, arity-independent, via the `Σ.L`-evolution bridge) —
 so the fresh retraction tuple `b` nullifies no link address but
 `ℓ`, leaving every other store element `ℓ' ≠ ℓ` outside its reach.
 Hence `ℓ'`, already `∉ nullified(Σ)` and distinct from `ℓ`, is `∉ nullified(Σ')`:
@@ -762,7 +763,7 @@ and retraction (RE-RET).
 | RE-SEL | Discovery-side selection — `sel(W, d, Σ) = findlinks_V(W, d, Σ) ∩ addressable(Σ)` (F-V, ASN-0127): the contributing links are the addressable links discoverable through the region, so `RE` is discovery-anchored — present-tense, non-monotone (D-NONMONO, D-ZERO, ASN-0127), not existence-anchored | introduced |
 | RE-TRANS | Transclusion blindness — surfacing is by content identity, independent of the link's home and the covered content's origin (LP16, ASN-0098): a link reaching the region through transcluded content is surfaced identically to one on native content, each span describing content identity, not the borrowing V-position | introduced |
 | RE-IDENT | Content-identity invariance — each surfaced endset's coverage is permanent (L12, ASN-0043; LP3, ASN-0098), so the content-level answer (which I-addresses each surfaced endset anchors to) is arrangement-independent, even though the *selection* of surfaced endsets is arrangement-mediated | introduced |
-| RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (RE-IDENT). The answer moves only under the content-subspace arrangement movers on `d` (`K.μ` extension/contraction/reordering, and ASN-0082's M-only shift-based insert/delete) and `K.λ` emission/retraction (RE-RET); every other transition — including all **link-subspace-confined** edits on `d` under `W ⊆ s_C` (`K.μ⁺_L` and content-retaining `K.μ⁻`) — leaves it fixed | introduced |
+| RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (RE-IDENT). The answer moves only under the content-subspace arrangement movers on `d` (`K.μ` extension/contraction/reordering, and ASN-0082's shift-based insert/delete, M-only by a conservative-lift modelling assumption) and `K.λ` emission/retraction (RE-RET); every other transition — including all **link-subspace-confined** edits on `d` under `W ⊆ s_C` (`K.μ⁺_L` and content-retaining `K.μ⁻`) — leaves it fixed | introduced |
 | RE-RET | Retraction stability — withdrawing a link `ℓ` (Nullify, ASN-0086) marks it nullified, removing it from `addressable(Σ)` permanently (R6a). Conditions: the standing discipline commitment (retractions via `Nullify` — empty from-set, unit-depth to-set) and the net-removal-only hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅` (`Θ` the retraction type, the sole remaining exception). Then a pair `(i, e)` that `ℓ` bore drops **iff `ℓ` was its sole addressable bearer in `Σ`** (RE-UNIT) | introduced |
 | RE-CWP | Contraction-stability weakest precondition — for a `K.μ⁻[d, R]` step, `RE(W, d, ·) = RE(W, d, Σ)` iff `enabled(K.μ⁻[d, R]) ∧ (∀ (i, e) ∈ Avail(Σ) : coverage(e) ∩ Δ ≠ ∅ ⟹ coverage(e) ∩ I_R ≠ ∅)`, where `I_R = {Σ.M(d)(v) : v ∈ W ∩ R}` (D-CWP bridge, ASN-0127) and `Δ = image(W, d, Σ) ∖ I_R`. The boundary `R = ∅` collapses to `RE(W, d, Σ) = ∅` | introduced |
 
