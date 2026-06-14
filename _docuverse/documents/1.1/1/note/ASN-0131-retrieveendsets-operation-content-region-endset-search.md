@@ -359,14 +359,36 @@ This is the RETRIEVEENDSETS analogue of the discovery query's union-distributivi
 (F-UDIST, F-VDIST, ASN-0127): a region query is composable from any cover of the region by
 its parts. Querying a passage is the union of querying its lines.
 
-The *intersection* law does not follow, and for a structural reason worth recording. The
-forward image does not distribute over intersection: in general
+The *intersection* law does not follow in full — but one half of it does, and
+unconditionally. We must first see where the forward image fails to distribute over
+intersection: in general
 `image(W₁ ∩ W₂, d, Σ) ⊆ image(W₁, d, Σ) ∩ image(W₂, d, Σ)`, but the inclusion can be
 strict, because distinct V-positions may map to the *same* I-address — the arrangement is
 non-injective (M13, M14, ASN-0058). A position in `W₁ ∖ W₂` and a position in `W₂ ∖ W₁`
 can share an I-address that then lies in both images, hence in the right-hand
-intersection, while contributing nothing to `image(W₁ ∩ W₂, d, Σ)`. Intersection-
-composability is therefore a genuinely separate question, and we leave it open.
+intersection, while contributing nothing to `image(W₁ ∩ W₂, d, Σ)`.
+
+The image `⊆` law that does hold, however, already settles one direction of the RE-level
+intersection law. From `image(W₁ ∩ W₂, d, Σ) ⊆ image(W₁, d, Σ)` and the symmetric inclusion
+for `W₂`, an endset meeting the smaller image meets each larger one, so the touch test
+implies *both* of its sub-region instances:
+
+> `touch_{W₁ ∩ W₂}(e) ⟹ touch_{W₁}(e) ∧ touch_{W₂}(e)`.
+
+Filtering the region-independent pool `Avail(Σ)` by this implication — exactly as the union
+proof filters it by the disjunction — gives
+
+> `RE(W₁ ∩ W₂, d, Σ) = { (i, e) ∈ Avail(Σ) : touch_{W₁ ∩ W₂}(e) }
+>   ⊆ { (i, e) ∈ Avail(Σ) : touch_{W₁}(e) ∧ touch_{W₂}(e) }
+>   = RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)`,
+
+and, like the image `⊆` law it rests on, this needs *no* injectivity hypothesis. What fails
+is the reverse inclusion: an endset may meet `image(W₁, d, Σ)` and `image(W₂, d, Σ)` each
+through a shared I-address carried by positions outside `W₁ ∩ W₂` — the very non-injective
+coincidence that makes the image inclusion strict — and yet meet `image(W₁ ∩ W₂, d, Σ)` not
+at all, so the pair is in `RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)` without being in `RE(W₁ ∩ W₂, d, Σ)`.
+The `⊇` direction — hence full intersection-composability — is therefore the genuinely
+separate question, and it is that direction we leave open.
 
 ## Existence and discoverability: which side does this answer for?
 
@@ -729,7 +751,7 @@ The answer's stability thus reduces to two tracked motions: the region's image u
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| RE-DEF | `RE(W, d, Σ) = { (i, e) : (∃ a ∈ addressable(Σ) : 1 ≤ i ≤ \|Σ.L(a)\| ∧ Σ.L(a).eᵢ = e ∧ touch_W(e)) }`, where `(W, d)` has `d ∈ dom(Σ.M)` and `W ⊆ T` a content-subspace V-position set resolving to `I = image(W, d, Σ)` (F-IMG, ASN-0127); `touch_W(e) ≡ coverage(e) ∩ I ≠ ∅`; `addressable(Σ) = dom(Σ.L) ∖ nullified(Σ)` (ASN-0086); frame `Σ' = Σ`. Selection (addressability, `touch_W`) and name-withholding are definite under either extent reading; the returned `e = Σ.L(a).eᵢ` is the *whole* slot endset only by the adopted RE-WHOLE convention, so this returned-endset extent is as provisional as RE-WHOLE (Open Question 1) | introduced; surfaced-endset extent provisional (RE-WHOLE) |
+| RE-DEF | `RE(W, d, Σ) = { (i, e) : (∃ a ∈ addressable(Σ) : 1 ≤ i ≤ \|Σ.L(a)\| ∧ Σ.L(a).eᵢ = e ∧ touch_W(e)) }`, where `(W, d)` has `d ∈ dom(Σ.M)` and `W ⊆ T` a content-subspace V-position set resolving to `I = image(W, d, Σ)` (F-IMG, ASN-0127); `touch_W(e) ≡ coverage(e) ∩ I ≠ ∅`; `addressable(Σ) = dom(Σ.L) ∖ nullified(Σ)` (ASN-0086); frame `Σ' = Σ`. The returned `e = Σ.L(a).eᵢ` is the whole slot endset (RE-WHOLE) | introduced |
 | RE-LOC | Locality — for fixed `(W, d)`, `RE` reads `Σ.M(d)` (image) and `Σ.L` (endsets, and via `nullified` addressability) alone; `Σ.C`, `Σ.E`, `Σ.R` are never consulted. Hence `RE` is a deterministic function of `(W, d, Σ)` | introduced |
 | RE-UNIT | Anchoring without names — the answer's elements are `(role, endset)` pairs, never link identities; the address is withheld, distinct links sharing an endset value collapse to one pair, multiplicity is not recoverable, and a surfaced from-endset cannot be paired with its link's to-endset | introduced |
 | RE-OVL | Overlap matching — an endset is surfaced iff at least one address it covers lies in the region's image (overlap, not containment); single-address overlap suffices; the test is existential *within* an endset and applied *per-endset*, with no per-slot request differentiation | introduced |
@@ -738,7 +760,7 @@ The answer's stability thus reduces to two tracked motions: the region's image u
 | RE-BND | Boundary cases — `RE(W, d, Σ) = ∅` whenever the image is empty (`W ∩ dom(Σ.M(d)) = ∅`) or `addressable(Σ) = ∅`; an empty endset slot has `coverage(∅) = ∅`, so `touch_W(∅)` is false and it is never surfaced | introduced |
 | RE-SND | Soundness — `(i, e) ∈ RE(W, d, Σ) ⟹ e` is a genuine slot-`i` endset of an addressable link ∧ `touch_W(e)`; no false positives | introduced |
 | RE-CMP | Completeness — every addressable link `a` and slot `i` with `touch_W(Σ.L(a).eᵢ)` has `(i, Σ.L(a).eᵢ) ∈ RE(W, d, Σ)`; the answer is *exactly* the touching set, native or transcluded content alike | introduced |
-| RE-UDIST | Union-distributivity — `RE(W₁ ∪ W₂, d, Σ) = RE(W₁, d, Σ) ∪ RE(W₂, d, Σ)`, the RE-level analogue of F-UDIST/F-VDIST (ASN-0127). Intersection-distributivity does *not* follow (Open Question 4) | introduced |
+| RE-UDIST | Union-distributivity — `RE(W₁ ∪ W₂, d, Σ) = RE(W₁, d, Σ) ∪ RE(W₂, d, Σ)`, the RE-level analogue of F-UDIST/F-VDIST (ASN-0127). For intersection, the `⊆` half holds unconditionally — `RE(W₁ ∩ W₂, d, Σ) ⊆ RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)`, by the image `⊆` law — while the `⊇`/equality direction does *not* follow under the non-injective arrangement (Open Question 4) | introduced |
 | RE-SEL | Discovery-side selection — `sel(W, d, Σ) = findlinks_V(W, d, Σ) ∩ addressable(Σ)` (F-V, ASN-0127): the contributing links are the addressable links discoverable through the region, so `RE` is discovery-anchored — present-tense, non-monotone (D-NONMONO, D-ZERO, ASN-0127), not existence-anchored | introduced |
 | RE-TRANS | Transclusion blindness — surfacing is by content identity, independent of the link's home and the covered content's origin (LP16, ASN-0098): a link reaching the region through transcluded content is surfaced identically to one on native content, each span describing content identity, not the borrowing V-position | introduced |
 | RE-IDENT | Content-identity invariance — each surfaced endset's coverage is permanent (L12, ASN-0043; LP3, ASN-0098), so the content-level answer (which I-addresses each surfaced endset anchors to) is arrangement-independent, even though the *selection* of surfaced endsets is arrangement-mediated | introduced |
@@ -754,7 +776,7 @@ When distinct addressable links carry an identical endset value in the same slot
 
 When a surfaced endset is rendered into the querying document's V-positions rather than content identity, what must the answer guarantee for endset content the document does not currently arrange?
 
-Must the surfaced anchoring distribute over *intersections* of the queried region — composing a region query from overlapping parts — given that the forward image fails to distribute over intersection under the non-injective arrangement (M13, M14, ASN-0058)? (The union half is derived above as RE-UDIST.)
+Must the surfaced anchoring distribute over *intersections* of the queried region in the `⊇` direction — `RE(W₁, d, Σ) ∩ RE(W₂, d, Σ) ⊆ RE(W₁ ∩ W₂, d, Σ)`, hence equality — given that the non-injective arrangement (M13, M14, ASN-0058) makes the forward image's intersection inclusion strict and so defeats this direction? (The `⊆` direction is derived above unconditionally, and the union law as RE-UDIST.)
 
 What completeness guarantee must hold when anchoring that touches a region resides in a link store not co-resident with the queried document?
 
