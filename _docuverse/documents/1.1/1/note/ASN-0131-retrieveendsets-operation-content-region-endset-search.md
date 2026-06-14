@@ -325,7 +325,7 @@ and each of the operation's distinctive claims can be read off it directly:
   contribute the *one* pair `(1, e₁)`, which appears once. The answer holds no `ℓ₁`, no
   `ℓ₂`, no count. From `{(1, e₁)}` alone one cannot tell that two links grip here, cannot
   recover either identity, and cannot learn that `e₁`'s links also anchor a to-end at `a₁`
-  — the from-end is laid bare; the connection is not made followable.
+  — the cross-end pairing RE-UNIT withholds.
 
 ## Composing regions: union-distributivity
 
@@ -436,17 +436,16 @@ ASN-0098). What the region's image maps to, and how that image is positioned wit
 order, are present-tense; but the identity of the anchored content, once surfaced, is a
 fixed fact about a permanent link. The operation's content-level answer is therefore
 arrangement-independent even though its *selection* of which endsets to surface is
-arrangement-mediated.
+arrangement-mediated (RE-IDENT).
 
 ## Stability: the answer as the document is edited
 
 Because the operation is a pure function of the present state, resolved through the
 present arrangement, its stability is entirely determined by how state changes move the
-two things it reads: the region's image and the addressable population. One invariant
-underlies this whole section, and we state it once: each surfaced endset's coverage is
-permanent (RE-IDENT), so editing can change *which* endsets are surfaced — the membership
-of the answer — but never the spans of one that is. Every motion catalogued below is a
-motion of membership.
+two things it reads: the region's image and the addressable population. By RE-IDENT each
+surfaced endset's coverage is permanent, so editing can change *which* endsets are surfaced
+— the membership of the answer — but never the spans of one that is. Every motion
+catalogued below is a motion of membership.
 
 **Under editing of the queried document.** The region resolves through `Σ.M(d)`, so
 editing `d`'s arrangement moves the image, and the answer tracks it — present-tense,
@@ -493,16 +492,13 @@ reordering — each acting as a faithful tracker would:
   content-identity answer returned here is unaffected.)
 
 The user-facing *insert* and *delete* that **shift** content are not these atomic movers;
-to range over them the analysis widens its vocabulary beyond ASN-0047's atomic transitions
-to ASN-0082's displacement primitives, taken in their own right, not as `K.μ` composites.
-The foundation realises them as displacements (I3 PostInsertionShift, D-SHIFT, ASN-0082):
-an insertion at `p` of width `n` carries the content at every position `v ≥ p` up to
-`shift(v, n)` (I3), and a deletion carries the content lying above the removed span back
-down (D-SHIFT). Either way content is *displaced through* `d`'s V-order rather than permuted
-over a fixed set of positions, so a shift is no domain-preserving `K.μ~` reorder — its net
-effect grows or shrinks the domain — and its effect on the image is read off the
-displacement directly, not through F-IMG-SWING (whose `K.μ~` precondition a shift does not
-meet). Fix the region `W`. The displacement moves content through `W`'s fixed positions:
+ranging over them widens the vocabulary beyond ASN-0047's atomic transitions to ASN-0082's
+displacement primitives, taken in their own right. The foundation realises them as
+displacements (I3 PostInsertionShift, D-SHIFT, ASN-0082): an insertion at `p` of width `n`
+carries the content at every position `v ≥ p` up to `shift(v, n)` (I3), and a deletion
+carries the content lying above the removed span back down (D-SHIFT). Content is *displaced
+through* `d`'s V-order, and its effect on the image is read off the displacement directly.
+Fix the region `W`. The displacement moves content through `W`'s fixed positions:
 content the region held is carried off to a displaced position — possibly out of `W` —
 while the positions it vacates take on content displaced in from an adjacent position (from
 lower positions under an insert, from higher ones under a delete — the adjacent motion the
@@ -716,8 +712,8 @@ and taking with it any pair it solely bore).
 | RE-SEL | Discovery-side selection — `sel(W, d, Σ) = findlinks_V(W, d, Σ) ∩ addressable(Σ)` (F-V, ASN-0127): the contributing links are the addressable links discoverable through the region, so the operation is discovery-anchored — present-tense, non-monotone, arrangement-mediated (D-NONMONO, D-ZERO, ASN-0127), not existence-anchored (fixed-`I`, historical, monotone) | introduced |
 | RE-TRANS | Transclusion blindness — surfacing is by content identity, independent of the link's home and of the covered content's origin (LP16, ASN-0098): a link reaching the region only through transcluded content is surfaced identically to one reaching native content, and each returned span describes the content's permanent home identity, not the borrowing V-position | introduced |
 | RE-IDENT | Content-identity invariance — each surfaced endset's coverage is permanent (L12, ASN-0043; LP3, ASN-0098), so the content-level answer (which I-addresses each surfaced endset anchors to) is arrangement-independent, even though the *selection* of which endsets are surfaced is arrangement-mediated | introduced |
-| RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (RE-IDENT). Over the *combined* vocabulary — ASN-0047's atomic movers together with ASN-0082's user-facing shift primitives (the latter taken as displacement primitives, not `K.μ` composites) — only the content-subspace movers on `d` — extension `K.μ⁺` (image grows weakly, F-IMG-MONO), contraction `K.μ⁻` (image shrinks weakly, F-IMG-CONTR), reordering `K.μ~` (image swings, F-IMG-SWING) — together with `K.λ` (emission may add a pair, retraction removes — RE-RET) and the shift-based insert/delete (content displaced through the region, image read off the displacement directly, I3/D-SHIFT, ASN-0082) can move the answer; every other transition leaves it fixed, including the link-subspace edit `K.μ⁺_L` (image fixed under `W ⊆ s_C`). | introduced |
-| RE-RET | Retraction stability — a retraction is a `K.λ` step (Nullify/Emit_K, ASN-0086) that marks `ℓ` nullified (removing it from `addressable(Σ)` permanently, R6a) and emits a fresh retraction link `b` with endsets `(∅, {(ℓ, δ(1, #ℓ))}, Θ)` (`Θ` the retraction type, ASN-0086). The emitter `b` is itself addressable by the general fresh-`K.λ`-output addressability fact (its to-set targets `ℓ ≠ b`, so `b` does not retract its own emitter address), and its nullifying reach is confined to `ℓ` alone (R-Scope, R0a, ASN-0086). Under the standing discipline and the net-removal-only hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅`, a pair `(i, e)` that `ℓ` bore drops **iff `ℓ` was its sole addressable bearer in `Σ`** (the answer deduplicating and discarding identity, RE-UNIT). With the discipline assumed, the `coverage(Θ)` hypothesis is the sole *remaining* exception — a type-slot match against content. | introduced |
+| RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (RE-IDENT). Over the combined vocabulary of ASN-0047's atomic arrangement movers and ASN-0082's shift-based insert/delete, only the content-subspace movers on `d` (extension, contraction, reordering, and the shifts) together with `K.λ` emission and retraction (RE-RET) can move the answer; every other transition — including the link-subspace edit `K.μ⁺_L` under `W ⊆ s_C` — leaves it fixed. | introduced |
+| RE-RET | Retraction stability — withdrawing a link `ℓ` is a `K.λ` step (Nullify, ASN-0086) that marks `ℓ` nullified, removing it from `addressable(Σ)` permanently (R6a). Under the standing unit-depth discipline and the net-removal-only hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅` (`Θ` the retraction type), a pair `(i, e)` that `ℓ` bore drops **iff `ℓ` was its sole addressable bearer in `Σ`** — the answer deduplicating and discarding identity (RE-UNIT). The `coverage(Θ)` hypothesis is the sole remaining exception, a type-slot match against content. | introduced |
 | RE-CWP | Contraction-stability weakest precondition — for a `K.μ⁻[d, R]` step, `RE(W, d, ·) = RE(W, d, Σ)` iff `enabled(K.μ⁻[d, R]) ∧ (∀ (i, e) ∈ Avail(Σ) : coverage(e) ∩ Δ ≠ ∅ ⟹ coverage(e) ∩ I_R ≠ ∅)`, where `I_R = {Σ.M(d)(v) : v ∈ W ∩ R}` (D-CWP bridge, ASN-0127), `Δ = image(W, d, Σ) ∖ I_R`, and `Avail(Σ)` is the region-independent pool of addressable slot-endsets. `RE` is monotone-decreasing under contraction, and `R = ∅` collapses it to `RE(W, d, Σ) = ∅`. | introduced |
 
 ## Open Questions
