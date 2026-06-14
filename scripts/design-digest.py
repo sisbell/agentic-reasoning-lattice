@@ -49,13 +49,27 @@ def _note_paths(asn: int):
 
 
 def _highest_review(review_dir: Path) -> int:
-    """Largest K among existing review-K.md, or 0 if none — for resume."""
+    """Largest K among existing review-K.md, or 0 if none."""
     n = 0
     for p in review_dir.glob("review-*.md"):
         m = re.match(r"review-(\d+)\.md$", p.name)
         if m:
             n = max(n, int(m.group(1)))
     return n
+
+
+def _last_revised(label: str) -> int:
+    """Highest review-K whose revise was committed (per git log), else 0.
+    A cycle is complete only when its revise lands — so if a review was
+    committed but its revise failed (interrupted run), resume redoes that
+    cycle's review+revise rather than skipping it and losing the fixes."""
+    design = f"_design/designs/{label}/design.md"
+    r = subprocess.run(["git", "log", "--format=%s", "--", design],
+                       cwd=ROOT, capture_output=True, text=True)
+    ks = [int(m.group(1))
+          for line in r.stdout.splitlines()
+          for m in [re.search(r"apply review-(\d+)", line)] if m]
+    return max(ks) if ks else 0
 
 
 def _evidence(asn: int) -> str:
@@ -66,18 +80,28 @@ def _evidence(asn: int) -> str:
     return "\n\n".join(f.read_text().strip() for f in files) if files else ""
 
 
-def _call(prompt_name: str, subs: dict, effort: str, model: str) -> str:
+def _call(prompt_name: str, subs: dict, effort: str, model: str,
+          retries: int = 4) -> str:
     tmpl = (PROMPTS / f"{prompt_name}.md").read_text()
     for k, v in subs.items():
         tmpl = tmpl.replace("{{" + k + "}}", v)
-    r = invoke_claude(tmpl, model=model, effort=effort, output_format="json")
-    if not r.ok or not r.text.strip():
-        sys.exit(f"error: {prompt_name} returned empty/failed "
-                 f"(ok={r.ok}, {len(r.text)} chars)")
-    print(f"  [{prompt_name}] [{r.elapsed:.0f}s] "
-          f"in:{r.usage['input_tokens']} out:{r.usage['output_tokens']} "
-          f"${r.cost:.4f}", file=sys.stderr)
-    return r.text.strip()
+    last = ""
+    for attempt in range(1, retries + 1):
+        r = invoke_claude(tmpl, model=model, effort=effort, output_format="json")
+        if r.ok and r.text.strip():
+            print(f"  [{prompt_name}] [{r.elapsed:.0f}s] "
+                  f"in:{r.usage['input_tokens']} out:{r.usage['output_tokens']} "
+                  f"${r.cost:.4f}", file=sys.stderr)
+            return r.text.strip()
+        last = f"ok={r.ok}, {len(r.text)} chars"
+        if attempt < retries:
+            wait = 15 * attempt
+            print(f"  [{prompt_name}] attempt {attempt}/{retries} failed "
+                  f"({last}) — retrying in {wait}s "
+                  f"(work so far is committed; safe to resume)", file=sys.stderr)
+            time.sleep(wait)
+    sys.exit(f"error: {prompt_name} failed after {retries} attempts — {last}. "
+             f"Re-run to resume from the last committed stage.")
 
 
 _COMMIT_LOCK = ROOT / "_workspace" / "design-digest-commit.lock"
@@ -174,7 +198,11 @@ def main():
     else:
         digest = None
         resumed = False
-    done = _highest_review(review_dir)
+    # Resume point = last cycle whose revise committed (so an interrupted
+    # revise is redone, not skipped). Without commits, fall back to review
+    # files. A committed-but-unrevised review will be regenerated and
+    # revised on resume.
+    done = _last_revised(label) if commit else _highest_review(review_dir)
 
     print(f"[design-digest] {label} ({title}) | note {len(note)//1024}KB | "
           f"evidence answers: {ev_n} | model={args.model} effort={args.effort} | "
