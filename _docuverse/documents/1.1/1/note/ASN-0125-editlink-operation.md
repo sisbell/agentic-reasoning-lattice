@@ -62,13 +62,6 @@ the designated retraction class `[R]` with `nullified(Σ)` and the active
 subsets `A_K^Σ`, the total emission-address function `a_emit(Σ, d)`, the
 operations `Emit_K`, `Observe_K` (views `hist`/`oper`), and `Nullify`.
 
-**Layer transfer.** ASN-0086's results depend only on the link store `Σ.L` and
-the document set `dom(M)`; both evolve identically under the full ASN-0047
-vocabulary and under ASN-0086's `{K.σ, K.α, K.λ}` — the link store changes only
-by `K.λ`'s fresh appends (Vocabulary fact V below), and `dom(M)` is monotone (M1,
-with `K.δ`'s document case playing `K.σ`'s role) — so those results hold at
-full-vocabulary reachable states, over which we read "layer-reachable."
-
 **Vocabulary fact V (the L-frame inventory).** By inspection of the ASN-0047
 transition contracts: every elementary transition other than `K.λ` carries the
 frame clause `L' = L` (`K.α`: `L' = L`; `K.δ`: `L' = L`; amended `K.μ⁺`,
@@ -78,6 +71,13 @@ decomposition). The one transition that writes the link store,
 that forces `ℓ_f ∉ dom(L)` (ASN-0093, FirstEmissionFreshness and
 SubsequentEmissionFreshness). The link store admits exactly one kind of change:
 extension at a fresh key.
+
+**Layer transfer.** ASN-0086's results depend only on the link store `Σ.L` and
+the document set `dom(M)`; both evolve identically under the full ASN-0047
+vocabulary and under ASN-0086's `{K.σ, K.α, K.λ}` — the link store changes only
+by `K.λ`'s fresh appends (Vocabulary fact V), and `dom(M)` is monotone (M1,
+with `K.δ`'s document case playing `K.σ`'s role) — so those results hold at
+full-vocabulary reachable states, over which we read "layer-reachable."
 
 **K.λ-only composites are valid.** Both operations below are sequences of `K.λ`
 steps alone, and a `K.λ`-only sequence is a valid ASN-0047 composite: its
@@ -500,11 +500,8 @@ predicate whose witnesses are drawn from the editlink pre-state `Σ`:
 The `[K_sup]` clause is the claim schema of Df-DISC(ii); its leading conjunct
 excludes a retraction-class successor, because retraction is `Nullify`'s office
 (ASN-0086) and editlink is supersession — a new *reading* claimed to supersede
-the old. The schema clause's `|ℓ'| = 3` guard, the forward transfer of its
-pre-state witnesses across the emission, and its vacuity in the unguarded case
-are the load-bearing steps of discipline preservation, discharged at EL7(vi).
-`assert_sup`'s precondition is discharged at `Σ₁`: `a' ∈ dom(Σ₁.L)` by the
-emission, `a ∈ dom(Σ₁.L)` by monotonicity, `a' ≠ a` by freshness,
+the old. `assert_sup`'s precondition is discharged at `Σ₁`: `a' ∈ dom(Σ₁.L)`
+by the emission, `a ∈ dom(Σ₁.L)` by monotonicity, `a' ≠ a` by freshness,
 `d_a ∈ dom(Σ₁.M)` by M1.
 
 **EL7 (EditContract).** When invoked at a reachable `Σ` satisfying its
@@ -809,11 +806,7 @@ the operative sinks reachable from it:
 > `current(y, Σ) = {z ∈ reach_o(y, Σ) : ¬(E w :: (z, w) ∈ succ_o(Σ))}`
 
 The sink test `¬(E w :: (z, w) ∈ succ_o(Σ))` reads only the *operative claims*
-out of `z` — and `succ_o`'s sole activity filter is on *claim* addresses
-(`addr(e) ∉ nullified(Σ)`, Df-SUCC), never on the endpoint links an `e`
-relates. The closure and the sink test therefore consult no member link's own
-activity: `current` is *activity-agnostic on its members*, a property made
-precise and consequential in EL14(e).
+out of `z`.
 
 **EL14 (CurrencyRelational).** `current` is a total, computable,
 *set-valued* query, and the set is irreducibly a set:
