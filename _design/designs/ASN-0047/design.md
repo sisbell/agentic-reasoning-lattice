@@ -1,0 +1,86 @@
+# Design Digest — ASN-0047: Transition Model
+
+## What this is
+
+This note defines the **mutation model** for the entire substrate: the complete, minimal set of primitive state changes (allocate content, allocate link, create entity, extend/contract/reorder an arrangement, record provenance) and a classification of all system state into three permanence layers. It is the write-path contract — the spec from which every higher-level command (insert, delete, copy, version, link) is composed and against which durability, ordering, and recovery are designed.
+
+## Design commitments
+
+These are locked in for the whole system; downstream design may not violate them.
+
+- **State is exactly five components: `Σ = (C, L, E, M, R)`** — content store, link store, entity set, per-document arrangements, provenance relation. This factoring is load-bearing, not cosmetic: each component has its own permanence contract and the proofs depend on the partition.
+- **The three-layer mutability hierarchy is absolute (P3, the central theorem).** The *existential* layer (C, L, E) and the *historical* layer (R) are append-only with immutable entries; **only M, the presentational layer, can lose information** (contract or reorder). Every destructive change in the system is confined to arrangements. This is *forced* — it is the note's headline result.
+- **Identity is by origin (the allocated address), never by value.** A content or link value, once stored at its address, is fixed forever; there is no overwrite path. Two equal byte sequences allocated separately are distinct. This is *forced* and it means the stores are origin-addressed, **not** content-addressed — value-level dedup does not happen and is not wanted; sharing is by reference (transclusion).
+- **Addresses are never reused or reassigned.** Allocation is monotone; deleting content from an arrangement frees nothing. "Permanent record can only grow."
+- **Provenance records history and is allowed to go stale.** `R` only grows; `(a,d) ∈ R` means "d *once* contained a" and is never retracted. `Contains_C(Σ) ⊆ R`, but the converse fails — stale entries are the system's historical memory, *by design*, not error.
+- **The address space is one hierarchical tree rooted at a single bootstrap node `n₀ = [1]`.** Entities stratify node → account → document; a child cannot exist without its parent (P8); every node descends from `n₀` (NodeLineage). Node addresses are minted *outside* this model, at the network-provisioning boundary (NodeBaptism axiom).
+- **Exactly two arrangement subspaces, each a dense gapless sequence.** Content (`s_C`) and link (`s_L`) subspaces; within each, V-positions are contiguous from a fixed minimum (D-SEQ★). Having two distinct subspaces is forced; the specific identifiers (1, 2) are conventional.
+- **Transclusion is asymmetric and this asymmetry is forced.** Content may be shared freely — the same I-address may sit at many V-positions across many documents (`K.μ⁺` permits `origin(a) ≠ d`). A **link may only be arranged in its home document** (`K.μ⁺_L` requires `origin(ℓ) = d`). The byte stream admits transclusion; links do not.
+- **Allocation requires placement requires provenance, enforced per-composite (J0/J1★/J1'★).** You cannot durably allocate content without placing it in some arrangement and recording its provenance in the same composite transition. These couplings bind the composite's *endpoints*, not each atomic step.
+- **Transitions are atomic and totally ordered; composites are sequences with observable intermediate states.** Per-state invariants hold at every atomic step; the coupling-dependent properties (P4★, P4a, P7a) may break mid-composite and are restored at the boundary. Recovery and isolation must respect this two-tier scoping.
+- **No split, no merge, no interior renumber as primitives.** The seven elementary transitions suffice; document-level operations compose from them (Fork = `K.δ + K.μ⁺ + K.ρ`). K.μ⁻ models **suffix removal only** — a simplifying commitment, not a forced one (see Decisions).
+
+## What must be built
+
+- **A content store** — append-only map address→value; no delete, no overwrite; recovered by replay.
+- **A link store** — append-only map address→link (a fixed triple of endsets); same permanence contract as content.
+- **An entity registry** — append-only membership for nodes/accounts/documents, with a parent-exists check at creation and level classification by address shape.
+- **An allocator** — mints fresh addresses *under a parent prefix*: content and link sub-allocators per document, version sub-allocator per document, document sub-allocator per account, account sub-allocator per node. Monotone, collision-free, never reusing.
+- **Per-document arrangements** — V-position→I-address maps supporting three operations on the presentational layer: extend (add mappings), contract (remove a suffix), reorder (permute), maintained separately for the content and link subspaces, each kept dense and sequential.
+- **A provenance index** — append-only relation content↔document answering "which documents have *ever* contained address `a`?"; never pruned.
+- **A composite executor** — sequences atomic steps, checks each step's precondition at its intermediate state, enforces the J-couplings at the boundary, and presents the composite atomically.
+- **Two query paths** — *current containment* (what a document displays now, derived from M) and *historical containment* (what it ever contained, served from R).
+
+## Implementation approaches
+
+**Content store C and link store L — journaling + replay.**
+The proven approach is an **append-only journal recovered by replay on load** — exactly this repo's `links.jsonl` pattern and Green's permascroll/Istream ("append-only storage system," confirmed in evidence). Because values are never overwritten, the journal is trivially the source of truth; the in-memory address→value lookup is a **hint** (a recomputable index), not authoritative state — rebuild it by replay on a miss or at startup. Key by the allocated tumbler, not by a value hash: this is origin-addressed storage, so use an ordered map / B-tree keyed by address (which also gives you prefix-range scans for free, used by the allocator and by reverse lookups). *Tradeoff:* replay cost grows without bound; bound recovery time with periodic **snapshots of the index plus journal truncation**. Green took the journal but skipped snapshot/fsync — its known crash-atomicity gap; do not inherit that omission.
+
+**Entity registry E — fold into the address tree, don't duplicate it.**
+The sharp Lampson move here, confirmed by the Green evidence: **the address tree *is* the registry** — existence equals presence in the tree, with no separate "allocated nodes" table and no global next-counter. A unified tree (granfilade-style) gives one allocator and one recovery path for entities, content, and links alike. The only thing you must actively compute is the **parent-exists check** (P8) at creation. *Tradeoff:* one unified store (simplest, matches Green, single recovery path) versus separate typed stores per component (cleaner typing, but duplicates the allocation and recovery machinery three times). Prefer unified unless type-safety pressure is high.
+
+**Allocator — stateless query-and-increment, with frontiers as optional hints.**
+Green's allocator is *stateless*: the next address under a prefix is `max-existing-under-prefix + 1`, recomputed by scanning the tree each time — no persistent counter, no per-document allocator record (evidence is emphatic and consistent across versions, links, and content). This is the cheapest correct mechanism and it makes freshness a structural consequence of monotone allocation. If write rate makes the scan costly, **cache a per-sub-allocator frontier and recompute it from the tree on a miss** — a textbook hint, never authoritative. Uniqueness needs *active* enforcement of single-writer ordering (below). *Tradeoff:* the stateless scan is simplest and proven; cached frontiers buy speed at the cost of a recomputable invariant to maintain.
+
+**Arrangements M(d) — persistent, structurally-shared ordered maps.**
+This is the only mutable layer, and it is where versioning and fork get cheap. Represent each document's arrangement as a **persistent (structurally-shared) ordered map** per subspace (the `im` crate's ordered map / B-tree). Structural sharing makes **fork an O(1) structural copy** (J4's content transclusion = share the source's content-subspace map) and gives **snapshot isolation** for free — old arrangements remain reconstructable, which is precisely Nelson's "every previous arrangement remains reconstructable." Keying by the V-position tumbler keeps content < link ordering automatic and makes D-SEQ★'s contiguity, suffix-removal (K.μ⁻), and range-reorder (K.μ~) natural ordered-map operations. *Tradeoff:* Green's enfilade/POOM (a 2D B-tree with relative displacement and correspondence-run mechanics, S8★) is proven for very large documents and supports sublinear span operations; a persistent ordered map is far simpler and adequate until document size forces the issue. Start with the ordered map; reach for enfilade-style structure only when span sizes demand it. Note the spec's reorder is *specified* as delete-then-rebuild but may be *implemented* as an in-place permutation, provided link-subspace positions stay fixed and the content range is preserved (K.μ~-FIX, K.μ~-RANGE).
+
+**Provenance R — a write-only reverse index, and the one place you truly need authoritative duplicate state.**
+Green's spanfilade is exactly this: a permanently-growing reverse index, never trimmed (evidence: "write-only," "find_documents returns historically accurate results, not current state"). Maintain `R` as an **append-only provenance journal** with an in-memory index keyed by I-address → documents. The Lampson-discipline point worth flagging loudly: most indexes are *hints* recomputable from primary state, **but R is not** — once K.μ⁻ removes content from M, the arrangement no longer witnesses the past containment, so `R` is the *only* surviving record. It is authoritative history, must be durable, and must be journaled with the same care as C and L. Write `(a,d)` whenever a placement introduces a content-subspace-range-new address (J1★).
+
+**Composite atomicity — single-writer run-to-completion, plus a real commit boundary.**
+Green achieves intra-composite atomicity structurally: a single-threaded, run-to-completion event loop means no other operation observes a half-built composite — no locks, no MVCC (evidence confirms full isolation, zero crash-safety). Adopt the single-writer serialization (it directly realizes the SequentialAtomicTransitions axiom and is the simplest thing that honors it), but **fix the crash gap Green left**: treat a composite's journal records as a batch and make them visible only after the batch is durably committed (a commit marker, or write-fsync-then-acknowledge). Then the J-couplings double as your **recovery contract** — on replay, an allocated-but-unplaced address (J0 violation) or an unrecorded placement (J1★ violation) signals a torn composite to discard; never acknowledge a composite until its whole batch is durable, so torn composites never become visible. *Tradeoff:* global single-writer is simplest and matches Green; per-home-document writers (below) buy concurrency at the cost of coordinating the node-baptism boundary to hand out disjoint prefixes.
+
+**Querying.**
+Serve *current containment* by deriving it from M on demand — it is a pure projection of present arrangements, a cheap recomputable hint, not worth materializing unless profiling says so. Serve *historical containment* from the authoritative R index.
+
+## Guarantees to uphold
+
+- **Permanence and value-immutability of C, L, E, R** — *by construction*: expose no delete/overwrite API on these stores; the journal-append shape enforces it. (P0, L12, P1, P2.)
+- **Address uniqueness and freshness** — *active enforcement*: monotone allocation is necessary but not sufficient; it holds only under serialized writes (single global writer, or per-home-document writers over disjoint prefixes). This is the one place a concurrency bug silently corrupts identity.
+- **Hierarchy well-formedness (parent exists)** — *active*: precondition check at entity creation (P8).
+- **Subspace referential integrity (content→C, link→L)** — *active*: precondition at placement (S3★); routes each V-position to the store matching its subspace.
+- **Link ownership (only home links in the link subspace)** — *active*: `origin(ℓ)=d` precondition at link placement (CL-OWN); this is what forbids link transclusion structurally.
+- **Density / contiguity / sequential order of subspaces** — *by construction* if arrangements use a sequential/ordered structure with suffix-only contraction; becomes *active* (and harder) the moment interior deletion is allowed.
+- **Provenance monotonicity and staleness-tolerance** — *by construction*: append-only R, plus query paths that never conflate "ever contained" with "currently contains."
+- **Coupling (allocation ⇒ placement ⇒ provenance)** — *active*: enforced at the composite boundary and re-checked by the recovery routine; the load-bearing durability invariant.
+
+## How it fits
+
+- **Leans on:** Tumbler Algebra (ASN-0034) for the address arithmetic, the `inc` allocation primitive, and global uniqueness; the Strand Model (ASN-0036) for C, M, and the content invariants it generalizes (P0 subsumes S0/S1); the Link Model (ASN-0043) for link structure and endsets; Tumbler Fields (ASN-0045) for level classification; and ASN-0093 for the sequential-atomic-transition axiom, fixed subspace identifiers, and the sub-allocator freshness lemmas it inherits.
+- **Takes as given from outside the docuverse:** node baptism — the network-provisioning boundary mints node addresses with freshness and bootstrap lineage; this note never allocates a node.
+- **Hands to:** the operation-layer ASNs (insert/delete/copy/version/link commands) compose their semantics from these seven primitives and the Fork composite; the consistency/isolation model (ASN-0134) builds on the atomic-transition and composite-boundary scoping defined here; the protocols/stack layer sits above all of it. This note is the substrate those layers mutate.
+
+## Decisions for the builder
+
+These are genuinely open for whoever implements — distinct from the note's own spec-level open questions.
+
+- **Unified address tree vs. separate typed stores.** One granfilade-style tree (registry + allocator + content + links, single recovery path, matches Green) versus separate stores per component (cleaner types, triplicated machinery). Recommend unified unless typing pressure is high.
+- **Allocation state.** Stateless query-and-increment (simplest, proven) versus cached per-sub-allocator frontiers as recomputable hints (faster under load). Pick based on write rate.
+- **Concurrency granularity.** Global single-writer (simplest, Green) versus per-home-document writers exploiting disjoint address prefixes (concurrency, but you must arrange node baptism to guarantee prefix disjointness, and the note's open questions flag concurrent allocation under one home document as unresolved).
+- **Arrangement representation.** Persistent ordered map per subspace (recommended default) versus persistent vector per subspace (cheap suffix-truncate, exact fit to D-SEQ★) versus enfilade-style 2D structure (only if documents are huge).
+- **Crash-atomicity mechanism.** Batch-with-commit-marker versus write-fsync-then-acknowledge. Green punted entirely; the repo's journal+flush discipline is the model to follow. Non-negotiable that you pick one.
+- **Snapshot/checkpoint cadence and journal truncation policy** — the recovery-time-vs-replay-cost knob. Green had none; you must choose.
+- **Materialize R's reverse index eagerly at write, or rebuild lazily.** R's *journal* must be durable regardless; the *index* over it is a rebuildable hint.
+- **Interior arrangement deletion.** The spec models suffix-only contraction, which keeps subspaces gapless cheaply. Real interior withdrawal (Green's `DELETEVSPAN`) requires either leaving gaps (which violates the spec's strengthened gapless D-SEQ★) or compacting-and-renumbering surviving positions (unspecified here). If you need interior delete, you are designing the renumbering discipline yourself — the note explicitly leaves this open.
+- **Link-triple representation and empty-type-endset policy.** Arity is fixed at three (F, G, Θ); decide whether to admit an empty type-endset. Green silently accepts it and produces a "phantom" link discoverable on some paths but not others — a validation policy you should set deliberately rather than inherit by accident.
