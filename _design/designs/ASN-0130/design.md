@@ -1,0 +1,103 @@
+## What this is
+
+The **predicate-definition subsystem**: how the meta-level PL terms of ASN-0129 acquire a first-class existence *inside* the docuverse. A predicate definition is stored as ordinary immutable content — a contiguous run of I-addresses holding a serialized term — then registered and validated by a classifier tuple, referenced by address, versioned by supersession, and certified by further tuples. The predicate language becomes self-hosting on the same content-and-link substrate it queries.
+
+## Design commitments
+
+These are load-bearing; *forced* means downstream design cannot violate it, *conventional* means it could have gone another way.
+
+- **Definitions are content; identity is by origin address, never by value.** *Forced.* A definition *is* a content run on an origin's allocation chain, named by its start address. Byte-identical terms at two runs are two distinct definitions. Term-equality is an extensional/open-theory question deliberately kept *out* of identity — so: no value-dedup, no content-hash-as-identity.
+- **Definitions are immutable; the only update is supersession.** *Forced* (inherited from the content substrate). No edit-in-place path may exist; "update" = register a successor + emit `supersedes`.
+- **The encoding is self-delimiting (prefix-free) and decidable; its domain is syntax, not typing.** *Forced as a property* — the concrete byte format is left open. Parse-validity, the run's extent, the recorded parameter context, the body, and its reference addresses are all **content-intrinsic**: fixed at allocation, identical against every state. Typing is explicitly *not* content-intrinsic.
+- **Two stratified layers: parse (content-intrinsic) vs type (registration-relative).** *Forced.* A reference-bearing body's well-typing needs its referents' signatures, which depend on registration order. This is the *one* read the otherwise state-free typing pass acquires.
+- **References resolve only to already-registered definitions ⇒ the reference graph is a DAG by construction.** *Forced.* Acyclicity and expansion termination hold with **no cycle check ever run**; mutual recursion is *unconstructible*, not merely forbidden.
+- **Registration is validate-then-emit; any failure emits nothing.** *Forced.* Validation runs in full on every call (hit or miss, gate-first). On failure: no step, no tuple, no address — even when an equal active tuple exists. Enforce-by-rejection.
+- **A registration tuple permanently proves *deposit-time* validity — and permanence divides.** *Forced and subtle.* Parse-validity and well-typedness are permanent (content/signature-intrinsic, cannot go stale). The "all references registered" fact is *only* a deposit-time endorsement — de-registering a referent falsifies it for a standing definition with **no content change at all**.
+- **Evaluation keys on *ever*-registration, not active registration.** *Forced.* Once registered, a definition resolves/expands/evaluates forever — after de-registration, after supersession. New *references* re-check active status; evaluation does not.
+- **Content is dereferenced only at the operation surface, never inside evaluation.** *Forced boundary.* Registration, resolution, and expansion read content; the ASN-0129 evaluator runs on the resulting pure term touching only structural state. A clean module seam falls exactly here.
+- **Expansion is determinate — a pure function of immutable content.** *Forced.* The same address yields the same *concrete* expanded term (not merely α-equivalent) at every state. The renaming order is fully specified and is *itself part of the contract*, not an implementation choice.
+- **The two classifier classes reuse the shipped tuple machinery unchanged, and are surface-sealed.** *Forced/conventional.* `pdef` (Multi) and `pd_stable` (Unary) inherit dedup, retraction, and slices from ASN-0086/0128; only `register_pred`/`certify_pd_stable` may emit them.
+- **Certification certifies the *expansion*, only when view-independent, and is sound-but-incomplete.** *Forced.* Uncertified means *unknown*, not unstable.
+
+## What must be built
+
+Described functionally — what each does.
+
+- **A serializer + self-delimiting parser** for signed terms: encode a parameter context plus a body (grammar extended with applied references, no view) injectively to a content-value sequence; parse back from a start address, determining the run's extent from content alone. Must reserve an expansion-name namespace disjoint from any author name.
+- **The registration operation** (`register_pred`): given a candidate run, run validation in order — non-empty/finite; resident and chain-contiguous; parse-valid consuming exactly the extent; well-typed; every reference *actively* registered — then emit the `pdef` tuple or reject with nothing.
+- **A signature oracle** (`sig`): for an ever-registered address, return its recorded parameter context and the result sort derived at *first* registration; stable and permanent once defined.
+- **A type-checker pass** (WT + WT-ref): a syntax-directed walk typing a body under its context, consulting `sig(r)` at each reference node. Finite, decidable, one lookup per reference.
+- **A resolver** (address → signed term): read content along the origin chain, feed the self-delimiting parse, yield context + body. Consults no tuple or slice.
+- **An expander** (`expand`): a DAG-walk that inlines each reference's expansion with arguments substituted, performing capture-avoiding renaming with reserved names in the *specified* deterministic order. Output is a pure, reference-free, well-typed term.
+- **An evaluation binding**: precondition-check ever-registration, build the argument environment, expand, hand the pure term to the ASN-0129 evaluator at the caller-supplied `(args, view, state)`.
+- **A versioning facility** over the shipped `supersedes`/`tip` machinery: register-successor-then-supersede; lineage-head resolution (mostly *used*, not built).
+- **The certification operation** (`certify_pd_stable`): validate — Boolean result sort; actively registered; view-independent expansion; ST⁺ membership — then emit `pd_stable` or reject.
+- **An ST⁺ classifier**: a *separate* meta-level syntax-directed pass over the *expanded* term applying ASN-0129's stability rules under the bound-constant parameter reading. Distinct from the type-checker.
+- **A view-independence scanner**: the syntactic check (no view-parameterized constituent, no view-rewritten collection atom), shared by certification and reusable standalone.
+- **Catalog wiring**: register the two classes with their shapes and seal their entry points; expose the one-quantifier "is-certified" lint.
+
+## Implementation approaches
+
+**Storing the artifact — reuse the content path; do not invent a store.** A definition is content, so write the serialized term through the *same* append-only content-write path as ordinary text; the run of addresses is the definition. In this repo's terms: the term's bytes go into the content journal, the `pdef`/`pd_stable` tuples append to the `links.jsonl` audit journal, and the start-address index is a `paths.json`-style registry rebuilt by replay. Green proves the shape: a single insertion mints one uninterrupted I-address run (one allocation, then a linear cursor advance), and each document's content lives in a disjoint subspace. *Default:* an **atomic batch content-write** — hand the whole serialized term to one insertion that mints the *n* consecutive addresses — which makes condition (i)'s chain-contiguity hold by construction. Heed one Green hazard: there, a *link* allocation interleaved between two same-document text inserts splits the run (link atoms land in a different subspace and advance the frontier). The abstract substrate avoids this (its link chain is disjoint from its content chain), but an implementer who co-allocates must keep term-writing off the link-allocation path or tolerate a split run that registration will then reject.
+
+**The encoding — pick the simplest self-delimiting framing.** The byte format is explicitly a substrate parameter; the only hard requirements are injective, prefix-free, decidable.
+- *Length-prefixed (TLV) framing* — write the artifact's total extent up front (and length-prefix sub-structures). Self-delimiting falls out trivially; verification of "consumes exactly the extent" is a cheap comparison. **Pick this by default** — it is the simplest thing that honors PR-ENC-uniq.
+- *Arity-directed / prefix-free grammar* — no stored length; the term's own structure (known arities, Polish form) bounds the parse. Saves the redundant length but the parser must walk the whole tree to find the end, and prefix-freeness must be proven of the grammar. Choose only if you want the bytes minimal and are confident in the grammar.
+- *Canonicalization is **not** required.* Because identity is by address, two encodings of "the same" term are simply two definitions; you need a deterministic *parse*, not a canonical *encode*. Don't pay for canonical forms unless a builder separately wants value-level comparison.
+- Reserve the expansion-name supply by carving out a name region (e.g., a reserved index prefix) the encoder refuses for author names.
+
+**Registration validation — gate cheaply, then type.** Order the checks cheap-first as the note states: set/residence/contiguity are point checks against the content store; the parse is one linear pass; typing and the reference-active checks come last. The two interesting reads:
+- *Reference-active (iv)* — a **point lookup by start address** into the active `pdef` slice. The note proves coverage at distinct starts is exact, so this is a plain keyed-map hit, not a subtree/range search. Green's spanfilade is the proven index for I-address-keyed tuple lookup, but our query is strictly simpler than its span-intersection search — a flat map suffices. *Pick the cheapest mechanism.*
+- *Signatures for typing (iii)* — `sig(r)`. Two stances:
+  - **Recompute on demand** (re-resolve + re-type down the reference DAG). Pure, stateless, always correct by determinism. Cost: O(sub-DAG) per check, with diamonds re-walked.
+  - **Memoize `sig` as a hint** (address → context+result-sort, filled at first registration). Since `sig` is *proven* never to change once defined, this is a sound pure memo, recoverable on a miss by recompute/replay — the textbook Lampson hint. **Default to the memo**, keep recompute as the recovery/verify path. Crucially the memo is not authoritative state: never persist it as truth, always reconstructable from content + registration order.
+
+**Expansion — watch the diamond blowup.** The walk itself is mechanical; the cost is duplication.
+- *Naive recursive inlining* re-expands a shared referent at every occurrence — exponential on diamond DAGs.
+- *Memoize each referent's expansion* (a recomputable hint, sound by determinism), then apply the fixed fresh-renaming + substitution at each splice. Avoids re-expanding shared referents.
+- *Represent the expanded term with structural sharing* — the `im` crate's persistent trees let logically-duplicated subterms share storage, keeping memory bounded on diamonds and making the memo near-free. If the ASN-0129 evaluator can consume a shared representation, keep sharing all the way to evaluation; otherwise materialize lazily, only when the evaluator forces a subterm. **Recommendation:** memoized + structurally-shared expansion, materialized on demand. The renaming order (parameters in signature order, then binders depth-first left-to-right; least-indexed unused names) is the *contract* — implement it exactly; it is the one thing two independent implementations must agree on bit-for-bit.
+
+**Evaluation — caller-supplied state, audit-only reads.** `evaluate` takes the state as an argument, exactly as Green's link retrieval takes its query state from the caller per call and searches globally by I-address, with historical/superseded versions queryable on equal footing. The ever-registration precondition is a global **audit-slice** point lookup by start address (the audit history is never pruned, so "ever registered" is permanent). This yields a clean read/write split worth designing around: **evaluation needs only the audit slice + immutable content** — both permanent — so resolved/expanded terms and evaluation results are cacheable as hard hints; the **active slice is consulted only at registration/certification** to gate *new* endorsements. A de-registered or superseded definition therefore evaluates identically to a current one (mirroring Green's `find_links(source) = find_links(version)`).
+
+**Certification — the one place with real algorithmic latitude.** The note commits the certificate's *meaning, contract, and permanence*, not the checking algorithm (soundness is inherited from ASN-0129's open question). Build the ST⁺ classifier as a *separate* finite syntax-directed pass over the *expanded* term, treating each parameter as a bound constant and extending the aggregate-threshold position to bound parameters. Because uncertified means "unknown," a **conservative** classifier (certifying less) is fully legal and sound — start conservative and widen as you trust the rules. The view-independence scanner is the same finite scan as the type pass; share it.
+
+**The two classes — configuration, not mechanism.** Register `pdef` as Multi (both the start *and* the run must be recoverable by denotation — a single merged span would denote nothing) and `pd_stable` as Unary (only the target start), both idempotent, no behaviors, with the construction-time non-collision check, and extend the entry-point seal so the generic emit rejects both classes. The lint is the shipped quantifier evaluated over the active slice; if you scope it to a protocol, wire the scoping filter for real — Green's experience with a *designed-but-never-forwarded* search-scoping filter (silently global) is the cautionary parallel: an unwired scope is worse than an honest global one.
+
+**Recovery.** Everything authoritative is in the append-only journals (content + tuples); the `sig` memo, expansion memo, and start-address index are all hints, rebuilt by replay. Determinism makes replay exact. Snapshot the indexes for fast restart if you like — a cache of a cache — but never treat a snapshot as truth.
+
+## Guarantees to uphold
+
+- **Permanence of definitions** — *by construction*, inherited from the content substrate; holds **iff** you expose no content-overwrite path.
+- **Identity by origin** — *by construction*; the active enforcement is negative: do not dedup or identify by value/hash.
+- **Unique active registration per definition address** — *by construction* from idempotent dedup + prefix-freeness (all validated runs at one start are equal). Holds given the dedup contract.
+- **Unique extent per start (self-delimiting)** — *enforced at encoding-design time* (the encoding must be prefix-free), then *by construction*.
+- **Acyclic references / terminating expansion** — *by construction* **given** that registration enforces "references must be actively registered." Enforce condition (iv) and acyclicity follows for free; no cycle detector.
+- **Validation permanence (parse + typing)** — *by construction* (content/signature-intrinsic); no re-validation path is needed because none could go stale.
+- **Reference-endorsement currency** — *deliberately not guaranteed.* Builders must know condition (iv) can lapse; evaluation is designed not to depend on it, and any new reference re-checks it.
+- **Evaluation determinism** — *by construction* from immutable content + the fixed renaming order; the active obligation is implementing the renaming order exactly.
+- **View transparency** — *by construction* (view fixed at top level, expansion yields one term); the referent contributes spelling, the caller fixes scope.
+- **Decidability** (parse, typing, expansion, ST⁺) — *by construction* (finite walks).
+- **Certification soundness** — *requires active enforcement*: the ST⁺ classifier must be sound (inherited obligation); incompleteness is permitted, unsoundness is not.
+- **Surface seal** — *active enforcement* via the class-exclusion precondition wired at construction.
+
+## How it fits
+
+- **ASN-0093 (Allocation) + ASN-0036 (Strand)** give the content runs themselves — addresses minted on an origin chain, values fixed and permanent, distinct runs distinct. The artifact rides this directly.
+- **ASN-0034 (Tumbler arithmetic)** supplies the address algebra (the run is one `shift`/`inc` chain segment) and the prefix-incomparability that makes start-address coverage *exact*.
+- **ASN-0086 (Typed relations) + ASN-0126 (Shapes) + ASN-0128 (Operational semantics)** supply the entire classifier machinery this note *wraps*: emit/gate/dedup, retraction, active/audit slices, `supersedes`/`tip`, the shape system, born-nullified semantics, and the surface-seal pattern. ASN-0130 adds validation discipline and two configured classes — nothing new in the tuple layer.
+- **ASN-0043 (Link ontology)** supplies endset/coverage semantics for the tuples.
+- **ASN-0129 (Predicate composition)** supplies what a term *means* — grammar, typing, denotation, the stability classes, view rules, and the structural-reads-only boundary. ASN-0130 is the bridge that makes 0129's terms storable and referenceable using 0086/0128's machinery over 0093's content, and hands the resulting pure term back to 0129's evaluator.
+- **Hands upward** to protocol-layer activation (the "when P, emit E" trigger, out of corpus): that layer can now bind a `pdef` *address* instead of an inline term.
+
+## Decisions for the builder
+
+Genuine implementation choices — distinct from the note's own spec-level open questions (a human-naming class, cross-substrate portability, dangling-live-reference policy, certificate classes beyond stability).
+
+- **The concrete byte encoding** — length-prefixed vs arity-directed framing; how the reserved expansion-name region is carved. (Explicitly a substrate parameter.)
+- **How run contiguity is guaranteed at write time** — atomic batch insertion (recommended) vs disciplined non-interleaving.
+- **`sig` strategy** — recompute-on-demand vs memoize-as-hint, and how the hint is rebuilt on restart.
+- **Expansion representation** — full materialization vs structurally-shared/lazy (`im`); when to force materialization for the evaluator. The diamond blowup is the deciding factor.
+- **Indexing for start-address lookups** — pure replay vs snapshot-and-replay; the persistent map choice. (Note the queries are exact point lookups, so a flat keyed map beats an enfilade here.)
+- **The ST⁺ classifier algorithm and how conservative it is** — the one component whose internals the note leaves open; a weaker sound classifier is legal.
+- **Whether and at what scope to expose the certification lint** — global (spuriously tripped by legitimately non-Boolean definitions) vs protocol-scoped via a membership filter; if scoped, actually wire the filter.
+- **What to cache** — resolved terms, expansions, and evaluation results are all derived from immutable content and the permanent audit slice, so all are cacheable as hard hints; the builder decides how aggressively.
