@@ -101,13 +101,9 @@ transition that adds a retraction-typed link is a `Nullify`, so retraction-typed
 the store through that one operation alone. ASN-0086's *unit-depth retraction discipline* —
 every retraction to-set is a unit-depth span `{(t, δ(1, #t))}` at a single prior target — is
 the **to-set consequence** of this commitment, discharged from it by induction (ASN-0086).
-The commitment carries more than that to-set shape, and one stronger consequence is
-load-bearing below: `Nullify` emits its retraction with an *empty from-set* (ASN-0086),
-whereas ASN-0086's Convention RetractionDirectionality otherwise permits a retraction's
-from-set to carry attribution. Adopting the commitment therefore **excludes attributed
-retractions** (non-empty from-set), and the retraction-stability result RE-RET rests on that
-exclusion: its claim that a retraction emitter's from-set and to-set are content-disjoint
-*unconditionally* (below) holds precisely because `Nullify`'s from-set is `∅`. The bridge to
+The commitment also fixes the *from-set*: `Nullify` emits its retraction with an *empty
+from-set* (ASN-0086), so adopting it **excludes attributed retractions** (non-empty
+from-set), which ASN-0086's Convention RetractionDirectionality would otherwise permit. The bridge to
 ASN-0086 — call it the **`Σ.L`-evolution bridge** — is that `Σ.L` evolves only through
 `K.λ`: the arrangement movers (`K.μ` family), entity creation `K.δ`, provenance recording
 `K.ρ`, and content allocation `K.α` all frame the link store (`L' = L`). So the link store
@@ -562,28 +558,16 @@ directly.
 Fix the region `W`. The displacement moves content *through* `W`'s fixed positions, so its
 effect on the image is not one-signed the way `K.μ⁺`/`K.μ⁻` are: the shift family is
 non-monotone *as a class*, and a single shift may make the fixed region's image *gain*,
-*lose*, or *both*, according to where the edit falls relative to `W`. Under the insert above,
-content the region held at a position `v ≥ p` is carried up to `shift(v, n)` and so possibly
-out of `W` — a loss — while a position above the gap takes on content carried up from below
-it, a *gain* to the fixed image when that donor lay below `W`. The vacated positions
+*lose*, or *both*, according to where the edit falls relative to `W`. The vacated positions
 `[p, shift(p, n))` the shift primitive does *not* backfill (I3-V), so the bare shift leaves an
 interior gap in `V_{s_C}(d)` that violates the standing contiguity invariants D-CTG★/D-SEQ★
 (ASN-0047) — and indeed ASN-0082 supplies no D-CTG-preservation lemma for the insertion shift
 (only for the gap-closing delete, D-CTG-post). That gap configuration is therefore not a
 reachable state; by the atomicity of transitions (SequentialTransitionAxiom, ASN-0047) it is a
 non-queryable intermediate of the *non-atomic* full insert, not a state at which `RE` is
-evaluated. The full insert is shift **then** backfill: the freshly placed content refills
-`[p, shift(p, n))`, restoring contiguity, so at the post-insert reachable state the image under
-`W` is *replaced* where the gap falls — never stripped, and the region never emptied, since the
-full operation only grows `V_{s_C}(d)`. That refilling content is a new `K.α` allocation, which
-a *tight* endset's coverage excludes (LP19a, ASN-0098); so a tight endset does not newly touch
-the refilled gap, whereas a non-tight one may. The delete is *not* the insert's
-mirror: it *closes* its gap, carrying the content above the removed span back down to fill it
-(D-SHIFT), and can likewise have the fixed image gain, lose, or both, according to where it
-falls relative to `W`. The full case split is not needed here — the load-bearing conclusion
-does not turn on which placement yields gain versus loss: whichever the case, `RE` tracks the
-image's motion by membership, each surfaced endset's spans held fixed (RE-IDENT), by the
-depth-independent M-only lift established above.
+evaluated. At each reachable post-edit state, then, `RE` tracks the image's motion by
+membership, each surfaced endset's spans held fixed (RE-IDENT), by the depth-independent
+M-only lift established above.
 
 Editing of *other* documents does not perturb the answer: the image reads only `Σ.M(d)`,
 and a transition touching `d' ≠ d` leaves `Σ.M(d)` fixed (LP5, ASN-0098). Three further
@@ -759,7 +743,8 @@ link; conflating link-level permanence (R6a) with pair-value-level removal is ex
 slip RE-UNIT's deduplication guards against.
 
 The answer's stability thus reduces to two tracked motions: the region's image under editing
-(RE-CWP) and the active population under emission and retraction (RE-RET).
+(RE-EDIT, with RE-CWP the exact contraction sub-case) and the active population under emission
+and retraction (RE-RET).
 
 ## Claims Introduced
 
