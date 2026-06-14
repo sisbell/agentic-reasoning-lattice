@@ -1,0 +1,19 @@
+I reviewed the digest against ASN-0115, its formal claims, and the verified evidence. This is an unusually faithful and well-grounded digest. It correctly separates forced from chosen commitments, covers all of R1–R11, grounds every Green source-level claim in the evidence channel (granfilade/POOM two-phase resolve-then-fetch from Q12, no-dedup/absent consolidation from Q16, byte-opacity from Q18, subspace-blind read path from Q19/Q1, no-liveness-check permanence from Q20, multi-segment delivery from Q13, dormant homedoc filter from Q17), and stays at design altitude throughout. I found no material problems. Details below.
+
+**Sections that are genuinely solid (and load-bearing):**
+- The **width-vs-count / byte-length** analysis is correct and more careful than the evidence it draws on. Q14's *code exploration* muddles this ("strictly less than nominal V-width sum"), but the digest correctly sides with the KB synthesis and the note's own clip remark: clipping trims a run's *overhang past the requested edge* and changes no abstract content, so byte-length equals V-width for a fully-bound interval; shortfall comes only from gaps/depth-incompatibility. This is the trickiest claim in the digest and it lands.
+- The **hash-addressing soundness catch** ("do *not* hash-address content") is exactly the kind of approach-vs-commitment check the note demands: a content-addressed store would merge value-equal-but-distinct addresses and violate S4. Strong.
+- The **version-fork (mutable COW) vs. frozen snapshot (immutable)** distinction, and the resulting "don't *freeze* a version" rule, correctly honors P3/S7d while still recommending structural sharing.
+- The **R6 bindable-slice scoping** → "never coalesce across a gap" is correctly derived and correctly bounded (the no-interior-hole guarantee is scoped to the depth-`#s`, subspace-`S` slice, not every named tumbler).
+- The **two-gates** framing (in-model well-formedness precondition vs. Green's out-of-model open/access gate) is accurate and well-grounded.
+- "**Delivery never reads `Σ.L`**" (a link item carries the resolved address, not `Σ.L(a)`) is correct and a genuinely useful builder simplification.
+
+**Revision list:**
+
+1. **[SHARPENING]** — *Design commitments → "No deduplication":* the parenthetical "CL-OWN + CL-UNIQ make the arrangement injective on the link subspace" mis-credits the two lemmas. Injectivity of a *single* arrangement `Σ.M(d)` on the link subspace is CL-UNIQ alone; CL-OWN does a different job (it forces `origin(Σ.M(d)(v)) = d`, confining a link address to its home document and so killing the *cross-document* case). The conclusion ("distinct link positions can never share an address") is correct and does need both, but split the credit: "CL-UNIQ makes each arrangement injective on its link subspace (no within-document sharing); CL-OWN confines a link address to its home document (no cross-document sharing); together no two distinct link positions anywhere share one." Imprecise-but-true, non-load-bearing.
+
+2. **[SHARPENING]** — *Implementation approaches → "Content store":* the line "rebuild-on-load and any persisted index must use atomic writes — torn reads of a registry under concurrent writers are a known hazard" is generic and sits in mild tension with the (correct) earlier claim that the pure-read nature "permits … concurrent reads without coordination." Clarify that the hazard is on the content store's *write* path — exercised by sibling operations like insert, not by RETRIEVEV — so the reader does not infer that delivery itself needs write-side coordination. Either scope it to the writer side or trim it.
+
+No `[DEFECT]` items: no misread commitment, no ungrounded Green claim, no altitude slip, no internal contradiction, and no missing load-bearing component, guarantee, or builder decision that I could find.
+
+VERDICT: CONVERGED
