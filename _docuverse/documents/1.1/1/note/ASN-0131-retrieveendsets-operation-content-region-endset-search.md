@@ -508,15 +508,23 @@ shift: `addressable(Σ)` and the region-independent pool `Avail(Σ)` are functio
 `Σ.L` (through `nullified`) alone, so only the region's image can move. Content is
 *displaced through* `d`'s V-order, and its effect on the image is read off the
 displacement directly.
-Fix the region `W`. The displacement moves content through `W`'s fixed positions:
-content the region held is carried off to a displaced position — possibly out of `W` —
-while the positions it vacates take on content displaced in from an adjacent position (from
-lower positions under an insert, from higher ones under a delete — the adjacent motion the
-I3/D-SHIFT shift itself delivers; the fresh content a full insert places in the vacated gap
-is a separate content-placing step, not part of the primitive). So the fixed region's image
-*both gains and loses* I-addresses; it swings, non-monotonically, rather than growing or
-shrinking weakly, and RE tracks the swing by membership, each surfaced endset's spans held
-fixed (RE-IDENT).
+Fix the region `W`. The displacement moves content *through* `W`'s fixed positions, so its
+effect on the image is not one-signed the way `K.μ⁺`/`K.μ⁻` are: the shift family is
+non-monotone *as a class*, and a single shift may make the fixed region's image *gain*,
+*lose*, or *both*, according to where the edit falls relative to `W`. Under the insert above,
+content the region held at a position `v ≥ p` is carried up to `shift(v, n)` and so off,
+possibly out of `W` — a loss. The vacated positions `[p, shift(p, n))` the shift does *not*
+backfill (I3-V): the fresh content a full insert places there is a separate content-placing
+step, not part of the primitive (and, a new `K.α` allocation, it is excluded from a *tight*
+endset's coverage by LP19a, ASN-0098). Only the positions *above* the gap take on shifted
+content — carried up from below them — and that is a *gain* to the fixed image only when the
+donor lay below `W`. So the image *both gains and loses* only in the through-region case — an
+insert seated *below* `W`, or a delete reaching *into* it — where the region both sheds
+content and takes on content displaced in from outside it. Where the region instead coincides
+with the insertion gap, the primitive delivers *pure loss*: `W`'s content is carried off and
+the gap left unfilled, so `W ∩ dom(Σ'.M(d)) = ∅` and the image drops to `∅` until a separate
+step refills it. Whichever the case, `RE` tracks the image's motion by membership, each
+surfaced endset's spans held fixed (RE-IDENT).
 
 Editing of *other* documents does not perturb the answer: the image reads only `Σ.M(d)`,
 and a transition touching `d' ≠ d` leaves `Σ.M(d)` fixed (LP5, ASN-0098). Three further
@@ -645,20 +653,16 @@ would force `E(c)₁ = E(ℓ)₁ = s_L ≠ s_C`, rigorous because `ℓ` is genui
 `E(ℓ)₁ = s_L` (L0, L1, ASN-0093) and `Nullify` targets a link address `ℓ ∈ dom(Σ.L)`. So
 against a content image `I ⊆ dom(Σ.C)`, neither the from-set nor the to-set can touch.
 
-The type-set `Θ` is the slot that same argument does *not* reach — and here we must not
-overclaim. A type endset may, by design, point *anywhere* in the address space, content
-included (L4 EndsetGenerality, L9 TypeGhostPermission, ASN-0043); ASN-0086 fixes the
-designated retraction type only as a type endset whose coverage selects the conventional
-retraction address set, carrying no structural disjointness from content. Nor does ASN-0086
-confine `Θ`'s spans to unit depth, and this is decisive: a *wide* type span `(s, ℓ_s)`
-denotes the half-open interval `{t : s ≤ t < s ⊕ ℓ_s}`, whose members need not satisfy
-`s ≼ t`. Placing the span-*starts* of `Θ` outside content therefore does *not*, on its own, place
-the whole interval outside content — the field-agreement argument transfers to a span-start
-but not across a wide span's interior, so "exactly as the worked instance seated `θ`" (whose
-`e₃` span *was* unit-depth) does not carry over to an arbitrary `Θ`. Hence
-`coverage(Θ) ∩ dom(Σ.C) = ∅` is neither a consequence of `Θ`'s being a type nor secured by
-start-placement alone; this note does not establish it, carrying it only as a hypothesis
-whose exception — a type-slot match against content — is taken up by Open Question 6.
+The type-set `Θ` is the slot that same argument does *not* reach. A type endset may, by
+design, point *anywhere* in the address space, content included (L4 EndsetGenerality, L9
+TypeGhostPermission, ASN-0043), and ASN-0086 fixes the designated retraction type only as a
+type endset whose coverage selects the conventional retraction address set — carrying no
+structural disjointness from content, and not confined to unit depth. The field-agreement
+argument used above reduces touching to the prefix relation `s ≼ c`, so it transfers to a
+span-*start* but not across the interior of a *wide* span `(s, ℓ_s)`, whose interval
+`{t : s ≤ t < s ⊕ ℓ_s}` may include content even when `s` lies outside it. So
+`coverage(Θ) ∩ dom(Σ.C) = ∅` is a construction hypothesis, not a theorem; this note carries
+it as such, its exception — a type-slot match against content — taken up by Open Question 6.
 
 We therefore record the emitter's harmlessness **conditionally**, on that same hypothesis
 `coverage(Θ) ∩ dom(Σ.C) = ∅`. With the from-set and to-set already content-disjoint, `Θ` is
@@ -686,22 +690,20 @@ assembled: `ℓ` leaves `addressable` permanently (R6a) and, under the hypothesi
 the pair survives — is not free: it asserts that the other bearer outlives the very step
 that withdraws `ℓ`, and a retraction, being a state transition, could a priori nullify
 more than its named target. We discharge it by bounding the retraction's reach. Take
-`ℓ' ∈ addressable(Σ)` with `ℓ' ≠ ℓ`, bearing `e` in slot `i`. Both lie in `dom(Σ.L)`, a
-tumbler-prefix antichain (R0a FlatLinkDomain, ASN-0086), so `ℓ ⋠ ℓ'`: the address `ℓ'`
-lies outside `ℓ`'s prefix-cone. A single Nullify contributes *exactly* its target to the
-nullified set — `{t : ℓ ≼ t} ∩ dom(Σ'.L) = {ℓ}` (R-Scope SingleTupleScope, ASN-0086,
-arity-independent) — so the fresh retraction tuple `b` nullifies no link address but `ℓ`.
-Hence `ℓ'`, already `∉ nullified(Σ)` and outside `ℓ`'s cone, is `∉ nullified(Σ')`:
+`ℓ' ∈ addressable(Σ)` with `ℓ' ≠ ℓ`, bearing `e` in slot `i`. A single Nullify contributes
+*exactly* its target to the nullified set — `{t : ℓ ≼ t} ∩ dom(Σ'.L) = {ℓ}` (R-Scope
+SingleTupleScope, ASN-0086, arity-independent) — so the fresh retraction tuple `b` nullifies
+no link address but `ℓ`, leaving every other store element `ℓ' ≠ ℓ` outside its reach.
+Hence `ℓ'`, already `∉ nullified(Σ)` and distinct from `ℓ`, is `∉ nullified(Σ')`:
 `ℓ' ∈ addressable(Σ')`. Its value is unchanged (L12, ASN-0043), so it still bears `e` in
 slot `i`; the `K.λ` step frames `Σ.M(d)` (`M' = M`), leaving the image — and with it
 `touch_W(e)` — fixed. Thus `ℓ'` still witnesses `(i, e)` in `Σ'`, and a pair still borne
 by some other addressable link survives the retraction untouched. Our worked instance
 makes the distinction concrete: `ℓ₁` and `ℓ₂` both carry `e₁` in slot 1, collapsing to the
 single pair `(1, e₁)`; retracting `ℓ₁` alone leaves `(1, e₁)` in the answer, because `ℓ₂`
-survives the step — `ℓ₁ ⋠ ℓ₂` (R0a) puts it outside the retraction's cone, R-Scope
-confines the fresh nullification to `ℓ₁`, so `ℓ₂ ∈ addressable(Σ')` still bears `e₁`
-(value fixed by L12). Only when *both* are withdrawn does `(1, e₁)`
-depart.
+survives the step — R-Scope confines the fresh nullification to `ℓ₁`, so `ℓ₂` (distinct
+from `ℓ₁`) remains in `addressable(Σ')` and still bears `e₁` (value fixed by L12). Only
+when *both* are withdrawn does `(1, e₁)` depart.
 
 Two senses of permanence must therefore be kept apart. The *specific retracted link's*
 membership in `addressable` is gone forever (R6a) — one can never again surface anchoring
