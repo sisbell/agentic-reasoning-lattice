@@ -20,6 +20,7 @@ Run standalone — keep the substrate note runner off (both commit).
 
 import argparse
 import os
+import re
 import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -55,6 +56,34 @@ def _config_dirs(cfg):
     return os.path.expandvars(val) if val else None
 
 
+def _quiescent_subset(asns):
+    """Partition into (ready, skipped). ready = the note has been reviewed
+    AND has no pending revise work (is_doc_quiescent) — i.e. settled, not
+    something the note runner is mid-cycle on. Read-only substrate query;
+    safe to run while the runner is active (paths.json writes are atomic,
+    links.jsonl is append-only, so a read sees a consistent snapshot)."""
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from lib.protocols.febe.session import open_session
+    from lib.predicates import has_been_reviewed, is_doc_quiescent
+    from lib.shared.paths import LATTICE
+    ready, skipped = [], []
+    with open_session(LATTICE) as s:
+        by_asn = {}
+        for p, a in s.store.path_to_addr.items():
+            m = re.search(r"/note/ASN-(\d+)-", p)
+            if m and ".statements." not in p:
+                by_asn.setdefault(int(m.group(1)), a)
+        for n in asns:
+            a = by_asn.get(n)
+            if a is None:
+                skipped.append((n, "no note"))
+            elif has_been_reviewed(s, a) and is_doc_quiescent(s, a):
+                ready.append(n)
+            else:
+                skipped.append((n, "not quiescent (runner working / unreviewed)"))
+    return ready, skipped
+
+
 def main():
     cfg = _load_env(DESIGN_ENV)  # defaults from _workspace/design-runner.env
     ap = argparse.ArgumentParser(
@@ -68,15 +97,12 @@ def main():
                     help="parallel ASNs")
     ap.add_argument("--max-reviews", type=int, default=int(cfg.get("MAX_REVIEWS", 2)))
     ap.add_argument("--effort", default=cfg.get("EFFORT", "max"))
+    ap.add_argument("--force", action="store_true",
+                    help="skip the quiescence filter — digest every listed note "
+                         "even if the runner is mid-cycle on it")
     ap.add_argument("--no-commit", action="store_true")
     ap.add_argument("--dry-run", action="store_true", help="print the ASN list and exit")
     args = ap.parse_args()
-
-    if not args.dry_run and subprocess.run(
-            ["pgrep", "-f", "note-scheduler"],
-            capture_output=True).returncode == 0:
-        sys.exit("error: the substrate note runner is active — stop it before a "
-                 "design-digest batch (both commit; the git index would collide).")
 
     classes_file = CLASSES_YAML if CLASSES_YAML.exists() else FALLBACK_CLASSES
     data = yaml.safe_load(classes_file.read_text())
@@ -86,14 +112,24 @@ def main():
                    if cls in include and cls not in exclude
                    for n in members})
 
+    # Digest only settled notes (skip whatever the note runner is still
+    # working on); --force overrides. Coexists with the runner — design
+    # commits retry through its index.lock.
+    if args.force:
+        skipped = []
+    else:
+        asns, skipped = _quiescent_subset(asns)
+    for n, why in skipped:
+        print(f"[run] skip ASN-{n:04d} — {why}", file=sys.stderr)
+
     env = os.environ.copy()
     dirs = _config_dirs(cfg)
     if dirs and not env.get("CLAUDE_CONFIG_DIRS"):
         env["CLAUDE_CONFIG_DIRS"] = dirs
     n_accounts = len(env.get("CLAUDE_CONFIG_DIRS", "").split(",")) if env.get("CLAUDE_CONFIG_DIRS") else 1
 
-    print(f"[run] classes {sorted(include - exclude)} → {len(asns)} ASNs: {asns}",
-          file=sys.stderr)
+    print(f"[run] classes {sorted(include - exclude)} → {len(asns)} ready "
+          f"({len(skipped)} skipped): {asns}", file=sys.stderr)
     print(f"[run] workers={args.workers} accounts={n_accounts} effort={args.effort} "
           f"max-reviews={args.max_reviews} commit={not args.no_commit}", file=sys.stderr)
     if args.dry_run:

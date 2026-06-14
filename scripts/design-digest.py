@@ -19,9 +19,11 @@ Run standalone (not alongside the substrate runner — both commit).
 
 import argparse
 import fcntl
+import random
 import re
 import subprocess
 import sys
+import time
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -104,18 +106,32 @@ def _commit(paths, message, enabled):
         _git_commit(rels, message)
 
 
+def _git(args):
+    """Run a git command; retry while another process holds .git/index.lock
+    (the substrate runner committing concurrently). Returns CompletedProcess
+    of the final attempt; raises only on a non-lock error."""
+    last = None
+    for _ in range(40):
+        r = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True)
+        if r.returncode == 0:
+            return r
+        last = (r.stderr or "") + (r.stdout or "")
+        if "index.lock" in last or "another git process" in last:
+            time.sleep(0.3 + random.random() * 0.5)
+            continue
+        raise RuntimeError(f"git {args[0]} failed: {last.strip()}")
+    raise RuntimeError(f"git {args[0]}: gave up on index.lock — {last.strip()}")
+
+
 def _git_commit(rels, message):
-    subprocess.run(["git", "add", *rels], cwd=ROOT, check=True)
-    # Scope BOTH the change-check and the commit to these paths with
-    # `-- <paths>`, so the design pipeline can never sweep up another
-    # committer's staged files (e.g. the substrate runner committing
-    # links.jsonl concurrently) — `git commit -- <paths>` ignores the rest
-    # of the index. Skip when these paths have nothing new vs HEAD.
+    # `-- <paths>` scopes both the change-check and the commit to these
+    # files, so we never sweep up the substrate runner's staged changes;
+    # _git() retries through its concurrent index.lock. Skip when nothing new.
+    _git(["add", *rels])
     if subprocess.run(["git", "diff", "--cached", "--quiet", "--", *rels],
                       cwd=ROOT).returncode == 0:
         return
-    subprocess.run(["git", "commit", "-q", "-m", message, "--", *rels],
-                   cwd=ROOT, check=True)
+    _git(["commit", "-q", "-m", message, "--", *rels])
     print(f"  [commit] {message}", file=sys.stderr)
 
 
