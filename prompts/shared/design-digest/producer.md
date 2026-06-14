@@ -45,6 +45,8 @@ Be concrete and opinionated. A builder should finish this digest knowing what to
 
 # Verified udanax-green implementation evidence
 
-The following are answers from the note's evidence-channel consultation — verified facts about how the original udanax-green implementation actually did this. Where they bear on an approach, treat them as ground truth and prefer them over your own recollection of Green's internals. If this section is empty, rely on your own knowledge of Green and standard technique.
+The following are answers from the note's evidence-channel consultation — verified facts about how the original udanax-green implementation actually did this. Where they bear on an approach, treat them as ground truth.
+
+**Grounding discipline for Green claims.** You may freely reference Green's widely-documented *structures* — the granfilade, permascroll, POOM, and spanfilade enfilade types — as proven approaches. But do NOT assert specific function names, function behaviors, or source-level facts ("routine X is stubbed", "Y merges at most one pair per pass", "Z returns TRUE unconditionally") unless they appear in the evidence answers below. If you lack evidence for a source-level detail, either stay at the structural level or present it explicitly as your own design inference — never as a fact about Green's code. An unverifiable source claim is worse than none: it will be flagged and stripped in review. Ground every recommendation on the note's own properties first; cite Green only to show an approach is proven.
 
 {{evidence}}

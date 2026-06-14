@@ -4,7 +4,7 @@ Review the digest below against the note it came from. You are a skeptic; your j
 
 1. **Accuracy** — does the digest misread the note? Flag any design commitment marked "forced" that is actually conventional (or vice versa), any guarantee mis-stated, any claim the note does not support.
 2. **Soundness of approaches** — does any proposed implementation approach *violate* one of the note's own design commitments or guarantees (e.g., proposing content-dedup when the note forbids value-based identity)? Are the stated tradeoffs real? Are the recommended defaults defensible?
-3. **Grounding** — are references to the udanax-green reference implementation (enfilades, granfilade, POOM, spanfilade) or to this repo's substrate accurate, or invented/misapplied? Flag anything that sounds plausible but is likely hallucinated.
+3. **Grounding** — a udanax-green claim is grounded if it is supported by the note, by the **verified evidence answers below**, or by widely-documented Green structure (the granfilade/permascroll/POOM/spanfilade enfilade *types*). A claim backed by the evidence answers is fine *even though it is not in the note* — do NOT flag it as fabricated; that is exactly what the evidence is for. Flag as unverifiable only claims grounded in NONE of those — in particular specific function names or source-level behavior ("routine X is stubbed", "Y merges one pair per pass") that appear in neither the note nor the evidence and carry no checkable citation.
 4. **Completeness** — does the digest miss a load-bearing design commitment, a component that must be built, a guarantee, or a real builder decision that the note clearly implies? Name what's missing.
 5. **Altitude** — did it drift into code (types, signatures) or stay too vague to act on? Either is a defect.
 6. **Usefulness** — could a builder act on this? Is any section padded, generic, or non-committal where the note supports a real position?
@@ -27,6 +27,14 @@ Be concise. A SHIP verdict with two sentences of confirmation is a fine outcome 
 # Its formal claims
 
 {{statements}}
+
+---
+
+# Verified udanax-green implementation evidence
+
+These are answers from the note's evidence-channel consultation — ground truth about how Green actually did this. A digest claim supported by these is grounded, even if it is not in the note above. (If empty, the digest had no evidence to draw on and any Green source-level claim should be treated as unverified.)
+
+{{evidence}}
 
 ---
 

@@ -40,8 +40,9 @@ def _state(asn: int):
     n = len(reviews)
     last = "-"
     if reviews:
-        m = re.search(r"^VERDICT:\s*(\w+)", reviews[-1].read_text(), re.MULTILINE)
-        last = m.group(1).upper() if m else "?"
+        hits = re.findall(r"VERDICT:\s*\**\s*(SHIP|REVISE)\b",
+                          reviews[-1].read_text(), re.IGNORECASE)
+        last = hits[-1].upper() if hits else "?"
     return design, n, last
 
 

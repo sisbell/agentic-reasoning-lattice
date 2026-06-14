@@ -194,8 +194,11 @@ def main():
     for k in range(done + 1, args.max_reviews + 1):
         print(f"[design-digest] review {k}/{args.max_reviews}...", file=sys.stderr)
         review = _call("reviewer", {**base, "digest": digest}, args.effort, args.model)
-        m = re.search(r"^VERDICT:\s*(\w+)", review, re.MULTILINE)
-        verdict = m.group(1).upper() if m else "SHIP"
+        # Tolerant verdict parse: VERDICT: may be **bold**, indented, or
+        # anywhere in the review. Default to REVISE (never false-ship) when
+        # no SHIP/REVISE token is found.
+        hits = re.findall(r"VERDICT:\s*\**\s*(SHIP|REVISE)\b", review, re.IGNORECASE)
+        verdict = hits[-1].upper() if hits else "REVISE"
         review_md = review_dir / f"review-{k}.md"
         review_md.write_text(review.rstrip() + "\n")
         _commit([review_md], f"design-review({label.lower()}): review-{k} — {verdict}", commit)
