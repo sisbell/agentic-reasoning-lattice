@@ -482,29 +482,38 @@ bedrock under everything that follows: every *change* in the answer is the image
 
 **Under editing of the queried document.** The region resolves through `Σ.M(d)`, so
 editing `d`'s arrangement moves the image, and the answer tracks it — present-tense,
-non-monotone (D-NONMONO, ASN-0127). The three editing motions act as one would expect of
-a faithful tracker:
+non-monotone (D-NONMONO, ASN-0127). We read its response first against the *atomic*
+arrangement movers of the transition vocabulary (ASN-0047) — extension, contraction,
+reordering — each acting as a faithful tracker would:
 
-- *Insertion* into the region brings new content under `W`'s positions; the *region image*
-  grows (F-IMG-MONO, ASN-0127), and endsets covering the newly-arranged content newly touch
-  the region — the touch test composing on top of the larger image — and are surfaced.
-  Anchoring that was always there in the store becomes *reachable* here without any link
-  being created.
+- *Arrangement extension* `K.μ⁺` appends new V→I mappings at the contiguous frontier of
+  `d`'s content subspace, leaving every existing mapping fixed and the arrangement canonical
+  (D-CTG/D-SEQ, ASN-0047). The region image can only grow, and only weakly:
+  `image(W, d, Σ) ⊆ image(W, d, Σ')` (F-IMG-MONO, ASN-0127). When `W` reaches the appended
+  frontier positions, the new content enters the image, endsets covering it newly touch the
+  region, and they are surfaced — anchoring that was always there in the store becomes
+  *reachable* here without any link being created. When the fixed region does *not* include
+  the frontier, the append adds nothing under `W`: the inclusion is equality, and the
+  image — hence `RE` — is unchanged.
 
-- *Deletion* of region content unmaps its I-addresses from `d`'s arrangement; the *region
-  image* shrinks (F-IMG-CONTR, ASN-0127), and endsets that touched only through the
+- *Arrangement contraction* `K.μ⁻` truncates the tail of `d`'s content subspace, retaining a
+  canonical prefix `R` of content V-positions and dropping the rest (ASN-0047). The region
+  image can only shrink, and only weakly: `image(W, d, Σ') ⊆ image(W, d, Σ)` (F-IMG-CONTR,
+  ASN-0127). When `W` reaches the dropped tail, endsets that touched only through the
   departed content cease to be surfaced — the contracted image no longer meets their
   coverage, so the touch test fails where it formerly held (the contraction direction of
   LP10 and the discoverability characterisation LP12, ASN-0098). The link persists in the
   store (L12, ASN-0043), its endset coverage unchanged; it is merely no longer reachable
   *through this region of `d`*. This is a region-local loss of reach, **not** the global
   *orphaning* of LP17 (ASN-0098), whose premise — that the content is reachable from *no*
-  document — a single-region deletion does not establish: the link may still touch other
+  document — a single-region contraction does not establish: the link may still touch other
   regions of `d`, or be reachable from other documents. Should the content be re-arranged
   into `d`, the region image grows again (F-IMG-MONO, LP9, ASN-0098) and the endset is
   surfaced once more. The genuinely global *orphaning* of LP17 — and the *resurrection* of
   LP18 (ASN-0098) on later re-arrangement — obtains only in the limiting case where the
-  departed content comes to be arranged by no document at all.
+  departed content comes to be arranged by no document at all. When the fixed region lies
+  wholly within the retained prefix `R`, the truncation drops nothing under `W`: the
+  inclusion is equality, and `RE` is unchanged.
 
 - *Rearrangement* permutes the region's V-positions over the same content; the *region
   image*'s membership can swing (F-IMG-SWING, ASN-0127). This is the *only* way a
