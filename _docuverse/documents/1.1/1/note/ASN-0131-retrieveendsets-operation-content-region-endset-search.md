@@ -70,8 +70,7 @@ the fixed region,
 
 > `touch_W(e)  ≡  coverage(e) ∩ image(W, d, Σ) ≠ ∅`
 
-— the subscript naming the region's V-position set `W`, the one parameter that varies when
-we later compose regions.
+— the subscript naming the region's V-position set `W`.
 
 First, the relation is **existential within an endset**. An endset is a finite *set* of
 spans, possibly discontiguous (ASN-0043). `touch_W(e)` asks that *some* address in
@@ -735,9 +734,8 @@ touches the region. So withdrawing one link `ℓ` does not, by itself, remove th
 bore. Retracting `ℓ` removes `ℓ` from `addressable(Σ)`, and *permanently* so. The Nullify step
 marks `ℓ` nullified in its immediate post-state (R6a, over that one `K.λ` step); the marking
 then persists across the *entire* ASN-0047 vocabulary, because `nullified` is a function of
-`Σ.L` alone (above) and `Σ.L` evolves only through `K.λ` (the `Σ.L`-evolution inventory
-above). Every non-`K.λ` transition — `K.δ`, the `K.μ` family, `K.ρ`, `K.α` — frames the link
-store (`L' = L`) and so leaves `nullified` fixed; each further `K.λ` only grows `Σ.L`, and a
+`Σ.L` alone (above) and `Σ.L` evolves only through `K.λ`. Every non-`K.λ` transition frames
+the link store (the `Σ.L`-evolution inventory above), leaving `nullified` fixed; each further `K.λ` only grows `Σ.L`, and a
 larger store never un-nullifies an address (R6a one step at a time — equivalently, `nullified`
 is monotone in the `Σ.L`-configuration). Induction over any transition sequence from the
 retraction's post-state thus keeps `ℓ ∈ nullified` at every reachable later state. The same
