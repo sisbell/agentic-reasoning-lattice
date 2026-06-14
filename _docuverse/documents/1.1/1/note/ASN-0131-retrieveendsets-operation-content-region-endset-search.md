@@ -116,15 +116,23 @@ the region, that endset, tagged by the slot it occupies:
 The answer is a set of `(role, endset)` pairs. Each pair names the slot `i` — from, to,
 type, or higher — and the endset value `e` that occupies it in some touching link.
 
-The answer just defined is a finite, computable object. The touch test is decidable: the
-image `I = image(W, d, Σ)` is finite (S8-fin, ASN-0036) and `coverage`-membership is
-decidable by intrinsic comparison on its half-open T1-intervals (T12, T2, ASN-0034), so
+The answer just defined is **finite unconditionally**: it is drawn from the finite supply of
+slot-endset pairs the store affords — `dom(Σ.L)` is finite (L-fin, ASN-0093) and each link
+carries finitely many endsets (L3, ASN-0043), so only finitely many `(i, e)` pairs can ever
+appear, whatever the region. **Computability** carries one further premise — that region
+membership `v ∈ W` is decidable — met whenever `W` is *finitely presented*. In practice it is
+always so: the region is presented as finitely many spans, each a start tumbler and a width
+(the SpecSet the realising FEBE operation consumes), so `v ∈ W` reduces to finitely many
+span-membership tests (T12, T2, ASN-0034). Granted that premise, the rest of the selection is
+effective. The image `I = image(W, d, Σ)` is constructed by deciding `v ∈ W` across the finite
+domain `dom(Σ.M(d))` (S8-fin, ASN-0036) and is itself finite; `coverage`-membership is decidable
+by intrinsic comparison on its half-open T1-intervals (T12, T2, ASN-0034), so
 `touch_W(e) ≡ coverage(e) ∩ I ≠ ∅` is settled by finitely many membership tests. The
 addressability filter is decidable over finite sets too: `nullified(Σ)` is a computable set
 (ASN-0086) and `dom(Σ.L)` is finite (L-fin, ASN-0093), so membership in
 `addressable(Σ) = dom(Σ.L) ∖ nullified(Σ)` is settled without enumerating history. The
-operation therefore selects its `(i, e)` pairs by finitely many decidable tests over the
-finite store.
+operation therefore selects its `(i, e)` pairs by finitely many decidable tests over the finite
+store, the region's finite presentation supplying the one premise the image construction needs.
 
 The definition **withholds the link address `a`**. The existential `(∃ a : …)` consumes the link and discards it; what
 escapes into the answer is `(i, e)`, the anchoring structure, never the identity. This is
@@ -169,12 +177,8 @@ Write `Θ` for ASN-0086's designated retraction type, and `L_Θ^Σ` for its *ret
 the arity-3 type-`Θ` links at state `Σ` (ASN-0086).
 We adopt, as a **standing assumption** scoped to the addressability results, ASN-0086's
 *relational-layer discipline commitment*: every store transition that grows the retraction slice
-`L_Θ` — every `→`-step with `L_Θ^Σ ⊊ L_Θ^{Σ'}` — is a `Nullify`. Under it, the addressability
-results import three ASN-0086 facts: every `L_Θ` to-set is a unit-depth span `{(t, δ(1, #t))}`
-at a single prior target (*unit-depth retraction discipline*, ASN-0086); `dom(Σ.L)` is a
-prefix-antichain (R0a, FlatLinkDomain, ASN-0086); and a single `Nullify` contributes exactly its
-target to the nullified set (R-Scope, SingleTupleScope, ASN-0086). And `nullified(Σ)` is an
-existential over `L_Θ^Σ` alone (ASN-0086).
+`L_Θ` — every `→`-step with `L_Θ^Σ ⊊ L_Θ^{Σ'}` — is a `Nullify`; and `nullified(Σ)` is an
+existential over that slice `L_Θ^Σ` alone (ASN-0086).
 
 The bridge to ASN-0086 — call it the **`Σ.L`-evolution bridge** — rests on one inclusion. `Σ.L`
 evolves only through `K.λ`: the arrangement movers (`K.μ` family), entity creation `K.δ`,
@@ -184,16 +188,15 @@ ASN-0093), exactly `K.σ`'s registration precondition (ASN-0093), so ASN-0086 ca
 identical home documents via `K.σ` and replay the identical `K.λ` sequence. This gives the
 inclusion *ASN-0047-reachable `Σ.L`-configurations ⊆ ASN-0086-`→*`-reachable ones*, along which
 any `∀`-quantified ASN-0086 `→*`-reachable `Σ.L`-lemma carries to every ASN-0047-reachable
-state. The unit-depth fact is an ASN-0086 *layer*-reachability lemma; the replayed sequence is
-layer-reachable because the standing discipline commitment holds along it (ASN-0086).
+state. The unit-depth fact — that every `L_Θ` to-set is a single unit-depth span `{(t, δ(1, #t))}` at a
+prior target (*unit-depth retraction discipline*, ASN-0086) — is itself a *layer*-reachability
+lemma; the replayed sequence is layer-reachable because the standing discipline commitment holds
+along it (ASN-0086).
 
 A `K.λ` step emits a *fresh* link — allocation gives `ℓ_new ∉ dom(Σ.L)`, so `ℓ_new` enters
 `dom(Σ'.L)` — and whether that fresh output is *addressable* in its post-state
 (`ℓ_new ∉ nullified(Σ')`) turns on whether some *nullifying* to-set covers it — where
-"nullifying" means the to-set of a tuple in the retraction slice `L_Θ^{Σ'}`. Higher-arity
-retraction-typed links — admitted to `dom(Σ'.L)` by ordinary `K.λ` but, lacking arity 3, never
-entering `L_Θ` — therefore never enter `nullified`, and so bear on addressability at no arity;
-this is what lets RE-ADDR hold for an output of *any* arity. The standing commitment's
+"nullifying" means the to-set of a tuple in the retraction slice `L_Θ^{Σ'}`. The standing commitment's
 unit-depth to-set then settles the question: every `L_Θ^{Σ'}` to-set is unit-depth at some link
 `t ∈ dom(Σ'.L)`, covering `{u : t ≼ u}`, and R0a/FlatLinkDomain (ASN-0086, via the
 `Σ.L`-evolution bridge) makes `dom(Σ'.L)` a prefix-antichain, so any `t` distinct from `ℓ_new`
@@ -206,8 +209,10 @@ freshness, so none targets `ℓ_new`. The only tuple in `Σ'.L` that can target 
 nullifying to-set is thus the freshly-emitted `ℓ_new` itself — present only if `ℓ_new` is itself
 a retraction — and it covers `ℓ_new` exactly when `ℓ_new` retracts its own emitter address.
 Hence the reusable fact — **fresh-output addressability (RE-ADDR)**: a fresh `K.λ` output that
-does not retract its own emitter address is addressable in its post-state; in particular every
-non-retraction emission (`K ≁ Θ`) is addressable, at every arity.
+does not retract its own emitter address is addressable in its post-state — an argument that
+never consults the output's arity. In particular every non-retraction emission (`K ≁ Θ`) is
+addressable at every arity: not being type `Θ`, it is no retraction, so a fortiori it does not
+retract its own emitter, whatever its arity.
 
 ## Extent: the surfaced endset, whole and unclipped
 
