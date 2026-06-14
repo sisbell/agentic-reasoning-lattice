@@ -541,8 +541,8 @@ back down (D-SHIFT, established there at text depth `#p = 2`; the foundation sup
 gap-closing interior-span delete at greater content depths `m_{s_C} > 2` (S8-depth, S8a,
 ASN-0036), the depth-general `K.μ⁻` being tail-truncation rather than interior-span deletion).
 So delete-stability is scoped to text depth `#p = 2` and insert-stability to every `#p ≥ 2` —
-an asymmetry in the displacement's *existence*, not in the stability argument, which would
-cover a higher-depth delete were the foundation to supply one. What that argument requires of
+an asymmetry in which displacement primitives ASN-0082 supplies, not in the stability
+argument itself. What that argument requires of
 either is not the displacement's specifics but only that it is an *arrangement edit confined to
 `Σ.M(d)`* — an **M-only edit**. And this is *settled*, not assumed. ASN-0082 models these
 primitives over a `(C, M)` state with no link, entity, or provenance store, and proves they
@@ -558,16 +558,13 @@ directly.
 Fix the region `W`. The displacement moves content *through* `W`'s fixed positions, so its
 effect on the image is not one-signed the way `K.μ⁺`/`K.μ⁻` are: the shift family is
 non-monotone *as a class*, and a single shift may make the fixed region's image *gain*,
-*lose*, or *both*, according to where the edit falls relative to `W`. The vacated positions
-`[p, shift(p, n))` the shift primitive does *not* backfill (I3-V), so the bare shift leaves an
-interior gap in `V_{s_C}(d)` that violates the standing contiguity invariants D-CTG★/D-SEQ★
-(ASN-0047) — and indeed ASN-0082 supplies no D-CTG-preservation lemma for the insertion shift
-(only for the gap-closing delete, D-CTG-post). That gap configuration is therefore not a
-reachable state; by the atomicity of transitions (SequentialTransitionAxiom, ASN-0047) it is a
-non-queryable intermediate of the *non-atomic* full insert, not a state at which `RE` is
-evaluated. At each reachable post-edit state, then, `RE` tracks the image's motion by
-membership, each surfaced endset's spans held fixed (RE-IDENT), by the depth-independent
-M-only lift established above.
+*lose*, or *both*, according to where the edit falls relative to `W`. `RE` is evaluated only at reachable states — those satisfying the standing contiguity
+invariants D-CTG★/D-SEQ★ (ASN-0047) — at which the net effect of an insert or delete is an
+M-only, gap-free arrangement edit; the bare shift's un-backfilled interior vacancy (I3-V) is a
+non-queryable intermediate of the *non-atomic* full edit (SequentialTransitionAxiom,
+ASN-0047), never a state at which `RE` is evaluated. At each reachable post-edit state, then,
+`RE` tracks the image's motion by membership, each surfaced endset's spans held fixed
+(RE-IDENT), by the depth-independent M-only lift established above.
 
 Editing of *other* documents does not perturb the answer: the image reads only `Σ.M(d)`,
 and a transition touching `d' ≠ d` leaves `Σ.M(d)` fixed (LP5, ASN-0098). Three further
@@ -771,16 +768,16 @@ and retraction (RE-RET).
 
 ## Open Questions
 
-Must a surfaced endset be reported in its entirety, or only those of its spans that intersect the region — and which choice is the faithful rendering of the link's anchoring?
+1. Must a surfaced endset be reported in its entirety, or only those of its spans that intersect the region — and which choice is the faithful rendering of the link's anchoring?
 
-When distinct addressable links carry an identical endset value in the same slot, must the operation's answer preserve their multiplicity, or is collapsing them to a single surfaced endset a faithful answer?
+2. When distinct addressable links carry an identical endset value in the same slot, must the operation's answer preserve their multiplicity, or is collapsing them to a single surfaced endset a faithful answer?
 
-When a surfaced endset is rendered into the querying document's V-positions rather than content identity, what must the answer guarantee for endset content the document does not currently arrange?
+3. When a surfaced endset is rendered into the querying document's V-positions rather than content identity, what must the answer guarantee for endset content the document does not currently arrange?
 
-Under what restriction on the arrangement `Σ.M(d)` — injectivity the natural candidate — is intersection-equality `RE(W₁ ∩ W₂, d, Σ) = RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)` recovered, given that the bare `⊇` direction fails in general under a non-injective arrangement (RE-UDIST-∩; M13, M14, ASN-0058)?
+4. Under what restriction on the arrangement `Σ.M(d)` — injectivity the natural candidate — is intersection-equality `RE(W₁ ∩ W₂, d, Σ) = RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)` recovered, given that the bare `⊇` direction fails in general under a non-injective arrangement (RE-UDIST-∩; M13, M14, ASN-0058)?
 
-What completeness guarantee must hold when anchoring that touches a region resides in a link store not co-resident with the queried document?
+5. What completeness guarantee must hold when anchoring that touches a region resides in a link store not co-resident with the queried document?
 
-What must hold of a type-slot match against a content region for it to be meaningful, given that type endsets are matched by address and ordinarily reference classifying addresses disjoint from content?
+6. What must hold of a type-slot match against a content region for it to be meaningful, given that type endsets are matched by address and ordinarily reference classifying addresses disjoint from content?
 
-What must a region query guarantee when its V-positions are drawn from the link subspace (`subspace(v) = s_L`) rather than the content subspace — resolving, by S3★ (ASN-0047), to an image inside `dom(Σ.L)` (link addresses, not content), so that the touch test surfaces anchoring aimed at links (the to-endsets of retraction emitters, type endsets) and the exactness of retraction stability acquires an extra term for the retraction emitter `b`, whose to-set then meets the image?
+7. What must a region query guarantee when its V-positions are drawn from the link subspace (`subspace(v) = s_L`) rather than the content subspace — resolving, by S3★ (ASN-0047), to an image inside `dom(Σ.L)` (link addresses, not content), so that the touch test surfaces anchoring aimed at links (the to-endsets of retraction emitters, type endsets) and the exactness of retraction stability acquires an extra term for the retraction emitter `b`, whose to-set then meets the image?
