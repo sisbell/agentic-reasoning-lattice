@@ -499,12 +499,16 @@ reordering — each acting as a faithful tracker would:
   content-identity answer returned here is unaffected.)
 
 The user-facing *insert* and *delete* that **shift** content are not these atomic movers.
-The foundation realises them as displacements (I3 PostInsertionShift, D-SHIFT, ASN-0082) —
-an extension or contraction *composed with* a reorder that slides the surrounding content to
-new V-positions. Under such a shift the content at `W`'s fixed positions *moves*, so the
-image swings rather than monotonically growing or shrinking, and `RE` follows the
-*non-monotone* swing case (F-IMG-SWING): it is the reorder component, not the append or
-truncate, that governs the answer.
+The foundation realises them as displacements (I3 PostInsertionShift, D-SHIFT, ASN-0082):
+an insertion at `p` of width `n` carries the content at every position `v ≥ p` to
+`shift(v, n)` (I3), *growing* `d`'s arrangement domain rather than preserving it — so a shift
+is no domain-preserving `K.μ~` reorder, and its effect on the image is read off the
+displacement directly. Fix the region `W`. The content at `W`'s positions at or beyond `p`
+moves out to its shifted positions — possibly leaving `W` — while those positions fill with
+inserted content or with content slid in from before `p`; so the fixed region's image *both
+gains and loses* I-addresses. It therefore swings, non-monotonically, rather than growing or
+shrinking weakly — and it is the displacement itself, not F-IMG-SWING (whose `K.μ~`
+precondition the domain-growing shift does not meet), that grounds the swing.
 
 Through all of this the invariant of the previous section holds: the *content identity* of
 each surfaced endset never moves, and it is that identity RETRIEVEENDSETS returns. What
@@ -580,9 +584,8 @@ Clearing the region preserves the answer exactly when the answer was already emp
 
 **Under link emission.** The one population-*growing* mover is a `K.λ` step that emits a
 fresh link `ℓ_new`. Allocation gives `ℓ_new ∉ dom(Σ.L)`, so `ℓ_new` enters `dom(Σ'.L)`; it is
-moreover addressable there — `ℓ_new ∉ nullified(Σ')` — by a fact we isolate here because the
-retraction analysis below reuses it: **any fresh `K.λ` output is addressable in its
-post-state.** Under ASN-0086's unit-depth retraction discipline every pre-existing retraction
+moreover addressable there — `ℓ_new ∉ nullified(Σ')`: **any fresh `K.λ` output is addressable
+in its post-state.** Under ASN-0086's unit-depth retraction discipline every pre-existing retraction
 to-set is unit-depth at a prior target, while R0a/FlatLinkDomain (ASN-0086) makes `dom(Σ'.L)`
 a prefix-antichain, so no pre-existing retraction to-set covers the fresh, distinct address
 (this is the vacuity of `wp` Case 2's third conjunct, ASN-0086). The step frames the
@@ -608,7 +611,7 @@ the population. Withdrawing `ℓ` is realised as `Nullify(Σ, d_retr, ℓ) ≡ E
 emits a fresh **retraction link** `b`, with `Σ'.L(b) = (∅, {(ℓ, δ(1, #ℓ))}, Θ)` — writing
 `Θ` for ASN-0086's designated retraction type, kept distinct from the retention set `R` of
 the contraction analysis above — that enters `dom(Σ'.L)` and is itself addressable in `Σ'`
-(`b ∉ nullified(Σ')`) by the same fresh-`K.λ`-output addressability isolated under link
+(`b ∉ nullified(Σ')`) by the same fresh-`K.λ`-output addressability noted under link
 emission above: no pre-existing retraction to-set covers the fresh emitter `b`. And `b`'s
 own unit-depth to-set covers `ℓ`, not `b` (`ℓ ≠ b`, both in the flat antichain). So a single retraction
 does two things at once — it removes `ℓ` from `addressable` (through the nullified marking)
@@ -694,13 +697,11 @@ The answer tracks the anchoring values of the active *population*, not the fate 
 link; conflating link-level permanence (R6a) with pair-value-level removal is exactly the
 slip RE-UNIT's deduplication guards against.
 
-So the answer's stability has exactly two faces, and both are consequences of its being a
-present-tense reading of the live state: it tracks the *arrangement* (content moving in
-and out of the region as it is inserted, deleted, and rearranged) and it respects the
-*active population* (a freshly emitted link adding the pairs it newly witnesses, a withdrawn
-link vanishing from it and taking with it any pair it solely bore). Neither is a defect to be
-engineered away; both are what it *means* for the operation to answer, faithfully, "what
-anchoring touches here, now."
+So the answer's stability has two components, both consequences of its being a present-tense
+reading of the live state: it tracks the *arrangement* (content moving in and out of the
+region as it is inserted, deleted, and rearranged) and it respects the *active population* (a
+freshly emitted link adding the pairs it newly witnesses, a withdrawn link vanishing from it
+and taking with it any pair it solely bore).
 
 ## Claims Introduced
 
@@ -719,7 +720,7 @@ anchoring touches here, now."
 | RE-SEL | Discovery-side selection — `sel(W, d, Σ) = findlinks_V(W, d, Σ) ∩ addressable(Σ)` (F-V, ASN-0127): the contributing links are the addressable links discoverable through the region, so the operation is discovery-anchored — present-tense, non-monotone, arrangement-mediated (D-NONMONO, D-ZERO, ASN-0127), not existence-anchored (fixed-`I`, historical, monotone) | introduced |
 | RE-TRANS | Transclusion blindness — surfacing is by content identity, independent of the link's home and of the covered content's origin (LP16, ASN-0098): a link reaching the region only through transcluded content is surfaced identically to one reaching native content, and each returned span describes the content's permanent home identity, not the borrowing V-position | introduced |
 | RE-IDENT | Content-identity invariance — each surfaced endset's coverage is permanent (L12, ASN-0043; LP3, ASN-0098), so the content-level answer (which I-addresses each surfaced endset anchors to) is arrangement-independent, even though the *selection* of which endsets are surfaced is arrangement-mediated | introduced |
-| RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (RE-IDENT). Over the transition vocabulary (ASN-0047), only the content-subspace movers on `d` — extension `K.μ⁺` (frontier append; image grows weakly, F-IMG-MONO), contraction `K.μ⁻` (tail truncation; image shrinks weakly, F-IMG-CONTR), reordering `K.μ~` (image swings, F-IMG-SWING) — and `K.λ` (emission may add a pair, retraction removes — RE-RET) can move the answer; every other transition leaves it fixed, including the link-subspace edits `K.μ⁺_L` and link-subspace-only `K.μ⁻` (image fixed under `W ⊆ s_C`). A fixed region away from the affected frontier sees the image — hence `RE` — unchanged under `K.μ⁺`/`K.μ⁻`; the user-facing shift-based insert/delete are composite displacements (ASN-0082) whose RE behaviour is the swing case. A region-local contraction is *not* the global orphaning/resurrection of LP17/LP18 (ASN-0098). | introduced |
+| RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (RE-IDENT). Over the transition vocabulary (ASN-0047), only the content-subspace movers on `d` — extension `K.μ⁺` (frontier append; image grows weakly, F-IMG-MONO), contraction `K.μ⁻` (tail truncation; image shrinks weakly, F-IMG-CONTR), reordering `K.μ~` (image swings, F-IMG-SWING) — and `K.λ` (emission may add a pair, retraction removes — RE-RET) can move the answer; every other transition leaves it fixed, including the link-subspace edits `K.μ⁺_L` and link-subspace-only `K.μ⁻` (image fixed under `W ⊆ s_C`). A fixed region away from the affected frontier sees the image — hence `RE` — unchanged under `K.μ⁺`/`K.μ⁻`; the user-facing shift-based insert/delete are domain-growing/shifting displacements (I3/D-SHIFT, ASN-0082), not domain-preserving `K.μ~` reorders, so their non-monotone image swing is grounded in the displacement directly (content at shifted positions both enters and leaves a fixed region's image), not in F-IMG-SWING. A region-local contraction is *not* the global orphaning/resurrection of LP17/LP18 (ASN-0098). | introduced |
 | RE-RET | Retraction stability — a retraction is a `K.λ` step (Nullify/Emit_K, ASN-0086) that marks `ℓ` nullified (removing it from `addressable(Σ)` permanently, R6a) and emits a fresh addressable retraction link `b` with endsets `(∅, {(ℓ, δ(1, #ℓ))}, Θ)` (`Θ` the retraction type, ASN-0086). Because the answer deduplicates and discards identity (RE-UNIT), a pair `(i, e)` that `ℓ` bore drops **iff `ℓ` was its sole addressable bearer in `Σ`**: backward (other bearer ⟹ survives) unconditional; forward (sole bearer ⟹ drops) under the net-removal-only hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅`, with sole exception the type-slot-against-content match routed to Open Question 6. Link-level permanence (R6a) is not pair-value-level permanence — an identical pair re-enters only via a separately identified live link (R6c, ASN-0086). | introduced |
 | RE-CWP | Contraction-stability weakest precondition — for a `K.μ⁻[d, R]` step, `RE(W, d, ·) = RE(W, d, Σ)` iff `enabled(K.μ⁻[d, R]) ∧ (∀ (i, e) ∈ Avail(Σ) : coverage(e) ∩ Δ ≠ ∅ ⟹ coverage(e) ∩ I_R ≠ ∅)`, where `I_R = {Σ.M(d)(v) : v ∈ W ∩ R}` (D-CWP bridge, ASN-0127), `Δ = image(W, d, Σ) ∖ I_R`, and `Avail(Σ)` is the region-independent pool of addressable slot-endsets. `RE` is monotone-decreasing under contraction, the condition is strictly finer than D-CWP's per-link form, and `R = ∅` collapses it to `RE(W, d, Σ) = ∅`. | introduced |
 
