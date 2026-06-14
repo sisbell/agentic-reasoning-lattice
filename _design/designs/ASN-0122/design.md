@@ -1,0 +1,70 @@
+## What this is
+
+The COMPARE / SHOWRELATIONOF2VERSIONS operation: the read-only query that answers "show me, word for word, what parts of these two regions are the same." It takes two spec-sets (each a set of documents with windows onto their content) and returns an aligned list of span-pairs that resolve to the same stored content. It is a pure observation — it reads two documents' arrangements and changes nothing. The same machinery, pointed at one document with two disjoint windows, becomes an internal-sharing detector, so inter-version compare and intra-document "where is this reused" are one operation, not two.
+
+## Design commitments
+
+These are locked in; nothing downstream may violate them.
+
+- **Correspondence is address equality, never value equality.** Two positions "are the same part" *iff* they resolve to the same stored content address. This is **forced** (X1/X2): value-matching over-reports — two independently authored, byte-identical passages have distinct addresses and must *not* correspond — and it would break the "same part" reading. The practical consequence is the operation's most striking property: **it never opens the content store.** The entire computation lives in address space.
+- **The operation is a pure observation — total frame.** It allocates nothing, arranges nothing, links nothing, records nothing; the post-state equals the pre-state. **Forced** (X12). It therefore needs no journaling, no recovery, no locking beyond a consistent read.
+- **It is local: a function of exactly the two regions' resolution maps.** It reads neither content values, the link store, the entity set, provenance, nor any other document's arrangement. **Forced** (X5). This is what buys determinism, indifference to every edit elsewhere in the docuverse, and memorylessness (no past arrangement can manufacture a pair).
+- **Both soundness *and* completeness are binding.** Unlike a diff, the report must contain *every* correspondence and *only* true ones. Because the relation is finite and decidable, approximation is no excuse. **Forced** (R1+R2). The whole weight of this falls on one place: correct handling of *fan-out* (the same content arranged at several positions).
+- **Restricting to the content subspace is semantic and lossless.** Link positions can carry no cross-position, cross-document, or cross-operand correspondence, so the content-only restriction discards no correspondence information. **Forced** (X9). The precondition that rejects link-subspace spans is correctness, not a limitation.
+- **Edits transport correspondence; they never re-pair it.** Every arrangement edit moves addresses verbatim and induces an injective, address-preserving position map, so a prior correspondence is conserved element-for-element under that map — only V-coordinates and run-fragmentation change. Transclusion chains transport it undiminished regardless of length; there is no hop count to attenuate. **Forced** by the substrate (X6/X7/X-T); load-bearing for any caching and for the whole system's model of versioning.
+- **Denotation is fixed; presentation is free.** Conformance is denotational — any list of consistent, confined pairs whose union is the relation conforms. The canonical maximal-run form, the lexicographic list order, and the (document·V-start) record packing are the *reference* presentation, **conventional** not required (R4). The one convention you must honor is that within-pair slot *i* draws from operand *i* — that is what makes the symmetry claim (compare(A,B) is the transpose of compare(B,A)) contentful.
+
+## What must be built
+
+- **A region resolver/clipper.** For each named document, clip the operand spans against the *current* content-subspace arrangement and yield each surviving position with the address it now holds — walking only the requested window, not the whole document. Empty operands, spans that clip to nothing, and empty results are all legal and must answer with the empty report, never an error.
+- **A precondition gate.** Verify each named document exists, each span is well-formed, each is a content-subspace span; strip/reject link-subspace spans up front (honoring the precondition rather than crashing on it).
+- **A matcher** — the equi-join of the two resolutions on address — **complete under fan-out**: when an address occurs at *k* positions on one side and *m* on the other, all *k×m* aligned pairs are members.
+- **A presenter** that compresses the relation into lockstep runs (or any chosen granularity), orders them deterministically, and emits each as (document, start) per side plus one shared width — as a pure function of the operands and the two restrictions.
+- **The operation wrapper** that produces the value while touching no state.
+
+## Implementation approaches
+
+**Resolving a region.** The region is a window over one document's content arrangement, and you need each position's address. Hold the arrangement as an ordered index keyed by V-position (the POOM is the proven structure: a 2-D enfilade over the (V, address) pair) and do a **bounded traversal** — descend only into nodes overlapping the query window. The udanax-green reference does exactly this, and the verified evidence confirms the restriction is applied *pre-walk*, not as a post-filter: a sub-range query performs a sub-range walk. This is the computational dividend of the locality commitment — never scan a whole document to answer a windowed question. In the Rust/`im` target, a persistent ordered map (V-position → address) gives the same shape: a windowed range-scan with O(1), lock-free snapshots from structural sharing. Either way the resolver's natural output is a sequence of (V-position, address) in V-order, arriving in **runs** — contiguous V-positions backed by a contiguous address interval. Represent each region as a set of (V-start, address-start, width) blocks; that is the compact form and the unit the matcher wants.
+
+**Matching — this is the heart, and the one place the reference design is wrong.** The contract is a relational equi-join keyed on address, complete under fan-out. The reference implementation's pairing step instead advances both cursors in lockstep against a per-interval width budget — a *merge*, not a join — which emits one pair per shared address-unit and orphans every repeated occurrence. The verified consequence is that self-comparison there reports only the diagonal; it is structurally incapable of an off-diagonal pair. It conforms *exactly on injective windows* and under-reports everywhere else. The fix is to treat this as a real join:
+
+- *Interval (spatial) join on the address axis, cross-product per overlap* — keep the reference's efficient interval intersection and bounded traversal, but for each overlapping address sub-interval emit the **full cross-product** of the left blocks and right blocks covering it, refined to the overlap (offset-aligned, single shared width). This is my default: it is the proven structure with the one corrected step. Find overlaps with a sweep or interval tree rather than all-pairs.
+- *Hash/sort join on per-position address* — build a multimap address → positions for the smaller side, probe with the larger, emit cross-products. O(|P|+|Q|+|output|), obviously fan-out-complete, no interval bookkeeping. Pick this for small windows, for non-block-structured arrangements, or as the oracle you test the interval join against.
+- *Nested scan* — the literal definition, O(|P|·|Q|). Tiny cases and tests only.
+
+Whichever you pick, the matcher reads only addresses — give it no path to content bytes. That is simultaneously a correctness property (value-matching over-reports) and a performance one (you never fault in content). Note that completeness can make the output genuinely super-linear (heavy internal sharing is the worst case); keep the matcher complete and push compression into the presenter. The open question of a smaller *multiplicity-annotated* report is real, but the note warns it may not be information-equivalent — so don't sacrifice the matcher's completeness to shrink it.
+
+**Presenting.** Run-length-coalesce the relation along the successor relation (both feet advance by one and stay in the relation), then sort by (first foot, second foot). If the join already emits address-aligned blocks they are mostly maximal; coalescing is a linear pass. The second-foot tie-break is load-bearing, not cosmetic — under fan-out several runs land on one start and only the tie-break separates them. Rearrangement that scatters a shared run simply produces more, shorter pairs (refragmentation): denotation conserved, presentation split, exactly as observed in the reference's one-pair-per-arrangement-block output.
+
+**Caching — treat it as a hint.** The relation is cheap and local, so the simple thing is to **recompute** it and keep no authoritative duplicate. If profiling ever shows repeated identical compares, a stored correspondence index is a Lampson *hint*: recomputable on a miss, never trusted blind. Its consistency contract under an edit to either compared document is precisely the transport theorems — permute feet on reorder, intersect with survivors on contraction, apply the gap-closing shift on shifting contraction, only-add on extension — or, simpler and always correct, invalidate and recompute. Default to no cache.
+
+**Snapshot and access discipline.** Being a pure read, it needs only a consistent view of two arrangements; with persistent structures that is a reference to current state, lock-free, isolated from concurrent edits. And keep the access pattern tight — read *only* the two arrangements, never a document-membership or span index. The reference implementation gets memorylessness for free this way: stale membership entries that survive deletion can't fabricate a pair because that path is never opened. Enforce locality by what you read, not by filtering after.
+
+## Guarantees to uphold
+
+- **Certification of "sameness"** — *by construction*: binding both feet to one store entry makes equal value an entailment, never a check.
+- **Soundness** — *mostly by construction* if you join the clipped regions; the presenter must preserve per-pair consistency and confinement when it coalesces.
+- **Completeness** — *actively enforced*, and the only hard one: the fan-out cross-product is where it is won or lost.
+- **Determinism** — *enforced*: fix one presentation and one iteration order; no hidden input.
+- **Symmetry** (compare(A,B) transposes compare(B,A)) — *by construction* if the join is symmetric and slot *i* = operand *i*.
+- **Window exactness** (sub-range queries report exactly the in-window part — no invention, no silent loss) — *by construction* from clipping plus joining the clipped regions.
+- **Purity/frame** — *by construction*: give the operation no write capability over the state.
+- **Edit-stability** (correspondence transports, never re-pairs) — *inherited* from immutable bindings and verbatim address transport; you must honor it only if you maintain a cache.
+
+## How it fits
+
+- **Consumes** one foundation capability — resolution of a windowed arrangement (position → address) over the content store's POOMs — and the tumbler/address algebra (ASN-0034: address equality via intrinsic comparison, ordinal shift for runs/offsets, shift-monotonicity for the maximal-run argument) and span algebra (ASN-0053: the operand language, clipping, the canonical sequential arrangement shape that makes runs dense).
+- **Leans on, but does not call,** the edit operations (extension/contraction/reorder, ASN-0082 shifting contraction) — only via their frame and position-map clauses, to know correspondence transports.
+- **Reads neither** the link store, provenance, nor any document-membership/spanfilade index — and the design should keep it that way.
+- **Hands** its report up to intercomparison consumers — version diff/merge views, transclusion-provenance displays, and (pending the n-way composition question) multi-document alignment built from pairwise reports. It sits at the read/query tier of the operations layer beside the other content-region-query observers.
+
+## Decisions for the builder
+
+- **Matching algorithm**: interval-join-with-cross-product (proven, block-structured, bounded traversal) vs. hash/sort join on per-position address (simplest, obviously fan-out-complete). Interval for large arrangements with small windows; hash for simplicity or as a test oracle.
+- **Region representation**: (V-start, address-start, width) blocks vs. a flat (position, address) sequence. Resolve to blocks; expand only where fan-out forces it.
+- **Presentation granularity**: maximal co-advancing runs vs. allocation-interval-aligned runs vs. finer. Any conforms; fix one and document it (the engineering side of the interop-granularity open question).
+- **Cache or not, and how**: default recompute; if you cache, choose incremental transport via the edit position maps vs. invalidate-and-recompute. Either way, a hint, never authoritative.
+- **Record packing**: composite (document·V-start) tumbler per side (reference) vs. explicit (document, start) fields — packing is representation; keep the width shared.
+- **Output under heavy fan-out**: stream the report (it can be large) vs. materialize; pick a streaming order consistent with your deterministic presentation.
+- **Width precision**: the reference truncated multi-digit tumbler widths to machine integers — a latent bug for very large windows. Decide your width representation carries full tumbler magnitudes, or document the bound.
+- **Snapshot mechanism**: a persistent-structure reference (lock-free, the simple choice with `im`) vs. an explicit read lock.
