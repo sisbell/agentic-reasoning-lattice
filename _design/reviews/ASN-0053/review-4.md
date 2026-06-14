@@ -1,0 +1,22 @@
+I worked through the digest against ASN-0053 claim by claim, re-deriving the load-bearing ones (the self-guarding-intersection vs guarded-merge analysis, the level-boundary layering, S10's semilattice, the S11 tightness via S0). Most of it is accurate and genuinely sharp. One guarantee is mis-stated.
+
+## Revision list
+
+**1. [DEFECT] — "Guarantees to uphold" → Lossless subdivision: "merge-then-split = original pair (S3b)" drops S3b's load-bearing precondition and is false as stated.** S3b holds **only for adjacent spans**, split at their shared boundary. The digest pairs it symmetrically with split-then-merge (S4a) under "lossless subdivision," but the two are *not* symmetric. Split always produces *adjacent* parts (reach(λ)=start(ρ)=p), so split-then-merge (S4a) is a general inverse. Merge, however, accepts *overlapping* inputs (S3's domain is overlap-or-adjacent), and merging overlapping spans is **lossy**: many distinct pairs collapse to the same `(min start, max reach)`, so the overlap boundary is unrecoverable and merge-then-split cannot return the pair. As written — unconditional over merge's whole domain — the claim is false. Fix: scope it to adjacent spans, and make the asymmetry explicit ("split-then-merge is the general inverse; merge-then-split recovers the pair only for adjacency, because merge is lossy on overlaps"). Citing "(S3b)" does not rescue the prose, which a builder will read as a uniform invariant and find fails on overlapping inputs.
+
+**2. [SHARPENING] — Design commitments → infinite sets: "|Σ| = |P| worst case — no compression guarantee" mis-frames S7.** S7 is an *existence* result: one unit-span per point yields a cover of size |P|. It does **not** establish |P| as a worst-case minimal cover — a single hull span `[min P, reach beyond max P)` covers any finite P by convexity (S0), so the minimal cover is 1. The load-bearing fact is that *exact* representation is impossible (every span denotes an infinite set). Reframe: "S7 guarantees only a |P|-span cover and promises nothing smaller; the binding limit is that no span-set can denote a finite P exactly." The takeaway ("interval arithmetic, not finite-set manipulation") is correct and should stay.
+
+**3. [SHARPENING] — Guarantees → Non-emptiness: the constructor enforces full T12, not just "width ≤ 0."** Non-emptiness in S2 is derived from **both** ℓ > 0 *and* action point ≤ #start. The guarantee line ("rejecting width ≤ 0") understates the constructor's job; the "What must be built" section already states T12 in full ("positive width and action point ≤ #start"). Align the two so the guarantee doesn't read as if positivity alone suffices.
+
+**4. [SHARPENING] — Implementation approaches → Representation: reach is a derived/cached value, not a Lampson "hint."** A Lampson hint *may be wrong* and must be checked; reach = start ⊕ width is a pure function of an immutable input and can never be stale. It's a *cache* of a recomputation, not a hint. The advice (recompute on demand, optionally memoize, never persist as authoritative) is exactly right — just don't label it "hint in the Lampson sense."
+
+**5. [SHARPENING] — Completeness: surface the note's width-comparison open question as a builder caution.** The note's final open question flags that all properties quantify over denotation, and that comparing widths by *tumbler representation* (T3 canonical form) may not agree with comparison by denotation. That's a concrete trap for a builder who wants to compare widths directly for speed. One line among the boundaries would close it.
+
+## Solid sections (no action)
+
+- **Pairwise engine** — the self-guarding-intersection vs guarded-merge analysis, the `separated/adjacent/overlapping ⟺ max-start {>,=,<} min-reach` trichotomy, and "only difference needs full SC" are all correct and load-bearing. Genuinely the strongest part.
+- **Level-boundary layering** — "gate after classification, before construction" is correctly derived from SC/S0/S9 carrying no level precondition while every result-builder routes through WF. Accurate and useful.
+- **Order-independent union → join-semilattice** — idempotency-by-derivation is correctly flagged as beyond S10's stated text, and the two caveats (union-only; one shared tumbler length) are exactly the right guardrails.
+- **Content-addressing by normalized form** — correctly consistent with the note's *denotational* identity (this layer is value-based, unlike the content/permascroll layer), not a violation of it.
+
+VERDICT: REVISE
