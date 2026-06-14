@@ -494,28 +494,23 @@ reordering — each acting as a faithful tracker would:
 
 The user-facing *insert* and *delete* that **shift** content are not these atomic movers;
 to range over them the analysis widens its vocabulary beyond ASN-0047's atomic transitions
-to ASN-0082's displacement primitives. The two are not competing descriptions of one
-transition: the atomic `K.μ⁺` *appends* at the contiguous frontier with every existing
-mapping fixed (`M'(d)(v) = M(d)(v)` for `v ∈ dom(M(d))`, ASN-0047), whereas an ASN-0082
-insert *shifts* existing content — `M'(d)(shift(v, n)) = M(d)(v)` for `v ≥ p` (I3) — a
-genuinely different arrangement transformation of a different, user-facing operation. We
-take insert and delete here as ASN-0082 displacement primitives in their own right, not as
-`K.μ` composites. The foundation realises them as displacements (I3 PostInsertionShift,
-D-SHIFT, ASN-0082): an insertion at `p` of width `n` carries the content at every position
-`v ≥ p` up to `shift(v, n)` (I3), and a deletion carries the content lying above the removed
-span back down (D-SHIFT). Either way content is *displaced through* `d`'s V-order rather
-than permuted over a fixed set of positions, so a shift is no domain-preserving `K.μ~`
-reorder — its net effect grows or shrinks the domain — and, taken as a primitive, its effect
-on the image is read off the displacement directly rather than through F-IMG-SWING. (Were
-the shift instead decomposed into atomic `K.μ` steps, the existing-content motion would live
-in a domain-preserving `K.μ~` component and route through F-IMG-SWING; we do not take that
-route.) Fix the region `W`. A displacement moves content through `W`'s fixed positions: content the region
-held is carried off to a displaced position — possibly out of `W` — while the positions it
-vacates take on other content (freshly inserted content, or content displaced in from
-elsewhere in `d` — from lower positions under an insert, from higher ones under a delete). So
-the fixed region's image *both gains and loses* I-addresses; it swings, non-monotonically,
-rather than growing or shrinking weakly — and it is the displacement itself, not F-IMG-SWING
-(whose `K.μ~` precondition a shift does not meet), that grounds the swing.
+to ASN-0082's displacement primitives, taken in their own right, not as `K.μ` composites.
+The foundation realises them as displacements (I3 PostInsertionShift, D-SHIFT, ASN-0082):
+an insertion at `p` of width `n` carries the content at every position `v ≥ p` up to
+`shift(v, n)` (I3), and a deletion carries the content lying above the removed span back
+down (D-SHIFT). Either way content is *displaced through* `d`'s V-order rather than permuted
+over a fixed set of positions, so a shift is no domain-preserving `K.μ~` reorder — its net
+effect grows or shrinks the domain — and its effect on the image is read off the
+displacement directly, not through F-IMG-SWING (whose `K.μ~` precondition a shift does not
+meet). Fix the region `W`. The displacement moves content through `W`'s fixed positions:
+content the region held is carried off to a displaced position — possibly out of `W` —
+while the positions it vacates take on content displaced in from an adjacent position (from
+lower positions under an insert, from higher ones under a delete — the adjacent motion the
+I3/D-SHIFT shift itself delivers; the fresh content a full insert places in the vacated gap
+is a separate content-placing step, not part of the primitive). So the fixed region's image
+*both gains and loses* I-addresses; it swings, non-monotonically, rather than growing or
+shrinking weakly, and RE tracks the swing by membership, each surfaced endset's spans held
+fixed (RE-IDENT).
 
 Editing of *other* documents does not perturb the answer: the image reads only `Σ.M(d)`,
 and a transition touching `d' ≠ d` leaves `Σ.M(d)` fixed (LP5, ASN-0098). Three further
