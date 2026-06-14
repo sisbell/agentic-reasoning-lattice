@@ -120,7 +120,7 @@ Range preservation alone would still leave the version's initial *order* unspeci
 
 — equality of mappings on the canonical positions, which makes the boundary correspondence total (the two documents agree position-for-position by construction) and carries the order- and width-preservation of the source's run structure (M0, M1, ASN-0058) unchanged.
 
-What of the source's *link-subspace* arrangement? Transcribing it is not merely omitted; it is impossible. CL-OWN requires `origin(M(d)(x)) = d` at every link-subspace position of every document, and every link arranged by `d_src` has `origin = d_src ≠ v`; correspondingly K.μ⁺_L's precondition `origin(ℓ) = d` admits only a document's own links into its link subspace. No reachable transition can seat a foreign link in `v`'s link subspace. So `dom(M'(v)) = V_{s_C}(d_src)` exactly, and content anchoring is the *only* channel by which connectivity can cross a fork — which, by the range argument above, is also a sufficient one.
+What of the source's *link-subspace* arrangement? Transcribing it is not merely omitted; it is impossible — no reachable transition can seat a foreign-origin link in `v`'s link subspace (V2b, ForeignLinkExclusion, proves this from CL-OWN and K.μ⁺_L's `origin(ℓ) = d` precondition). So `dom(M'(v)) = V_{s_C}(d_src)` exactly, and content anchoring is the *only* channel by which connectivity can cross a fork — which, by the range argument above, is also a sufficient one.
 
 ### G3: the source must be untouched — the frame, and the asymmetry of the record
 
@@ -273,7 +273,7 @@ There is no ownership record to create because there is no ownership ledger in t
 > — **`Document(v)`** — `zeros(v) = zeros(pfx(π)) + 1 = 2` (the lone separator) and T4-valid (B6(a) on the stream, ASN-0040), so `v ∈ E_doc`;
 > — **O5(i), `pfx(π) ≼ v`** — immediate from the displayed form (`v` agrees with `pfx(π)` on positions `1 … #pfx(π)`; SiblingStream S1, ASN-0040), with no appeal to the O5 axiom;
 > — **O5(ii), maximality — now a theorem** — let `π'' ∈ Π` cover `v` (`pfx(π'') ≼ v`) and suppose `#pfx(π'') > #pfx(π)`, i.e. `#pfx(π'') ≥ #pfx(π) + 1`. The length-`(#pfx(π) + 1)` prefix of `v` is `w = [pfx(π), 0]` with `zeros(w) = zeros(pfx(π)) + 1 = 2`; since `w` and `pfx(π'')` are both prefixes of `v` with `#w ≤ #pfx(π'')`, `w ≼ pfx(π'')`, so Z-mono gives `zeros(pfx(π'')) ≥ zeros(w) = 2`, contradicting O1a's account-tier bound. Hence `#pfx(π'') ≤ #pfx(π)` for every coverer of `v` — exactly `(A π'' ∈ Π : pfx(π'') ≼ v ⟹ #pfx(π'') ≤ #pfx(π))`.
-> Every member of `S(pfx(π), 2)` has the form `[pfx(π), 0, k]`, which yields `pfx(π) ≼ v` (O5(i)) and, via Z-mono on the length-`(#pfx(π) + 1)` prefix `[pfx(π), 0]`, the maximality O5(ii); the within-stream index `k` plays no role. Then:
+> Then:
 > (a) **Severance** — `¬(d_src ≼ v)`: the new identity *cannot* lie in the source's subtree, so prefix-encoded ancestry is unattainable, not merely omitted;
 > (b) **Ownership** — `ω'(v) = π`: the forker owns the fork outright;
 > (c) **Editability** — the forker's right to edit `v` follows from (b) and from nothing about the source's permissions, which the operation never consulted (P-src is the entire source-side precondition).
