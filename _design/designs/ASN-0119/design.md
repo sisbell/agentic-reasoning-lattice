@@ -21,7 +21,7 @@ These are the constraints downstream design cannot violate.
 Described functionally — what each capability must do.
 
 - **A per-document arrangement store** mapping V-positions to I-addresses, able to reorder a contiguous interval *in place over identity* — moving the (position→content) association without touching the content it points at.
-- **A cut/region resolver** that validates the preconditions, splits the arrangement at the cut points so cuts land on run boundaries, and partitions the affected interval into regions with known widths.
+- **A cut/region resolver** that validates the preconditions, splits the arrangement at the cut points so cuts land on run boundaries, and partitions the affected interval into regions with known widths. It must distinguish a degenerate *branch* from a degenerate *input*: reject only genuine R-PRE failures (chiefly an active run shorter than the minimum interval — two positions for a pivot, three for a swap), while *accepting* valid empty-exterior cases — `c₀` at the first active position, or an interval covering the whole active run — where π stays a bijection and extent is still conserved. A guard against empty exteriors would wrongly reject whole-document and leading-edge rearranges.
 - **A transposition engine** that produces the new order as a tiling — laying β, then μ, then α (or β then α) so the result is collision-free and gap-free by construction.
 - **A frame discipline** that makes the content store, link store, provenance, and other documents' arrangements *unwritable* by this operation — ideally unreachable from the call, not merely left alone.
 - **An atomic commit** so a reader sees either the old order or the new, never a partial reordering.
@@ -33,9 +33,9 @@ Described functionally — what each capability must do.
 
 ### The arrangement store — represent it as the run decomposition
 
-The note's own `S8★` says the arrangement *is* a maximal correspondence-run decomposition: maximal stretches where consecutive V-positions map to consecutive I-addresses. That is exactly a **piece/span list** (a piece-table over content-runs). Build the in-memory arrangement as an **ordered, structurally-shared sequence of content-runs** (an `im`-style persistent vector or ordered map):
+The note's own `S8★` says the arrangement *admits* a unique maximal correspondence-run decomposition: maximal stretches where consecutive V-positions map to consecutive I-addresses. The cheapest representation that honors that property is a **piece/span list** (a piece-table over content-runs). Build the in-memory arrangement as an **ordered, structurally-shared sequence of content-runs** (an `im`-style persistent vector or ordered map):
 
-- *Piece/span list (recommended default).* A transposition is a splice of a handful of runs; the unit of work matches the spec's unit of structure; and because it is persistent, an old version coexists with the new at near-zero copy cost. This directly and cheaply serves two of the note's hard cases — the observable-intermediate question and the "recover a prior arrangement" question — by simply retaining prior roots.
+- *Piece/span list (recommended default).* A transposition is a splice of a handful of runs; the unit of work matches the spec's unit of structure; and because it is persistent, an old version coexists with the new at near-zero copy cost. Retaining prior roots cheaply serves version coexistence and the note's "recover a prior arrangement" open question (OQ5). The no-observable-intermediate property is a separate matter — a settled result (RA8b) delivered by the atomic root *swap* below, not by retention.
 - *Enfilade / POOM (the proven heavyweight).* Green's POOM stores each run as a crum with relative V- and I-displacements and reorders by adjusting V-displacements (Q12, Q18); it is proven and gives logarithmic locality at scale. Reach for it only when a document's run count is large enough that the span list's splice cost or linear scans bite. Its relative-addressing rebalancing is subtle, and — see below — its offset arithmetic carries a real bug.
 
 **I'd pick the persistent span list** for a from-scratch Rust implementation and reserve the enfilade for very large documents. The simplest thing that honors `S8★` is to *be* `S8★`.
@@ -57,7 +57,7 @@ The cheapest way to honor "touches only `M(d)`" is to make everything else unrea
 Two coupled mechanisms:
 
 - *Atomicity* comes free from the persistent representation: publish the new arrangement as a single atomic root swap. Readers on the old root see the old order; readers after the swap see the new; no intermediate is ever addressable. This is the versioning answer to RA8b. (Green gets the same no-intermediate property a different way — single-threaded run-to-completion scheduling around an in-place crum loop. Versioning is more robust under concurrency.)
-- *Durability* is the repo's own proven pattern: an **append-only journal recovered by replay**, exactly as the working substrate uses `links.jsonl` + `paths.json`. The open choice is *what* to journal. Journal the **operation** — the document and its cut sequence — not the resulting map. The cut sequence is tiny and self-validating; the new arrangement is a *hint*, recomputable by replaying operations against the immutable content store. This matches the Istream philosophy (the permanent record is content and operations; order is a derived view) and, as a bonus, makes *every* prior arrangement recoverable by replaying a journal prefix. Journaling the effect (the full V→I map) is larger and restores trivially but throws history away; prefer intent.
+- *Durability* is an **append-only journal recovered by replay**. The open choice is *what* to journal. Journal the **operation** — the document and its cut sequence — not the resulting map. The cut sequence is tiny and self-validating; the new arrangement is a *hint*, recomputable by replaying operations against the immutable content store. This matches the Istream philosophy (the permanent record is content and operations; order is a derived view) and, as a bonus, makes *every* prior arrangement recoverable by replaying a journal prefix. Journaling the effect (the full V→I map) is larger and restores trivially but throws history away; prefer intent.
 
 ### Link-footprint resolution — content-addressed index, footprints as recomputable hints
 
@@ -67,7 +67,7 @@ Footprint **fragmentation is correct, not a fault**: a footprint that straddled 
 
 ### Run-decomposition canonicalization (S8★)
 
-If the span list keeps a canonical merge-normal form — adjacent runs over contiguous I-addresses coalesced — you get `S8★` for free, and the note's `R-CANON` step is just "merge adjacent spans after the splice." Cheap to maintain, and it keeps footprints minimally fragmented.
+If the span list keeps a canonical merge-normal form — adjacent runs over contiguous I-addresses coalesced — you get `S8★` for free, and the note's `R-CANON` step is just "merge adjacent spans after the splice." Crucially, runs coalesce *only* on I-address contiguity, never on content-value equality: identity is per-allocation, not per-value (S4, OriginBasedIdentity), so two distinct I-addresses holding equal bytes are distinct content and must never be merged. The permutation itself is cut-determined and value-blind (R-PRE imposes no value condition), so canonicalization must be too — this forecloses the content-dedup trap by rationale, not by a rule a future optimizer might relax. Cheap to maintain, and it keeps footprints minimally fragmented.
 
 ## Guarantees to uphold
 
@@ -103,5 +103,5 @@ Genuinely open *how*-choices (distinct from the note's spec-level open questions
 4. **Collision/subspace safety** — structural tile-by-placement (recommended; nothing to guard) vs. offset arithmetic plus an explicit bijection-and-boundary guard.
 5. **Footprint canonicalization** — return raw fragmented span-sets vs. merge adjacent spans into canonical runs at query time.
 6. **Footprint materialization** — pure query-time projection (recommended default; V-footprints are hints) vs. a cached V-index invalidated on rearrange (only if projection is measured hot).
-7. **Concurrency control** — single-writer-per-document vs. optimistic concurrency with conflict detection on overlapping cut intervals. The note flags order-sensitivity (same final order only when composed permutations match; intermediates always differ), so you must pick a serialization story rather than assume commutativity.
+7. **Concurrency control** — single-writer-per-document vs. optimistic concurrency with conflict detection on overlapping cut intervals. Whether two *independent* rearranges on the same content leave the final arrangement order-independent is the note's Open Question 2, and it is unresolved; what is settled is that their intermediate states always differ (RA8b). Pick a serialization story rather than assume commutativity.
 8. **Cut granularity** — split runs eagerly at cut points (simpler, risks over-fragmentation) vs. lazily, and whether to re-merge over-fragmented runs afterward.
