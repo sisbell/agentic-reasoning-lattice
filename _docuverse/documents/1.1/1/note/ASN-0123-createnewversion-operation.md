@@ -82,9 +82,9 @@ with `next` as in ASN-0040: `inc(d, 1)` when `E ∩ S(d, 1) = ∅`, else `inc(ma
 > *`k = 1` (version)* — the output is `t·1` for an operand `t ∈ E_doc`; `t·1 = d·j` forces `#t = #d`, then `t = d` componentwise (T3), then `j = 1`. The only `k = 1` arrival is `c₁ = inc(d, 1)`; freshness `c₁ ∉ E` gives `m = 0`, and the intersection becomes `{c₁}`.
 > *`k = 0` (sibling)* — the operand `t ∈ E` is T4-valid (every member of `Σ.E` is), so `sig(t) = #t` (TA5-SigValid) and the output is `t` with its final component incremented (TA5(c)). Output `= d·j` forces `#t = #d + 1`, agreement with `d` on positions `1 … #d`, and final component `j − 1 ≥ 1` (a trailing zero would break `t`'s T4-validity) — i.e. `t = c_{j−1}`. The operand constraint puts `c_{j−1} ∈ E`, so `j − 1 ≤ m` by the induction hypothesis; freshness `c_j ∉ E` gives `j > m`. Hence `j = m + 1` — the frontier, and nothing but (this is FrontierEquivalence, ASN-0047, read in stream coordinates).
 
-In both arriving cases the new intersection is `{c₁, …, c_{m+1}}`: contiguity is preserved. ∎ Note what the proof did *not* assume: VD (below). Contiguity of the namespace is forced by K.δ's freshness and operand constraints alone, whatever composite fires the step — VD governs what the arrivals *mean*, not where they land.
+In both arriving cases the new intersection is `{c₁, …, c_{m+1}}`: contiguity is preserved. ∎
 
-`nextv` is *registry-pure*: its arguments are the set of allocated identities and the source's address, and nothing else — the content store, arrangements, link store, and provenance are not consulted.
+`nextv` is *registry-pure*: its arguments are the set of allocated identities and the source's address, and nothing else (V5(b) states it formally as a congruence).
 
 ## Deriving the Operation from Its Guarantees
 
