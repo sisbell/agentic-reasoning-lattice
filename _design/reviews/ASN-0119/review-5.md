@@ -1,0 +1,15 @@
+The digest is strong: accurate on the forced/conventional split, technically airtight on the swap-offset bug, and careful on the traps a careless digest fails — the value-degenerate `π≠id` / `M'=M` case, the no-content-dedup rule, frame-by-unreachability, I-keyed link resolution. Everything below is a sharpening.
+
+**Revision list**
+
+1. **[SHARPENING] Run-decomposition canonicalization (S8★).** "S8★ holds for any arrangement — it is a theorem the note proves (R-BLK…, R-CANON…)" conflates two things: the universal fact that any function admits a unique maximal correspondence-run decomposition (true, and the actual reason the representation need not "earn" S8★) with what R-BLK/R-CANON prove, which is *preservation/canonicality across the REARRANGE transition*, not universal existence. The builder takeaway (canonicalize the representation for footprint minimality, not S8★-compliance) is correct; sharpen the provenance: S8★ is a property of the abstract map's *values*, satisfied automatically by any faithful representation, and R-BLK/R-CANON establish it *across the transition* — citing them for "holds for any arrangement" is a mild misattribution.
+
+2. **[SHARPENING] Design commitment 3 / transposition engine.** The three swap offsets are named by a mix of region-label and position-descriptor — "middle (`w_β−w_α`) and back (`−(w_α+w_μ)`)" — where "back" is β's offset, i.e. the region *originally* at the back that the operation moves to the front. The values are correct and explicit, but the reader must reconcile "back" against "β-moves-to-front." Name them α/μ/β consistently: the α offset is the lone defect; `μ = w_β−w_α` and `β = −(w_α+w_μ)` are the correct tiling values.
+
+3. **[SHARPENING] Atomicity.** The note foregrounds that REARRANGE realizes the arrangement change "without ever vacating content," distinguishing it from the non-atomic `K.μ~` composite it coincides with — the rationale for REARRANGE being a *distinct atomic primitive* rather than a composite. The digest's "no observable intermediate" subsumes this, but the `K.μ~` contrast is never named; surfacing it would reinforce "don't realize REARRANGE by removing-and-re-adding content" and explain why the note admits it as a new vocabulary entry.
+
+4. **[SHARPENING] How it fits.** "sibling to INSERT/DELETE/COPY in the same operation vocabulary" — the note's vocabulary is the K.* symbols `{K.α, K.δ, K.λ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.ρ}`; that COPY/transclusion is a member is not established. Cite the actual symbols or soften to "one of a family of editorial operations."
+
+**Solid:** the offset/collision analysis (grounded cleanly in Q11/Q14/Q19 and the note's own caveat, with the right single-offset diagnosis and the right collision direction), the cut-determined-not-content-inferred argument resting on the value-degenerate case, the frame-by-unreachability recommendation (incl. the RA6-vs-R-NS distinction), the I-keyed / query-time link-footprint design with its honest dissolution of OQ3/OQ4, and the RA8a-vs-OQ2 distinction in the concurrency decision are all correct and load-bearing — leave them.
+
+VERDICT: CONVERGED
