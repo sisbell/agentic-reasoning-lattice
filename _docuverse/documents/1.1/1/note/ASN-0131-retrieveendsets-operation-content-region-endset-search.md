@@ -103,13 +103,10 @@ present and not withdrawn — the **addressable** links:
 > `addressable(Σ) = dom(Σ.L) ∖ nullified(Σ)`     (over ASN-0086's `nullified`).
 
 ASN-0086's `nullified(Σ)` — the set of withdrawn addresses — is a function of the link store
-`Σ.L` alone. So `addressable`, the definition RE-DEF we are about to give, and everything we
-read off them through soundness, completeness, composition, selection, and contraction depend
-on `Σ.L` and the present arrangement, never on *how* a retraction was performed. The retraction
-*discipline* — which constrains the way the withdrawn set grows — bears only on two later
-questions: what a fresh emission, and what a retraction step, each leave addressable. We set it
-up where the first arises (RE-ADDR, "Fresh emissions" below) and draw on it again under
-"Stability" (RE-RET).
+`Σ.L` alone. So `addressable` depends on `Σ.L` and the present arrangement, never on *how* a
+retraction was performed. The retraction *discipline* — which constrains the way the withdrawn
+set grows — bears only on what a fresh emission, and what a retraction step, each leave
+addressable.
 
 The operation surfaces, for each addressable link and each of its endsets that touches
 the region, that endset, tagged by the slot it occupies:
@@ -168,10 +165,6 @@ Three degenerate inputs are worth reading straight off the definition.
 
 ## Fresh emissions and the addressable population
 
-We now set up the retraction machinery deferred from the definition. It is needed only here
-(RE-ADDR) and under "Stability" (RE-RET) — the two points where addressability depends on *how*
-the retraction slice grows, rather than on its present contents alone.
-
 Write `Θ` for ASN-0086's designated retraction type, and `L_R^Σ` for its *retraction slice* —
 the arity-3 type-`Θ` links at state `Σ`. We keep ASN-0086's inherited name `L_R` (its subscript
 is that retraction type `Θ`) and render ASN-0086's emit operation `Emit_R` as `Emit_Θ` to match.
@@ -197,7 +190,7 @@ it only for *layer*-reachable states, and the replayed `K.λ` sequence is layer-
 precisely because the standing discipline commitment holds along it — every
 retraction-slice-growing step is a `Nullify` obeying the discipline. So importing unit-depth is
 licensed by the standing assumption, not by the bare `→*` inclusion that carries the note's other
-ASN-0086 `Σ.L`-lemmas — those cited "via the `Σ.L`-evolution bridge" at their use sites.
+ASN-0086 `Σ.L`-lemmas.
 
 A `K.λ` step emits a *fresh* link — allocation gives `ℓ_new ∉ dom(Σ.L)`, so `ℓ_new` enters
 `dom(Σ'.L)` — and whether that fresh output is *addressable* in its post-state
