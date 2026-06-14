@@ -97,18 +97,29 @@ over. A link, once created, is permanent and immutable in the store (L12, ASN-00
 the system admits *retraction*, recorded not by deleting the link but by emitting a
 withdrawal link that marks the target nullified (ASN-0086). We adopt throughout, as a
 **standing assumption**, ASN-0086's *relational-layer discipline commitment*: every store
-transition that adds a retraction-typed link is a `Nullify`, so retraction-typed links enter
-the store through that one operation alone. ASN-0086's *unit-depth retraction discipline* —
-every retraction to-set is a unit-depth span `{(t, δ(1, #t))}` at a single prior target — is
-the **to-set consequence** of this commitment, discharged from it by induction (ASN-0086).
+transition that grows the retraction slice `L_R` — every `→`-step with `L_R^Σ ⊊ L_R^{Σ'}` — is
+a `Nullify`, so the arity-3 retraction slice grows through that one operation alone. (ASN-0086
+does admit *higher-arity* retraction-typed links into `dom(Σ.L)` by ordinary `K.λ`; these never
+enter `L_R`, and — as we use below — never enter `nullified`.) ASN-0086's *unit-depth retraction
+discipline* — every `L_R` to-set is a unit-depth span `{(t, δ(1, #t))}` at a single prior target
+— is the **to-set consequence** of this commitment, discharged from it by induction over
+layer-reachable states (ASN-0086). Because `nullified(Σ)` is defined by an existential over
+`L_R^Σ` alone (ASN-0086), this `L_R`-scoped unit-depth fact is exactly what addressability
+consults; higher-arity retraction-typed links, absent from `L_R`, are immaterial to it.
 The bridge to ASN-0086 — call it the **`Σ.L`-evolution bridge** — rests on one inclusion. `Σ.L`
 evolves only through `K.λ`: the arrangement movers (`K.μ` family), entity creation `K.δ`,
 provenance recording `K.ρ`, and content allocation `K.α` all frame the link store (`L' = L`).
 Every document ASN-0047 creates (`K.δ`, `Document(e)` case) is T4-valid with `zeros = 2` (M0,
 ASN-0093), exactly `K.σ`'s registration precondition (ASN-0093), so ASN-0086 can stage the
-identical home documents via `K.σ` and replay the identical `K.λ` sequence — giving the inclusion
-*ASN-0047-reachable `Σ.L`-configurations ⊆ ASN-0086-reachable ones*, along which a `∀`-quantified
-ASN-0086 `Σ.L`-lemma carries to every ASN-0047-reachable state.
+identical home documents via `K.σ` and replay the identical `K.λ` sequence. This gives the
+inclusion *ASN-0047-reachable `Σ.L`-configurations ⊆ ASN-0086-`→*`-reachable ones*, along which
+any `∀`-quantified ASN-0086 `→*`-reachable `Σ.L`-lemma — R0a/FlatLinkDomain and R-Scope among
+them — carries to every ASN-0047-reachable state. The unit-depth discipline is imported at a
+*stronger* reachability: ASN-0086 discharges it only for *layer*-reachable states, and the
+replayed `K.λ` sequence is layer-reachable precisely because the standing discipline commitment
+holds along it — every retraction-slice-growing step is a `Nullify` obeying the discipline. So
+importing unit-depth is licensed by the standing assumption, not by the bare `→*` inclusion that
+carries R0a and R-Scope.
 
 A withdrawn link's anchoring should not be reported as live — a design decision that fixes
 the operation as a report over the *active* population, not the full permanent store. So we range
@@ -175,17 +186,20 @@ Three degenerate inputs are worth reading straight off the definition.
 
 A `K.λ` step emits a *fresh* link — allocation gives `ℓ_new ∉ dom(Σ.L)`,
 so `ℓ_new` enters `dom(Σ'.L)` — and whether that fresh output is *addressable* in its
-post-state (`ℓ_new ∉ nullified(Σ')`) turns on whether some retraction to-set covers it. The
-standing commitment's unit-depth to-set settles this for an output of *any* arity: every
-retraction to-set in `Σ'.L` is unit-depth at some link `t ∈ dom(Σ'.L)`, covering
+post-state (`ℓ_new ∉ nullified(Σ')`) turns on whether some *nullifying* to-set covers it —
+where "nullifying" means the to-set of a tuple in ASN-0086's retraction slice `L_R^{Σ'}`, since
+`nullified(Σ')` is defined by an existential over `L_R^{Σ'}` alone (ASN-0086). Higher-arity
+retraction-typed links, admitted to `dom(Σ'.L)` but absent from `L_R`, never bear on it. The
+standing commitment's unit-depth to-set settles the question for an output of *any* arity: every
+`L_R^{Σ'}` to-set is unit-depth at some link `t ∈ dom(Σ'.L)`, covering
 `{u : t ≼ u}`, and R0a/FlatLinkDomain (ASN-0086, via the `Σ.L`-evolution bridge) makes
 `dom(Σ'.L)` a prefix-antichain, so any `t` distinct from `ℓ_new` is prefix-incomparable to
-it (`t ⋠ ℓ_new`) and cannot cover it. The only retraction to-set that could cover `ℓ_new` is
-therefore one whose *target* is `ℓ_new`. No *pre-existing* tuple bears such a to-set: every
-retraction already in `Σ.L` targets an address in `dom(Σ.L)` — by Nullify's P-tgt (ASN-0086)
+it (`t ⋠ ℓ_new`) and cannot cover it. The only nullifying to-set that could cover `ℓ_new` is
+therefore one whose *target* is `ℓ_new`. No *pre-existing* `L_R` tuple bears such a to-set: every
+nullifying tuple already in `Σ.L` targets an address in `dom(Σ.L)` — by Nullify's P-tgt (ASN-0086)
 its target is either an `A_rel = dom(Σ.L)` address or, for a self-emission, the emitter's own
 address, again in `dom(Σ.L)` — whereas `ℓ_new ∉ dom(Σ.L)` by freshness, so none targets
-`ℓ_new`. The only tuple in `Σ'.L` that can target `ℓ_new` is thus the freshly-emitted
+`ℓ_new`. The only tuple in `Σ'.L` that can target `ℓ_new` through a nullifying to-set is thus the freshly-emitted
 `ℓ_new` itself — present only if `ℓ_new` is itself a retraction — and it covers `ℓ_new`
 exactly when `ℓ_new` retracts its own emitter address. Hence the reusable fact —
 **fresh-output addressability (RE-ADDR)**: a fresh `K.λ` output that does not retract its own
@@ -412,8 +426,7 @@ and, like the image `⊆` law it rests on, this needs *no* injectivity hypothesi
 
 The reverse inclusion, by contrast, **fails in general** — and, decisively, *no restriction
 on the arrangement recovers it*. There are two independent obstructions to `⊇`, and the
-constructions below separate them, because the tempting diagnosis — that the failure "turns
-on non-injectivity," to be repaired by restricting `Σ.M(d)` — names only the weaker one.
+constructions below separate them.
 
 The first obstruction is the image-level non-distribution noted just above, and a
 non-injective arrangement exhibits it. Let `d` arrange two *distinct* V-positions to one
@@ -431,9 +444,7 @@ into both images, `image(W₁, d, Σ) = image(W₂, d, Σ) = {a}`, while `W₁ �
 `a ∈ coverage(e)` (reflexivity of `≼`), `touch_{W₁}(e)` and `touch_{W₂}(e)` both hold — here
 through the *same* witness `a` — so `(1, e) ∈ RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)`; but the
 intersection region is empty, so `image(W₁ ∩ W₂, d, Σ) = ∅`, whence `RE(W₁ ∩ W₂, d, Σ) = ∅`
-(RE-BND) and `(1, e) ∉ RE(W₁ ∩ W₂, d, Σ)`, refuting `⊇`. This failure does *involve*
-non-injectivity — but it is not the governing obstruction, and to read it as one an
-arrangement restriction would repair is the error the next construction exposes.
+(RE-BND) and `(1, e) ∉ RE(W₁ ∩ W₂, d, Σ)`, refuting `⊇`.
 
 The second obstruction lives in `touch_W` itself, and it survives *every* arrangement
 restriction, injectivity included. The touch test is existential — `coverage(e)` need only
@@ -458,7 +469,7 @@ with `Σ.M(d)` **injective** (RE-UDIST-∩). The same shape works for *overlappi
 endset covering one address drawn from each region's exclusive part — so the obstruction is
 not even confined to disjoint regions.
 
-The two constructions together fix the diagnosis. The first shows non-injectivity *can*
+The first construction shows non-injectivity *can*
 break `⊇`; the second shows that *removing* it does not restore `⊇`. An arrangement
 restriction such as injectivity therefore **provably cannot** recover
 `RE(W₁ ∩ W₂, d, Σ) = RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)`. Because the `⊆` half is unconditional,
@@ -715,8 +726,8 @@ covers `ℓ`, not `b` (`ℓ ≠ b`, both in the flat antichain), so `b` does not
 emitter address; `b` is therefore addressable in `Σ'` (`b ∉ nullified(Σ')`) by RE-ADDR. So a
 single retraction does two things at once — it removes `ℓ` from `addressable` (through the
 nullified marking) *and* adds the emitter `b` to it. We must ask what the emitter `b` can contribute. Its three
-endsets are the from-set `∅` — empty because the standing commitment admits only `Nullify`
-retractions — a to-set
+endsets are the from-set `∅` — empty by `Nullify`'s definition (`Emit_R(…, ∅, …)`, ASN-0086),
+withdrawal being realised as a `Nullify` — a to-set
 `{(ℓ, δ(1, #ℓ))}` whose single span covers `ℓ` and `ℓ`'s extensions, and the retraction
 type-set `Θ`. The first two are content-disjoint
 *unconditionally*, and for one shared reason worth isolating: the field-agreement argument
@@ -793,9 +804,6 @@ The answer tracks the anchoring values of the active *population*, not the fate 
 link; conflating link-level permanence (R6a) with pair-value-level removal is exactly the
 slip RE-UNIT's deduplication guards against.
 
-These motions are recorded as RE-EDIT — the image under editing, with RE-CWP the exact
-contraction sub-case — and RE-RET, the active population under emission and retraction.
-
 ## Claims Introduced
 
 | Label | Statement | Status |
@@ -807,7 +815,7 @@ contraction sub-case — and RE-RET, the active population under emission and re
 | RE-CLIP | No clipping — every surfaced span is reported at the full extent recorded in the link, never truncated to the region boundary; universal across both the whole-endset (RE-WHOLE) and touching-spans-only readings | introduced |
 | RE-WHOLE | Whole-endset surfacing (adopted convention) — a surfaced endset is returned in full, *all* its spans (not only those intersecting `W`); not forced by RE-CLIP, held **provisional** pending Open Question 1 | introduced (provisional) |
 | RE-BND | Boundary cases — `RE(W, d, Σ) = ∅` whenever the image is empty (`W ∩ dom(Σ.M(d)) = ∅`) or `addressable(Σ) = ∅`; an empty endset slot has `coverage(∅) = ∅`, so `touch_W(∅)` is false and it is never surfaced | introduced |
-| RE-ADDR | Fresh-output addressability — a fresh `K.λ` output that does not retract its own emitter address is addressable in its post-state (`ℓ_new ∉ nullified(Σ')`); in particular every non-retraction emission (`K ≁ Θ`) is addressable, at every arity. Conditions: the standing discipline commitment's unit-depth to-set and R0a/FlatLinkDomain (ASN-0086) | introduced |
+| RE-ADDR | Fresh-output addressability — a fresh `K.λ` output that does not retract its own emitter address is addressable in its post-state (`ℓ_new ∉ nullified(Σ')`); in particular every non-retraction emission (`K ≁ Θ`) is addressable, at every arity. Conditions: the standing discipline commitment's unit-depth to-set, scoped to the retraction slice `L_R` (all that `nullified` consults), and R0a/FlatLinkDomain (ASN-0086) | introduced |
 | RE-SND | Soundness — `(i, e) ∈ RE(W, d, Σ) ⟹ e` is a genuine slot-`i` endset of an addressable link ∧ `touch_W(e)`; no false positives | introduced |
 | RE-CMP | Completeness — every addressable link `a` and slot `i` with `touch_W(Σ.L(a).eᵢ)` has `(i, Σ.L(a).eᵢ) ∈ RE(W, d, Σ)`; the answer is *exactly* the touching set, native or transcluded content alike | introduced |
 | RE-UDIST | Union-distributivity — `RE(W₁ ∪ W₂, d, Σ) = RE(W₁, d, Σ) ∪ RE(W₂, d, Σ)`, the RE-level analogue of F-UDIST/F-VDIST (ASN-0127) | introduced |
@@ -816,7 +824,7 @@ contraction sub-case — and RE-RET, the active population under emission and re
 | RE-TRANS | Transclusion blindness — surfacing is by content identity, independent of the link's home and the covered content's origin (LP16, ASN-0098): a link reaching the region through transcluded content is surfaced identically to one on native content, each span describing content identity, not the borrowing V-position | introduced |
 | RE-IDENT | Content-identity invariance — each surfaced endset's coverage is permanent (L12, ASN-0043; LP3★, ASN-0098), so the content-level answer (which I-addresses each surfaced endset anchors to) is arrangement-independent, even though the *selection* of surfaced endsets is arrangement-mediated | introduced |
 | RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (RE-IDENT). The answer moves only under the content-subspace arrangement movers on `d` (`K.μ` extension/contraction/reordering, and ASN-0082's shift-based insert/delete, M-only by a conservative-lift modelling assumption) and `K.λ` emission/retraction (RE-RET); every other transition — including all **link-subspace-confined** edits on `d` under `W ⊆ s_C` (`K.μ⁺_L` and content-retaining `K.μ⁻`) — leaves it fixed | introduced |
-| RE-RET | Retraction stability — withdrawing a link `ℓ` (Nullify, ASN-0086) marks it nullified, removing it from `addressable(Σ)` permanently (R6a). Conditions: the standing discipline commitment (retractions via `Nullify` — empty from-set, unit-depth to-set) and the net-removal-only hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅` (`Θ` the retraction type, the sole remaining exception). Then a pair `(i, e)` that `ℓ` bore drops **iff `ℓ` was its sole addressable bearer in `Σ`** (RE-UNIT) | introduced |
+| RE-RET | Retraction stability — withdrawing a link `ℓ` (Nullify, ASN-0086) marks it nullified, removing it from `addressable(Σ)` permanently (R6a). Conditions: the standing discipline commitment (only `Nullify` grows the retraction slice `L_R`; its from-set empty, to-set unit-depth) and the net-removal-only hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅` (`Θ` the retraction type, the sole remaining exception). Then a pair `(i, e)` that `ℓ` bore drops **iff `ℓ` was its sole addressable bearer in `Σ`** (RE-UNIT) | introduced |
 | RE-CWP | Contraction-stability weakest precondition — for a `K.μ⁻[d, R]` step, `RE(W, d, ·) = RE(W, d, Σ)` iff `enabled(K.μ⁻[d, R]) ∧ (∀ (i, e) ∈ Avail(Σ) : coverage(e) ∩ Δ ≠ ∅ ⟹ coverage(e) ∩ I_R ≠ ∅)`, where `I_R = {Σ.M(d)(v) : v ∈ W ∩ R}` (D-CWP bridge, ASN-0127) and `Δ = image(W, d, Σ) ∖ I_R`. The boundary `R = ∅` collapses to `RE(W, d, Σ) = ∅` | introduced |
 
 ## Open Questions
@@ -827,7 +835,7 @@ contraction sub-case — and RE-RET, the active population under emission and re
 
 3. When a surfaced endset is rendered into the querying document's V-positions rather than content identity, what must the answer guarantee for endset content the document does not currently arrange?
 
-4. Given the exact, necessary-and-sufficient touch-implication characterisation of intersection-equality and the proof that no arrangement restriction alone discharges it (both settled in RE-UDIST-∩), what is the weakest *structurally-restricted sufficient* condition — phrased directly on the available endsets' coverages and the three region images `image(W₁)`, `image(W₂)`, `image(W₁ ∩ W₂)`, with the per-endset `touch` quantifier eliminated (for instance, a single-meet cardinality bound on each coverage against the union image together with the image-distribution gap `image(W₁) ∩ image(W₂) ⊇ image(W₁ ∩ W₂)`)?
+4. Given the exact, necessary-and-sufficient touch-implication characterisation of intersection-equality and the proof that no arrangement restriction alone discharges it (both settled in RE-UDIST-∩), what is the weakest *structurally-restricted sufficient* condition — phrased directly on the available endsets' coverages and the three region images `image(W₁)`, `image(W₂)`, `image(W₁ ∩ W₂)`, with the per-endset `touch` quantifier eliminated?
 
 5. What completeness guarantee must hold when anchoring that touches a region resides in a link store not co-resident with the queried document?
 
