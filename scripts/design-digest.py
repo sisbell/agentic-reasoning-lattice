@@ -10,11 +10,12 @@ Plain-file pipeline that borrows the _docuverse *directory* pattern
 All Lampson-primed (one persona throughout). Per-note independent.
 Commits after each stage so the history reads produce → review → revise.
 
-    python scripts/design-digest.py --asn 36
-    python scripts/design-digest.py --asn 116 --max-cycles 5 --effort max
-    python scripts/design-digest.py --asn 116 --no-commit   # skip git
+No convergence: it runs a fixed number of review→revise passes
+(--max-reviews), each improving the digest; the operator picks how many.
 
-Run standalone (not alongside the substrate runner — both commit).
+    python scripts/design-digest.py --asn 36
+    python scripts/design-digest.py --asn 116 --max-reviews 4 --effort max
+    python scripts/design-digest.py --asn 116 --no-commit   # skip git
 """
 
 import argparse
@@ -141,9 +142,10 @@ def main():
     ap.add_argument("--model", default="opus")
     ap.add_argument("--effort", default="max", help="low|medium|high|xhigh|max")
     ap.add_argument("--max-reviews", type=int, default=2,
-                    help="total review cap. Re-run later with a HIGHER value to "
-                         "add more reviews — it resumes from the existing design "
-                         "and reviews, never clobbering them. Early-exit on SHIP.")
+                    help="number of review/revise passes to run — no convergence, "
+                         "no early exit; the digest is improved exactly this many "
+                         "times. Re-run with a HIGHER value to add more passes "
+                         "(resumes from the existing design/reviews, never clobbers).")
     ap.add_argument("--no-commit", action="store_true", help="skip git commits")
     args = ap.parse_args()
     commit = not args.no_commit
@@ -191,28 +193,21 @@ def main():
               file=sys.stderr)
         return
 
+    # No convergence / no verdict — every pass is review then revise. The
+    # digest is improved exactly `reviews` times; the operator picks how
+    # many. Re-running with a higher --reviews adds more passes (resume).
     for k in range(done + 1, args.max_reviews + 1):
         print(f"[design-digest] review {k}/{args.max_reviews}...", file=sys.stderr)
         review = _call("reviewer", {**base, "digest": digest}, args.effort, args.model)
-        # Tolerant verdict parse: VERDICT: may be **bold**, indented, or
-        # anywhere in the review. Default to REVISE (never false-ship) when
-        # no SHIP/REVISE token is found.
-        hits = re.findall(r"VERDICT:\s*\**\s*(SHIP|REVISE)\b", review, re.IGNORECASE)
-        verdict = hits[-1].upper() if hits else "REVISE"
         review_md = review_dir / f"review-{k}.md"
         review_md.write_text(review.rstrip() + "\n")
-        _commit([review_md], f"design-review({label.lower()}): review-{k} — {verdict}", commit)
-        if verdict == "SHIP":
-            print(f"[design-digest] SHIP at review {k} — done", file=sys.stderr)
-            break
-        print(f"[design-digest] REVISE — applying review-{k}...", file=sys.stderr)
+        _commit([review_md], f"design-review({label.lower()}): review-{k}", commit)
+        print(f"[design-digest] applying review-{k}...", file=sys.stderr)
         digest = _call("reviser", {**base, "digest": digest, "review": review},
                        args.effort, args.model)
         design_md.write_text(digest.rstrip() + "\n")
         _commit([design_md], f"design-revise({label.lower()}): apply review-{k}", commit)
-    else:
-        print(f"[design-digest] reached --max-reviews ({args.max_reviews}) without SHIP",
-              file=sys.stderr)
+    print(f"[design-digest] done — {args.max_reviews} review/revise pass(es)", file=sys.stderr)
 
     print(f"[design-digest] wrote {design_md.relative_to(ROOT)}", file=sys.stderr)
 

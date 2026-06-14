@@ -9,12 +9,9 @@ Review the digest below against the note it came from. You are a skeptic; your j
 5. **Altitude** — did it drift into code (types, signatures) or stay too vague to act on? Either is a defect.
 6. **Usefulness** — could a builder act on this? Is any section padded, generic, or non-committal where the note supports a real position?
 
-Then give a verdict:
+Output a **revision list** — the concrete improvements a reviser will apply. There is no verdict, no pass/fail, no "good enough": this is an improvement pass, not a gate. List each item as an actionable instruction ("Section X: Y is wrong/weak because Z; do W instead"), ordered most-important first — real defects (inaccuracy, ungrounded claims, altitude slips, a missing load-bearing consideration) before genuine sharpenings (a tighter formulation, a tradeoff left implicit, a builder decision not surfaced, an approach whose grounding could be stronger).
 
-- **VERDICT: SHIP** if the digest is accurate, sound, and useful as-is. Minor wording nits do not block a SHIP.
-- **VERDICT: REVISE** if there is a real defect a reviser must fix. List each fix as a concrete, actionable instruction ("Section X: Y is wrong because Z; do W instead"). Only raise issues that materially change what a builder would do or believe.
-
-Be concise. A SHIP verdict with two sentences of confirmation is a fine outcome — do not invent problems to look thorough.
+Do not fabricate problems to look thorough — but do not withhold real ones because the digest reads well. Even a strong digest has something to sharpen; find the most valuable improvements it can still make. Where a section is genuinely solid, say so in a line and move on rather than inventing a change.
 
 ---
 

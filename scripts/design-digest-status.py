@@ -2,7 +2,7 @@
 """Status of the design-digest pipeline over design-classes.yaml.
 
 For each note: number, title, class, whether a design exists, how many
-reviews it has, and the latest verdict. No dependencies — just progress.
+review/revise passes it has had. No dependencies, no verdict — just progress.
 
     python scripts/design-digest-status.py
     python scripts/design-digest-status.py --classes foundations
@@ -35,15 +35,8 @@ def _state(asn: int):
     label = f"ASN-{asn:04d}"
     design = (DESIGN_ROOT / "designs" / label / "design.md").exists()
     rdir = DESIGN_ROOT / "reviews" / label
-    reviews = sorted(rdir.glob("review-*.md"),
-                     key=lambda p: int(re.search(r"(\d+)", p.name).group(1)))
-    n = len(reviews)
-    last = "-"
-    if reviews:
-        hits = re.findall(r"VERDICT:\s*\**\s*(SHIP|REVISE)\b",
-                          reviews[-1].read_text(), re.IGNORECASE)
-        last = hits[-1].upper() if hits else "?"
-    return design, n, last
+    n = len(list(rdir.glob("review-*.md")))
+    return design, n
 
 
 def main():
@@ -57,25 +50,20 @@ def main():
     rows = sorted({(int(n), cls) for cls, members in data.items()
                    if cls in include for n in members})
 
-    hdr = f"{'#':<3} {'ASN':<9} {'title':<34} {'class':<12} {'design':<7} {'reviews':<8} {'last':<7}"
+    hdr = f"{'#':<3} {'ASN':<9} {'title':<36} {'class':<12} {'design':<7} {'passes':<7}"
     print(hdr)
     print("─" * len(hdr))
-    shipped = drafted = none = 0
+    have = none = 0
     for i, (n, cls) in enumerate(rows, 1):
-        design, nr, last = _state(n)
-        if not design:
-            none += 1
-        elif last == "SHIP":
-            shipped += 1
-        else:
-            drafted += 1
+        design, nr = _state(n)
+        have += 1 if design else 0
+        none += 0 if design else 1
         title = _title(n)
-        title = title[:33] + "…" if len(title) > 34 else title
-        print(f"{i:<3} ASN-{n:04d}  {title:<34} {cls:<12} "
-              f"{'yes' if design else '-':<7} {nr:<8} {last:<7}")
+        title = title[:35] + "…" if len(title) > 36 else title
+        print(f"{i:<3} ASN-{n:04d}  {title:<36} {cls:<12} "
+              f"{'yes' if design else '-':<7} {nr:<7}")
     print("─" * len(hdr))
-    print(f"{len(rows)} notes — shipped:{shipped} in-progress:{drafted} not-started:{none}",
-          file=sys.stderr)
+    print(f"{len(rows)} notes — have-design:{have} not-started:{none}", file=sys.stderr)
 
 
 if __name__ == "__main__":
