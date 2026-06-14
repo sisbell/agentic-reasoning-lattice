@@ -42,10 +42,9 @@ restriction is a caller obligation, not a check the operation performs. Its **co
 
 the I-addresses that the region's V-positions currently map to through `d`'s
 arrangement. Because every `v ∈ W` carries `subspace(v) = s_C`, generalized referential
-integrity places the image in content: `I ⊆ dom(Σ.C)` (S3★, ASN-0047). We do not rebuild
-this machinery — it is ASN-0127's, and we lean on it: the region is resolved to content
-through the present arrangement, and everything downstream is phrased in I-addresses, where
-links live.
+integrity places the image in content: `I ⊆ dom(Σ.C)` (S3★, ASN-0047). The region is
+resolved to content through the present arrangement, and everything downstream is phrased
+in I-addresses, where links live.
 
 ## When does an endset touch the region?
 
@@ -384,8 +383,8 @@ argument to a link query can be obtained, and the choice fixes the temporal char
 the answer: an **existence** query takes a *fixed* `I ⊆ T` and answers a monotone,
 *historical* property of the permanent store (E-MONO, D-ZERO, ASN-0127), while a
 **discovery** query resolves its `I` *through a document's current arrangement* and answers
-a non-monotone, *present-tense* reading of it (D-NONMONO, D-ZERO, ASN-0127). We cite that
-taxonomy rather than rebuild it; the contribution here is to place RETRIEVEENDSETS on it.
+a non-monotone, *present-tense* reading of it (D-NONMONO, D-ZERO, ASN-0127). The contribution
+here is to place RETRIEVEENDSETS on it.
 
 RETRIEVEENDSETS takes a region `(W, d)` and resolves it through `image(W, d, Σ)`. **It is
 discovery-anchored.** Its selection of which links contribute is exactly the discovery
@@ -421,10 +420,7 @@ slicing different axes.
 The two axes are orthogonal, and RETRIEVEENDSETS lands on a definite corner of each: its
 **query is discovery-anchored** (present-tense, arrangement-resolved — the foundation's
 discovery side), while its **deliverable is existence-of-anchoring** (structure without
-identity — the designer's existence reading). It uses the discovery machinery to answer an
-existence-of-anchoring question. The right one-line characterisation is: *RETRIEVEENDSETS
-reads, off the region's present arrangement, the presence and shape of the anchoring that
-touches it — and stops short of the identities that would make that anchoring followable.*
+identity — the designer's existence reading).
 
 ## Anchoring reached through borrowed content
 
@@ -606,12 +602,14 @@ i.e. no available endset touches `image(W, d, Σ)` at all, which is `RE(W, d, Σ
 Clearing the region preserves the answer exactly when the answer was already empty.
 
 **Under link emission.** The one population-*growing* mover is a `K.λ` step that emits a
-fresh link `ℓ_new`. Allocation gives `ℓ_new ∉ dom(Σ.L)`, so `ℓ_new` enters `dom(Σ'.L)` and
-is addressable there — `ℓ_new ∉ nullified(Σ')` — by the discipline-and-`R0a` reasoning the
-retraction emitter `b` will instance below: under ASN-0086's unit-depth retraction
-discipline every pre-existing retraction to-set is unit-depth at a prior target, while
-R0a/FlatLinkDomain (ASN-0086) makes `dom(Σ'.L)` a prefix-antichain, so no such to-set covers
-the fresh, distinct address `ℓ_new`. The step frames the arrangement (`M' = M`, ASN-0093),
+fresh link `ℓ_new`. Allocation gives `ℓ_new ∉ dom(Σ.L)`, so `ℓ_new` enters `dom(Σ'.L)`; it is
+moreover addressable there — `ℓ_new ∉ nullified(Σ')` — by a fact we isolate here because the
+retraction analysis below reuses it: **any fresh `K.λ` output is addressable in its
+post-state.** Under ASN-0086's unit-depth retraction discipline every pre-existing retraction
+to-set is unit-depth at a prior target, while R0a/FlatLinkDomain (ASN-0086) makes `dom(Σ'.L)`
+a prefix-antichain, so no pre-existing retraction to-set covers the fresh, distinct address
+(this is the vacuity of `wp` Case 2's third conjunct, ASN-0086). The step frames the
+arrangement (`M' = M`, ASN-0093),
 so the image — and every `touch_W` it determines — holds fixed; only the available pool can
 move. If some endset `Σ.L(ℓ_new).eᵢ` touches the region, the pair `(i, Σ.L(ℓ_new).eᵢ)` is
 *added* to the answer; if none does, the answer is unchanged. Either way the move is
@@ -632,11 +630,10 @@ the population. Withdrawing `ℓ` is realised as `Nullify(Σ, d_retr, ℓ) ≡ E
 ∅, {(ℓ, δ(1, #ℓ))})` (ASN-0086), and `Emit_R` *is* a `K.λ` step (Emit_K, ASN-0086): it
 emits a fresh **retraction link** `b`, with `Σ'.L(b) = (∅, {(ℓ, δ(1, #ℓ))}, Θ)` — writing
 `Θ` for ASN-0086's designated retraction type, kept distinct from the retention set `R` of
-the contraction analysis above — that enters `dom(Σ'.L)` and is itself addressable in `Σ'`.
-Its addressability — `b ∉ nullified(Σ')` — is not free: it holds because no pre-existing
-retraction to-set covers the fresh emitter (the vacuity of `wp` Case 2's third conjunct
-under ASN-0086's unit-depth retraction discipline and R0a/FlatLinkDomain), and `b`'s own
-unit-depth to-set covers `ℓ`, not `b` (`ℓ ≠ b`, both in the flat antichain). So a single retraction
+the contraction analysis above — that enters `dom(Σ'.L)` and is itself addressable in `Σ'`
+(`b ∉ nullified(Σ')`) by the same fresh-`K.λ`-output addressability isolated under link
+emission above: no pre-existing retraction to-set covers the fresh emitter `b`. And `b`'s
+own unit-depth to-set covers `ℓ`, not `b` (`ℓ ≠ b`, both in the flat antichain). So a single retraction
 does two things at once — it removes `ℓ` from `addressable` (through the nullified marking)
 *and* adds the emitter `b` to it. We must ask what the emitter `b` can contribute. Its three
 endsets are the empty from-set `∅`, a to-set `{(ℓ, δ(1, #ℓ))}` whose single span covers `ℓ`
