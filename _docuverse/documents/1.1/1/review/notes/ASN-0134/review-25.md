@@ -1,0 +1,30 @@
+# Review of ASN-0134
+
+This is an unusually careful note. The conflict theory (H0–H2), the per-home liberation (G1) with its explicit `H3` lift to executions containing `K.σ`, the I1a literal-vs-operative distinction in §4 instance (i), and the §8 trace are all correct and well-defended. The note is also commendably honest about its own limits (instance (ii)'s irreducible order-dependence, the clause-8 carve-out, the writer-side/reader-side scope asymmetry). I found one genuine soundness gap, in the multi-read machinery of §8.
+
+## REVISE
+
+### Issue 1: V2's "no `Q`-affecting step" condition is unsound for `stale` verdicts, because §8 defines `Q`-affecting only over `Observe_{K_i}` constituents
+
+**ASN-0134, §8 (multi-read realization / `Q`-affecting) and V2**:
+- §8 realization: "a `p`-read verdict is realized as `Q = g(Observe_{K₁}(Σ_{r₁}), …, Observe_{K_p}(Σ_{r_p}))` for a combining function `g` over the `p` *per-type views*."
+- §8 `Q`-affecting: "a writer step is *`Q`-affecting* … when it changes the value of some constituent `Observe_{K_i}` whose read has not yet been taken."
+- V2 then asserts the strict-implication chain `[all reads at one index] ⟹ [no Q-affecting step between reads] ⟹ [sound]` for "a multi-read verdict … whether `Observe_K` calls across types **or the active-view read and per-home frontier descents of a `stale` enumeration**."
+
+**Problem**: The note's own A1 insists `stale`'s frontier descents are **not** `Observe_K`-grade — `stale` is realized as `g'(Observe_K(oper), f_{d₁}, …, f_{d_N})`, where the frontier reads `f_{dᵢ}` are a *different* kind of constituent. The §8 `Q`-affecting definition does not range over these frontier constituents, so V2's middle implication (`[no Q-affecting] ⟹ [sound]`) **fails for `stale`**. Concrete witness:
+
+- Type `K`, horizon `h`. Member `a* ∈ A_K^Σ`, homed at `d`, chain index `j*`, with `f_d = f₁` giving `age(a*) = f₁ − 1 − j* = h` exactly — so `a* ∉ stale(Σ_{r₁})`.
+- `stale` is realized as: active-view read `Observe_K(oper)` at `r₁` (returns the members, `a*` among them), then a frontier descent recovering `f_d` at `r₂ > r₁`.
+- Between `r₁` and `r₂`, a writer emits a **type-`K′` (≠ K)** tuple into home `d`. Since the home's link frontier interleaves every type (BH4), this advances `f_d` to `f₁+1`; but `A_K` is **unchanged** (different type).
+- By §8's definition this step is **not** `Q`-affecting (it changes no `Observe_{K_i}` — `A_K` is untouched). So V2's middle condition holds.
+- Yet the `r₂` descent now reads `f_d = f₁+1`, so the realized verdict computes `age(a*) = (f₁+1) − 1 − j* = h+1 > h`, placing `a* ∈ stale`. Since `stale(Σ_{r₁})` has `a* ∉ stale`, the verdict is **unsound about `Σ_{r₁}`** — exactly the "states that never coexisted" error — across a step V2 certifies as harmless.
+
+So V2's strict-implication chain, asserted for `stale`, is broken at the second link: the `Observe_{K_i}`-scoped `Q`-affecting notion does not capture a frontier-advancing step that nonetheless moves a not-yet-read constituent of `stale`. The note generalized the *constituent listing* (V2 names "per-home frontier descents") but not the *`Q`-affecting definition* or the banking argument that the chain depends on.
+
+**Required**: Generalize the §8 realization formula and the `Q`-affecting definition from per-type `Observe_{K_i}` constituents to **arbitrary per-state bounded-access constituents** (the active-view read *and* each frontier descent), so that a step advancing any frontier `f_{dᵢ}` that a not-yet-read constituent depends on is counted as `Q`-affecting. The banking argument then transfers verbatim and V2's chain holds for `stale` as asserted. Note this does not touch the *adopted* safety: MIC clause 7 already says "all its constituent reads," which includes the frontier descents, so clause-7 pinning of `stale` is sound as written — the defect is confined to V2's intermediate (no-`Q`-affecting-step) characterization, which a downstream layer reasoning "for `stale`, no `Q`-affecting step suffices" would inherit. The cross-type joins (`targets_keyed`, default-view `members`/`targets_of`) are unaffected: their constituents *are* all `Observe_{K_i}`-grade.
+
+## OUT_OF_SCOPE
+
+No additional out-of-scope topics beyond those the note already enumerates in "What this note does not cover" and the Open Questions (batch read-atomicity, durability promotion, cross-server composition, the concrete primitives for clauses 2/7/8). These deferrals are correctly placed — each is new territory, not a defect in this note.
+
+VERDICT: REVISE
