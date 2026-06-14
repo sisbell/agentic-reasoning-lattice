@@ -155,14 +155,9 @@ Preconditions
   the operation's domain delimiter (well-formed since ω(d_src) is defined at
   every reachable state — PS makes ω total on E): its first disjunct serves the
   owned fork at any forker tier, its second the cross-owner fork, restricted to
-  an account-tier forker (zeros(pfx(π)) = 1). That restriction is what holds the
-  fork to a single mint: a node-tier non-owner (zeros(pfx(π)) = 0, which O1a
-  admits into Π) holds no document namespace, so reaching a document from a
-  bare node prefix would first baptize an intermediate account — a second
-  permanent entity (P1), breaking the single mint — and must instead establish
-  an account first, an out-of-scope prior act; the account-tier restriction
-  thus places the node-tier non-owner outside the domain. V0 carries the count
-  over the two in-domain branches.
+  an account-tier forker (zeros(pfx(π)) = 1) so the fork mints exactly one
+  identity (reaching a document from a node prefix is an out-of-scope prior
+  act). V0 carries the count over the two in-domain branches.
 
 Abbreviations (evaluated at the initial state Σ)
   n  :=  |V_{s_C}(d_src)|
@@ -288,7 +283,7 @@ This is Nelson's "versioning by inclusion": "Another user … is free to create 
 
 > `(A a ∈ A :: (a, d_src) ∈ R'  ∧  (a, v) ∈ R')`, and both rows persist in every successor state (P2).
 
-The first conjunct holds at `Σ` — and hence at `Σ'`, since the fork adds only `(·, v)` rows (`R ⊆ R'`) — by the composite-boundary property P4★. VERSION is invoked at a composite boundary (P-bdy), where `Contains_C(Σ) ⊆ R` (P4★); each `a ∈ A` is `M(d_src)(u)` for some `u ∈ V_{s_C}(d_src)`, so `(a, d_src) ∈ Contains_C(Σ)` by the definition of content-subspace containment, whence `(a, d_src) ∈ R ⊆ R'`. The boundary hypothesis is load-bearing: P4★ is a composite-boundary property, not a per-state invariant — ASN-0047 classes it so precisely because it may fail at interior states — and P-bdy is what supplies the boundary that licenses its use for the source-side row here. The second is V13. The witness is *identity-based* — it survives arbitrary later editing of either arrangement, since `R` never shrinks — and it is *symmetric*: it asserts that both documents have contained the same content, not which derived from which. Note also that `origin(a)` need not name `d_src` at all — for content the source had itself transcluded, attribution traces to the true authoring documents (S7); the fork is faithful to authorship rather than to the immediate copying path. Direction, where the state offers it, comes from the address (V4); across ownership boundaries it is simply not in the state — the honest limit of the design, and exactly what the implementation evidence shows: nothing else is recorded.
+The first conjunct holds at `Σ` — and hence at `Σ'`, since the fork adds only `(·, v)` rows (`R ⊆ R'`) — by the composite-boundary property P4★. VERSION is invoked at a composite boundary (P-bdy), where `Contains_C(Σ) ⊆ R` (P4★); each `a ∈ A` is `M(d_src)(u)` for some `u ∈ V_{s_C}(d_src)`, so `(a, d_src) ∈ Contains_C(Σ)` by the definition of content-subspace containment, whence `(a, d_src) ∈ R ⊆ R'`. The second is V13. The witness is *identity-based* — it survives arbitrary later editing of either arrangement, since `R` never shrinks — and it is *symmetric*: it asserts that both documents have contained the same content, not which derived from which. Note also that `origin(a)` need not name `d_src` at all — for content the source had itself transcluded, attribution traces to the true authoring documents (S7); the fork is faithful to authorship rather than to the immediate copying path. Direction, where the state offers it, comes from the address (V4); across ownership boundaries it is simply not in the state — the honest limit of the design, and exactly what the implementation evidence shows: nothing else is recorded.
 
 ## Content: Shared, Never Duplicated
 
