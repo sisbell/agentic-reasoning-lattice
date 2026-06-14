@@ -1,0 +1,130 @@
+#!/usr/bin/env python3
+"""Batch runner for design-digest over the asn-classes.yaml note set.
+
+Runs design-digest.py per ASN — independent, resumable, parallel across
+N workers, with account rotation (CLAUDE_CONFIG_DIRS, same as the note
+runner). One note's failure never stops the batch.
+
+    python scripts/design-digest-run.py --dry-run
+    python scripts/design-digest-run.py --workers 4 --max-reviews 2
+    python scripts/design-digest-run.py --classes operations --workers 3 --max-reviews 3
+
+Parallel safety: each worker is a separate design-digest.py process;
+their git commits serialize through a shared file lock, while the LLM
+calls run fully in parallel. Account rotation is read from
+_workspace/runner.env (CLAUDE_CONFIG_DIRS) unless already in the env,
+and invoke_claude load-balances calls across those accounts.
+
+Run standalone — keep the substrate note runner off (both commit).
+"""
+
+import argparse
+import os
+import subprocess
+import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
+
+import yaml
+
+ROOT = Path(__file__).resolve().parent.parent
+CLASSES_YAML = ROOT / "_workspace/design-classes.yaml"      # design pipeline's own list
+FALLBACK_CLASSES = ROOT / "_workspace/asn-classes.yaml"     # if design list absent
+DESIGN_ENV = ROOT / "_workspace/design-runner.env"
+RUNNER_ENV = ROOT / "_workspace/runner.env"
+DIGEST = ROOT / "scripts/design-digest.py"
+LOGS = ROOT / "_workspace/logs"
+
+
+def _load_env(path):
+    """Parse a KEY=VALUE env file (# comments, blank lines ignored)."""
+    cfg = {}
+    if path.exists():
+        for line in path.read_text().splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            k, v = line.split("=", 1)
+            cfg[k.strip()] = v.strip()
+    return cfg
+
+
+def _config_dirs(cfg):
+    """CLAUDE_CONFIG_DIRS: design-runner.env, else runner.env, expanded."""
+    val = cfg.get("CLAUDE_CONFIG_DIRS") or _load_env(RUNNER_ENV).get("CLAUDE_CONFIG_DIRS")
+    return os.path.expandvars(val) if val else None
+
+
+def main():
+    cfg = _load_env(DESIGN_ENV)  # defaults from _workspace/design-runner.env
+    ap = argparse.ArgumentParser(
+        description="Run design-digest over asn-classes.yaml "
+                    "(defaults from _workspace/design-runner.env; CLI overrides).")
+    ap.add_argument("--classes", default=cfg.get("CLASSES") or None,
+                    help="comma-list of classes to include (default: all)")
+    ap.add_argument("--exclude", default=cfg.get("EXCLUDE") or None,
+                    help="comma-list of classes to skip")
+    ap.add_argument("--workers", type=int, default=int(cfg.get("WORKERS", 3)),
+                    help="parallel ASNs")
+    ap.add_argument("--max-reviews", type=int, default=int(cfg.get("MAX_REVIEWS", 2)))
+    ap.add_argument("--effort", default=cfg.get("EFFORT", "max"))
+    ap.add_argument("--no-commit", action="store_true")
+    ap.add_argument("--dry-run", action="store_true", help="print the ASN list and exit")
+    args = ap.parse_args()
+
+    if not args.dry_run and subprocess.run(
+            ["pgrep", "-f", "note-scheduler"],
+            capture_output=True).returncode == 0:
+        sys.exit("error: the substrate note runner is active — stop it before a "
+                 "design-digest batch (both commit; the git index would collide).")
+
+    classes_file = CLASSES_YAML if CLASSES_YAML.exists() else FALLBACK_CLASSES
+    data = yaml.safe_load(classes_file.read_text())
+    include = set(args.classes.split(",")) if args.classes else set(data)
+    exclude = set(args.exclude.split(",")) if args.exclude else set()
+    asns = sorted({int(n) for cls, members in data.items()
+                   if cls in include and cls not in exclude
+                   for n in members})
+
+    env = os.environ.copy()
+    dirs = _config_dirs(cfg)
+    if dirs and not env.get("CLAUDE_CONFIG_DIRS"):
+        env["CLAUDE_CONFIG_DIRS"] = dirs
+    n_accounts = len(env.get("CLAUDE_CONFIG_DIRS", "").split(",")) if env.get("CLAUDE_CONFIG_DIRS") else 1
+
+    print(f"[run] classes {sorted(include - exclude)} → {len(asns)} ASNs: {asns}",
+          file=sys.stderr)
+    print(f"[run] workers={args.workers} accounts={n_accounts} effort={args.effort} "
+          f"max-reviews={args.max_reviews} commit={not args.no_commit}", file=sys.stderr)
+    if args.dry_run:
+        return
+
+    LOGS.mkdir(parents=True, exist_ok=True)
+
+    def run_one(n):
+        log = LOGS / f"design-digest-ASN-{n:04d}.log"
+        cmd = [sys.executable, str(DIGEST), "--asn", str(n),
+               "--max-reviews", str(args.max_reviews), "--effort", args.effort]
+        if args.no_commit:
+            cmd.append("--no-commit")
+        with open(log, "w") as lf:
+            rc = subprocess.run(cmd, cwd=ROOT, env=env,
+                                stdout=lf, stderr=subprocess.STDOUT).returncode
+        return n, rc, log
+
+    ok, failed = [], []
+    with ThreadPoolExecutor(max_workers=args.workers) as ex:
+        futs = {ex.submit(run_one, n): n for n in asns}
+        for i, fut in enumerate(as_completed(futs), 1):
+            n, rc, log = fut.result()
+            (ok if rc == 0 else failed).append(n)
+            print(f"[run] ({i}/{len(asns)}) ASN-{n:04d} {'ok' if rc == 0 else 'FAILED'} "
+                  f"(rc={rc}) — {log.relative_to(ROOT)}", file=sys.stderr)
+
+    print(f"\n[run] done. ok={len(ok)} failed={len(failed)}", file=sys.stderr)
+    if failed:
+        print(f"[run] failed (no note yet / error): {sorted(failed)}", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()

@@ -18,9 +18,11 @@ Run standalone (not alongside the substrate runner — both commit).
 """
 
 import argparse
+import fcntl
 import re
 import subprocess
 import sys
+from contextlib import contextmanager
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -41,6 +43,16 @@ def _note_paths(asn: int):
     if not notes:
         sys.exit(f"error: no note found for {label} in {NOTE_DIR}")
     return notes[0], (stmts[0] if stmts else None)
+
+
+def _highest_review(review_dir: Path) -> int:
+    """Largest K among existing review-K.md, or 0 if none — for resume."""
+    n = 0
+    for p in review_dir.glob("review-*.md"):
+        m = re.match(r"review-(\d+)\.md$", p.name)
+        if m:
+            n = max(n, int(m.group(1)))
+    return n
 
 
 def _evidence(asn: int) -> str:
@@ -65,15 +77,45 @@ def _call(prompt_name: str, subs: dict, effort: str, model: str) -> str:
     return r.text.strip()
 
 
+_COMMIT_LOCK = ROOT / "_workspace" / "design-digest-commit.lock"
+
+
+@contextmanager
+def _commit_lock():
+    """Serialize git commits across concurrent per-ASN workers — only one
+    `git add`+`commit` touches the index at a time, so parallel workers
+    never collide on .git/index.lock. The expensive LLM calls still run
+    fully in parallel; only the brief commit serializes."""
+    _COMMIT_LOCK.parent.mkdir(parents=True, exist_ok=True)
+    fd = open(_COMMIT_LOCK, "w")
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX)
+        yield
+    finally:
+        fcntl.flock(fd, fcntl.LOCK_UN)
+        fd.close()
+
+
 def _commit(paths, message, enabled):
     if not enabled:
         return
     rels = [str(p.relative_to(ROOT)) for p in paths]
+    with _commit_lock():
+        _git_commit(rels, message)
+
+
+def _git_commit(rels, message):
     subprocess.run(["git", "add", *rels], cwd=ROOT, check=True)
-    # nothing staged (e.g. identical re-write) → skip the commit
-    if subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=ROOT).returncode == 0:
+    # Scope BOTH the change-check and the commit to these paths with
+    # `-- <paths>`, so the design pipeline can never sweep up another
+    # committer's staged files (e.g. the substrate runner committing
+    # links.jsonl concurrently) — `git commit -- <paths>` ignores the rest
+    # of the index. Skip when these paths have nothing new vs HEAD.
+    if subprocess.run(["git", "diff", "--cached", "--quiet", "--", *rels],
+                      cwd=ROOT).returncode == 0:
         return
-    subprocess.run(["git", "commit", "-q", "-m", message], cwd=ROOT, check=True)
+    subprocess.run(["git", "commit", "-q", "-m", message, "--", *rels],
+                   cwd=ROOT, check=True)
     print(f"  [commit] {message}", file=sys.stderr)
 
 
@@ -82,8 +124,10 @@ def main():
     ap.add_argument("--asn", type=int, required=True)
     ap.add_argument("--model", default="opus")
     ap.add_argument("--effort", default="max", help="low|medium|high|xhigh|max")
-    ap.add_argument("--max-cycles", type=int, default=3,
-                    help="max review/revise cycles (early-exit on SHIP)")
+    ap.add_argument("--max-reviews", type=int, default=2,
+                    help="total review cap. Re-run later with a HIGHER value to "
+                         "add more reviews — it resumes from the existing design "
+                         "and reviews, never clobbering them. Early-exit on SHIP.")
     ap.add_argument("--no-commit", action="store_true", help="skip git commits")
     args = ap.parse_args()
     commit = not args.no_commit
@@ -103,17 +147,36 @@ def main():
 
     base = dict(title=title, note=note, statements=statements, evidence=evidence)
     ev_n = 0 if evidence.startswith("(no ") else evidence.count("[evidence]")
+
+    # Resume if a design already exists; otherwise produce a fresh one.
+    # Re-running never re-produces and never overwrites prior reviews.
+    if design_md.exists():
+        digest = design_md.read_text()
+        resumed = True
+    else:
+        digest = None
+        resumed = False
+    done = _highest_review(review_dir)
+
     print(f"[design-digest] {label} ({title}) | note {len(note)//1024}KB | "
-          f"evidence answers: {ev_n} | model={args.model} effort={args.effort} "
-          f"max-cycles={args.max_cycles} commit={commit}", file=sys.stderr)
+          f"evidence answers: {ev_n} | model={args.model} effort={args.effort} | "
+          f"{'RESUMING' if resumed else 'fresh'} (have {done} review(s)) → "
+          f"max-reviews={args.max_reviews} | commit={commit}", file=sys.stderr)
 
-    print("[design-digest] producing...", file=sys.stderr)
-    digest = _call("producer", base, args.effort, args.model)
-    design_md.write_text(digest.rstrip() + "\n")
-    _commit([design_md], f"design({label.lower()}): initial design digest", commit)
+    if not resumed:
+        print("[design-digest] producing...", file=sys.stderr)
+        digest = _call("producer", base, args.effort, args.model)
+        design_md.write_text(digest.rstrip() + "\n")
+        _commit([design_md], f"design({label.lower()}): initial design digest", commit)
 
-    for k in range(1, args.max_cycles + 1):
-        print(f"[design-digest] review cycle {k}/{args.max_cycles}...", file=sys.stderr)
+    if done >= args.max_reviews:
+        print(f"[design-digest] already at {done} review(s) >= --max-reviews "
+              f"{args.max_reviews}. Bump --max-reviews to add more. Nothing to do.",
+              file=sys.stderr)
+        return
+
+    for k in range(done + 1, args.max_reviews + 1):
+        print(f"[design-digest] review {k}/{args.max_reviews}...", file=sys.stderr)
         review = _call("reviewer", {**base, "digest": digest}, args.effort, args.model)
         m = re.search(r"^VERDICT:\s*(\w+)", review, re.MULTILINE)
         verdict = m.group(1).upper() if m else "SHIP"
@@ -121,7 +184,7 @@ def main():
         review_md.write_text(review.rstrip() + "\n")
         _commit([review_md], f"design-review({label.lower()}): review-{k} — {verdict}", commit)
         if verdict == "SHIP":
-            print(f"[design-digest] SHIP at cycle {k} — done", file=sys.stderr)
+            print(f"[design-digest] SHIP at review {k} — done", file=sys.stderr)
             break
         print(f"[design-digest] REVISE — applying review-{k}...", file=sys.stderr)
         digest = _call("reviser", {**base, "digest": digest, "review": review},
@@ -129,7 +192,7 @@ def main():
         design_md.write_text(digest.rstrip() + "\n")
         _commit([design_md], f"design-revise({label.lower()}): apply review-{k}", commit)
     else:
-        print(f"[design-digest] hit max-cycles ({args.max_cycles}) without SHIP",
+        print(f"[design-digest] reached --max-reviews ({args.max_reviews}) without SHIP",
               file=sys.stderr)
 
     print(f"[design-digest] wrote {design_md.relative_to(ROOT)}", file=sys.stderr)
