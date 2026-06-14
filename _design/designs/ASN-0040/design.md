@@ -1,0 +1,93 @@
+## What this is
+
+ASN-0040 defines the **address-allocation and commitment subsystem** of the substrate: the mechanism that turns an arithmetically-possible tumbler address into a permanent system fact ("baptism"), governs how the set of live addresses grows, and guarantees that growth is monotone, ordered, gap-free, and globally unique. It is the *write/growth law* over the tumbler space — not the content store, not authorization, both of which it deliberately excludes.
+
+## Design commitments
+
+These are forced by the note; downstream design cannot violate them.
+
+- **The registry is append-only and irrevocable.** Once an address is baptized it is baptized forever (B0/B0★). No deletion, no overwrite, no reuse of a freed address. This is the single most load-bearing constraint — it permits the entire append-only/journal family of implementations and forbids any compaction that reclaims addresses.
+- **Baptism is the *only* way the registry grows, one address at a time, atomically.** Every operation in the system is either *a* baptism (adds exactly one address) or leaves the registry untouched (B0a, B4, Bop). There is no batch-grow and no side-channel that adds addresses.
+- **Allocation is deterministic — `next` is a pure function of registry state.** Given the registry and a namespace `(p,d)`, the next address is fixed (B2). No randomness, no external counter, no clock. This makes allocation memoizable, replayable, and property-testable against the spec.
+- **Children of a namespace form a contiguous, gap-free prefix `c₁…cₘ` (B1), so a namespace's entire allocation state is one integer — the high-water mark (B2).** You cannot baptize the 5th child before the first four. This is the compression that the whole implementation should exploit: per-namespace state is a *count*, not a *set*.
+- **Distinct namespaces never collide, unconditionally (B7).** Cross-namespace uniqueness is structural, requiring no coordination — *provided* parents are T4-valid (B6(i)). The "pure-trailing-zero" aliasing example shows B6(i) is the hinge: drop it and `([1,0],1)` and `([1],2)` denote the same stream.
+- **The four-level hierarchy (node→user→document→element) is baked in.** Depth is restricted to `{1,2}` and zeros to `≤3` (B6). `d=1` stays at a level, `d=2` descends one. This is not negotiable at this layer.
+- **Membership in the registry is independent of content (B3 — ghost elements).** A baptized address may store nothing yet remain a permanent, ordered, addressable anchor for children and links. "Baptized" and "has bytes" are orthogonal axes.
+- **Same-namespace commits must be serialized; cross-namespace ones need not be.** B8's same-namespace uniqueness holds only *under a single authority* (B-Seq); cross-namespace uniqueness is free (B7). The *requirement* to serialize within a namespace is forced; the *granularity* (global vs per-namespace) is a builder choice (below).
+
+Conventional, not forced: the choice to store counters vs explicit sets (the contiguity that *enables* counters is forced; the representation is not); the content of the seed `B₀`; the global-serialization granularity of B-Seq (the reference implementation's discipline, looser disciplines remain sound).
+
+## What must be built
+
+Described functionally — what each must *do*.
+
+- **A durable baptismal registry.** Records which addresses are live; monotone; survives restart. Answers two queries: *is `t` baptized?* and *how many children does namespace `(p,d)` hold?*
+- **A next-address allocator.** Given `(p,d)` and current registry, deterministically yield the next address. With the contiguity result this is "read the count `m`, return `c₍ₘ₊₁₎`."
+- **An atomic baptism operation.** Evaluate `next` and adjoin it as one indivisible, durable step — no observable state between "computed" and "committed."
+- **Tumbler arithmetic, both directions.** Forward (`inc(p,d)`, `inc(t,0)`, `zeros`, `sig`, T4 check) from ASN-0034, *plus* decomposition — given an arbitrary `t`, recover `(parent, depth, ordinal)`. Decomposition is what lets the counter representation answer membership; B6(i) (T4 parents) is what makes it unambiguous.
+- **A validity gate (B6).** A stateless precondition check — T4 parent, `d∈{1,2}`, zeros budget — rejecting invalid baptisms before they touch the registry.
+- **Per-namespace occupancy bookkeeping.** The high-water-mark counter per active `(p,d)` — the sufficient statistic.
+- **A serialization mechanism.** Linearize commits at least within each namespace.
+- **Genesis/seed initialization.** Establish `B₀` (or an empty-start convention) and check conformance.
+- **Recovery.** Rebuild in-memory state from the durable record on load.
+
+Note what is *not* here: content storage and authorization. Keep both out of this subsystem.
+
+## Implementation approaches
+
+This is the heart. Per component, with tradeoffs and a recommendation.
+
+**Registry representation.**
+- *Explicit set of baptized tumblers* (persistent ordered set / trie keyed by address). Direct denotation; membership is a lookup; mirrors the udanax-green granfilade, which stores each address as a tree node. Cost: O(total addresses) entries, and `next` needs a per-namespace max (i.e., a counter anyway) to avoid range scans.
+- *Per-namespace high-water-mark counters* — a sparse map `(p,d) → m`. This *is* the B1+B2 compression. `next` is O(1) integer increment plus arithmetic; membership is "decompose `t`, compare its ordinal to `m`"; size is O(active namespaces), not O(addresses); and it separates registry from content for free (ghosts cost nothing). **Pick this as the primary representation for baptism.** Its only demand is tumbler decomposition, which is cheap (read the tail; the second-to-last component being zero distinguishes `d=2` from `d=1`).
+- *Hierarchical tree* mirroring the address hierarchy, each parent carrying up to two child-counters and links to child nodes — essentially the granfilade shape. **Pick this when the broader system needs subtree/range queries** ("links embrace all contents below a position"), where locality of children under parents pays off. For baptism *alone*, counters suffice.
+
+In Rust with the `im` crate, the counter map as a structurally-shared persistent map gives near-free versioned snapshots: each baptism yields a new version sharing structure with the old, enabling MVCC-style reads (consistent membership snapshots for readers while a writer advances a namespace).
+
+**Durability and recovery.**
+- **Append-only journal (WAL) of baptismal commits, recovered by replay.** This is the repo's own proven substrate (`links.jsonl` journal + `paths.json` registry, rebuilt by replay) and the udanax-green pattern (an append-only granfilade, lazily checkpointed). It fits this note *exactly*: B4 atomicity is a single atomic append; B0 monotonicity means the log is purely additive and never needs deletion-compaction; recovery is replay. **This is the default.**
+- **What to log:** the `(p,d)` event (compact, but replay must do arithmetic) vs the full resulting address (self-describing, lets recovery re-derive each counter as max-ordinal-per-namespace and detect divergence/corruption). **Log the resulting address** — robustness and debuggability outweigh the bytes, matching `links.jsonl`'s self-describing records.
+- **Snapshot + log (checkpointing)** to bound replay: periodically persist the counter map and truncate the log tail. udanax-green's analogue checkpoints the whole structure lazily (only when idle / on clean exit) and rebuilds from the last checkpoint on restart — a crash discards uncommitted baptisms *uniformly*, never producing divergent branches. Tradeoff: snapshot frequency vs replay length vs the crash-loss window you accept.
+- **Lampson discipline:** treat the log as authoritative and the in-memory counter map (and any snapshot) as a *hint* — recomputable on a miss by replay. On any snapshot/log mismatch, the log wins. This keeps the fast path (in-memory counters) cheap and the rare path (recovery) correct.
+
+**Allocation (`next`).** With counters, `next` is a counter read plus arithmetic — no scan. The reference implementation's "stateless query-and-increment" (`next = current max + 1` over the shared structure) is the same idea without the per-namespace cache; maintaining the per-namespace count *is* the optimization that turns its tree-max query into O(1). Determinism (B2) means `next` is trivially memoizable and is the natural oracle for property tests.
+
+**Atomicity and concurrency.**
+- *Single serializing writer* (udanax-green's run-to-completion, single-threaded, single persistent-store writer): baptisms queue and execute to completion; matches B-Seq verbatim. Dead simple, trivially correct, no locks, easy recovery. Cost: a global write bottleneck.
+- *Per-namespace serialization.* Because B7 makes distinct namespaces independent, shard by namespace: each has its own lock or atomic increment; cross-namespace baptisms run in parallel. This relaxes B-Seq to per-namespace while preserving B8 (same-namespace uniqueness needs only same-namespace order). **Pick this for multi-owner concurrency** — the common case (independent owners in disjoint namespaces) becomes contention-free.
+- *Make the journal append the linearization point.* Order same-namespace commits by their append order; derive the counter from it. A single shared log gives a total order (simple, easy recovery, but more order than B7 requires and a write bottleneck); per-namespace log segments give parallelism matching B7's independence at the cost of merge-on-recovery. **Start with one shared log + a sharded in-memory counter map; split the log per namespace only if write throughput demands it.** The one hazard to engineer carefully: "advance counter" and "append record" must commit together — make the durable append the commit, and treat the counter as the recomputable hint.
+
+**Validity gate (B6).** A pure, stateless predicate at the operation boundary. No storage. Reject invalid depth/parent before any state change — "rare case correct."
+
+**Genesis.** *Empty-start with an implicit root* (udanax-green: no seeds inserted, the all-zeros root is a convention never stored, the first real address appears on the first operation) is the simplest and makes "load an empty log" and "fresh genesis" the same code path. *Explicit conforming seed `B₀`* (finite, contiguous-prefix children, T4 seeds) is the alternative when roots must be pre-provisioned. Recovery's load path subsumes both.
+
+## Guarantees to uphold
+
+- **Permanence / irrevocability (B0).** *By construction* if the store is append-only and no code path deletes from the registry. Active part: never expose a registry-delete; keep deletion confined to the content layer.
+- **Cross-namespace uniqueness (B7/B8).** *By construction*, contingent on one active check: **validate T4 on parents (B6(i))**. That single gate is what prevents namespace aliasing.
+- **Same-namespace uniqueness (B8).** *Requires active enforcement* — serialization of commits within a namespace. This is the one uniqueness guarantee that is not free; the single-writer or per-namespace lock is precisely what buys it.
+- **Contiguity (B1).** *By construction* if `next` always returns `c₍hwm+1₎` and baptism is the sole growth path. Active part: any bulk/batch path you add must preserve gap-freeness.
+- **T4 validity of every address (B10).** *By construction* given conforming seeds plus the B6 gate.
+- **Atomicity (B4).** *Requires active enforcement* in the durability layer — a partial commit (counter advanced but record not durable, or vice versa) breaks it. This is the main correctness obligation of the storage code.
+- **Determinism and finiteness (B2/B_fin).** *By construction* (no entropy in allocation; finite seed plus one-at-a-time growth).
+- **Content-independence (B3).** *By construction* if the registry and content store are kept separate and "baptized" is never inferred from "has bytes."
+
+## How it fits
+
+- **Leans on the tumbler algebra (ASN-0034)** for the address space `T`, its total order, field structure (T4), permanent allocation (T8), strict increase (T9), the `inc`/TA5 increment laws, `zeros`/`sig`, the Prefix relation, and the transition framework (`𝒮`, `Σ`, `→*`, AllocatedSet, NoDeallocation). Baptism *is* the growth law over that algebra and additionally needs the decomposition direction (`t → (p,d,n)`).
+- **Hands addresses to the content store**, which keys bytes by baptized addresses but is otherwise independent (ghosts). Keep this boundary sharp.
+- **Hands anchors to the link/span subsystem**, whose links "embrace all contents below" a position — the reason ghosts must be addressable. A spanfilade/POOM-style index sits *above* the registry and, in the reference design, is a *derived* secondary index rather than a second source of truth.
+- **Defers to the ownership model (Tumbler Ownership)** for *who* may baptize. B-Seq's "single baptismal authority" is an ownership notion; the open question "must a parent be baptized first?" resolves there, not here.
+- **Relates to the foundation allocator `allocated(s)`.** The reference implementation *unifies* allocator and permanent registry in one append-only structure (the granfilade is both); a layered design that feeds a distinct registry is the alternative. (Note: the reference implementation *also* runs an ephemeral, per-session overlay for access-control and rollback of created-but-unwritten entries — that overlay is *not* the baptismal registry and should not be confused with it.)
+
+## Decisions for the builder
+
+Genuine implementation choices the note leaves open (distinct from its spec-level open questions).
+
+- **Registry representation:** per-namespace counters (recommended for baptism), explicit address set, or hierarchical tree (choose if the system needs subtree/range queries). Driven largely by whether you need fast arbitrary-`t` membership (favors a set/trie) or only `next` plus per-namespace queries (favors counters).
+- **Journal contents:** log the `(p,d)` event or the full resulting address (recommended) — robustness vs compactness.
+- **Serialization granularity:** single global writer (simplest) vs per-namespace (concurrent, leveraging B7). And whether the journal append *is* the linearization point.
+- **Checkpoint policy and crash-loss window:** how often to persist the counter-map hint and truncate the log, and how many uncommitted baptisms you tolerate losing on crash (the reference implementation accepts losing the in-memory tail, uniformly, with no divergence).
+- **Finality model.** The note equates "committed to persistent store" with "baptized = irrevocable," but the reference implementation has a *reserve-then-confirm* shape: an entry can be structurally inserted yet rolled back if no content is ever written. Decide deliberately whether your baptism is final at journal-append (matching the note's clean model) or whether you want a two-phase "reserve, then confirm" with rollback of unconfirmed entries — the latter adds semantics beyond this note and must still honor B1 contiguity (a rolled-back reservation cannot leave a gap).
+- **Genesis:** empty-start with an implicit root vs an explicit pre-baptized seed set.
+- **Key encoding for the counter map:** the canonical byte encoding of `(parent, depth)` — flat keyed map vs trie over the hierarchy — trading lookup speed against locality for subtree operations.
