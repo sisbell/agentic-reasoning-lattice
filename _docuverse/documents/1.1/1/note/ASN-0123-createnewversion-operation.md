@@ -120,7 +120,7 @@ Range preservation alone would still leave the version's initial *order* unspeci
 
 — equality of mappings on the canonical positions, which makes the boundary correspondence total (the two documents agree position-for-position by construction) and carries the order- and width-preservation of the source's run structure (M0, M1, ASN-0058) unchanged.
 
-What of the source's *link-subspace* arrangement? Transcribing it is not merely omitted; it is impossible — no reachable transition can seat a foreign-origin link in `v`'s link subspace (V2b, ForeignLinkExclusion, proves this from CL-OWN and K.μ⁺_L's `origin(ℓ) = d` precondition). So `dom(M'(v)) = V_{s_C}(d_src)` exactly, and content anchoring is the *only* channel by which connectivity can cross a fork — which, by the range argument above, is also a sufficient one.
+What of the source's *link-subspace* arrangement? Transcribing it is not merely omitted; it is impossible — no reachable transition can seat a foreign-origin link in `v`'s link subspace (V2b, ForeignLinkExclusion). So `dom(M'(v)) = V_{s_C}(d_src)` exactly, and content anchoring is the *only* channel by which connectivity can cross a fork — which, by the range argument above, is also a sufficient one.
 
 ### G3: the source must be untouched — the frame, and the asymmetry of the record
 
@@ -421,7 +421,7 @@ Four deviations from the abstract specification:
 
 - What invariant must govern allocations into a document's version namespace by operations other than versioning, if ancestry decoded from the identity alone is to remain sound?
 - What guarantee, if any, must make the direction of derivation recoverable when the only surviving witness of a cross-ownership fork is symmetric shared-content provenance?
-- Must any guarantee carry a source's link-subspace arrangement across a fork, or is content-anchored discoverability the complete obligation?
+- Beyond the fork — whose content-anchoring obligation V2b and V10 settle as complete — must any separate, non-fork mechanism make link-subspace material (links about links) itself versionable across derivations?
 - What serialization guarantee must version allocation provide when concurrent forks of one source are attempted under a single owning authority?
 - What must a version guarantee about its relationship to later source states for location-fixed windowing to be realizable without breaching arrangement isolation?
 - Can any withdrawal or supersession semantics coexist with identity permanence and cross-version link carry-through, and under what constraints?
