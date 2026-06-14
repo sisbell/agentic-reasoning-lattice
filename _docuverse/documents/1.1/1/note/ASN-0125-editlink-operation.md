@@ -230,9 +230,7 @@ kind.
 ## What the record must satisfy
 
 The consultation record yields seven requirements on any carrier of the
-supersession relationship. Each is a distillation of design intent; we name
-them so the architecture comparison can be conducted claim by claim rather than
-by taste.
+supersession relationship.
 
 - **RQ1 (Post-hoc assertability).** The relationship must be assertable at any
   state where both endpoints exist — not only at the successor's creation.
@@ -301,8 +299,6 @@ by EL2(c).
 
 ## The supersession relation
 
-We now fix the layer's definitions.
-
 **Df-CLS (SupersessionClass).** Fix a coverage class `[K_sup]`,
 `K_sup ∈ T_admissible`, with `coverage(K_sup) ≠ coverage(R)` — distinct from
 the retraction class (ASN-0086). Write `S^Σ := L_{K_sup}^Σ` for the
@@ -329,10 +325,6 @@ claim is irreflexive. A layer is edit-disciplined iff every state it reaches
 is. (Self-supersession `x = y` is excluded as vacuous; cycles of length ≥ 2 are
 deliberately *not* excluded — they are reverts.)
 
-Df-DISC describes a property of states; the next definition names a layer whose
-operations preserve it, and EL-DM establishes it holds wherever that layer
-reaches.
-
 **Df-LAY (EditingLayer).** The *editing layer* issues exactly the operations
 `{assert_sup, editlink, Nullify}` (the first two defined below; `Nullify` from
 ASN-0086), together with the substrate's link-framing transitions
@@ -344,9 +336,9 @@ slot-3 coverage is neither `coverage(K_sup)` nor `coverage(R)`. Its one
 *discipline commitment* routes every emission into a disciplined class through
 that class's disciplined operation: every `[K_sup]` emission through
 `assert_sup` or `editlink` (under `DC`), every `[R]` emission through `Nullify`.
-A state is *editing-layer-reachable* iff it is reached from the initial state
-`Σ₀` by a finite sequence of editing-layer operations. This mirrors ASN-0086's
-RelationalLayer and its LayerReachable states.
+A state is *editing-layer-reachable* (cf. ASN-0086, LayerReachable) iff it is
+reached from the initial state `Σ₀` by a finite sequence of editing-layer
+operations.
 
 **EL-DM (DisciplineMaintenance).** Every editing-layer-reachable state is
 edit-disciplined — so the "at disciplined `Σ`" conditionals below are
@@ -530,11 +522,12 @@ re-using them allocates nothing.)
 achieved with a permanent, fresh identity. The successor is *born unlisted*:
 both composite steps are `K.λ`, neither touches `M` (so `Σ₂.M = Σ.M`), and the
 fresh `a'` lies in no arrangement range — `ran(Σ₂.M(d)) = ran(Σ.M(d)) ⊆
-dom(Σ.C) ∪ dom(Σ.L)` (S3★), which `a'` is fresh against — so `listed(a', d, Σ₂)`
-is false for every `d` (Df-LISTED). It is therefore auto-listed by no document;
-seating it under `home(a') = d_s` is a separate `K.μ⁺_L` act, not part of the
-edit. How the successor is then discovered — from a document's current view, and
-from the record independently of any view — is characterised in EL11.
+dom(Σ.C) ∪ dom(Σ.L)` (S3★), which `a'` is fresh against — so `a'` appears in no
+document's current arrangement: `a' ∉ ran(Σ₂.M(d))` for every `d`. It is
+therefore auto-listed by no document; seating it under `home(a') = d_s` is a
+separate `K.μ⁺_L` act, not part of the edit. How the successor is then
+discovered — from a document's current view, and from the record independently
+of any view — is characterised in EL11.
 
 *(iii) The relationship.* `(a, a') ∈ succ_h(Σ₂)`, witnessed by the claim at
 `b`; at edit-disciplined `Σ`, also `(a, a') ∈ succ_o(Σ₂)` — postcondition `R₂`
@@ -1007,7 +1000,7 @@ old dispute; archivally, `in(ℓ₀, ·)` still returns everything (EL11b).
 | Df-CLS | SupersessionClass: designated coverage class `[K_sup]` with `coverage(K_sup) ≠ coverage(R)`; historical slice `S^Σ = L_{K_sup}^Σ` (claims), operative subset `A_sup^Σ = {(b,F,G) ∈ S^Σ : b ∉ nullified(Σ)}` | introduced |
 | Df-DIR | ClaimDirectionality: from-set covers the superseding link, to-set the superseded ("F replaces G"), aligned with RetractionDirectionality; replacement-free withdrawal is class `[R]`, a distinct relation | introduced |
 | Df-DISC | EditDiscipline: a state is edit-disciplined iff unit-depth-retraction-disciplined and every claim has form `F = {(x, δ(1,#x))}`, `G = {(y, δ(1,#y))}` with `x, y ∈ dom(Σ.L)`, `x ≠ y`; a layer is edit-disciplined iff every reached state is | introduced |
-| Df-LAY | EditingLayer: the editing layer issues `{assert_sup, editlink, Nullify}` plus the link-framing substrate transitions (`K.α`, `K.δ`, `K.μ⁺`, `K.μ⁺_L`, `K.μ⁻`, `K.ρ`, `K.μ~`) and the bare (standalone) `K.λ` — distinct from `editlink`'s internal `K.λ` step, which may carry `[K_sup]` under `DC` — confined to original-link creation; its discipline commitment routes every `[K_sup]` emission through `assert_sup`/`editlink` (under `DC`) and every `[R]` emission through `Nullify` — discipline is a protocol property, not substrate-enforced; editing-layer-reachable = reached from `Σ₀` by such operations (mirrors ASN-0086's RelationalLayer/LayerReachable) | introduced |
+| Df-LAY | EditingLayer: the editing layer issues `{assert_sup, editlink, Nullify}` plus the link-framing substrate transitions (`K.α`, `K.δ`, `K.μ⁺`, `K.μ⁺_L`, `K.μ⁻`, `K.ρ`, `K.μ~`) and the bare (standalone) `K.λ` — distinct from `editlink`'s internal `K.λ` step, which may carry `[K_sup]` under `DC` — confined to original-link creation; its discipline commitment routes every `[K_sup]` emission through `assert_sup`/`editlink` (under `DC`) and every `[R]` emission through `Nullify` — discipline is a protocol property, not substrate-enforced; editing-layer-reachable = reached from `Σ₀` by such operations | introduced |
 | EL-DM | DisciplineMaintenance: every editing-layer-reachable state is edit-disciplined. Base — `Σ₀` (`L₀ = ∅`) is vacuously disciplined (`S^{Σ₀} = L_R^{Σ₀} = ∅`). Step — L-framing transitions and original-creating bare `K.λ` leave `S^Σ`/`L_R^Σ` undisturbed (Vocabulary fact V, L12, monotone `dom(L)`); `Nullify` adds only a unit-depth `[R]` tuple (no `[K_sup]` claim); `assert_sup` preserves by EL6(v); `editlink` by EL7(vi). Gives the "at disciplined `Σ`" conditionals below a reachable, non-vacuous domain | introduced |
 | EL4 | SingleTarget: for any *schema-conforming* claim (per-claim, no whole-state hypothesis) `coverage(F) ∩ dom(Σ.L) = {x}` and `coverage(G) ∩ dom(Σ.L) = {y}` (PrefixSpanCoverage + R0a), making `addr(e)`, `new(e)`, `old(e)` total on the schema-conforming subset `Ŝ^Σ` at every reachable state (`Ŝ^Σ = S^Σ` at disciplined states) | introduced |
 | Df-SUCC | Successor relations over the schema-conforming claims `Ŝ^Σ` (EL4): `succ_h(Σ) = {(old(e), new(e)) : e ∈ Ŝ^Σ}`; `succ_o(Σ)` the further restriction to `addr(e) ∉ nullified(Σ)`; finite, `succ_o ⊆ succ_h`; total at every reachable state (the `Ŝ^Σ` restriction excludes non-conforming `[K_sup]` tuples on which `old`/`new` are undefined), coinciding with the unrestricted form at disciplined states (`Ŝ^Σ = S^Σ`) | introduced |
