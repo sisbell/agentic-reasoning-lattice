@@ -1,0 +1,34 @@
+# Review of ASN-0134
+
+This is a strong, careful note. The central mathematics — per-home commutation (H1), same-home conflict with its first-emission boundary (H2), the step-level confluence of G1, the banking argument and concrete trace of V2/§8, and the structure-vs-settledness distinction of §2 — all hold up under scrutiny. The §1 commitment to the ASN-0093 allocation stack (excluding ASN-0047's couplings) is load-bearing and correctly recognized as what makes A6's full per-state canonicity true. The findings below are precision, anti-bloat, and a minimality wrinkle; none is a deep correctness flaw.
+
+## REVISE
+
+### Issue 1: A1 classifies all of BH4 as a zero-step read, but `retract_stale` is a batch
+**ASN-0134, §1 (A1) and Claims table**: "a *read-only query* — an `Observe_K`, or any of ASN-0128's behavioral reads (D1–D4, BH1–BH4), each committing no `→_sh` step"
+**Problem**: BH4 (AgeStaleness) provides `age`, `stale`, **and** `retract_stale`. `retract_stale` is not a read — it issues "one `Nullify_Binary(·, d_retr, a)` per `a ∈ stale(h)`" (ASN-0128 BH4), a multi-step state-changing batch. The note's own A5 says so outright: "a `retract_stale` issuing one `Nullify_Binary` per stale event (ASN-0128 BH4, which states outright it is 'a sequence of wrapper steps, not an atomic operation')." The parenthetical "(D1–D4, BH1–BH4)" therefore sweeps a multi-step writer into the zero-step read-only column, contradicting A5. The Claims-table gloss "any behavioral read" inherits the same looseness.
+**Required**: Restrict the citation to the read operations — e.g. "(D1–D4; BH1–BH3; BH4's `age`/`stale`)" — so `retract_stale` is not asserted to be zero-step. A1 already names `retract_stale` as the *batch* zero/multi-step case three sentences later (the "empty `m = 0` fire" clause); the read-list must not also claim it.
+
+### Issue 2: The stack's per-state invariant roster is enumerated twice (§2 and A6)
+**ASN-0134, §2**: "the per-state store partition, level, scoping, and chain conformances of ASN-0093 (`SD` store disjointness, `C1c`/`L1c`, and their level/scoping/finiteness companions `C1`/`C2`/`L0`/`L1a`/`C-fin`/`L-fin`, among others), the append-only immutability and document-set monotonicity … (`C0` …, `L12` …, and ASN-0093's `M1` …), the shape and registry stability of ASN-0126 (`P6` …, `P1`, `P2`), and their ASN-0128 liftings (`R1`, `R2`)."
+**Problem**: A6 then re-enumerates the same roster as its "per-state canonicity package" (`SD`, `C1`/`C1b`/`L1`/`L1b`, `C1c`/`L1c`, `ChainMembershipForOrigin`/`L-ContiguousPrefix`, `C2`/`L1a`, `L0`, `L3`, `M0`/`M2`, `C-fin`/`L-fin`, `P6`, registry-fixity, plus the `C0`/`L12`/`M1` transition clause and the `P2`/`R2` corollaries). A6's list is a superset of §2's; the §2 parenthetical is a preview that duplicates the authoritative enumeration. Under the anti-bloat classifier this is the "two paragraphs say the same thing" pattern — the invariant inventory should live in exactly one place.
+**Required**: Make A6 the sole roster; in §2 reduce the parenthetical to its actual argumentative content (the stack has *no boundary-reserved property class* — no provenance to dangle, no coupling for a later step to discharge) and point to A6 for the enumeration rather than reproducing it.
+
+### Issue 3: Forward-reference accretion around clause 8 / §9
+**ASN-0134, §4 (instance (i), G2, and the family summary)**: clause 8 / §9 is named as "the fix" repeatedly — "only a *global* per-coverage-class serialization … does (§9 clause 8)"; "exactly the carve-out the §9 contract makes explicit"; G2's "Clause 8 (§9) restores the coincidence by fusing each `idem = ⊤` dedup-read to its own deposit's pre-state"; "clause 8 makes every deposit a genuine miss-against-its-own-pre-state"; and the closing "instance (i)'s duplicate suppressed by clause 8 (§9)."
+**Problem**: This is the "multiple paragraphs defer to the same downstream location" pattern, concentrated inside one section. One statement that instance (i) is closed by clause 8 (§9) suffices; the repetitions are scaffolding, not reasoning. Adjacent minor instances of the same accretion: §1's "One consequence of that choice surfaces in §4: …" (forward pointer previewing document structure), §3's "That is the subject of the next two sections …", and §8's defensive exhaustiveness phrase "so framed it exhausts the read classification with no single-index read left homeless."
+**Required**: Collapse §4's clause-8 forward references to a single pointer attached to instance (i)'s analysis; let G2 and the family summary refer back to that analysis rather than re-announcing the fix. Drop the document-structure forward pointers and the exhaustiveness filler.
+
+### Issue 4: "MinimalIsolationContract" contains an admittedly non-load-bearing clause
+**ASN-0134, §9 (MIC)**: "The contract is *nearly* minimal: seven of its eight clauses are load-bearing … Clause 6 is the exception — not load-bearing, since `W6` already makes runtime registry writes nonexistent."
+**Problem**: A contract whose headline property is minimality should not carry a clause the note itself certifies as redundant (derivable from W6). "Nearly minimal" is an admission that the name and the membership of clause 6 are in tension. Either the clause is a genuine obligation (then "not load-bearing" is the wrong verdict and the counterexample-on-removal should be exhibited as for the other seven) or it is derivable (then it is W6's directive, not a separate MIC clause).
+**Required**: Resolve the tension — either drop clause 6 and state "no runtime registry write" as the operative directive inside W6, or keep it and reframe it explicitly as a *derived directive retained for implementer guidance*, adjusting the minimality claim to say so (e.g. "minimal modulo W6-derivable directives") rather than calling a member clause non-load-bearing.
+
+## OUT_OF_SCOPE
+
+### Topic 1: Same-target `K.σ` registration contention
+**Why out of scope**: §4 scopes document registration out of the conflict analysis and supplies document-address freshness ("distinct agents do not propose the same `d`") as an assumed precondition of the excluded entity-allocation layer. H3 covers distinct-target `K.σ` commutation; the same-target race (two agents proposing one fresh `d`, the second rejected by `d ∉ dom(M)` exactly as H2 rejects a same-slot allocation) belongs to that excluded layer, not to this note. Noting it here only to mark that SAFE(c)'s allocation-collision guarantee deliberately does not extend to registration collisions — a future entity-allocation note's territory, not a gap in this one.
+
+META: not warranted — the note defines abstract system guarantees (A6 canonicity, SAFE, the MIC obligations) that any concurrent realization of the sequential substrate must satisfy, and explicitly defers every mechanism (locks, scheduler, optimistic retry) to Open Questions, so it has not drifted into implementation mechanics.
+
+VERDICT: REVISE
