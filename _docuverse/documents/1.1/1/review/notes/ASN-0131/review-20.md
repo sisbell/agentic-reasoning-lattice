@@ -1,0 +1,27 @@
+# Review of ASN-0131
+
+This is a strong, well-constructed note. The definition is clean, decidability is established, the worked instance genuinely exercises every distinctive postcondition (RE-OVL, RE-CLIP, RE-WHOLE, per-endset, RE-UNIT) and computes correctly, the union proof is sound, the wp analysis (RE-CWP) is non-trivial and correct, and the retraction analysis is honest about its hypotheses. The foundation is cited rather than rebuilt throughout. I verified the worked example's separator-zero argument for `coverage(e₃) ∩ dom(Σ.C) = ∅`, the union/intersection distributivity claims, the RE-CWP derivation, and both directions of RE-RET; all hold. Two issues remain, both about precision rather than logic.
+
+## REVISE
+
+### Issue 1: "insertion"/"deletion" glosses misdescribe the frontier-restricted atomics they label
+
+**ASN-0131, "Stability… Under editing of the queried document" (and RE-EDIT table)**: "*Insertion* into the region brings new content under `W`'s positions; the *region image* grows (F-IMG-MONO, ASN-0127)…" and the table's "insertion `K.μ⁺`, content deletion `K.μ⁻`".
+
+**Problem**: K.μ⁺ (ASN-0047) keeps existing mappings fixed and forces the result to satisfy D-CTG/D-SEQ (canonical `{[1,…,1,k] : 1 ≤ k ≤ n'}`), so it can only *append at the contiguous frontier* — it cannot add a position interior to an existing block. For a fixed region `W` that does not include the appended frontier positions, K.μ⁺ adds nothing under `W` and the image is **unchanged** (F-IMG-MONO's `⊆` holds with equality). The phrase "brings new content under `W`'s positions" is therefore false for any interior `W`; it holds only when `W` reaches the frontier. The deletion bullet carries the symmetric defect: K.μ⁻ retains the prefix `R = {[S,…,1,k] : 1 ≤ k ≤ n'_S}` and drops the *tail*, so an interior/front region fully inside `R` has its image unchanged too. More fundamentally, the user-facing "insertion"/"deletion" that *shift* content — the foundation's ASN-0082 displacements (I3 PostInsertionShift, D-SHIFT) — are not K.μ⁺/K.μ⁻; under a shift the content at `W`'s fixed positions *moves*, so RE swings (non-monotone), not grows/shrinks. The formal claims are correct for the atomics (the citations to F-IMG-MONO/CONTR are sound, and RE-CWP itself models K.μ⁻ precisely via the retention set), but identifying the editing names with K.μ⁺/K.μ⁻ and presenting monotone growth/shrink as "the insertion/deletion behaviour" conveys a wrong intuition for the general (interior, or shift-based) case.
+
+**Required**: Use the foundation's extension/contraction (append / tail-truncate) framing for K.μ⁺/K.μ⁻, and state the inclusions as the weak `⊆` they are — noting that for a fixed region not at the affected frontier the image (and RE) is unchanged. If general shift-based insert/delete is meant to be covered, say so explicitly: it is a composite/displacement (ASN-0082), and its RE behaviour is the *swing* (non-monotone) case, derived by composing append + reorder, not the monotone case the bullets describe.
+
+### Issue 2: the Open-Question-6 deferral and its conditional are restated multiple times (anti-bloat)
+
+**ASN-0131, retraction section (Θ paragraph, harmlessness paragraph) and RE-RET claim line**: the type-slot-against-content exception is deferred to OQ6 three times — "…whose exception — a type-slot match against content — is taken up by Open Question 6" (Θ paragraph); "…the lone exception to the forward direction, and exactly the type-slot-against-content match that Open Question 6 takes up" (harmlessness paragraph); "…with sole exception the type-slot-against-content match routed to Open Question 6" (RE-RET table). Within the harmlessness paragraph the hypothesis/under-it/absent-it conditional is itself stated twice — once for general emitter harmlessness ("Under it… net effect on RE is removal only. Absent it… surfaces the emitter as the fresh pair `(3, Θ)`"), once for the `(3,Θ)` coincidence ("Under it `(3, Θ)` is never a surfaced pair… absent it, `b` re-witnesses the very `(3, Θ)`…").
+
+**Problem**: This is the forward-reference accretion the note's `review-mode.anti-bloat` classifier targets — the same downstream deferral and the same conditional structure restated across consecutive paragraphs (plus the table). The technical content that earns its place (that the field-agreement argument is sound only for unit-depth spans and so does not reach a wide `Θ`; that the emitter's sole possible content-region contribution is `(3,Θ)`; that `(3,Θ)` can coincide with the retracted link's own type slot when `ℓ` is a retraction link) survives in one telling; the duplicated deferral and conditional are the bloat.
+
+**Required**: State the `coverage(Θ) ∩ dom(Σ.C) = ∅` hypothesis and its OQ6 exception once, and let the harmlessness paragraph carry the single under-it/absent-it dichotomy; remove the repeated deferral from the second paragraph and let the table line cite it without re-arguing.
+
+## OUT_OF_SCOPE
+
+None. The note confines itself to RETRIEVEENDSETS; its mention of FINDLINKSFROMTOTHREE is a one-clause contrast clarifying that RE poses one region against every endset (no per-slot four-set request), not machinery for that operation, and the out-of-scope topics (counting, pagination, READLINK, FOLLOWLINK, creation/editing, BEBE) are correctly absent. The image machinery and the existence/discovery taxonomy are cited, not rebuilt.
+
+VERDICT: REVISE
