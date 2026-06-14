@@ -1,0 +1,83 @@
+## What this is
+
+ASN-0093 defines the **allocation substrate** — the bottom mutable layer of the store. It fixes the three address-keyed stores (content `C`, links `L`, document registry/arrangement `M`) and the three append-only primitives that grow them (`K.σ` register a document, `K.α` allocate content, `K.λ` allocate a link), plus the address-minting discipline (deterministic per-document, per-subspace tumbler chains) and the permanence/partition invariants every higher layer rests on. It governs *where things live and how new addresses are minted* — not what they mean, and not how arrangements change (fixed empty here, deferred upward).
+
+## Design commitments
+
+**Forced** (downstream cannot violate):
+
+- **Append-only, immutable, never-reused.** Content and link values are written once and never overwritten; addresses are never reclaimed or re-pointed; documents are never unregistered. `dom(C)`, `dom(L)`, `dom(M)` only grow (C0, L12, M1). This is the spine permanence guarantee.
+- **Identity is by address (origin), not by value.** An element is identified by the tumbler it was allocated at, not by its bytes; two equal content values at two addresses are two distinct elements. This *forbids* model-level content-addressed storage (hash-as-identity would collapse distinct allocations) — though value blobs may still be content-addressed *underneath* for compression.
+- **Addresses are minted deterministically, not chosen.** The next address under a document in a subspace is a pure function of the document and the same-origin addresses already present: a fixed first form `[d.0.s_C.1]`, then `inc(max-sibling, 0)`. The caller supplies a document and a value; the address is determined, not a degree of freedom. Consequence: no counter state is required, replay is exact, and freshness is automatic.
+- **The address space is partitioned by subspace, per document.** Content under `s_C`, links under `s_L`, beneath each document's address (L0). Store disjointness (SD) is therefore *structural*, not a cross-store check.
+- **Every element homes to exactly one registered document, recoverable from its own address.** `origin(·)` projects the home document out of the element address (C2, L1a); the home is never stored beside the element, only recomputed. Allocation is gated on the home being *registered* (`∈ dom(M)`).
+- **Registration is separate from arrangement; the substrate leaves arrangement empty.** `K.σ` records a document and fixes `M(d)=∅` (M2). Populating `M(d)` is a different, higher operation. This draws the layer boundary: registry + addressing here, arrangement above.
+- **Transitions are atomic and totally ordered** (SequentialTransitionAxiom): one indivisible append per allocation, one serialization order.
+
+**Conventional** (committed but replaceable):
+
+- The specific identifiers `s_C=1, s_L=2` are pinned for Green-compatibility; only their *distinctness and fixedness* is load-bearing. Exactly two subspaces is an axiom — a third needs it revisited.
+- The StandardTriple (from/to/type) reading of link slots is notation; L3 structurally requires only `N≥3` endsets with a non-empty slot 3.
+
+## What must be built
+
+- **A document registry** — records which document addresses are allocated, answers "is `d` registered?", admits fresh well-formed registrations, never forgets; reserves a (currently empty) arrangement slot per document.
+- **A content store** — maps content addresses → values, append-only; answers membership and value-at; allocates the next content address under a document.
+- **A link store** — maps link addresses → link values (N-endset sequences), append-only; same allocate/lookup/membership operations; checks the L3 value shape.
+- **An address allocator** — per document, per subspace: finds the current maximum same-origin address (or detects none) and applies the structural increment to yield the next address. The heart of the note.
+- **A tumbler engine** — `inc(·,k)`, `zeros(·)`, `#E(·)`, the `origin(·)` projection, prefix comparison and lexicographic `max`, T4-validity. Inherited arithmetic, but the substrate's hot path.
+- **Precondition gates** — per op: home registered (`origin ∈ dom(M)`), value well-formed (`Val`; L3 for links), and — only if you accept caller-supplied addresses rather than minting — freshness and structural checks.
+- **A persistence/recovery mechanism** — so the stores survive restart with permanence and order intact.
+
+## Implementation approaches
+
+**The stores' persistence.** The data model *is* an append-only log, so use one. Make a single **journal of allocation events** (register / content-write / link-write) in commit order the authoritative store, and rebuild in-memory maps by **replay on load** — exactly this repo's `links.jsonl` + `paths.json` pattern, and exactly the shape C0/L12/M1 ask for. Atomicity (SequentialTransitionAxiom) is one atomically-appended record; ordering is journal order; recovery is replay. Bound replay cost with periodic **snapshots** (checkpoint the maps, replay only the tail) — standard WAL+checkpoint. For the *live* representation, hold the stores as **persistent (structurally-shared) maps** (the `im` crate): each transition yields a new map sharing structure with the old, so every `Σ` is a cheap immutable value — useful for consistent reads and the versioned views the arrangement layer will want. Persistence ≠ durability: the maps are the working set, the journal is the truth. **Pick:** journal-as-truth + `im`-backed maps as a recomputable cache of the journal.
+
+**Address allocation (the cursor).** The note derives the next address from `max{a' : origin(a')=d}` — the cursor is **recomputable from the store, not authoritative state.** This is precisely Green's method: stateless query-and-increment — find the highest existing address below the document's subspace bound (`findpreviousisagr`), then increment; there is *no* global `Σ.next` counter. Two realizations:
+- *Recompute-always:* on each allocation, query the store for the current max same-origin address in the subspace and `inc(·,0)` (or emit the first form). Nothing to persist, nothing to desync.
+- *Cached hint:* keep an in-memory `(document, subspace) → next address` cache for an O(1) common case, **recomputed on a miss** (cold document, post-restart). Lampson's hint pattern verbatim: cache the answer, recompute on miss, never write it as truth.
+
+**Pick:** the cached hint over recompute-always semantics. Explicitly **avoid a single global counter** — Green deliberately has none; it would be a concurrency bottleneck and authoritative duplicate state that can drift from the store.
+
+**Indexing.** Allocation needs "max same-origin address under subspace `s`"; lookups need membership and value-at. Because tumbler order is lexicographic and (by ChainMembershipForOrigin) a document's addresses in a subspace form a *contiguous* range under the anchor, an **ordered map keyed by tumbler** answers "max under `d`'s subspace" as a predecessor-below-bound query in O(log n) and gives prefix-range scans (all content under `d`) for free. This is exactly the **granfilade/spanfilade** shape, and `findpreviousisagr` is exactly that predecessor query — the proven approach. A hash index gives faster point lookups but cannot answer predecessor/max-under-prefix and loses range scans, so it must be paired with the cursor cache. **Pick:** ordered tumbler map primary; add a hash index only if point-lookup latency demands it.
+
+**Enfilade now, or not.** Green's granfilade/spanfilade are *enfilades* — cumulative-index trees that compress and do arithmetic over *spans*. But the substrate as specified allocates *singleton* element addresses and leaves the arrangement (`M(d)=∅`) — where span-compression earns its keep — deferred. A plain ordered tumbler map is the simplest thing that honors this note; the enfilade's machinery buys nothing until the arrangement layer arrives. Build the simple ordered store now; adopt enfilade structure later, where V-range→I-range mapping actually needs it. Don't generalize before you must.
+
+**Document registry.** Smallest honoring: an ordered (or hash) set of document tumblers, plus a typed-but-empty arrangement placeholder per document so the deferred arrangement layer slots in without migration. Since `M(d)=∅` always (M2), the substrate need only store membership. A `register` journal record; replay rebuilds the set.
+
+**Home document: recompute vs. denormalize.** `origin(·)` is a pure projection of the address — a hint, never needed as stored state. Default to recomputing it. Green nonetheless **denormalized** the home document into each span record (`homedoc`) to make "group all links under `d`" and follow-link fast — a deliberate locality cache, not a necessity. If insertion-grouping or per-document scans are hot, keep home as a denormalized secondary key; otherwise recompute and avoid the chance of drift.
+
+**Tumbler engine.** Represent tumblers as immutable sequences of components; make the common case fast — `inc(·,0)` touches only the last component, so cheap "replace/extend last" matters. The pure projections (`zeros`, `#E`, `origin`) are recomputable hints — cache only if profiling says so.
+
+A note on **replay safety:** because allocation is *deterministic* (the note's whole chain discipline), replay re-derives exactly the same addresses it recorded — so replay can re-mint and self-check against the journal rather than trusting recorded addresses blindly.
+
+## Guarantees to uphold
+
+- **Permanence** (C0, L12, M1) — *by construction* if the persistence layer is append-only with no update/delete path and the allocator never reuses addresses. Enforce *structurally*: expose no overwrite/delete API; the only writer appends.
+- **Uniqueness / freshness** — *by construction* when you **mint** via the cursor (first emission is fresh; subsequent strictly advances past the max sibling). Becomes an *active check* (`a ∉ dom(C)∪dom(L)`) only if you accept caller-supplied addresses — a reason to mint, not validate.
+- **Store disjointness** (SD) — *by construction* from the fixed subspace partition; no cross-store check needed if the allocator stamps the subspace id.
+- **Scoping** (C2, L1a) — the one guarantee needing an *active gate*: reject allocation whose `origin ∉ dom(M)`. The origin itself is always *recoverable* (structural); registration-status is what you must check.
+- **Total order** (SequentialTransitionAxiom) — *by construction* with a single serialization point (single-writer journal append); needs active discipline (lock / single-writer queue) under concurrency.
+- **Well-formedness** of addresses (element-level, `#E≥2`, correct subspace, T4-valid) — *by construction* when addresses come only from the allocator. The link value shape (L3) is the one *value* check you must actively enforce at `K.λ`.
+
+Clean summary: addresses are correct *by construction* (mint via the cursor, partition by subspace, never delete); the only two *active* gates are "is the home document registered?" and "is the link value well-formed?"
+
+## How it fits
+
+- **Rests on the tumbler address algebra (ASN-0034)** for `inc`, `zeros`, projections, prefix/order, and the disjointness/partition theorems (T7, T10, T10a) that make freshness and store-disjointness structural.
+- **Uses the sibling-stream discipline (ASN-0040)** for the per-document allocator chains (first emission + `inc(·,0)` recurrence, with the ordering/prefix/namespace-disjointness it guarantees).
+- **Unifies the content store + arrangement (ASN-0036) and the link store (ASN-0043)** under one state `Σ`, adding the content-side invariants the inherited models lacked.
+- **Hands up to:** the **arrangement-mutation layer** that will populate `M(d)` (the reserved, currently-empty slot); **entity allocation** layered on `K.σ`; **provenance** (a new `R` component recording who allocated what); **coupling constraints** binding allocation to arrangement; and **link withdrawal** — a retraction mechanism that must revisit L12's value-equality clause. (Green has no withdrawal at all: its spanfilade is write-only and there is no `DELETELINK`, so this is genuinely new ground above the substrate.)
+
+This is the floor of the *mutable* store: above the pure address arithmetic, below everything that gives addresses meaning.
+
+## Decisions for the builder
+
+- **Mint vs. validate addresses.** The op signatures carry the address, but the precondition determines it. Decide whether your API *mints* (caller passes doc + value, you compute and return the address) or *validates* a caller-supplied one. Minting makes uniqueness structural and is simpler; validating matches the literal signature and supports idempotent re-presentation on replay. Recommend: mint, and return the determined address.
+- **Cursor: cached hint vs. recompute-always.** Materialize a per-`(doc,subspace)` next-address cache (recomputed on miss) or query the store each time. Either is correct; pick on lookup cost. Never persist the cursor as truth.
+- **Index: ordered tumbler map vs. hash (+cursor).** Ordered gives predecessor-below-bound and prefix-range scans (the granfilade shape); hash gives faster points but needs a side cursor and loses range scans. Default ordered; hybridize only under measured point-lookup pressure.
+- **Journal shape.** One unified journal (doc/content/link interleaved in commit order — trivially preserves the total order, matches `links.jsonl`) vs. per-store journals (parallel writes, but need a separate ordering record). Default unified.
+- **Snapshot cadence.** When to checkpoint to bound replay; whether to snapshot the persistent-map root (cheap with `im`) or a flat dump. Pick a trigger (record count / size / time).
+- **Tumbler component representation.** Components are conceptually unbounded digit strings; choose fixed-width-with-overflow-check vs. big-integer vs. variable-length encoding before building the engine, since it pervades every operation.
+- **Per-document embedding vs. one flat map.** Green embeds per-document orgls inside the global tree (with back-pointers for *disk-cache eviction*). For an in-memory `im` store, one flat ordered map keyed by full tumbler is simpler, and ChainMembershipForOrigin gives per-document range scans without nesting. Embed only if you need per-document paging/eviction; default flat.
+- **Value storage.** Links are small (fixed endset arity); content may be large. Decide inline-in-store vs. out-of-line blobs referenced from the store — and whether to content-address those blobs for dedup, which is permissible *underneath* the address-identity model but never as the identity itself.
