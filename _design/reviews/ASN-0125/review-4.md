@@ -1,0 +1,15 @@
+Reviewed the digest against ASN-0125, its formal claims, and the Q11–Q19 evidence. This is a strong digest: the forced/chosen tags are correct, no proposed approach violates a commitment, every Green source-level claim is cited to the evidence (Q11–Q19) and the digest honestly flags where its concrete shape — log+replay+checkpoint — exceeds what the evidence proves of Green's enfilade. The hard parts are handled well: it elevates `DC` so `editlink` is not a blind allocate+assert; it builds `succ_o` as a derived filter over two *monotone* sets rather than a mutable status flag (correctly invoking Q16's abandoned-`FALSE` branch as the cautionary tale); it forbids value-based link identity (NonInjectivity); and it maps all nine open questions accurately. I could not find a material defect — only sharpenings.
+
+**1. Revision list**
+
+- **"Implementation approaches" → historical/operative split: make the claim-keyed-edge requirement explicit. [SHARPENING]** The guidance ("maintain a successor graph for `succ_h`… derive `succ_o` by filtering edges whose *claim address* is nullified") is correct, but it doesn't warn against the trap it's guarding: a single supersession *pair* `(y,x)` can carry multiple witnessing claims (two `assert_sup(x,y,·)` from different homes — reachable, EL12/Df-SUCC). A builder who collapses the graph to a set of `(old,new)` pairs loses claim identity, and nullifying one witness would wrongly drop a pair still witnessed by another. State plainly: edges must be keyed by claim address, not by endpoint pair, because `succ_o`'s filter is per-claim.
+
+- **"What must be built" → `editlink`: state at the operation site that `d_s`, `d_a` are unconstrained relative to `home(a)`. [SHARPENING]** That bullet captures two of EL7's three closing remarks (value-identical edit; revert = assertion alone) but omits the third — homes are unconstrained, so a third party edits another's link *by the same composite* (editing-by-fork is not a special case). It's covered globally via open authorship and fork permanence, but it belongs next to the operation definition, since "who may invoke `editlink` on whose link" is a first-order builder question.
+
+- **"Implementation approaches" → link store: tighten the "B-tree-like" gloss. [SHARPENING]** Q17 grounds "disk-loaf structure recovered by structural descent"; "B-tree-like" is the digest's own analogy. Enfilades are a distinct cumulative-index/d-tree structure (crums/widgets/loaves), not B-trees. The family resemblance is real, so it isn't false, but say "enfilade (cumulative-index tree, disk-paged, descended by key)" to avoid implying Green uses B-trees.
+
+**Solid as-is (no action):** the ten design commitments and their forced/chosen tags; the EL14e activity-agnostic-membership treatment of `current`; the `DC` rationale (correctly deriving that a retraction-class successor would silently nullify its to-set target and break chainability); the EL16 reference-survival framing as *the* criterion; the EL10/Q12 lesson to anchor the allocation watermark on the journal, never the listing; and the full open-question mapping (OQ1–OQ9).
+
+**2. Final verdict**
+
+VERDICT: CONVERGED
