@@ -88,10 +88,6 @@ the to-endset is not. There is no four-set request here differentiating slot fro
 (that is the richer FINDLINKSFROMTOTHREE); there is one region, tested against every
 endset, and the endsets that touch are the ones surfaced.
 
-One structural fact about *non-content* anchoring recurs below — in the worked instance (for a
-type endset) and in the retraction analysis (for a withdrawal's to-set) — so we record it once,
-in general form rather than inside either use.
-
 > **Cross-subspace unit-span disjointness (RE-NCD).** Let `s` be a T4-valid element-level
 > address (`zeros(s) = 3`) whose element-field subspace identifier is non-content,
 > `E(s)₁ ≠ s_C`. Then the unit-depth span `(s, δ(1, #s))` covers no content:
@@ -182,33 +178,23 @@ Write `Θ` for ASN-0086's designated retraction type, and `L_Θ^Σ` for its *ret
 the arity-3 type-`Θ` links at state `Σ` (ASN-0086).
 We adopt, as a **standing assumption** scoped to the addressability results, ASN-0086's
 *relational-layer discipline commitment*: every store transition that grows the retraction slice
-`L_Θ` — every `→`-step with `L_Θ^Σ ⊊ L_Θ^{Σ'}` — is a `Nullify`. Two consequences are all we use.
-First, since `Nullify` emits a tuple whose to-set is a single unit-depth span `{(t, δ(1, #t))}` at
-a prior link target `t` (ASN-0086's `Nullify`/`Emit_Θ`), and only `Nullify` grows `L_Θ`, *every*
-`L_Θ` to-set is unit-depth at a link target. Second, `nullified(Σ)` is an existential over that
-slice `L_Θ^Σ ⊆ Σ.L` alone (ASN-0086).
+`L_Θ` — every `→`-step with `L_Θ^Σ ⊊ L_Θ^{Σ'}` — is a `Nullify`. Since `Nullify` emits a tuple
+whose to-set is a single unit-depth span `{(t, δ(1, #t))}` at a prior link target `t` (ASN-0086's
+`Nullify`/`Emit_Θ`), and only `Nullify` grows `L_Θ`, *every* `L_Θ` to-set is unit-depth at a link
+target; and `nullified(Σ)` is an existential over that slice `L_Θ^Σ ⊆ Σ.L` alone (ASN-0086).
 
-Two further facts feed the addressability argument. The first is an *inventory*: `Σ.L` evolves
-only through `K.λ` — the arrangement movers
-(`K.μ` family), entity creation `K.δ`, provenance recording `K.ρ`, and content allocation `K.α`
-all frame the link store (`L' = L`, ASN-0047/ASN-0093). The second is **structural** — that
-`dom(Σ.L)` is a tumbler-prefix antichain — and it belongs to the link sub-allocator discipline
-ASN-0093 imposes on *every* `K.λ` output, ASN-0047's included. Each `ℓ ∈ dom(Σ.L)` lies on the
-link sub-allocator chain `A_L(origin(ℓ))` (ChainMembershipForOrigin, ASN-0093). Two link
-addresses on one chain are equal-length siblings produced by `inc(·, 0)`, hence
-prefix-incomparable unless equal (uniform sibling length and non-nesting, T10a.1/T10a.2,
-ASN-0034). Two on different documents' chains extend prefix-incomparable anchors —
-`b_L(d) ⋠ b_L(d') ⋠ b_L(d)` for `d ≠ d'` (CrossDocumentDisjointness, ASN-0093) — while themselves
-lying under those anchors (ChainPrefixExtension, ASN-0093); a common extension would force the two
-anchors into a prefix relation, contradicting their incomparability. Hence distinct stored links
-never nest. This is the content of ASN-0086's R0a/FlatLinkDomain.
+`Σ.L` evolves only through `K.λ` — the arrangement movers (`K.μ` family), entity creation `K.δ`,
+provenance recording `K.ρ`, and content allocation `K.α` all frame the link store (`L' = L`,
+ASN-0047/ASN-0093). And `dom(Σ.L)` is a tumbler-prefix antichain — distinct stored links never
+nest (R0a/FlatLinkDomain, ASN-0086; equivalently, the link sub-allocator discipline ASN-0093
+imposes on *every* `K.λ` output, ASN-0047's included).
 
 A `K.λ` step emits a *fresh* link — allocation gives `ℓ_new ∉ dom(Σ.L)`, so `ℓ_new` enters
 `dom(Σ'.L)` — and whether that fresh output is *addressable* in its post-state
 (`ℓ_new ∉ nullified(Σ')`) turns on whether some *nullifying* to-set covers it — where
 "nullifying" means the to-set of a tuple in the retraction slice `L_Θ^{Σ'}`. The standing commitment's
 unit-depth to-set then settles the question: every `L_Θ^{Σ'}` to-set is unit-depth at some link
-`t ∈ dom(Σ'.L)`, covering `{u : t ≼ u}`, and `dom(Σ'.L)` is a prefix-antichain (just shown, from
+`t ∈ dom(Σ'.L)`, covering `{u : t ≼ u}`, and `dom(Σ'.L)` is a prefix-antichain (above, from
 ASN-0093's sub-allocator discipline), so any `t` distinct from `ℓ_new` is prefix-incomparable to
 it (`t ⋠ ℓ_new`) and cannot cover it. The only nullifying to-set that
 could cover `ℓ_new` is therefore one whose *target* is `ℓ_new`. No *pre-existing* `L_Θ` tuple
@@ -264,8 +250,11 @@ reported whole — `RE` reports all of `e`'s spans, `RE_clip` reports those in `
 neither shortens one. What separates the readings is *which* spans are surfaced, not their extent,
 so RE-CLIP cannot decide between them. That choice — RE-DEF's return value or `RE_clip`'s — is
 exactly what Open Question 1 reopens; we therefore mark RE-DEF's *return-value clause*, and with
-it RE-WHOLE, **provisional** pending its resolution, while RE-CLIP and the shared selection
-(RE-OVL, soundness, completeness) stand firm under either answer.
+it RE-WHOLE, **provisional** pending its resolution. RE-CLIP and the shared selection
+(RE-OVL, soundness, completeness) stand firm under either answer — but the *composition* laws do
+not: RE-UDIST and the `⊆` half of RE-UDIST-∩ (§Composing regions) hold for the whole-endset return
+value and *fail* for `RE_clip`, so they are themselves reading-dependent, bearing on the Open
+Question 1 choice rather than standing under both answers.
 
 ## Soundness and completeness: the answer is exactly the touching anchoring
 
@@ -419,6 +408,26 @@ function of `(Σ.L, nullified(Σ))` and does not depend on the region. So
 This is the RETRIEVEENDSETS analogue of the discovery query's union-distributivity
 (F-UDIST, F-VDIST, ASN-0127): a region query is composable from any cover of the region by
 its parts. Querying a passage is the union of querying its lines.
+
+This composition law is, moreover, one the *whole-endset* reading uniquely affords — a
+consideration bearing on Open Question 1 that the algebra makes sharp, and a more decisive one
+than §Extent's faithfulness appeal. The proof above turned on the surfaced value being
+*region-independent*: under RE-DEF the returned `e = Σ.L(a).eᵢ` does not vary with `W`, so
+filtering the region-independent pool `Avail(Σ)` by `touch_{W₁} ∨ touch_{W₂}` is the whole
+argument. The touching-spans reading `RE_clip` breaks exactly there, since its returned value
+`clip_W(Σ.L(a).eᵢ)` *is* region-dependent. Take the injective
+`Σ.M(d) = { [1,1] ↦ a,  [1,2] ↦ b }` (`a ≠ b` in `dom(Σ.C)`) and a slot-1 endset
+`e = {(a, δ(1, #a)),  (b, δ(1, #b))}` borne by an addressable link. With `W₁ = {[1,1]}` and
+`W₂ = {[1,2]}`, union-distributivity fails for `RE_clip`: each sub-region clips to its own span,
+`RE_clip(W₁) = {(1, {(a, δ(1, #a))})}` and `RE_clip(W₂) = {(1, {(b, δ(1, #b))})}`, yet the union
+keeps both, `RE_clip(W₁ ∪ W₂) = {(1, e)}`, so `RE_clip(W₁ ∪ W₂) ≠ RE_clip(W₁) ∪ RE_clip(W₂)` —
+where the whole reading distributes, `RE(W₁) = RE(W₂) = RE(W₁ ∪ W₂) = {(1, e)}`. With the nested
+`W₁ = {[1,1], [1,2]}` and `W₂ = {[1,2]}`, the `⊆` half of RE-UDIST-∩ — unconditional under the
+whole reading (established below) — fails for `RE_clip` as well:
+`RE_clip(W₁ ∩ W₂) = RE_clip(W₂) = {(1, {(b, δ(1, #b))})}` while `RE_clip(W₁) = {(1, e)}` carries
+the larger value, so `RE_clip(W₁) ∩ RE_clip(W₂) = ∅` does not contain it. Both composition laws
+are thus *reading-dependent* — holding for whole-endset surfacing, forfeit for `RE_clip` — which
+is a properly algebraic argument for the adopted reading.
 
 The *intersection* law does not follow in full — but one half of it does, and
 unconditionally. We must first see where the forward image fails to distribute over
@@ -827,8 +836,8 @@ slip RE-UNIT's deduplication guards against.
 | RE-ADDR | Fresh-output addressability — a fresh `K.λ` output that does not retract its own emitter address is addressable in its post-state (`ℓ_new ∉ nullified(Σ')`); in particular every non-retraction emission (`K ≁ Θ`) is addressable. Conditions: the standing discipline's unit-depth to-set (scoped to the retraction slice `L_Θ`, all that `nullified` consults) and the prefix-antichain of `dom(Σ.L)` (ASN-0093's link sub-allocator discipline; = ASN-0086's R0a) | introduced |
 | RE-SND | Soundness — `(i, e) ∈ RE(W, d, Σ) ⟹ e` is a genuine slot-`i` endset of an addressable link ∧ `touch_W(e)`; no false positives | introduced |
 | RE-CMP | Completeness — every addressable link `a` and slot `i` with `touch_W(Σ.L(a).eᵢ)` has `(i, Σ.L(a).eᵢ) ∈ RE(W, d, Σ)`; the answer is *exactly* the touching set, native or transcluded content alike | introduced |
-| RE-UDIST | Union-distributivity — `RE(W₁ ∪ W₂, d, Σ) = RE(W₁, d, Σ) ∪ RE(W₂, d, Σ)`, the RE-level analogue of F-UDIST/F-VDIST (ASN-0127) | introduced |
-| RE-UDIST-∩ | Intersection (one-sided) — `RE(W₁ ∩ W₂, d, Σ) ⊆ RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)` holds unconditionally (image `⊆` law); the reverse `⊇` fails in general, with no *injectivity-style* restriction recovering it (a non-injective and an *injective* counterexample, the latter via split witnesses in `touch_W`; only an arrangement too impoverished to admit two disjoint regions with distinct nonempty images forces `⊇`, and then vacuously). Equality holds **exactly** when `(∀ (i,e) ∈ Avail(Σ) : touch_{W₁}(e) ∧ touch_{W₂}(e) ⟹ touch_{W₁ ∩ W₂}(e))` — settled as necessary-and-sufficient; its weakest structurally-restricted sufficient form is Open Question 4 | introduced |
+| RE-UDIST | Union-distributivity — `RE(W₁ ∪ W₂, d, Σ) = RE(W₁, d, Σ) ∪ RE(W₂, d, Σ)`, the RE-level analogue of F-UDIST/F-VDIST (ASN-0127); *reading-dependent* — holds for the adopted whole-endset return value and fails for `RE_clip` (§Composing regions), a consideration bearing on Open Question 1 | introduced |
+| RE-UDIST-∩ | Intersection (one-sided) — `RE(W₁ ∩ W₂, d, Σ) ⊆ RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)` holds unconditionally (image `⊆` law); the reverse `⊇` fails in general, with no *injectivity-style* restriction recovering it (a non-injective and an *injective* counterexample, the latter via split witnesses in `touch_W`; only an arrangement too impoverished to admit two disjoint regions with distinct nonempty images forces `⊇`, and then vacuously). Equality holds **exactly** when `(∀ (i,e) ∈ Avail(Σ) : touch_{W₁}(e) ∧ touch_{W₂}(e) ⟹ touch_{W₁ ∩ W₂}(e))` — settled as necessary-and-sufficient; its weakest structurally-restricted sufficient form is Open Question 4. The `⊆` half is itself *reading-dependent* — unconditional under whole-endset surfacing, it fails for `RE_clip` (§Composing regions) | introduced |
 | RE-SEL | Discovery-side selection — `sel(W, d, Σ) = findlinks_V(W, d, Σ) ∩ addressable(Σ)` (F-V, ASN-0127): the contributing links are the addressable links discoverable through the region, so `RE` is discovery-anchored — present-tense, non-monotone (D-NONMONO, D-ZERO, ASN-0127), not existence-anchored | introduced |
 | RE-TRANS | Transclusion blindness — surfacing is by content identity, independent of the link's home and the covered content's origin (LP16, ASN-0098): a link reaching the region through transcluded content is surfaced identically to one on native content, each span describing content identity, not the borrowing V-position | introduced |
 | RE-IDENT | Content-identity invariance — each surfaced endset's coverage is permanent (L12, ASN-0043; LP3★, ASN-0098), so the content-level answer (which I-addresses each surfaced endset anchors to) is arrangement-independent, even though the *selection* of surfaced endsets is arrangement-mediated | introduced |
@@ -838,7 +847,7 @@ slip RE-UNIT's deduplication guards against.
 
 ## Open Questions
 
-1. Must a surfaced endset be reported in its entirety, or only those of its spans that intersect the region (RE-DEF's whole-endset return value vs. `RE_clip`'s touching-spans restriction, §Extent) — and which choice is the faithful rendering of the link's anchoring?
+1. Must a surfaced endset be reported in its entirety, or only those of its spans that intersect the region (RE-DEF's whole-endset return value vs. `RE_clip`'s touching-spans restriction, §Extent) — and which choice is the faithful rendering of the link's anchoring, given that whole-endset surfacing uniquely yields the composition laws RE-UDIST and the `⊆` half of RE-UDIST-∩, both forfeit under `RE_clip` (§Composing regions)?
 
 2. When distinct addressable links carry an identical endset value in the same slot, must the operation's answer preserve their multiplicity, or is collapsing them to a single surfaced endset a faithful answer?
 
