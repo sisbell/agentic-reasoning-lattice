@@ -384,14 +384,25 @@ proof filters it by the disjunction — gives
 
 and, like the image `⊆` law it rests on, this needs *no* injectivity hypothesis. The
 reverse inclusion, by contrast, **fails in general** — and we can exhibit the failure, not
-merely fail to derive it. Whenever `Σ.M(d)` is non-injective (M13, M14, ASN-0058), take a
-position `v₁ ∈ W₁ ∖ W₂` and a position `v₂ ∈ W₂ ∖ W₁` sharing one I-address
-`Σ.M(d)(v₁) = Σ.M(d)(v₂) = a` that no position of `W₁ ∩ W₂` maps to, and an endset `e`
-covering `a`. Then `e` meets `image(W₁, d, Σ)` (through `v₁`) and `image(W₂, d, Σ)` (through
-`v₂`), so `(i, e) ∈ RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)`; yet `a ∉ image(W₁ ∩ W₂, d, Σ)` and `e`
-meets that image nowhere, so `(i, e) ∉ RE(W₁ ∩ W₂, d, Σ)`. This is a genuine counterexample
-to `⊇`, not an unresolved question: the bare `⊇` direction is settled *negatively*
-(RE-UDIST-∩). What remains genuinely open is the refinement — whether some restriction on
+merely fail to derive it, with a complete construction. It turns on non-injectivity (M13,
+M14, ASN-0058): let `d` arrange two *distinct* V-positions to one content I-address,
+
+> `Σ.M(d) = { [1,1] ↦ a,  [1,2] ↦ a }`,   `a ∈ dom(Σ.C)`,
+
+and let `ℓ_e ∈ dom(Σ.L)` be a link emitted by `K.λ` carrying in slot 1 the unit-depth
+from-endset `e = {(a, δ(1, #a))}` — so `Σ.L(ℓ_e).e₁ = e` and `coverage(e) = {t : a ≼ t}`
+(PrefixSpanCoverage, ASN-0043) — addressable as a non-retraction emission, hence
+`ℓ_e ∉ nullified(Σ)` (the fresh-`K.λ`-output addressability established under *link emission*
+below); so `(1, e) ∈ Avail(Σ)`. Take the disjoint regions `W₁ = {[1,1]}` and `W₂ = {[1,2]}`:
+the two distinct positions `[1,1] ∈ W₁ ∖ W₂` and `[1,2] ∈ W₂ ∖ W₁` carry the shared address
+into both images, `image(W₁, d, Σ) = image(W₂, d, Σ) = {a}`, while `W₁ ∩ W₂ = ∅`. Since
+`a ∈ coverage(e)` (reflexivity of `≼`), `touch_{W₁}(e)` and `touch_{W₂}(e)` both hold; with
+`(1, e) ∈ Avail(Σ)` this gives `(1, e) ∈ RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)`. But the intersection
+region is empty, so `image(W₁ ∩ W₂, d, Σ) = ∅`, whence
+`coverage(e) ∩ image(W₁ ∩ W₂, d, Σ) = ∅` — `e` meets that image nowhere — and
+`RE(W₁ ∩ W₂, d, Σ) = ∅` (RE-BND); thus `(1, e) ∉ RE(W₁ ∩ W₂, d, Σ)`. This is a genuine
+counterexample to `⊇`, not an unresolved question: the bare `⊇` direction is settled
+*negatively* (RE-UDIST-∩). What remains genuinely open is the refinement — whether some restriction on
 the arrangement, injectivity of `Σ.M(d)` the natural candidate, recovers equality
 (Open Question 4).
 
@@ -518,17 +529,14 @@ delete-stability is scoped to text depth `#p = 2` and insert-stability to every 
 asymmetry in the displacement's *existence*, not in the stability argument, which would cover a
 higher-depth delete were the foundation to supply one. What that argument requires of either is
 not the displacement's specifics but only that it is an *arrangement edit confined to `Σ.M(d)`*
-— an **M-only edit**. This is a cross-model lift, and its status must be labelled honestly.
-ASN-0082 models these primitives over a `(C, M)` state with no link, entity, or provenance
-store: there it proves the content frame outright (I3-C, D-I: `Σ.C` unchanged) and writes only
-`Σ.M(d)`. What the *lifted* operation does to `Σ.L`, `Σ.E`, `Σ.R` is therefore not something
-ASN-0082 establishes — those stores are absent from its model, so there is no write-set over
-the full state for them to "lie outside" of — but a property of how the lift is performed. We
-make that choice explicit and adopt it as an **assumption of this note**: the *natural lift* of
-ASN-0082's `(C, M)` insert/delete to the full `(C, L, E, M, R)` state writes only `Σ.M(d)` and
-frames the rest, `L' = L ∧ E' = E ∧ R' = R`. Under this assumption — **M-only ⟹ frames `L`,
-`E`, `R`** — the lifted edit acts exactly as every ASN-0047 atomic mover above does, at any
-content depth. The addressable population is therefore unmoved across the shift:
+— an **M-only edit**. ASN-0082 models these primitives over a `(C, M)` state with no link,
+entity, or provenance store, writing only `Σ.M(d)` and proving the content frame outright
+(I3-C, D-I: `Σ.C` unchanged). What the lift does to `Σ.L`, `Σ.E`, `Σ.R` is not something
+ASN-0082 establishes; this note adopts it as an **assumption** (the *natural-lift
+assumption*): the lift of ASN-0082's `(C, M)` insert/delete to the full `(C, L, E, M, R)`
+state writes only `Σ.M(d)` and frames the rest, `L' = L ∧ E' = E ∧ R' = R`. Under this
+assumption — **M-only ⟹ frames `L`, `E`, `R`** — the lifted edit acts exactly as every
+ASN-0047 atomic mover above does, at any content depth. The addressable population is therefore unmoved across the shift:
 `addressable(Σ)` and the region-independent pool `Avail(Σ)` are functions of `Σ.L` (through
 `nullified`) alone, so only the region's image can move. Content is *displaced through* `d`'s
 V-order, and its effect on the image is read off the displacement directly.
@@ -758,7 +766,7 @@ The answer's stability thus reduces to two tracked motions: the region's image u
 | RE-SEL | Discovery-side selection — `sel(W, d, Σ) = findlinks_V(W, d, Σ) ∩ addressable(Σ)` (F-V, ASN-0127): the contributing links are the addressable links discoverable through the region, so `RE` is discovery-anchored — present-tense, non-monotone (D-NONMONO, D-ZERO, ASN-0127), not existence-anchored | introduced |
 | RE-TRANS | Transclusion blindness — surfacing is by content identity, independent of the link's home and the covered content's origin (LP16, ASN-0098): a link reaching the region through transcluded content is surfaced identically to one on native content, each span describing content identity, not the borrowing V-position | introduced |
 | RE-IDENT | Content-identity invariance — each surfaced endset's coverage is permanent (L12, ASN-0043; LP3, ASN-0098), so the content-level answer (which I-addresses each surfaced endset anchors to) is arrangement-independent, even though the *selection* of surfaced endsets is arrangement-mediated | introduced |
-| RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (RE-IDENT). Over ASN-0047's atomic movers and ASN-0082's shift-based insert/delete, only the content-subspace movers on `d` (extension, contraction, reordering, the shifts) and `K.λ` emission/retraction (RE-RET) can move the answer; every other transition — including all **link-subspace-confined** edits on `d` under `W ⊆ s_C` (`K.μ⁺_L` and content-retaining `K.μ⁻`) — leaves it fixed | introduced |
+| RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (RE-IDENT). Over ASN-0047's atomic movers, only the content-subspace movers on `d` (extension, contraction, reordering) and `K.λ` emission/retraction (RE-RET) can move the answer; every other transition — including all **link-subspace-confined** edits on `d` under `W ⊆ s_C` (`K.μ⁺_L` and content-retaining `K.μ⁻`) — leaves it fixed. Extension to ASN-0082's shift-based insert/delete holds only **conditionally on the natural-lift assumption** (M-only ⟹ frames `L`, `E`, `R`), with delete scoped to text depth `#p = 2` | introduced; shift coverage conditional |
 | RE-RET | Retraction stability — withdrawing a link `ℓ` (Nullify, ASN-0086) marks it nullified, removing it from `addressable(Σ)` permanently (R6a). Under the standing unit-depth discipline and the net-removal-only hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅` (`Θ` the retraction type, the sole remaining exception), a pair `(i, e)` that `ℓ` bore drops **iff `ℓ` was its sole addressable bearer in `Σ`** (RE-UNIT) | introduced |
 | RE-CWP | Contraction-stability weakest precondition — for a `K.μ⁻[d, R]` step, `RE(W, d, ·) = RE(W, d, Σ)` iff `enabled(K.μ⁻[d, R]) ∧ (∀ (i, e) ∈ Avail(Σ) : coverage(e) ∩ Δ ≠ ∅ ⟹ coverage(e) ∩ I_R ≠ ∅)`, where `I_R = {Σ.M(d)(v) : v ∈ W ∩ R}` (D-CWP bridge, ASN-0127) and `Δ = image(W, d, Σ) ∖ I_R`. The boundary `R = ∅` collapses to `RE(W, d, Σ) = ∅` | introduced |
 
