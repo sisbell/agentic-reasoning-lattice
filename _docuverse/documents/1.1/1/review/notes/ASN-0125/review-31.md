@@ -1,0 +1,27 @@
+# Review of ASN-0125
+
+I checked the operation contracts (EL6/EL7), the discipline-maintenance induction (EL-DM), the per-claim accessor argument (EL4), the two-regime discovery proof (EL11), the currency constructions (EL14), and the worked example arithmetic against the foundation claims. The reasoning is sound throughout — EL0's `wp = false`, the active-at-birth wp Case 2 discharge, the `nullified` frame split (unconditional vs. under-discipline), the de-listing suffix-contraction construction, the position-reuse construction (EL10), and the activity-agnostic-membership construction (EL14e) all hold against the cited contracts. I found no correctness gap, no missing boundary case (`Σ₀` empty store, `j = n` last/only link, `current = {y}`/`∅`/fork are all covered), and no cross-ASN reference outside the foundation set.
+
+The note carries `review-mode.anti-bloat`, and the recent EL8b/EL13 cleanup has a counterpart that survived in the `editlink` definition block.
+
+## REVISE
+
+### Issue 1: EDITop's DC explanation previews and duplicates the EL7(vi) proof
+
+**ASN-0125, EDITop (the prose following the `DC(ℓ')` formula)**: 
+
+> "guarded by `|ℓ'| = 3` so that it fires exactly when the successor `a'` would enter the claim slice `S^{Σ₁}` — which ASN-0086 admits only arity-3 tuples to — and not on a `[K_sup]`-typed successor of arity `> 3`, which is no claim and which Df-DISC therefore does not constrain."
+>
+> "Its witnesses are already in the pre-state link store and pinned at `Σ` (not the post-emission `Σ₁`) — what makes them *pre-existing* links and lets conformance transfer forward across the emission (EL7(vi))."
+>
+> "Otherwise — when `a'` would be no claim, either because `coverage(ℓ'.e₃) ≠ coverage(K_sup)` or because that coverage holds with `|ℓ'| > 3` — `DC(ℓ')` imposes no schema constraint, and `ℓ'` inhabits no disciplined class."
+
+**Problem**: This is the same factual content EL7(vi) states *and uses* a few lines later:
+
+> "The successor `a'` is a claim at `Σ₁` — a member of `S^{Σ₁}`, which ASN-0086 restricts to arity-3 tuples — iff `|ℓ'| = 3 ∧ coverage(ℓ'.e₃) = coverage(K_sup)`, which is exactly `DC`'s schema guard. In that case `DC(ℓ')` supplies `x, y ∈ dom(Σ.L) ⊆ dom(Σ₁.L)` ... Otherwise — `coverage(ℓ'.e₃) ≠ coverage(K_sup)`, or that coverage with `|ℓ'| > 3` — `a' ∉ S^{Σ₁}`, so Df-DISC(ii) ... holds vacuously ..."
+
+The EDITop block's job is to *define* the precondition; the displayed formula does that. The surrounding prose then explains *why* the guard is `|ℓ'| = 3` (slice/arity-3 fact), restates the "otherwise" branch the formula's `if…then` already encodes, and the witnesses-pinned point both explains and forward-defers to EL7(vi) — which is precisely where the guard rationale and the case split are proven. This is "new prose around a precondition explaining why it is shaped this way rather than what it requires," plus "two paragraphs saying the same thing in different words," plus a forward deferral that previews its own target. A reader following `editlink` gets the arity-3-slice argument twice; a reader following the discipline proof finds it pre-empted at the definition site.
+
+**Required**: Trim the EDITop post-formula prose to the definitional minimum — keep only the orientation that is *not* in EL7(vi), namely that the leading conjunct excludes a retraction-class successor because editlink is supersession, not retraction (`Nullify`'s office). Let EL7(vi) carry the `|ℓ'| = 3` ↔ `S^{Σ₁}` arity-3 rationale, the witnesses-transfer (`dom(Σ.L) ⊆ dom(Σ₁.L)`), and the otherwise-vacuous case, since that is where they are load-bearing.
+
+VERDICT: REVISE
