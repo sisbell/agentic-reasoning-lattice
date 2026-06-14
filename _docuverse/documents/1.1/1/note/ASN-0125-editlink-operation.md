@@ -547,9 +547,10 @@ values, and `(a, a') ∈ succ_h(Σ₃)`.
 
 *(vi) Discipline preservation.* `Σ₂` is edit-disciplined when `Σ` is — this is
 what `DC(ℓ')` secures, and it is what licenses chaining edits. The composite
-reaches `Σ₂` through `Σ₁` in two steps. Step 1, the bare `K.λ(d_s, a', ℓ')`,
-preserves Df-DISC: every prior claim keeps its witnesses
-(`x, y ∈ dom(Σ.L) ⊆ dom(Σ₁.L)`, values fixed by L12), every prior retraction
+reaches `Σ₂` through `Σ₁` in two steps. Step 1, `editlink`'s internal
+`K.λ(d_s, a', ℓ')` (not the *bare* `K.λ`, which Df-LAY confines to
+original-link creation), preserves Df-DISC: every prior claim keeps its
+witnesses (`x, y ∈ dom(Σ.L) ⊆ dom(Σ₁.L)`, values fixed by L12), every prior retraction
 likewise persists, and the one new value `ℓ'` at `a'` is governed by `DC(ℓ')`,
 whose witnesses are pinned at the pre-state `dom(Σ.L)`. The conformance
 transfers across the emission by `dom(Σ.L) ⊆ dom(Σ₁.L)` (Vocabulary fact V —
@@ -993,7 +994,7 @@ old dispute; archivally, `in(ℓ₀, ·)` still returns everything (EL11b).
 | Df-CLS | SupersessionClass: designated coverage class `[K_sup]` with `coverage(K_sup) ≠ coverage(R)`; historical slice `S^Σ = L_{K_sup}^Σ` (claims), operative subset `A_sup^Σ = {(b,F,G) ∈ S^Σ : b ∉ nullified(Σ)}` | introduced |
 | Df-DIR | ClaimDirectionality: from-set covers the superseding link, to-set the superseded ("F replaces G"), aligned with RetractionDirectionality; replacement-free withdrawal is class `[R]`, a distinct relation | introduced |
 | Df-DISC | EditDiscipline: a state is edit-disciplined iff unit-depth-retraction-disciplined and every claim has form `F = {(x, δ(1,#x))}`, `G = {(y, δ(1,#y))}` with `x, y ∈ dom(Σ.L)`, `x ≠ y`; a layer is edit-disciplined iff every reached state is | introduced |
-| Df-LAY | EditingLayer: the editing layer issues `{assert_sup, editlink, Nullify}` plus the link-framing substrate transitions (`K.α`, `K.δ`, `K.μ⁺`, `K.μ⁺_L`, `K.μ⁻`, `K.ρ`, `K.μ~`) and the bare (standalone) `K.λ` — distinct from `editlink`'s internal `K.λ` step, which may carry `[K_sup]` under `DC` — confined to original-link creation; its discipline commitment routes every `[K_sup]` emission through `assert_sup`/`editlink` (under `DC`) and every `[R]` emission through `Nullify` — discipline is a protocol property, not substrate-enforced; editing-layer-reachable = reached from `Σ₀` by such operations | introduced |
+| Df-LAY | EditingLayer: the editing layer issues `{assert_sup, editlink, Nullify}` plus the link-framing substrate transitions (`K.α`, `K.δ`, `K.μ⁺`, `K.μ⁺_L`, `K.μ⁻`, `K.ρ`, `K.μ~`) and the bare `K.λ`, confined to original-link creation; its discipline commitment routes every `[K_sup]` emission through `assert_sup`/`editlink` (under `DC`) and every `[R]` emission through `Nullify` — discipline is a protocol property, not substrate-enforced; editing-layer-reachable = reached from `Σ₀` by such operations | introduced |
 | EL-DM | DisciplineMaintenance: every editing-layer-reachable state is edit-disciplined. Base — `Σ₀` (`L₀ = ∅`) is vacuously disciplined (`S^{Σ₀} = L_R^{Σ₀} = ∅`). Step — L-framing transitions and original-creating bare `K.λ` leave `S^Σ`/`L_R^Σ` undisturbed (Vocabulary fact V, L12, monotone `dom(L)`); `Nullify` adds only a unit-depth `[R]` tuple (no `[K_sup]` claim); `assert_sup` preserves by EL6(v); `editlink` by EL7(vi). Gives the "at disciplined `Σ`" conditionals below a reachable, non-vacuous domain | introduced |
 | EL4 | SingleTarget: for any *schema-conforming* claim (per-claim, no whole-state hypothesis) `coverage(F) ∩ dom(Σ.L) = {x}` and `coverage(G) ∩ dom(Σ.L) = {y}` (PrefixSpanCoverage + R0a), making `addr(e)`, `new(e)`, `old(e)` total on the schema-conforming subset `Ŝ^Σ` at every reachable state (`Ŝ^Σ = S^Σ` at disciplined states) | introduced |
 | Df-SUCC | Successor relations over the schema-conforming claims `Ŝ^Σ` (EL4): `succ_h(Σ) = {(old(e), new(e)) : e ∈ Ŝ^Σ}`; `succ_o(Σ)` the further restriction to `addr(e) ∉ nullified(Σ)`; finite, `succ_o ⊆ succ_h`; total at every reachable state (the `Ŝ^Σ` restriction excludes non-conforming `[K_sup]` tuples on which `old`/`new` are undefined), coinciding with the unrestricted form at disciplined states (`Ŝ^Σ = S^Σ`) | introduced |
