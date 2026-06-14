@@ -169,12 +169,12 @@ Write `Θ` for ASN-0086's designated retraction type, and `L_Θ^Σ` for its *ret
 the arity-3 type-`Θ` links at state `Σ` (ASN-0086).
 We adopt, as a **standing assumption** scoped to the addressability results, ASN-0086's
 *relational-layer discipline commitment*: every store transition that grows the retraction slice
-`L_Θ` — every `→`-step with `L_Θ^Σ ⊊ L_Θ^{Σ'}` — is a `Nullify`, so the retraction slice grows
-through that one operation alone. Its **to-set consequence**, ASN-0086's *unit-depth retraction
-discipline* — every `L_Θ` to-set is a unit-depth span `{(t, δ(1, #t))}` at a single prior target
-— follows by induction over layer-reachable states (ASN-0086). Since `nullified(Σ)` is an
-existential over `L_Θ^Σ` alone (ASN-0086), this `L_Θ`-scoped unit-depth fact is exactly what
-addressability consults.
+`L_Θ` — every `→`-step with `L_Θ^Σ ⊊ L_Θ^{Σ'}` — is a `Nullify`. Under it, the addressability
+results import three ASN-0086 facts: every `L_Θ` to-set is a unit-depth span `{(t, δ(1, #t))}`
+at a single prior target (*unit-depth retraction discipline*, ASN-0086); `dom(Σ.L)` is a
+prefix-antichain (R0a, FlatLinkDomain, ASN-0086); and a single `Nullify` contributes exactly its
+target to the nullified set (R-Scope, SingleTupleScope, ASN-0086). And `nullified(Σ)` is an
+existential over `L_Θ^Σ` alone (ASN-0086).
 
 The bridge to ASN-0086 — call it the **`Σ.L`-evolution bridge** — rests on one inclusion. `Σ.L`
 evolves only through `K.λ`: the arrangement movers (`K.μ` family), entity creation `K.δ`,
@@ -184,10 +184,8 @@ ASN-0093), exactly `K.σ`'s registration precondition (ASN-0093), so ASN-0086 ca
 identical home documents via `K.σ` and replay the identical `K.λ` sequence. This gives the
 inclusion *ASN-0047-reachable `Σ.L`-configurations ⊆ ASN-0086-`→*`-reachable ones*, along which
 any `∀`-quantified ASN-0086 `→*`-reachable `Σ.L`-lemma carries to every ASN-0047-reachable
-state. The unit-depth discipline is imported at a *stronger* reachability: ASN-0086 discharges
-it only for *layer*-reachable states, and the replayed `K.λ` sequence is layer-reachable
-precisely because the standing discipline commitment holds along it — every
-retraction-slice-growing step is a `Nullify` obeying the discipline.
+state. The unit-depth fact is an ASN-0086 *layer*-reachability lemma; the replayed sequence is
+layer-reachable because the standing discipline commitment holds along it (ASN-0086).
 
 A `K.λ` step emits a *fresh* link — allocation gives `ℓ_new ∉ dom(Σ.L)`, so `ℓ_new` enters
 `dom(Σ'.L)` — and whether that fresh output is *addressable* in its post-state
@@ -476,15 +474,14 @@ not even confined to disjoint regions.
 The first construction shows non-injectivity *can*
 break `⊇`; the second shows that *removing* it does not restore `⊇`. An arrangement
 restriction such as injectivity therefore **provably cannot** recover
-`RE(W₁ ∩ W₂, d, Σ) = RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)`. Because the `⊆` half is unconditional,
-`⊇` — and hence equality — holds *exactly* when
+`RE(W₁ ∩ W₂, d, Σ) = RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)`. Because the `⊆` half is unconditional and
+the pool `Avail(Σ)` is region-independent, `⊇` — and hence equality — holds *exactly*
+(necessary and sufficient) when
 
 > `(∀ (i, e) ∈ Avail(Σ) : touch_{W₁}(e) ∧ touch_{W₂}(e) ⟹ touch_{W₁ ∩ W₂}(e))`,
 
 every available endset that meets both region images also meeting the image of their
-intersection. With the `⊆` half unconditional and the pool `Avail(Σ)` region-independent,
-this touch-implication is the *exact* — necessary and sufficient — characterisation of
-intersection-equality. What it is not is *structural* — it quantifies `touch` over every available
+intersection. What it is not is *structural* — it quantifies `touch` over every available
 endset, so it is a joint condition on those endsets' coverages and the three region images,
 not a property of `Σ.M(d)` (the injective counterexample violates it under a perfectly
 injective arrangement) and not checkable without inspecting coverage. The weakest
@@ -598,36 +595,19 @@ reordering — each acting as a faithful tracker would:
   fragment a contiguous run (ASN-0082) — is the mode deferred to Open Question 3; the
   content-identity answer returned here is unaffected.)
 
-The user-facing *insert* and *delete* that **shift** content are not these atomic movers;
-ranging over them widens the vocabulary beyond ASN-0047's atomic transitions to ASN-0082's
-displacement primitives, taken in their own right. The foundation realises them as
-displacements (I3 PostInsertionShift, D-SHIFT, ASN-0082): an insertion at `p` of width `n`
-carries the content at every position `v ≥ p` up to `shift(v, n)` (I3, established there at
-every text depth `#p ≥ 2`), and a deletion carries the content lying above the removed span
-back down (D-SHIFT, established there at text depth `#p = 2`; the foundation supplies no
-gap-closing interior-span delete at greater content depths `m_{s_C} > 2` (S8-depth, S8a,
-ASN-0036), the depth-general `K.μ⁻` being tail-truncation rather than interior-span deletion).
-That difference is one of *primitive availability* — ASN-0082 supplies a concrete insert at
-every `#p ≥ 2` but a concrete delete only at `#p = 2` — not a scope on RE's stability. What
-that argument requires of either is not the displacement's specifics but only that it is an
-*arrangement edit confined to
-`Σ.M(d)`* — an **M-only edit**. Because ASN-0082 models these primitives over a `(C, M)` state
-that omits `Σ.L`, `Σ.E`, `Σ.R` and so leaves their action on those stores unconstrained, we
-**adopt as a modelling assumption** the *conservative lift*: we treat shift-based insert/delete
-as edits touching no store but `Σ.M(d)`, framing `Σ.L`, `Σ.E`, `Σ.R` (and `Σ.C`, by I3-C, D-I).
-Under that assumption the lifted edit acts exactly as every ASN-0047 atomic mover above does, at
-any content depth. The addressable population is unmoved across the shift: `addressable(Σ)` and
-the region-independent pool `Avail(Σ)` are functions of `Σ.L` (through `nullified`) alone, so
-only the region's image can move. Content is *displaced through* `d`'s V-order, and its effect
-on the image is read off the displacement directly — not one-signed the way `K.μ⁺`/`K.μ⁻` are,
-but possibly making the fixed region's image *gain*, *lose*, or *both* (the shift family is
-non-monotone as a class). `RE` is evaluated only at reachable states — those satisfying the standing contiguity
-invariants D-CTG★/D-SEQ★ (ASN-0047) — at which the net effect of an insert or delete is an
-M-only, gap-free arrangement edit; the bare shift's un-backfilled interior vacancy (I3-V), on
-the same modelling stance, we read as a non-queryable intermediate of the *non-atomic* full
-edit (SequentialTransitionAxiom, ASN-0047), never a state at which `RE` is evaluated. At each
-reachable post-edit state, then, `RE` tracks the image's motion by membership, each surfaced
-endset's spans held fixed (RE-IDENT), by the depth-independent M-only lift adopted above.
+The user-facing *insert* and *delete* that **shift** content are not these atomic movers: they
+are ASN-0082's displacement primitives, which model the system over a `(C, M)` state omitting
+`Σ.L`, `Σ.E`, `Σ.R`. We **adopt as a modelling assumption** the *conservative lift* — that
+shift-based insert/delete touch no store but `Σ.M(d)`, framing `Σ.L`, `Σ.E`, `Σ.R`, and `Σ.C`.
+Each is then an **M-only edit**, an arrangement edit confined to `Σ.M(d)`, and `RE` tracks it by
+image membership exactly as it tracks every ASN-0047 atomic mover above — at *any* content depth.
+The addressable population is unmoved across the shift: `addressable(Σ)` and the
+region-independent pool `Avail(Σ)` are functions of `Σ.L` (through `nullified`) alone, so only
+the region's image can move. Content is *displaced through* `d`'s V-order, and the image's
+response is read off the displacement directly — not one-signed the way `K.μ⁺`/`K.μ⁻` are, but
+possibly making the fixed region's image *gain*, *lose*, or *both* (the shift family is
+non-monotone as a class). At each reachable post-edit state, then, `RE` tracks the image's
+motion by membership, each surfaced endset's spans held fixed (RE-IDENT).
 
 Editing of *other* documents does not perturb the answer: the image reads only `Σ.M(d)`,
 and a transition touching `d' ≠ d` leaves `Σ.M(d)` fixed (LP5, ASN-0098). Three further
