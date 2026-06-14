@@ -1,0 +1,16 @@
+The digest is unusually strong: it reads the note accurately, keeps every Green claim inside the evidence (the function names it cites — `putvspaninlist`, `findnextlinkvsa`, `tumbleradd`, `DELETEVSPAN`, `CREATELINK`, `follow_link`/`find_links` — all appear in the verified answers), stays at design altitude throughout, and is genuinely actionable. I checked the two hardest technical claims in detail and both hold:
+
+- **Canonical-key index reduction** (`coverage([k]) = coverage([k']) ⟺ k = k'` for unit-depth singletons, *not* prefix-containment) is correct, and both fragility conditions (C0 must enforce the singleton convention on stored keys; the looked-up type slot must be canonicalized) are right.
+- **The two-route sterilization framing** (gap-1 non-unit chain-level to-span → finite block; gap-2 P-tgt-invalid interior target → up-set, including a *unit-depth* wrapper at the ghost subspace root) is faithful to the note's `B`-is-empty/block/up-set structure, and the sharp consequence — "closing gap 1 alone does not avoid sterilization; P-tgt is load-bearing here too" — is exactly right.
+
+The forced/conventional split, the effect-identity discipline, the gate-vs-landing (audit-slice vs active-subset) separation, the C2/C3 born-nullified analysis (including the catch that consulting a pre-existing dead-set misses C2), and the Green-fidelity-at-the-grain analysis are all correct and well-grounded. I found no defects — no misread commitment, no ungrounded source claim, no altitude slip, no missing load-bearing component or guarantee.
+
+# Revision list
+
+1. **`[SHARPENING]` — "Implementation approaches → Nullification / active-subset index": state crisply that the index keys on the full retraction *audit slice* `L_R`, not the *active* subset `A_R`.** The digest correctly says the nullified set is recomputable from the retraction journal and asserts it is "irreversible," but it never names the mechanism: the note's R6b — `nullified` consults `L_R`, never `A_R`, so nullifying a retractor `b` lifts nothing. Adding this closes a concrete incremental-hint pitfall (a builder removing a now-dead retractor's contributions from a materialized dead-set when the retractor itself gets nullified), which "recompute from the journal" rules out only implicitly. Non-load-bearing because the recompute-from-permanent-journal model already yields the correct behavior; the explicit `L_R`-not-`A_R` formulation just prevents the mistake directly.
+
+2. **`[SHARPENING]` — Same section: note that the nullification filter is inert in two of the four R-configurations.** The digest states both premises but never connects them: under unregistered or Unary R, the config sweep gives empty `L_R` to-coverage at every reachable state, hence `nullified = ∅` and `A_K = L_K` — the active-subset filter does nothing. Connecting them lets a builder targeting a *specific* unregistered/Unary-R deployment elide the filter. (Keep the caveat that the *general* substrate must still build it, since R's shape is the app's choice — this is a per-deployment optimization, not a substrate-build omission.)
+
+Both items are genuine improvements; neither leaves a material problem in the digest.
+
+VERDICT: CONVERGED
