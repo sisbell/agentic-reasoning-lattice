@@ -165,15 +165,9 @@ creation coincides with the state after an unasserted "edit." Two links that
 agree byte for byte are, to the system, exactly as related as two links that
 share nothing.
 
-This is a refusal, not a gap. A system that inferred derivation from
-resemblance would manufacture relationships its users never asserted —
-coincidences and independent convergence flagged as descent — and would make
-the *system* the author of claims that rightfully have authors. Nelson's
-position is categorical: relationships in the docuverse are made, not
-inferred; "if you want supersession to be readable, you must write it down"
-(Q4). EL1 is that position as a theorem: under this substrate the alternative
-is not merely undesirable but *undefinable* — the distinguishing fact is absent
-from the state.
+This is a refusal, not a gap: relationships are made, not inferred (Q4). Under
+this substrate the alternative is sharper than undesirable — it is
+*undefinable*, the distinguishing fact being absent from the state.
 
 So the edit must be two acts: produce the successor, and *say so*. Editing
 under immutability is allocation plus assertion.
@@ -512,17 +506,22 @@ The edit operation is now one allocation ahead of the assertion.
 with the *discipline-conformance precondition* `DC(ℓ')` — a value-level
 predicate whose witnesses are drawn from the editlink pre-state `Σ`:
 
-> `coverage(ℓ'.e₃) ≠ coverage(R)`, and if `coverage(ℓ'.e₃) = coverage(K_sup)` then
+> `coverage(ℓ'.e₃) ≠ coverage(R)`, and if `|ℓ'| = 3 ∧ coverage(ℓ'.e₃) = coverage(K_sup)` then
 > `(E x, y ∈ dom(Σ.L) : x ≠ y ∧ ℓ'.e₁ = {(x, δ(1, #x))} ∧ ℓ'.e₂ = {(y, δ(1, #y))})`.
 
-The `[K_sup]` clause is the claim schema of Df-DISC(ii), its witnesses already
-in the pre-state link store and pinned at `Σ` (not the post-emission `Σ₁`) —
-what makes them *pre-existing* links and lets conformance transfer forward
-across the emission (EL7(vi)). The leading conjunct excludes a retraction-class
-successor: retraction is `Nullify`'s office (ASN-0086), and editlink is
-supersession — a new *reading* claimed to supersede the old. If
-`coverage(ℓ'.e₃)` is neither `coverage(K_sup)` nor `coverage(R)`,
-`DC(ℓ')` imposes no schema constraint: `ℓ'` inhabits no disciplined class.
+The `[K_sup]` clause is the claim schema of Df-DISC(ii), guarded by `|ℓ'| = 3`
+so that it fires exactly when the successor `a'` would enter the claim slice
+`S^{Σ₁}` — which ASN-0086 admits only arity-3 tuples to — and not on a
+`[K_sup]`-typed successor of arity `> 3`, which is no claim and which Df-DISC
+therefore does not constrain. Its witnesses are already in the pre-state link
+store and pinned at `Σ` (not the post-emission `Σ₁`) — what makes them
+*pre-existing* links and lets conformance transfer forward across the emission
+(EL7(vi)). The leading conjunct excludes a retraction-class successor:
+retraction is `Nullify`'s office (ASN-0086), and editlink is supersession — a
+new *reading* claimed to supersede the old. Otherwise — when `a'` would be no
+claim, either because `coverage(ℓ'.e₃) ≠ coverage(K_sup)` or because that
+coverage holds with `|ℓ'| > 3` — `DC(ℓ')` imposes no schema constraint, and
+`ℓ'` inhabits no disciplined class.
 `assert_sup`'s precondition is discharged at `Σ₁`: `a' ∈ dom(Σ₁.L)` by the
 emission, `a ∈ dom(Σ₁.L)` by monotonicity, `a' ≠ a` by freshness,
 `d_a ∈ dom(Σ₁.M)` by M1.
@@ -546,10 +545,7 @@ dom(Σ.C) ∪ dom(Σ.L)` (S3★), which `a'` is fresh against — so `listed(a',
 is false for every `d` (Df-LISTED). It is therefore auto-listed by no document;
 seating it under `home(a') = d_s` is a separate `K.μ⁺_L` act, not part of the
 edit. How the successor is then discovered — from a document's current view, and
-from the record independently of any view — is characterised in EL11. (That the
-operation as defined leaves listing uncoupled is a fact of the definition;
-whether some layer *should* couple edit to listing is the separate open
-question of edit-to-listing coupling.)
+from the record independently of any view — is characterised in EL11.
 
 *(iii) The relationship.* `(a, a') ∈ succ_h(Σ₂)`, witnessed by the claim at
 `b`; at edit-disciplined `Σ`, also `(a, a') ∈ succ_o(Σ₂)` — postcondition `R₂`
@@ -578,15 +574,21 @@ preserves Df-DISC: every prior claim keeps its witnesses
 likewise persists, and the one new value `ℓ'` at `a'` is governed by `DC(ℓ')`,
 whose witnesses are pinned at the pre-state `dom(Σ.L)`. The conformance
 transfers across the emission by `dom(Σ.L) ⊆ dom(Σ₁.L)` (Vocabulary fact V —
-`K.λ` only extends the store at the fresh key `a'`): if `ℓ'`'s slot-3 coverage
-is `coverage(K_sup)`, `DC(ℓ')` supplies `x, y ∈ dom(Σ.L) ⊆ dom(Σ₁.L)` with
-`x ≠ y`, `ℓ'.e₁ = {(x, δ(1,#x))}`, `ℓ'.e₂ = {(y, δ(1,#y))}`, so the new claim at
-`a'` conforms to Df-DISC(ii) *at `Σ₁`* (clause ii preserved); otherwise
-`DC(ℓ')`'s leading conjunct gives `coverage(ℓ'.e₃) ≠ coverage(R)`, so `ℓ'`
-inhabits no disciplined class — Df-DISC constrains it not, and step 1 adds no
-`[R]`-tuple, leaving the retraction-slice clause (i) undisturbed. Either way
-both clauses of edit-discipline survive at `Σ₁`. Step 2, `assert_sup`,
-preserves edit-discipline by EL6(v). Hence `Σ₂` is edit-disciplined.
+`K.λ` only extends the store at the fresh key `a'`). The successor `a'` is a
+claim at `Σ₁` — a member of `S^{Σ₁}`, which ASN-0086 restricts to arity-3
+tuples — iff `|ℓ'| = 3 ∧ coverage(ℓ'.e₃) = coverage(K_sup)`, which is exactly
+`DC`'s schema guard. In that case `DC(ℓ')` supplies `x, y ∈ dom(Σ.L) ⊆ dom(Σ₁.L)`
+with `x ≠ y`, `ℓ'.e₁ = {(x, δ(1,#x))}`, `ℓ'.e₂ = {(y, δ(1,#y))}`, so the new
+claim at `a'` conforms to Df-DISC(ii) *at `Σ₁`* (clause ii preserved).
+Otherwise — `coverage(ℓ'.e₃) ≠ coverage(K_sup)`, or that coverage with
+`|ℓ'| > 3` — `a' ∉ S^{Σ₁}`, so Df-DISC(ii), a quantification over `S^{Σ₁}`,
+holds vacuously on `a'` (clause ii again preserved), and `DC(ℓ')`'s leading
+conjunct gives `coverage(ℓ'.e₃) ≠ coverage(R)`, so `ℓ'` is no `[R]`-tuple. In
+every case step 1 adds no `[R]`-tuple — when `a'` *is* a claim because
+`coverage(K_sup) ≠ coverage(R)` (Df-CLS), otherwise by the leading conjunct —
+leaving the retraction-slice clause (i) undisturbed. So both clauses of
+edit-discipline survive at `Σ₁`. Step 2, `assert_sup`, preserves
+edit-discipline by EL6(v). Hence `Σ₂` is edit-disciplined.
 
 Three remarks delimit the operation's generality. *First*, a value-identical
 successor `ℓ' = Σ.L(a)` is a legitimate edit (re-homing a link, re-attributing
@@ -945,9 +947,8 @@ with the record*.
 Against this, the two rejected regimes fail at named clauses. **Mutation**
 (excluded by EL0) would preserve the reference's *spelling* while silently
 re-pointing its *meaning* — every citation, comment, and dispute attached to
-`a` would come to qualify content its authors never saw; this is the global
-rewrite the immutability invariant exists to make impossible, and it is why
-EL0 is the first claim of this note rather than a lamented limitation.
+`a` would come to qualify content its authors never saw: the global rewrite the
+immutability invariant exists to make impossible.
 **Silent re-creation** — step 1 without step 2, the delete-and-recreate
 simulation — passes (i) and (ii) vacuously and fails (iii): the successor
 exists, fresh and disconnected, indistinguishable from a stranger (EL1); the
@@ -1034,7 +1035,7 @@ current view forgets; the record cannot.
 | EL5 | RecordMonotonicity: across `Σ →* Σ'`, (a) `S^Σ ⊆ S^{Σ'}`, `Ŝ^Σ ⊆ Ŝ^{Σ'}` (schema-conformance is value-and-domain-determined), and `succ_h(Σ) ⊆ succ_h(Σ')`; (b) `nullified(Σ) ⊆ nullified(Σ')` — demotion is one-way per claim; (c) `succ_o` is neither monotone nor antitone: the operative relation is the revisable view, the historical relation the unrevisable record | introduced |
 | ASSERTop | AssertSup (DEF, operation): `assert_sup(x, y, d_a) ≜ Emit_{K_sup}(Σ, d_a, {(x, δ(1,#x))}, {(y, δ(1,#y))})`, precondition `x, y ∈ dom(Σ.L) ∧ x ≠ y ∧ d_a ∈ dom(Σ.M)` — one `K.λ` emitting the claim "x supersedes y" at fresh `b = a_emit(Σ, d_a)` | introduced |
 | EL6 | AssertionContract: assert_sup allocates exactly one fresh address `b` with `home(b) = d_a`; puts `(y, x)` into `succ_h(Σ')`, and at disciplined states into `succ_o(Σ')` (active at birth, via ASN-0086 wp Case 2); frames `C, M, E, R` and every prior link entry; deactivates nothing — `nullified(Σ') ∩ dom(Σ.L) = nullified(Σ)` unconditionally (no `[R]` growth), and the full `nullified(Σ') = nullified(Σ)` under edit-discipline (fresh `b` escapes pre-existing unit-depth retraction coverage by R0a, wp Case 2); preserves discipline; the claim and the pair persist at every later state | introduced |
-| EDITop | Editlink (DEF, operation): `editlink(a, ℓ', d_s, d_a) ≜ K.λ(d_s, a_emit(Σ, d_s), ℓ') ; assert_sup(a', a, d_a)`, precondition `a ∈ dom(Σ.L) ∧ d_s, d_a ∈ dom(Σ.M) ∧ ℓ' L3-conforming ∧ DC(ℓ')` (successor not of retraction class; a `[K_sup]` successor conforms to the claim schema); returns `(Σ₂, a', b)`; `ℓ' = Σ.L(a)` admitted; homes unconstrained relative to `home(a)` (third-party edit-by-fork is the same composite); a revert is `assert_sup(a, a', d)` alone | introduced |
+| EDITop | Editlink (DEF, operation): `editlink(a, ℓ', d_s, d_a) ≜ K.λ(d_s, a_emit(Σ, d_s), ℓ') ; assert_sup(a', a, d_a)`, precondition `a ∈ dom(Σ.L) ∧ d_s, d_a ∈ dom(Σ.M) ∧ ℓ' L3-conforming ∧ DC(ℓ')` (successor not of retraction class; an arity-3 `[K_sup]` successor — a would-be claim — conforms to the claim schema, the guard `|ℓ'| = 3` firing the schema clause exactly on the slice ASN-0086 admits); returns `(Σ₂, a', b)`; `ℓ' = Σ.L(a)` admitted; homes unconstrained relative to `home(a)` (third-party edit-by-fork is the same composite); a revert is `assert_sup(a, a', d)` alone | introduced |
 | EL7 | EditContract: editlink allocates exactly two fresh link-subspace addresses (successor `a'`, claim `b`) and nothing else; `Σ₂.L(a') = ℓ'`; `(a, a') ∈ succ_h(Σ₂)` (and `succ_o` at disciplined states); frame `Σ₂.C = Σ.C ∧ Σ₂.M = Σ.M ∧ Σ₂.E = Σ.E ∧ Σ₂.R = Σ.R ∧ (A t ∈ dom(Σ.L) : Σ₂.L(t) = Σ.L(t))` unconditionally, with `nullified(Σ₂) = nullified(Σ)` under edit-discipline on `Σ` (`DC` bars a retraction-class successor, and both fresh addresses escape pre-existing retraction coverage by R0a); preserves edit-discipline (vi): `Σ₂` disciplined when `Σ` is, via `DC(ℓ')` for step 1 and EL6(v) for step 2; all three addresses and the pair persist forever | introduced |
 | EL8 | ClaimStanding: every claim is permanent (EL5a); attributed by its address alone (`home(addr(e))` via T4b, decidable T6 — the allocating document, not a named owner); open (no required relation among claim, original, successor homes); itself addressable — endorsable, disputable, retractable, editable — with no new machinery | introduced |
 | EL9 | ThreeAxes: for any link — (1) resolution is permanent and ungated (EL0); (2) listing (`listed(t, d, Σ)`, possible only at the home, CL-OWN) is mutable both ways via `K.μ⁻`/`K.μ⁺_L`; (3) activity (`∉ nullified`) is monotone downward with re-assertion as the only restoration; the axes are independent, and superseding moves none of them — retirement of the original is a separate, attributable act | introduced |
