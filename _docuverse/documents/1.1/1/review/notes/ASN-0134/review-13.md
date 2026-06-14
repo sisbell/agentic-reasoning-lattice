@@ -1,0 +1,25 @@
+# Review of ASN-0134
+
+This is a careful, self-aware note. The step/operation seam is handled well, the conflict theory (H0–H2) is sound, the confluence argument (G1) is correctly scoped to raw steps, and the quiescence analysis (V0/V2/V1) is precise — I verified the worked traces in §7 and §8 against the foundations and they hold. The one place the note's own honesty does not reach its conclusion is the idempotent-collapse safety claim.
+
+## REVISE
+
+### Issue 1: idem=⊤ "no duplicate" is not a consequence of the per-home contract
+
+**ASN-0134, §9 M1(b)(ii)** — "Under idem(K)=⊤, the active subset holds at most one tuple per coverage class at every state a K-surface-emitted derivation reaches (ASN-0128 I1a) … so A_K never carries a coverage-equal duplicate, under any interleaving" — and the same paragraph: "first-to-commit (ASN-0128 I4) fixes which home keeps the lone survivor … an order-dependence in which address survives, never in how many."
+
+**Problem**: The "never in how many" / no-duplicate guarantee requires **global** serialization of the idem=⊤ dedup-read-and-deposit, which MIC does not provide — and the note's own text supplies every premise that shows this.
+
+The dedup check reads the *global* `A_K` (ASN-0128 I1, "whose dedup ranges over all of A_K, not per-home," as the note states in §4). Take two coverage-equal idem=⊤ `Emit_K` calls homed at `d ≠ d'`. The note correctly observes (**§4 instance (i)**): "These two operations are cross-home, hence ≺-incomparable, hence **free-running**, so per-home serialization offers no remedy: it is the wrong axis entirely." But then it draws single-survivor anyway. Follow the free-running characterization through. An implementation honoring all seven MIC clauses may interleave them as: A reads global `A_K` (no match → miss), B reads global `A_K` (no match → miss), A deposits `T_A` at `a_emit(Σ,d)`, B deposits `T_B` at `a_emit(Σ,d')`. Both deposits are fresh at distinct home frontiers — no allocation collision, by H1 — and the post-state carries **two** coverage-equal active K-tuples.
+
+Crucially, no clause forbids this. The both-miss execution requires B's dedup-read to be evaluated against the *stale* state `Σ` rather than against B's deposit's pre-state `Σ ∪ {T_A}` (where it would be a hit). MIC clause 4 ("each individual `Observe_K` call is evaluated against a single committed state `Σ_k`") permits exactly this: it pins each read to *some* committed state, never to the deposit's linearization index. So the read-and-deposit is not atomic across homes, and nothing in clauses 1–7 makes it so (clause 2 is per-home; H1 says cross-home steps need no coordination).
+
+The two-tuple state is reachable under MIC but is reachable in **no** linearization of the model — in any single derivation B's dedup sees `T_A`. So the both-miss execution is **not K-surface-emitted** (B's deposit cannot be an `Emit_K` miss against its own pre-state). M1(b)(ii), scoped to K-surface-emitted derivations, is therefore a correct *model* fact but does **not follow from MIC**, because MIC does not force cross-home idem=⊤ executions to be K-surface-emitted. The reliance on ASN-0128 I4 makes the gap explicit: I4's single-survivor invokes "a serializing authority [that] orders the two calls before either becomes a step" — that authority is global, and it is precisely the global serialization this note sets out to weaken to per-home. The note cannot both weaken to per-home and inherit I4's conclusion for cross-home emits.
+
+**Required**: Resolve the tension one of two ways. (a) Add a MIC clause: for idem=⊤ `Emit_K`, the global dedup-read of `A_K` and the deposit form one atomic action pinned to the operation's linearization index — a per-coverage-class serialization that, since coverage classes span all homes, is effectively global and strictly stronger than clause 2's per-home exclusion — then derive M1(b)(ii) from it. (b) Weaken M1(b)(ii) and the §4 instance-(i) "never in how many" claim to hold only under that added hypothesis, and state plainly that per-home MIC alone permits cross-home idem=⊤ duplicates (so "idempotent emission admits no duplicate" is not a consequence of MIC as written). Either way, the central "per-home serialization suffices" thesis must explicitly carve out idem=⊤ dedup as the one operation-level guarantee that demands a non-per-home discipline — which is consistent with, and completes, the note's own "the wrong axis entirely" observation.
+
+## OUT_OF_SCOPE
+
+The note's deferrals are correctly placed: cross-server composition (OQ6), batch read-atomicity (OQ4), durable quiescence (OQ5), and the weakest exclusion primitives (OQ1/OQ2) are genuine future territory, not gaps in this ASN. The exclusion of the ASN-0047 arrangement/contraction layer (committing 𝔼 to the append-only ASN-0093 stack) is stated and self-consistent — W0's monotonicity argument depends on there being no overwrite primitive, and there is none in `→_sh`. No misplaced claims to flag. The idem=⊤ fix above is in-scope (a flaw in this ASN's safety theorem and contract), not future work.
+
+VERDICT: REVISE
