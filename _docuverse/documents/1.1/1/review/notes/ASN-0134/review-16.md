@@ -1,0 +1,25 @@
+# Review of ASN-0134
+
+I read this as the consistency/isolation foundation that sits *under* the protocols stack, and I reviewed it for the failure modes that kill concurrency specifications: a torn-read claim that ignores multi-step composites, a "per-home suffices" result that quietly leans on global serialization, an invariant-transfer that asserts a quantification the foundations don't carry, and an isolation contract padded with non-load-bearing clauses. I checked each of these directly. The note anticipates all of them.
+
+The areas I scrutinized hardest, and what I found:
+
+- **A6's canonicity transfer.** The split into a per-state package (RP-a/B2), cross-state stability *corollaries* (P2/R2, deliberately not conjuncts), and a step-quantified transition clause (C0/L12/ASN-0093's M1 via B2's transition clause + RP-b) is correct. The M1 transfer is fully licensed — ASN-0086's Reachability definition states `dom(Σ.M) ⊆ dom(Σ'.M)` explicitly, so M1 is a genuine ASN-0086 transition invariant, not an unstated inheritance. The label-collision warning (ASN-0093's M1 vs this note's M1) is handled. No boundary-only invariant class is smuggled past.
+
+- **H1 across nesting homes.** The origin argument (not anchor-incomparability) correctly covers the `d ≼ d'` case that ASN-0093's `CrossDocumentDisjointness` states only for prefix-incomparable anchors, and the cross-document-cross-subspace pair (`d ≠ d' ∧ S ≠ S'`) that *neither* `CrossDocumentDisjointness` (same-subspace) nor `DisjointSubAllocatorChains` (same-doc) names. The note correctly does **not** lean on ASN-0047's `SubAllocatorBundle` (the excluded entity layer). H2's first-emission boundary (`max ∅` undefined → both compute `[d.0.S.1]`) is handled separately from the interior case.
+
+- **The operation-level non-confluence.** The two families (active-membership toggle, target-residence race) are correctly characterized, and the load-bearing correction — that instance (ii) (nullify of a coverage-equal active incumbent) **survives** emit-before-retract and surface-discipline, while the target-residence race does not — checks out. The literal-vs-operative `I1a` distinction is the subtlest argument in the note, and it is sound: `I1a`'s proof inference "at the pre-state its I0-class had no active member" presupposes the sequential coincidence (dedup-read input = deposit's pre-state), which the concurrent both-miss interleaving breaks and clause 8 restores. The both-miss execution genuinely satisfies `I1a`'s *literal* clause while failing its *operative* sense.
+
+- **MIC minimality and M1.** Seven clauses load-bearing with distinct counterexamples; clause 6 honestly flagged as non-load-bearing-but-retained. M1(b)'s scoping — `idem=⊤` no-duplicate *only under clause 8*, per-home 1–7 permitting a cross-home duplicate, `idem=⊥` duplicating by design, A7 indifferent to lost-ack retries — is precise and does not overclaim the reference-sharing principle.
+
+- **Worked examples.** §7's addresses verify (`zeros(d)=2`, `zeros(a_k)=3`, origins recovered correctly including the nesting case). §8's drifting-read trace genuinely manufactures the "states that never coexisted" verdict (`g(∅,∅)=⊤` while Q holds at no touched state) and the clause-7 repair recovers the sound `⊥`. W5's self-emit nullify (R-tuple deposited at `b = a_emit = a`, self-nullifying) is coherent.
+
+## REVISE
+
+None. I could not find a skipped case, a hand-waved multi-case proof, a missing boundary, an absent example, a non-trivial wp left uncomputed, or a non-foundation cross-ASN reference. The note references only its four foundation dependencies by number; "coordination/termination/rule-governance/predicate-evaluation layer" are role references, not ASN-number citations. The candidates I weighed and rejected as non-issues: G1(i)'s "allocation invariant in its final state" understates A6 (which carries contiguity as per-state) but is true and the proof establishes the stronger every-state form; A6's "every single-state invariant" omits the derived lemma `StoreT4Validity`, which is derivable from listed conjuncts and load-bearing for nothing downstream; the V0/V2/V1 label ordering is non-sequential but consistent throughout and clearly cross-referenced. None of these is a correctness or completeness defect, and flagging them would be pedantry against an otherwise exact manuscript.
+
+## OUT_OF_SCOPE
+
+The note's own Open Questions (mechanisms for clauses 2/7/8, split-batch settledness markers, batch read-atomicity, verdict durability, cross-server G1, sub-allocator partitioning, out-of-order-retraction semantics) and "What this note does not cover" comprehensively delineate the future-ASN territory. The family-enumeration completeness hedge ("families we have found ... do not claim them closed") is paired with an adequate structural argument (any active-membership toggle extends family 1; target-residence is family 2) over the fixed ASN-0128 operation surface, so it does not need to be promoted to a separate future-ASN item. Nothing to add.
+
+VERDICT: CONVERGED
