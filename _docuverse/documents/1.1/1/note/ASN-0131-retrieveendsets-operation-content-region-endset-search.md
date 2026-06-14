@@ -95,37 +95,21 @@ endset, and the endsets that touch are the ones surfaced.
 Now we can state what RETRIEVEENDSETS returns. We must first settle which links it ranges
 over. A link, once created, is permanent and immutable in the store (L12, ASN-0043) — but
 the system admits *retraction*, recorded not by deleting the link but by emitting a
-withdrawal link that marks the target nullified (ASN-0086). We adopt throughout, as a
-**standing assumption**, ASN-0086's *relational-layer discipline commitment*: every store
-transition that grows the retraction slice `L_R` — every `→`-step with `L_R^Σ ⊊ L_R^{Σ'}` — is
-a `Nullify`, so the arity-3 retraction slice grows through that one operation alone. (ASN-0086
-does admit *higher-arity* retraction-typed links into `dom(Σ.L)` by ordinary `K.λ`; these never
-enter `L_R`, and — as we use below — never enter `nullified`.) ASN-0086's *unit-depth retraction
-discipline* — every `L_R` to-set is a unit-depth span `{(t, δ(1, #t))}` at a single prior target
-— is the **to-set consequence** of this commitment, discharged from it by induction over
-layer-reachable states (ASN-0086). Because `nullified(Σ)` is defined by an existential over
-`L_R^Σ` alone (ASN-0086), this `L_R`-scoped unit-depth fact is exactly what addressability
-consults; higher-arity retraction-typed links, absent from `L_R`, are immaterial to it.
-The bridge to ASN-0086 — call it the **`Σ.L`-evolution bridge** — rests on one inclusion. `Σ.L`
-evolves only through `K.λ`: the arrangement movers (`K.μ` family), entity creation `K.δ`,
-provenance recording `K.ρ`, and content allocation `K.α` all frame the link store (`L' = L`).
-Every document ASN-0047 creates (`K.δ`, `Document(e)` case) is T4-valid with `zeros = 2` (M0,
-ASN-0093), exactly `K.σ`'s registration precondition (ASN-0093), so ASN-0086 can stage the
-identical home documents via `K.σ` and replay the identical `K.λ` sequence. This gives the
-inclusion *ASN-0047-reachable `Σ.L`-configurations ⊆ ASN-0086-`→*`-reachable ones*, along which
-any `∀`-quantified ASN-0086 `→*`-reachable `Σ.L`-lemma — R0a/FlatLinkDomain and R-Scope among
-them — carries to every ASN-0047-reachable state. The unit-depth discipline is imported at a
-*stronger* reachability: ASN-0086 discharges it only for *layer*-reachable states, and the
-replayed `K.λ` sequence is layer-reachable precisely because the standing discipline commitment
-holds along it — every retraction-slice-growing step is a `Nullify` obeying the discipline. So
-importing unit-depth is licensed by the standing assumption, not by the bare `→*` inclusion that
-carries R0a and R-Scope.
-
-A withdrawn link's anchoring should not be reported as live — a design decision that fixes
-the operation as a report over the *active* population, not the full permanent store. So we range
-over the links that are present and not withdrawn — the **addressable** links:
+withdrawal link that marks the target nullified (ASN-0086). A withdrawn link's anchoring
+should not be reported as live — a design decision that fixes the operation as a report over
+the *active* population, not the full permanent store. So we range over the links that are
+present and not withdrawn — the **addressable** links:
 
 > `addressable(Σ) = dom(Σ.L) ∖ nullified(Σ)`     (over ASN-0086's `nullified`).
+
+ASN-0086's `nullified(Σ)` — the set of withdrawn addresses — is a function of the link store
+`Σ.L` alone. So `addressable`, the definition RE-DEF we are about to give, and everything we
+read off them through soundness, completeness, composition, selection, and contraction depend
+on `Σ.L` and the present arrangement, never on *how* a retraction was performed. The retraction
+*discipline* — which constrains the way the withdrawn set grows — bears only on two later
+questions: what a fresh emission, and what a retraction step, each leave addressable. We set it
+up where the first arises (RE-ADDR, "Fresh emissions" below) and draw on it again under
+"Stability" (RE-RET).
 
 The operation surfaces, for each addressable link and each of its endsets that touches
 the region, that endset, tagged by the slot it occupies:
@@ -184,28 +168,58 @@ Three degenerate inputs are worth reading straight off the definition.
 
 ## Fresh emissions and the addressable population
 
-A `K.λ` step emits a *fresh* link — allocation gives `ℓ_new ∉ dom(Σ.L)`,
-so `ℓ_new` enters `dom(Σ'.L)` — and whether that fresh output is *addressable* in its
-post-state (`ℓ_new ∉ nullified(Σ')`) turns on whether some *nullifying* to-set covers it —
-where "nullifying" means the to-set of a tuple in ASN-0086's retraction slice `L_R^{Σ'}`, since
-`nullified(Σ')` is defined by an existential over `L_R^{Σ'}` alone (ASN-0086). Higher-arity
-retraction-typed links, admitted to `dom(Σ'.L)` but absent from `L_R`, never bear on it. The
-standing commitment's unit-depth to-set settles the question for an output of *any* arity: every
-`L_R^{Σ'}` to-set is unit-depth at some link `t ∈ dom(Σ'.L)`, covering
-`{u : t ≼ u}`, and R0a/FlatLinkDomain (ASN-0086, via the `Σ.L`-evolution bridge) makes
-`dom(Σ'.L)` a prefix-antichain, so any `t` distinct from `ℓ_new` is prefix-incomparable to
-it (`t ⋠ ℓ_new`) and cannot cover it. The only nullifying to-set that could cover `ℓ_new` is
-therefore one whose *target* is `ℓ_new`. No *pre-existing* `L_R` tuple bears such a to-set: every
-nullifying tuple already in `Σ.L` targets an address in `dom(Σ.L)` — by Nullify's P-tgt (ASN-0086)
-its target is either an `A_rel = dom(Σ.L)` address or, for a self-emission, the emitter's own
-address, again in `dom(Σ.L)` — whereas `ℓ_new ∉ dom(Σ.L)` by freshness, so none targets
-`ℓ_new`. The only tuple in `Σ'.L` that can target `ℓ_new` through a nullifying to-set is thus the freshly-emitted
-`ℓ_new` itself — present only if `ℓ_new` is itself a retraction — and it covers `ℓ_new`
-exactly when `ℓ_new` retracts its own emitter address. Hence the reusable fact —
-**fresh-output addressability (RE-ADDR)**: a fresh `K.λ` output that does not retract its own
-emitter address is addressable in its post-state; in particular every non-retraction
-emission (`K ≁ Θ`) is addressable — writing `Θ` for ASN-0086's designated retraction type,
-whose own symbol `R` this note reserves for other uses.
+We now set up the retraction machinery deferred from the definition. It is needed only here
+(RE-ADDR) and under "Stability" (RE-RET) — the two points where addressability depends on *how*
+the retraction slice grows, rather than on its present contents alone.
+
+Write `Θ` for ASN-0086's designated retraction type, and `L_R^Σ` for its *retraction slice* —
+the arity-3 type-`Θ` links at state `Σ`. We keep ASN-0086's inherited name `L_R` (its subscript
+is that retraction type `Θ`) and render ASN-0086's emit operation `Emit_R` as `Emit_Θ` to match.
+We adopt, as a **standing assumption** scoped to the addressability results, ASN-0086's
+*relational-layer discipline commitment*: every store transition that grows the retraction slice
+`L_R` — every `→`-step with `L_R^Σ ⊊ L_R^{Σ'}` — is a `Nullify`, so the retraction slice grows
+through that one operation alone. Its **to-set consequence**, ASN-0086's *unit-depth retraction
+discipline* — every `L_R` to-set is a unit-depth span `{(t, δ(1, #t))}` at a single prior target
+— follows by induction over layer-reachable states (ASN-0086). Since `nullified(Σ)` is an
+existential over `L_R^Σ` alone (ASN-0086), this `L_R`-scoped unit-depth fact is exactly what
+addressability consults.
+
+The bridge to ASN-0086 — call it the **`Σ.L`-evolution bridge** — rests on one inclusion. `Σ.L`
+evolves only through `K.λ`: the arrangement movers (`K.μ` family), entity creation `K.δ`,
+provenance recording `K.ρ`, and content allocation `K.α` all frame the link store (`L' = L`).
+Every document ASN-0047 creates (`K.δ`, `Document(e)` case) is T4-valid with `zeros = 2` (M0,
+ASN-0093), exactly `K.σ`'s registration precondition (ASN-0093), so ASN-0086 can stage the
+identical home documents via `K.σ` and replay the identical `K.λ` sequence. This gives the
+inclusion *ASN-0047-reachable `Σ.L`-configurations ⊆ ASN-0086-`→*`-reachable ones*, along which
+any `∀`-quantified ASN-0086 `→*`-reachable `Σ.L`-lemma carries to every ASN-0047-reachable
+state. The unit-depth discipline is imported at a *stronger* reachability: ASN-0086 discharges
+it only for *layer*-reachable states, and the replayed `K.λ` sequence is layer-reachable
+precisely because the standing discipline commitment holds along it — every
+retraction-slice-growing step is a `Nullify` obeying the discipline. So importing unit-depth is
+licensed by the standing assumption, not by the bare `→*` inclusion that carries the note's other
+ASN-0086 `Σ.L`-lemmas — those cited "via the `Σ.L`-evolution bridge" at their use sites.
+
+A `K.λ` step emits a *fresh* link — allocation gives `ℓ_new ∉ dom(Σ.L)`, so `ℓ_new` enters
+`dom(Σ'.L)` — and whether that fresh output is *addressable* in its post-state
+(`ℓ_new ∉ nullified(Σ')`) turns on whether some *nullifying* to-set covers it — where
+"nullifying" means the to-set of a tuple in the retraction slice `L_R^{Σ'}`. Higher-arity
+retraction-typed links — admitted to `dom(Σ'.L)` by ordinary `K.λ` but, lacking arity 3, never
+entering `L_R` — therefore never enter `nullified`, and so bear on addressability at no arity;
+this is what lets RE-ADDR hold for an output of *any* arity. The standing commitment's
+unit-depth to-set then settles the question: every `L_R^{Σ'}` to-set is unit-depth at some link
+`t ∈ dom(Σ'.L)`, covering `{u : t ≼ u}`, and R0a/FlatLinkDomain (ASN-0086, via the
+`Σ.L`-evolution bridge) makes `dom(Σ'.L)` a prefix-antichain, so any `t` distinct from `ℓ_new`
+is prefix-incomparable to it (`t ⋠ ℓ_new`) and cannot cover it. The only nullifying to-set that
+could cover `ℓ_new` is therefore one whose *target* is `ℓ_new`. No *pre-existing* `L_R` tuple
+bears such a to-set: every nullifying tuple already in `Σ.L` targets an address in `dom(Σ.L)` —
+by Nullify's P-tgt (ASN-0086) its target is either an `A_rel = dom(Σ.L)` address or, for a
+self-emission, the emitter's own address, again in `dom(Σ.L)` — whereas `ℓ_new ∉ dom(Σ.L)` by
+freshness, so none targets `ℓ_new`. The only tuple in `Σ'.L` that can target `ℓ_new` through a
+nullifying to-set is thus the freshly-emitted `ℓ_new` itself — present only if `ℓ_new` is itself
+a retraction — and it covers `ℓ_new` exactly when `ℓ_new` retracts its own emitter address.
+Hence the reusable fact — **fresh-output addressability (RE-ADDR)**: a fresh `K.λ` output that
+does not retract its own emitter address is addressable in its post-state; in particular every
+non-retraction emission (`K ≁ Θ`) is addressable, at every arity.
 
 ## Extent: the surfaced endset, whole and unclipped
 
@@ -719,14 +733,14 @@ a retraction marks it nullified (ASN-0086), and we range only over `addressable(
 dom(Σ.L) ∖ nullified(Σ)`.
 
 A retraction is itself a link emission, and this matters for what a retraction step does to
-the population. Withdrawing `ℓ` is realised as `Nullify(Σ, d_retr, ℓ) ≡ Emit_R(Σ, d_retr,
-∅, {(ℓ, δ(1, #ℓ))})` (ASN-0086), and `Emit_R` *is* a `K.λ` step (Emit_K, ASN-0086): it
+the population. Withdrawing `ℓ` is realised as `Nullify(Σ, d_retr, ℓ) ≡ Emit_Θ(Σ, d_retr,
+∅, {(ℓ, δ(1, #ℓ))})` (ASN-0086), and `Emit_Θ` *is* a `K.λ` step (Emit_K, ASN-0086): it
 emits a fresh **retraction link** `b`, with `Σ'.L(b) = (∅, {(ℓ, δ(1, #ℓ))}, Θ)`. Its to-set
 covers `ℓ`, not `b` (`ℓ ≠ b`, both in the flat antichain), so `b` does not retract its own
 emitter address; `b` is therefore addressable in `Σ'` (`b ∉ nullified(Σ')`) by RE-ADDR. So a
 single retraction does two things at once — it removes `ℓ` from `addressable` (through the
 nullified marking) *and* adds the emitter `b` to it. We must ask what the emitter `b` can contribute. Its three
-endsets are the from-set `∅` — empty by `Nullify`'s definition (`Emit_R(…, ∅, …)`, ASN-0086),
+endsets are the from-set `∅` — empty by `Nullify`'s definition (`Emit_Θ(…, ∅, …)`, ASN-0086),
 withdrawal being realised as a `Nullify` — a to-set
 `{(ℓ, δ(1, #ℓ))}` whose single span covers `ℓ` and `ℓ`'s extensions, and the retraction
 type-set `Θ`. The first two are content-disjoint
