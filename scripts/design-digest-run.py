@@ -23,10 +23,13 @@ import os
 import re
 import subprocess
 import sys
+import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import yaml
+
+_print_lock = threading.Lock()  # keep parallel-worker lines from garbling
 
 ROOT = Path(__file__).resolve().parent.parent
 CLASSES_YAML = ROOT / "_workspace/design-classes.yaml"      # design pipeline's own list
@@ -143,9 +146,19 @@ def main():
                "--max-reviews", str(args.max_reviews), "--effort", args.effort]
         if args.no_commit:
             cmd.append("--no-commit")
+        # Tee the subprocess output to stdout (live) AND the per-ASN log.
+        # Prefix with the ASN only when running parallel, so a single-worker
+        # run reads as a clean stream.
+        prefix = f"[{n:04d}] " if args.workers > 1 else ""
+        p = subprocess.Popen(cmd, cwd=ROOT, env=env, text=True, bufsize=1,
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         with open(log, "w") as lf:
-            rc = subprocess.run(cmd, cwd=ROOT, env=env,
-                                stdout=lf, stderr=subprocess.STDOUT).returncode
+            for line in p.stdout:
+                lf.write(line)
+                with _print_lock:
+                    sys.stdout.write(prefix + line)
+                    sys.stdout.flush()
+        rc = p.wait()
         return n, rc, log
 
     ok, failed = [], []
