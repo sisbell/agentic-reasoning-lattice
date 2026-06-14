@@ -108,8 +108,8 @@ provenance recording `K.ρ`, and content allocation `K.α` all frame the link st
 under ASN-0047's — the very transitions that populate an arrangement leave `Σ.L` fixed — and
 every ASN-0086 lemma that constrains `Σ.L` alone holds verbatim at every ASN-0047-reachable
 state, including the *populated-arrangement* states whose arrangements ASN-0086's own
-(empty-arrangement) layer never reaches. We invoke each such lemma where it is used. A
-withdrawn link's anchoring should not be reported as live — a design decision that fixes the
+(empty-arrangement) layer never reaches. A withdrawn link's anchoring should not be
+reported as live — a design decision that fixes the
 operation as a report over the *active* population, not the full permanent store. So we range
 over the links that are present and not withdrawn — the **addressable** links:
 
@@ -429,14 +429,16 @@ seen through `d` and through `d_src` and through every co-transcluder. This is t
 property that lets one make a link against borrowed content and have it hold, automatically,
 on the original and on every other document that includes those bytes.
 
-A delicate consequence: the *content-level* answer — which content (which I-addresses)
-each surfaced endset anchors to — is invariant. The endset's coverage is permanent: links
-are immutable (L12, ASN-0043), and no transition alters an endset's coverage (LP3,
-ASN-0098). What the region's image maps to, and how that image is positioned within `d`'s
-order, are present-tense; but the identity of the anchored content, once surfaced, is a
-fixed fact about a permanent link. The operation's content-level answer is therefore
+This connects to a general invariant — independent of transclusion, and governing the
+stability analysis below as well — which we state once here: **each surfaced endset's
+coverage is permanent**. Links are immutable (L12, ASN-0043) and no transition alters an
+endset's coverage (LP3, ASN-0098), so once an endset is surfaced the I-addresses it
+anchors are a fixed fact about a permanent link (RE-IDENT). The transclusion case is one
+reading of it: the *content-level* answer — which content each surfaced endset anchors to
+— is invariant, even though what the region's image maps to, and how that image sits
+within `d`'s order, are present-tense. The operation's content-level answer is therefore
 arrangement-independent even though its *selection* of which endsets to surface is
-arrangement-mediated (RE-IDENT).
+arrangement-mediated.
 
 ## Stability: the answer as the document is edited
 
@@ -496,8 +498,16 @@ ranging over them widens the vocabulary beyond ASN-0047's atomic transitions to 
 displacement primitives, taken in their own right. The foundation realises them as
 displacements (I3 PostInsertionShift, D-SHIFT, ASN-0082): an insertion at `p` of width `n`
 carries the content at every position `v ≥ p` up to `shift(v, n)` (I3), and a deletion
-carries the content lying above the removed span back down (D-SHIFT). Content is *displaced
-through* `d`'s V-order, and its effect on the image is read off the displacement directly.
+carries the content lying above the removed span back down (D-SHIFT). ASN-0082 models
+these primitives over a `(C, M)` state with no link store, framing only the content
+store (I3-C, D-I); but each is an arrangement edit touching `Σ.M(d)` alone, so lifted
+to the full `(C, L, E, M, R)` state it frames `Σ.L`, `Σ.E`, and `Σ.R` as well — the
+link store, in particular, is left fixed (`L' = L`), exactly as every ASN-0047 atomic
+mover above leaves it. The addressable population is therefore unmoved across the
+shift: `addressable(Σ)` and the region-independent pool `Avail(Σ)` are functions of
+`Σ.L` (through `nullified`) alone, so only the region's image can move. Content is
+*displaced through* `d`'s V-order, and its effect on the image is read off the
+displacement directly.
 Fix the region `W`. The displacement moves content through `W`'s fixed positions:
 content the region held is carried off to a displaced position — possibly out of `W` —
 while the positions it vacates take on content displaced in from an adjacent position (from
@@ -704,7 +714,7 @@ and taking with it any pair it solely bore).
 | RE-UNIT | Anchoring without names — the answer's elements are `(role, endset)` pairs (anchoring structure), never link identities; the link address is withheld, distinct links sharing an endset value collapse to one pair, link multiplicity is not recoverable, and a surfaced from-endset cannot be paired with the to-endset of the same link. By withholding identity the answer certifies the *presence and shape* of anchoring without making it followable | introduced |
 | RE-OVL | Overlap matching — an endset is surfaced iff at least one address it covers lies in the region's image (overlap, not containment); partial, single-address overlap suffices; the test is existential *within* an endset and applied *per-endset* against the one region, with no per-slot request differentiation | introduced |
 | RE-CLIP | No clipping (load-bearing) — no reported span is ever truncated to the region boundary; every surfaced span is reported at the full extent recorded in the link. This is universal across both the whole-endset (RE-WHOLE) and touching-spans-only readings; clipping would misrepresent the link's grip (a straddling span would be falsely shortened) | introduced |
-| RE-WHOLE | Whole-endset surfacing (adopted convention) — the reading adopted here returns a surfaced endset in full, *all* of its spans (not only those intersecting `W`), so a discontiguous endset retains the spans pointing outside the region. This is a convention, not a forced consequence of RE-CLIP: a touching-spans-only implementation would still satisfy RE-CLIP while violating RE-WHOLE. Held **provisional** pending the entirety-vs-touching-spans question | introduced (provisional) |
+| RE-WHOLE | Whole-endset surfacing (adopted convention) — the reading adopted here returns a surfaced endset in full, *all* of its spans (not only those intersecting `W`), so a discontiguous endset retains the spans pointing outside the region. A convention, not forced by RE-CLIP, held **provisional** pending the entirety-vs-touching-spans question — status carried in full at its derivation site (the Extent section), Open Question 1 | introduced (provisional) |
 | RE-BND | Boundary cases — `RE(W, d, Σ) = ∅` whenever the image is empty (`W ∩ dom(Σ.M(d)) = ∅`, in particular a freshly registered document with empty arrangement) or `addressable(Σ) = ∅` (no links, or all nullified); and an empty endset slot (`∅`, admitted in non-type slots by ASN-0043, only the type-slot non-empty per L3) has `coverage(∅) = ∅`, so `touch_W(∅)` is false and it is never surfaced | introduced |
 | RE-SND | Soundness — `(i, e) ∈ RE(W, d, Σ) ⟹ e` is a genuine slot-`i` endset of an addressable link ∧ `touch_W(e)`; no anchoring is fabricated and none is reported that does not genuinely reach the region (no false positives) | introduced |
 | RE-CMP | Completeness — every addressable link `a` and slot `i` with `touch_W(Σ.L(a).eᵢ)` has `(i, Σ.L(a).eᵢ) ∈ RE(W, d, Σ)`; the answer is *exactly* the touching set, with no silent omission, whether reached by native or transcluded content | introduced |
@@ -712,7 +722,7 @@ and taking with it any pair it solely bore).
 | RE-SEL | Discovery-side selection — `sel(W, d, Σ) = findlinks_V(W, d, Σ) ∩ addressable(Σ)` (F-V, ASN-0127): the contributing links are the addressable links discoverable through the region, so the operation is discovery-anchored — present-tense, non-monotone, arrangement-mediated (D-NONMONO, D-ZERO, ASN-0127), not existence-anchored (fixed-`I`, historical, monotone) | introduced |
 | RE-TRANS | Transclusion blindness — surfacing is by content identity, independent of the link's home and of the covered content's origin (LP16, ASN-0098): a link reaching the region only through transcluded content is surfaced identically to one reaching native content, and each returned span describes the content's permanent home identity, not the borrowing V-position | introduced |
 | RE-IDENT | Content-identity invariance — each surfaced endset's coverage is permanent (L12, ASN-0043; LP3, ASN-0098), so the content-level answer (which I-addresses each surfaced endset anchors to) is arrangement-independent, even though the *selection* of which endsets are surfaced is arrangement-mediated | introduced |
-| RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (RE-IDENT). Over the combined vocabulary of ASN-0047's atomic arrangement movers and ASN-0082's shift-based insert/delete, only the content-subspace movers on `d` (extension, contraction, reordering, and the shifts) together with `K.λ` emission and retraction (RE-RET) can move the answer; every other transition — including the link-subspace edit `K.μ⁺_L` under `W ⊆ s_C` — leaves it fixed. | introduced |
+| RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (RE-IDENT). Over the combined vocabulary of ASN-0047's atomic arrangement movers and ASN-0082's shift-based insert/delete — the latter, lifted from ASN-0082's `(C, M)` model, frame `Σ.L`, `Σ.E`, `Σ.R` as `Σ.M`-only edits, so `addressable`/`Avail` hold fixed and only the image swings — only the content-subspace movers on `d` (extension, contraction, reordering, and the shifts) together with `K.λ` emission and retraction (RE-RET) can move the answer; every other transition — including the link-subspace edit `K.μ⁺_L` under `W ⊆ s_C` — leaves it fixed. | introduced |
 | RE-RET | Retraction stability — withdrawing a link `ℓ` is a `K.λ` step (Nullify, ASN-0086) that marks `ℓ` nullified, removing it from `addressable(Σ)` permanently (R6a). Under the standing unit-depth discipline and the net-removal-only hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅` (`Θ` the retraction type), a pair `(i, e)` that `ℓ` bore drops **iff `ℓ` was its sole addressable bearer in `Σ`** — the answer deduplicating and discarding identity (RE-UNIT). The `coverage(Θ)` hypothesis is the sole remaining exception, a type-slot match against content. | introduced |
 | RE-CWP | Contraction-stability weakest precondition — for a `K.μ⁻[d, R]` step, `RE(W, d, ·) = RE(W, d, Σ)` iff `enabled(K.μ⁻[d, R]) ∧ (∀ (i, e) ∈ Avail(Σ) : coverage(e) ∩ Δ ≠ ∅ ⟹ coverage(e) ∩ I_R ≠ ∅)`, where `I_R = {Σ.M(d)(v) : v ∈ W ∩ R}` (D-CWP bridge, ASN-0127), `Δ = image(W, d, Σ) ∖ I_R`, and `Avail(Σ)` is the region-independent pool of addressable slot-endsets. `RE` is monotone-decreasing under contraction, and `R = ∅` collapses it to `RE(W, d, Σ) = ∅`. | introduced |
 
