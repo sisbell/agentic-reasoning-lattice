@@ -1,6 +1,6 @@
 ## What this is
 
-ASN-0086 defines the **relational query-and-mutation layer over the link store**: the operational surface by which typed connections are filed, queried, and logically retracted. Its load-bearing contribution is an *active/audit distinction* — a permanent, append-only trail of every link ever emitted (`L_K`, the audit slice) and a computed "currently-in-effect" view (`A_K`, the active subset) obtained by *logical retraction*, never by deletion or overwrite.
+ASN-0086 defines the **relational query-and-mutation layer over the link store**: the operational surface by which typed connections are filed, queried, and logically retracted. Its load-bearing contribution is an *active/audit distinction* — a permanent, append-only audit trail, sliced by coverage class into typed relations `L_K` (each the trail of one type's standard-triple links; the store also holds higher-arity links that sit in no `L_K`), and a computed "currently-in-effect" view (`A_K`, the active subset) obtained by *logical retraction*, never by deletion or overwrite.
 
 ## Design commitments
 
@@ -11,7 +11,7 @@ I mark each **(forced)** — downstream design cannot violate it — or **(conve
 - **(forced) The link address domain is a flat prefix-antichain.** No link address is a prefix of another (R0a); every emission is a *sibling* on its home document's link chain, never a descendant. This is not cosmetic — `Nullify`'s single-tuple scope (R-Scope) depends on it: a unit-depth prefix span over an antichain captures exactly its target and nothing below it.
 - **(forced) Retraction is logical, monotone-stable, and single-depth.** The nullified set only grows; once retracted, always retracted (R6a); "restore" means re-emit at a *new* address (R6c). The audit slice is monotone; the active subset is not. Retraction is decided by a *single pass* over the retraction slice with no regard to the retractor's own status (R6b), so retraction-of-a-retractor is a non-fixpoint — it does not revive the original target.
 - **(forced) Type membership is by coverage, not by literal endset value.** `K ~ K'` iff `coverage(K) = coverage(K')`; typed relations are coverage-class slices, and coverage-equality is decidable.
-- **(forced) Content and link addresses occupy disjoint subspaces (`s_C ≠ s_L`), and every emission is homed at a caller-supplied, already-allocated document.** The allocator only chooses the *position* within the home's link chain.
+- **(forced) Content and link addresses are disjoint (StoreDisjointness: `dom(Σ.C) ∩ dom(Σ.L) = ∅`; the mechanism is `s_C ≠ s_L`), and every emission is homed at a caller-supplied, already-allocated document.** The allocator only chooses the *position* within the home's link chain.
 - **(convention) Retraction directionality** — to-set carries targets, from-set carries attribution. Permitted by directional flexibility; could be reversed.
 - **(convention) The designated retraction coverage class `[R]`** — a reserved, possibly-ghost type; nothing stored need back it.
 - **(convention) The unit-depth retraction discipline** — every retraction to-span is a single prefix span `{(b, δ(1,#b))}`. This is enforced *at this layer*, not guaranteed by the substrate (an open question asks whether to elevate it).
@@ -21,7 +21,7 @@ I mark each **(forced)** — downstream design cannot violate it — or **(conve
 
 - **An append-only link store**, address-keyed, mapping each link address to its endset-tuple value — arbitrary arity, with the standard `(from-endset, to-endset, type-endset)` triple as the common case — that never overwrites and never reuses an address, and serves as the audit trail by construction. (The triple restriction is a property of the typed-relation view, not of the store.)
 - **A per-home link allocator** that, given a home document, yields an address fresh against all existing link addresses and *on the home's sibling chain* (first emission at the chain anchor, otherwise the increment of the home's current maximum link).
-- **Two decision procedures over the inherited coverage primitive.** `coverage(·)` itself comes from ASN-0034's prefix-span coverage and is not built here; what this layer adds are two distinct decisions over it: **coverage-equality** (`coverage(K) = coverage(K')`) — to classify links into typed slices and to select the retraction class `[R]`; and **coverage-membership/containment** (`a ∈ coverage(G')` for nullification, `F̂ ⊆ coverage(F)` for `Observe`) — to decide which addresses a retraction nullifies and which links match a query pattern. These are different operations with different realizations (see below).
+- **Two decision procedures over the inherited coverage primitive.** `coverage(·)` itself comes from ASN-0043's prefix-span coverage and is not built here; what this layer adds are two distinct decisions over it: **coverage-equality** (`coverage(K) = coverage(K')`) — to classify links into typed slices and to select the retraction class `[R]`; and **coverage-membership/containment** (`a ∈ coverage(G')` for nullification, `F̂ ⊆ coverage(F)` for `Observe`) — to decide which addresses a retraction nullifies and which links match a query pattern. These are different operations with different realizations (see below).
 - **Emission** (`Emit_K`): deposit a typed link of a non-empty type (`K ∈ T_admissible` — a non-empty type endset is a precondition the builder must check), return its fresh address.
 - **A retraction mechanism** (`Nullify`): emit a retraction tuple naming a target address, under target precondition **P-tgt** — the target is *either* an already-allocated link address (`a ∈ A_rel^Σ`, retracting material owned-at-Σ) *or* the call's own fresh emit address (`a = a_emit(Σ, d_retr)`, the self-emit branch, where one step both baptizes and retracts a fresh address — material owned-at-commit). Plus a **nullified-set computation** identifying which link addresses are currently retracted, and an **active-subset computation** subtracting it from a slice.
 - **A typed-relation query** (`Observe`): given a type and a from/to coverage pattern, return matching tuples under either the audit view (everything emitted) or the operational view (active only). The pattern ranges over arbitrary tumbler sets (`T`), *not* only live addresses (`A^Σ`) — a query may legitimately target ghost/unallocated addresses, with each per-span match `F̂ ⊆ coverage(F)` decided by tumbler-membership. This shapes the query API: the pattern type is unrestricted.
@@ -54,7 +54,7 @@ Either way, scope the max-query to the home's *link subspace* and keep the incre
 **Hold by construction** (from the journal + sibling allocator, given correct implementation):
 - *Permanence* (R2) — records are never rewritten.
 - *Audit monotonicity* (R3) and *retraction stability* (R6a) — journal and tombstone set only grow.
-- *Address injectivity and freshness* (R0, R1) — one record per address; the allocator increments the store maximum.
+- *Address injectivity and freshness* (R0, R1) — one record per address; the allocator increments the per-home link-chain maximum (`a_emit = inc(max{ℓ' : origin(ℓ')=d}, 0)`, first emission at the chain anchor), not a global store max.
 - *Flat antichain* (R0a) — terminal-increment, home-scoped allocation yields siblings only.
 - *Subspace disjointness* (R4) — the note states this as a direct alias of ASN-0093's StoreDisjointness (`dom(Σ.C) ∩ dom(Σ.L) = ∅`), kept distinct from SC-NEQ; the implementation mechanism behind it is `s_C ≠ s_L` plus subspace-scoped allocation.
 
@@ -68,8 +68,8 @@ Either way, scope the max-query to the home's *link subspace* and keep the incre
 ## How it fits
 
 - **Leans on ASN-0093's K-operations** for the actual store mutations and the sibling-frontier emission discipline with per-document content/link sub-allocator chains; `Emit_K` *is* K.λ specialized to a value.
-- **Leans on ASN-0043** for the link primitive, endsets, immutability, directional flexibility, ghost-type permission, and the dual-primitive address universe.
-- **Leans on ASN-0034's tumbler algebra** (lexicographic order, tumbler addition, prefix-span coverage, span well-formedness) — the machinery coverage-equality and `a_emit` are built from — and on **ASN-0036** for the origin/home projection.
+- **Leans on ASN-0043** for the link primitive, endsets, immutability, directional flexibility, ghost-type permission, prefix-span coverage, and the dual-primitive address universe.
+- **Leans on ASN-0034's tumbler algebra** (lexicographic order, tumbler addition, span well-formedness) — the machinery coverage-equality and `a_emit` are built from — and on **ASN-0036** for the origin/home projection.
 - **Sits above the raw link store and below predicate/query layers.** It is the relational vocabulary those higher layers compose over — downstream predicate-composition consumes the `Emit`/`Observe`/`Nullify` operations this note defines, together with the active/audit split. Its handoff to the arrangement subsystem (`Σ.M`) is deliberately left open.
 
 ## Decisions for the builder
