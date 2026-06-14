@@ -500,10 +500,17 @@ outright (I3-C, D-I: `Σ.C` unchanged), and the remaining components `Σ.L`, `Σ
 full `(C, L, E, M, R)` state simply lie outside the edit's write-set, so the embedded operation
 frames them — **M-only ⟹ frames `L`, `E`, `R`** — by the very reasoning every ASN-0047 atomic
 mover above carries, each of which likewise touches `Σ.M(d)` alone and frames the rest. The
-link store in particular is left fixed (`L' = L`). The lift is *depth-independent*: it turns
+link store in particular is left fixed (`L' = L`). The lift's *reasoning* is depth-independent: it turns
 on the edit's write-set being `Σ.M(d)` alone, not on D-SHIFT's
-`#p = 2`, so it covers the delete at every content depth — even where the common content depth
-`m_{s_C} ≥ 2` (S8-depth, S8a, ASN-0036) outruns D-SHIFT's depth-2 realisation. The addressable
+`#p = 2`, so it frames `L, E, R` for *any* M-only edit at *any* content depth. What it does
+not do is supply a delete where the foundation provides none: D-SHIFT realises an interior-span
+deletion only at text depth `#p = 2`, and at greater content depths `m_{s_C} > 2` (S8-depth,
+S8a, ASN-0036) the foundation establishes no gap-closing interior-span delete — the
+depth-general `K.μ⁻` is *tail-truncation*, not interior-span deletion, and cannot stand in. So
+delete-stability is claimed at text depth `#p = 2`, where D-SHIFT holds; any interior-span
+M-only delete the model may supply at higher depth is covered by the same lift, but its
+existence above depth 2 is not yet foundation-established. The insert carries no such limit —
+I3 holds at every text depth `#p ≥ 2`. The addressable
 population is therefore unmoved across the shift: `addressable(Σ)` and the region-independent
 pool `Avail(Σ)` are functions of `Σ.L` (through `nullified`) alone, so only the region's image
 can move. Content is *displaced through* `d`'s V-order, and its effect on the image is read off
@@ -512,20 +519,21 @@ Fix the region `W`. The displacement moves content *through* `W`'s fixed positio
 effect on the image is not one-signed the way `K.μ⁺`/`K.μ⁻` are: the shift family is
 non-monotone *as a class*, and a single shift may make the fixed region's image *gain*,
 *lose*, or *both*, according to where the edit falls relative to `W`. Under the insert above,
-content the region held at a position `v ≥ p` is carried up to `shift(v, n)` and so off,
-possibly out of `W` — a loss. The vacated positions `[p, shift(p, n))` the shift does *not*
-backfill (I3-V): the fresh content a full insert places there is a separate content-placing
-step, not part of the primitive (and, a new `K.α` allocation, it is excluded from a *tight*
-endset's coverage by LP19a, ASN-0098). Only the positions *above* the gap take on shifted
-content — carried up from below them — and that is a *gain* to the fixed image only when the
-donor lay below `W`. So the image *both gains and loses* only in the through-region case — an
-insert seated *below* `W`, or a delete reaching *into* it — where the region both sheds
-content and takes on content displaced in from outside it. Where the region instead coincides
-with the insertion gap, the primitive delivers *pure loss*: `W`'s content is carried off and
-the gap left unfilled, so `W ∩ dom(Σ'.M(d)) = ∅` and the image drops to `∅` until a separate
-step refills it. Whichever the case, `RE` tracks the image's motion by membership, each
-surfaced endset's spans held fixed (RE-IDENT) — the membership-tracking conclusion resting on
-the depth-independent M-only lift established above, hence holding at every content depth.
+content the region held at a position `v ≥ p` is carried up to `shift(v, n)` and so possibly
+out of `W` — a loss — while a position above the gap takes on content carried up from below
+it, a *gain* to the fixed image when that donor lay below `W`. The vacated positions
+`[p, shift(p, n))` the shift does *not* backfill (I3-V): the fresh content a full insert places
+there is a separate content-placing step, not part of the primitive (and, a new `K.α`
+allocation, it is excluded from a *tight* endset's coverage by LP19a, ASN-0098); so an insert
+whose unbackfilled gap falls under `W` can strip the image without replacement — down to `∅`
+when the gap swallows `W` entirely (`W ∩ dom(Σ'.M(d)) = ∅`). The delete is *not* the insert's
+mirror: it *closes* its gap, carrying the content above the removed span back down to fill it
+(D-SHIFT), and can likewise have the fixed image gain, lose, or both, according to where it
+falls relative to `W`. The full case split is not needed here — the load-bearing conclusion
+does not turn on which placement yields gain versus loss: whichever the case, `RE` tracks the
+image's motion by membership, each surfaced endset's spans held fixed (RE-IDENT), by the
+depth-independent M-only lift established above (insert: every text depth `#p ≥ 2`; delete:
+text depth `#p = 2`, where D-SHIFT holds).
 
 Editing of *other* documents does not perturb the answer: the image reads only `Σ.M(d)`,
 and a transition touching `d' ≠ d` leaves `Σ.M(d)` fixed (LP5, ASN-0098). Three further
@@ -721,7 +729,7 @@ The answer's stability thus reduces to two tracked motions: the region's image u
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| RE-DEF | `RE(W, d, Σ) = { (i, e) : (∃ a ∈ addressable(Σ) : 1 ≤ i ≤ \|Σ.L(a)\| ∧ Σ.L(a).eᵢ = e ∧ touch_W(e)) }`, where `(W, d)` has `d ∈ dom(Σ.M)` and `W ⊆ T` a content-subspace V-position set resolving to `I = image(W, d, Σ)` (F-IMG, ASN-0127); `touch_W(e) ≡ coverage(e) ∩ I ≠ ∅`; `addressable(Σ) = dom(Σ.L) ∖ nullified(Σ)` (ASN-0086); frame `Σ' = Σ` | introduced |
+| RE-DEF | `RE(W, d, Σ) = { (i, e) : (∃ a ∈ addressable(Σ) : 1 ≤ i ≤ \|Σ.L(a)\| ∧ Σ.L(a).eᵢ = e ∧ touch_W(e)) }`, where `(W, d)` has `d ∈ dom(Σ.M)` and `W ⊆ T` a content-subspace V-position set resolving to `I = image(W, d, Σ)` (F-IMG, ASN-0127); `touch_W(e) ≡ coverage(e) ∩ I ≠ ∅`; `addressable(Σ) = dom(Σ.L) ∖ nullified(Σ)` (ASN-0086); frame `Σ' = Σ`. Selection (addressability, `touch_W`) and name-withholding are definite under either extent reading; the returned `e = Σ.L(a).eᵢ` is the *whole* slot endset only by the adopted RE-WHOLE convention, so this returned-endset extent is as provisional as RE-WHOLE (Open Question 1) | introduced; surfaced-endset extent provisional (RE-WHOLE) |
 | RE-LOC | Locality — for fixed `(W, d)`, `RE` reads `Σ.M(d)` (image) and `Σ.L` (endsets, and via `nullified` addressability) alone; `Σ.C`, `Σ.E`, `Σ.R` are never consulted. Hence `RE` is a deterministic function of `(W, d, Σ)` | introduced |
 | RE-UNIT | Anchoring without names — the answer's elements are `(role, endset)` pairs, never link identities; the address is withheld, distinct links sharing an endset value collapse to one pair, multiplicity is not recoverable, and a surfaced from-endset cannot be paired with its link's to-endset | introduced |
 | RE-OVL | Overlap matching — an endset is surfaced iff at least one address it covers lies in the region's image (overlap, not containment); single-address overlap suffices; the test is existential *within* an endset and applied *per-endset*, with no per-slot request differentiation | introduced |
