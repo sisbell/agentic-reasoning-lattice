@@ -513,30 +513,22 @@ displacement primitives, taken in their own right. The foundation realises them 
 displacements (I3 PostInsertionShift, D-SHIFT, ASN-0082): an insertion at `p` of width `n`
 carries the content at every position `v ≥ p` up to `shift(v, n)` (I3, established there at
 every text depth `#p ≥ 2`), and a deletion carries the content lying above the removed span
-back down (D-SHIFT, established there only at text depth `#p = 2`). What the stability claim
-requires of either, though, is not the displacement's specifics but only that it is an
-*arrangement edit confined to `Σ.M(d)`* — an **M-only edit**, writing no store but the queried
-document's arrangement. We must state this as a cross-model lift, because ASN-0082 models
-these primitives over a `(C, M)` state with no link store: there it proves the content frame
-outright (I3-C, D-I: `Σ.C` unchanged), and the remaining components `Σ.L`, `Σ.E`, `Σ.R` of the
-full `(C, L, E, M, R)` state simply lie outside the edit's write-set, so the embedded operation
-frames them — **M-only ⟹ frames `L`, `E`, `R`** — by the very reasoning every ASN-0047 atomic
-mover above carries, each of which likewise touches `Σ.M(d)` alone and frames the rest. The
-link store in particular is left fixed (`L' = L`). The lift's *reasoning* is depth-independent: it turns
-on the edit's write-set being `Σ.M(d)` alone, not on D-SHIFT's
-`#p = 2`, so it frames `L, E, R` for *any* M-only edit at *any* content depth. What it does
-not do is supply a delete where the foundation provides none: D-SHIFT realises an interior-span
-deletion only at text depth `#p = 2`, and at greater content depths `m_{s_C} > 2` (S8-depth,
-S8a, ASN-0036) the foundation establishes no gap-closing interior-span delete — the
-depth-general `K.μ⁻` is *tail-truncation*, not interior-span deletion, and cannot stand in. So
-delete-stability is claimed at text depth `#p = 2`, where D-SHIFT holds; any interior-span
-M-only delete the model may supply at higher depth is covered by the same lift, but its
-existence above depth 2 is not yet foundation-established. The insert carries no such limit —
-I3 holds at every text depth `#p ≥ 2`. The addressable
-population is therefore unmoved across the shift: `addressable(Σ)` and the region-independent
-pool `Avail(Σ)` are functions of `Σ.L` (through `nullified`) alone, so only the region's image
-can move. Content is *displaced through* `d`'s V-order, and its effect on the image is read off
-the displacement directly.
+back down (D-SHIFT, established there only at text depth `#p = 2` — at greater content depths
+`m_{s_C} > 2` (S8-depth, S8a, ASN-0036) the foundation supplies no gap-closing interior-span
+delete, the depth-general `K.μ⁻` being tail-truncation rather than interior-span deletion). So
+delete-stability is scoped to text depth `#p = 2` and insert-stability to every `#p ≥ 2` — an
+asymmetry in the displacement's *existence*, not in the stability argument, which would cover a
+higher-depth delete were the foundation to supply one. What that argument requires of either is
+not the displacement's specifics but only that it is an *arrangement edit confined to `Σ.M(d)`*
+— an **M-only edit**. We must state this as a cross-model lift, because ASN-0082 models these
+primitives over a `(C, M)` state with no link store: there it proves the content frame outright
+(I3-C, D-I: `Σ.C` unchanged), and the remaining components `Σ.L`, `Σ.E`, `Σ.R` of the full
+`(C, L, E, M, R)` state simply lie outside the edit's write-set, so the edit frames them —
+**M-only ⟹ frames `L`, `E`, `R`** — exactly as every ASN-0047 atomic mover above does, at any
+content depth. The addressable population is therefore unmoved across the shift:
+`addressable(Σ)` and the region-independent pool `Avail(Σ)` are functions of `Σ.L` (through
+`nullified`) alone, so only the region's image can move. Content is *displaced through* `d`'s
+V-order, and its effect on the image is read off the displacement directly.
 Fix the region `W`. The displacement moves content *through* `W`'s fixed positions, so its
 effect on the image is not one-signed the way `K.μ⁺`/`K.μ⁻` are: the shift family is
 non-monotone *as a class*, and a single shift may make the fixed region's image *gain*,
@@ -554,8 +546,7 @@ mirror: it *closes* its gap, carrying the content above the removed span back do
 falls relative to `W`. The full case split is not needed here — the load-bearing conclusion
 does not turn on which placement yields gain versus loss: whichever the case, `RE` tracks the
 image's motion by membership, each surfaced endset's spans held fixed (RE-IDENT), by the
-depth-independent M-only lift established above (insert: every text depth `#p ≥ 2`; delete:
-text depth `#p = 2`, where D-SHIFT holds).
+depth-independent M-only lift established above.
 
 Editing of *other* documents does not perturb the answer: the image reads only `Σ.M(d)`,
 and a transition touching `d' ≠ d` leaves `Σ.M(d)` fixed (LP5, ASN-0098). Three further
@@ -590,8 +581,7 @@ position is dropped, so `I_R = image(W, d, Σ)` and `Δ = ∅`.
 (Arrangement reordering `K.μ~` is *not* link-confined: it is link-subspace-fixing by
 admissibility and requires a non-trivial content effect by its precondition, so it always
 touches content — the two link-subspace-confined edits are exactly `K.μ⁺_L` and link-only
-`K.μ⁻`.) The content-subspace restriction is what secures the entire class: every
-link-subspace-confined arrangement edit on `d` leaves a content-region answer fixed.
+`K.μ⁻`.)
 
 **The weakest precondition for contraction-stability.** The qualitative tracking above can
 be made exact for one editing motion — a deletion. Fix a `K.μ⁻[d, R]` step on the queried
