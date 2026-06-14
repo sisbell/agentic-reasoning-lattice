@@ -501,19 +501,12 @@ predicate whose witnesses are drawn from the editlink pre-state `Σ`:
 > `coverage(ℓ'.e₃) ≠ coverage(R)`, and if `|ℓ'| = 3 ∧ coverage(ℓ'.e₃) = coverage(K_sup)` then
 > `(E x, y ∈ dom(Σ.L) : x ≠ y ∧ ℓ'.e₁ = {(x, δ(1, #x))} ∧ ℓ'.e₂ = {(y, δ(1, #y))})`.
 
-The `[K_sup]` clause is the claim schema of Df-DISC(ii), guarded by `|ℓ'| = 3`
-so that it fires exactly when the successor `a'` would enter the claim slice
-`S^{Σ₁}` — which ASN-0086 admits only arity-3 tuples to — and not on a
-`[K_sup]`-typed successor of arity `> 3`, which is no claim and which Df-DISC
-therefore does not constrain. Its witnesses are already in the pre-state link
-store and pinned at `Σ` (not the post-emission `Σ₁`) — what makes them
-*pre-existing* links and lets conformance transfer forward across the emission
-(EL7(vi)). The leading conjunct excludes a retraction-class successor:
-retraction is `Nullify`'s office (ASN-0086), and editlink is supersession — a
-new *reading* claimed to supersede the old. Otherwise — when `a'` would be no
-claim, either because `coverage(ℓ'.e₃) ≠ coverage(K_sup)` or because that
-coverage holds with `|ℓ'| > 3` — `DC(ℓ')` imposes no schema constraint, and
-`ℓ'` inhabits no disciplined class.
+The `[K_sup]` clause is the claim schema of Df-DISC(ii); its leading conjunct
+excludes a retraction-class successor, because retraction is `Nullify`'s office
+(ASN-0086) and editlink is supersession — a new *reading* claimed to supersede
+the old. The schema clause's `|ℓ'| = 3` guard, the forward transfer of its
+pre-state witnesses across the emission, and its vacuity in the unguarded case
+are the load-bearing steps of discipline preservation, discharged at EL7(vi).
 `assert_sup`'s precondition is discharged at `Σ₁`: `a' ∈ dom(Σ₁.L)` by the
 emission, `a ∈ dom(Σ₁.L)` by monotonicity, `a' ≠ a` by freshness,
 `d_a ∈ dom(Σ₁.M)` by M1.
