@@ -13,8 +13,8 @@ Output two things, in this order.
 
 **1. A revision list** — the concrete improvements a reviser will apply, ordered most-important first. Write each as an actionable instruction ("Section X: Y is wrong/weak because Z; do W instead") and **tag each item `[DEFECT]` or `[SHARPENING]`**:
 
-- **`[DEFECT]`** — a *material* problem a builder would get wrong: an inaccuracy or misread of the note, an ungrounded/fabricated Green claim, an altitude slip (drops into code, or too vague to act on), an internal contradiction, or a *missing* load-bearing commitment, component, guarantee, precondition, or builder decision.
-- **`[SHARPENING]`** — a genuine but non-load-bearing improvement: a tighter formulation, an implicit tradeoff made explicit, an optional lever, a citation that could be stronger. Worth applying, but the digest is *sound* without it.
+- **`[DEFECT]`** — a *material* problem a builder would get wrong: an inaccuracy or misread of the note, an ungrounded/fabricated Green claim, an altitude slip (drops into code, or too vague to act on), an internal contradiction, or a *missing* load-bearing commitment, component, guarantee, precondition, or builder decision. **A statement that is factually *false* is a `[DEFECT]` even when the actionable takeaway survives** — prose correctness is not waived just because the build instruction is unaffected; a digest should not ship a claim that is wrong.
+- **`[SHARPENING]`** — a genuine but non-load-bearing improvement: a tighter formulation, an *imprecise-but-true* statement that could be sharper, an implicit tradeoff made explicit, an optional lever, a citation that could be stronger. Worth applying, but the digest is *sound and correct* without it. A statement that is outright **false** is never a sharpening — that is a `[DEFECT]`.
 
 **2. A final verdict line** — the last line of your output, exactly one of:
 
