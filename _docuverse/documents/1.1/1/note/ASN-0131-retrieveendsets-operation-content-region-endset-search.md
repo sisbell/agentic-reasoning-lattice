@@ -102,9 +102,9 @@ present and not withdrawn — the **addressable** links:
 
 ASN-0086's `nullified(Σ)` — the set of withdrawn addresses — is a function of the link store
 `Σ.L` alone. So `addressable` depends on `Σ.L` alone, never on *how* a
-retraction was performed. The retraction *discipline* — which constrains the way the withdrawn
-set grows — bears only on what a fresh emission, and what a retraction step, each leave
-addressable.
+retraction was performed: the retraction *discipline* — which constrains the way the withdrawn
+set grows — is a transition-level matter, whereas `addressable` itself reads only the state it
+is handed.
 
 The operation surfaces, for each addressable link and each of its endsets that touches
 the region, that endset, tagged by the slot it occupies:
@@ -426,8 +426,8 @@ proof filters it by the disjunction — gives
 
 and, like the image `⊆` law it rests on, this needs *no* injectivity hypothesis.
 
-The reverse inclusion, by contrast, **fails in general** — and, decisively, *no restriction
-on the arrangement recovers it*. There are two independent obstructions to `⊇`, and the
+The reverse inclusion, by contrast, **fails in general** — and, decisively, *no injectivity-style structural restriction on the
+arrangement recovers it*. There are two independent obstructions to `⊇`, and the
 constructions below separate them.
 
 The first obstruction is the image-level non-distribution noted just above, and a
@@ -448,8 +448,9 @@ through the *same* witness `a` — so `(1, e) ∈ RE(W₁, d, Σ) ∩ RE(W₂, d
 intersection region is empty, so `image(W₁ ∩ W₂, d, Σ) = ∅`, whence `RE(W₁ ∩ W₂, d, Σ) = ∅`
 (RE-BND) and `(1, e) ∉ RE(W₁ ∩ W₂, d, Σ)`, refuting `⊇`.
 
-The second obstruction lives in `touch_W` itself, and it survives *every* arrangement
-restriction, injectivity included. The touch test is existential — `coverage(e)` need only
+The second obstruction lives in `touch_W` itself, and *no injectivity-style restriction
+escapes it*: it is constructible under any arrangement rich enough to admit two disjoint
+regions with distinct nonempty images — injectivity included. The touch test is existential — `coverage(e)` need only
 *meet* the image — and "meets `image(W₁)`" together with "meets `image(W₂)`" does not entail
 "meets `image(W₁ ∩ W₂)`", because the two meetings may be witnessed by *different* addresses.
 This is independent of whether `image` distributes over intersection. Take the typical,
@@ -474,7 +475,12 @@ not even confined to disjoint regions.
 The first construction shows non-injectivity *can*
 break `⊇`; the second shows that *removing* it does not restore `⊇`. An arrangement
 restriction such as injectivity therefore **provably cannot** recover
-`RE(W₁ ∩ W₂, d, Σ) = RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)`. Because the `⊆` half is unconditional and
+`RE(W₁ ∩ W₂, d, Σ) = RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)`. What *does* force `⊇` is degeneracy of an
+altogether different kind — an arrangement too impoverished to furnish two disjoint regions
+with distinct nonempty images at all (a single active V-position, say): then any `W₁, W₂` with
+both images nonempty share that position, so `image(W₁ ∩ W₂, d, Σ)` is nonempty and the
+split-witness construction cannot be mounted, and `⊇` holds vacuously. The obstruction is
+*injectivity-proof*, not *restriction-proof*. Because the `⊆` half is unconditional and
 the pool `Avail(Σ)` is region-independent, `⊇` — and hence equality — holds *exactly*
 (necessary and sufficient) when
 
@@ -743,14 +749,22 @@ But the answer deduplicates, and we must read its stability at the granularity i
 has. Its elements are `(role, endset)` pairs with link identity discarded (RE-UNIT): a
 pair `(i, e)` is present exactly when *some* addressable link bears `e` in slot `i` and `e`
 touches the region. So withdrawing one link `ℓ` does not, by itself, remove the pairs it
-bore. Retracting `ℓ` removes `ℓ` from `addressable(Σ)` permanently (R6a); the same step adds
-the emitter `b`, whose only possible content-region contribution is the fresh pair `(3, Θ)`
-(just shown). Under the net-removal-only hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅` — adopted
+bore. Retracting `ℓ` removes `ℓ` from `addressable(Σ)`, and *permanently* so. The Nullify step
+marks `ℓ` nullified in its immediate post-state (R6a, over that one `K.λ` step); the marking
+then persists across the *entire* ASN-0047 vocabulary, because `nullified` is a function of
+`Σ.L` alone (above) and `Σ.L` evolves only through `K.λ` (the `Σ.L`-evolution inventory
+above). Every non-`K.λ` transition — `K.δ`, the `K.μ` family, `K.ρ`, `K.α` — frames the link
+store (`L' = L`) and so leaves `nullified` fixed; each further `K.λ` only grows `Σ.L`, and a
+larger store never un-nullifies an address (R6a one step at a time — equivalently, `nullified`
+is monotone in the `Σ.L`-configuration). Induction over any transition sequence from the
+retraction's post-state thus keeps `ℓ ∈ nullified` at every reachable later state. The same
+step adds the emitter `b`, whose only possible content-region contribution is the fresh pair
+`(3, Θ)` (just shown). Under the net-removal-only hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅` — adopted
 for this result, its sole exception flagged above — that pair fails the touch test against a
 content image, so `b` surfaces nothing and re-witnesses no pair the answer carries. A pair
 `(i, e)` that `ℓ` contributed therefore leaves the answer **iff `ℓ` was its sole addressable
 bearer in `Σ`**. The forward half — sole bearer ⟹ the pair drops — is the conjunction just
-assembled: `ℓ` leaves `addressable` permanently (R6a) and, under the hypothesis, the emitter
+assembled: `ℓ` leaves `addressable` permanently (just shown) and, under the hypothesis, the emitter
 `b` surfaces nothing, so neither keeps `(i, e)` alive. The backward half — some *other* live bearer ⟹
 the pair survives — is not free: it asserts that the other bearer outlives the very step
 that withdraws `ℓ`, and a retraction, being a state transition, could a priori nullify
@@ -772,8 +786,9 @@ from `ℓ₁`) remains in `addressable(Σ')` and still bears `e₁` (value fixed
 when *both* are withdrawn does `(1, e₁)` depart.
 
 Two senses of permanence must therefore be kept apart. The *specific retracted link's*
-membership in `addressable` is gone forever (R6a) — one can never again surface anchoring
-*because `ℓ₁` bears it*. But the *pair value* `(i, e)` is not permanently gone: an
+membership in `addressable` is gone forever — across the whole ASN-0047 vocabulary, by the
+permanence argument given above (R6a on each `K.λ` step, `Σ.L`-framing on every other) — one
+can never again surface anchoring *because `ℓ₁` bears it*. But the *pair value* `(i, e)` is not permanently gone: an
 identical value re-enters the answer the moment any live link — `ℓ₂` already present, or a
 freshly emitted link with a new identity (R6c) — bears `e` in slot `i` and `e` touches.
 The answer tracks the anchoring values of the active *population*, not the fate of any one
@@ -796,12 +811,12 @@ slip RE-UNIT's deduplication guards against.
 | RE-SND | Soundness — `(i, e) ∈ RE(W, d, Σ) ⟹ e` is a genuine slot-`i` endset of an addressable link ∧ `touch_W(e)`; no false positives | introduced |
 | RE-CMP | Completeness — every addressable link `a` and slot `i` with `touch_W(Σ.L(a).eᵢ)` has `(i, Σ.L(a).eᵢ) ∈ RE(W, d, Σ)`; the answer is *exactly* the touching set, native or transcluded content alike | introduced |
 | RE-UDIST | Union-distributivity — `RE(W₁ ∪ W₂, d, Σ) = RE(W₁, d, Σ) ∪ RE(W₂, d, Σ)`, the RE-level analogue of F-UDIST/F-VDIST (ASN-0127) | introduced |
-| RE-UDIST-∩ | Intersection (one-sided) — `RE(W₁ ∩ W₂, d, Σ) ⊆ RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)` holds unconditionally (image `⊆` law); the reverse `⊇` fails in general, with no arrangement restriction recovering it (a non-injective and an *injective* counterexample, the latter via split witnesses in `touch_W`). Equality holds **exactly** when `(∀ (i,e) ∈ Avail(Σ) : touch_{W₁}(e) ∧ touch_{W₂}(e) ⟹ touch_{W₁ ∩ W₂}(e))` — settled as necessary-and-sufficient; its weakest structurally-restricted sufficient form is Open Question 4 | introduced |
+| RE-UDIST-∩ | Intersection (one-sided) — `RE(W₁ ∩ W₂, d, Σ) ⊆ RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)` holds unconditionally (image `⊆` law); the reverse `⊇` fails in general, with no *injectivity-style* restriction recovering it (a non-injective and an *injective* counterexample, the latter via split witnesses in `touch_W`; only an arrangement too impoverished to admit two disjoint regions with distinct nonempty images forces `⊇`, and then vacuously). Equality holds **exactly** when `(∀ (i,e) ∈ Avail(Σ) : touch_{W₁}(e) ∧ touch_{W₂}(e) ⟹ touch_{W₁ ∩ W₂}(e))` — settled as necessary-and-sufficient; its weakest structurally-restricted sufficient form is Open Question 4 | introduced |
 | RE-SEL | Discovery-side selection — `sel(W, d, Σ) = findlinks_V(W, d, Σ) ∩ addressable(Σ)` (F-V, ASN-0127): the contributing links are the addressable links discoverable through the region, so `RE` is discovery-anchored — present-tense, non-monotone (D-NONMONO, D-ZERO, ASN-0127), not existence-anchored | introduced |
 | RE-TRANS | Transclusion blindness — surfacing is by content identity, independent of the link's home and the covered content's origin (LP16, ASN-0098): a link reaching the region through transcluded content is surfaced identically to one on native content, each span describing content identity, not the borrowing V-position | introduced |
 | RE-IDENT | Content-identity invariance — each surfaced endset's coverage is permanent (L12, ASN-0043; LP3★, ASN-0098), so the content-level answer (which I-addresses each surfaced endset anchors to) is arrangement-independent, even though the *selection* of surfaced endsets is arrangement-mediated | introduced |
 | RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (RE-IDENT). The answer moves only under the content-subspace arrangement movers on `d` (`K.μ` extension/contraction/reordering, and ASN-0082's shift-based insert/delete, M-only by a conservative-lift modelling assumption) and `K.λ` emission/retraction (RE-RET); every other transition — including all **link-subspace-confined** edits on `d` under `W ⊆ s_C` (`K.μ⁺_L` and content-retaining `K.μ⁻`) — leaves it fixed | introduced |
-| RE-RET | Retraction stability — withdrawing a link `ℓ` (Nullify, ASN-0086) marks it nullified, removing it from `addressable(Σ)` permanently (R6a). Conditions: the standing discipline commitment (only `Nullify` grows the retraction slice `L_Θ`; its from-set empty, to-set unit-depth) and the net-removal-only hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅` (`Θ` the retraction type, the sole remaining exception). Then a pair `(i, e)` that `ℓ` bore drops **iff `ℓ` was its sole addressable bearer in `Σ`** (RE-UNIT) | introduced |
+| RE-RET | Retraction stability — withdrawing a link `ℓ` (Nullify, ASN-0086) marks it nullified, removing it from `addressable(Σ)` permanently (R6a on the `K.λ` step; `nullified` a `Σ.L`-function that every non-`K.λ` transition frames, so the marking persists across the full ASN-0047 vocabulary). Conditions: the standing discipline commitment (only `Nullify` grows the retraction slice `L_Θ`; its from-set empty, to-set unit-depth) and the net-removal-only hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅` (`Θ` the retraction type, the sole remaining exception). Then a pair `(i, e)` that `ℓ` bore drops **iff `ℓ` was its sole addressable bearer in `Σ`** (RE-UNIT) | introduced |
 | RE-CWP | Contraction-stability weakest precondition — for a `K.μ⁻[d, R]` step, `RE(W, d, ·) = RE(W, d, Σ)` iff `enabled(K.μ⁻[d, R]) ∧ (∀ (i, e) ∈ Avail(Σ) : coverage(e) ∩ Δ ≠ ∅ ⟹ coverage(e) ∩ I_R ≠ ∅)`, where `I_R = {Σ.M(d)(v) : v ∈ W ∩ R}` (D-CWP bridge, ASN-0127) and `Δ = image(W, d, Σ) ∖ I_R`. The boundary `R = ∅` collapses to `RE(W, d, Σ) = ∅` | introduced |
 
 ## Open Questions
@@ -812,7 +827,7 @@ slip RE-UNIT's deduplication guards against.
 
 3. When a surfaced endset is rendered into the querying document's V-positions rather than content identity, what must the answer guarantee for endset content the document does not currently arrange?
 
-4. Given the exact, necessary-and-sufficient touch-implication characterisation of intersection-equality and the proof that no arrangement restriction alone discharges it (both settled in RE-UDIST-∩), what is the weakest *structurally-restricted sufficient* condition — phrased directly on the available endsets' coverages and the three region images `image(W₁)`, `image(W₂)`, `image(W₁ ∩ W₂)`, with the per-endset `touch` quantifier eliminated?
+4. Given the exact, necessary-and-sufficient touch-implication characterisation of intersection-equality and the proof that no *injectivity-style* restriction alone discharges it (both settled in RE-UDIST-∩), what is the weakest *structurally-restricted sufficient* condition — phrased directly on the available endsets' coverages and the three region images `image(W₁)`, `image(W₂)`, `image(W₁ ∩ W₂)`, with the per-endset `touch` quantifier eliminated?
 
 5. What completeness guarantee must hold when anchoring that touches a region resides in a link store not co-resident with the queried document?
 
