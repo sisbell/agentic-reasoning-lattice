@@ -143,10 +143,9 @@ Preconditions
                                          of whatever composite precedes it —
                                          whole-request serialization; see the
                                          atomicity remark)
-  P-tier   ω(d_src) = π  ∨  zeros(pfx(π)) = 1   (the operation's domain: the
-           forker owns the source — served at any tier — or, forking across
-           ownership, already holds a document-creation namespace; the identity
-           clause branches on the same guard)
+  P-tier   ω(d_src) = π  ∨  zeros(pfx(π)) = 1   (the operation's domain
+           condition — the disjuncts are read in the paragraph below; the
+           identity clause branches on the same guard)
 
   — P-bdy fixes the invocation context, not a source-side condition; on the
   source side there is nothing further. In particular: no authority over
@@ -297,7 +296,7 @@ and consequently no *allocated* substance scales with the source: `ΔE = {v}` mi
 
 > `M'(v) = M(d_src)|_{V_{s_C}(d_src)}`, so `dom(M'(v)) = V_{s_C}(d_src)` and `ran(M'(v)) = A ⊆ dom(C)`.
 
-Three glosses. *Function-level, representation-free:* the specification constrains the mapping, not its decomposition; by M3 (RepresentationInvariance) and M11/M12 (canonical decomposition exists and is unique), any block structure with this denotation conforms — an implementation may re-derive the mapping from the source and consolidate adjacent runs freely, and no observer can tell. *Snapshot:* the right-hand side is evaluated at `Σ`; the version captures the source *as it stands at the fork*, which with V5's orthogonality means successive forks bracketing an edit hold different snapshots under consecutive ranks. *Content subspace only:* the link subspace of `v` is empty at birth, and necessarily so —
+Three glosses. *Function-level, representation-free:* the specification constrains the mapping, not its decomposition; by M3 (RepresentationInvariance) and M11/M12 (canonical decomposition exists and is unique), any block structure with this denotation conforms — an implementation may re-derive the mapping from the source and consolidate adjacent runs freely, and no observer can tell. *Snapshot:* the right-hand side is evaluated at `Σ`; the version captures the source *as it stands at the fork* — the fork-time snapshot whose orthogonality to rank V5 draws out. *Content subspace only:* the link subspace of `v` is empty at birth, and necessarily so —
 
 **V2b (ForeignLinkExclusion).** No reachable transition seats a link of foreign origin in any document's link subspace:
 
