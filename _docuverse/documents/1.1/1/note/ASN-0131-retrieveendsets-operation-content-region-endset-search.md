@@ -88,6 +88,25 @@ the to-endset is not. There is no four-set request here differentiating slot fro
 (that is the richer FINDLINKSFROMTOTHREE); there is one region, tested against every
 endset, and the endsets that touch are the ones surfaced.
 
+One structural fact about *non-content* anchoring recurs below — in the worked instance (for a
+type endset) and in the retraction analysis (for a withdrawal's to-set) — so we record it once,
+in general form rather than inside either use.
+
+> **Cross-subspace unit-span disjointness (RE-NCD).** Let `s` be a T4-valid element-level
+> address (`zeros(s) = 3`) whose element-field subspace identifier is non-content,
+> `E(s)₁ ≠ s_C`. Then the unit-depth span `(s, δ(1, #s))` covers no content:
+> `coverage({(s, δ(1, #s))}) ∩ dom(Σ.C) = ∅`.
+
+By PrefixSpanCoverage (ASN-0043) the unit-depth span covers exactly `{t : s ≼ t}`, so it
+suffices that no content address extends `s`. Take any `c ∈ dom(Σ.C)`: by S7b (ASN-0036) it is
+T4-valid with `zeros(c) = 3`, and by content allocation `E(c)₁ = s_C` (L0, ASN-0093). Were
+`s ≼ c`, then `c` agrees with `s` on positions `1..#s` (Prefix, ASN-0034). The agreement carries
+all three of `s`'s separator zeros onto `c`; as `c` has only three zeros in all (`zeros(c) = 3`),
+these *are* `c`'s separators, so `s` and `c` share a third-zero position and hence the
+subspace-identifier position one past it — forcing `E(c)₁ = E(s)₁ ≠ s_C`. But content allocation
+gave `E(c)₁ = s_C` — a contradiction. So no content address extends `s`, giving the disjointness.
+The reduction to the prefix relation `s ≼ c` is what confines the lemma to unit-depth spans.
+
 ## The unit of the answer: anchoring without names
 
 Now we can state what RETRIEVEENDSETS returns. We must first settle which links it ranges
@@ -111,23 +130,14 @@ the region, that endset, tagged by the slot it occupies:
 The answer is a set of `(role, endset)` pairs. Each pair names the slot `i` — from, to,
 type, or higher — and the endset value `e` that occupies it in some touching link.
 
-The answer just defined is **finite unconditionally** (RE-FIN): it is drawn from the finite supply of
-slot-endset pairs the store affords — `dom(Σ.L)` is finite (L-fin, ASN-0093) and each link
-carries finitely many endsets (L3, ASN-0043), so only finitely many `(i, e)` pairs can ever
-appear, whatever the region. **Computability** carries one further premise — that region
-membership `v ∈ W` is decidable — met whenever `W` is *finitely presented*. In practice it is
-always so: the region is presented as finitely many spans, each a start tumbler and a width
-(the SpecSet the realising FEBE operation consumes), so `v ∈ W` reduces to finitely many
-span-membership tests (T12, T2, ASN-0034). Granted that premise, the rest of the selection is
-effective. The image `I = image(W, d, Σ)` is constructed by deciding `v ∈ W` across the finite
-domain `dom(Σ.M(d))` (S8-fin, ASN-0036) and is itself finite; `coverage`-membership is decidable
-by intrinsic comparison on its half-open T1-intervals (T12, T2, ASN-0034), so
-`touch_W(e) ≡ coverage(e) ∩ I ≠ ∅` is settled by finitely many membership tests. The
-addressability filter is decidable over finite sets too: `nullified(Σ)` is a computable set
-(ASN-0086) and `dom(Σ.L)` is finite (L-fin, ASN-0093), so membership in
-`addressable(Σ) = dom(Σ.L) ∖ nullified(Σ)` is settled without enumerating history. The
-operation therefore selects its `(i, e)` pairs by finitely many decidable tests over the finite
-store, the region's finite presentation supplying the one premise the image construction needs.
+The answer just defined rests on two premises. It is **finite unconditionally** (RE-FIN): drawn
+from the finite supply of slot-endset pairs the store affords — `dom(Σ.L)` is finite (L-fin,
+ASN-0093) and each link carries finitely many endsets (L3, ASN-0043) — so only finitely many
+`(i, e)` pairs can ever appear, whatever the region. And it is **computable** under one further
+hypothesis: that region membership `v ∈ W` is decidable, which holds whenever `W` is *finitely
+presented* — given, say, as finitely many spans, `v ∈ W` reduces to span-membership tests (T12,
+T2, ASN-0034). Granted that hypothesis, the remaining selection is effective over the finite
+store.
 
 The definition **withholds the link address `a`**. The existential `(∃ a : …)` consumes the link and discards it; what
 escapes into the answer is `(i, e)`, the anchoring structure, never the identity. This is
@@ -302,17 +312,9 @@ standard triple `L₁ = (e₁, e₂, e₃)`:
   `a₁`, not a descendant);
 - type-endset `e₃ = {(θ, δ(1, #θ))}` — `θ` a classifying address in a *type* subspace,
   T4-valid and element-level (`zeros(θ) = 3`) with subspace identifier `E(θ)₁ = s_type ≠
-  s_C`, non-empty as L3 demands. Its coverage `coverage(e₃) = {t : θ ≼ t}`
-  (PrefixSpanCoverage, ASN-0043) is disjoint from content: `coverage(e₃) ∩ dom(Σ.C) = ∅`.
-  Take any `c ∈ dom(Σ.C)`: by S7b (ASN-0036)
-  it is T4-valid with `zeros(c) = 3`, and by content allocation `E(c)₁ = s_C` (L0,
-ASN-0093). Were `c ∈
-  coverage(e₃)`, i.e. `θ ≼ c`, then `c` agrees with `θ` on positions `1..#θ` (Prefix,
-  ASN-0034). The agreement carries all three of `θ`'s separator zeros onto `c`; as `c` has
-  only three zeros in all (`zeros(c) = 3`), these *are* `c`'s separators, so `θ` and `c`
-  share a third-zero position and hence a subspace-identifier position one past it — forcing
-  `E(c)₁ = E(θ)₁ = s_type`. But content allocation gave `E(c)₁ = s_C ≠ s_type` — a
-  contradiction. So no content address extends `θ`, giving `coverage(e₃) ∩ dom(Σ.C) = ∅`.
+  s_C`, non-empty as L3 demands. Its single span is unit-depth at `θ` with `E(θ)₁ ≠ s_C`, so
+  RE-NCD applies directly: `coverage(e₃) = {t : θ ≼ t}` (PrefixSpanCoverage, ASN-0043) is
+  disjoint from content, `coverage(e₃) ∩ dom(Σ.C) = ∅`.
 
 The second, at a distinct address `ℓ₂ ≠ ℓ₁`, is `L₂ = (e₁, e₂′, e₃′)`: it carries the
 *same from-endset value* `e₁` in slot 1, which the non-injective store permits (L11b,
@@ -359,18 +361,16 @@ and each of the operation's distinctive claims can be read off it directly:
   returned at its full recorded extent — the width-2 span `(a₂, δ(2, #a₂))`, reaching
   across `a₃` — not trimmed to the region. A clipping implementation would have returned
   the width-1 span `(a₂, δ(1, #a₂))` covering `a₂` alone, falsely shrinking the link's grip
-  to fit the query. No-clipping holds under *either* reading of the operation: both the
-  whole-endset and the touching-spans-only readings return this touching span unclipped.
+  to fit the query.
 - **Whole-endset surfacing (RE-WHOLE).** The surfaced `e₁` is returned *entire* — both
   spans, including the unit span at `a₄`, which touches nothing the region holds. Here the
   reading is exercised in earnest, and its distinctive consequence is concrete: the answer
   volunteers anchoring — `a₄` and its descendants — that points *wholly outside* the
-  queried region. This is exactly where the two readings part, and where RE-CLIP alone
-  cannot separate them: here `clip_W(e₁) = {(a₂, δ(2, #a₂))}` — only the first span meets
-  `I = {a₂}`, the unit span at `a₄` missing it — so the touching-spans-only operation returns
-  `RE_clip(W, d, Σ) = {(1, {(a₂, δ(2, #a₂))})}`, honest about extent (RE-CLIP) yet silent about
-  the `a₄` span, whereas the *whole-endset* reading we adopt returns
-  `RE(W, d, Σ) = {(1, {(a₂, δ(2, #a₂)),  (a₄, δ(1, #a₄))})}` in full.
+  queried region. The two readings part on this instance: `clip_W(e₁) = {(a₂, δ(2, #a₂))}`
+  — only the first span meets `I = {a₂}`, the unit span at `a₄` missing it — so the
+  touching-spans-only operation returns `RE_clip(W, d, Σ) = {(1, {(a₂, δ(2, #a₂))})}`, honest
+  about extent yet silent about the `a₄` span, whereas the *whole-endset* reading we adopt
+  returns `RE(W, d, Σ) = {(1, {(a₂, δ(2, #a₂)),  (a₄, δ(1, #a₄))})}` in full.
 - **Per-endset surfacing (RE-OVL).** Only slot 1 appears, and from each link separately. Of
   `L₁`, the to-endset `e₂` and the type-endset `e₃` miss the region and are absent, so the
   link's from-end is reported without its to-end. Of `L₂`, the two non-from slots `e₂′` and
@@ -730,25 +730,21 @@ nullified marking) *and* adds the emitter `b` to it. We must ask what the emitte
 endsets are the from-set `∅` — empty by `Nullify`'s definition (`Emit_Θ(…, ∅, …)`, ASN-0086),
 withdrawal being realised as a `Nullify` — a to-set
 `{(ℓ, δ(1, #ℓ))}` whose single span covers `ℓ` and `ℓ`'s extensions, and the retraction
-type-set `Θ`. The first two are content-disjoint
-*unconditionally*, and for one shared reason: the field-agreement argument
-used for `e₃` above is sound exactly for **unit-depth** spans, where `coverage = {t : s ≼ t}`
-(PrefixSpanCoverage, ASN-0043) reduces touching to the prefix relation `s ≼ c`, so the
-separator-zero count carries `s`'s subspace identifier onto every covered `c`.
-`coverage(∅) = ∅` touches nothing; the to-set *is* unit-depth — ASN-0086's `Nullify` fixes
-its width at `δ(1, #ℓ)` — so the argument applies to it directly: a content `c` with `ℓ ≼ c`
-would force `E(c)₁ = E(ℓ)₁ = s_L ≠ s_C`, rigorous because `ℓ` is genuinely element-level with
-`E(ℓ)₁ = s_L` (L0, L1, ASN-0093) and `Nullify` targets a link address `ℓ ∈ dom(Σ.L)`. So
-against a content image `I ⊆ dom(Σ.C)`, neither the from-set nor the to-set can touch. (This
-content-disjointness is exactly what the standing `W ⊆ s_C` obligation buys.)
+type-set `Θ`. The first two are content-disjoint *unconditionally*. The from-set is empty, and
+`coverage(∅) = ∅` touches nothing. The to-set is a unit-depth span — ASN-0086's `Nullify` fixes
+its width at `δ(1, #ℓ)` — whose start `ℓ` is genuinely element-level with `E(ℓ)₁ = s_L ≠ s_C`
+(L0, L1, ASN-0093; SC-NEQ) and is a link address `ℓ ∈ dom(Σ.L)` that `Nullify` targets, so
+RE-NCD applies directly: `coverage({(ℓ, δ(1, #ℓ))}) ∩ dom(Σ.C) = ∅`. So against a content image
+`I ⊆ dom(Σ.C)`, neither the from-set nor the to-set can touch. (This content-disjointness is
+exactly what the standing `W ⊆ s_C` obligation buys.)
 
-The type-set `Θ` is the slot that same argument does *not* reach. A type endset may, by
+The type-set `Θ` is the slot RE-NCD does *not* reach. A type endset may, by
 design, point *anywhere* in the address space, content included (L4 EndsetGenerality, L9
 TypeGhostPermission, ASN-0043), and ASN-0086 fixes the designated retraction type only as a
 type endset whose coverage selects the conventional retraction address set — carrying no
-structural disjointness from content, and not confined to unit depth. The field-agreement
-argument used above reduces touching to the prefix relation `s ≼ c`, so it transfers to a
-span-*start* but not across the interior of a *wide* span `(s, ℓ_s)`, whose interval
+structural disjointness from content, and not confined to unit depth. RE-NCD is confined to
+unit-depth spans, where coverage reduces to the prefix relation `s ≼ c`; across the interior of
+a *wide* span `(s, ℓ_s)` that argument fails, and the interval
 `{t : s ≤ t < s ⊕ ℓ_s}` may include content even when `s` lies outside it. So
 `coverage(Θ) ∩ dom(Σ.C) = ∅` is a construction hypothesis, not a theorem; this note carries
 it as such, its exception — a type-slot match against content — taken up by Open Question 6.
@@ -819,13 +815,14 @@ slip RE-UNIT's deduplication guards against.
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| RE-DEF | `RE(W, d, Σ) = { (i, e) : (∃ a ∈ addressable(Σ) : 1 ≤ i ≤ \|Σ.L(a)\| ∧ Σ.L(a).eᵢ = e ∧ touch_W(e)) }`, where `(W, d)` has `d ∈ dom(Σ.M)` and `W ⊆ T` a content-subspace V-position set resolving to `I = image(W, d, Σ)` (F-IMG, ASN-0127); `touch_W(e) ≡ coverage(e) ∩ I ≠ ∅`; `addressable(Σ) = dom(Σ.L) ∖ nullified(Σ)` (ASN-0086); frame `Σ' = Σ`. The *selection* of touching slot-link pairs is settled; the *return value* at a selected slot — the whole endset `Σ.L(a).eᵢ` (RE-WHOLE, adopted) vs. its touching restriction `clip_W(·)` (`RE_clip`, §Extent) — is provisional pending Open Question 1 | introduced |
+| RE-DEF | `RE(W, d, Σ) = { (i, e) : (∃ a ∈ addressable(Σ) : 1 ≤ i ≤ \|Σ.L(a)\| ∧ Σ.L(a).eᵢ = e ∧ touch_W(e)) }`, where `(W, d)` has `d ∈ dom(Σ.M)` and `W ⊆ T` a content-subspace V-position set resolving to `I = image(W, d, Σ)` (F-IMG, ASN-0127); `touch_W(e) ≡ coverage(e) ∩ I ≠ ∅`; `addressable(Σ) = dom(Σ.L) ∖ nullified(Σ)` (ASN-0086); frame `Σ' = Σ`. Its return value at a selected slot follows the adopted convention RE-WHOLE (§Extent) | introduced |
 | RE-LOC | Locality — for fixed `(W, d)`, `RE` reads `Σ.M(d)` (image) and `Σ.L` (endsets, and via `nullified` addressability) alone; `Σ.C`, `Σ.E`, `Σ.R` are never consulted. Hence `RE` is a deterministic function of `(W, d, Σ)` | introduced |
 | RE-UNIT | Anchoring without names — the answer's elements are `(role, endset)` pairs, never link identities; the address is withheld, distinct links sharing an endset value collapse to one pair, multiplicity is not recoverable, and a surfaced from-endset cannot be paired with its link's to-endset | introduced |
 | RE-OVL | Overlap matching — an endset is surfaced iff at least one address it covers lies in the region's image (overlap, not containment); single-address overlap suffices; the test is existential *within* an endset and applied *per-endset*, with no per-slot request differentiation | introduced |
-| RE-CLIP | No clipping — every surfaced span is reported at the full extent recorded in the link, never truncated to the region boundary; universal across both the whole-endset (RE-DEF/RE-WHOLE) and touching-spans-only (`RE_clip`, §Extent) readings, which differ only in *which* spans they surface, never in extent | introduced |
-| RE-WHOLE | Whole-endset surfacing (adopted convention) — a surfaced endset is returned in full, *all* its spans (not only those intersecting `W`); not forced by RE-CLIP. The alternative touching-spans-only reading `RE_clip` (§Extent) shares RE's selection but returns the touching restriction `clip_W(e) = {(s, ℓ) ∈ e : coverage({(s, ℓ)}) ∩ I ≠ ∅}`; RE-WHOLE held **provisional** pending Open Question 1 | introduced (provisional) |
+| RE-CLIP | No clipping — every surfaced span is reported at the full extent recorded in the link, never truncated to the region boundary; holds under both readings (RE-WHOLE and `RE_clip`, §Extent) | introduced |
+| RE-WHOLE | Whole-endset surfacing (adopted convention) — a surfaced endset is returned in full, *all* its spans (not only those intersecting `W`), a commitment separable from RE-CLIP. The alternative touching-spans-only reading `RE_clip` (§Extent) shares RE's selection but returns the touching restriction `clip_W(e) = {(s, ℓ) ∈ e : coverage({(s, ℓ)}) ∩ I ≠ ∅}`; the choice between them is Open Question 1 | introduced (provisional) |
 | RE-BND | Boundary cases — `RE(W, d, Σ) = ∅` whenever the image is empty (`W ∩ dom(Σ.M(d)) = ∅`) or `addressable(Σ) = ∅`; an empty endset slot has `coverage(∅) = ∅`, so `touch_W(∅)` is false and it is never surfaced | introduced |
+| RE-NCD | Cross-subspace unit-span disjointness — a unit-depth span `(s, δ(1, #s))` whose T4-valid element-level start has a non-content subspace identifier (`zeros(s) = 3`, `E(s)₁ ≠ s_C`) covers no content: `coverage({(s, δ(1, #s))}) ∩ dom(Σ.C) = ∅` (PrefixSpanCoverage, ASN-0043; S7b, ASN-0036; L0, ASN-0093; field-agreement on separator zeros). Cited by the worked instance (type endset `e₃`, `s_type`) and the retraction analysis (withdrawal to-set, `ℓ`, `s_L`) | introduced |
 | RE-FIN | Finiteness and computability — `RE(W, d, Σ)` is finite *unconditionally* (drawn from the finite supply of slot-endset pairs: `dom(Σ.L)` finite by L-fin, ASN-0093, and each link bears finitely many endsets by L3, ASN-0043); and given a *finitely presented* `W` (region membership `v ∈ W` decidable, e.g. `W` given as finitely many spans), it is computed by finitely many decidable tests over the finite store — image construction over the finite `dom(Σ.M(d))` (S8-fin, ASN-0036), `coverage`-membership by intrinsic comparison on half-open T1-intervals (T12, T2, ASN-0034), and addressability via the computable `nullified` (ASN-0086) | introduced |
 | RE-ADDR | Fresh-output addressability — a fresh `K.λ` output that does not retract its own emitter address is addressable in its post-state (`ℓ_new ∉ nullified(Σ')`); in particular every non-retraction emission (`K ≁ Θ`) is addressable. Conditions: the standing discipline's unit-depth to-set (scoped to the retraction slice `L_Θ`, all that `nullified` consults) and the prefix-antichain of `dom(Σ.L)` (ASN-0093's link sub-allocator discipline; = ASN-0086's R0a) | introduced |
 | RE-SND | Soundness — `(i, e) ∈ RE(W, d, Σ) ⟹ e` is a genuine slot-`i` endset of an addressable link ∧ `touch_W(e)`; no false positives | introduced |
