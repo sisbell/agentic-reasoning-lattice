@@ -1,0 +1,17 @@
+This is an unusually strong digest. I tried hard to break it — checking every "forced" tag, every udanax citation against the evidence answers, and every proposed approach against CP0–CP12 — and the load-bearing content holds. The standout strengths: it correctly locates udanax's cross-depth clipping bug *inside resolution* and prescribes the note's read-the-image discipline as the immunity (while correctly carving out differing-depth cross-span assembly as OQ2, not over-claiming); it cleanly separates **live containment** (recomputable hint) from **historical Σ.R** (P2-permanent, authoritative, *not* rebuildable from arrangements) and warns against the exact rebuild-from-arrangements trap a builder would fall into; it distinguishes the non-idempotent splice from the idempotent provenance union in replay; and it distinguishes stored `homedoc` (immediate source) from computed `origin` (ultimate allocator) under chained transclusion. The forced/conventional split is accurate, the coalescing recommendation is correctly shown CP11/M14-safe when gated on I-contiguity, and no proposed approach violates a note commitment.
+
+I found no material defect — only the following non-load-bearing tightenings.
+
+**Revision list**
+
+1. **`[SHARPENING]` Resolution section, "Content immutability plus a captured root means no source write-lock is needed."** Read alone, this bundles two facts the Concurrency section later correctly *separates* (captured root → coherent arrangement view, because `M(d_s)` is editable in place; immutability → byte/address stability of what was already read). Pull that division-of-labor forward here (or forward-reference it) so a reader of this section doesn't infer that immutability protects the *arrangement* read — it doesn't.
+
+2. **`[SHARPENING]` Placement section, "whether anything needs the distinction is exactly the note's open question 4."** The immediate-source (`homedoc`) distinction is *related to* but not *identical with* OQ4's correspondence relation. Soften "exactly the note's open question 4" to "in the territory of OQ4 (the correspondence relation may be what consumes immediate-source granularity)"; the actionable recommendation (default to `homedoc`-guarded) is unaffected.
+
+3. **`[SHARPENING]` Reverse-index section, "arrangements yield only live containment, a strict subset."** It is a subset always, strict only once some referenced positions have actually been deleted (equal otherwise). The load-bearing claim (Σ.R not recomputable from arrangements) is correct regardless; tighten to "a subset, strict once any referenced positions are deleted."
+
+4. **`[SHARPENING]` Arrangement representation, "The proven-at-scale udanax structure."** udanax/Xanadu never shipped at production scale; the enfilade is the real, long-developed Green structure, but "proven at scale" overstates its validation. Soften to "the established udanax structure" — the recommendation for (3) rests on the O(log n)-shift-independent-of-trailing-size and 2-D I→V properties, not on a scale claim.
+
+5. **`[SHARPENING]` Guarantees, "Exact multiplicity (CP4) — +W total."** The digest captures the aggregate increase and M14 independence, but omits the note's explicit per-address distinction: a single source address resolved at *k* positions raises *that address's* reference count by *k*, so per-address count (occurrence count) and aggregate *W* coincide only when every resolved address is distinct. Worth one clause if a builder reasons about a single address's reference count; not load-bearing.
+
+VERDICT: CONVERGED
