@@ -184,8 +184,7 @@ against requirements.
 creation. No "superseded-by" annotation can ever be attached to `a`.
 
 *(b) Not appended to the successor's value later.* The same invariant binds the
-successor the instant it exists: its slots are fixed at emission. A slot-borne
-record is expressible only *at birth* — an option we assess (and reject) below.
+successor the instant it exists: its slots are fixed at emission.
 
 *(c) Not in the address relation between them.* One might hope the successor's
 address could nest under the original's — a version-of-link convention
@@ -374,9 +373,14 @@ We discharge this for each editing-layer operation.
   of a retraction) remain in the grown `dom(L)`, so no surviving tuple's
   conformance is disturbed. Both clauses preserved.
 - *`Nullify`.* Emits exactly one `[R]`-class tuple, with to-set
-  `{(t, δ(1, #t))}` and `t ∈ dom(Σ.L)` — its unit-depth retraction schema
-  (ASN-0086) — preserving clause (i); it deposits no `[K_sup]` claim, leaving
-  clause (ii) untouched.
+  `{(t, δ(1, #t))}` whose target `t` is admissible under ASN-0086's P-tgt in
+  either branch — a pre-existing `t ∈ dom(Σ.L)` (P1), or the self-emit target
+  `t = a_emit(Σ, d_retr)`, the fresh emitter itself — and in both cases
+  `t ∈ dom(Σ'.L)` at the post-state (P1 targets persist by
+  `dom(Σ.L) ⊆ dom(Σ'.L)`; the self-emit target enters the store at this very
+  emission), which is the state at which ASN-0086's unit-depth retraction schema
+  evaluates its membership, so clause (i) is preserved; it deposits no `[K_sup]`
+  claim, leaving clause (ii) untouched.
 - *`assert_sup`.* EL6(v): `Σ'` is edit-disciplined when `Σ` is.
 - *`editlink`.* EL7(vi): `Σ₂` is edit-disciplined when `Σ` is — precisely what
   the precondition `DC(ℓ')` secures, and what licenses chaining edits.
@@ -586,7 +590,7 @@ is not a special case; it is the same operation invoked by someone else.
 *Third*, a *revert* allocates no successor at all: to assert that the original
 supersedes its replacement is `assert_sup(a, a', d)` — one claim, nothing else
 — since the "new" value, being the old one, already exists at its permanent
-address. Under immutability, undo is just another statement.
+address.
 
 **Remark (no enforceable coupling).** Could the substrate *require* the
 assertion whenever an emission "is an edit"? A coupling constraint in the style
@@ -795,8 +799,8 @@ both orders; the enabledness of each step consults only its own home's set and
 `dom(M)`; and the two map-unions at distinct fresh keys commute, all other
 components being framed. ∎ Consequently no function of the final state — no
 selector, no tie-break, no "latest" — distinguishes which of two cross-home
-claims was asserted later: the trace knows, the state does not. Within one
-home the opposite holds: the chain enumeration is strictly increasing (T9;
+claims was asserted later. Within one home the opposite holds: the chain
+enumeration is strictly increasing (T9;
 ChainEnumerationInjectivity, ASN-0093), so the claims homed at one *document*
 are totally ordered by their addresses — *per-home* "latest" is well-defined and
 state-recoverable — per-document-chain, not per-principal. (A per-asserter
@@ -930,12 +934,9 @@ re-pointing its *meaning* — every citation, comment, and dispute attached to
 immutability invariant exists to make impossible.
 **Silent re-creation** — step 1 without step 2, the delete-and-recreate
 simulation — passes (i) and (ii) vacuously and fails (iii): the successor
-exists, fresh and disconnected, indistinguishable from a stranger (EL1); the
-old references keep their exact referent and gain no road anywhere. The
-record retains the bytes and loses the literature — retention without
-correspondence, the "frozen and dead" copy. The asserted edit is the unique
-point between: the past stays exact, and the future is reachable — as data,
-not as identity transfer.
+exists, fresh and disconnected, indistinguishable from a stranger (EL1) — the
+"frozen and dead" copy; the old references keep their exact referent and gain
+no road anywhere. The asserted edit is the unique point between the two.
 
 ## A worked example
 
@@ -992,8 +993,7 @@ unperturbed — each binds `H.0.s_L.k` addresses, which never re-bind — wherea
 a position-bound claim "supersedes `H`'s entry `[s_L,1]`" would now
 accidentally indict `ℓ₁`. Contextually, `c₁`'s to-side no longer projects into
 `H` (`ℓ₀` unlisted, EL11a), so `H`'s current view no longer volunteers the
-old dispute; archivally, `in(ℓ₀, ·)` still returns everything (EL11b). The
-current view forgets; the record cannot.
+old dispute; archivally, `in(ℓ₀, ·)` still returns everything (EL11b).
 
 ## Claims Introduced
 
