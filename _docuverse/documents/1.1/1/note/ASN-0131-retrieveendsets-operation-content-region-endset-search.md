@@ -70,9 +70,6 @@ at least one address the region also covers. We define, for the fixed region,
 — the subscript naming the region's V-position set `W`, the one parameter that varies when
 we later compose regions.
 
-Three properties of this definition are worth stating, because each is a claim an
-alternative implementation would also have to honour.
-
 First, **overlap, not containment**. A single shared address suffices; partial overlap
 is real contact. The endset need not lie inside the region, and the region need not lie
 inside the endset. This is the disjunction Nelson phrases as matching "all or any part
@@ -130,10 +127,9 @@ addressability filter is decidable over finite sets too: `nullified(Σ)` is a co
 (ASN-0086) and `dom(Σ.L)` is finite (L-fin, ASN-0093), so membership in
 `addressable(Σ) = dom(Σ.L) ∖ nullified(Σ)` is settled without enumerating history. The
 operation therefore selects its `(i, e)` pairs by finitely many decidable tests over the
-finite store: RETRIEVEENDSETS is a realisable query, not merely a defined set.
+finite store.
 
-Read what this definition does, and as importantly, what it withholds. It **withholds the
-link address `a`**. The existential `(∃ a : …)` consumes the link and discards it; what
+The definition **withholds the link address `a`**. The existential `(∃ a : …)` consumes the link and discards it; what
 escapes into the answer is `(i, e)`, the anchoring structure, never the identity. This is
 the defining character of the operation: it surfaces *that* anchoring is present, and its
 shape, without ever naming the anchored link. Two distinct links sharing an identical
@@ -145,7 +141,7 @@ both appear in the answer, drawn from one link, yet the answer carries nothing t
 them as one link's two ends. The anchoring is laid bare; the connection is not made
 followable.
 
-It is worth recording what the operation reads and what it does not. `RE` reads the
+`RE` reads the
 arrangement `Σ.M(d)` (to form the image) and the link store `Σ.L` (for endsets, and,
 through `nullified`, for addressability). It never consults the content *values* `Σ.C`,
 the entity set `Σ.E`, or the provenance relation `Σ.R`. And it is a pure query: it reads
@@ -417,9 +413,9 @@ content is surfaced **identically** to one reaching native content; the operatio
 and does not distinguish them, because at the level of content identity there is nothing
 to distinguish.
 
-This forces what the returned span must *describe*. The endset's spans are over content
-identity — the I-addresses of the content's permanent home — not over the V-positions
-where `d` currently displays the borrowed content. Were the span to name the borrowing
+Transclusion makes concrete a fact the definitions already fix: the endset's spans are
+over content identity — the I-addresses of the content's permanent home (ASN-0043) — not
+over the V-positions where `d` currently displays the borrowed content. Were the span to name the borrowing
 position, it would name a coordinate local to `d`, transient and meaningless to any other
 document windowing the same content; the anchoring would fracture into one description per
 window and break the moment `d` re-edited. Because the span names content identity, a
@@ -504,8 +500,8 @@ outright (I3-C, D-I: `Σ.C` unchanged), and the remaining components `Σ.L`, `Σ
 full `(C, L, E, M, R)` state simply lie outside the edit's write-set, so the embedded operation
 frames them — **M-only ⟹ frames `L`, `E`, `R`** — by the very reasoning every ASN-0047 atomic
 mover above carries, each of which likewise touches `Σ.M(d)` alone and frames the rest. The
-link store in particular is left fixed (`L' = L`). This lift is the load-bearing step, and it
-is *depth-independent*: it turns on the edit's write-set being `Σ.M(d)` alone, not on D-SHIFT's
+link store in particular is left fixed (`L' = L`). The lift is *depth-independent*: it turns
+on the edit's write-set being `Σ.M(d)` alone, not on D-SHIFT's
 `#p = 2`, so it covers the delete at every content depth — even where the common content depth
 `m_{s_C} ≥ 2` (S8-depth, S8a, ASN-0036) outruns D-SHIFT's depth-2 realisation. The addressable
 population is therefore unmoved across the shift: `addressable(Σ)` and the region-independent
@@ -725,22 +721,22 @@ The answer's stability thus reduces to two tracked motions: the region's image u
 
 | Label | Statement | Status |
 |-------|-----------|--------|
-| RE-DEF | `RE(W, d, Σ) = { (i, e) : (∃ a ∈ addressable(Σ) : 1 ≤ i ≤ \|Σ.L(a)\| ∧ Σ.L(a).eᵢ = e ∧ touch_W(e)) }`, where the region `(W, d)` has `d ∈ dom(Σ.M)` and `W ⊆ T` a **content-subspace** V-position set (`∀ v ∈ W : subspace(v) = s_C`, a caller obligation, so the image lies in content — `I ⊆ dom(Σ.C)` by S3★, ASN-0047), resolving to `I = image(W, d, Σ)` (F-IMG, ASN-0127); `touch_W(e) ≡ coverage(e) ∩ I ≠ ∅` (ASN-0098, ASN-0043), and `addressable(Σ) = dom(Σ.L) ∖ nullified(Σ)` (ASN-0086); the answer is a finite, computable set of role-tagged endsets, and the operation has frame `Σ' = Σ` (reads only, writes nothing) | introduced |
-| RE-LOC | Locality (with determinism) — for fixed `(W, d)`, `RE` is a function of `(Σ.M, Σ.L)` alone: it reads `Σ.M(d)` for the image and `Σ.L` for endsets and (via `nullified`) addressability; the content *values* `Σ.C`, the entity set `Σ.E`, and the provenance relation `Σ.R` are never consulted. *A fortiori* `RE(W, d, Σ)` is a deterministic function of `(W, d, Σ)`, so every change in the answer is the image of a change in `Σ` | introduced |
-| RE-UNIT | Anchoring without names — the answer's elements are `(role, endset)` pairs (anchoring structure), never link identities; the link address is withheld, distinct links sharing an endset value collapse to one pair, link multiplicity is not recoverable, and a surfaced from-endset cannot be paired with the to-endset of the same link. By withholding identity the answer certifies the *presence and shape* of anchoring without making it followable | introduced |
-| RE-OVL | Overlap matching — an endset is surfaced iff at least one address it covers lies in the region's image (overlap, not containment); partial, single-address overlap suffices; the test is existential *within* an endset and applied *per-endset* against the one region, with no per-slot request differentiation | introduced |
-| RE-CLIP | No clipping (load-bearing) — no reported span is ever truncated to the region boundary; every surfaced span is reported at the full extent recorded in the link. This is universal across both the whole-endset (RE-WHOLE) and touching-spans-only readings; clipping would misrepresent the link's grip (a straddling span would be falsely shortened) | introduced |
-| RE-WHOLE | Whole-endset surfacing (adopted convention) — the reading adopted here returns a surfaced endset in full, *all* of its spans (not only those intersecting `W`), so a discontiguous endset retains the spans pointing outside the region. A convention, not forced by RE-CLIP, held **provisional** pending the entirety-vs-touching-spans question — status carried in full at its derivation site (the Extent section), Open Question 1 | introduced (provisional) |
-| RE-BND | Boundary cases — `RE(W, d, Σ) = ∅` whenever the image is empty (`W ∩ dom(Σ.M(d)) = ∅`, in particular a freshly registered document with empty arrangement) or `addressable(Σ) = ∅` (no links, or all nullified); and an empty endset slot (`∅`, admitted in non-type slots by ASN-0043, only the type-slot non-empty per L3) has `coverage(∅) = ∅`, so `touch_W(∅)` is false and it is never surfaced | introduced |
-| RE-SND | Soundness — `(i, e) ∈ RE(W, d, Σ) ⟹ e` is a genuine slot-`i` endset of an addressable link ∧ `touch_W(e)`; no anchoring is fabricated and none is reported that does not genuinely reach the region (no false positives) | introduced |
-| RE-CMP | Completeness — every addressable link `a` and slot `i` with `touch_W(Σ.L(a).eᵢ)` has `(i, Σ.L(a).eᵢ) ∈ RE(W, d, Σ)`; the answer is *exactly* the touching set, with no silent omission, whether reached by native or transcluded content | introduced |
-| RE-UDIST | Union-distributivity — `RE(W₁ ∪ W₂, d, Σ) = RE(W₁, d, Σ) ∪ RE(W₂, d, Σ)`: the forward image distributes over union unconditionally, so `touch_{W₁∪W₂}` is the disjunction `touch_{W₁} ∨ touch_{W₂}`, and the available slot-endset pool `Avail(Σ)` is region-independent; the RE-level analogue of F-UDIST/F-VDIST (ASN-0127). Intersection-distributivity does *not* follow, and is left open (Open Question 4) | introduced |
-| RE-SEL | Discovery-side selection — `sel(W, d, Σ) = findlinks_V(W, d, Σ) ∩ addressable(Σ)` (F-V, ASN-0127): the contributing links are the addressable links discoverable through the region, so the operation is discovery-anchored — present-tense, non-monotone, arrangement-mediated (D-NONMONO, D-ZERO, ASN-0127), not existence-anchored (fixed-`I`, historical, monotone) | introduced |
-| RE-TRANS | Transclusion blindness — surfacing is by content identity, independent of the link's home and of the covered content's origin (LP16, ASN-0098): a link reaching the region only through transcluded content is surfaced identically to one reaching native content, and each returned span describes the content's permanent home identity, not the borrowing V-position | introduced |
-| RE-IDENT | Content-identity invariance — each surfaced endset's coverage is permanent (L12, ASN-0043; LP3, ASN-0098), so the content-level answer (which I-addresses each surfaced endset anchors to) is arrangement-independent, even though the *selection* of which endsets are surfaced is arrangement-mediated | introduced |
-| RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (RE-IDENT). Over the combined vocabulary of ASN-0047's atomic arrangement movers and ASN-0082's shift-based insert/delete, only the content-subspace movers on `d` — extension, contraction, reordering, and the shifts — together with `K.λ` emission and retraction (RE-RET) can move the answer; every other transition leaves it fixed, including the whole class of **link-subspace-confined** arrangement edits on `d` under `W ⊆ s_C` (link-subspace extension `K.μ⁺_L` and any link-subspace-only `K.μ⁻` contraction retaining all content positions), each leaving the content image and `Avail` fixed. The shifts qualify because they are M-only edits framing `Σ.L`, `Σ.E`, `Σ.R` by the depth-independent cross-model lift derived in the Stability section, so `addressable`/`Avail` hold fixed and only the image swings. The contraction member is precisely RE-CWP's `Δ = ∅` instance (no content position dropped). | introduced |
-| RE-RET | Retraction stability — withdrawing a link `ℓ` is a `K.λ` step (Nullify, ASN-0086) that marks `ℓ` nullified, removing it from `addressable(Σ)` permanently (R6a). Under the standing unit-depth discipline and the net-removal-only hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅` (`Θ` the retraction type), a pair `(i, e)` that `ℓ` bore drops **iff `ℓ` was its sole addressable bearer in `Σ`** — the answer deduplicating and discarding identity (RE-UNIT). The `coverage(Θ)` hypothesis is the sole remaining exception, a type-slot match against content. | introduced |
-| RE-CWP | Contraction-stability weakest precondition — for a `K.μ⁻[d, R]` step, `RE(W, d, ·) = RE(W, d, Σ)` iff `enabled(K.μ⁻[d, R]) ∧ (∀ (i, e) ∈ Avail(Σ) : coverage(e) ∩ Δ ≠ ∅ ⟹ coverage(e) ∩ I_R ≠ ∅)`, where `I_R = {Σ.M(d)(v) : v ∈ W ∩ R}` (D-CWP bridge, ASN-0127), `Δ = image(W, d, Σ) ∖ I_R`, and `Avail(Σ)` is the region-independent pool of addressable slot-endsets. `RE` is monotone-decreasing under contraction, and `R = ∅` collapses it to `RE(W, d, Σ) = ∅`. | introduced |
+| RE-DEF | `RE(W, d, Σ) = { (i, e) : (∃ a ∈ addressable(Σ) : 1 ≤ i ≤ \|Σ.L(a)\| ∧ Σ.L(a).eᵢ = e ∧ touch_W(e)) }`, where `(W, d)` has `d ∈ dom(Σ.M)` and `W ⊆ T` a content-subspace V-position set resolving to `I = image(W, d, Σ)` (F-IMG, ASN-0127); `touch_W(e) ≡ coverage(e) ∩ I ≠ ∅`; `addressable(Σ) = dom(Σ.L) ∖ nullified(Σ)` (ASN-0086); frame `Σ' = Σ` | introduced |
+| RE-LOC | Locality — for fixed `(W, d)`, `RE` reads `Σ.M(d)` (image) and `Σ.L` (endsets, and via `nullified` addressability) alone; `Σ.C`, `Σ.E`, `Σ.R` are never consulted. Hence `RE` is a deterministic function of `(W, d, Σ)` | introduced |
+| RE-UNIT | Anchoring without names — the answer's elements are `(role, endset)` pairs, never link identities; the address is withheld, distinct links sharing an endset value collapse to one pair, multiplicity is not recoverable, and a surfaced from-endset cannot be paired with its link's to-endset | introduced |
+| RE-OVL | Overlap matching — an endset is surfaced iff at least one address it covers lies in the region's image (overlap, not containment); single-address overlap suffices; the test is existential *within* an endset and applied *per-endset*, with no per-slot request differentiation | introduced |
+| RE-CLIP | No clipping — every surfaced span is reported at the full extent recorded in the link, never truncated to the region boundary; universal across both the whole-endset (RE-WHOLE) and touching-spans-only readings | introduced |
+| RE-WHOLE | Whole-endset surfacing (adopted convention) — a surfaced endset is returned in full, *all* its spans (not only those intersecting `W`); not forced by RE-CLIP, held **provisional** pending Open Question 1 | introduced (provisional) |
+| RE-BND | Boundary cases — `RE(W, d, Σ) = ∅` whenever the image is empty (`W ∩ dom(Σ.M(d)) = ∅`) or `addressable(Σ) = ∅`; an empty endset slot has `coverage(∅) = ∅`, so `touch_W(∅)` is false and it is never surfaced | introduced |
+| RE-SND | Soundness — `(i, e) ∈ RE(W, d, Σ) ⟹ e` is a genuine slot-`i` endset of an addressable link ∧ `touch_W(e)`; no false positives | introduced |
+| RE-CMP | Completeness — every addressable link `a` and slot `i` with `touch_W(Σ.L(a).eᵢ)` has `(i, Σ.L(a).eᵢ) ∈ RE(W, d, Σ)`; the answer is *exactly* the touching set, native or transcluded content alike | introduced |
+| RE-UDIST | Union-distributivity — `RE(W₁ ∪ W₂, d, Σ) = RE(W₁, d, Σ) ∪ RE(W₂, d, Σ)`, the RE-level analogue of F-UDIST/F-VDIST (ASN-0127). Intersection-distributivity does *not* follow (Open Question 4) | introduced |
+| RE-SEL | Discovery-side selection — `sel(W, d, Σ) = findlinks_V(W, d, Σ) ∩ addressable(Σ)` (F-V, ASN-0127): the contributing links are the addressable links discoverable through the region, so `RE` is discovery-anchored — present-tense, non-monotone (D-NONMONO, D-ZERO, ASN-0127), not existence-anchored | introduced |
+| RE-TRANS | Transclusion blindness — surfacing is by content identity, independent of the link's home and the covered content's origin (LP16, ASN-0098): a link reaching the region through transcluded content is surfaced identically to one on native content, each span describing content identity, not the borrowing V-position | introduced |
+| RE-IDENT | Content-identity invariance — each surfaced endset's coverage is permanent (L12, ASN-0043; LP3, ASN-0098), so the content-level answer (which I-addresses each surfaced endset anchors to) is arrangement-independent, even though the *selection* of surfaced endsets is arrangement-mediated | introduced |
+| RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (RE-IDENT). Over ASN-0047's atomic movers and ASN-0082's shift-based insert/delete, only the content-subspace movers on `d` (extension, contraction, reordering, the shifts) and `K.λ` emission/retraction (RE-RET) can move the answer; every other transition — including all **link-subspace-confined** edits on `d` under `W ⊆ s_C` (`K.μ⁺_L` and content-retaining `K.μ⁻`) — leaves it fixed | introduced |
+| RE-RET | Retraction stability — withdrawing a link `ℓ` (Nullify, ASN-0086) marks it nullified, removing it from `addressable(Σ)` permanently (R6a). Under the standing unit-depth discipline and the net-removal-only hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅` (`Θ` the retraction type, the sole remaining exception), a pair `(i, e)` that `ℓ` bore drops **iff `ℓ` was its sole addressable bearer in `Σ`** (RE-UNIT) | introduced |
+| RE-CWP | Contraction-stability weakest precondition — for a `K.μ⁻[d, R]` step, `RE(W, d, ·) = RE(W, d, Σ)` iff `enabled(K.μ⁻[d, R]) ∧ (∀ (i, e) ∈ Avail(Σ) : coverage(e) ∩ Δ ≠ ∅ ⟹ coverage(e) ∩ I_R ≠ ∅)`, where `I_R = {Σ.M(d)(v) : v ∈ W ∩ R}` (D-CWP bridge, ASN-0127) and `Δ = image(W, d, Σ) ∖ I_R`. The boundary `R = ∅` collapses to `RE(W, d, Σ) = ∅` | introduced |
 
 ## Open Questions
 
