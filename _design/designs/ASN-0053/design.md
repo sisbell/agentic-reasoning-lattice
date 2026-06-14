@@ -1,0 +1,88 @@
+## What this is
+
+ASN-0053 defines the **value-level algebra over address-range designators** — spans (start + width, denoting a half-open interval on the tumbler line) and span-sets (collections of them). It specifies how to compare, merge, split, intersect, difference, and *normalize* these designators to a unique canonical form. It is the content-agnostic computational foundation that every content-designation and content-region operation in the system sits on top of.
+
+## Design commitments
+
+These are locked in; downstream design cannot violate them.
+
+- **Identity is by denotation, not construction.** A span is fully determined by its endpoints; two spans with the same start and reach are the same span, however each was computed. The canonical equality test is denotational, never structural-by-history. *(Forced.)*
+- **Spans are non-empty; the empty designation is a separate kind.** Width is always > 0 (S2/T12). "Nothing designated" is the **empty span-set** ⟨⟩, *not* a zero-width span. These two must stay structurally distinct — a zero-width span is an illegal state. *(Forced.)*
+- **The algebra is partial: level-uniform, level-compatible only.** Every theorem requires `#start = #width` per span and a shared tumbler length across operands. Cross-level operations are *out of scope*, a hard boundary, not a convenience the implementer may relax. *(Forced.)*
+- **Span-sets are sets of positions, not ordered series.** Order and overlap among components carry no meaning; equivalence is purely denotational (Nelson Q8). Normalization may freely reorder and coalesce. *(Forced.)*
+- **The normalized form is the unique canonical representative** of a denotation — sorted, non-overlapping, non-adjacent (S8 + S9). Canonicalization *is* a boolean OR over address space. This uniqueness is load-bearing: it makes canonical form usable as an equality oracle and a cache key. *(Forced.)*
+- **Spans denote *infinite* position sets; span-sets only *cover* finite targets** (S7). Deeper sub-address extensions fill every interval, so you can never exactly represent an arbitrary finite set of positions. The algebra is interval arithmetic over a hierarchical ordered space — *not* finite set manipulation, and *not* byte counting. *(Forced.)*
+- **Ordering and membership are total lexicographic tumbler comparison with no special-casing of zero separators** (S0, Q11). A sub-address numerically between two endpoints is genuinely interior. Getting this wrong silently corrupts every operation. *(Forced.)*
+- **start↔reach interconversion is sound only under level-uniformity** (WF/WR). The worked failure `[1,5] ⊖ [1,3,5] = [0,2,0] ≠ [0,2]` shows it breaks silently otherwise. This is *why* level-uniformity isn't bureaucratic — it's the precondition that makes an endpoint representation recoverable to a width. *(Forced.)*
+- **(start, width) is the spec's chosen form** — but for level-uniform spans it is interchangeable with (start, reach). Which one you *store* is conventional; the constraint is only that you not assume interconversion outside level-uniformity. *(Conventional.)*
+
+## What must be built
+
+Described functionally — what each must do.
+
+- **A span value** carrying a start position and a positive width, with a derivable reach (exclusive upper bound). Its constructor must reject non-positive width and enforce level-uniformity.
+- **An endpoint constructor** (WF): given two equal-length positions `s < r`, produce the span covering `[s, r)`. This is the single primitive every result-building operation routes through.
+- **A pairwise classifier** (SC): given two spans, decide which of the five relations holds — separated, adjacent, proper-overlap, containment, equal. Total, exhaustive, mutually exclusive.
+- **Pairwise operations**: intersection (→ ∅ or one span), merge of overlapping/adjacent (→ one span), split at an interior point (→ two adjacent parts), difference (→ 0/1/2 spans).
+- **A span-set** as an unordered union-denoting collection, with a `normalize` that yields the unique canonical form, and union-by-combination.
+- **A level-compatibility gate** that validates (or type-encodes) that all operands share a tumbler length, failing fast on mismatch.
+- **An equivalence test** built as "normalize both, compare canonically."
+- All of the above delegating one thing downward: **the total order on positions**. Everything rests on that single comparison.
+
+## Implementation approaches
+
+**Representation: (start, width) authoritative, reach as a recomputed hint.** Match the note and Green's `vspan` form; width is the natural unit for editing (insert/delete shift widths). Reach is a pure function of `start ⊕ width` — treat it as a *hint* in the Lampson sense: recompute on demand, optionally memoize on the hot comparison path, never persist it as authoritative state. The alternative — store (start, reach), derive width — is equally valid *for level-uniform spans* and slightly cheaper for the classifier (which compares endpoints). Pick (start, width); it keeps the edit primitive and the storage primitive aligned, and reach stays a derived value you can't desynchronize.
+
+**Pairwise engine: one comparator, one constructor, min/max.** The whole single-span algebra collapses to: *classify with SC, then build the result with WF from the min/max of the relevant endpoints under the total order.* Intersection is `(max start, min reach)`; merge is `(min start, max reach)`; difference is the left/right complements; split is two WF calls around the cut. This is the simplest thing that honors the spec — resist writing four independently-reasoned operations when they share a dispatcher and a constructor. Outputs are bounded by construction (intersection ≤1, merge =1, difference ≤2), matching the proven bounds.
+
+**Normalization — the central primitive — batch vs incremental.**
+- *Batch sort-then-sweep* (merge-overlapping-intervals): sort by start, linear left-to-right coalesce. O(n log n), dominated by the sort. This is the obvious, proven approach; use it for ephemeral or modest span-sets.
+- *Incremental maintenance*: back the span-set with a **persistent (structurally-shared) ordered map keyed by start** (the kind `im` provides), holding the N1/N2 invariant on every insert by coalescing neighbors. O(log n) per update, and each insert yields a *new* normalized span-set sharing structure with the old — cheap versioning that retains prior forms. This is the Xanadu-shaped choice and it directly answers the note's open question about "minimal update when a new address is allocated." Use it when span-sets are large and edited in place.
+
+Default to batch; reach for incremental when span-sets are long-lived and mutated.
+
+**Generalize span-set boolean ops with a sweep-line / merge-scan.** Union, intersection, and difference over two *already-normalized* span-sets are one parametrized linear pass over their endpoints (like merging sorted runs), producing a normalized result by construction. This subsumes `normalize` itself (union-with-self) and is the right engine if you need full span-set boolean algebra. Caveat the spec flags: span-set–level *difference* has no proven output bound yet (open question), so don't promise one. Pick the sweep-line when you need the full algebra at set level; stick to the pairwise lemmas when you only ever combine single spans and want the proven bounds.
+
+**Eager vs lazy canonicalization.** Eager ("every stored span-set is always normalized") makes equality a structural compare and makes every invariant trivially inspectable, at the cost of work on transient intermediates. Lazy (normalize only at equality / serialize / query boundaries) avoids that churn but you must never compare un-normalized forms. Recommend **eager for stored/handed-off span-sets, lazy for in-flight computation.**
+
+**Canonical form as identity and cache key.** Because S9 makes normalized form unique, hashing it yields a stable **content-addressed identity** for a span-set — use it to memoize `normalize`, dedup equal designations, and key version-comparison. This is the same discipline as the repo's `paths.json`: a recomputable registry/hint over the authoritative journal, not a second source of truth.
+
+**Order-independence buys lock-free parallel union (S10).** Normalized span-sets under union form a commutative, associative, idempotent join — a join-semilattice / CRDT-style merge. Workers can accumulate span-sets in any order and merge to a *deterministic* canonical result regardless of interleaving. This is the lever for parallel span-set construction (relevant to this repo's multi-worker substrate). Caveat: only union is order-free; difference is not — don't fold differences into a commutative merge.
+
+**Scale-up indexing is a boundary, not this layer.** A flat persistent sequence is fine into the thousands of spans. For docuverse-scale designation and "which spans touch region R" queries, the proven structure is the **enfilade family** — the spanfilade indexes spans, with interior nodes carrying cumulative displacement for sublinear range work. A general interval/segment tree is the non-Xanadu alternative; weigh it only if you don't already have an enfilade implementation. Either way this is the *indexing* subsystem making the algebra fast at scale — the algebra defines the operations; the enfilade is how you serve them.
+
+**Persistence.** Span-sets are immutable values living inside links/endsets; the working substrate already journals these as an append-only `links.jsonl` recovered by replay. Keep that discipline: never mutate a span-set in place — difference/edit produces a *new* value, old ones persist for versioning — and journal the operation or the resulting value, in line with permascroll-style append-only storage.
+
+**Level enforcement: fail-fast now, type-encode later.** Validate level-compatibility at the operation boundary and abort on mismatch (the note grounds this in Green's split, which aborts on a level mismatch). This keeps the door open for the cross-level extension the note lists as an open question. Once cross-level policy is settled, you can lift the check to a type-level invariant (a span-set tagged with its length, mismatches unrepresentable) and delete the runtime guard.
+
+## Guarantees to uphold
+
+- **Immutability / permanence** — span and span-set values never change; operations yield new values. *By construction* if you never mutate.
+- **Non-emptiness** — every span has width > 0. *Actively enforced* by the constructor rejecting width ≤ 0; the empty designation must route to ⟨⟩, never a zero-width span.
+- **Level-uniformity preserved** — *by construction* if every result is built through WF; the *input* level-compatibility is *actively enforced* at the boundary gate.
+- **Canonical uniqueness** — one normalized form per denotation (S9). The theorem holds; you *uphold* it by always normalizing before any identity/equality/caching decision.
+- **Lossless subdivision** — split∘merge = identity, merge∘split = original pair (S4a/S3b). Hold by the algebra, but preserved in practice *only* if you build widths via WF, not by ad-hoc arithmetic.
+- **Bounded fan-out** — pairwise difference ≤ 2, intersection ≤ 1, merge = 1. *By construction.*
+- **Order-independent union** (S10) — gives deterministic parallel/merge results. *By the algebra*; you uphold it by keeping the merge path union-only.
+- **Correct ordering** — total lexicographic comparison, no special zero handling. *Actively enforced* and the easiest guarantee to break silently.
+- **Denotational identity** — equal iff same denotation, never distinguished by construction history. *Upheld by canonicalizing.*
+
+## How it fits
+
+- **Leans down on tumbler arithmetic (ASN-0034)** for everything numeric: `⊕`/`⊖`, divergence, action point, T12 well-formedness, left cancellation, associativity, and the displacement round-trip/uniqueness laws (D1/D2). Reach, WF, WR, and every merged/split width reduce to a tumbler add or subtract — the span algebra contributes no new arithmetic, only interval logic.
+- **Rests on the total order T1.** Convexity, the exhaustive five-case classification, and normalized-form uniqueness all flow from positions being totally ordered.
+- **Hands up to every content-designation and content-region operation.** Nelson frames span-sets as *the* mechanism for arbitrary content designation, so endsets, links, and retrieval/edit operations (e.g. retrieve-endsets, content-region queries) consume classification, intersection, difference, and normalization from here. This note is the shared foundation those operation ASNs were meant to factor their common span properties *into*.
+- **Sits below the content/storage layer.** Mapping populated positions to bytes (permascroll / POOM) is out of scope; the unpopulated-vs-populated distinction is deferred to the content layer (the note's open question leans that way). The algebra is purely address-range.
+- **In the working substrate**, span-sets are the endsets carried by links in the append-only journal; this algebra is what computes over them.
+
+## Decisions for the builder
+
+- **Authoritative representation** — (start, width) vs (start, reach). *Recommend (start, width); reach as a recomputed hint.*
+- **Eager vs lazy normalization**, and whether "always normalized" is a stored invariant on span-sets.
+- **Batch vs incremental normalization**, and whether to back span-sets with a persistent ordered map / interval tree / enfilade.
+- **Pairwise lemmas vs a single sweep-line boolean engine** for span-set operations.
+- **Level enforcement** — runtime fail-fast vs type-level level-tag.
+- **Whether to content-address span-sets** by hashing the normalized form (for dedup, memoization, version comparison).
+- **Empty-designation representation** — the empty sequence (recommended) — plus a hard guarantee that no zero-width span is ever constructed anywhere.
+- **Scale threshold** at which you graduate from a flat persistent sequence to enfilade/tree indexing.
+- **Whether to exploit the union join-semilattice** (CRDT-style, lock-free) for parallel/distributed span-set accumulation.
