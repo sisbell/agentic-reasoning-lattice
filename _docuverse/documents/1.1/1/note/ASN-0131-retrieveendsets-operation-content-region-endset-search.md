@@ -119,8 +119,7 @@ identical home documents via `K.σ` and replay the identical `K.λ` sequence —
 hand does a `∀`-quantified ASN-0086 `Σ.L`-lemma carry to every ASN-0047-reachable state. The
 one ASN-0086 fact we consume at definition time is `nullified` itself — its well-definedness
 and computability — which the bridge carries here to ground
-`addressable` in RE-DEF and its decidability below; the remaining ASN-0086 lemmas this note
-borrows are licensed by the same bridge and cited where each is used.
+`addressable` in RE-DEF and its decidability below.
 
 A withdrawn link's anchoring should not be reported as live — a design decision that fixes
 the operation as a report over the *active* population, not the full permanent store. So we range
@@ -400,8 +399,8 @@ proof filters it by the disjunction — gives
 
 and, like the image `⊆` law it rests on, this needs *no* injectivity hypothesis.
 
-The construction turns on one general fact about emission, which we establish here and reuse
-under Stability below. Write `Θ` for ASN-0086's designated retraction type (ASN-0086's own
+The construction turns on one general fact about emission, which we establish here. Write `Θ`
+for ASN-0086's designated retraction type (ASN-0086's own
 symbol is `R`, which this note reserves for other uses, so we rename it `Θ`). A `K.λ` step emits
 a *fresh* link — allocation gives `ℓ_new ∉ dom(Σ.L)`, so `ℓ_new` enters `dom(Σ'.L)` — and whether
 that fresh output is *addressable* in its post-state (`ℓ_new ∉ nullified(Σ')`) turns on whether
@@ -555,16 +554,14 @@ back down (D-SHIFT, established there at text depth `#p = 2`; the foundation sup
 gap-closing interior-span delete at greater content depths `m_{s_C} > 2` (S8-depth, S8a,
 ASN-0036), the depth-general `K.μ⁻` being tail-truncation rather than interior-span deletion).
 So delete-stability is scoped to text depth `#p = 2` and insert-stability to every `#p ≥ 2` —
-an asymmetry in which displacement primitives ASN-0082 supplies, not in the stability
-argument itself. What that argument requires of
+an asymmetry in which displacement primitives ASN-0082 supplies. What that argument requires of
 either is not the displacement's specifics but only that it is an *arrangement edit confined to
 `Σ.M(d)`* — an **M-only edit**. ASN-0082 establishes this confinement only over its own
 modelling state: it models these primitives over a `(C, M)` state with no link, entity, or
 provenance store, and proves they write only `Σ.M(d)` and frame `Σ.C` (I3-C, D-I: `Σ.C`
-unchanged). That settles the `(C, M)` behaviour but cannot speak to the three stores `Σ.L`,
-`Σ.E`, `Σ.R` that the full state `(C, L, E, M, R)` adds and the `(C, M)` primitives never
-name — a `(C, M)`-spec leaves a primitive's action on stores absent from its model entirely
-unconstrained. We therefore **adopt as a modelling assumption** the *conservative lift*: we
+unchanged). That settles the `(C, M)` behaviour, but a `(C, M)`-spec leaves a primitive's action on the
+three stores `Σ.L`, `Σ.E`, `Σ.R` that the full state `(C, L, E, M, R)` adds — absent from its
+model — entirely unconstrained. We therefore **adopt as a modelling assumption** the *conservative lift*: we
 treat shift-based insert/delete as edits touching no store but `Σ.M(d)`, framing `Σ.L`,
 `Σ.E`, `Σ.R`. Under that assumption the lifted edit acts exactly as
 every ASN-0047 atomic mover above does, at any content depth. The addressable population is
@@ -679,7 +676,7 @@ emitter address; `b` is therefore addressable in `Σ'` (`b ∉ nullified(Σ')`) 
 single retraction does two things at once — it removes `ℓ` from `addressable` (through the
 nullified marking) *and* adds the emitter `b` to it. We must ask what the emitter `b` can contribute. Its three
 endsets are the from-set `∅` — empty because the standing commitment admits only `Nullify`
-retractions, not the attributed ones ASN-0086 otherwise permits — a to-set
+retractions — a to-set
 `{(ℓ, δ(1, #ℓ))}` whose single span covers `ℓ` and `ℓ`'s extensions, and the retraction
 type-set `Θ`. The first two are content-disjoint
 *unconditionally*, and for one shared reason worth isolating: the field-agreement argument
