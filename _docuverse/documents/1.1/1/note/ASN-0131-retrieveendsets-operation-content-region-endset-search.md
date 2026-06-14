@@ -382,13 +382,18 @@ proof filters it by the disjunction — gives
 >   ⊆ { (i, e) ∈ Avail(Σ) : touch_{W₁}(e) ∧ touch_{W₂}(e) }
 >   = RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)`,
 
-and, like the image `⊆` law it rests on, this needs *no* injectivity hypothesis. What fails
-is the reverse inclusion: an endset may meet `image(W₁, d, Σ)` and `image(W₂, d, Σ)` each
-through a shared I-address carried by positions outside `W₁ ∩ W₂` — the very non-injective
-coincidence that makes the image inclusion strict — and yet meet `image(W₁ ∩ W₂, d, Σ)` not
-at all, so the pair is in `RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)` without being in `RE(W₁ ∩ W₂, d, Σ)`.
-The `⊇` direction — hence full intersection-composability — is therefore the genuinely
-separate question, and it is that direction we leave open.
+and, like the image `⊆` law it rests on, this needs *no* injectivity hypothesis. The
+reverse inclusion, by contrast, **fails in general** — and we can exhibit the failure, not
+merely fail to derive it. Whenever `Σ.M(d)` is non-injective (M13, M14, ASN-0058), take a
+position `v₁ ∈ W₁ ∖ W₂` and a position `v₂ ∈ W₂ ∖ W₁` sharing one I-address
+`Σ.M(d)(v₁) = Σ.M(d)(v₂) = a` that no position of `W₁ ∩ W₂` maps to, and an endset `e`
+covering `a`. Then `e` meets `image(W₁, d, Σ)` (through `v₁`) and `image(W₂, d, Σ)` (through
+`v₂`), so `(i, e) ∈ RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)`; yet `a ∉ image(W₁ ∩ W₂, d, Σ)` and `e`
+meets that image nowhere, so `(i, e) ∉ RE(W₁ ∩ W₂, d, Σ)`. This is a genuine counterexample
+to `⊇`, not an unresolved question: the bare `⊇` direction is settled *negatively*
+(RE-UDIST-∩). What remains genuinely open is the refinement — whether some restriction on
+the arrangement, injectivity of `Σ.M(d)` the natural candidate, recovers equality
+(Open Question 4).
 
 ## Existence and discoverability: which side does this answer for?
 
@@ -435,16 +440,9 @@ content is surfaced **identically** to one reaching native content; the operatio
 and does not distinguish them, because at the level of content identity there is nothing
 to distinguish.
 
-Transclusion makes concrete a fact the definitions already fix: the endset's spans are
-over content identity — the I-addresses of the content's permanent home (ASN-0043) — not
-over the V-positions where `d` currently displays the borrowed content. Were the span to name the borrowing
-position, it would name a coordinate local to `d`, transient and meaningless to any other
-document windowing the same content; the anchoring would fracture into one description per
-window and break the moment `d` re-edited. Because the span names content identity, a
-single endset is the *same* endset no matter which window reaches it — the same anchoring
-seen through `d` and through `d_src` and through every co-transcluder. This is the
-property that lets one make a link against borrowed content and have it hold, automatically,
-on the original and on every other document that includes those bytes.
+Endset spans name content identity — the I-addresses of the content's permanent home —
+not the borrowing V-position (ASN-0043); so one endset is the same anchoring through every
+co-transcluder.
 
 This connects to a general invariant — independent of transclusion — which we state once
 here: **each surfaced endset's coverage is permanent**. Links are immutable (L12, ASN-0043) and no transition alters an
@@ -520,11 +518,16 @@ delete-stability is scoped to text depth `#p = 2` and insert-stability to every 
 asymmetry in the displacement's *existence*, not in the stability argument, which would cover a
 higher-depth delete were the foundation to supply one. What that argument requires of either is
 not the displacement's specifics but only that it is an *arrangement edit confined to `Σ.M(d)`*
-— an **M-only edit**. We must state this as a cross-model lift, because ASN-0082 models these
-primitives over a `(C, M)` state with no link store: there it proves the content frame outright
-(I3-C, D-I: `Σ.C` unchanged), and the remaining components `Σ.L`, `Σ.E`, `Σ.R` of the full
-`(C, L, E, M, R)` state simply lie outside the edit's write-set, so the edit frames them —
-**M-only ⟹ frames `L`, `E`, `R`** — exactly as every ASN-0047 atomic mover above does, at any
+— an **M-only edit**. This is a cross-model lift, and its status must be labelled honestly.
+ASN-0082 models these primitives over a `(C, M)` state with no link, entity, or provenance
+store: there it proves the content frame outright (I3-C, D-I: `Σ.C` unchanged) and writes only
+`Σ.M(d)`. What the *lifted* operation does to `Σ.L`, `Σ.E`, `Σ.R` is therefore not something
+ASN-0082 establishes — those stores are absent from its model, so there is no write-set over
+the full state for them to "lie outside" of — but a property of how the lift is performed. We
+make that choice explicit and adopt it as an **assumption of this note**: the *natural lift* of
+ASN-0082's `(C, M)` insert/delete to the full `(C, L, E, M, R)` state writes only `Σ.M(d)` and
+frames the rest, `L' = L ∧ E' = E ∧ R' = R`. Under this assumption — **M-only ⟹ frames `L`,
+`E`, `R`** — the lifted edit acts exactly as every ASN-0047 atomic mover above does, at any
 content depth. The addressable population is therefore unmoved across the shift:
 `addressable(Σ)` and the region-independent pool `Avail(Σ)` are functions of `Σ.L` (through
 `nullified`) alone, so only the region's image can move. Content is *displaced through* `d`'s
@@ -750,7 +753,8 @@ The answer's stability thus reduces to two tracked motions: the region's image u
 | RE-BND | Boundary cases — `RE(W, d, Σ) = ∅` whenever the image is empty (`W ∩ dom(Σ.M(d)) = ∅`) or `addressable(Σ) = ∅`; an empty endset slot has `coverage(∅) = ∅`, so `touch_W(∅)` is false and it is never surfaced | introduced |
 | RE-SND | Soundness — `(i, e) ∈ RE(W, d, Σ) ⟹ e` is a genuine slot-`i` endset of an addressable link ∧ `touch_W(e)`; no false positives | introduced |
 | RE-CMP | Completeness — every addressable link `a` and slot `i` with `touch_W(Σ.L(a).eᵢ)` has `(i, Σ.L(a).eᵢ) ∈ RE(W, d, Σ)`; the answer is *exactly* the touching set, native or transcluded content alike | introduced |
-| RE-UDIST | Union-distributivity — `RE(W₁ ∪ W₂, d, Σ) = RE(W₁, d, Σ) ∪ RE(W₂, d, Σ)`, the RE-level analogue of F-UDIST/F-VDIST (ASN-0127). For intersection, the `⊆` half holds unconditionally — `RE(W₁ ∩ W₂, d, Σ) ⊆ RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)`, by the image `⊆` law — while the `⊇`/equality direction does *not* follow under the non-injective arrangement (Open Question 4) | introduced |
+| RE-UDIST | Union-distributivity — `RE(W₁ ∪ W₂, d, Σ) = RE(W₁, d, Σ) ∪ RE(W₂, d, Σ)`, the RE-level analogue of F-UDIST/F-VDIST (ASN-0127) | introduced |
+| RE-UDIST-∩ | Intersection (one-sided) — `RE(W₁ ∩ W₂, d, Σ) ⊆ RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)` holds unconditionally, by the image `⊆` law; the reverse `⊇` **fails in general**, exhibited by a concrete counterexample whenever `Σ.M(d)` is non-injective (M13, M14, ASN-0058). Whether an arrangement restriction (injectivity) recovers equality is the open refinement (Open Question 4) | introduced |
 | RE-SEL | Discovery-side selection — `sel(W, d, Σ) = findlinks_V(W, d, Σ) ∩ addressable(Σ)` (F-V, ASN-0127): the contributing links are the addressable links discoverable through the region, so `RE` is discovery-anchored — present-tense, non-monotone (D-NONMONO, D-ZERO, ASN-0127), not existence-anchored | introduced |
 | RE-TRANS | Transclusion blindness — surfacing is by content identity, independent of the link's home and the covered content's origin (LP16, ASN-0098): a link reaching the region through transcluded content is surfaced identically to one on native content, each span describing content identity, not the borrowing V-position | introduced |
 | RE-IDENT | Content-identity invariance — each surfaced endset's coverage is permanent (L12, ASN-0043; LP3, ASN-0098), so the content-level answer (which I-addresses each surfaced endset anchors to) is arrangement-independent, even though the *selection* of surfaced endsets is arrangement-mediated | introduced |
@@ -766,7 +770,7 @@ When distinct addressable links carry an identical endset value in the same slot
 
 When a surfaced endset is rendered into the querying document's V-positions rather than content identity, what must the answer guarantee for endset content the document does not currently arrange?
 
-Must the surfaced anchoring distribute over *intersections* of the queried region in the `⊇` direction — `RE(W₁, d, Σ) ∩ RE(W₂, d, Σ) ⊆ RE(W₁ ∩ W₂, d, Σ)`, hence equality — given that the non-injective arrangement (M13, M14, ASN-0058) makes the forward image's intersection inclusion strict and so defeats this direction? (The `⊆` direction is derived above unconditionally, and the union law as RE-UDIST.)
+Under what restriction on the arrangement `Σ.M(d)` — injectivity the natural candidate — is intersection-equality `RE(W₁ ∩ W₂, d, Σ) = RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)` recovered, given that the bare `⊇` direction fails in general under a non-injective arrangement (RE-UDIST-∩; M13, M14, ASN-0058)?
 
 What completeness guarantee must hold when anchoring that touches a region resides in a link store not co-resident with the queried document?
 
