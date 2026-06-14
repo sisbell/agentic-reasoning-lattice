@@ -2,8 +2,8 @@
 
 *2026-06-13*
 
-We have, by the time we reach this note, three stores in the system state
-`Σ = (Σ.C, Σ.L, Σ.E, Σ.M, Σ.R)` (ASN-0047). The content store `Σ.C : T ⇀ Val`
+We have, by the time we reach this note, two stores and an arrangement family in the
+system state `Σ = (Σ.C, Σ.L, Σ.E, Σ.M, Σ.R)` (ASN-0047). The content store `Σ.C : T ⇀ Val`
 (ASN-0036) maps I-addresses to immutable content. The arrangement family `Σ.M`, with
 `Σ.M(d) : T ⇀ T` (ASN-0036), maps each V-position of a document `d` to the I-address it
 currently occupies. The link store `Σ.L : T ⇀ Link` (ASN-0043) maps link addresses to
@@ -103,16 +103,14 @@ span `{(t, δ(1, #t))}` at a single prior target. The bridge to ASN-0086 — cal
 movers (`K.μ` family), entity creation `K.δ`,
 provenance recording `K.ρ`, and content allocation `K.α` all frame the link store
 (`L' = L`). So the link store evolves identically under ASN-0086's transition relation and
-under ASN-0047's, and every ASN-0086 lemma that constrains `Σ.L` alone holds verbatim at
-every ASN-0047-reachable state. The bridge extends to lemmas that reach just past "`Σ.L`
-alone" — those whose `Σ.L`/`nullified` conclusions carry hypotheses over `dom(Σ.M)` or the
-derived emitter `a_emit(Σ, d)` read from `(Σ.M, Σ.L)`. It carries these too, because
-`dom(Σ.M)` is the *same* ASN-0093 document substrate (`dom(M) = E_doc`, M1, ASN-0047) that
-both ASN-0086 and ASN-0047 extend, and `K.λ` computes `a_emit(Σ, d)` from the document
-operand `d` by one formula under either transition relation. So the bridge's standing
-conclusion is this: every ASN-0086 lemma whose conclusion constrains `Σ.L` or `nullified`
-holds at every ASN-0047-reachable state, including the lemmas whose hypotheses name
-`dom(Σ.M)` or the derived emitter `a_emit(Σ, d)`.
+under ASN-0047's. This identity reaches even past "`Σ.L` alone" — to lemmas whose
+`Σ.L`/`nullified` conclusions carry hypotheses over `dom(Σ.M)` or the derived emitter
+`a_emit(Σ, d)` read from `(Σ.M, Σ.L)` — because `dom(Σ.M)` is the *same* ASN-0093 document
+substrate (`dom(M) = E_doc`, M1, ASN-0047) that both ASN-0086 and ASN-0047 extend, and
+`K.λ` computes `a_emit(Σ, d)` from the document operand `d` by one formula under either
+transition relation. So the bridge's standing conclusion is this: every ASN-0086 lemma
+whose conclusion constrains `Σ.L` or `nullified` holds at every ASN-0047-reachable state,
+including the lemmas whose hypotheses name `dom(Σ.M)` or the derived emitter `a_emit(Σ, d)`.
 
 One consequence of that shared `K.λ` semantics recurs. Write `Θ` for ASN-0086's designated
 retraction type (ASN-0086's own symbol is `R`, which this note reserves for other uses, so we
