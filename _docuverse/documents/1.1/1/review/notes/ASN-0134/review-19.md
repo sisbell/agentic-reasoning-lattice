@@ -1,0 +1,41 @@
+# Review of ASN-0134
+
+This is an unusually careful note. I verified the conflict theory (H0–H3) including the nesting-homes subtlety (versions via `inc(d,1)` genuinely produce `d ≼ d'` document pairs both registrable under `K.σ`, so H1's origin-not-anchor argument is necessary, not decorative), the confluence proof of G1, the two operation-level non-confluence families of §4 (including instance (ii)'s survival of emit-before-retract and surface-discipline), the de-duplication scoping in M1(b) (the literal-vs-operative `K`-surface-emitted distinction is correct and the clause-8 carve-out is properly justified), and the §7/§8 worked traces. These hold up.
+
+One real defect remains.
+
+## REVISE
+
+### Issue 1: A1 establishes a category of single-index reads that no contract clause covers, and attributes their soundness to a clause whose body excludes them
+
+**ASN-0134, §1 (A1) vs §9 (MIC clause 4, M1(d)) and §8 (V0)**:
+
+A1 painstakingly carves reads into three categories by *access count*, and explicitly puts `age` and single-home `stale` **outside** the Observe_K-grade camp:
+
+> "Observe_K — per-type by construction (ASN-0086) — does not expose it; **it is not an Observe_K-grade read**" (re `age`)
+
+It then routes the soundness of these non-Observe_K single-index reads through clause 4:
+
+> "one index, **clause-4-sound**, like age itself" (re single-home `stale`)
+> "a staleness-keyed quiescence recognizer over multi-homed members therefore falls under **clause 7, not clause 4**" (so single-home `stale` → clause 4, by the contrast)
+
+But clause 4's body governs only `Observe_K`:
+
+> "Per-call snapshot reads (A3). **Each individual Observe_K call** is evaluated against a single committed state Σ_k…"
+
+**Problem**: A1 itself classifies `age` and single-home `stale` as *not* Observe_K-grade (they read the home's cross-type link frontier `f_d`, not any one type's active view), yet repeatedly cites clause 4 — an Observe_K-specific clause — as the basis for their single-index soundness. The substantive claim (these are single-index, hence sound) is correct, but the *cited justification is the wrong clause*: clause 4 by its wording does not reach them. The same mismatch runs through the verdict-soundness machinery, which is framed as a strict dichotomy:
+
+- V0 (§8): "A verdict obtained by a single Observe_K — a predicate **evaluable on one type's active view**" — a single-home-`stale` verdict reads a cross-type frontier, so it is *not* evaluable on one type's active view; V0 does not cover it.
+- M1(d) (§9) proof: "A **single-Observe_K verdict** reads one canonical state by clause 4… A **multi-read verdict**, under clause 7…" — the case analysis enumerates single-Observe_K and multi-read only. A single-home-`stale` / `age`-based quiescence verdict is single-index but neither, so its soundness is discharged by neither cited clause.
+
+So A1 defines a third read category (single-index, cross-type-frontier) and makes it load-bearing for the free-vs-clause-7 split, but V0, V2, clause 4, and M1(d) are all binary (single-Observe_K vs multi-read) and give that category no home. The "clause-4-sound" and "falls under clause 4" attributions are, as the contract is written, incorrect.
+
+**Required**: Reconcile the contract with A1's own three-way classification. Either (a) generalize clause 4's body to match its generic title "Per-call snapshot reads" — "each individual *single-bounded-access* read (`Observe_K`, `age`, single-home `stale`)" — so the "clause-4-sound" attributions become true; or (b) keep clause 4 Observe_K-specific and re-attribute these reads' soundness to clause 1 (no read witnesses a partial step) plus A1's one-access property, correcting "clause-4-sound"/"falls under clause 4," and add the single-index non-Observe_K verdict as an explicit sub-case in V0/M1(d). As it stands a downstream consumer building a single-home-`stale` quiescence recognizer and reaching for the cited clause finds it speaks only of `Observe_K`.
+
+## OUT_OF_SCOPE
+
+None. The note's deferrals (batch read-atomicity, durability promotion, cross-server composition, weakest primitives for clauses 2/7/8, sub-allocator partitioning, out-of-order retraction semantics) are correctly posed as Open Questions rather than smuggled in as claims, and the §-"does not cover" topics define no claims.
+
+The note defines state-level consistency guarantees and an implementation-independent contract (MIC) that an alternative realization would equally have to satisfy; it specifies obligations, not a mechanism (explicitly no lock/scheduler/transaction). It belongs in the specification — no drift.
+
+VERDICT: REVISE
