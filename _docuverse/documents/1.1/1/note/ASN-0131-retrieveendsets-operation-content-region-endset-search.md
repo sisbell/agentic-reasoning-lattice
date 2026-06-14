@@ -99,29 +99,19 @@ Now we can state what RETRIEVEENDSETS returns. We must first settle which links 
 over. A link, once created, is permanent and immutable in the store (L12, ASN-0043) — but
 the system admits *retraction*, recorded not by deleting the link but by emitting a
 withdrawal link that marks the target nullified (ASN-0086). We adopt throughout, as a
-**standing assumption**, ASN-0086's *unit-depth retraction discipline*, carried directly
-over ASN-0047's transition vocabulary: retraction-typed links enter the store only through
-`Nullify`, so every retraction to-set is a unit-depth span `{(t, δ(1, #t))}` at a single
-prior target. The ASN-0047 `K.λ` would otherwise admit a *wide* retraction whose to-set
-spans a range of link addresses — it constrains only arity and the non-empty type slot (L3,
-ASN-0043), not the to-set's shape — and such a value could pre-nullify links not yet
-allocated; the discipline is precisely what excludes it. Two things make this assumption
-usable over ASN-0047. First, it is *preserved*: only `K.λ` writes `Σ.L`, and the discipline
-restricts every retraction-typed `K.λ` to `Nullify`, while the arrangement movers (`K.μ`
-family), entity creation `K.δ`, provenance recording `K.ρ`, and content allocation `K.α`
-all frame the link store (`L' = L`). Second, that same framing lets us *import* ASN-0086's
-link-store lemmas — the `nullified` set, R0a's flat-domain antichain, R-Scope's single-tuple
-scope, R6a's retraction permanence, R6c's restoration-by-reemission, and the `wp` of Case 2
-— and apply them at the *populated-arrangement* states this note queries. Each such lemma
-constrains `Σ.L` alone, and `Σ.L` evolves only through `K.λ` — identically under ASN-0086's
-transition relation and under ASN-0047's, since the very transitions that populate an
-arrangement frame `Σ.L`. So by induction on an ASN-0047 trace the link store evolves exactly
-as it would under ASN-0086's relation, and each lemma holds verbatim at every
-ASN-0047-reachable state, including those whose populated arrangements ASN-0086's own
-(empty-arrangement) layer never reaches. A withdrawn link's anchoring
-should not be reported as live — a design decision that fixes the operation as a report over
-the *active* population, not the full permanent store. So we range over the links that are
-present and not withdrawn — the **addressable** links:
+**standing assumption**, ASN-0086's *unit-depth retraction discipline*: retraction-typed
+links enter the store only through `Nullify`, so every retraction to-set is a unit-depth
+span `{(t, δ(1, #t))}` at a single prior target. The bridge to ASN-0086 is that `Σ.L`
+evolves only through `K.λ`: the arrangement movers (`K.μ` family), entity creation `K.δ`,
+provenance recording `K.ρ`, and content allocation `K.α` all frame the link store
+(`L' = L`). So the link store evolves identically under ASN-0086's transition relation and
+under ASN-0047's — the very transitions that populate an arrangement leave `Σ.L` fixed — and
+every ASN-0086 lemma that constrains `Σ.L` alone holds verbatim at every ASN-0047-reachable
+state, including the *populated-arrangement* states whose arrangements ASN-0086's own
+(empty-arrangement) layer never reaches. We invoke each such lemma where it is used. A
+withdrawn link's anchoring should not be reported as live — a design decision that fixes the
+operation as a report over the *active* population, not the full permanent store. So we range
+over the links that are present and not withdrawn — the **addressable** links:
 
 > `addressable(Σ) = dom(Σ.L) ∖ nullified(Σ)`     (over ASN-0086's `nullified`).
 
@@ -458,12 +448,6 @@ permanent (RE-IDENT), so editing can change *which* endsets are surfaced — the
 of the answer — but never the spans of one that is. Every motion catalogued below is a
 motion of membership.
 
-**Determinism first.** `RE(W, d, Σ)` is a function of `(W, d, Σ)` and nothing else — no
-hidden state, no dependence on the order or time of asking. Asking the same region twice
-with no intervening state change returns the same anchoring both times. This is the
-bedrock under everything that follows: every *change* in the answer is the image of a
-*change* in `Σ`.
-
 **Under editing of the queried document.** The region resolves through `Σ.M(d)`, so
 editing `d`'s arrangement moves the image, and the answer tracks it — present-tense,
 non-monotone (D-NONMONO, ASN-0127). We read its response first against the *atomic*
@@ -508,14 +492,24 @@ reordering — each acting as a faithful tracker would:
   fragment a contiguous run (ASN-0082) — is the mode deferred to Open Question 3; the
   content-identity answer returned here is unaffected.)
 
-The user-facing *insert* and *delete* that **shift** content are not these atomic movers.
-The foundation realises them as displacements (I3 PostInsertionShift, D-SHIFT, ASN-0082):
-an insertion at `p` of width `n` carries the content at every position `v ≥ p` up to
-`shift(v, n)` (I3), and a deletion carries the content lying above the removed span back down
-(D-SHIFT). Either way content is *displaced through* `d`'s V-order rather than permuted over
-a fixed set of positions, so a shift is no domain-preserving `K.μ~` reorder, and its effect
-on the image is read off the displacement directly rather than through F-IMG-SWING. Fix the
-region `W`. A displacement moves content through `W`'s fixed positions: content the region
+The user-facing *insert* and *delete* that **shift** content are not these atomic movers;
+to range over them the analysis widens its vocabulary beyond ASN-0047's atomic transitions
+to ASN-0082's displacement primitives. The two are not competing descriptions of one
+transition: the atomic `K.μ⁺` *appends* at the contiguous frontier with every existing
+mapping fixed (`M'(d)(v) = M(d)(v)` for `v ∈ dom(M(d))`, ASN-0047), whereas an ASN-0082
+insert *shifts* existing content — `M'(d)(shift(v, n)) = M(d)(v)` for `v ≥ p` (I3) — a
+genuinely different arrangement transformation of a different, user-facing operation. We
+take insert and delete here as ASN-0082 displacement primitives in their own right, not as
+`K.μ` composites. The foundation realises them as displacements (I3 PostInsertionShift,
+D-SHIFT, ASN-0082): an insertion at `p` of width `n` carries the content at every position
+`v ≥ p` up to `shift(v, n)` (I3), and a deletion carries the content lying above the removed
+span back down (D-SHIFT). Either way content is *displaced through* `d`'s V-order rather
+than permuted over a fixed set of positions, so a shift is no domain-preserving `K.μ~`
+reorder — its net effect grows or shrinks the domain — and, taken as a primitive, its effect
+on the image is read off the displacement directly rather than through F-IMG-SWING. (Were
+the shift instead decomposed into atomic `K.μ` steps, the existing-content motion would live
+in a domain-preserving `K.μ~` component and route through F-IMG-SWING; we do not take that
+route.) Fix the region `W`. A displacement moves content through `W`'s fixed positions: content the region
 held is carried off to a displaced position — possibly out of `W` — while the positions it
 vacates take on other content (freshly inserted content, or content displaced in from
 elsewhere in `d` — from lower positions under an insert, from higher ones under a delete). So
@@ -620,11 +614,9 @@ the population. Withdrawing `ℓ` is realised as `Nullify(Σ, d_retr, ℓ) ≡ E
 ∅, {(ℓ, δ(1, #ℓ))})` (ASN-0086), and `Emit_R` *is* a `K.λ` step (Emit_K, ASN-0086): it
 emits a fresh **retraction link** `b`, with `Σ'.L(b) = (∅, {(ℓ, δ(1, #ℓ))}, Θ)` — `Θ` the
 designated retraction type introduced above. Its to-set covers `ℓ`, not `b` (`ℓ ≠ b`, both in
-the flat antichain), so `b` does not retract its own emitter address — discharging the
-non-self-targeting *second* conjunct of `wp` Case 2; with the *third* conjunct discharged by
-the standing discipline (no pre-existing retraction to-set covers the fresh emitter `b`), `b`
-is itself addressable in `Σ'` (`b ∉ nullified(Σ')`), exactly the fresh-`K.λ`-output
-addressability established under link emission above. So a single retraction
+the flat antichain), so `b` does not retract its own emitter address; by the general
+fresh-`K.λ`-output addressability established under link emission above, `b` is itself
+addressable in `Σ'` (`b ∉ nullified(Σ')`). So a single retraction
 does two things at once — it removes `ℓ` from `addressable` (through the nullified marking)
 *and* adds the emitter `b` to it. We must ask what the emitter `b` can contribute. Its three
 endsets are the empty from-set `∅`, a to-set `{(ℓ, δ(1, #ℓ))}` whose single span covers `ℓ`
@@ -729,8 +721,8 @@ and taking with it any pair it solely bore).
 | RE-SEL | Discovery-side selection — `sel(W, d, Σ) = findlinks_V(W, d, Σ) ∩ addressable(Σ)` (F-V, ASN-0127): the contributing links are the addressable links discoverable through the region, so the operation is discovery-anchored — present-tense, non-monotone, arrangement-mediated (D-NONMONO, D-ZERO, ASN-0127), not existence-anchored (fixed-`I`, historical, monotone) | introduced |
 | RE-TRANS | Transclusion blindness — surfacing is by content identity, independent of the link's home and of the covered content's origin (LP16, ASN-0098): a link reaching the region only through transcluded content is surfaced identically to one reaching native content, and each returned span describes the content's permanent home identity, not the borrowing V-position | introduced |
 | RE-IDENT | Content-identity invariance — each surfaced endset's coverage is permanent (L12, ASN-0043; LP3, ASN-0098), so the content-level answer (which I-addresses each surfaced endset anchors to) is arrangement-independent, even though the *selection* of which endsets are surfaced is arrangement-mediated | introduced |
-| RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (RE-IDENT). Over the transition vocabulary (ASN-0047), only the content-subspace movers on `d` — extension `K.μ⁺` (image grows weakly, F-IMG-MONO), contraction `K.μ⁻` (image shrinks weakly, F-IMG-CONTR), reordering `K.μ~` (image swings, F-IMG-SWING) — together with `K.λ` (emission may add a pair, retraction removes — RE-RET) and the user-facing shift-based insert/delete (content displacements through the region, I3/D-SHIFT, ASN-0082) can move the answer; every other transition leaves it fixed, including the link-subspace edit `K.μ⁺_L` (image fixed under `W ⊆ s_C`). | introduced |
-| RE-RET | Retraction stability — a retraction is a `K.λ` step (Nullify/Emit_K, ASN-0086) that marks `ℓ` nullified (removing it from `addressable(Σ)` permanently, R6a) and emits a fresh retraction link `b` with endsets `(∅, {(ℓ, δ(1, #ℓ))}, Θ)` (`Θ` the retraction type, ASN-0086). The emitter `b` is itself addressable — its to-set targets `ℓ ≠ b`, so `b` does not retract its own emitter address (the non-self-targeting second conjunct of `wp` Case 2), while the standing unit-depth retraction discipline discharges the third (no pre-existing retraction covers `b`) and confines `b`'s nullifying reach to `ℓ` alone (R-Scope, R0a, ASN-0086). Under that discipline and the net-removal-only hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅`, a pair `(i, e)` that `ℓ` bore drops **iff `ℓ` was its sole addressable bearer in `Σ`** (the answer deduplicating and discarding identity, RE-UNIT). With the discipline assumed, the `coverage(Θ)` hypothesis is the sole *remaining* exception — a type-slot match against content. | introduced |
+| RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (RE-IDENT). Over the *combined* vocabulary — ASN-0047's atomic movers together with ASN-0082's user-facing shift primitives (the latter taken as displacement primitives, not `K.μ` composites) — only the content-subspace movers on `d` — extension `K.μ⁺` (image grows weakly, F-IMG-MONO), contraction `K.μ⁻` (image shrinks weakly, F-IMG-CONTR), reordering `K.μ~` (image swings, F-IMG-SWING) — together with `K.λ` (emission may add a pair, retraction removes — RE-RET) and the shift-based insert/delete (content displaced through the region, image read off the displacement directly, I3/D-SHIFT, ASN-0082) can move the answer; every other transition leaves it fixed, including the link-subspace edit `K.μ⁺_L` (image fixed under `W ⊆ s_C`). | introduced |
+| RE-RET | Retraction stability — a retraction is a `K.λ` step (Nullify/Emit_K, ASN-0086) that marks `ℓ` nullified (removing it from `addressable(Σ)` permanently, R6a) and emits a fresh retraction link `b` with endsets `(∅, {(ℓ, δ(1, #ℓ))}, Θ)` (`Θ` the retraction type, ASN-0086). The emitter `b` is itself addressable by the general fresh-`K.λ`-output addressability fact (its to-set targets `ℓ ≠ b`, so `b` does not retract its own emitter address), and its nullifying reach is confined to `ℓ` alone (R-Scope, R0a, ASN-0086). Under the standing discipline and the net-removal-only hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅`, a pair `(i, e)` that `ℓ` bore drops **iff `ℓ` was its sole addressable bearer in `Σ`** (the answer deduplicating and discarding identity, RE-UNIT). With the discipline assumed, the `coverage(Θ)` hypothesis is the sole *remaining* exception — a type-slot match against content. | introduced |
 | RE-CWP | Contraction-stability weakest precondition — for a `K.μ⁻[d, R]` step, `RE(W, d, ·) = RE(W, d, Σ)` iff `enabled(K.μ⁻[d, R]) ∧ (∀ (i, e) ∈ Avail(Σ) : coverage(e) ∩ Δ ≠ ∅ ⟹ coverage(e) ∩ I_R ≠ ∅)`, where `I_R = {Σ.M(d)(v) : v ∈ W ∩ R}` (D-CWP bridge, ASN-0127), `Δ = image(W, d, Σ) ∖ I_R`, and `Avail(Σ)` is the region-independent pool of addressable slot-endsets. `RE` is monotone-decreasing under contraction, and `R = ∅` collapses it to `RE(W, d, Σ) = ∅`. | introduced |
 
 ## Open Questions
