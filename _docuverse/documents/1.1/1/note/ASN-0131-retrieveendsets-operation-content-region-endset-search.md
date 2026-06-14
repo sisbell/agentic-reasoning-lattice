@@ -231,30 +231,17 @@ of `e` whose spans fall inside `W`. A discontiguous endset is then surfaced with
 pointing outside the region intact, since those are precisely the parts that say where
 else this anchoring lives.
 
-But this is a *convention*, not a forced consequence, and the alternative has a precise form.
-For a touching endset `e` (so `touch_W(e)`), let the *touching-spans selector* be
-
-> `clip_W(e) = { (s, ℓ) ∈ e : coverage({(s, ℓ)}) ∩ I ≠ ∅ }`
-
-— the spans of `e` that individually meet the region image. Because `touch_W(e)` holds,
-`clip_W(e) ≠ ∅`; and `clip_W` *selects* whole spans, never trimming one. The touching-spans-only
-operation surfaces this restriction in place of the whole endset:
-
-> `RE_clip(W, d, Σ) = { (i, clip_W(Σ.L(a).eᵢ)) : (∃ a ∈ addressable(Σ) : 1 ≤ i ≤ |Σ.L(a)| ∧ touch_W(Σ.L(a).eᵢ)) }`.
-
-The two readings share *exactly* the same selection — the slot-link pairs they range over are the
-touching ones, identical in `RE` and `RE_clip` — and differ only in the *return value* at a
-selected slot: the whole endset `Σ.L(a).eᵢ` (RE-DEF, adopted) or its touching restriction
-`clip_W(Σ.L(a).eᵢ)`. RE-CLIP holds of *both*: under either reading every span that is reported is
-reported whole — `RE` reports all of `e`'s spans, `RE_clip` reports those in `clip_W(e)`, and
-neither shortens one. What separates the readings is *which* spans are surfaced, not their extent,
-so RE-CLIP cannot decide between them. That choice — RE-DEF's return value or `RE_clip`'s — is
-exactly what Open Question 1 reopens; we therefore mark RE-DEF's *return-value clause*, and with
-it RE-WHOLE, **provisional** pending its resolution. RE-CLIP and the shared selection
-(RE-OVL, soundness, completeness) stand firm under either answer — but the *composition* laws do
-not: RE-UDIST and the `⊆` half of RE-UDIST-∩ (§Composing regions) hold for the whole-endset return
-value and *fail* for `RE_clip`, so they are themselves reading-dependent, bearing on the Open
-Question 1 choice rather than standing under both answers.
+But this is a *convention*, not a forced consequence. The alternative *touching-spans*
+reading would return, at each selected slot, only those spans of `e` that individually meet
+the region image — whole spans, never trimmed, so RE-CLIP holds of it equally — discarding
+the spans that point elsewhere. The two readings share the same selection (the touching
+slot-link pairs) and differ only in the return value at a selected slot, so RE-OVL,
+soundness, and completeness stand under both. But the touching-spans return value is
+*region-dependent* — the spans it keeps vary with which region is asked — and a
+region-dependent return value cannot distribute over unions: union-distributivity (RE-UDIST)
+holds for the adopted whole-endset value and would fail for the touching-spans reading. We
+therefore mark RE-DEF's *return-value clause*, and with it RE-WHOLE, **provisional**, leaving
+the choice to Open Question 1.
 
 ## Soundness and completeness: the answer is exactly the touching anchoring
 
@@ -355,11 +342,11 @@ and each of the operation's distinctive claims can be read off it directly:
   spans, including the unit span at `a₄`, which touches nothing the region holds. Here the
   reading is exercised in earnest, and its distinctive consequence is concrete: the answer
   volunteers anchoring — `a₄` and its descendants — that points *wholly outside* the
-  queried region. The two readings part on this instance: `clip_W(e₁) = {(a₂, δ(2, #a₂))}`
-  — only the first span meets `I = {a₂}`, the unit span at `a₄` missing it — so the
-  touching-spans-only operation returns `RE_clip(W, d, Σ) = {(1, {(a₂, δ(2, #a₂))})}`, honest
-  about extent yet silent about the `a₄` span, whereas the *whole-endset* reading we adopt
-  returns `RE(W, d, Σ) = {(1, {(a₂, δ(2, #a₂)),  (a₄, δ(1, #a₄))})}` in full.
+  queried region. The two readings part on this instance: the touching-spans reading would
+  keep only the first span — it alone meets `I = {a₂}`, the unit span at `a₄` missing it —
+  surfacing `{(1, {(a₂, δ(2, #a₂))})}`, honest about extent yet silent about the `a₄` span,
+  whereas the *whole-endset* reading we adopt returns
+  `RE(W, d, Σ) = {(1, {(a₂, δ(2, #a₂)),  (a₄, δ(1, #a₄))})}` in full.
 - **Per-endset surfacing (RE-OVL).** Only slot 1 appears, and from each link separately. Of
   `L₁`, the to-endset `e₂` and the type-endset `e₃` miss the region and are absent, so the
   link's from-end is reported without its to-end. Of `L₂`, the two non-from slots `e₂′` and
@@ -408,26 +395,6 @@ function of `(Σ.L, nullified(Σ))` and does not depend on the region. So
 This is the RETRIEVEENDSETS analogue of the discovery query's union-distributivity
 (F-UDIST, F-VDIST, ASN-0127): a region query is composable from any cover of the region by
 its parts. Querying a passage is the union of querying its lines.
-
-This composition law is, moreover, one the *whole-endset* reading uniquely affords — a
-consideration bearing on Open Question 1 that the algebra makes sharp, and a more decisive one
-than §Extent's faithfulness appeal. The proof above turned on the surfaced value being
-*region-independent*: under RE-DEF the returned `e = Σ.L(a).eᵢ` does not vary with `W`, so
-filtering the region-independent pool `Avail(Σ)` by `touch_{W₁} ∨ touch_{W₂}` is the whole
-argument. The touching-spans reading `RE_clip` breaks exactly there, since its returned value
-`clip_W(Σ.L(a).eᵢ)` *is* region-dependent. Take the injective
-`Σ.M(d) = { [1,1] ↦ a,  [1,2] ↦ b }` (`a ≠ b` in `dom(Σ.C)`) and a slot-1 endset
-`e = {(a, δ(1, #a)),  (b, δ(1, #b))}` borne by an addressable link. With `W₁ = {[1,1]}` and
-`W₂ = {[1,2]}`, union-distributivity fails for `RE_clip`: each sub-region clips to its own span,
-`RE_clip(W₁) = {(1, {(a, δ(1, #a))})}` and `RE_clip(W₂) = {(1, {(b, δ(1, #b))})}`, yet the union
-keeps both, `RE_clip(W₁ ∪ W₂) = {(1, e)}`, so `RE_clip(W₁ ∪ W₂) ≠ RE_clip(W₁) ∪ RE_clip(W₂)` —
-where the whole reading distributes, `RE(W₁) = RE(W₂) = RE(W₁ ∪ W₂) = {(1, e)}`. With the nested
-`W₁ = {[1,1], [1,2]}` and `W₂ = {[1,2]}`, the `⊆` half of RE-UDIST-∩ — unconditional under the
-whole reading (established below) — fails for `RE_clip` as well:
-`RE_clip(W₁ ∩ W₂) = RE_clip(W₂) = {(1, {(b, δ(1, #b))})}` while `RE_clip(W₁) = {(1, e)}` carries
-the larger value, so `RE_clip(W₁) ∩ RE_clip(W₂) = ∅` does not contain it. Both composition laws
-are thus *reading-dependent* — holding for whole-endset surfacing, forfeit for `RE_clip` — which
-is a properly algebraic argument for the adopted reading.
 
 The *intersection* law does not follow in full — but one half of it does, and
 unconditionally. We must first see where the forward image fails to distribute over
@@ -808,17 +775,13 @@ makes the distinction concrete: `ℓ₁` and `ℓ₂` both carry `e₁` in slot 
 single pair `(1, e₁)`; retracting `ℓ₁` alone leaves `(1, e₁)` in the answer, because `ℓ₂`
 survives the step — R-Scope confines the fresh nullification to `ℓ₁`, so `ℓ₂` (distinct
 from `ℓ₁`) remains in `addressable(Σ')` and still bears `e₁` (value fixed by L12). Only
-when *both* are withdrawn does `(1, e₁)` depart.
-
-Two senses of permanence must therefore be kept apart. The *specific retracted link's*
-membership in `addressable` is gone forever — across the whole ASN-0047 vocabulary, by the
-permanence argument given above (R6a on each `K.λ` step, `Σ.L`-framing on every other) — one
-can never again surface anchoring *because `ℓ₁` bears it*. But the *pair value* `(i, e)` is not permanently gone: an
-identical value re-enters the answer the moment any live link — `ℓ₂` already present, or a
-freshly emitted link with a new identity (R6c) — bears `e` in slot `i` and `e` touches.
-The answer tracks the anchoring values of the active *population*, not the fate of any one
-link; conflating link-level permanence (R6a) with pair-value-level removal is exactly the
-slip RE-UNIT's deduplication guards against.
+when *both* are withdrawn does `(1, e₁)` depart — and even then not permanently: the
+retracted link's membership in `addressable` is gone forever (R6a, persisting across the
+whole ASN-0047 vocabulary), so anchoring can never again surface *because `ℓ₁` bears it*,
+yet the *pair value* `(1, e₁)` re-enters the answer the moment any live link bears `e₁` in
+slot 1 and touches the region — a still-present bearer, or a freshly emitted link with a new
+identity (R6c). The answer tracks the anchoring values of the active *population*, not the
+fate of any one link — the slip RE-UNIT's deduplication guards against.
 
 ## Claims Introduced
 
@@ -828,26 +791,26 @@ slip RE-UNIT's deduplication guards against.
 | RE-LOC | Locality — for fixed `(W, d)`, `RE` reads `Σ.M(d)` (image) and `Σ.L` (endsets, and via `nullified` addressability) alone; `Σ.C`, `Σ.E`, `Σ.R` are never consulted. Hence `RE` is a deterministic function of `(W, d, Σ)` | introduced |
 | RE-UNIT | Anchoring without names — the answer's elements are `(role, endset)` pairs, never link identities; the address is withheld, distinct links sharing an endset value collapse to one pair, multiplicity is not recoverable, and a surfaced from-endset cannot be paired with its link's to-endset | introduced |
 | RE-OVL | Overlap matching — an endset is surfaced iff at least one address it covers lies in the region's image (overlap, not containment); single-address overlap suffices; the test is existential *within* an endset and applied *per-endset*, with no per-slot request differentiation | introduced |
-| RE-CLIP | No clipping — every surfaced span is reported at the full extent recorded in the link, never truncated to the region boundary; holds under both readings (RE-WHOLE and `RE_clip`, §Extent) | introduced |
-| RE-WHOLE | Whole-endset surfacing (adopted convention) — a surfaced endset is returned in full, *all* its spans (not only those intersecting `W`), a commitment separable from RE-CLIP. The alternative touching-spans-only reading `RE_clip` (§Extent) shares RE's selection but returns the touching restriction `clip_W(e) = {(s, ℓ) ∈ e : coverage({(s, ℓ)}) ∩ I ≠ ∅}`; the choice between them is Open Question 1 | introduced (provisional) |
+| RE-CLIP | No clipping — every surfaced span is reported at the full extent recorded in the link, never truncated to the region boundary; holds under both readings (§Extent) | introduced |
+| RE-WHOLE | Whole-endset surfacing (adopted convention) — a surfaced endset is returned in full, *all* its spans (not only those intersecting `W`), a commitment separable from RE-CLIP; the alternative touching-spans reading is left open by Open Question 1 (§Extent) | introduced (provisional) |
 | RE-BND | Boundary cases — `RE(W, d, Σ) = ∅` whenever the image is empty (`W ∩ dom(Σ.M(d)) = ∅`) or `addressable(Σ) = ∅`; an empty endset slot has `coverage(∅) = ∅`, so `touch_W(∅)` is false and it is never surfaced | introduced |
-| RE-NCD | Cross-subspace unit-span disjointness — a unit-depth span `(s, δ(1, #s))` whose T4-valid element-level start has a non-content subspace identifier (`zeros(s) = 3`, `E(s)₁ ≠ s_C`) covers no content: `coverage({(s, δ(1, #s))}) ∩ dom(Σ.C) = ∅` (PrefixSpanCoverage, ASN-0043; S7b, ASN-0036; L0, ASN-0093; field-agreement on separator zeros). Cited by the worked instance (type endset `e₃`, `s_type`) and the retraction analysis (withdrawal to-set, `ℓ`, `s_L`) | introduced |
+| RE-NCD | Cross-subspace unit-span disjointness — a unit-depth span `(s, δ(1, #s))` whose T4-valid element-level start has a non-content subspace identifier (`zeros(s) = 3`, `E(s)₁ ≠ s_C`) covers no content: `coverage({(s, δ(1, #s))}) ∩ dom(Σ.C) = ∅` (PrefixSpanCoverage, ASN-0043; S7b, ASN-0036; L0, ASN-0093; field-agreement on separator zeros) | introduced |
 | RE-FIN | Finiteness and computability — `RE(W, d, Σ)` is finite *unconditionally* (drawn from the finite supply of slot-endset pairs: `dom(Σ.L)` finite by L-fin, ASN-0093, and each link bears finitely many endsets by L3, ASN-0043); and given a *finitely presented* `W` (region membership `v ∈ W` decidable, e.g. `W` given as finitely many spans), it is computed by finitely many decidable tests over the finite store — image construction over the finite `dom(Σ.M(d))` (S8-fin, ASN-0036), `coverage`-membership by intrinsic comparison on half-open T1-intervals (T12, T2, ASN-0034), and addressability via the computable `nullified` (ASN-0086) | introduced |
 | RE-ADDR | Fresh-output addressability — a fresh `K.λ` output that does not retract its own emitter address is addressable in its post-state (`ℓ_new ∉ nullified(Σ')`); in particular every non-retraction emission (`K ≁ Θ`) is addressable. Conditions: the standing discipline's unit-depth to-set (scoped to the retraction slice `L_Θ`, all that `nullified` consults) and the prefix-antichain of `dom(Σ.L)` (ASN-0093's link sub-allocator discipline; = ASN-0086's R0a) | introduced |
 | RE-SND | Soundness — `(i, e) ∈ RE(W, d, Σ) ⟹ e` is a genuine slot-`i` endset of an addressable link ∧ `touch_W(e)`; no false positives | introduced |
 | RE-CMP | Completeness — every addressable link `a` and slot `i` with `touch_W(Σ.L(a).eᵢ)` has `(i, Σ.L(a).eᵢ) ∈ RE(W, d, Σ)`; the answer is *exactly* the touching set, native or transcluded content alike | introduced |
-| RE-UDIST | Union-distributivity — `RE(W₁ ∪ W₂, d, Σ) = RE(W₁, d, Σ) ∪ RE(W₂, d, Σ)`, the RE-level analogue of F-UDIST/F-VDIST (ASN-0127); *reading-dependent* — holds for the adopted whole-endset return value and fails for `RE_clip` (§Composing regions), a consideration bearing on Open Question 1 | introduced |
-| RE-UDIST-∩ | Intersection (one-sided) — `RE(W₁ ∩ W₂, d, Σ) ⊆ RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)` holds unconditionally (image `⊆` law); the reverse `⊇` fails in general, with no *injectivity-style* restriction recovering it (a non-injective and an *injective* counterexample, the latter via split witnesses in `touch_W`; only an arrangement too impoverished to admit two disjoint regions with distinct nonempty images forces `⊇`, and then vacuously). Equality holds **exactly** when `(∀ (i,e) ∈ Avail(Σ) : touch_{W₁}(e) ∧ touch_{W₂}(e) ⟹ touch_{W₁ ∩ W₂}(e))` — settled as necessary-and-sufficient; its weakest structurally-restricted sufficient form is Open Question 4. The `⊆` half is itself *reading-dependent* — unconditional under whole-endset surfacing, it fails for `RE_clip` (§Composing regions) | introduced |
+| RE-UDIST | Union-distributivity — `RE(W₁ ∪ W₂, d, Σ) = RE(W₁, d, Σ) ∪ RE(W₂, d, Σ)`, the RE-level analogue of F-UDIST/F-VDIST (ASN-0127) | introduced |
+| RE-UDIST-∩ | Intersection (one-sided) — `RE(W₁ ∩ W₂, d, Σ) ⊆ RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)` holds unconditionally; the reverse `⊇` fails in general, and equality holds exactly under the touch-implication condition `(∀ (i,e) ∈ Avail(Σ) : touch_{W₁}(e) ∧ touch_{W₂}(e) ⟹ touch_{W₁ ∩ W₂}(e))` (§Composing regions) | introduced |
 | RE-SEL | Discovery-side selection — `sel(W, d, Σ) = findlinks_V(W, d, Σ) ∩ addressable(Σ)` (F-V, ASN-0127): the contributing links are the addressable links discoverable through the region, so `RE` is discovery-anchored — present-tense, non-monotone (D-NONMONO, D-ZERO, ASN-0127), not existence-anchored | introduced |
 | RE-TRANS | Transclusion blindness — surfacing is by content identity, independent of the link's home and the covered content's origin (LP16, ASN-0098): a link reaching the region through transcluded content is surfaced identically to one on native content, each span describing content identity, not the borrowing V-position | introduced |
 | RE-IDENT | Content-identity invariance — each surfaced endset's coverage is permanent (L12, ASN-0043; LP3★, ASN-0098), so the content-level answer (which I-addresses each surfaced endset anchors to) is arrangement-independent, even though the *selection* of surfaced endsets is arrangement-mediated | introduced |
-| RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (RE-IDENT). The answer moves only under the content-subspace arrangement movers on `d` (`K.μ` extension/contraction/reordering, and ASN-0082's shift-based insert/delete, M-only by a conservative-lift modelling assumption) and `K.λ` emission/retraction (RE-RET); every other transition — including all **link-subspace-confined** edits on `d` under `W ⊆ s_C` (`K.μ⁺_L` and content-retaining `K.μ⁻`) — leaves it fixed | introduced |
-| RE-RET | Retraction stability — withdrawing a link `ℓ` (Nullify, ASN-0086) marks it nullified, removing it from `addressable(Σ)` permanently (R6a on the `K.λ` step; `nullified` a `Σ.L`-function that every non-`K.λ` transition frames, so the marking persists across the full ASN-0047 vocabulary). Conditions: the standing discipline commitment (only `Nullify` grows the retraction slice `L_Θ`; its from-set empty, to-set unit-depth) and the net-removal-only hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅` (`Θ` the retraction type, the sole remaining exception). Then a pair `(i, e)` that `ℓ` bore drops **iff `ℓ` was its sole addressable bearer in `Σ`** (RE-UNIT) | introduced |
+| RE-EDIT | Present-tense stability under editing — `RE` tracks `d`'s content-subspace arrangement, so the answer is non-monotone (D-NONMONO, ASN-0127) while each surfaced endset's spans stay invariant (RE-IDENT); it moves only under content-subspace arrangement movers on `d` and `K.λ` emission/retraction (RE-RET), and is left fixed by every other transition (§Stability) | introduced |
+| RE-RET | Retraction stability — withdrawing a link `ℓ` (Nullify, ASN-0086) marks it nullified, removing it from `addressable(Σ)` permanently; under the net-removal-only hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅`, a pair `(i, e)` that `ℓ` bore drops iff `ℓ` was its sole addressable bearer in `Σ` (RE-UNIT; §Stability) | introduced |
 | RE-CWP | Contraction-stability weakest precondition — for a `K.μ⁻[d, R]` step, `RE(W, d, ·) = RE(W, d, Σ)` iff `enabled(K.μ⁻[d, R]) ∧ (∀ (i, e) ∈ Avail(Σ) : coverage(e) ∩ Δ ≠ ∅ ⟹ coverage(e) ∩ I_R ≠ ∅)`, where `I_R = {Σ.M(d)(v) : v ∈ W ∩ R}` (D-CWP bridge, ASN-0127) and `Δ = image(W, d, Σ) ∖ I_R`. The boundary `R = ∅` collapses to `RE(W, d, Σ) = ∅` | introduced |
 
 ## Open Questions
 
-1. Must a surfaced endset be reported in its entirety, or only those of its spans that intersect the region (RE-DEF's whole-endset return value vs. `RE_clip`'s touching-spans restriction, §Extent) — and which choice is the faithful rendering of the link's anchoring, given that whole-endset surfacing uniquely yields the composition laws RE-UDIST and the `⊆` half of RE-UDIST-∩, both forfeit under `RE_clip` (§Composing regions)?
+1. Must a surfaced endset be reported in its entirety, or only those of its spans that intersect the region (the whole-endset return value vs. the touching-spans restriction, §Extent) — and which choice is the faithful rendering of the link's anchoring, given that only whole-endset surfacing yields union-distributivity (RE-UDIST)?
 
 2. When distinct addressable links carry an identical endset value in the same slot, must the operation's answer preserve their multiplicity, or is collapsing them to a single surfaced endset a faithful answer?
 
