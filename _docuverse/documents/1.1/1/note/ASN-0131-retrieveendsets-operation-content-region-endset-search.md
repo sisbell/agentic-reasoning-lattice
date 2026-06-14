@@ -200,24 +200,21 @@ resolution, while RE-CLIP stands firm under either answer.
 ## Soundness and completeness: the answer is exactly the touching anchoring
 
 The definition is a biconditional, and its two directions are the operation's correctness
-contract.
+contract — each an immediate read of RE-DEF, not a theorem requiring argument.
 
 **Soundness** is the forward direction: if `(i, e) ∈ RE(W, d, Σ)`, then `e` is a genuine
 slot-`i` endset of an addressable link and `touch_W(e)` holds. Nothing in the answer fails
-to reach the region; no anchoring is reported that does not actually grip the content
-asked about. This is the half that makes the answer trustworthy as a structural claim
-about the literature: *this reaches here*, never the mere appearance of reach. A reported
-overlap is a true overlap — some address of `e` genuinely lies in the region's image.
+to reach the region; a reported overlap is a true overlap — some address of `e` genuinely
+lies in the region's image.
 
 **Completeness** is the converse: for every addressable link `a` and every slot `i` with
 `touch_W(Σ.L(a).eᵢ)`, the pair `(i, Σ.L(a).eᵢ)` is in `RE(W, d, Σ)`. Every endset that
 touches the region — by direct anchoring or, as we shall see, through transcluded content
-— appears; none is silently omitted. The result is *exactly* the touching set: neither
-more (soundness) nor less (completeness). An implementation that returned a strict subset,
-or admitted a near-miss, would not be realising this operation.
+— appears; none is silently omitted.
 
-These two together are the whole of the operation's relation to the region: it surfaces
-the touching anchoring, all of it and only it.
+Together they fix the result as *exactly* the touching set — neither more nor less — so an
+implementation that returned a strict subset, or admitted a near-miss, would not be
+realising this operation.
 
 ## A worked instance
 
@@ -515,8 +512,9 @@ content-identity spans.
 
 Editing of *other* documents does not perturb the answer: the image reads only `Σ.M(d)`,
 and a transition touching `d' ≠ d` leaves `Σ.M(d)` fixed (LP5, ASN-0098). Three further
-transition kinds leave the answer fixed for the same root reason — each touches none of the
-state `RE` reads (RE-LOC). Content allocation `K.α` touches neither `Σ.M` nor `Σ.L` (frame
+transition kinds leave the answer fixed for the same root reason — each leaves the queried
+fiber `Σ.M(d)` and the link store `Σ.L` fixed (LP8 supplying the K.δ document-registration
+case). Content allocation `K.α` touches neither `Σ.M` nor `Σ.L` (frame
 `M' = M; L' = L`, ASN-0093) and so changes no projection (LP6, ASN-0098); a freshly
 allocated I-address enters no region image without a separate arrangement edit. Entity
 creation `K.δ` — registering a new node, account, or document `e ≠ d` — leaves `Σ.M(d)`
@@ -644,12 +642,10 @@ We therefore record the emitter's harmlessness **conditionally**, on that same h
 the emitter's *only* possible content-region contribution — the single pair `(3, Θ)`.
 *Under* the hypothesis, against a content image `I ⊆ dom(Σ.C)` the test `touch_W(Θ)` is
 false, so all three of `b`'s endsets are content-disjoint, `b` is never surfaced, and a
-retraction's *net* effect on `RE` is removal only. *Absent* it, a `Θ` meeting the image
-surfaces `b` as the fresh pair `(3, Θ)`, making the retraction *add* anchoring as well as
-remove it — and, contrary to what one might hope, that pair need not be distinct from one the
-retracted link itself bore: when `ℓ` is *itself* a retraction link, `Σ.L(ℓ).e₃ = Θ`, so `ℓ`
-bears `(3, Θ)` too and `b` re-witnesses the very pair its target bore. The forward direction
-of the stability result below therefore rests on the hypothesis.
+retraction's *net* effect on `RE` is removal only. *Absent* it, `b`'s type-slot `Θ` could
+meet the content image and surface the fresh pair `(3, Θ)`, making the retraction *add*
+anchoring as well as remove it; the forward direction of the stability result below
+therefore rests on the hypothesis.
 
 But the answer deduplicates, and we must read its stability at the granularity it actually
 has. Its elements are `(role, endset)` pairs with link identity discarded (RE-UNIT): a
