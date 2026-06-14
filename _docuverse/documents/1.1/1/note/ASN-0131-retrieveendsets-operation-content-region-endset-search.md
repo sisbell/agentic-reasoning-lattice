@@ -93,14 +93,10 @@ the to-endset is not. There is no four-set request here differentiating slot fro
 (that is the richer FINDLINKSFROMTOTHREE); there is one region, tested against every
 endset, and the endsets that touch are the ones surfaced.
 
-The touch test is decidable, so the operation is a realisable query and not merely a
-defined set. The touch test and the addressability filter are decidable over finite sets:
-the image `I = image(W, d, Σ)` is finite (S8-fin, ASN-0036) and `coverage`-membership is
-decidable by intrinsic comparison on its half-open T1-intervals (T12, T2, ASN-0034), so
-`touch_W(e) ≡ coverage(e) ∩ I ≠ ∅` is settled by finitely many membership tests; and
-`nullified(Σ)` is a computable set (ASN-0086) with `dom(Σ.L)` finite (L-fin, ASN-0093), so
-membership in `addressable(Σ) = dom(Σ.L) ∖ nullified(Σ)` is settled without enumerating
-history. Hence the answer is a finite, computable object.
+The touch test is decidable. The image `I = image(W, d, Σ)` is finite (S8-fin, ASN-0036)
+and `coverage`-membership is decidable by intrinsic comparison on its half-open
+T1-intervals (T12, T2, ASN-0034), so `touch_W(e) ≡ coverage(e) ∩ I ≠ ∅` is settled by
+finitely many membership tests.
 
 ## The unit of the answer: anchoring without names
 
@@ -121,6 +117,13 @@ the region, that endset, tagged by the slot it occupies:
 
 The answer is a set of `(role, endset)` pairs. Each pair names the slot `i` — from, to,
 type, or higher — and the endset value `e` that occupies it in some touching link.
+
+The answer just defined is a finite, computable object. The addressability filter is
+decidable over finite sets: `nullified(Σ)` is a computable set (ASN-0086) and `dom(Σ.L)` is
+finite (L-fin, ASN-0093), so membership in `addressable(Σ) = dom(Σ.L) ∖ nullified(Σ)` is
+settled without enumerating history. With the touch test already decidable (above), the
+operation selects its `(i, e)` pairs by finitely many decidable tests over the finite store:
+RETRIEVEENDSETS is a realisable query, not merely a defined set.
 
 Read what this definition does, and as importantly, what it withholds. It **withholds the
 link address `a`**. The existential `(∃ a : …)` consumes the link and discards it; what
@@ -587,9 +590,11 @@ arrangement (`M' = M`, ASN-0093),
 so the image — and every `touch_W` it determines — holds fixed; only the available pool can
 move. If some endset `Σ.L(ℓ_new).eᵢ` touches the region, the pair `(i, Σ.L(ℓ_new).eᵢ)` is
 *added* to the answer; if none does, the answer is unchanged. Either way the move is
-monotone — a *non-retraction* emission (one not `Θ`-typed, ASN-0086's `K ≁ R`) can only
-add pairs, never remove one — the population-grow analogue of the discovery query's
-E-MONO/F-LAMBDA (ASN-0127).
+monotone — a *non-retraction* emission (one not `Θ`-typed, writing `Θ` for ASN-0086's
+designated retraction type, kept distinct from the retention set `R` of the contraction
+analysis above and from the worked instance's lowercase `θ` type address, so the predicate
+is `K ≁ Θ` in this note's renaming) can only add pairs, never remove one — the
+population-grow analogue of the discovery query's E-MONO/F-LAMBDA (ASN-0127).
 
 **Under retraction.** A link is never deleted (L12, ASN-0043), but it can be *withdrawn*:
 a retraction marks it nullified (ASN-0086), and we range only over `addressable(Σ) =
@@ -598,9 +603,8 @@ dom(Σ.L) ∖ nullified(Σ)`.
 A retraction is itself a link emission, and this matters for what a retraction step does to
 the population. Withdrawing `ℓ` is realised as `Nullify(Σ, d_retr, ℓ) ≡ Emit_R(Σ, d_retr,
 ∅, {(ℓ, δ(1, #ℓ))})` (ASN-0086), and `Emit_R` *is* a `K.λ` step (Emit_K, ASN-0086): it
-emits a fresh **retraction link** `b`, with `Σ'.L(b) = (∅, {(ℓ, δ(1, #ℓ))}, Θ)` — writing
-`Θ` for ASN-0086's designated retraction type, kept distinct from the retention set `R` of
-the contraction analysis above — that enters `dom(Σ'.L)` and is itself addressable in `Σ'`
+emits a fresh **retraction link** `b`, with `Σ'.L(b) = (∅, {(ℓ, δ(1, #ℓ))}, Θ)` — `Θ` the
+designated retraction type introduced above — that enters `dom(Σ'.L)` and is itself addressable in `Σ'`
 (`b ∉ nullified(Σ')`) by the same fresh-`K.λ`-output addressability noted under link
 emission above: no pre-existing retraction to-set covers the fresh emitter `b`. And `b`'s
 own unit-depth to-set covers `ℓ`, not `b` (`ℓ ≠ b`, both in the flat antichain). So a single retraction
