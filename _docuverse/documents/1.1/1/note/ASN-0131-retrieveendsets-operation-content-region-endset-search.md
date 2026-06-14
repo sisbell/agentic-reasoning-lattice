@@ -98,8 +98,9 @@ the system admits *retraction*, recorded not by deleting the link but by emittin
 withdrawal link that marks the target nullified (ASN-0086). We adopt throughout, as a
 **standing assumption**, ASN-0086's *unit-depth retraction discipline*: retraction-typed
 links enter the store only through `Nullify`, so every retraction to-set is a unit-depth
-span `{(t, δ(1, #t))}` at a single prior target. The bridge to ASN-0086 is that `Σ.L`
-evolves only through `K.λ`: the arrangement movers (`K.μ` family), entity creation `K.δ`,
+span `{(t, δ(1, #t))}` at a single prior target. The bridge to ASN-0086 — call it the
+**`Σ.L`-evolution bridge** — is that `Σ.L` evolves only through `K.λ`: the arrangement
+movers (`K.μ` family), entity creation `K.δ`,
 provenance recording `K.ρ`, and content allocation `K.α` all frame the link store
 (`L' = L`). So the link store evolves identically under ASN-0086's transition relation and
 under ASN-0047's, and every ASN-0086 lemma that constrains `Σ.L` alone holds verbatim at
@@ -108,9 +109,10 @@ alone" — those whose `Σ.L`/`nullified` conclusions carry hypotheses over `dom
 derived emitter `a_emit(Σ, d)` read from `(Σ.M, Σ.L)`. It carries these too, because
 `dom(Σ.M)` is the *same* ASN-0093 document substrate (`dom(M) = E_doc`, M1, ASN-0047) that
 both ASN-0086 and ASN-0047 extend, and `K.λ` computes `a_emit(Σ, d)` from the document
-operand `d` by one formula under either transition relation; a conclusion that `K.λ`'s shared
-semantics force on `Σ.L` therefore holds identically even when its hypotheses name `dom(Σ.M)`.
-We invoke this transfer at the use sites below, noting the carried hypotheses there.
+operand `d` by one formula under either transition relation. So the bridge's standing
+conclusion is this: every ASN-0086 lemma whose conclusion constrains `Σ.L` or `nullified`
+holds at every ASN-0047-reachable state, including the lemmas whose hypotheses name
+`dom(Σ.M)` or the derived emitter `a_emit(Σ, d)`.
 
 One consequence of that shared `K.λ` semantics recurs. Write `Θ` for ASN-0086's designated
 retraction type (ASN-0086's own symbol is `R`, which this note reserves for other uses, so we
@@ -127,10 +129,7 @@ Hence the reusable fact — **fresh-output addressability (RE-ADDR)**: a fresh `
 does not retract its own emitter address is addressable in its post-state; in particular every
 non-retraction emission (`K ≁ Θ`) is addressable. The argument rests only on R0a and the
 discipline — both `Σ.L`-constraints — so the bridge carries it verbatim, with no hypothesis
-over `dom(Σ.M)`, and it holds for every `K.λ` output regardless of arity. (For the narrower
-case of a genuine standard-triple emission, ASN-0086's `wp` Case 2 reaches the same conclusion
-through its non-self-targeting conjunct `a_emit ∉ coverage(G)`; we draw on that form below for
-the retraction emitter `b`, a genuine triple.)
+over `dom(Σ.M)`, and it holds for every `K.λ` output regardless of arity.
 
 A withdrawn link's anchoring should not be reported as live — a design decision that fixes
 the operation as a report over the *active* population, not the full permanent store. So we range
@@ -672,13 +671,9 @@ the population. Withdrawing `ℓ` is realised as `Nullify(Σ, d_retr, ℓ) ≡ E
 ∅, {(ℓ, δ(1, #ℓ))})` (ASN-0086), and `Emit_R` *is* a `K.λ` step (Emit_K, ASN-0086): it
 emits a fresh **retraction link** `b`, with `Σ'.L(b) = (∅, {(ℓ, δ(1, #ℓ))}, Θ)`. Its to-set
 covers `ℓ`, not `b` (`ℓ ≠ b`, both in the flat antichain), so `b` does not retract its own
-emitter address; `b` is therefore addressable in `Σ'` (`b ∉ nullified(Σ')`) by RE-ADDR — and,
-since `b` is a genuine `Emit_R`/`Emit_K` triple, equally by `wp` Case 2's non-self-targeting
-conjunct `a_emit = b ∉ coverage(G) = {u : ℓ ≼ u}` (ASN-0086), whose hypotheses over `dom(Σ.M)`
-(the operand `d_retr ∈ dom(Σ.M)`) and the emitter `a_emit(Σ, d_retr)` the bridge above carries
-to this ASN-0047 state. So a single retraction
-does two things at once — it removes `ℓ` from `addressable` (through the nullified marking)
-*and* adds the emitter `b` to it. We must ask what the emitter `b` can contribute. Its three
+emitter address; `b` is therefore addressable in `Σ'` (`b ∉ nullified(Σ')`) by RE-ADDR. So a
+single retraction does two things at once — it removes `ℓ` from `addressable` (through the
+nullified marking) *and* adds the emitter `b` to it. We must ask what the emitter `b` can contribute. Its three
 endsets are the empty from-set `∅`, a to-set `{(ℓ, δ(1, #ℓ))}` whose single span covers `ℓ`
 and `ℓ`'s extensions, and the retraction type-set `Θ`. The first two are content-disjoint
 *unconditionally*, and for one shared reason worth isolating: the field-agreement argument
@@ -730,10 +725,9 @@ that withdraws `ℓ`, and a retraction, being a state transition, could a priori
 more than its named target. We discharge it by bounding the retraction's reach. Take
 `ℓ' ∈ addressable(Σ)` with `ℓ' ≠ ℓ`, bearing `e` in slot `i`. A single Nullify contributes
 *exactly* its target to the nullified set — `{t : ℓ ≼ t} ∩ dom(Σ'.L) = {ℓ}` (R-Scope
-SingleTupleScope, ASN-0086, arity-independent; its hypotheses name `d_retr ∈ dom(Σ.M)` and the
-emitter `a_emit(Σ, d_retr)`, carried to this ASN-0047 state by the bridge above) — so the fresh
-retraction tuple `b` nullifies no link address but `ℓ`, leaving every other store element
-`ℓ' ≠ ℓ` outside its reach.
+SingleTupleScope, ASN-0086, arity-independent — carried to this ASN-0047 state by the
+`Σ.L`-evolution bridge) — so the fresh retraction tuple `b` nullifies no link address but
+`ℓ`, leaving every other store element `ℓ' ≠ ℓ` outside its reach.
 Hence `ℓ'`, already `∉ nullified(Σ)` and distinct from `ℓ`, is `∉ nullified(Σ')`:
 `ℓ' ∈ addressable(Σ')`. Its value is unchanged (L12, ASN-0043), so it still bears `e` in
 slot `i`; the `K.λ` step frames `Σ.M(d)` (`M' = M`), leaving the image — and with it
@@ -768,7 +762,7 @@ The answer's stability thus reduces to two tracked motions: the region's image u
 | RE-CLIP | No clipping — every surfaced span is reported at the full extent recorded in the link, never truncated to the region boundary; universal across both the whole-endset (RE-WHOLE) and touching-spans-only readings | introduced |
 | RE-WHOLE | Whole-endset surfacing (adopted convention) — a surfaced endset is returned in full, *all* its spans (not only those intersecting `W`); not forced by RE-CLIP, held **provisional** pending Open Question 1 | introduced (provisional) |
 | RE-BND | Boundary cases — `RE(W, d, Σ) = ∅` whenever the image is empty (`W ∩ dom(Σ.M(d)) = ∅`) or `addressable(Σ) = ∅`; an empty endset slot has `coverage(∅) = ∅`, so `touch_W(∅)` is false and it is never surfaced | introduced |
-| RE-ADDR | Fresh-output addressability — a fresh `K.λ` output that does not retract its own emitter address is addressable in its post-state (`ℓ_new ∉ nullified(Σ')`); in particular every non-retraction emission (`K ≁ Θ`) is addressable. Established arity-independently from the standing unit-depth discipline and R0a/FlatLinkDomain (ASN-0086) — both `Σ.L`-constraints, carried verbatim to ASN-0047-reachable states by the `Σ.L`-evolution bridge; the genuine-triple case additionally matches `wp` Case 2's non-self-targeting conjunct (ASN-0086) | introduced |
+| RE-ADDR | Fresh-output addressability — a fresh `K.λ` output that does not retract its own emitter address is addressable in its post-state (`ℓ_new ∉ nullified(Σ')`); in particular every non-retraction emission (`K ≁ Θ`) is addressable. Established arity-independently from the standing unit-depth discipline and R0a/FlatLinkDomain (ASN-0086) — both `Σ.L`-constraints, carried verbatim to ASN-0047-reachable states by the `Σ.L`-evolution bridge | introduced |
 | RE-SND | Soundness — `(i, e) ∈ RE(W, d, Σ) ⟹ e` is a genuine slot-`i` endset of an addressable link ∧ `touch_W(e)`; no false positives | introduced |
 | RE-CMP | Completeness — every addressable link `a` and slot `i` with `touch_W(Σ.L(a).eᵢ)` has `(i, Σ.L(a).eᵢ) ∈ RE(W, d, Σ)`; the answer is *exactly* the touching set, native or transcluded content alike | introduced |
 | RE-UDIST | Union-distributivity — `RE(W₁ ∪ W₂, d, Σ) = RE(W₁, d, Σ) ∪ RE(W₂, d, Σ)`, the RE-level analogue of F-UDIST/F-VDIST (ASN-0127) | introduced |
