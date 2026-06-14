@@ -404,22 +404,15 @@ schema-conforming claim, at any reachable state. Write
 an edit-disciplined state every claim conforms, so `Ŝ^Σ = S^Σ`.
 
 **Df-SUCC (Successor relations).** At any state `Σ`, ranging over the
-schema-conforming claims `Ŝ^Σ` (EL4), on which `old`/`new`/`addr` are total:
+schema-conforming claims `Ŝ^Σ` (EL4) — on which `old`/`new`/`addr` are total at
+*every* reachable state, not only disciplined ones:
 
 > `succ_h(Σ) = {(old(e), new(e)) : e ∈ Ŝ^Σ}`  — the historical relation;
 > `succ_o(Σ) = {(old(e), new(e)) : e ∈ Ŝ^Σ ∧ addr(e) ∉ nullified(Σ)}`  — the operative relation.
 
 Both are finite (L-fin) relations on `dom(Σ.L)`, with
-`succ_o(Σ) ⊆ succ_h(Σ)`. Restricting the comprehension to `Ŝ^Σ` keeps the
-relations total at *every* reachable state, not only disciplined ones: the
-accessors are undefined on a non-conforming `[K_sup]`-class tuple — multi-span,
-or covering several link addresses or none — and at a full-substrate-reachable
-state outside the editing layer, where Df-LAY's confinement does not apply, a
-full-vocabulary `K.λ` (one not routed through the editing-layer discipline) can
-emit one. (Df-LAY's *bare* `K.λ` cannot: it is confined to original-link
-creation, slot-3 coverage neither `coverage(K_sup)` nor `coverage(R)`. The
-totality concern is precisely the states the editing layer does not govern; at
-editing-layer-reachable states every claim conforms and `Ŝ^Σ = S^Σ`, EL4.)
+`succ_o(Σ) ⊆ succ_h(Σ)`; at editing-layer states `Ŝ^Σ = S^Σ` (EL-DM), so the
+comprehensions range over the whole supersession slice.
 
 **EL5 (RecordMonotonicity).** For every `Σ →* Σ'`:
 
