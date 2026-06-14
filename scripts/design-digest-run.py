@@ -38,6 +38,7 @@ DESIGN_ENV = ROOT / "_workspace/design-runner.env"
 RUNNER_ENV = ROOT / "_workspace/runner.env"
 DIGEST = ROOT / "scripts/design-digest.py"
 LOGS = ROOT / "_workspace/logs"
+STOP_FLAG = ROOT / "_workspace/design-digest.stop"
 
 
 def _load_env(path):
@@ -105,7 +106,22 @@ def main():
                          "even if the runner is mid-cycle on it")
     ap.add_argument("--no-commit", action="store_true")
     ap.add_argument("--dry-run", action="store_true", help="print the ASN list and exit")
+    ap.add_argument("--stop", action="store_true",
+                    help="signal a graceful shutdown of a running batch: in-flight "
+                         "notes finish their current review/revise cycle and commit, "
+                         "queued notes never launch, then the batch drains. Sets the "
+                         "stop flag and exits; the next normal run clears it.")
     args = ap.parse_args()
+
+    if args.stop:
+        STOP_FLAG.parent.mkdir(parents=True, exist_ok=True)
+        STOP_FLAG.touch()
+        print(f"[run] stop requested — wrote {STOP_FLAG.relative_to(ROOT)}. "
+              f"In-flight notes finish their current cycle and commit, then exit; "
+              f"queued notes drain without launching. Re-run normally to resume "
+              f"(a fresh run clears the flag and continues from committed state).",
+              file=sys.stderr)
+        return
 
     classes_file = CLASSES_YAML if CLASSES_YAML.exists() else FALLBACK_CLASSES
     data = yaml.safe_load(classes_file.read_text())
@@ -135,12 +151,21 @@ def main():
           f"({len(skipped)} skipped): {asns}", file=sys.stderr)
     print(f"[run] workers={args.workers} accounts={n_accounts} effort={args.effort} "
           f"max-reviews={args.max_reviews} commit={not args.no_commit}", file=sys.stderr)
+    print(f"[run] graceful stop: `python scripts/design-digest-run.py --stop` "
+          f"— in-flight notes finish their cycle and commit, the rest drain",
+          file=sys.stderr)
     if args.dry_run:
         return
+
+    # A fresh batch starts clean: clear any stale stop flag left by a prior
+    # drain so this run isn't aborted by a leftover sentinel.
+    STOP_FLAG.unlink(missing_ok=True)
 
     LOGS.mkdir(parents=True, exist_ok=True)
 
     def run_one(n):
+        if STOP_FLAG.exists():
+            return n, 0, None  # drained: stop signalled before this note launched
         log = LOGS / f"design-digest-ASN-{n:04d}.log"
         cmd = [sys.executable, str(DIGEST), "--asn", str(n),
                "--max-reviews", str(args.max_reviews), "--effort", args.effort]
@@ -161,18 +186,28 @@ def main():
         rc = p.wait()
         return n, rc, log
 
-    ok, failed = [], []
+    ok, failed, drained = [], [], []
     with ThreadPoolExecutor(max_workers=args.workers) as ex:
         futs = {ex.submit(run_one, n): n for n in asns}
         for i, fut in enumerate(as_completed(futs), 1):
             n, rc, log = fut.result()
+            if log is None:
+                drained.append(n)
+                print(f"[run] ({i}/{len(asns)}) ASN-{n:04d} drained "
+                      f"(stop signalled — not launched)", file=sys.stderr)
+                continue
             (ok if rc == 0 else failed).append(n)
             print(f"[run] ({i}/{len(asns)}) ASN-{n:04d} {'ok' if rc == 0 else 'FAILED'} "
                   f"(rc={rc}) — {log.relative_to(ROOT)}", file=sys.stderr)
 
-    print(f"\n[run] done. ok={len(ok)} failed={len(failed)}", file=sys.stderr)
+    print(f"\n[run] done. ok={len(ok)} failed={len(failed)} drained={len(drained)}",
+          file=sys.stderr)
     if failed:
         print(f"[run] failed (no note yet / error): {sorted(failed)}", file=sys.stderr)
+    if STOP_FLAG.exists():
+        print(f"[run] stopped early by --stop (flag still set). Re-run normally to "
+              f"resume — it clears the flag and continues from committed state.",
+              file=sys.stderr)
 
 
 if __name__ == "__main__":

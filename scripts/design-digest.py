@@ -36,6 +36,15 @@ NOTE_DIR = ROOT / "_docuverse/documents/1.1/1/note"
 CONSULT_DIR = ROOT / "_docuverse/documents/1.1/1/consultation"
 PROMPTS = ROOT / "prompts/shared/design-digest"
 DESIGN_ROOT = ROOT / "_design"
+STOP_FLAG = ROOT / "_workspace" / "design-digest.stop"
+
+
+def _stop_requested() -> bool:
+    """A graceful-shutdown sentinel checked at clean cycle boundaries.
+    `touch _workspace/design-digest.stop` (or the runner's --stop) requests
+    a drain: the current cycle finishes and commits, then we exit. Nothing
+    is left half-applied, so resume picks up exactly where this left off."""
+    return STOP_FLAG.exists()
 
 
 def _note_paths(asn: int):
@@ -209,6 +218,11 @@ def main():
           f"{'RESUMING' if resumed else 'fresh'} (have {done} review(s)) → "
           f"max-reviews={args.max_reviews} | commit={commit}", file=sys.stderr)
 
+    if _stop_requested():
+        print(f"[design-digest] stop requested — {label} exiting cleanly before "
+              f"any work (nothing in flight; safe to resume)", file=sys.stderr)
+        return
+
     if not resumed:
         print("[design-digest] producing...", file=sys.stderr)
         digest = _call("producer", base, args.effort, args.model)
@@ -225,6 +239,11 @@ def main():
     # digest is improved exactly `reviews` times; the operator picks how
     # many. Re-running with a higher --reviews adds more passes (resume).
     for k in range(done + 1, args.max_reviews + 1):
+        if _stop_requested():
+            print(f"[design-digest] stop requested — {label} draining at a clean "
+                  f"boundary after {k - 1} pass(es); committed and resume-safe "
+                  f"(re-run to continue from review {k})", file=sys.stderr)
+            return
         print(f"[design-digest] review {k}/{args.max_reviews}...", file=sys.stderr)
         review = _call("reviewer", {**base, "digest": digest}, args.effort, args.model)
         review_md = review_dir / f"review-{k}.md"
