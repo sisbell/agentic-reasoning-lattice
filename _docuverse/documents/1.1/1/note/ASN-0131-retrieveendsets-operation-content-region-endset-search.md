@@ -101,25 +101,14 @@ transition that adds a retraction-typed link is a `Nullify`, so retraction-typed
 the store through that one operation alone. ASN-0086's *unit-depth retraction discipline* —
 every retraction to-set is a unit-depth span `{(t, δ(1, #t))}` at a single prior target — is
 the **to-set consequence** of this commitment, discharged from it by induction (ASN-0086).
-The commitment also fixes the *from-set*: `Nullify` emits its retraction with an *empty
-from-set* (ASN-0086), so adopting it **excludes attributed retractions** (non-empty
-from-set), which ASN-0086's Convention RetractionDirectionality would otherwise permit. The bridge to
-ASN-0086 — call it the **`Σ.L`-evolution bridge** — takes two steps. First, `Σ.L` evolves only
-through `K.λ`: the arrangement movers (`K.μ` family), entity creation `K.δ`, provenance recording
-`K.ρ`, and content allocation `K.α` all frame the link store (`L' = L`), so the *steps* that move
-`Σ.L` are the same `K.λ` steps in both vocabularies. Coinciding steps do not by themselves transfer
-a lemma quantified over *all* reachable states, because the two vocabularies build `dom(Σ.M)`
-differently — ASN-0086 registers documents through `K.σ`, ASN-0047 through `K.δ` — and `K.λ`'s
-home-document precondition `d ∈ dom(Σ.M)` is read against those differently-built document sets. So
-we need, second, that every `Σ.L`-configuration ASN-0047 can reach is also ASN-0086-reachable. It
-is: every document ASN-0047 creates (`K.δ`, `Document(e)` case) is T4-valid with `zeros = 2` (M0,
-ASN-0093), which is exactly `K.σ`'s registration precondition (ASN-0093), so ASN-0086 can stage the
+The bridge to ASN-0086 — call it the **`Σ.L`-evolution bridge** — rests on one inclusion. `Σ.L`
+evolves only through `K.λ`: the arrangement movers (`K.μ` family), entity creation `K.δ`,
+provenance recording `K.ρ`, and content allocation `K.α` all frame the link store (`L' = L`).
+Every document ASN-0047 creates (`K.δ`, `Document(e)` case) is T4-valid with `zeros = 2` (M0,
+ASN-0093), exactly `K.σ`'s registration precondition (ASN-0093), so ASN-0086 can stage the
 identical home documents via `K.σ` and replay the identical `K.λ` sequence — giving the inclusion
-*ASN-0047-reachable `Σ.L`-configurations ⊆ ASN-0086-reachable ones*. Only with that inclusion in
-hand does a `∀`-quantified ASN-0086 `Σ.L`-lemma carry to every ASN-0047-reachable state. The
-one ASN-0086 fact we consume at definition time is `nullified` itself — its well-definedness
-and computability — which the bridge carries here to ground
-`addressable` in RE-DEF and its decidability below.
+*ASN-0047-reachable `Σ.L`-configurations ⊆ ASN-0086-reachable ones*, along which a `∀`-quantified
+ASN-0086 `Σ.L`-lemma carries to every ASN-0047-reachable state.
 
 A withdrawn link's anchoring should not be reported as live — a design decision that fixes
 the operation as a report over the *active* population, not the full permanent store. So we range
@@ -409,8 +398,13 @@ output of *any* arity: every retraction to-set in `Σ'.L` is unit-depth at some 
 `t ∈ dom(Σ'.L)`, covering `{u : t ≼ u}`, and R0a/FlatLinkDomain (ASN-0086, via the
 `Σ.L`-evolution bridge) makes `dom(Σ'.L)` a prefix-antichain, so any `t` distinct from `ℓ_new`
 is prefix-incomparable to it (`t ⋠ ℓ_new`) and cannot cover it. The only retraction to-set that
-could cover `ℓ_new` is its own — present only if `ℓ_new` is itself a retraction — and it does so
-exactly when `ℓ_new` retracts its own emitter address. Hence the reusable fact — **fresh-output
+could cover `ℓ_new` is therefore one whose *target* is `ℓ_new`. No *pre-existing* tuple bears
+such a to-set: every retraction already in `Σ.L` targets an address in `dom(Σ.L)` — by Nullify's
+P-tgt (ASN-0086) its target is either an `A_rel = dom(Σ.L)` address or, for a self-emission, the
+emitter's own address, again in `dom(Σ.L)` — whereas `ℓ_new ∉ dom(Σ.L)` by freshness, so none
+targets `ℓ_new`. The only tuple in `Σ'.L` that can target `ℓ_new` is thus the freshly-emitted
+`ℓ_new` itself — present only if `ℓ_new` is itself a retraction — and it covers `ℓ_new` exactly
+when `ℓ_new` retracts its own emitter address. Hence the reusable fact — **fresh-output
 addressability (RE-ADDR)**: a fresh `K.λ` output that does not retract its own emitter address is
 addressable in its post-state; in particular every non-retraction emission (`K ≁ Θ`) is
 addressable.
