@@ -291,8 +291,7 @@ address: it can be individually targeted — disputed by further links, retracte
 from operative standing by the layer's `Nullify` — while L12 holds it, and both
 endpoints, in the permanent record. RQ3 is its home prefix (T4b projection,
 decidable by T6) — attribution to the allocating document, from the address
-alone (the scope of this attribution — home, not named principal — is fixed at
-EL8(b)). RQ5 is `K.λ`'s frame. RQ7 is
+alone. RQ5 is `K.λ`'s frame. RQ7 is
 freshness: every claim is a new address; nothing collides, merges, or ranks.
 
 *The menu was shorter than it looked.* "A separate supersession link" and "a
@@ -808,8 +807,8 @@ home the opposite holds: the chain enumeration is strictly increasing (T9;
 ChainEnumerationInjectivity, ASN-0093), so the claims homed at one *document*
 are totally ordered by their addresses — *per-home* "latest" is well-defined and
 state-recoverable — per-document-chain, not per-principal. (A per-asserter
-"latest" is not a state function: principal resolution is the ASN-0042 overlay's
-office, EL8(b), not a function of `Σ`.)
+"latest" is not a state function — it needs principal resolution, placed outside
+`Σ` by EL8(b).)
 
 **Df-CUR (Currency query).** For `y ∈ dom(Σ.L)`: `reach_o(y, Σ)` is the least
 subset of `dom(Σ.L)` containing `y` and closed under `succ_o(Σ)`-images —
@@ -846,9 +845,8 @@ operative graph is repairable precisely because the historical graph is not.
 
 *(d)* No state-definable selector canonically identifies the latest edit. A
 selector that picked out *the* current successor as the latest edit would have
-to read assertion order from the state, and across homes that order has no state
-witness (EL13) — so no *temporal*, recency-respecting selector is a function of
-`Σ`. A non-temporal tie-break remains state-definable — an arbitrary order such
+to read assertion order from the state — which EL13 denies across homes — so no
+*temporal*, recency-respecting selector is a function of `Σ`. A non-temporal tie-break remains state-definable — an arbitrary order such
 as T1-least claim address *is* a function of `Σ` — but it ranks namespaces, not
 times, returning a representative without identifying *the latest* edit:
 definable, yet not canonical. Nor can structure force the issue: making
@@ -1030,7 +1028,7 @@ current view forgets; the record cannot.
 | EL10 | PositionEpochality: reachable states exist where the same link-subspace V-position denotes `ℓ₁` and later `ℓ₂ ≠ ℓ₁` (contraction then extension reuses the canonical tail position), while addresses never re-bind; therefore surviving references — the claim schema included — must bind addresses, never positions | introduced |
 | EL11 | TwoRegimeDiscovery: (a) contextual — a disciplined claim's to-side projects into `d` iff `d` currently lists the original (`project ≠ ∅ ⟺ listed(old(e), d, Σ)`, by LP12 + coverage trace `{old(e)}`), symmetrically for the from-side; (b) archival — `in(y, Σ)` and `out(x, Σ)` (over the schema-conforming `Ŝ^Σ`) are computable from `Σ.L` alone, completely and decidably, at every state; the record always answers, the context volunteers only while its registry lists the endpoint | introduced |
 | EL12 | ForkPermanence: independent edits of the same original yield distinct successors and claims, all permanent, co-operative at birth, never merged, ranked, or removed; the full competing set with asserters is one archival query; absent assertions the fork never exists in state (EL1) — fork visibility is exactly assertion-deep | introduced |
-| EL13 | TemporalErasure: cross-home emissions commute to identical states, so no state function recovers cross-home claim order ("global latest" is undefinable); within one home, claim order is totally recoverable from addresses (T9) — "latest" is per-home (per-document-chain) only, not per-principal (principal resolution is the ASN-0042 overlay's office, EL8b, not a function of `Σ`) | introduced |
+| EL13 | TemporalErasure: cross-home emissions commute to identical states, so no state function recovers cross-home claim order ("global latest" is undefinable); within one home, claim order is totally recoverable from addresses (T9) — "latest" is per-home (per-document-chain) only, not per-principal (EL8b) | introduced |
 | Df-CUR | Currency query: `reach_o(y, Σ)` the `succ_o`-closure of `{y}`; `current(y, Σ)` its operative sinks — total, finite, computable; the sink test reads only the *operative claims* out of `z` (a claim-activity filter), not `z`'s own activity (EL14e) | introduced |
 | EL14 | CurrencyRelational: `current` is irreducibly set-valued — cardinalities 1 (linear chain; `{y}` itself when unedited), ≥ 2 (fork), and 0 (mutual-supersession standoff) are all reachable; demotion repairs the operative view while history stands; no state-definable selector canonically identifies the latest edit — a temporal/recency selector is not a state function across homes (EL13), while the definable global tie-break (T1-least) ranks namespaces not times; structural uniqueness would require refusing emissions or erasing claims; (e) membership is *activity-agnostic on members* — `succ_o` filters on *claim* activity (`addr(e) ∉ nullified`) only, so `z ∈ current(y)` need not satisfy `active(z)` (a successor may be `Nullify`'d as an endpoint while its claim stands; sink and member-activity are independent axes, EL9(3)); the layer owes disclosure with attribution *and each member's activity status*, the reader applies policy | introduced |
 | EL15 | ChainConnectivity: along asserted chains, members resolve forever, hops persist in `succ_h`, and each hop is recoverable from either endpoint alone — historical connectivity is monotone non-decreasing; completeness (unasserted hops) and operative integrity (demoted hops) are expressly not invariants, and member-to-ends operative traversability is a derived property, not a guarantee | introduced |
