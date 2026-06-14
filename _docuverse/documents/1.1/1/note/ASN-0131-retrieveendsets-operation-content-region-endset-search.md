@@ -173,11 +173,7 @@ Three degenerate inputs are worth reading straight off the definition.
 
 ## Fresh emissions and the addressable population
 
-One structural fact about the addressable population is needed repeatedly below — in
-composing regions (RE-UDIST-∩) and again under emission and retraction (RE-RET) — so we
-record it here, with that population freshly in view. Write `Θ` for ASN-0086's designated
-retraction type (ASN-0086's own symbol is `R`, which this note reserves for other uses, so
-we rename it `Θ`). A `K.λ` step emits a *fresh* link — allocation gives `ℓ_new ∉ dom(Σ.L)`,
+A `K.λ` step emits a *fresh* link — allocation gives `ℓ_new ∉ dom(Σ.L)`,
 so `ℓ_new` enters `dom(Σ'.L)` — and whether that fresh output is *addressable* in its
 post-state (`ℓ_new ∉ nullified(Σ')`) turns on whether some retraction to-set covers it. The
 standing commitment's unit-depth to-set settles this for an output of *any* arity: every
@@ -194,7 +190,8 @@ address, again in `dom(Σ.L)` — whereas `ℓ_new ∉ dom(Σ.L)` by freshness, 
 exactly when `ℓ_new` retracts its own emitter address. Hence the reusable fact —
 **fresh-output addressability (RE-ADDR)**: a fresh `K.λ` output that does not retract its own
 emitter address is addressable in its post-state; in particular every non-retraction
-emission (`K ≁ Θ`) is addressable.
+emission (`K ≁ Θ`) is addressable — writing `Θ` for ASN-0086's designated retraction type,
+whose own symbol `R` this note reserves for other uses.
 
 ## Extent: the surfaced endset, whole and unclipped
 
@@ -796,9 +793,8 @@ The answer tracks the anchoring values of the active *population*, not the fate 
 link; conflating link-level permanence (R6a) with pair-value-level removal is exactly the
 slip RE-UNIT's deduplication guards against.
 
-The answer's stability thus reduces to two tracked motions: the region's image under editing
-(RE-EDIT, with RE-CWP the exact contraction sub-case) and the active population under emission
-and retraction (RE-RET).
+These motions are recorded as RE-EDIT — the image under editing, with RE-CWP the exact
+contraction sub-case — and RE-RET, the active population under emission and retraction.
 
 ## Claims Introduced
 
