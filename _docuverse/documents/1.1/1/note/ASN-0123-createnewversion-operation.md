@@ -152,16 +152,12 @@ Preconditions
   source side there is nothing further. In particular: no authority over
   d_src is required (the source is read without permission), and no condition
   is placed on M(d_src) (the empty source is admitted, n = 0 below). P-tier is
-  the operation's domain delimiter, well-formed because ω(d_src) is defined at
-  every reachable state (PS — registry coverage makes ω total on E): its first
-  disjunct serves the owned fork at any forker tier, its second the cross-owner
-  fork, which falls on an account-tier forker alone (zeros(pfx(π)) = 1),
-  holding the allocation to a single identity (V0). A node-tier
-  non-owner (zeros(pfx(π)) = 0, which O1a admits into Π) satisfies neither
-  disjunct and lies outside the domain: reaching a document from a node prefix
-  would first baptize an intermediate account — a second permanent entity (P1),
-  breaking the single-mint guarantee — so it must establish an account first, an
-  out-of-scope prior act VERSION does not cover.
+  the operation's domain delimiter (well-formed since ω(d_src) is defined at
+  every reachable state — PS makes ω total on E): its first disjunct serves the
+  owned fork at any forker tier, its second the cross-owner fork, restricted to
+  an account-tier forker (zeros(pfx(π)) = 1). That restriction is what holds the
+  fork to a single mint and places the node-tier non-owner outside the domain;
+  V0 carries the count.
 
 Abbreviations (evaluated at the initial state Σ)
   n  :=  |V_{s_C}(d_src)|
@@ -210,7 +206,7 @@ Result
 
 > `E' = E ∪ {v}` with `v ∉ E`; `v` is distinct from the output of every other allocation event; and `(A Σ'' : Σ' →* Σ'' : v ∈ Σ''.E)`.
 
-Freshness is the `nextv` choice (owned case) or the explicit constraint (cross-owner case). The count is exactly one in both branches: the owned branch is a single version K.δ, and the cross-owner branch's restriction to an account-tier forker (`zeros(pfx(π)) = 1`) makes its allocation a single document K.δ in `π`'s existing document namespace — the node-tier path, lacking that namespace, is excluded from the operation's domain (P-tier). Distinctness from *all* other allocation events — versions of other documents, documents, accounts, content, links — is GlobalUniqueness (ASN-0034), which rules out collisions alike from the same allocator, sibling allocators, and allocators at different hierarchy depths. It applies because the version sub-allocator `A_v(d) = S(d, 1)` is T10a-conforming — its base spawned by `inc(d, 1)` (`k' = 1 ∈ {1, 2}`), its siblings advanced by `inc(·, 0)` — which is exactly GlobalUniqueness's hypothesis; so two versions of one document are distinct by its same-allocator case directly, with no appeal to B8's same-namespace case, whose `B1`/`B2` preconditions are invariants of ASN-0040's own transition system and do not transfer to ASN-0047's K.δ vocabulary (the reason VN-B1 was reproved above). The same-allocator argument needs no serialization assumption, so this distinctness is unconditional on commit order. Across distinct namespaces it is corroborated unconditionally by B7 (NamespaceDisjointness) and B8's cross-namespace case. Permanence is P1 (EntityPermanence): no transition removes an entity. Immutability of the identity itself needs no separate mechanism: identities are the *keys* of `E` and `M`, not stored values; P3 admits no contraction and no rewriting, so "renumbering" — removal plus reinsertion — is unavailable in the transition vocabulary. This is Nelson's permanence claim made structural: "New items may be continually inserted in tumbler-space while the other addresses remain valid" [LM 4/19].
+Freshness is the `nextv` choice (owned case) or the explicit constraint (cross-owner case). The count is exactly one in both branches. The owned branch is a single version K.δ. The cross-owner branch is a single document K.δ in `π`'s existing document namespace, and its restriction to an account-tier forker (`zeros(pfx(π)) = 1`) is what bounds the mint to one: a node-tier non-owner (`zeros(pfx(π)) = 0`, which O1a admits into `Π`) holds no document namespace, so reaching a document from a bare node prefix would first baptize an intermediate account — a second permanent entity (P1) — breaking the single mint, and must instead establish an account first, an out-of-scope prior act. This is why P-tier's second disjunct admits only the account-tier cross-owner forker. Distinctness from *all* other allocation events — versions of other documents, documents, accounts, content, links — is GlobalUniqueness (ASN-0034), which rules out collisions alike from the same allocator, sibling allocators, and allocators at different hierarchy depths. It applies because the version sub-allocator `A_v(d) = S(d, 1)` is T10a-conforming — its base spawned by `inc(d, 1)` (`k' = 1 ∈ {1, 2}`), its siblings advanced by `inc(·, 0)` — which is exactly GlobalUniqueness's hypothesis; so two versions of one document are distinct by its same-allocator case directly, with no appeal to B8's same-namespace case, whose `B1`/`B2` preconditions are invariants of ASN-0040's own transition system and do not transfer to ASN-0047's K.δ vocabulary (the reason VN-B1 was reproved above). The same-allocator argument needs no serialization assumption, so this distinctness is unconditional on commit order. Across distinct namespaces it is corroborated unconditionally by B7 (NamespaceDisjointness) and B8's cross-namespace case. Permanence is P1 (EntityPermanence): no transition removes an entity. Immutability of the identity itself needs no separate mechanism: identities are the *keys* of `E` and `M`, not stored values; P3 admits no contraction and no rewriting, so "renumbering" — removal plus reinsertion — is unavailable in the transition vocabulary. This is Nelson's permanence claim made structural: "New items may be continually inserted in tumbler-space while the other addresses remain valid" [LM 4/19].
 
 **V4 (AncestryPrefix).** For the owned fork, the version's identity bears to the source's identity the relation *daughter by single-component extension*, and the relation is total — every identifying field is accounted for:
 
