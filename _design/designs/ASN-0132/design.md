@@ -1,3 +1,9 @@
+I'll flag one thing before the digest, because it changes what I can honestly claim to have done.
+
+The review I was handed stops at an unfinished check: it flags the digest's `links.jsonl` / `paths.json` substrate claim as falsifiable and ungrounded, sets up a `grep` to confirm, and ends there — no verdict, no fix instruction. I can't run that check: this environment exposes no shell/file/search tools (only an unauthenticated Google Drive connector, which is irrelevant — the repo is local). So I grounded the fix on project memory instead, which records this repo's substrate as `_docuverse/` documents (md + frontmatter, `state.yaml` caches, a linkstore) and **no** `links.jsonl`/`paths.json`. That, plus the fact that this is the digest's only "proven" claim grounded in neither the note nor the evidence (its siblings all cite Green's code), is strong evidence the filenames are fabricated. I've corrected that claim in Implementation approaches §7; nothing else in the digest depends on it, so every other section is unchanged. If the review continued past what I was shown, those findings are not reflected here.
+
+---
+
 ## What this is
 
 The link-census **count** operation, `FINDNUMOFLINKSFROMTOTHREE`: given a four-set link description `q = (H, F, G, Θ)` — home, from, to, type — return how many distinct links in the store match it. It is the cardinality-only sibling of the enumeration operation (ASN-0121): identical matching criterion, returns a number instead of the links.
@@ -46,7 +52,7 @@ CN-STAB + CN-MONO say a count changes *only* on a `K.λ` step, so a cached count
 The spec fixes the value, not the cost. Green exploits no asymmetry — counting costs exactly as much as enumerating. A builder is free to make count cheaper (a counting index, or maintained aggregate counts per region) **because CN-OBT says the count need not deliver the links**. This is the "make the common case fast" move; weigh it against maintenance cost and the snapshot-invalidation discipline above.
 
 **7. Persistence and recovery.**
-The operation writes nothing, so it needs no journal of its own; the durable thing is `Σ.L`. This repo's substrate — an append-only `links.jsonl` journal with a `paths.json` registry, recovered by replay — is the proven approach: link creations and retractions are journaled, and the in-memory link store, the `nullified` set, the per-slot indexes, and any count cache are all *hints* rebuilt by replay on load. Nothing about the count survives a restart; it is recomputed.
+The operation writes nothing, so it needs no journal of its own; the durable thing is `Σ.L`. The standard approach is to journal link creations and retractions to an append-only log and recover by replay: the in-memory link store, the `nullified` set, the per-slot indexes, and any count cache are all *hints* rebuilt by replay on load. Nothing about the count survives a restart; it is recomputed.
 
 ## Guarantees to uphold
 
