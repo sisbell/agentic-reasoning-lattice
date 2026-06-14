@@ -136,9 +136,7 @@ T2, ASN-0034). Granted that hypothesis, the remaining selection is effective ove
 store.
 
 The definition **withholds the link address `a`**. The existential `(∃ a : …)` consumes the link and discards it; what
-escapes into the answer is `(i, e)`, the anchoring structure, never the identity. This is
-the defining character of the operation: it surfaces *that* anchoring is present, and its
-shape, without ever naming the anchored link. Two distinct links sharing an identical
+escapes into the answer is `(i, e)`, the anchoring structure, never the identity. Two distinct links sharing an identical
 endset value in the same slot — permitted, since the link store is non-injective (L11b,
 ASN-0043) — collapse to a single pair `(i, e)`. The answer therefore does not let one
 count the links, recover their identities, or — and this is the deeper limit — *pair* a
@@ -467,15 +465,11 @@ with `Σ.M(d)` **injective** (RE-UDIST-∩). The same shape works for *overlappi
 endset covering one address drawn from each region's exclusive part — so the obstruction is
 not even confined to disjoint regions.
 
-The first construction shows non-injectivity *can*
-break `⊇`; the second shows that *removing* it does not restore `⊇`. An arrangement
-restriction such as injectivity therefore **provably cannot** recover
-`RE(W₁ ∩ W₂, d, Σ) = RE(W₁, d, Σ) ∩ RE(W₂, d, Σ)`. What *does* force `⊇` is degeneracy of an
+What *does* force `⊇` is degeneracy of an
 altogether different kind — an arrangement too impoverished to furnish two disjoint regions
 with distinct nonempty images at all (a single active V-position, say): then any `W₁, W₂` with
 both images nonempty share that position, so `image(W₁ ∩ W₂, d, Σ)` is nonempty and the
-split-witness construction cannot be mounted, and `⊇` holds vacuously. The obstruction is
-*injectivity-proof*, not *restriction-proof*. Because the `⊆` half is unconditional and
+split-witness construction cannot be mounted, and `⊇` holds vacuously. Because the `⊆` half is unconditional and
 the pool `Avail(Σ)` is region-independent, `⊇` — and hence equality — holds *exactly*
 (necessary and sufficient) when
 
@@ -484,8 +478,7 @@ the pool `Avail(Σ)` is region-independent, `⊇` — and hence equality — hol
 every available endset that meets both region images also meeting the image of their
 intersection. What it is not is *structural* — it quantifies `touch` over every available
 endset, so it is a joint condition on those endsets' coverages and the three region images,
-not a property of `Σ.M(d)` (the injective counterexample violates it under a perfectly
-injective arrangement) and not checkable without inspecting coverage. The weakest
+not a property of `Σ.M(d)` and not checkable without inspecting coverage. The weakest
 *structurally-restricted sufficient* form — one that discharges the touch-implication
 without the per-endset quantifier — is what Open Question 4 takes up.
 
