@@ -103,7 +103,7 @@ present and not withdrawn — the **addressable** links:
 > `addressable(Σ) = dom(Σ.L) ∖ nullified(Σ)`     (over ASN-0086's `nullified`).
 
 ASN-0086's `nullified(Σ)` — the set of withdrawn addresses — is a function of the link store
-`Σ.L` alone. So `addressable` depends on `Σ.L` and the present arrangement, never on *how* a
+`Σ.L` alone. So `addressable` depends on `Σ.L` alone, never on *how* a
 retraction was performed. The retraction *discipline* — which constrains the way the withdrawn
 set grows — bears only on what a fresh emission, and what a retraction step, each leave
 addressable.
@@ -187,9 +187,7 @@ any `∀`-quantified ASN-0086 `→*`-reachable `Σ.L`-lemma carries to every ASN
 state. The unit-depth discipline is imported at a *stronger* reachability: ASN-0086 discharges
 it only for *layer*-reachable states, and the replayed `K.λ` sequence is layer-reachable
 precisely because the standing discipline commitment holds along it — every
-retraction-slice-growing step is a `Nullify` obeying the discipline. So importing unit-depth is
-licensed by the standing assumption, not by the bare `→*` inclusion that carries the note's other
-ASN-0086 `Σ.L`-lemmas.
+retraction-slice-growing step is a `Nullify` obeying the discipline.
 
 A `K.λ` step emits a *fresh* link — allocation gives `ℓ_new ∉ dom(Σ.L)`, so `ℓ_new` enters
 `dom(Σ'.L)` — and whether that fresh output is *addressable* in its post-state
@@ -609,9 +607,10 @@ every text depth `#p ≥ 2`), and a deletion carries the content lying above the
 back down (D-SHIFT, established there at text depth `#p = 2`; the foundation supplies no
 gap-closing interior-span delete at greater content depths `m_{s_C} > 2` (S8-depth, S8a,
 ASN-0036), the depth-general `K.μ⁻` being tail-truncation rather than interior-span deletion).
-So delete-stability is scoped to text depth `#p = 2` and insert-stability to every `#p ≥ 2` —
-an asymmetry in which displacement primitives ASN-0082 supplies. What that argument requires of
-either is not the displacement's specifics but only that it is an *arrangement edit confined to
+That difference is one of *primitive availability* — ASN-0082 supplies a concrete insert at
+every `#p ≥ 2` but a concrete delete only at `#p = 2` — not a scope on RE's stability. What
+that argument requires of either is not the displacement's specifics but only that it is an
+*arrangement edit confined to
 `Σ.M(d)`* — an **M-only edit**. Because ASN-0082 models these primitives over a `(C, M)` state
 that omits `Σ.L`, `Σ.E`, `Σ.R` and so leaves their action on those stores unconstrained, we
 **adopt as a modelling assumption** the *conservative lift*: we treat shift-based insert/delete
