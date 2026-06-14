@@ -215,11 +215,8 @@ retract its own emitter, whatever its arity.
 ## Extent: the surfaced endset, whole and unclipped
 
 A returned endset must be the link's *actual* anchoring, not an approximation of it, and
-not a fragment of it trimmed to the region. (That every returned pair is a *genuine* slot-`i`
-endset of an addressable link touching the region — its provenance — is the soundness
-direction, established below as RE-SND; here we sharpen the separate question of **extent**.)
-Two invariants of different strength must be kept apart, because the operation rests
-squarely on one and merely adopts the other.
+not a fragment of it trimmed to the region. Two invariants of different strength must be
+kept apart, because the operation rests squarely on one and merely adopts the other.
 
 The load-bearing invariant is **no clipping (RE-CLIP)**: whatever span the answer
 reports, it reports at the full extent recorded in the link, never truncated to the
@@ -695,8 +692,7 @@ way the move is monotone — a non-retraction emission (`K ≁ Θ`) can only add
 remove one — the population-grow analogue of the discovery query's E-MONO/F-LAMBDA (ASN-0127).
 
 **Under retraction.** A link is never deleted (L12, ASN-0043), but it can be *withdrawn*:
-a retraction marks it nullified (ASN-0086), and we range only over `addressable(Σ) =
-dom(Σ.L) ∖ nullified(Σ)`.
+a retraction marks it nullified (ASN-0086), and we range only over the addressable links.
 
 A retraction is itself a link emission, and this matters for what a retraction step does to
 the population. Withdrawing `ℓ` is realised as `Nullify(Σ, d_retr, ℓ) ≡ Emit_Θ(Σ, d_retr,
@@ -710,7 +706,7 @@ endsets are the from-set `∅` — empty by `Nullify`'s definition (`Emit_Θ(…
 withdrawal being realised as a `Nullify` — a to-set
 `{(ℓ, δ(1, #ℓ))}` whose single span covers `ℓ` and `ℓ`'s extensions, and the retraction
 type-set `Θ`. The first two are content-disjoint
-*unconditionally*, and for one shared reason worth isolating: the field-agreement argument
+*unconditionally*, and for one shared reason: the field-agreement argument
 used for `e₃` above is sound exactly for **unit-depth** spans, where `coverage = {t : s ≼ t}`
 (PrefixSpanCoverage, ASN-0043) reduces touching to the prefix relation `s ≼ c`, so the
 separator-zero count carries `s`'s subspace identifier onto every covered `c`.
