@@ -1,0 +1,87 @@
+## What this is
+
+ASN-0086 defines the **relational query-and-mutation layer over the link store**: the operational surface by which typed connections are filed, queried, and logically retracted. Its load-bearing contribution is an *active/audit distinction* — a permanent, append-only trail of every link ever emitted (`L_K`, the audit slice) and a computed "currently-in-effect" view (`A_K`, the active subset) obtained by *logical retraction*, never by deletion or overwrite.
+
+## Design commitments
+
+I mark each **(forced)** — downstream design cannot violate it — or **(convention)** — a layer-level choice that could have gone otherwise.
+
+- **(forced) Links are immutable and append-only; identity is by origin, not by value.** An allocated tuple address binds permanently to one `(from, to, type)` value (R2). Two agents filing identical content under an identical type get *distinct* addresses, and the substrate never merges them (R0+R1, L11b). This is the deliberate *opposite* of content-addressed/deduplicated storage: you give up automatic dedup to gain provenance and audit-distinctness.
+- **(forced) One write primitive.** Every change to `Σ.L` is a fresh typed emission (`Emit_K` = ASN-0093's K.λ). `Nullify` is itself an emission into a retraction relation; there is no in-place edit and no delete. A single write path is the whole layer's pivot — it localizes atomicity, recovery, and ordering to one place.
+- **(forced) The link address domain is a flat prefix-antichain.** No link address is a prefix of another (R0a); every emission is a *sibling* on its home document's link chain, never a descendant. This is not cosmetic — `Nullify`'s single-tuple scope (R-Scope) depends on it: a unit-depth prefix span over an antichain captures exactly its target and nothing below it.
+- **(forced) Retraction is logical, monotone-stable, and single-depth.** The nullified set only grows; once retracted, always retracted (R6a); "restore" means re-emit at a *new* address (R6c). The audit slice is monotone; the active subset is not. Retraction is decided by a *single pass* over the retraction slice with no regard to the retractor's own status (R6b), so retraction-of-a-retractor is a non-fixpoint — it does not revive the original target.
+- **(forced) Type membership is by coverage, not by literal endset value.** `K ~ K'` iff `coverage(K) = coverage(K')`; typed relations are coverage-class slices, and coverage-equality is decidable.
+- **(forced) Content and link addresses occupy disjoint subspaces (`s_C ≠ s_L`), and every emission is homed at a caller-supplied, already-allocated document.** The allocator only chooses the *position* within the home's link chain.
+- **(convention) Retraction directionality** — to-set carries targets, from-set carries attribution. Permitted by directional flexibility; could be reversed.
+- **(convention) The designated retraction coverage class `[R]`** — a reserved, possibly-ghost type; nothing stored need back it.
+- **(convention) The unit-depth retraction discipline** — every retraction to-span is a single prefix span `{(b, δ(1,#b))}`. This is enforced *at this layer*, not guaranteed by the substrate (an open question asks whether to elevate it).
+- **(convention) The active/audit split lives here.** The substrate merely stores links; "active" is a computed view over the store.
+
+## What must be built
+
+- **An append-only link store**, address-keyed, mapping each link address to its `(from-endset, to-endset, type-endset)` value, that never overwrites and never reuses an address — and serves as the audit trail by construction.
+- **A per-home link allocator** that, given a home document, yields an address fresh against all existing link addresses and *on the home's sibling chain* (first emission at the chain anchor, otherwise the increment of the home's current maximum link).
+- **A coverage function** over endsets and a **coverage-equality decision** — to classify links into typed slices and to test whether a retraction covers a target.
+- **Emission** (`Emit_K`): deposit a typed link, return its fresh address.
+- **A retraction mechanism** (`Nullify`): emit a retraction tuple naming a target address, plus a **nullified-set computation** identifying which link addresses are currently retracted, and an **active-subset computation** subtracting it from a slice.
+- **A typed-relation query** (`Observe`): given a type and a from/to coverage pattern, return matching tuples under either the audit view (everything emitted) or the operational view (active only).
+- **Self-reference**: endsets must be able to name link addresses (so a retraction can point at a link) — i.e. a single uniform address space over which endset spans range.
+
+## Implementation approaches
+
+**The store + allocator — an append-only journal, recovered by replay.** The note's immutability (R2), monotonicity (R3), and audit semantics all fall straight out of *journaling*: one durable record per emission `(address, from, to, type, home)`; load = replay. This is exactly this repo's own working substrate (the `links.jsonl` journal with a `paths.json` registry) and udanax-green's permascroll/granfilade lineage (an append-only structure that is never rewritten). Make the **journal the sole authority**; everything else below is a *hint* recomputable by replay. The alternative — an authoritative in-memory index that is also separately persisted — is what made udanax-green's enfilades vulnerable to desync on a crash mid-write; don't reproduce that. Pair the journal with **persistent (structurally-shared) in-memory maps** (the `im` crate's idiom) for the live view: immutability matches R2/R3, and structural sharing makes "the state `Σ`" a cheap retained value, which directly serves `Observe`, snapshots, and version-comparison.
+
+For the **allocator**, the decisive lesson from udanax-green is that link freshness was a *stateless query-and-increment*: read the current maximum link under the home from the append-only tree, add one. Freshness rode on the store's monotonicity — **not** on any cached "next address" counter, **not** on the realized chain being gap-free, and **not** on validity-checking the result. The design hint is strong: **do not keep an authoritative per-allocator frontier counter** — derive `a_emit` from the store (a hint, recomputable on a miss). Two realizations:
+- *Query-the-max each emission* (Green's approach): simplest, crash-proof (no side state to desync), correct by construction. Pick this by default.
+- *Cache the per-home next-sibling as a hint*, validated against the store and rebuilt on a miss: pick it only when emission rate makes the per-write lookup hurt.
+
+Either way, scope the max-query to the home's *link subspace* and keep the increment terminal (sibling, not descendant). udanax-green's one path that could produce a descendant address was a cross-home contamination bug — so the antichain (R0a) holds *provided* a foreign address can never become the predecessor. That scoping is the whole job.
+
+**Coverage and coverage-equality — normalize once, intern, compare tokens.** The note's decision procedure reduces an endset to a finite union of half-open tumbler intervals and compares cell-by-cell. Realize this as a **canonical coverage normal form** (sorted, merged interval list) computed *at emission time*, then **intern each normal form to a small coverage-class token**. Type classification and retraction-class membership then become integer-equality, not endset walking. This matches how udanax-green resolved "do these links share a type" — by *computed coverage / address-range overlap*, never literal endset-sequence equality. Pay the normalization cost on the write path so the hot read paths (type-match, target-match) stay cheap.
+
+**Indexes for `Observe` — a reverse index over covered addresses, as a hint.** `Observe` filters by type and by `pattern ⊆ coverage(slot)`. The proven structure is the **spanfilade**: an inverted index from address ranges to the links whose from/to/type endsets cover them, with separate sub-indexes per slot. Build it (plus a by-coverage-class map for slices) as a **hint over the journal**, rebuilt by replay on load. Because a single emission can fan out to several index entries (Green's CREATELINK wrote multiple spanfilade entries per link), the *journal append* is the atomic commit and the index fan-out must be idempotent on replay — never the reverse. When retractions and rich queries are both rare, you can defer the spanfilade entirely and scan the journal; add the index when query latency demands it.
+
+**The nullified set — a monotone tombstone set.** R6a makes `nullified(Σ)` append-only, which is a gift: it is the textbook **tombstone / logical-delete** pattern, active = audit minus tombstones. Maintain it as a growing set of target addresses, fed by each `Nullify`, kept as a *hint* over the retraction slice (which lives in the journal as authority). R6b's single-depth rule means **no fixpoint or transitive computation** — one pass, never a graph walk; resist any urge to make retraction-of-retraction "cascade." When retractions are infrequent, skip the materialized set and derive nullification by scanning the retraction slice at query time. A per-tuple "active" bit is fine as an extra read-acceleration hint, but it is derived state — recomputable from the tombstones, never authoritative.
+
+**`Nullify` as specialized `Emit`.** Realize `Nullify` as exactly `Emit_R` with an empty from-set and a unit-depth to-span at the target, plus the tombstone-hint update. This keeps the single-write-path commitment intact and means recovery, ordering, and atomicity have one implementation, not two. Notably, udanax-green had *no* retraction operation at all — links were permanent and the nearest analogue only unstitched a link's document-stream entry without removing the link — so the active/audit machinery here is genuinely *new* relative to the reference implementation, and the append-only-emit realization is what keeps it cheap.
+
+**Self-reference — one uniform address space.** Endset spans already range over the whole address universe, link subspace included; no special mechanism is needed for a retraction to name a link. Keep content and link addresses in one tumbler space partitioned by subspace, and let endsets span all of it.
+
+**Recovery and concurrency.** Recover by **replay**, optionally with **periodic checkpoint + tail-replay** when full replay grows expensive (Green deserialized a flushed image; this repo replays a journal — the builder picks the checkpoint cadence). For concurrency, the cheapest thing that honors "`Observe` is a pure read of some `Σ`" is **single-writer run-to-completion plus snapshot reads** (MVCC-style): writers append serially; readers see an immutable `Σ` value (free, given persistent structures). This is Green's isolation model (a single-threaded loop) made crash-safe by the journal-as-commit-point.
+
+## Guarantees to uphold
+
+**Hold by construction** (from the journal + sibling allocator, given correct implementation):
+- *Permanence* (R2) — records are never rewritten.
+- *Audit monotonicity* (R3) and *retraction stability* (R6a) — journal and tombstone set only grow.
+- *Address injectivity and freshness* (R0, R1) — one record per address; the allocator increments the store maximum.
+- *Flat antichain* (R0a) — terminal-increment, home-scoped allocation yields siblings only.
+- *Subspace disjointness* (R4) — `s_C ≠ s_L` plus subspace-scoped allocation.
+
+**Require active enforcement** (layer disciplines the substrate does not give you):
+- *Unit-depth retraction shape* — emit retractions only as single prefix spans; this is what makes single-tuple scope (R-Scope) true. A wide retraction span would nullify a whole subtree.
+- *"Every retraction-growing step is a Nullify"* — funnel all retraction-typed emission through `Nullify`; do not expose a raw wide `Emit_R`.
+- *Home-document existence* (the `Emit`/`Nullify` precondition) — check the home is allocated before emitting.
+- *Single-depth retraction* (R6b) — implement nullification as one pass; don't accidentally make it transitive.
+- *Coverage-class consistency* — canonicalization must map coverage-equal endsets to the same token, or type slicing silently fragments.
+
+## How it fits
+
+- **Leans on ASN-0093's K-operations** for the actual store mutations and the sibling-frontier emission discipline with per-document content/link sub-allocator chains; `Emit_K` *is* K.λ specialized to a value.
+- **Leans on ASN-0043** for the link primitive, endsets, immutability, directional flexibility, ghost-type permission, and the dual-primitive address universe.
+- **Leans on ASN-0034's tumbler algebra** (lexicographic order, tumbler addition, prefix-span coverage, span well-formedness) — the machinery coverage-equality and `a_emit` are built from — and on **ASN-0036** for the origin/home projection.
+- **Sits above the raw link store and below predicate/query layers.** It is the relational vocabulary those higher layers compose over (the downstream predicate-composition and "Three Operations" work consumes `Emit`/`Observe`/`Nullify` and the active/audit split). Its handoff to the arrangement subsystem (`Σ.M`) is deliberately left open.
+
+## Decisions for the builder
+
+- **Authority/hint split:** journal as durable truth, with indexes, tombstones, and the allocator frontier all as recomputable hints (recommended) — versus persisting any of those as authority (don't).
+- **Allocator frontier:** query-the-max per emission versus a validated per-home cached hint — chosen on emission rate.
+- **Coverage representation:** normalize-and-intern coverage classes at write time (recommended) versus compute coverage-equality on demand; and the canonical form itself (merged interval list, its hash, the class-token scheme).
+- **Nullified set:** materialized monotone tombstone set versus derive-by-scan; whether to add a per-tuple active-bit read hint.
+- **Index richness:** full spanfilade-style reverse index over from/to/type versus a lighter coverage-range index versus journal scan — and the keying (by covered address, by coverage class).
+- **In-memory representation:** persistent `im` maps (free snapshots and version-compare) versus a mutable index beside the journal (lower per-op cost, no free snapshot).
+- **Recovery:** full replay versus checkpoint + tail-replay, and the checkpoint cadence.
+- **Concurrency:** single-writer run-to-completion with snapshot reads (recommended baseline) versus finer-grained locking — the note explicitly leaves the `Emit`-vs-`Observe` consistency model open.
+- **`Observe` result ordering:** by address (which, on a monotone chain, is emission order), by coverage, or unordered set semantics — the note leaves this open and it is an API-shaping choice.
+- **Multi-arity links:** whether to store and serve `|L(a)| > 3` links now (the typed relations index only triples) or reject non-triples at the boundary.
+- **Where to enforce the unit-depth retraction discipline:** at the `Nullify` API (reject wide spans) versus trusting callers — and whether raw retraction-typed `Emit` is exposed at all.
