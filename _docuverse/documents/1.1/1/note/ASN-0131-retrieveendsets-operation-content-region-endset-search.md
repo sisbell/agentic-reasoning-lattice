@@ -112,8 +112,9 @@ Now we can state what RETRIEVEENDSETS returns. We must first settle which links 
 over. A link, once created, is permanent and immutable in the store (L12, ASN-0043) — but
 the system admits *retraction*, recorded not by deleting the link but by emitting a
 withdrawal link that marks the target nullified (ASN-0086). A withdrawn link's anchoring
-should not be reported as live (we argue this below). So we range over the links that are present and
-not withdrawn — the **addressable** links:
+should not be reported as live — a design decision that fixes the operation as a report over
+the *active* population, not the full permanent store. So we range over the links that are
+present and not withdrawn — the **addressable** links:
 
 > `addressable(Σ) = dom(Σ.L) ∖ nullified(Σ)`     (over ASN-0086's `nullified`).
 
@@ -377,14 +378,11 @@ composability is therefore a genuinely separate question, and we leave it open.
 
 ## Existence and discoverability: which side does this answer for?
 
-We now reach the conceptual heart. The content-region link query foundation draws a sharp
-line (ASN-0127, *Anchoring: existence vs discovery*) between two ways the I-address
-argument to a link query can be obtained, and the choice fixes the temporal character of
-the answer: an **existence** query takes a *fixed* `I ⊆ T` and answers a monotone,
-*historical* property of the permanent store (E-MONO, D-ZERO, ASN-0127), while a
-**discovery** query resolves its `I` *through a document's current arrangement* and answers
-a non-monotone, *present-tense* reading of it (D-NONMONO, D-ZERO, ASN-0127). The contribution
-here is to place RETRIEVEENDSETS on it.
+ASN-0127 separates **existence** queries — a fixed `I ⊆ T`, answering a monotone,
+*historical* property of the permanent store — from **discovery** queries — `I` resolved
+*through a document's current arrangement*, answering a non-monotone, *present-tense* one
+(*Anchoring: existence vs discovery*; E-MONO, D-NONMONO, D-ZERO, ASN-0127). We place
+RETRIEVEENDSETS on that line.
 
 RETRIEVEENDSETS takes a region `(W, d)` and resolves it through `image(W, d, Σ)`. **It is
 discovery-anchored.** Its selection of which links contribute is exactly the discovery
@@ -400,27 +398,6 @@ arrangement-mediated. A RETRIEVEENDSETS zero — *no anchoring surfaced* — is 
 statement of the present (nothing is reachable through this region as it now stands), not
 of history (D-ZERO, ASN-0127). The anchoring may well exist, permanently, in links whose
 content the region no longer arranges.
-
-This sits in apparent tension with the designer's reading, which calls the operation a
-report of *existence* rather than *discoverability*. The designer and the foundation are
-slicing different axes.
-
-- The foundation's axis is the **query mode**: is the I-argument a fixed set (existence)
-  or read from the live arrangement (discovery)? On this axis RETRIEVEENDSETS is squarely
-  discovery — it consults `d`'s present arrangement.
-
-- The designer's axis is the **deliverable**: does the answer *name the links*, making
-  them followable, or does it merely surface *that anchoring is present* and its shape?
-  To be *shown* a connection — in the designer's sense — is to have it named and made
-  followable. RETRIEVEENDSETS withholds the names; one cannot follow an endset one cannot
-  name, nor pair a from-end with its to-end. So on the deliverable axis the operation
-  reports the **existence of anchoring** — the content-level fact "links are bound here,
-  thus" — without delivering followable discovery.
-
-The two axes are orthogonal, and RETRIEVEENDSETS lands on a definite corner of each: its
-**query is discovery-anchored** (present-tense, arrangement-resolved — the foundation's
-discovery side), while its **deliverable is existence-of-anchoring** (structure without
-identity — the designer's existence reading).
 
 ## Anchoring reached through borrowed content
 
