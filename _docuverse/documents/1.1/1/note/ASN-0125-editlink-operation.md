@@ -602,8 +602,7 @@ claim is signed, from the record alone, by the home its address names. This is
 the whole of what RQ3 demands and the whole of what the substrate state
 `Σ = (C, L, E, M, R)` supplies: it carries no principal set, so resolving a
 home further to a named owner is the office of an ownership layer (ASN-0042)
-overlaid on the substrate, not a function of `Σ` — an overlay the attribution
-guarantee neither needs nor invokes;
+overlaid on the substrate, not a function of `Σ`;
 *(c)* it is open: the schema imposes no relation among `home(addr(e))`,
 `home(old(e))`, `home(new(e))` — first-party, second-party, and third-party
 claims are structurally identical, differing only in their visible provenance;
@@ -667,7 +666,8 @@ itself-attributed retraction tuple; restoration is re-assertion at a fresh
 address, never reinstatement in place (R6c).
 
 The axes are independent, and — by EL6(iv) — *superseding moves none of them*.
-An edit, as such, leaves the original resolvable, listed, and active. Each
+An edit, as such, leaves the original resolvable, and its listing and activity
+exactly as they were. Each
 demotion is a separate act by an authorized party, separately attributed,
 separately permanent in the record. The composite "supersede and retire" is
 available; it is never implied.
@@ -886,10 +886,9 @@ an edit whose author omitted the assertion contributes no hop (EL1 — the
 relationship does not exist, and resemblance cannot reconstruct it), and a
 nullified claim drops from `succ_o` while remaining in `succ_h`. Member-to-ends
 traversability of the *operative* chain is therefore a derived property —
-holding exactly when the chain was fully asserted and no hop demoted — and any
-specification that promised it unconditionally would be promising what no
-implementation of this substrate can keep. The invariants to hold are (a)–(c);
-the design intent (Q7) asks for exactly these and warns against more.
+holding exactly when the chain was fully asserted and no hop demoted. The
+invariants to hold are (a)–(c); the design intent (Q7) asks for exactly these
+and warns against more.
 
 ## The criterion: permanence-preserving versus mutating edit
 
