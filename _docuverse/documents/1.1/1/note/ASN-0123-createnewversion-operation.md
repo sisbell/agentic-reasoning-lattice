@@ -146,15 +146,12 @@ Preconditions
                                          whole-request serialization; see the
                                          atomicity remark)
   P-tier   ω(d_src) = π  ∨  zeros(pfx(π)) = 1   (the operation's domain
-           condition — the disjuncts are taken up at V8 (owned) and V9
-           (cross-owner); the identity clause branches on the same guard)
+           condition; the identity clause branches on the same guard)
 
-  — P-bdy fixes the invocation context, not a source-side condition; on the
-  source side there is nothing further. In particular: no authority over
-  d_src is required (the source is read without permission), and no condition
-  is placed on M(d_src) (the empty source is admitted, n = 0 below). P-tier is
-  the operation's domain delimiter, well-formed since ω(d_src) is defined at
-  every reachable state — PS makes ω total on E.
+  — P-bdy fixes the invocation context, not a source-side condition; P-tier is
+  well-formed because ω(d_src) is defined (PS). Scope note: no authority over
+  d_src is required (the source is read without permission), and no condition is
+  placed on M(d_src) (the empty source is admitted, n = 0 below).
 
 Abbreviations (evaluated at the initial state Σ)
   n  :=  |V_{s_C}(d_src)|
@@ -164,14 +161,11 @@ Identity clause
   if  ω(d_src) = π  →  v := nextv(E, d_src)                  (fork in place)
   []  ω(d_src) ≠ π  →  v := nextd(E, π)                      (fork across ownership)
   fi
-  — The cross-owner branch presupposes an account-tier forker (zeros(pfx(π)) = 1,
-    forced by P-tier when ω(d_src) ≠ π), so pfx(π) ∈ E carries the account-document
-    namespace S(pfx(π), 2) = A_doc(pfx(π)) (ASN-0047) by PS incumbency and nextd is
-    well-defined. nextd fixes v to the frontier of that namespace — allocated_by(π, v)
-    with v ∈ S(pfx(π), 2) — realized as a single document-level K.δ: a k=2 descent
-    off pfx(π) for π's first document, a k=0 sibling off the prior frontier for a
-    later one (V-WF). Both branches are thus explicit registry frontiers; v is
-    single-valued in each.
+  — In both branches v is a single entity-allocation at a registry frontier: nextv
+    in d_src's version namespace (owned), or nextd in π's account-document namespace
+    S(pfx(π), 2) = A_doc(pfx(π)) (cross-owner, ASN-0047). The cross-owner branch
+    presupposes an account-tier forker (zeros(pfx(π)) = 1, forced by P-tier when
+    ω(d_src) ≠ π). Realization as one K.δ in each branch, single-valued, is V-WF.
 
 Effect (net, from Σ to Σ')
   E'      =  E ∪ {v}
@@ -205,7 +199,7 @@ Result
 
 > `E' = E ∪ {v}` with `v ∉ E`; `v` is distinct from the output of every other allocation event; and `(A Σ'' : Σ' →* Σ'' : v ∈ Σ''.E)`.
 
-Freshness is the `nextv` choice (owned case) or the explicit constraint (cross-owner case). The count is exactly one in each of the two in-domain branches: the owned branch is a single version K.δ, and the account-tier cross-owner branch a single document K.δ in `π`'s existing document namespace. P-tier is what confines the operation to these two branches — its account-tier restriction (`zeros(pfx(π)) = 1`) excludes the node-tier non-owner, for the reason given there. Distinctness from *all* other allocation events — versions of other documents, documents, accounts, content, links — is GlobalUniqueness (ASN-0034), which rules out collisions alike from the same allocator, sibling allocators, and allocators at different hierarchy depths. It applies because the version sub-allocator `A_v(d) = S(d, 1)` is T10a-conforming — its base spawned by `inc(d, 1)` (`k' = 1 ∈ {1, 2}`), its siblings advanced by `inc(·, 0)` — which is exactly GlobalUniqueness's hypothesis; so two versions of one document are distinct by its same-allocator case directly, with no appeal to B8's same-namespace case. The cross-namespace events the opening enumerates — versions of *other* documents, and the document, account, content, and link allocators — are exactly the sibling-allocator and different-depth scenarios the same GlobalUniqueness citation already covers, so they need no separate witness. The same-allocator argument needs no serialization assumption, so this distinctness is unconditional on commit order. Permanence is P1 (EntityPermanence): no transition removes an entity. Immutability of the identity itself needs no separate mechanism: identities are the *keys* of `E` and `M`, not stored values; P3 admits no contraction and no rewriting, so "renumbering" — removal plus reinsertion — is unavailable in the transition vocabulary. This is Nelson's permanence claim made structural: "New items may be continually inserted in tumbler-space while the other addresses remain valid" [LM 4/19].
+Freshness is the `nextv` choice (owned case) or the explicit constraint (cross-owner case). The count is exactly one in each of the two in-domain branches: the owned branch is a single version K.δ, and the account-tier cross-owner branch a single document K.δ in `π`'s existing document namespace. P-tier is what confines the operation to these two branches — its account-tier restriction (`zeros(pfx(π)) = 1`) excludes the node-tier non-owner (`zeros(pfx(π)) = 0`), who commands no document-producing namespace: `nextd(E, π) = next(E, pfx(π), 2)` would yield `inc(pfx(π), 2) = [pfx(π), 0, 1]` with `zeros = 1`, an Account rather than a Document, so a single K.δ cannot deliver `v ∈ E_doc`. Forking a foreign document from the node tier would demand minting an account *and* a document under it — more than the one identity the operation allocates — and so falls outside VERSION's domain. Distinctness from *all* other allocation events — versions of other documents, documents, accounts, content, links — is GlobalUniqueness (ASN-0034), which rules out collisions alike from the same allocator, sibling allocators, and allocators at different hierarchy depths. It applies because the version sub-allocator `A_v(d) = S(d, 1)` is T10a-conforming — its base spawned by `inc(d, 1)` (`k' = 1 ∈ {1, 2}`), its siblings advanced by `inc(·, 0)` — which is exactly GlobalUniqueness's hypothesis; so two versions of one document are distinct by its same-allocator case directly, with no appeal to B8's same-namespace case. The cross-namespace events the opening enumerates — versions of *other* documents, and the document, account, content, and link allocators — are exactly the sibling-allocator and different-depth scenarios the same GlobalUniqueness citation already covers, so they need no separate witness. The same-allocator argument needs no serialization assumption, so this distinctness is unconditional on commit order. Permanence is P1 (EntityPermanence): no transition removes an entity. Immutability of the identity itself needs no separate mechanism: identities are the *keys* of `E` and `M`, not stored values; P3 admits no contraction and no rewriting, so "renumbering" — removal plus reinsertion — is unavailable in the transition vocabulary. This is Nelson's permanence claim made structural: "New items may be continually inserted in tumbler-space while the other addresses remain valid" [LM 4/19].
 
 **V4 (AncestryPrefix).** For the owned fork, the version's identity bears to the source's identity the relation *daughter by single-component extension*, and the relation is total — every identifying field is accounted for:
 
