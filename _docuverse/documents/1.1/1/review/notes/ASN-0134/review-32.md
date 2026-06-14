@@ -1,0 +1,48 @@
+# Review of ASN-0134
+
+This note carries the `review-mode.anti-bloat` classifier. I checked the technical core first — H0–H3, G0–G1, the operation-level non-confluence families of §4, V0–V2, and the SAFE/MIC apparatus — and could not find a substantive error: the boundary cases are handled (H2's first-emission branch, H1's nesting homes, H0's cross-home cross-subspace pair), the worked traces of §7 and §8 are correct, and the instance-(i)/instance-(ii)/target-residence taxonomy is sound. The findings below are therefore overwhelmingly accretion: the argument is buried under repetition, defensive justification, and use-site inventory. Every issue is REVISE because the prose obstructs the reader, not because the math is wrong.
+
+## REVISE
+
+### Issue 1: The instance-(i) duplicate derivation is given "in full" four times
+**ASN-0134, §4 / §4 ("honest statement is two-level") / §9 clause 8 / SAFE(b)**: The both-miss interleaving and the literal-vs-operative `K`-surface-emitted distinction is the note's most important caveat. It is derived at full length in the §4 seam paragraph ("for I1a's literal definition and its operative one part company exactly here…"), re-summarized in the "honest statement is therefore two-level" paragraph, re-derived in clause 8 ("Drop it and per-home MIC permits the duplicate — the both-miss interleaving derived in full at §4 instance (i)…"), and re-derived **again** in SAFE(b) clause (ii) ("the both-miss interleaving derived in full at §4 instance (i) leaves each of two coverage-equal emits a miss against a stale `A_K`…").
+**Problem**: The cross-references themselves say "derived in full at §4 instance (i)" — the note knows the derivation is complete once, yet restates its substance three more times. A reader tracking clause 8 or SAFE(b) re-reads the §4 argument verbatim in new words.
+**Required**: Derive once in §4. Clause 8 and SAFE(b) should *cite* it ("by §4 instance (i)") and state only the delta each adds, not re-run the literal/operative split.
+
+### Issue 2: A6 is padded with transfer-lemma inventory and defensive asides
+**ASN-0134, §2 (A6)**: The load-bearing content of A6 — the per-state package membership, the per-state/transition split, and the registry-fixity-vs-stability-corollary distinction — is sound and worth keeping. It is surrounded by meta-prose that does not advance it: "on which H0's frontier discipline and every confluence argument of §4 silently rest" (use-site inventory); "named here as an external referent, not a second state" (defensive); the entire second paragraph naming which transfer lemma (RP-a / B2 / RP-b) carries which invariant, with asides like "Reachability is necessary but not by itself the whole argument," "no member of the set needs an argument the three originally named (SD/C1c/L1c) did not already exemplify," and "The inductive step … is the foundations'; what §1 supplies is the base, without which the induction has nothing to stand on."
+**Problem**: This is the "new prose explaining why the machinery is needed rather than what it states" pattern at maximum density. The claim that every per-state invariant transfers (by B2/RP-a) and the step-quantified `C0`/`L12`/`M1` transfer (by B2-transition/RP-b) can be stated in two sentences; here it runs a full screen.
+**Required**: Collapse the transfer paragraph to: "all per-state conjuncts transfer to extended-record states by B2/RP-a; the step-quantified `C0`/`L12`/`M1` by B2's transition clause and RP-b; the reachability base is §1." Drop the "silently rest," "external referent," and "necessary but not the whole argument" asides.
+
+### Issue 3: The nesting/separator argument is stated three times, once self-disclaimed
+**ASN-0134, H1 / W1 / §7 ("Cross-home commutation")**: The point "origin separates cross-home deposits regardless of nesting; the anchor-separator route also works but origin is general" appears in H1's parenthetical ("The separator-vs-nonzero-continuation argument CrossDocumentDisjointness itself uses would also serve … origin is simply the cleaner route"), again in W1 ("the origin argument of H1, which needs no anchor incomparability and is therefore immune to the nesting homes"), and a third time fully re-derived in §7 with concrete addresses ("The anchor-separator argument survives: `b_C(d) = [1.0.1.0.1.0.1]` carries the field-separator `0` at index `#d + 1 = 6` … And the origin argument settles it too. H1 is nonetheless stated by origin not because nesting demands it…").
+**Problem**: H1's parenthetical presents an alternative proof route it then explicitly disclaims needing — pure meta-prose. The §7 vignette re-derives the same separator/origin comparison the claim already settled. Triplication.
+**Required**: State the origin argument once (in H1). Delete H1's self-disclaimed separator parenthetical. In §7, exhibit the concrete addresses and *cite* H1 for distinctness rather than re-deriving the nesting/separator reasoning.
+
+### Issue 4: A1 carries a full read inventory and a forward-deferral that §8 then re-draws
+**ASN-0134, §1 (A1)**: A1 enumerates every behavioral read by name — "`members`, `is_K`, `targets_of`, `succs`, `chain`, `tip`, `is_in_chain`, `sources_to`, `target_of`, `targets_keyed`, `age`, `stale`, `is_filtered` (D1–D4, BH1–BH4)" — then spends a paragraph on the degenerate `m=0`/`m=1` batch taxonomy, then a paragraph deferring the access-count classification: "a finer classification — by access count — that §8 draws where it is used: V0 for … V2 for …."
+**Problem**: The same read inventory recurs in clause 4 and the claims table; the access-count deferral is redrawn in §8, clause 4, and clause 7 — multiple deferrals to one downstream location. A1's actual content (single op = one step; zero-step reads/hits/rejections) is small and is restated immediately below it ("A1's 'exactly one / exactly zero' is read straight off ASN-0128…").
+**Required**: A1 should assert the zero/one-step count and name the read *categories* (Observe / behavioral reads) without the full functor list, without pre-empting §8's access-count split, and without the second restatement paragraph that follows it.
+
+### Issue 5: Claims-table rows are paragraph-length essays
+**ASN-0134, "Claims Introduced" table (rows A1, A6, G1, V2, SAFE)**: The A6 row is a ~150-word paragraph reproducing the package membership, the stability-corollary point, and the transfer chain; the G1 row reproduces the entire two-family analysis with nested parentheticals; the A1, V2, and SAFE rows are similarly multi-sentence.
+**Problem**: A claims table is a one-line-per-claim index ("Label | Statement | Status"). Essay content in the Statement slot defeats its purpose — the reader scanning the table re-reads the body.
+**Required**: One clause-length summary per row; push the qualifications back into the claim's body where they already appear.
+
+### Issue 6: "Role-dual to W4 but global, not per-home" is repeated across four slots
+**ASN-0134, V2 / §9 clause 7 / SAFE(d) / table (V2 row)**: V2 says "a reader-side obligation, dual to W4's writer-side run contiguity in role but not in scope … The roles are dual (writer-side vs reader-side); the scopes are not (local vs global)." Clause 7 restates "role-dual to the writer-side clauses 2/5 but not scope-dual (V2)." SAFE(d) and the V2 table row say it a third and fourth time.
+**Problem**: One non-trivial idea — the reader-side discipline is role-dual to W4 but global in scope — stated four times in four sections.
+**Required**: State it once (in V2). Clause 7 and SAFE(d) should reference V2, not restate the duality.
+
+### Issue 7: W5's P-tgt trichotomy and the instance-(ii) aside are relocated/dismissive padding
+**ASN-0134, §5 (W5) and §4 (instance (ii) parenthetical)**: W5's core claim — `A_K = L_K ∖ nullified` is a per-state pure function, coherent under A0 — is one sentence. It is buried under a three-case P-tgt trichotomy (including the "retractor's own future non-frontier slot, `j > f`" elaboration) that restates ASN-0128 S3's P-tgt semantics, while W5 *also* says "This order-sensitivity is precisely §4's target-residence race" and defers to Open Question 9. Separately, §4 instance (ii) carries the aside "(The derivation is incidentally surface-disciplined as well, but surface-discipline tames none of the three order-dependences — see the summary below — so it is no part of what (ii) survives.)"
+**Problem**: W5 both *defers to* §4/OQ9 and *re-derives* the target-residence content — content relocated rather than removed. The instance-(ii) parenthetical raises a property (surface-discipline) only to dismiss it as irrelevant and defer to a later summary — a dismiss-and-defer that advances nothing.
+**Required**: W5 should assert active/audit coherence and cite ASN-0128 S3 for the P-tgt cases rather than re-deriving the trichotomy; the order-sensitivity belongs to §4 alone. Delete the instance-(ii) surface-discipline aside (the following summary already says surface-discipline excludes none of the three).
+
+## OUT_OF_SCOPE
+
+None. The note correctly defers scheduler/fairness, rule bodies, BEBE, mechanism, and cost to their named layers rather than attempting them. (The A7 implementation evidence cites INSERT/DELETEVSPAN/REARRANGE, which belong to the arrangement layer §1 explicitly excludes from `𝔼` — this is evidence, not a claim, so it is not a scope violation, but a tighter note would draw its commit-before-acknowledge evidence from an in-stack operation.)
+
+META: The note is over-written, not off-track — it specifies an abstract isolation contract (obligations any mechanism must meet, no mechanism named), which is a legitimate system guarantee; trim it, do not terminate it.
+
+VERDICT: REVISE
