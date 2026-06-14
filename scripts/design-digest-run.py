@@ -99,7 +99,9 @@ def main():
                     help="comma-list of classes to skip")
     ap.add_argument("--workers", type=int, default=int(cfg.get("WORKERS", 3)),
                     help="parallel ASNs")
-    ap.add_argument("--max-reviews", type=int, default=int(cfg.get("MAX_REVIEWS", 2)))
+    ap.add_argument("--max-reviews", type=int, default=int(cfg.get("MAX_REVIEWS", 8)),
+                    help="hard cap per note (backstop); the loop stops earlier at "
+                         "2 consecutive CONVERGED reviews")
     ap.add_argument("--effort", default=cfg.get("EFFORT", "max"))
     ap.add_argument("--force", action="store_true",
                     help="skip the quiescence filter — digest every listed note "

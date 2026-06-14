@@ -9,9 +9,21 @@ Review the digest below against the note it came from. You are a skeptic; your j
 5. **Altitude** — did it drift into code (types, signatures) or stay too vague to act on? Either is a defect.
 6. **Usefulness** — could a builder act on this? Is any section padded, generic, or non-committal where the note supports a real position?
 
-Output a **revision list** — the concrete improvements a reviser will apply. There is no verdict, no pass/fail, no "good enough": this is an improvement pass, not a gate. List each item as an actionable instruction ("Section X: Y is wrong/weak because Z; do W instead"), ordered most-important first — real defects (inaccuracy, ungrounded claims, altitude slips, a missing load-bearing consideration) before genuine sharpenings (a tighter formulation, a tradeoff left implicit, a builder decision not surfaced, an approach whose grounding could be stronger).
+Output two things, in this order.
 
-Do not fabricate problems to look thorough — but do not withhold real ones because the digest reads well. Even a strong digest has something to sharpen; find the most valuable improvements it can still make. Where a section is genuinely solid, say so in a line and move on rather than inventing a change.
+**1. A revision list** — the concrete improvements a reviser will apply, ordered most-important first. Write each as an actionable instruction ("Section X: Y is wrong/weak because Z; do W instead") and **tag each item `[DEFECT]` or `[SHARPENING]`**:
+
+- **`[DEFECT]`** — a *material* problem a builder would get wrong: an inaccuracy or misread of the note, an ungrounded/fabricated Green claim, an altitude slip (drops into code, or too vague to act on), an internal contradiction, or a *missing* load-bearing commitment, component, guarantee, precondition, or builder decision.
+- **`[SHARPENING]`** — a genuine but non-load-bearing improvement: a tighter formulation, an implicit tradeoff made explicit, an optional lever, a citation that could be stronger. Worth applying, but the digest is *sound* without it.
+
+**2. A final verdict line** — the last line of your output, exactly one of:
+
+    VERDICT: CONVERGED
+    VERDICT: REVISE
+
+Emit **REVISE** if the list contains *any* `[DEFECT]`. Emit **CONVERGED** if it contains *only* `[SHARPENING]` items (or is empty) — the digest has no material problem left, even if it is not maximally polished. **Sharpenings do not block convergence:** do not withhold CONVERGED because something could still be marginally tightened, and do not invent or inflate a `[DEFECT]` to look thorough. A digest with no material problem is CONVERGED — on the first read if it earns it. Conversely, never downgrade a real defect to a sharpening just to converge.
+
+Do not fabricate problems, but do not withhold real ones because the digest reads well. Where a section is genuinely solid, say so in a line and move on.
 
 ---
 

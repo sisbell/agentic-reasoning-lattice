@@ -10,11 +10,15 @@ Plain-file pipeline that borrows the _docuverse *directory* pattern
 All Lampson-primed (one persona throughout). Per-note independent.
 Commits after each stage so the history reads produce → review → revise.
 
-No convergence: it runs a fixed number of review→revise passes
-(--max-reviews), each improving the digest; the operator picks how many.
+Convergence by stochastic quiescence (mirrors the battle-tested note
+pipeline): review → revise until CONVERGE_N consecutive reviews return
+`VERDICT: CONVERGED` — i.e. only sharpenings remain, no material defect.
+A CONVERGED review applies no revise (nothing material to change); a
+REVISE review resets the streak and is applied. --max-reviews is a hard
+cap / backstop, not a target.
 
     python scripts/design-digest.py --asn 36
-    python scripts/design-digest.py --asn 116 --max-reviews 4 --effort max
+    python scripts/design-digest.py --asn 116 --max-reviews 8 --effort max
     python scripts/design-digest.py --asn 116 --no-commit   # skip git
 """
 
@@ -37,6 +41,13 @@ CONSULT_DIR = ROOT / "_docuverse/documents/1.1/1/consultation"
 PROMPTS = ROOT / "prompts/shared/design-digest"
 DESIGN_ROOT = ROOT / "_design"
 STOP_FLAG = ROOT / "_workspace" / "design-digest.stop"
+
+# Consecutive CONVERGED reviews required to stop — the stochastic-quiescence
+# gate, same value the note pipeline settled on (last_n_reviews_were_clean,
+# n=2): one clean draw from a stochastic reviewer is a coin flip, two
+# consecutive is meaningful evidence, three buys diminishing returns.
+# See docs/design-notes/stochastic-quiescence.md.
+CONVERGE_N = 2
 
 
 def _stop_requested() -> bool:
@@ -79,6 +90,54 @@ def _last_revised(label: str) -> int:
           for line in r.stdout.splitlines()
           for m in [re.search(r"apply review-(\d+)", line)] if m]
     return max(ks) if ks else 0
+
+
+# Tolerant of bold/spacing (`**VERDICT: CONVERGED**`, `VERDICT:CONVERGED`).
+_VERDICT_RE = re.compile(r"VERDICT:\s*\**\s*(CONVERGED|REVISE)\b", re.IGNORECASE)
+
+
+def _is_converged(review_text: str) -> bool:
+    """True iff the review's verdict is CONVERGED (reads the LAST verdict line
+    if several appear). FAIL-SAFE: a missing or malformed verdict counts as
+    NOT converged (→ treated as REVISE), so a parse miss only wastes a pass,
+    never falsely converges — the same fail-safe direction the note pipeline's
+    review validation takes. (Legacy pre-verdict reviews therefore read as
+    REVISE, so existing runs simply continue toward convergence.)"""
+    m = _VERDICT_RE.findall(review_text)
+    return bool(m) and m[-1].upper() == "CONVERGED"
+
+
+def _verdict_converged(review_path: Path) -> bool:
+    return review_path.exists() and _is_converged(review_path.read_text())
+
+
+def _trailing_converged(review_dir: Path, upto: int) -> int:
+    """Count consecutive CONVERGED reviews ending at review-`upto` (0 if the
+    review at `upto` is REVISE/missing) — the convergence streak to resume."""
+    streak, k = 0, upto
+    while k >= 1 and _verdict_converged(review_dir / f"review-{k}.md"):
+        streak += 1
+        k -= 1
+    return streak
+
+
+def _resume_state(label: str, review_dir: Path, commit: bool):
+    """Return (next_k, clean_streak): the number of the next review to write,
+    and the trailing consecutive-CONVERGED count. Recovers an interrupted
+    REVISE whose revise never committed — that cycle is redone (next_k stays
+    at the unfinished review), mirroring the old _last_revised recovery."""
+    highest = _highest_review(review_dir)
+    if highest == 0:
+        return 1, 0
+    if not _verdict_converged(review_dir / f"review-{highest}.md"):
+        # Most recent review is REVISE (or legacy/malformed). Did its revise
+        # land? If not (interrupted run), redo this cycle from its review.
+        applied = _last_revised(label) if commit else highest
+        if applied < highest:
+            return highest, _trailing_converged(review_dir, highest - 1)
+    # Cycle complete: CONVERGED (no revise expected) or REVISE whose revise
+    # committed. Continue at the next review.
+    return highest + 1, _trailing_converged(review_dir, highest)
 
 
 def _evidence(asn: int) -> str:
@@ -174,11 +233,11 @@ def main():
     ap.add_argument("--asn", type=int, required=True)
     ap.add_argument("--model", default="opus")
     ap.add_argument("--effort", default="max", help="low|medium|high|xhigh|max")
-    ap.add_argument("--max-reviews", type=int, default=2,
-                    help="number of review/revise passes to run — no convergence, "
-                         "no early exit; the digest is improved exactly this many "
-                         "times. Re-run with a HIGHER value to add more passes "
-                         "(resumes from the existing design/reviews, never clobbers).")
+    ap.add_argument("--max-reviews", type=int, default=8,
+                    help="HARD CAP on total reviews (a backstop); the loop normally "
+                         f"stops earlier, at {CONVERGE_N} consecutive CONVERGED "
+                         "reviews. Resumes from existing design/reviews; never "
+                         "clobbers. Bump it to keep going past a cap that was hit.")
     ap.add_argument("--no-commit", action="store_true", help="skip git commits")
     args = ap.parse_args()
     commit = not args.no_commit
@@ -207,16 +266,15 @@ def main():
     else:
         digest = None
         resumed = False
-    # Resume point = last cycle whose revise committed (so an interrupted
-    # revise is redone, not skipped). Without commits, fall back to review
-    # files. A committed-but-unrevised review will be regenerated and
-    # revised on resume.
-    done = _last_revised(label) if commit else _highest_review(review_dir)
+    # Resume: next review number + trailing consecutive-CONVERGED streak.
+    # _resume_state redoes an interrupted REVISE whose revise never committed.
+    next_k, clean_streak = _resume_state(label, review_dir, commit)
 
     print(f"[design-digest] {label} ({title}) | note {len(note)//1024}KB | "
           f"evidence answers: {ev_n} | model={args.model} effort={args.effort} | "
-          f"{'RESUMING' if resumed else 'fresh'} (have {done} review(s)) → "
-          f"max-reviews={args.max_reviews} | commit={commit}", file=sys.stderr)
+          f"{'RESUMING' if resumed else 'fresh'} (next review {next_k}, "
+          f"{clean_streak}/{CONVERGE_N} clean) → cap {args.max_reviews} | "
+          f"commit={commit}", file=sys.stderr)
 
     if _stop_requested():
         print(f"[design-digest] stop requested — {label} exiting cleanly before "
@@ -229,34 +287,43 @@ def main():
         design_md.write_text(digest.rstrip() + "\n")
         _commit([design_md], f"design({label.lower()}): initial design digest", commit)
 
-    if done >= args.max_reviews:
-        print(f"[design-digest] already at {done} review(s) >= --max-reviews "
-              f"{args.max_reviews}. Bump --max-reviews to add more. Nothing to do.",
-              file=sys.stderr)
-        return
-
-    # No convergence / no verdict — every pass is review then revise. The
-    # digest is improved exactly `reviews` times; the operator picks how
-    # many. Re-running with a higher --reviews adds more passes (resume).
-    for k in range(done + 1, args.max_reviews + 1):
+    # Convergence gate (stochastic quiescence): review → revise until
+    # CONVERGE_N consecutive reviews come back CONVERGED. A CONVERGED review
+    # applies no revise (nothing material left); a REVISE review resets the
+    # streak and is applied. --max-reviews is the hard backstop.
+    while clean_streak < CONVERGE_N and next_k <= args.max_reviews:
         if _stop_requested():
             print(f"[design-digest] stop requested — {label} draining at a clean "
-                  f"boundary after {k - 1} pass(es); committed and resume-safe "
-                  f"(re-run to continue from review {k})", file=sys.stderr)
+                  f"boundary (next review {next_k}); committed and resume-safe",
+                  file=sys.stderr)
             return
-        print(f"[design-digest] review {k}/{args.max_reviews}...", file=sys.stderr)
+        print(f"[design-digest] review {next_k} (cap {args.max_reviews}, "
+              f"{clean_streak}/{CONVERGE_N} clean)...", file=sys.stderr)
         review = _call("reviewer", {**base, "digest": digest}, args.effort, args.model)
-        review_md = review_dir / f"review-{k}.md"
+        review_md = review_dir / f"review-{next_k}.md"
         review_md.write_text(review.rstrip() + "\n")
-        _commit([review_md], f"design-review({label.lower()}): review-{k}", commit)
-        print(f"[design-digest] applying review-{k}...", file=sys.stderr)
-        digest = _call("reviser", {**base, "digest": digest, "review": review},
-                       args.effort, args.model)
-        design_md.write_text(digest.rstrip() + "\n")
-        _commit([design_md], f"design-revise({label.lower()}): apply review-{k}", commit)
-    print(f"[design-digest] done — {args.max_reviews} review/revise pass(es)", file=sys.stderr)
+        _commit([review_md], f"design-review({label.lower()}): review-{next_k}", commit)
+        if _is_converged(review):
+            clean_streak += 1
+            print(f"[design-digest] review {next_k}: CONVERGED "
+                  f"({clean_streak}/{CONVERGE_N})", file=sys.stderr)
+        else:
+            clean_streak = 0
+            print(f"[design-digest] applying review-{next_k}...", file=sys.stderr)
+            digest = _call("reviser", {**base, "digest": digest, "review": review},
+                           args.effort, args.model)
+            design_md.write_text(digest.rstrip() + "\n")
+            _commit([design_md], f"design-revise({label.lower()}): apply review-{next_k}",
+                    commit)
+        next_k += 1
 
-    print(f"[design-digest] wrote {design_md.relative_to(ROOT)}", file=sys.stderr)
+    if clean_streak >= CONVERGE_N:
+        print(f"[design-digest] CONVERGED — {CONVERGE_N} consecutive clean reviews. "
+              f"{design_md.relative_to(ROOT)}", file=sys.stderr)
+    else:
+        print(f"[design-digest] hit review cap {args.max_reviews} without convergence "
+              f"(still finding material defects — bump --max-reviews to continue). "
+              f"{design_md.relative_to(ROOT)}", file=sys.stderr)
 
 
 if __name__ == "__main__":
