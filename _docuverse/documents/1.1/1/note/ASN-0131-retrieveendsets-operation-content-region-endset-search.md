@@ -104,12 +104,21 @@ the **to-set consequence** of this commitment, discharged from it by induction (
 The commitment also fixes the *from-set*: `Nullify` emits its retraction with an *empty
 from-set* (ASN-0086), so adopting it **excludes attributed retractions** (non-empty
 from-set), which ASN-0086's Convention RetractionDirectionality would otherwise permit. The bridge to
-ASN-0086 — call it the **`Σ.L`-evolution bridge** — is that `Σ.L` evolves only through
-`K.λ`: the arrangement movers (`K.μ` family), entity creation `K.δ`, provenance recording
-`K.ρ`, and content allocation `K.α` all frame the link store (`L' = L`). So the link store
-evolves identically under ASN-0086's transition relation and under ASN-0047's, and every
-ASN-0086 lemma whose conclusion constrains `Σ.L` or `nullified` holds at every
-ASN-0047-reachable state.
+ASN-0086 — call it the **`Σ.L`-evolution bridge** — takes two steps. First, `Σ.L` evolves only
+through `K.λ`: the arrangement movers (`K.μ` family), entity creation `K.δ`, provenance recording
+`K.ρ`, and content allocation `K.α` all frame the link store (`L' = L`), so the *steps* that move
+`Σ.L` are the same `K.λ` steps in both vocabularies. Coinciding steps do not by themselves transfer
+a lemma quantified over *all* reachable states, because the two vocabularies build `dom(Σ.M)`
+differently — ASN-0086 registers documents through `K.σ`, ASN-0047 through `K.δ` — and `K.λ`'s
+home-document precondition `d ∈ dom(Σ.M)` is read against those differently-built document sets. So
+we need, second, that every `Σ.L`-configuration ASN-0047 can reach is also ASN-0086-reachable. It
+is: every document ASN-0047 creates (`K.δ`, `Document(e)` case) is T4-valid with `zeros = 2` (M0,
+ASN-0093), which is exactly `K.σ`'s registration precondition (ASN-0093), so ASN-0086 can stage the
+identical home documents via `K.σ` and replay the identical `K.λ` sequence — giving the inclusion
+*ASN-0047-reachable `Σ.L`-configurations ⊆ ASN-0086-reachable ones*. Only with that inclusion in
+hand does a `∀`-quantified ASN-0086 `Σ.L`-lemma carry to every ASN-0047-reachable state. We import
+only a handful — R0a/FlatLinkDomain, R-Scope (SingleTupleScope), R6a (RetractionStability), and the
+computability of `nullified` (all ASN-0086) — and the bridge licenses each here.
 
 One consequence of that shared `K.λ` semantics recurs. Write `Θ` for ASN-0086's designated
 retraction type (ASN-0086's own symbol is `R`, which this note reserves for other uses, so we
@@ -676,7 +685,13 @@ separator-zero count carries `s`'s subspace identifier onto every covered `c`.
 its width at `δ(1, #ℓ)` — so the argument applies to it directly: a content `c` with `ℓ ≼ c`
 would force `E(c)₁ = E(ℓ)₁ = s_L ≠ s_C`, rigorous because `ℓ` is genuinely element-level with
 `E(ℓ)₁ = s_L` (L0, L1, ASN-0093) and `Nullify` targets a link address `ℓ ∈ dom(Σ.L)`. So
-against a content image `I ⊆ dom(Σ.C)`, neither the from-set nor the to-set can touch.
+against a content image `I ⊆ dom(Σ.C)`, neither the from-set nor the to-set can touch. (This
+content-disjointness is exactly what the standing `W ⊆ s_C` obligation buys. Were the region drawn
+from the *link* subspace instead — `W ⊆ s_L`, resolving by S3★ (ASN-0047) to an image
+`I ⊆ dom(Σ.L)` — the to-set `{(ℓ, δ(1, #ℓ))}`, which targets precisely a link address
+`ℓ ∈ dom(Σ.L)`, could meet that image, and retraction stability would acquire an extra surfacing
+term for the emitter `b`; that case lies outside the content-region scope of this note and is
+reopened as Open Question 7.)
 
 The type-set `Θ` is the slot that same argument does *not* reach. A type endset may, by
 design, point *anywhere* in the address space, content included (L4 EndsetGenerality, L9
@@ -781,4 +796,4 @@ and retraction (RE-RET).
 
 6. What must hold of a type-slot match against a content region for it to be meaningful, given that type endsets are matched by address and ordinarily reference classifying addresses disjoint from content?
 
-7. What must a region query guarantee when its V-positions are drawn from the link subspace (`subspace(v) = s_L`) rather than the content subspace — resolving, by S3★ (ASN-0047), to an image inside `dom(Σ.L)` (link addresses, not content), so that the touch test surfaces anchoring aimed at links (the to-endsets of retraction emitters, type endsets) and the exactness of retraction stability acquires an extra term for the retraction emitter `b`, whose to-set then meets the image?
+7. What must a region query guarantee when its V-positions are drawn from the link subspace (`subspace(v) = s_L`) rather than the content subspace?
