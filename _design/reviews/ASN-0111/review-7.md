@@ -1,0 +1,17 @@
+## Assessment
+
+This is a strong, unusually well-grounded digest. Accuracy against the note is clean (every RL, both arity bounds, the screen necessary-not-sufficient split, the caching trichotomy, all three open questions correctly mapped); the Green claims are all traceable to the evidence (the `link2sporglset`/`linksporglset2specset` split, the unexposed raw read, `domakelink`'s 2-endset store, the silently-omitted type, the depth-2-only allocator, the lineage/user-field invariants Green doesn't enforce, the home-doc-by-truncation fact); it stays at design altitude (Green function names are used to ground fidelity claims, not to specify the new build); and it is committal where the note supports a position. The forced/conventional split is correctly drawn — including the genuinely subtle call that *totality* is forced (no address-only predicate is sufficient) while the *shape* of `⊥` is the builder's. The "factor the raw read as its own layer / put resolution where it belongs" organizing decision, and the depth-vs-lineage-vs-user-field caching caveat, are the two best things here and are both sound.
+
+I found **no material defect**. The items below are all sharpenings.
+
+## Revision list
+
+1. **[SHARPENING] *Permanence classification* — make explicit that depth is also allocator-contingent, just near-unviolable.** The distinction "only depth is structurally guaranteed; lineage/user-field rest on allocation invariants Green doesn't enforce" is excellent and load-bearing. Tighten it with one clause so a reader doesn't conclude depth-caching needs *no* allocator assumption: depth permanence is also contingent on the allocator, but follows from the *shape* of the increment (advancing the final digit can't deepen `#E`), whereas lineage/user-field are *policy* choices a non-canonical seed breaks. Same trust boundary, very different odds of violation.
+
+2. **[SHARPENING] *Link value and endset representation* — "normalize only to well-formedness" sits awkwardly against "stored verbatim."** Over reachable states the allocator already guarantees well-formed spans, so there is nothing for the read to normalize, and the one transformation that *would* violate RL1 (collapsing/merging the scattered spans) is the one explicitly forbidden. Reword to: store spans exactly as recorded; maintain no invariant beyond well-formedness (already guaranteed upstream); never merge, split, or collapse. This removes any hint that readlink sanitizes its output.
+
+3. **[SHARPENING] *Organizing decision* — soften "answer the note's open question 1 in substance."** OQ1 is one the note explicitly left open; the layering decision *supplies the substance of* an answer (permanent record per RL5/L12/LP13, nothing about current witnessedness per RL6) rather than closing a question the note resolved. "Bears directly on OQ1, and the raw-read layer supplies its substance:" reads more honestly and loses nothing.
+
+4. **[SHARPENING] *How it fits / RL3* — note for downstream consumers that a returned span denotes a region, not a point.** Not load-bearing for readlink (which returns spans verbatim and computes no coverage), but the note spends real estate establishing that a unit span covers an infinite subtree, not its anchor address. Since the digest tells a consumer it "reads a to-set as addresses," one clause — the disclosed spans denote *coverage* address-sets (subtrees), not the points they're anchored at — guards a consumer from misreading a unit span as a single address when it later matches by coverage (L8) or follows.
+
+VERDICT: CONVERGED
