@@ -1,0 +1,18 @@
+I reviewed the digest against the note, the formal claims, and the Q11–Q20 evidence. This is an unusually strong digest: it captures all of F0–F8 and all five open questions, keeps Green's function names as evidence anchors rather than builder-side code, and is consistently actionable. Two things are worth flagging as standout-correct so the reviser does not "fix" them:
+
+- The digest threads the genuine **Q17-vs-Q19 tension** correctly: empty *recorded* endset → reference fails (`putrequestfailed`, the F7 bug), whereas a *resolvable-but-orphaned* endset → reference drops in I→V and returns empty-success. Those are two different failure points and the digest keeps them distinct ("distinct from the F7 empty-recorded-endset bug"). Don't collapse them.
+- The **F3 / V-spec reading is more accurate than the note** and grounded in Q13/Q15/Q11. Keep it.
+
+I found no defects. The improvements below are all sharpenings.
+
+# Revision list
+
+1. **[SHARPENING] "Implementation approaches → Endset→span-set emitter" (F3/V-spec): the digest silently corrects the note; make the correction explicit.** The digest's reading — the V-spec path is out-of-scope *resolution* (different coordinate space, can drop addresses, varies by homedoc), not an F3 *representation* example — is correct per Q13/Q15/Q11. But the note's own F3 section presents the V-spec recompute as an F3 example ("denotes the same positions through a structurally different tumbler"). A builder reading both will hit an apparent contradiction. Add one clause noting the digest is *refining* the note's F3 illustration: the V-spec recompute is not a same-coverage re-encoding over `T` (it lands in per-document V-space and can under-cover), so it is not an F1-result and not in F3's range — which is *why* it must not be reused. Sound without this, but it removes a dual-reader trap.
+
+2. **[SHARPENING] "Design commitments → coverage-not-representation" and "Guarantees → F3": cite Q16 to concretize the Hyrum's-Law warning.** The digest argues callers will latch onto whatever order you emit, but never states that the reference *does* emit a determinate order. Q16 shows Green sorts by V-address (`incontextlistnd`). Citing it turns an abstract caution into a concrete one: a stable order *exists* for callers to depend on, which is exactly why non-promotion (not non-determinism) is the discipline. The note already leans on Q16 here; the digest dropped it.
+
+3. **[SHARPENING] "Implementation approaches → Link lookup": compress the lock-free/atomic-publication paragraph to its actionable kernel.** The point is correct (monotonicity enables but does not *secure* lock-free reads; a structure mid-resize can tear with no entry overwritten; tear-free reads need atomic publication via an immutable/persistent representation) — but it runs long for an aspect the digest itself defers to ASN-0093. Reduce to: immutability makes lock-free reads *available*, but tear-freedom is ASN-0093's representation choice (atomic publication), not a consequence FOLLOWLINK can assume. Keep the insight, shed the length.
+
+4. **[SHARPENING] (minor) "Guarantees → F3": the conformance-test instruction could forestall a naive enumerate-and-compare check.** "Assert coverage-equality (`⟦R⟧ = coverage(eᵢ)`)" is right, and the `⟦·⟧` notation already signals the denotational reading. But the note's worked instance shows coverage over `T` is dense/infinite (finite only over emittable `F`), so equality must be a span-algebra equivalence on representations (ASN-0053), never an extensional enumeration. A half-clause to that effect would close the gap for a less-sophisticated test author.
+
+VERDICT: CONVERGED
