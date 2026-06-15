@@ -175,10 +175,11 @@ Write `Θ` for ASN-0086's designated retraction type, and `L_Θ^Σ` for its *ret
 the arity-3 type-`Θ` links at state `Σ` (ASN-0086).
 We adopt, as a **standing assumption** scoped to the addressability results, ASN-0086's
 *relational-layer discipline commitment*: every store transition that grows the retraction slice
-`L_Θ` — every `→`-step with `L_Θ^Σ ⊊ L_Θ^{Σ'}` — is a `Nullify`. Since `Nullify` emits a tuple
-whose to-set is a single unit-depth span `{(t, δ(1, #t))}` at a prior link target `t` (ASN-0086's
-`Nullify`/`Emit_Θ`), and only `Nullify` grows `L_Θ`, *every* `L_Θ` to-set is unit-depth at a link
-target; and `nullified(Σ)` is an existential over that slice `L_Θ^Σ ⊆ Σ.L` alone (ASN-0086).
+`L_Θ` — every `→`-step with `L_Θ^Σ ⊊ L_Θ^{Σ'}` — is a `Nullify`. Under that commitment
+ASN-0086's *UnitDepthRetractionDiscipline* holds at every layer-reachable state: *every* `L_Θ`
+to-set is a single unit-depth span `{(t, δ(1, #t))}` at a link target `t`
+(UnitDepthRetractionDiscipline, ASN-0086). And `nullified(Σ)` is an existential over that slice
+`L_Θ^Σ ⊆ Σ.L` alone (ASN-0086).
 
 `Σ.L` evolves only through `K.λ` — the arrangement movers (`K.μ` family), entity creation `K.δ`,
 provenance recording `K.ρ`, and content allocation `K.α` all frame the link store (`L' = L`,
@@ -700,9 +701,11 @@ withdrawal being realised as a `Nullify` — a to-set
 `{(ℓ, δ(1, #ℓ))}` whose single span covers `ℓ` and `ℓ`'s extensions, and the retraction
 type-set `Θ`. The first two are content-disjoint *unconditionally*. The from-set is empty, and
 `coverage(∅) = ∅` touches nothing. The to-set is a unit-depth span — ASN-0086's `Nullify` fixes
-its width at `δ(1, #ℓ)` — whose start `ℓ` is genuinely element-level with `E(ℓ)₁ = s_L ≠ s_C`
-(L0, L1, ASN-0093; SC-NEQ) and is a link address `ℓ ∈ dom(Σ.L)` that `Nullify` targets, so
-RE-NCD applies directly: `coverage({(ℓ, δ(1, #ℓ))}) ∩ dom(Σ.C) = ∅`. So against a content image
+its width at `δ(1, #ℓ)` — whose start `ℓ` is a link address `ℓ ∈ dom(Σ.L)` that `Nullify`
+targets, hence T4-valid (StoreT4Validity, ASN-0093) and genuinely element-level
+(`zeros(ℓ) = 3`, L1, ASN-0093) with non-content subspace identifier `E(ℓ)₁ = s_L ≠ s_C`
+(L0, ASN-0093; SC-NEQ), so RE-NCD applies directly:
+`coverage({(ℓ, δ(1, #ℓ))}) ∩ dom(Σ.C) = ∅`. So against a content image
 `I ⊆ dom(Σ.C)`, neither the from-set nor the to-set can touch. (This content-disjointness is
 exactly what the standing `W ⊆ s_C` obligation buys.)
 
@@ -717,15 +720,11 @@ a *wide* span `(s, ℓ_s)` that argument fails, and the interval
 `coverage(Θ) ∩ dom(Σ.C) = ∅` is a construction hypothesis, not a theorem; this note carries
 it as such, its exception — a type-slot match against content — taken up by Open Question 6.
 
-We therefore record the emitter's harmlessness **conditionally**, on that same hypothesis
-`coverage(Θ) ∩ dom(Σ.C) = ∅`. With the from-set and to-set already content-disjoint, `Θ` is
-the emitter's *only* possible content-region contribution — the single pair `(3, Θ)`.
-*Under* the hypothesis, against a content image `I ⊆ dom(Σ.C)` the test `touch_W(Θ)` is
-false, so all three of `b`'s endsets are content-disjoint, `b` is never surfaced, and a
-retraction's *net* effect on `RE` is removal only. *Absent* it, `b`'s type-slot `Θ` could
-meet the content image and surface the fresh pair `(3, Θ)`, making the retraction *add*
-anchoring as well as remove it; the forward direction of the stability result below
-therefore rests on the hypothesis.
+*Under* this hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅` the emitter `b` surfaces nothing against
+a content image `I ⊆ dom(Σ.C)`, so a retraction's *net* effect on `RE` is removal only.
+*Absent* it, `b`'s type-slot `Θ` could meet the content image and surface the fresh pair
+`(3, Θ)`, making the retraction *add* anchoring as well as remove it; the forward direction of
+the stability result below therefore rests on the hypothesis.
 
 But the answer deduplicates, and we must read its stability at the granularity it actually
 has. Its elements are `(role, endset)` pairs with link identity discarded (RE-UNIT): a
