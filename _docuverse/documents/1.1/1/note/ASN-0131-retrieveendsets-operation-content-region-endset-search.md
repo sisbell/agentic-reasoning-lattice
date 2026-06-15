@@ -671,12 +671,9 @@ pool can move. If some endset `Σ.L(ℓ_new).eᵢ` touches the region, the pair
 way the move is monotone — a non-retraction emission (`K ≁ Θ`) can only add pairs, never
 remove one — the population-grow analogue of the discovery query's E-MONO/F-LAMBDA (ASN-0127).
 
-**Under self-retraction.** One `K.λ` shape falls between the two emission/retraction cases and
-is covered by neither: ASN-0086's *self-emit* `Nullify(Σ, d_retr, a)` with
-`a = a_emit(Σ, d_retr)` (P-tgt's self-emit branch), a fresh emission whose unit-depth to-set
-targets *its own* emitter address `b`. Being a retraction (`K ~ Θ`) it is not the non-retraction
-emission case above, and having emitter = target it is not the retraction case below — which
-withdraws a *pre-existing* `ℓ ≠ b` — so neither argument reaches it; yet it is inert. The emitter
+**Under self-retraction.** The self-emit `Nullify` — emitter = target — is inert. It is
+ASN-0086's `Nullify(Σ, d_retr, a)` with `a = a_emit(Σ, d_retr)` (P-tgt's self-emit branch): a
+fresh emission whose unit-depth to-set targets *its own* emitter address `b`. The emitter
 `b` is *born-nullified* — its own to-set covers `b`, so `b ∈ nullified(Σ')`, leaving `b`
 non-addressable by RE-ADDR's excluded branch and surfacing nothing — and by R-Scope at
 target = emitter (ASN-0086) the fresh nullification reaches only the fresh `b`
@@ -732,13 +729,12 @@ touches the region. So withdrawing one link `ℓ` does not, by itself, remove th
 bore. Retracting `ℓ` removes `ℓ` from `addressable(Σ)`, and *permanently* so: by R6a (ASN-0086)
 and induction, `ℓ ∈ nullified` at every state reachable from the retraction's post-state. The same
 step adds the emitter `b`, whose only possible content-region contribution is the fresh pair
-`(3, Θ)` (just shown). Under the net-removal-only hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅` — adopted
-for this result, its sole exception flagged above — that pair fails the touch test against a
-content image, so `b` surfaces nothing and re-witnesses no pair the answer carries. A pair
+`(3, Θ)` (just shown) — inert under the net-removal-only hypothesis (above), so `b` re-witnesses
+no pair the answer carries. A pair
 `(i, e)` that `ℓ` contributed therefore leaves the answer **iff `ℓ` was its sole addressable
 bearer in `Σ`**. The forward half — sole bearer ⟹ the pair drops — is the conjunction just
-assembled: `ℓ` leaves `addressable` permanently (just shown) and, under the hypothesis, the emitter
-`b` surfaces nothing, so neither keeps `(i, e)` alive. The backward half — some *other* live bearer ⟹
+assembled: `ℓ` leaves `addressable` permanently (just shown) and the emitter `b` is inert (above),
+so neither keeps `(i, e)` alive. The backward half — some *other* live bearer ⟹
 the pair survives — is not free: it asserts that the other bearer outlives the very step
 that withdraws `ℓ`, and a retraction, being a state transition, could a priori nullify
 more than its named target. We discharge it by bounding the retraction's reach. Take
