@@ -180,10 +180,8 @@ to-set is a single unit-depth span `{(t, δ(1, #t))}` at a link target `t`
 (UnitDepthRetractionDiscipline, ASN-0086). And `nullified(Σ)` is an existential over that slice
 `L_Θ^Σ ⊆ Σ.L` alone (ASN-0086).
 
-`Σ.L` evolves only through `K.λ` — the arrangement movers (`K.μ` family), entity creation `K.δ`,
-provenance recording `K.ρ`, and content allocation `K.α` all frame the link store (`L' = L`,
-ASN-0047/ASN-0093). And `dom(Σ.L)` is a tumbler-prefix antichain — distinct stored links never
-nest (R0a/FlatLinkDomain, ASN-0086).
+`dom(Σ.L)` is a tumbler-prefix antichain — distinct stored links never nest
+(R0a/FlatLinkDomain, ASN-0086).
 
 A `K.λ` step emits a *fresh* link — allocation gives `ℓ_new ∉ dom(Σ.L)`, so `ℓ_new` enters
 `dom(Σ'.L)` — and whether that fresh output is *addressable* in its post-state
@@ -603,8 +601,7 @@ fiber `Σ.M(d)` and the link store `Σ.L` fixed, so neither the image nor the av
 moves. *Content allocation* `K.α` frames both stores the answer reads — `M' = M` and
 `L' = L` (ASN-0093, frame-extended in ASN-0047) — so the image and `Avail(Σ)` are fixed
 outright. *Provenance recording* `K.ρ` only extends `Σ.R`, framing `M'(d) = M(d)` and
-`L' = L` (ASN-0047) — equivalently, its projection-invariance is LP14 (ASN-0098) — so again
-neither moves. *Entity creation* `K.δ` — registering a new node, account, or document
+`L' = L` (ASN-0047) — so again neither moves. *Entity creation* `K.δ` — registering a new node, account, or document
 `e ≠ d` — leaves `Σ.M(d)` untouched (wholly, for node/account creation, where `M' = M`; and
 on every pre-existing arrangement, for document registration, LP8, ASN-0098) and leaves
 `Σ.L` fixed (frame); document registration is the lone non-trivial frame among the three,
@@ -673,6 +670,19 @@ pool can move. If some endset `Σ.L(ℓ_new).eᵢ` touches the region, the pair
 `(i, Σ.L(ℓ_new).eᵢ)` is *added* to the answer; if none does, the answer is unchanged. Either
 way the move is monotone — a non-retraction emission (`K ≁ Θ`) can only add pairs, never
 remove one — the population-grow analogue of the discovery query's E-MONO/F-LAMBDA (ASN-0127).
+
+**Under self-retraction.** One `K.λ` shape falls between the two emission/retraction cases and
+is covered by neither: ASN-0086's *self-emit* `Nullify(Σ, d_retr, a)` with
+`a = a_emit(Σ, d_retr)` (P-tgt's self-emit branch), a fresh emission whose unit-depth to-set
+targets *its own* emitter address `b`. Being a retraction (`K ~ Θ`) it is not the non-retraction
+emission case above, and having emitter = target it is not the retraction case below — which
+withdraws a *pre-existing* `ℓ ≠ b` — so neither argument reaches it; yet it is inert. The emitter
+`b` is *born-nullified* — its own to-set covers `b`, so `b ∈ nullified(Σ')`, leaving `b`
+non-addressable by RE-ADDR's excluded branch and surfacing nothing — and by R-Scope at
+target = emitter (ASN-0086) the fresh nullification reaches only the fresh `b`
+(`{t : b ≼ t} ∩ dom(Σ'.L) = {b}`), so no *pre-existing* addressable bearer is touched. Adding
+no addressable bearer and removing none — `addressable(Σ') = addressable(Σ)` — with `Σ.M(d)`
+framed (`M' = M`) holding the image, it leaves `RE(W, d, Σ') = RE(W, d, Σ)`.
 
 **Under retraction.** A link is never deleted (L12, ASN-0043), but it can be *withdrawn*:
 a retraction marks it nullified (ASN-0086), and we range only over the addressable links.
