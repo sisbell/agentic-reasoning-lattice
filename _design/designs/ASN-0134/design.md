@@ -15,7 +15,7 @@ ASN-0134 defines the substrate's **consistency and isolation model**: the contra
 - **Content is immutable and append-only; a step only changes which addresses are *present*.** This is *why* torn reads are impossible.
 - **Commit before acknowledge** (A7). A response must not precede its committing step. (The udanax reference violates this — response-before-check for INSERT/DELETEVSPAN/REARRANGE — and the note flags it as a defect, not a model.)
 - **The order is logical, not temporal** (G0): per-home arrival order, no global clock. The substrate presents *serializability*, not sequential consistency, and only real-time-precedence-only linearizability under A7.
-- **Three obligations exceed per-home discipline:** contiguous runs (a per-run, still-*local* critical section); multi-read verdicts (a *global* reader snapshot); `idem=⊤` de-duplication (a *global*, per-coverage-class serialization of dedup-read-and-deposit).
+- **Two obligations are genuinely global; one exceeds per-step granularity but stays per-home.** Contiguous runs (clause 5) need a per-run critical section — wider than per-step, yet still per-`(home, subspace)` in scope, strictly weaker than any cross-home exclusion. Multi-read verdicts (clause 6, a *global* reader snapshot) and `idem=⊤` de-duplication (clause 7, a *global*, per-coverage-class serialization of dedup-read-and-deposit) are the two that genuinely *exceed* per-home discipline.
 
 **Conventional — fixed by the realization, not the spec:**
 
@@ -33,11 +33,11 @@ ASN-0134 defines the substrate's **consistency and isolation model**: the contra
 - A **global reader snapshot** for multi-read verdicts / quiescence predicates (all constituent reads at one committed index).
 - A **per-coverage-class serialization** of the `idem=⊤` dedup-read-and-deposit.
 - A **clean rejection path** for precondition-failed / out-of-order operations (no dangling state).
-- A **recovery mechanism** reconstructing the canonical state from the journal of committed steps.
+- A **recovery mechanism** reconstructing the canonical state from the journal of committed steps. *(Not a MIC obligation: ASN-0134 is silent on durability and a purely in-memory realization honors all of MIC. This is a cross-cutting builder concern, motivated by the reference's weak durability and licensed by A6.)*
 
 ## Implementation approaches
 
-**The organizing insight first.** A single run-to-completion loop satisfies all seven MIC clauses *for free* — it *is* a global serialization — once each logical operation (a run included) maps to one dispatch, with the lone exception of commit-before-acknowledge, which you must order correctly. The reason to abandon it is throughput. The moment you move to the per-home concurrency G1 blesses, exactly four things stop being free and must be actively built: **per-home serialization** (clause 2, the defining move), **per-run contiguity** (clause 5, local), **multi-read verdict snapshots** (clause 6, global), and **`idem=⊤` dedup** (clause 7, global). Clauses 1/3/4 you then maintain by discipline. Everything below follows that fault line.
+**The organizing insight first.** A single run-to-completion loop satisfies all seven MIC clauses *for free* — it *is* a global serialization — once each logical operation (a run included) maps to one dispatch, with the lone exception of commit-before-acknowledge, which you must order correctly. The reason to abandon it is throughput. The moment you move to the per-home concurrency G1 blesses, the free ride ends for clauses 2, 4, 5, 6, and 7: **per-home serialization** (clause 2, the defining move), **per-run contiguity** (clause 5, local), **snapshot reads at both access counts** (clauses 4 and 6 — one obligation: a single bounded access [clause 4] and a multi-read verdict [clause 6, global] each must land on one committed state, since even a lone `Observe_K`'s sub-reads over `L_K` and the global `nullified` slice can straddle a cross-home commit), and **`idem=⊤` dedup** (clause 7, global). Clauses 1 and 3 you then maintain by discipline. Everything below follows that fault line.
 
 **Sequencing.**
 - *Single loop* — simplest, proven. The udanax reference is exactly this: one request runs to completion, the in-memory enfilade *is* the shared canonical state, a write becomes visible at dispatch completion. Bounded by one core; a slow client can stall it. Pick this first — it is the simplest thing that honors the spec.
@@ -45,16 +45,16 @@ ASN-0134 defines the substrate's **consistency and isolation model**: the contra
 - *Optimistic frontier-CAS with retry* — no held lock: read frontier, compute deposit, install if frontier unchanged, else retry. Wins when same-home contention is rare; retry termination is the open question (OQ1).
 
 **State representation & snapshots — the biggest lever.**
-- *Persistent (structurally-shared) immutable state* (the `im` crate): the shared canonical state is an immutable root; a write produces a new root, structurally shared. This makes A0/A4 (no torn read), clause 4 (per-call snapshot), and clause 6 (per-verdict snapshot) nearly free — a reader captures one root and reads everything off it, with no lock held against writers. The root's identity *is* the version coordinate the substrate otherwise lacks (a design inference, but a clean answer to OQ2). Strongly recommended.
+- *Persistent (structurally-shared) immutable state* (a persistent immutable-collection library): the shared canonical state is an immutable root; a write produces a new root, structurally shared. This makes A0/A4 (no torn read), clause 4 (per-call snapshot), and clause 6 (per-verdict snapshot) nearly free — a reader captures one root and reads everything off it, with no lock held against writers. The root's identity *is* the version coordinate the substrate otherwise lacks (a design inference, but a clean answer to OQ2). Strongly recommended.
 - *Mutable store + locks*: needs explicit reader exclusion or a version stamp for snapshots; against the grain.
 
 **The frontier as a hint.**
-- The frontier is recomputable from the store — a *hint* in Lampson's sense, not authoritative duplicate state. Recompute by query-and-increment against the live store (the reference recovers it by a bounded descent; this repo's substrate computes `max+1` under the home's prefix). No cache to invalidate, no recovery problem.
+- The frontier is recomputable from the store — a *hint* in Lampson's sense, not authoritative duplicate state. Recompute by query-and-increment against the live store — `max+1` under the home's prefix, the reference recovering the equivalent by a bounded descent. No cache to invalidate, no recovery problem.
 - Optionally maintain an aggregate frontier at the home node as a *cache* (the reference keeps an O(1) maintained width aggregate at the apex, albeit whole-store, not per-type); recompute on a miss. Add only if allocation latency demands it.
 - **Load-bearing:** use the *population-coupled* `inc(max,·)` allocator. It makes chain contiguity model-intrinsic — gapless under *any* interleaving. A counter-style allocator that hands out increasing indices without consulting the population preserves uniqueness and monotonicity but *loses contiguity* whenever allocations interleave (confirmed against the reference). Pick the coupled allocator.
 
-**Journal & recovery.**
-- The total order is an append-only journal of steps — Lampson's log for atomicity and recovery, and exactly this repo's `links.jsonl` + replay. Recovery = replay; every prefix is a canonical reachable state (A6), so no separate consistency check is needed *provided each step is journaled atomically*.
+**Journal & recovery** *(a cross-cutting builder concern, not a MIC clause — ASN-0134 reasons only about the abstract sequence `𝔼` and is silent on durability; a purely in-memory realization satisfies all of MIC).*
+- The total order is an append-only journal of steps — Lampson's log for atomicity and recovery (an append-only step journal + replay). Recovery = replay; every prefix is a canonical reachable state (A6), so no separate consistency check is needed *provided each step is journaled atomically*.
 - Caution from the reference: when one logical step touches two stores (content + index), a crash *between* the sub-writes diverges them, and there is no startup validation. Honor per-step atomicity across a multi-store layout by writing one journal record per step and replaying it as a unit (WAL discipline). A6/W3 assume this atomicity; delivering it across stores is the builder's job.
 
 **Contiguous runs (clause 5).**
@@ -85,7 +85,7 @@ ASN-0134 defines the substrate's **consistency and isolation model**: the contra
 **By active enforcement:**
 - Same-home uniqueness (per-home serialization, clause 2) — else a collision, with one allocation rejected.
 - Per-operation exactly-once effect (sequencer + commit-before-ack).
-- `idem=⊤` no-duplicate (clause 7, global) — per-home discipline alone permits a duplicate.
+- `idem=⊤` no-duplicate (clause 7, global) — per-home discipline alone permits a duplicate. *But clause 7 buys no-duplicate, not a unique outcome:* a lone `idem=⊤` emit racing a nullify of its coverage-equal incumbent (§4 instance (ii)) still resolves order-dependently (`∅` vs `{A'}`, one step vs two); MIC delivers serializability, not outcome-determinism, and this emit-vs-nullify instability is inherent, not a duplicate.
 - Multi-read verdict soundness (clause 6, one-index reads).
 - Run contiguity (clause 5, per-run exclusion).
 
