@@ -1,0 +1,95 @@
+## What this is
+
+This note defines **PL — the substrate's predicate/query language** and the contract for its evaluator. It is the composition layer that takes ASN-0128's atomic per-type read predicates and closes them under Boolean logic, finite quantification, value composition, and aggregation into a single closed algebra, and fixes that algebra's expressive ceiling. PL is also the substrate's *extension language*: every trigger, termination condition, and gating discipline a protocol author writes is a PL term, so this note is the foundation on which all coordination machinery is built.
+
+## Design commitments
+
+These are locked in for everything downstream.
+
+**Forced — downstream design cannot violate:**
+
+- **Composition is the only extension mechanism.** A builder registers types and composes predicates; the substrate never executes foreign read-path code. This is *the* architectural commitment — it is why the guarantees below hold for every predicate anyone will ever write. No plugin, no callback, no user-supplied evaluation runs against the store.
+- **PL is read-only, pure, and reads only structural state.** A term is a deterministic function of `(link store, arrangement-store *domain*, registry, args, view)`. It never writes, never reads the content store (value *or* domain), and never dereferences an arrangement binding. "Structural reads only" is a hard layer boundary, not a convenience.
+- **The grammar ships no fixpoint or recursion operator.** A term's evaluation tree is fixed by its syntax, independent of state. Transitive closure (`reach`), self-emit detection, and dependency-chain walking are *outside* the language by construction (the first two conjectured inexpressible even semantically) and belong to agent time.
+- **Everything is finite and terminating.** All domains are finite at every reachable state; all evaluation halts. By construction on a finite substrate.
+- **Well-typing is decided at construction and reads no state.** Because the vocabulary is static, a term type-checked once is valid at every reachable state. Type errors are construction-time errors; there is no runtime type failure.
+- **Partiality is guarded, never silent.** `⊥`-valued results compose only through an explicit if-some-then-else binder guard. `⊥` is a verdict with meaning, propagated explicitly — there is no undefined evaluation.
+
+**Conventional — the note picks these, but they are not forced by the spec:**
+
+- **One view per term, fixed at the top level.** The *capability* for mixed-view reads exists (reconstructable through the fixed-view slices `A_K`/`L_K`); only first-class per-constituent view syntax is deferred. So "one view per term" is a surface convention, not a semantic fence.
+- **AM's argument-keying and BH3's reverse-lookup opt-in are conventions about which compositions ship as *named atoms*, not fences the algebra preserves.** The algebra can ask any reverse-lookup question via a V-TUP filter whether or not BH3 is attached. "What BH3 withholds is the atom, never the question." (Green draws this line at zero — see below.)
+- **The default-view rewrite semantics (UV): filtering is presentation, nullification is state.** Once chosen this is load-bearing, but it is the note's resolution of an open question, not a forced consequence.
+- **Set semantics for counting:** `count` counts set elements in the selected view, never occurrences; cross-type totals are meta-arithmetic sums of per-type counts.
+
+## What must be built
+
+Functionally, an implementation must provide:
+
+- **A reified term representation** for PL and QD (mutually recursive), inspectable as data — not closure-encoded — because three separate static passes must walk it.
+- **A construction-time type checker** that synthesizes each term's codomain, expands `Reg`-quantifiers to their named-class instances, and rejects ill-typed terms — reading no state.
+- **A vocabulary generator** that, from each type's registration record `(shape, idem, behaviors)`, produces the atom families that exist for that type (core always; BH1–BH4 conditionally; the one class-unindexed BH3 join globally).
+- **A pure, terminating evaluator** that interprets a typed term against a committed state at one view, threading a binding environment for bound variables and reducing quantifiers/aggregates to finite folds.
+- **The three-view slice readers and the default-view presentation rewrite** — selecting audit/active slices and dropping filtered elements from collection results only.
+- **Base read adapters**: the single typed-relation surface read (`Observe_K`), link-store-domain enumeration, document-residence membership (`is_doc`), per-tuple stored-value projections, registry lookup, and the state-independent primitives (address comparisons, finite-set ops, ℕ arithmetic, definedness tests, constants).
+- **A static dynamics analyzer** computing each term's read footprint and its stability class (⊤-stable / ⊥-stable / neither, plus frame-stability under a type set) — the mechanical "protocol checker" a termination argument needs.
+
+## Implementation approaches
+
+**Term representation.** Use a tagged-union AST with one node variant per former, in two mutually-recursive families (terms, domains). The language is closed and ships no fixpoint, so the tree is finite and acyclic — a plain inductive tree suffices; no graph machinery, no cycle handling. **Reify it as inspectable data, not as composed closures.** This is a real fork: a combinator/closure encoding is tempting and compact, but WT, the footprint pass, and the stability classifier are all *syntax-directed* analyses that must read structure — opaque closures defeat them. Pick the reified AST. If many registered predicates share subterms, intern/share them through the persistent-structure library as a recomputable hint; this is an optimization, never load-bearing.
+
+**Type checker + `Reg` expansion.** A single bottom-up (post-order) synthesis pass: each node computes its codomain from its children's against a context mapping bound variables to sorts. One match arm per former; the binder guard narrows `T∪{⊥}→T` (resp. ℕ) in its then-branch. Run it **once at construction and attach the verdict** — because the vocabulary is static, re-checking at any reachable state is wasted work. For `Reg`-quantifiers, **expand to named-class instances at construction** (the registry is finite and fixed) and type-check each instance; the vocabulary is non-uniform, so a `Reg`-body using a behavior atom is well-typed only if *every* class carries that behavior, and you discover that only by instantiating. Expanding at construction also hands the evaluator a plain finite fold — no reason to defer it to eval time.
+
+**Vocabulary and atom backing.** The atoms are thin adapters over ASN-0128's operational semantics; build the per-type family once at construction into a dispatch table keyed by `(type, atom)` — "data, not code" matching the static-vocabulary fact. The choice that matters is the *indexes* the atoms read against:
+
+- *Forward enumeration* (`members`, `targets_of`): per-type forward index (type → tuples; from-address → to-addresses).
+- *Reverse lookup* (BH3: `sources_to`, `target_of`, `targets_keyed`): an endpoint-keyed reverse index. The **spanfilade is the proven structure here** — Green indexes both endpoints symmetrically and answers to-keyed queries for *every* link with no per-type opt-in, all from one symmetrically-built index matching by span intersection. This directly vindicates the note's "BH3's opt-in gates the named atom, not the question": **build one symmetric reverse index unconditionally and let the BH3 flag gate only which atom names ship.** The one class-unindexed atom (`targets_keyed`) reads the union of BH3 slices — back it from that same index.
+- *Membership* (`is_K`): for a denoting endset, membership reduces to a prefix test against the endset's `≼`-minimal elements (PrefixSpanCoverage), so a prefix-ordered index over minimal elements answers it. Green confirms the mechanism: span membership on the read path is *add-then-compare* (`reach = start ⊕ width`, then `tumblercmp`), and that arithmetic runs *inside* the traversal.
+- *Age/staleness* (BH4): the only home-wide footprint — needs per-home chain position. Store the home and chain index *with the tuple* and read them out, as Green reads a link's home document from the stored crum field rather than recomputing it from the address; deriving them from the address each time means the chain arithmetic PC6 deliberately fences off.
+
+**Crucially, tumbler arithmetic is not an evaluator primitive.** Only the comparisons (`=`, `≼`, `T1`) are composable leaves; span addition (`⊕`) lives *inside* atoms, behind their proven bounds. Exposing `⊕` as a composable operation would break PC6's converse. Green draws exactly this line — query arguments are compared and prefix-tested, never operated on; span addition and increment run inside traversal and allocation. Keep arithmetic encapsulated in atom implementations.
+
+**Evaluator.** A syntax-directed tree-walk interpreter threading the view and a binding environment. Domains are finite, so eager materialization is *correct*, but prefer **streaming evaluation with short-circuit**: `∃` stops at the first witness, `∀` at the first counterexample, filters compose lazily; reserve full materialization for `count` and the union folds that genuinely need the whole set. Most triggers are existence checks — making those short-circuit is the common-case win. The base reads route through `Observe_K` plus the active-subset machinery (active = audit minus nullified). **Do not offer any feedback/loop primitive** — a repeat-until-stable construct decides `reach` from base reads alone and breaks the ceiling; the evaluator is deliberately a finite walk, not a general interpreter. Purity makes results memoizable, but the better incrementality lever is the **stability classification**: a ⊤-stable trigger that has fired needs no re-evaluation, which beats blind result-caching for polling protocols.
+
+**State substrate and snapshots.** PL reads against state but does not define it; the model is forced by both precedents. Treat the **audit slice as an append-only journal** (the repo's `links.jsonl` + `paths.json` registry, recovered by replay; Green's append-only granfilade/spanfilade with immutable addresses) and the **active slice as a derived, recomputable hint** (audit minus the retraction entries). For read-heavy polling, maintain a per-type active index incrementally as a hint, with the journal as ground truth — recompute on any doubt. The arrangement-store domain backing `is_doc` is a residence set, likewise recoverable from the journal; note that **no read enumerates it** (Green's granfilade is strictly point-lookup; reverse discovery runs through the content-identity index, never a document-key scan) — so a membership structure, not a listing, is all you build.
+
+The sharpest payoff of persistent (structurally-shared) indexes is here. PC4's purity assumes a reader sees one coherent state, but the note is explicit that *granting* that snapshot is the isolation model's job (ASN-0134), and the discriminator is *access count*: a single-access term is snapshot-local for free, while a **multi-read term** (e.g., `OPEN(t)` reading both the comment and resolution slices, or a `stale` enumeration) is sound only if all its constituent reads are pinned to one committed state. **Realize that pin as an immutable index root:** a reader captures the current root; concurrent appends produce new roots sharing structure; the multi-read term reads entirely against the held root. This is the cheapest mechanism that meets the contract — no locks, no copies — and it is exactly what the `im`-crate persistent maps buy you. PL itself discharges nothing here; it inherits the obligation and the storage layer satisfies it by version pinning.
+
+**Dynamics analyzer.** A second static pass, structured like the type checker: bottom-up, computing per node a footprint (which slices/domains it reads) and a stability lattice element (ST / SF / neither), with `Reg` handled via the same expansion. PD2's frame-stability falls out of footprint plus the step frames. Build the *syntactic* certifier the note specifies and keep it **sound but incomplete** — it classifies by spelling, so extensionally-equal terms may classify differently; deciding extensional stability is open theory, not your job. Surface its verdict as advisory ("⊤-stable" / "not certified") so a protocol checker can validate a termination condition mechanically and reject the un-certifiable ones.
+
+## Guarantees to uphold
+
+**Hold by construction** (of a closed, read-only, statically-typed algebra):
+
+- **Termination** — finite substrate, no fixpoint.
+- **Decidable well-typing at construction** — static vocabulary; a term checked once is valid forever.
+- **Closed ceiling / no foreign code** — closed algebra, syntax-directed evaluation.
+- **Guarded partiality** — the type system forbids unguarded `⊥`-composition.
+- **One view per term; set-semantics counting** — by construction of the view threading and the domain interpretation (dedup before counting).
+
+**Require active enforcement:**
+
+- **Snapshot isolation for multi-read terms** — the one guarantee PL does *not* give itself. Single-access terms are coherent for free; composed terms must have every constituent read pinned to one committed state, or they fuse two states into one verdict. Enforce at the storage/transaction boundary (version-pinned reads / immutable index roots), per ASN-0134.
+- **Structural-reads-only** — holds *iff* the base read adapters expose no content-store read and no arrangement dereference. This is a discipline on what you wire in, not a theorem about what you wrote.
+- **No feedback/looping** — the evaluator must offer no construct that re-drives reads from its own output; admitting one silently computes `reach` and voids the ceiling.
+- **Soundness of the dynamics certifier** — over-certifying ⊤-stability would mislead a protocol author into an unsound termination condition; the certifier must honor the polarity and footprint rules exactly and err toward "not certified."
+
+## How it fits
+
+PL sits **directly above ASN-0128's atomic read surface** (the per-type predicates, the three slices, the views) and composes its atoms. It reads the **typed-relation link store of ASN-0086** through the one surface read (`Observe_K`), whose shape and transition dynamics come from **ASN-0126**. It leans on **ASN-0034** for the address order and span arithmetic — but only *inside* atoms (PC6 granularity). It depends on **ASN-0134** to grant the coherent snapshot that makes multi-read terms sound under concurrency; PL's purity assumes a single `Σ`, and supplying one is the isolation model's contract.
+
+Upward, PL **hands to the protocol layer** — triggers paired with writes, termination conditions and their convergence arguments, re-opening rules, scheduler disciplines. That machinery is *written in* PL and *typed by* the dynamics classes, and is explicitly out of scope here. Laterally, PL draws a **hard boundary against ASN-0127's content-region/arrangement query algebra**: the typed-relation predicate language asks what the link store asserts; the content-region algebra asks what a document's arrangement reaches; neither subsumes the other, and they meet only at the substrate both read. Keep the two evaluators as separate modules over a shared store.
+
+## Decisions for the builder
+
+Genuinely open *implementation* choices (distinct from the note's spec-level open questions):
+
+- **Atom backing index set** — which indexes to materialize (forward per-type, one symmetric endpoint-keyed reverse index, a prefix-ordered minimal-element index for membership, per-home chain ordering for age). All are hints recomputable from the journal; you choose the set from your read profile.
+- **Active-slice maintenance** — derive-on-read (subtract nullified each time, always correct, simplest) vs. an incrementally-maintained active index (faster for polling, but derived state to keep consistent). Protocols poll, so the index usually wins.
+- **Evaluation strategy** — streaming-with-short-circuit for `∃`/`∀`/filters vs. eager materialization for `count`/folds. Mix per former.
+- **Incrementality lever** — blind atom-read memoization vs. exploiting PD0 stability to retire settled triggers. The latter is the stronger lever.
+- **Snapshot mechanism** — immutable index roots (recommended; near-free with persistent structures) vs. an explicit MVCC/version log. Either satisfies the multi-read obligation.
+- **Vocabulary realization** — a `(type, atom)` dispatch table vs. generated per-type evaluators.
+- **`Reg`-expansion representation** — inline the named-class instances vs. keep a reference to the body plus the class list; both type-check identically.
+- **Default-view rewrite placement** — apply the `is_filtered` drop lazily during enumeration (avoids materializing the unfiltered set) vs. as a post-pass.
+- **How far past the note's rules the dynamics certifier goes** — you may add further *sound* certification patterns and decide how to present "not certified," as long as you never over-certify.
