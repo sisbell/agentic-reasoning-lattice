@@ -100,7 +100,6 @@ all three of `s`'s separator zeros onto `c`; as `c` has only three zeros in all 
 these *are* `c`'s separators, so `s` and `c` share a third-zero position and hence the
 subspace-identifier position one past it — forcing `E(c)₁ = E(s)₁ ≠ s_C`. But content allocation
 gave `E(c)₁ = s_C` — a contradiction. So no content address extends `s`, giving the disjointness.
-The reduction to the prefix relation `s ≼ c` is what confines the lemma to unit-depth spans.
 
 ## The unit of the answer: anchoring without names
 
@@ -419,8 +418,7 @@ proof filters it by the disjunction — gives
 
 and, like the image `⊆` law it rests on, this needs *no* injectivity hypothesis.
 
-The reverse inclusion, by contrast, **fails in general** — and, decisively, *no injectivity-style structural restriction on the
-arrangement recovers it*. There are two independent obstructions to `⊇`, and the
+The reverse inclusion, by contrast, **fails in general**. There are two independent obstructions to `⊇`, and the
 constructions below separate them.
 
 The first obstruction is the image-level non-distribution noted just above, and a
