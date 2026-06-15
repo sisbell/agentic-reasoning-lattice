@@ -476,11 +476,7 @@ the pool `Avail(Σ)` is region-independent, `⊇` — and hence equality — hol
 > `(∀ (i, e) ∈ Avail(Σ) : touch_{W₁}(e) ∧ touch_{W₂}(e) ⟹ touch_{W₁ ∩ W₂}(e))`,
 
 every available endset that meets both region images also meeting the image of their
-intersection. What it is not is *structural* — it quantifies `touch` over every available
-endset, so it is a joint condition on those endsets' coverages and the three region images,
-not a property of `Σ.M(d)` and not checkable without inspecting coverage. The weakest
-*structurally-restricted sufficient* form — one that discharges the touch-implication
-without the per-endset quantifier — is what Open Question 4 takes up.
+intersection. A structurally-checkable sufficient condition is left open (Open Question 4).
 
 ## Existence and discoverability: which side does this answer for?
 
@@ -583,8 +579,7 @@ reordering — each acting as a faithful tracker would:
 - *Arrangement reordering* `K.μ~` permutes the region's V-positions over the same content;
   the *region image*'s membership can swing (F-IMG-SWING, ASN-0127). This is the *only* way
   a reordering changes the answer: which `(i, e)` pairs are surfaced may change as the image
-  swings and some endset newly meets it or ceases to — the answer moving by membership alone
-  (RE-IDENT). (A *rendered* answer — one resolved into
+  swings and some endset newly meets it or ceases to. (A *rendered* answer — one resolved into
   `d`'s present V-order rather than content identity, where piecewise displacement could
   fragment a contiguous run (ASN-0082) — is the mode deferred to Open Question 3; the
   content-identity answer returned here is unaffected.)
@@ -800,7 +795,7 @@ fate of any one link — the slip RE-UNIT's deduplication guards against.
 
 ## Open Questions
 
-1. Must a surfaced endset be reported in its entirety, or only those of its spans that intersect the region (the whole-endset return value vs. the touching-spans restriction, §Extent) — and which choice is the faithful rendering of the link's anchoring, given that only whole-endset surfacing yields union-distributivity (RE-UDIST)?
+1. Must a surfaced endset be reported in its entirety, or only those of its spans that intersect the region (the whole-endset return value vs. the touching-spans restriction, §Extent) — and which choice is the faithful rendering of the link's anchoring, weighing the union-distributivity trade-off set out there (RE-UDIST)?
 
 2. When distinct addressable links carry an identical endset value in the same slot, must the operation's answer preserve their multiplicity, or is collapsing them to a single surfaced endset a faithful answer?
 
