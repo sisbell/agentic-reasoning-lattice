@@ -1,0 +1,99 @@
+# Design Digest — ASN-0130: Predicate Definitions as Substrate Content
+
+## What this is
+
+This note defines how predicate-language terms (from ASN-0129) become first-class, persistent artifacts *inside* the docuverse: a predicate definition is stored as immutable content, validated-and-registered by a classifier tuple, referenced by address, versioned by supersession, and certified by further tuples. It makes the predicate system self-hosting on the same substrate it queries — a builder's protocol predicates become linkable, citable, supersedable documents.
+
+## Design commitments
+
+These are the locks downstream design cannot violate.
+
+- **A predicate definition *is* content** — an immutable, contiguous run of content addresses holding a serialized PL term. There is no separate term store, symbol table, or registry; the whole substrate (allocation, immutability, typed relations, retraction, supersession) is reused, not duplicated. *(forced — this is the note's central move)*
+- **Identity is by origin (start address), not by value.** Two byte-identical terms at two runs are two distinct definitions. *(forced by strand identity + uniqueness-of-start)*
+- **The encoding must be prefix-free / self-delimiting** — the parse determines its own extent from its start. This is what makes identity-by-start well-defined and makes parse-validity, extent, recorded signature, and reference addresses all *content-intrinsic* (computable from the value sequence alone, fixed at allocation, identical against every store at every state). *(forced)*
+- **A two-layer stratification by epistemic standing.** Parse-layer facts are content-intrinsic and state-free; *reference typing* is registration-relative — it needs referents' signatures. There is no well-founded alternative: two runs referencing each other before either registers form a typing loop with no ground. *(forced)*
+- **Registration order grounds both typing and acyclicity.** References can only name already-registered definitions, so the reference graph is a DAG *by construction* — mutual recursion is unconstructible and no cycle check is ever run. *(forced)*
+- **Definitions are never edited; they are succeeded.** Updates register a successor and emit a `supersedes` link; readers adjudicate lineage. *(forced)*
+- **A registration tuple is a permanent proof of deposit-time validation — but the proof splits.** Parse-validity and well-typing are permanent unconditionally (nothing they read can change). "Every reference still endorsed" is a *deposit-time* fact only: de-registering a referent falsifies it with **no content change whatsoever**. Evaluation therefore keys on *ever-registration*, never on endorsement-currency. *(forced distinction — get this wrong and de-registration corrupts standing definitions)*
+- **Expansion is a deterministic pure function of immutable content** — the *same concrete term* at every state and every evaluator, not merely α-equivalent. *(forced — this is what licenses free caching)*
+- **A definition stores no view; the reader supplies view and state at evaluation.** References are view-transparent: a referent contributes spelling, never scope. *(forced)*
+- **The two classes are surface-sealed.** `register_pred` is the only route into the `pdef` slice; `certify_pd_stable` the only route into `pd_stable`. This seal is what discharges the registration discipline that every permanence result rests on. *(forced)*
+- **Validation is gate-first and enforce-by-rejection.** Every call validates in full, hit or miss; a failure produces no step, no tuple, no address — *even when an equal active tuple already stands*. Rejection asserts nothing about a standing registration. *(forced)*
+
+## What must be built
+
+- A **content substrate** holding immutable value sequences on per-origin chains, append-only, addressed by start. *(almost entirely inherited — this note adds no new storage)*
+- An **encoder/decoder** with a decidable, self-delimiting parse that recovers `(parameter-context, body)` from a run's values alone.
+- A **registration surface** that, reading one coherent pre-state, checks: residence + chain-contiguity; parse-validity + exact extent; well-typing (consulting referents' signatures); and active-registration of every referent — then deposits a `pdef` classifier *or rejects with nothing*.
+- A **signature resolver** defined on ever-registered addresses, returning the recorded parameter context plus the derived result sort, by induction over registration order.
+- A **well-typing checker** — a syntax-directed walk with one signature lookup per reference node.
+- A **resolver** (address → signed term) that is a pure content read consulting no tuple or slice.
+- An **expander** that inlines references capture-free using a reserved fresh-name supply, deterministically.
+- An **evaluator** that hands the expanded pure term to ASN-0129's denotation with *caller-supplied* environment, view, and state.
+- A **versioning mechanism** reusing the shipped `supersedes` class and `tip` resolution.
+- A **certification surface** that validates (Boolean sort, active target, view-independent expansion, stability-class membership) then deposits a `pd_stable` certificate.
+- A **stability checker** — a syntax-directed walk over the *expanded* term applying the dynamics rules under the per-parameter reading.
+- A **view-independence scanner** — a purely syntactic pass.
+- An **index from definition-start-address to its registration tuple(s)**, partitioned active vs. audit, for the reference and precondition checks.
+- **Retraction handling** reusing the shipped nullify path, preserving the active-vs-audit distinction.
+
+## Implementation approaches
+
+**Storing the artifact — don't build a second store.** A definition is content, so it rides whatever stores content. In this repo's working substrate that is the append-only `links.jsonl` journal with the `paths.json` registry, recovered by replay; the `pdef`/`pd_stable` tuples are just more journal entries and the term's bytes are ordinary content writes on a document's origin chain. Green's proven shape is the same split — content in the granfilade/permascroll, the relation index in the spanfilade. For the Rust target: an append-only journal of content writes recovered by replay, with the live address→value map and the typed-relation slices held as persistent (structurally-shared) maps via `im`, and periodic snapshots to bound replay. The only genuinely new artifacts are the two classifier classes; everything else is reuse.
+
+**The contiguous run + concurrency — the one place the obvious thing breaks.** Green mints a single insertion as one uninterrupted run: it queries the start address *once*, advances a local cursor by arithmetic, writes the whole run, and emits one span — and that contiguity is purely *intra-call*, load-bearing entirely on the single-threaded run-to-completion event loop; the allocator itself carries no concurrency guard. A concurrent Rust implementation does **not** inherit this: the consistency model's run-contiguity obligation requires the run be minted under a *per-(home, subspace) critical section spanning it*, strictly stronger than the per-step exclusion that only secures address uniqueness. The simplest honoring approach is to **mint the whole run as a single atomic batch** — one start query, local arithmetic for the rest, one journal append — exactly mirroring `inserttextgr`. Then contiguity holds by construction and recovery replays the run atomically. The granular alternative (per-step append under a held per-(home,subspace) lock) buys nothing here and adds a lock-hold across I/O; I'd take the batch. Cross-document writes and the document's own link-chain deposits need no exclusion — they land on disjoint chains and cannot split the segment.
+
+**The encoding / self-delimiting parse.** Prefix-freeness is mandatory; the byte format is explicitly an open substrate parameter. Two families: (a) a **length-prefixed envelope** (varint length + signature-context + body) — trivially prefix-free and self-delimiting, and you always know the length because the term is in hand at registration; (b) a **self-terminating grammar** (S-expression / balanced structure with explicit terminators) — no length field, but recursive and more failure-prone. I'd pick the length-prefixed envelope: the extent-from-start property falls straight out, and "the run is exactly what the parse consumed" becomes a one-line check. Keep the format documented, as with subspace identifiers.
+
+**The signature as a recomputable hint.** The parameter context is content-intrinsic (always recoverable from the run); the result sort is derived once at first registration but the note proves it re-derives *identically* forever. So the whole signature is a Lampson hint — memoize it keyed by address, recompute on a miss, never invalidate (immutable once defined), never journal it. You *may* materialize the result sort beside the `pdef` tuple at deposit to skip the DAG walk, but it is a cache, not authoritative state; the choice is pure latency-vs-space. I'd memoize lazily and not persist.
+
+**Well-typing** is a plain recursive, syntax-directed checker whose only external read is a referent's (hint) signature; it terminates because the reference DAG is finite and acyclic.
+
+**The active-pdef-by-start index — the one index this note really forces.** You need "is `r` the start of an active definition?" at registration (the endorsement check) and "was `r` ever registered?" at the evaluate precondition. This is Green's spanfilade-keyed-by-I-address idea, but far cheaper: a map from start address to its registration tuple(s), partitioned into **active** (at most one per start, by uniqueness) and **audit** (the full ever-deposited history, append-only, retaining de-registered definitions as recoverable evidence). Persistent maps via `im`, rebuilt by replay.
+
+**Resolution and expansion — memoize aggressively, watch for blowup.** Resolution is a pure content read; expansion is a pure function of immutable content yielding the *same concrete term* at every state and evaluator. Both are safe to memoize by address, recompute on a miss, and never invalidate. The real risk is expansion blowup: naive inlining duplicates a widely-shared helper and can be exponentially larger than the DAG. Mitigate with **hash-consing / structural sharing** on the term representation — `im`'s structural sharing is precisely the lever, so a referent inlined at many sites is physically shared. The capture-free renaming draws fresh names from the reserved expansion namespace with a counter scoped to the expansion; because no author name inhabits that namespace, freshness is a counter bump, not a scan. I'd memoize `expand(a)` and hash-cons its result; for shallow DAGs naive inlining is fine and simpler.
+
+**Evaluation** hands the expanded pure term to ASN-0129's evaluator with caller-supplied `(args, view, state)`. The Green evidence confirms the shape precisely: link-query state is supplied per call via the caller's specset, and historical versions are queryable identically to current ones — there is no backend-held "current state" cursor. So `evaluate` takes state and view as parameters, and the precondition is *ever-registration*: a de-registered definition still resolves, expands, and evaluates.
+
+**Versioning** reuses the shipped `supersedes` class and `tip` — no new machinery. Register successor, link old→new, `tip` resolves the head and reports ⊥ on a branch. Consumers choose their semantics in their own term: pin the address for a stable binding, or follow `tip` for the lineage head and handle ⊥.
+
+**Certification** is a second validated surface depositing a `pd_stable` certificate — a cached, permanent verdict that turns "is this stable?" into a one-atom downstream query. The stability checker is a syntax-directed walk over the *expanded* term; its internal algorithm is explicitly uncommitted, and its soundness is an inherited open question. Treat it as sound-but-incomplete: an uncertified definition is *unknown*, not unstable.
+
+**Retraction** reuses the shipped nullify path on the `pdef` (or `pd_stable`) tuple — no bespoke delete. The content run is never touched; the audit slice keeps the de-registered definition. De-registration does not cascade to referents.
+
+## Guarantees to uphold
+
+*Hold by construction:*
+- **Permanence / content immutability** — append-only, never overwrite.
+- **Identity by start address** — prefix-freeness gives at most one valid run per start.
+- **Acyclicity (DAG)** — the endorsement check at registration; no cycle detection exists or is needed.
+- **Determinism of expansion** — immutable content plus a fixed processing-and-renaming order.
+- **Validation permanence for parse + typing** — nothing those checks read can change.
+- **View-transparency** — no view is stored, so none can leak from author to reader.
+
+*Require active enforcement:*
+- **Uniqueness (≤ 1 active registration per start)** — gate-first idempotent dedup at the registration surface.
+- **Reference-endorsement currency** — checked at registration and *deliberately non-permanent*; de-registration withdraws it with no content change. The standing rule: never make a stored or cached fact depend on it; key on ever-registration.
+- **Run contiguity** — the per-(home, subspace) critical section / atomic batch; this is the guarantee that does **not** survive naive concurrent appending, the one Green got free from its event loop.
+- **Single-coherent-pre-state reads** — validation is a multi-slice read (content store + audit slice + active slice); each verdict must pin every constituent read to one committed index, per the consistency model — *not* by assuming serialized execution.
+
+## How it fits
+
+- Sits on the **allocation substrate** (origin chains, content addresses, the append step), the **strand model** (content immutability and origin identity), and **tumbler arithmetic** (the shift/increment identity and prefix ordering) that make "contiguous run identified by start" well-defined.
+- Reuses the **typed-relation machinery** (classifier tuples, classes, emit/nullify, active vs. audit slices, idempotent dedup, the surface seal) and the **shape framework** (Multi/Unary conformance) wholesale: `pdef` and `pd_stable` are just two more registered, surface-sealed classes.
+- Leans on the **predicate language** for the grammar, well-typing, denotation, and the stability/view semantics it certifies and inlines.
+- Leans on the **consistency model** for the per-verdict reader snapshot, the single linearization point per operation, and the run-contiguity critical section — invoked, not re-derived.
+- Hands to the **protocol / activation layer** (the "when P, emit E" trigger primitive), which stays outside the corpus but can now bind a `pdef` *address* rather than an inline term.
+
+## Decisions for the builder
+
+Genuine "you must pick this" choices, distinct from the note's spec-level open questions:
+
+- **The concrete byte encoding** — length-prefixed envelope (recommended) vs. self-terminating grammar; must be prefix-free, self-delimiting, decidable.
+- **How to mint a contiguous run under concurrency** — single atomic batch append (recommended) vs. per-step append under a held per-(home, subspace) lock.
+- **Whether to materialize the derived result sort** beside the registration tuple at deposit, or recompute it on demand — both are hints; a latency/space call.
+- **What to cache and how** — signatures, decoded terms, and expansions are all immutable-once-defined hints, all safe to memoize and recompute on a miss; journal none of them.
+- **How to represent the expanded term** — naive inlining vs. hash-consing/structural sharing to bound blowup on widely-shared DAGs.
+- **The stability-checking algorithm** — the certifier's internals are explicitly left open.
+- **The index structures** for active-pdef-by-start and the audit history.
+- **How to scope the universal stability lint** so that legitimately non-Boolean definitions (helpers) don't spuriously violate it — a membership-filter to a protocol's own classifier, since the language cannot read a definition's result sort to narrow the domain itself.
