@@ -331,8 +331,10 @@ and each of the operation's distinctive claims can be read off it directly:
 - **Unclipped extent (RE-CLIP).** The touching (first) span of the surfaced `e₁` is
   returned at its full recorded extent — the width-2 span `(a₂, δ(2, #a₂))`, reaching
   across `a₃` — not trimmed to the region. A clipping implementation would have returned
-  the width-1 span `(a₂, δ(1, #a₂))` covering `a₂` alone, falsely shrinking the link's grip
-  to fit the query.
+  the width-1 span `(a₂, δ(1, #a₂))`, whose coverage `{t : a₂ ≼ t}` (PrefixSpanCoverage,
+  ASN-0043) reaches `a₂` and its descendants — hence, among the four arranged pieces, `a₂`
+  alone, since `a₃` is a sibling rather than a descendant — falsely shrinking the link's
+  grip from `{a₂, a₃}` to `{a₂}` to fit the query.
 - **Whole-endset surfacing (RE-WHOLE).** The surfaced `e₁` is returned *entire* — both
   spans, including the unit span at `a₄`, which touches nothing the region holds. Here the
   reading is exercised in earnest, and its distinctive consequence is concrete: the answer
@@ -597,11 +599,16 @@ motion by membership, each surfaced endset's spans held fixed (RE-IDENT).
 Editing of *other* documents does not perturb the answer: the image reads only `Σ.M(d)`,
 and a transition touching `d' ≠ d` leaves `Σ.M(d)` fixed (LP5, ASN-0098). Three further
 transition kinds leave the answer fixed for the same root reason — each leaves the queried
-fiber `Σ.M(d)` and the link store `Σ.L` fixed (LP8 supplying the K.δ document-registration
-case). Entity creation `K.δ` — registering a new node, account, or document `e ≠ d` —
-leaves `Σ.M(d)` untouched (wholly, for node/account creation, where `M' = M`; and on every
-pre-existing arrangement, for document registration, LP8, ASN-0098) and leaves `Σ.L` fixed
-(frame), so neither the image nor the available pool moves.
+fiber `Σ.M(d)` and the link store `Σ.L` fixed, so neither the image nor the available pool
+moves. *Content allocation* `K.α` frames both stores the answer reads — `M' = M` and
+`L' = L` (ASN-0093, frame-extended in ASN-0047) — so the image and `Avail(Σ)` are fixed
+outright. *Provenance recording* `K.ρ` only extends `Σ.R`, framing `M'(d) = M(d)` and
+`L' = L` (ASN-0047) — equivalently, its projection-invariance is LP14 (ASN-0098) — so again
+neither moves. *Entity creation* `K.δ` — registering a new node, account, or document
+`e ≠ d` — leaves `Σ.M(d)` untouched (wholly, for node/account creation, where `M' = M`; and
+on every pre-existing arrangement, for document registration, LP8, ASN-0098) and leaves
+`Σ.L` fixed (frame); document registration is the lone non-trivial frame among the three,
+which LP8 discharges.
 
 Finally, a whole *class* of arrangement edits to `d` *itself* leaves a content-region answer
 fixed — by a route particular to the content-subspace restriction rather than to locality:
