@@ -183,17 +183,15 @@ to-set is a single unit-depth span `{(t, δ(1, #t))}` at a link target `t`
 `Σ.L` evolves only through `K.λ` — the arrangement movers (`K.μ` family), entity creation `K.δ`,
 provenance recording `K.ρ`, and content allocation `K.α` all frame the link store (`L' = L`,
 ASN-0047/ASN-0093). And `dom(Σ.L)` is a tumbler-prefix antichain — distinct stored links never
-nest (R0a/FlatLinkDomain, ASN-0086; equivalently, the link sub-allocator discipline ASN-0093
-imposes on *every* `K.λ` output, ASN-0047's included).
+nest (R0a/FlatLinkDomain, ASN-0086).
 
 A `K.λ` step emits a *fresh* link — allocation gives `ℓ_new ∉ dom(Σ.L)`, so `ℓ_new` enters
 `dom(Σ'.L)` — and whether that fresh output is *addressable* in its post-state
 (`ℓ_new ∉ nullified(Σ')`) turns on whether some *nullifying* to-set covers it — where
 "nullifying" means the to-set of a tuple in the retraction slice `L_Θ^{Σ'}`. The standing commitment's
 unit-depth to-set then settles the question: every `L_Θ^{Σ'}` to-set is unit-depth at some link
-`t ∈ dom(Σ'.L)`, covering `{u : t ≼ u}`, and `dom(Σ'.L)` is a prefix-antichain (above, from
-ASN-0093's sub-allocator discipline), so any `t` distinct from `ℓ_new` is prefix-incomparable to
-it (`t ⋠ ℓ_new`) and cannot cover it. The only nullifying to-set that
+`t ∈ dom(Σ'.L)`, covering `{u : t ≼ u}`, and `dom(Σ'.L)` is a prefix-antichain (above), so
+any `t` distinct from `ℓ_new` is prefix-incomparable to it (`t ⋠ ℓ_new`) and cannot cover it. The only nullifying to-set that
 could cover `ℓ_new` is therefore one whose *target* is `ℓ_new`. No *pre-existing* `L_Θ` tuple
 bears such a to-set: every nullifying tuple already in `Σ.L` targets an address in `dom(Σ.L)` —
 by Nullify's P-tgt (ASN-0086) its target is either an `A_rel = dom(Σ.L)` address or, for a
@@ -600,15 +598,10 @@ Editing of *other* documents does not perturb the answer: the image reads only `
 and a transition touching `d' ≠ d` leaves `Σ.M(d)` fixed (LP5, ASN-0098). Three further
 transition kinds leave the answer fixed for the same root reason — each leaves the queried
 fiber `Σ.M(d)` and the link store `Σ.L` fixed (LP8 supplying the K.δ document-registration
-case). Content allocation `K.α` touches neither `Σ.M` nor `Σ.L` (frame
-`M' = M; L' = L`, ASN-0093) and so changes no projection (LP6, ASN-0098); a freshly
-allocated I-address enters no region image without a separate arrangement edit. Entity
-creation `K.δ` — registering a new node, account, or document `e ≠ d` — leaves `Σ.M(d)`
-untouched (wholly, for node/account creation, where `M' = M`; and on every pre-existing
-arrangement, for document registration, LP8, ASN-0098) and leaves `Σ.L` fixed (frame), so
-neither the image nor the available pool moves. Provenance recording `K.ρ` writes only
-`Σ.R` (ASN-0047), which `RE` never reads (RE-LOC), so it cannot move the answer (LP14,
-ASN-0098).
+case). Entity creation `K.δ` — registering a new node, account, or document `e ≠ d` —
+leaves `Σ.M(d)` untouched (wholly, for node/account creation, where `M' = M`; and on every
+pre-existing arrangement, for document registration, LP8, ASN-0098) and leaves `Σ.L` fixed
+(frame), so neither the image nor the available pool moves.
 
 Finally, a whole *class* of arrangement edits to `d` *itself* leaves a content-region answer
 fixed — by a route particular to the content-subspace restriction rather than to locality:
@@ -625,10 +618,6 @@ one subspace to strictly contract): for `W ⊆ s_C`, retained-position agreement
 `W ∩ dom(Σ'.M(d)) = W ∩ V_{s_C}(d) = W ∩ dom(Σ.M(d))`, so `image(W, d, Σ') = image(W, d, Σ)`,
 while `K.μ⁻`'s frame leaves `Σ.L` fixed and `Avail(Σ)` with it. Either edit gives
 `RE(W, d, Σ') = RE(W, d, Σ)`.
-(Arrangement reordering `K.μ~` is *not* link-confined: it is link-subspace-fixing by
-admissibility and requires a non-trivial content effect by its precondition, so it always
-touches content — the two link-subspace-confined edits are exactly `K.μ⁺_L` and link-only
-`K.μ⁻`.)
 
 **The weakest precondition for contraction-stability.** The qualitative tracking above can
 be made exact for one editing motion — a deletion. Fix a `K.μ⁻[d, R]` step on the queried
@@ -723,14 +712,8 @@ But the answer deduplicates, and we must read its stability at the granularity i
 has. Its elements are `(role, endset)` pairs with link identity discarded (RE-UNIT): a
 pair `(i, e)` is present exactly when *some* addressable link bears `e` in slot `i` and `e`
 touches the region. So withdrawing one link `ℓ` does not, by itself, remove the pairs it
-bore. Retracting `ℓ` removes `ℓ` from `addressable(Σ)`, and *permanently* so. The Nullify step
-marks `ℓ` nullified in its immediate post-state (R6a, over that one `K.λ` step); the marking
-then persists across the *entire* ASN-0047 vocabulary, because `nullified` is a function of
-`Σ.L` alone (above) and `Σ.L` evolves only through `K.λ`. Every non-`K.λ` transition frames
-the link store (the `Σ.L`-evolution inventory above), leaving `nullified` fixed; each further `K.λ` only grows `Σ.L`, and a
-larger store never un-nullifies an address (R6a one step at a time — equivalently, `nullified`
-is monotone in the `Σ.L`-configuration). Induction over any transition sequence from the
-retraction's post-state thus keeps `ℓ ∈ nullified` at every reachable later state. The same
+bore. Retracting `ℓ` removes `ℓ` from `addressable(Σ)`, and *permanently* so: by R6a (ASN-0086)
+and induction, `ℓ ∈ nullified` at every state reachable from the retraction's post-state. The same
 step adds the emitter `b`, whose only possible content-region contribution is the fresh pair
 `(3, Θ)` (just shown). Under the net-removal-only hypothesis `coverage(Θ) ∩ dom(Σ.C) = ∅` — adopted
 for this result, its sole exception flagged above — that pair fails the touch test against a
@@ -745,7 +728,7 @@ more than its named target. We discharge it by bounding the retraction's reach. 
 `ℓ' ∈ addressable(Σ)` with `ℓ' ≠ ℓ`, bearing `e` in slot `i`. A single Nullify contributes
 *exactly* its target to the nullified set — `{t : ℓ ≼ t} ∩ dom(Σ'.L) = {ℓ}`: the unit-depth
 to-set `{(ℓ, δ(1, #ℓ))}` covers `{t : ℓ ≼ t}` (PrefixSpanCoverage, ASN-0043), which meets the
-prefix-antichain `dom(Σ'.L)` (ASN-0093, above) in `ℓ` alone (R-Scope SingleTupleScope, ASN-0086,
+prefix-antichain `dom(Σ'.L)` (above) in `ℓ` alone (R-Scope SingleTupleScope, ASN-0086,
 here independent of the retraction's arity since the scope is fixed by the to-set and the
 antichain, not the tuple's slot count) — so the fresh retraction tuple `b` nullifies no link
 address but `ℓ`, leaving every other store element `ℓ' ≠ ℓ` outside its reach.
@@ -779,7 +762,7 @@ fate of any one link — the slip RE-UNIT's deduplication guards against.
 | RE-BND | Boundary cases — `RE(W, d, Σ) = ∅` whenever the image is empty (`W ∩ dom(Σ.M(d)) = ∅`) or `addressable(Σ) = ∅`; an empty endset slot has `coverage(∅) = ∅`, so `touch_W(∅)` is false and it is never surfaced | introduced |
 | RE-NCD | Cross-subspace unit-span disjointness — a unit-depth span `(s, δ(1, #s))` whose T4-valid element-level start has a non-content subspace identifier (`zeros(s) = 3`, `E(s)₁ ≠ s_C`) covers no content: `coverage({(s, δ(1, #s))}) ∩ dom(Σ.C) = ∅` (PrefixSpanCoverage, ASN-0043; S7b, ASN-0036; L0, ASN-0093; field-agreement on separator zeros) | introduced |
 | RE-FIN | Finiteness and computability — `RE(W, d, Σ)` is finite *unconditionally* (drawn from the finite supply of slot-endset pairs: `dom(Σ.L)` finite by L-fin, ASN-0093, and each link bears finitely many endsets by L3, ASN-0043); and given a *finitely presented* `W` (region membership `v ∈ W` decidable, e.g. `W` given as finitely many spans), it is computed by finitely many decidable tests over the finite store — image construction over the finite `dom(Σ.M(d))` (S8-fin, ASN-0036), `coverage`-membership by intrinsic comparison on half-open T1-intervals (T12, T2, ASN-0034), and addressability via the computable `nullified` (ASN-0086) | introduced |
-| RE-ADDR | Fresh-output addressability — a fresh `K.λ` output that does not retract its own emitter address is addressable in its post-state (`ℓ_new ∉ nullified(Σ')`); in particular every non-retraction emission (`K ≁ Θ`) is addressable. Conditions: the standing discipline's unit-depth to-set (scoped to the retraction slice `L_Θ`, all that `nullified` consults) and the prefix-antichain of `dom(Σ.L)` (ASN-0093's link sub-allocator discipline; = ASN-0086's R0a) | introduced |
+| RE-ADDR | Fresh-output addressability — a fresh `K.λ` output that does not retract its own emitter address is addressable in its post-state (`ℓ_new ∉ nullified(Σ')`); in particular every non-retraction emission (`K ≁ Θ`) is addressable. Conditions: the standing discipline's unit-depth to-set (scoped to the retraction slice `L_Θ`, all that `nullified` consults) and the prefix-antichain of `dom(Σ.L)` (R0a, ASN-0086) | introduced |
 | RE-SND | Soundness — `(i, e) ∈ RE(W, d, Σ) ⟹ e` is a genuine slot-`i` endset of an addressable link ∧ `touch_W(e)`; no false positives | introduced |
 | RE-CMP | Completeness — every addressable link `a` and slot `i` with `touch_W(Σ.L(a).eᵢ)` has `(i, Σ.L(a).eᵢ) ∈ RE(W, d, Σ)`; the answer is *exactly* the touching set, native or transcluded content alike | introduced |
 | RE-UDIST | Union-distributivity — `RE(W₁ ∪ W₂, d, Σ) = RE(W₁, d, Σ) ∪ RE(W₂, d, Σ)`, the RE-level analogue of F-UDIST/F-VDIST (ASN-0127) | introduced |
