@@ -1,0 +1,20 @@
+# Review of ASN-0131
+
+## REVISE
+
+None. The note defines a query operation over state, states its postconditions, proves them, covers the boundary cases, supplies a non‑trivial weakest precondition and a worked instance, and derives consequences. I checked the load‑bearing claims rather than the easy ones:
+
+- **RE‑DEF / RE‑LOC / RE‑UNIT.** The factoring `RE(W,d,Σ) = {(i,e) ∈ Avail(Σ) : touch_W(e)}` is valid — `touch_W(e)` is independent of the witness `a`, so the existential splits cleanly, and `Avail(Σ)` is genuinely region‑independent. `RE` reads only `Σ.M(d)` and `Σ.L` (addressability through `nullified`, a function of `Σ.L` alone), never `Σ.C`‑values, `Σ.E`, `Σ.R`.
+- **RE‑NCD.** The proof holds in the non‑trivial `#s < #c` sub‑case: `s`'s three separator zeros transfer to `c` by prefix agreement and exhaust `c`'s zero budget (`zeros(c)=3`), so `c`'s last zero sits at `s`'s last‑zero position `p`; with `p+1 ≤ #s ≤ #c` this forces `E(c)₁ = s_{p+1} = E(s)₁ ≠ s_C`, contradicting L0. The confinement to unit‑depth spans (reduction to `s ≼ c`) is correctly identified, and is exactly what later forbids extending RE‑NCD to the wide type‑slot `Θ`.
+- **RE‑ADDR.** The antichain + unit‑depth‑to‑set argument is sound: no pre‑existing `L_Θ` to‑set can cover a fresh `ℓ_new` (its target lies in `dom(Σ.L)`, `ℓ_new ∉ dom(Σ.L)`, and R0a gives prefix‑incomparability), and `ℓ_new`'s own to‑set covers `ℓ_new` only under self‑retraction. The standing discipline assumption is scoped honestly.
+- **RE‑UDIST / RE‑UDIST‑∩.** Union: forward image distributes over union, touch distributes as a disjunction, `Avail` region‑independent — correct. The `⊆` half of intersection is unconditional; the **injective** counterexample `{[1,1]↦a, [1,2]↦b}` with a two‑span endset genuinely refutes `⊇` under injectivity (split witnesses `a≠b`), and the per‑endset touch‑implication is the correct necessary‑and‑sufficient condition.
+- **RE‑CWP.** Derived correctly from D‑CWP's bridge `image(W,d,Σ')=I_R`; `Avail` fixed because K.μ⁻ frames `Σ.L`; drop condition `coverage(e)∩Δ≠∅ ∧ coverage(e)∩I_R=∅`; boundary `R=∅` collapses to `RE(W,d,Σ)=∅`. A genuine, non‑trivial wp.
+- **RE‑RET.** Forward direction rests on the *explicitly stated* hypothesis `coverage(Θ)∩dom(Σ.C)=∅` (plus the unconditional content‑disjointness of `b`'s `∅` and unit‑depth slots via RE‑NCD); backward direction is unconditional via R‑Scope (`{t:ℓ≼t}∩dom(Σ'.L)={ℓ}`, so no other live bearer is collaterally nullified). Permanence of `ℓ∈nullified` is correctly bridged from ASN‑0086's R6a (a `K.σ∪K.α∪K.λ` lemma) to ASN‑0047's full vocabulary by the `L'=L` framing every non‑K.λ transition carries — I verified each of K.δ, K.μ⁺, K.μ⁺_L, K.μ⁻, K.ρ, K.μ~ frames the link store.
+
+The worked instance is arithmetically correct — `a₂=inc(a₁,0)=shift(a₁,1)` because content addresses are T4‑valid so `sig=#t`, the width‑2 first span covers `[a₂,a₄)` and straddles `W={[1,2]}` — and it exercises RE‑OVL, RE‑CLIP, RE‑WHOLE, per‑endset surfacing, and RE‑UNIT against one concrete result. No non‑foundation ASN is referenced by number. The provisional RE‑WHOLE convention is flagged, the union‑distributivity discriminator between it and the touching‑spans reading is real, and every consequence claim is stated for the adopted reading. This is a query over state with implementation‑independent guarantees — no drift.
+
+## OUT_OF_SCOPE
+
+The seven Open Questions (touching‑spans return value, multiplicity preservation, rendered answers, structurally‑restricted intersection sufficiency, non‑co‑resident link stores, type‑slot/content matching, link‑subspace regions) defer genuinely new territory rather than masking gaps in this ASN. In particular the `coverage(Θ)∩dom(Σ.C)=∅` hypothesis underpinning RE‑RET's forward half is scoped to OQ6 and labelled a construction hypothesis, not silently assumed; and the `W ⊆ s_C` caller obligation's link‑subspace counterpart is routed to OQ7. These are correct OUT_OF_SCOPE placements, not REVISE items.
+
+VERDICT: CONVERGED
