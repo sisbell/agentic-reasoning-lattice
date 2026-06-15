@@ -1,0 +1,124 @@
+## What this is
+
+ASN-0134 defines the substrate's **consistency and isolation model**: the contract — the Minimal Isolation Contract (MIC) — that bridges the spec's sequential, totally-ordered, atomic-step semantics to the concurrent clients that actually use it. It adds no mechanism (no lock, transaction, or scheduler); it states the *weakest* discipline an implementation must honor so the singular sequential definition is faithfully presented to a plural world, and it pins exactly where that discipline must be **per-home** versus **global**.
+
+## Design commitments
+
+**Forced — downstream design cannot violate these:**
+
+- **The step is the atom; the total order is the *meaning*, not the implementation.** Each state-changing operation has exactly one linearization point, and its entire effect is one indivisible transition — never half-applied, never dribbled across states. An implementation may *produce* the order however it likes but must *present* this.
+- **The unit of contention is the `(home, subspace)` sub-allocator — not the store, not the document.** Conflicts exist only within one `(d, S)`; everything across homes, and across a home's content/link subspaces, commutes (H1). This is the spine of the whole note.
+- **Per-home serialization suffices; global serialization over-satisfies.** Every interleaving of a per-home-serial schedule reaches the same committed state and preserves every invariant (G1). Design may not assume global ordering is *required*.
+- **Reads see only committed state; the snapshot is the only honest referent.** No observation witnesses a partial step (A4). A verdict is a statement about one committed state and nothing later (V1).
+- **Batches are not atomic** (A5). All-or-nothing stops at the single step; a content run or a `retract_stale` can be observed partially. Batch atomicity must be built *above* the substrate.
+- **Canonical ≠ settled** (A6). Every reachable state, including a mid-batch one, satisfies every per-state invariant; there is no "incomplete" marker. Incompleteness is a relation between a state and a spanning batch, invisible from inside the snapshot.
+- **Content is immutable and append-only; a step only changes which addresses are *present*.** This is *why* torn reads are impossible.
+- **Commit before acknowledge** (A7). A response must not precede its committing step. (The udanax reference violates this — response-before-check for INSERT/DELETEVSPAN/REARRANGE — and the note flags it as a defect, not a model.)
+- **The order is logical, not temporal** (G0): per-home arrival order, no global clock. The substrate presents *serializability*, not sequential consistency, and only real-time-precedence-only linearizability under A7.
+- **Three obligations exceed per-home discipline:** contiguous runs (a per-run, still-*local* critical section); multi-read verdicts (a *global* reader snapshot); `idem=⊤` de-duplication (a *global*, per-coverage-class serialization of dedup-read-and-deposit).
+
+**Conventional — fixed by the realization, not the spec:**
+
+- Whether document registration contends *at all*: a shared per-account frontier makes same-account creations collide (account-tier clause 2); a collision-free fresh-address scheme incurs no such obligation.
+- Whether a link allocation can fragment a content run: it can iff the two subspaces share one allocator (fused, as in the reference) rather than being disjoint.
+
+## What must be built
+
+- A **sequencer/linearizer** realizing each state-changing operation as exactly one atomic step at a unique index, with a single linearization point.
+- **Per-`(home, subspace)` mutual exclusion** over the frontier-read-and-deposit of allocations (same-home uniqueness).
+- A **frontier discipline**: each allocation reads the home's current sub-allocator frontier and deposits at it — the frontier *recoverable from the store*, not necessarily stored.
+- **Snapshot reads**: each bounded access pinned to one committed state.
+- **Commit-before-acknowledge** ordering in the request/response path.
+- A **per-run critical section** for multi-atom content runs (contiguity).
+- A **global reader snapshot** for multi-read verdicts / quiescence predicates (all constituent reads at one committed index).
+- A **per-coverage-class serialization** of the `idem=⊤` dedup-read-and-deposit.
+- A **clean rejection path** for precondition-failed / out-of-order operations (no dangling state).
+- A **recovery mechanism** reconstructing the canonical state from the journal of committed steps.
+
+## Implementation approaches
+
+**The organizing insight first.** A single run-to-completion loop satisfies all seven MIC clauses *for free* — it *is* a global serialization — once each logical operation (a run included) maps to one dispatch, with the lone exception of commit-before-acknowledge, which you must order correctly. The reason to abandon it is throughput. The moment you move to the per-home concurrency G1 blesses, exactly four things stop being free and must be actively built: **per-home serialization** (clause 2, the defining move), **per-run contiguity** (clause 5, local), **multi-read verdict snapshots** (clause 6, global), and **`idem=⊤` dedup** (clause 7, global). Clauses 1/3/4 you then maintain by discipline. Everything below follows that fault line.
+
+**Sequencing.**
+- *Single loop* — simplest, proven. The udanax reference is exactly this: one request runs to completion, the in-memory enfilade *is* the shared canonical state, a write becomes visible at dispatch completion. Bounded by one core; a slow client can stall it. Pick this first — it is the simplest thing that honors the spec.
+- *Per-home actors / single-writer-per-home* — cross-home work runs concurrently, matching G1's confluence. More machinery; must enforce register-before-allocate for `K.σ` and add the global clauses 6/7.
+- *Optimistic frontier-CAS with retry* — no held lock: read frontier, compute deposit, install if frontier unchanged, else retry. Wins when same-home contention is rare; retry termination is the open question (OQ1).
+
+**State representation & snapshots — the biggest lever.**
+- *Persistent (structurally-shared) immutable state* (the `im` crate): the shared canonical state is an immutable root; a write produces a new root, structurally shared. This makes A0/A4 (no torn read), clause 4 (per-call snapshot), and clause 6 (per-verdict snapshot) nearly free — a reader captures one root and reads everything off it, with no lock held against writers. The root's identity *is* the version coordinate the substrate otherwise lacks (a design inference, but a clean answer to OQ2). Strongly recommended.
+- *Mutable store + locks*: needs explicit reader exclusion or a version stamp for snapshots; against the grain.
+
+**The frontier as a hint.**
+- The frontier is recomputable from the store — a *hint* in Lampson's sense, not authoritative duplicate state. Recompute by query-and-increment against the live store (the reference recovers it by a bounded descent; this repo's substrate computes `max+1` under the home's prefix). No cache to invalidate, no recovery problem.
+- Optionally maintain an aggregate frontier at the home node as a *cache* (the reference keeps an O(1) maintained width aggregate at the apex, albeit whole-store, not per-type); recompute on a miss. Add only if allocation latency demands it.
+- **Load-bearing:** use the *population-coupled* `inc(max,·)` allocator. It makes chain contiguity model-intrinsic — gapless under *any* interleaving. A counter-style allocator that hands out increasing indices without consulting the population preserves uniqueness and monotonicity but *loses contiguity* whenever allocations interleave (confirmed against the reference). Pick the coupled allocator.
+
+**Journal & recovery.**
+- The total order is an append-only journal of steps — Lampson's log for atomicity and recovery, and exactly this repo's `links.jsonl` + replay. Recovery = replay; every prefix is a canonical reachable state (A6), so no separate consistency check is needed *provided each step is journaled atomically*.
+- Caution from the reference: when one logical step touches two stores (content + index), a crash *between* the sub-writes diverges them, and there is no startup validation. Honor per-step atomicity across a multi-store layout by writing one journal record per step and replaying it as a unit (WAL discipline). A6/W3 assume this atomicity; delivering it across stores is the builder's job.
+
+**Contiguous runs (clause 5).**
+- Hold a per-`(d, s_C)` critical section for the run, or — cheaper — reserve `m` consecutive slots in one frontier-advance under the per-home lock, then fill them. Keep content and link subspaces on *disjoint* allocators so a link emit cannot fragment a content run (the tight exclusion scope); fusing them, as the reference does, inherits a coarser whole-home exclusion.
+
+**Multi-read verdicts / quiescence (clause 6).**
+- With persistent state: capture one root, read all `p` constituents off it — no writer exclusion at all. This dissolves the "global" cost.
+- With a mutable store: optimistic read-then-revalidate against a version stamp, or a held global reader lock (correct but expensive).
+- Either way respect V1: a verdict is *retrospective*. Never let a quiescence layer read "quiescent now" as "quiescent and will stay so" — durability is a separate coordination-layer hypothesis.
+
+**`idem=⊤` de-duplication (clause 7) — the one genuinely global, operation-level obligation.**
+- Maintain a coverage-class index over the active set (a hint, recomputable) so the dedup-read is cheap, and serialize check-and-deposit *per coverage class* (lock striping by class) rather than globally. Optimistic check-and-deposit with retry is viable if `idem=⊤` emits are rare (OQ3).
+- Under the single loop this is free; under per-home concurrency it is the price of correctness for `idem=⊤` types *specifically* — two cross-home emits can otherwise both miss against a snapshot neither sees the other in, and both deposit a duplicate. Persistent state does *not* solve this (the snapshots are individually consistent yet mutually stale); only serializing the check-and-deposit does.
+- Scope it tightly: clause 7 binds only `idem=⊤` types. `idem=⊥` emits duplicate *by design* — do not suppress. And commit-before-ack does not dedup a lost-acknowledgment retry of an `idem=⊥` emit; that needs client-supplied idempotency keys, not a substrate clause.
+
+**Rejection path.**
+- An out-of-order retraction whose target isn't yet present must reject cleanly (no dangling retraction). The reference silently skips and — worse — has already sent success (the response-before-check gap). Prefer a *surfaced* typed rejection so a coordination layer can re-order or retry rather than lose intent and mislead the caller (OQ8).
+
+## Guarantees to uphold
+
+**By construction:**
+- Content permanence/immutability; append-only stores.
+- Cross-home (and cross-subspace) address uniqueness — distinct origins, order-independent.
+- Chain contiguity / no holes — *given the population-coupled allocator*.
+- Registry stability (immutable at runtime; the write-write race is vacuously absent).
+- No torn read — *given snapshot reads*; near-automatic with persistent state.
+
+**By active enforcement:**
+- Same-home uniqueness (per-home serialization, clause 2) — else a collision, with one allocation rejected.
+- Per-operation exactly-once effect (sequencer + commit-before-ack).
+- `idem=⊤` no-duplicate (clause 7, global) — per-home discipline alone permits a duplicate.
+- Multi-read verdict soundness (clause 6, one-index reads).
+- Run contiguity (clause 5, per-run exclusion).
+
+**Explicitly *not* a substrate guarantee:**
+- Verdict durability (retrospective only; needs a coordination-layer hypothesis).
+- `idem=⊥` duplicate suppression (duplicates are by design).
+- Any temporal / sequential-consistency promise (serializability only; the order is logical).
+
+## How it fits
+
+**Leans on:**
+- **ASN-0093 (Allocation Substrate)** — the sub-allocators, frontier discipline, `inc(max,·)`, and the SequentialTransitionAxiom. H0/H1/H2 are read directly off it.
+- **ASN-0128 (Substrate Type Operational Semantics)** — the step vocabulary (`K.σ`, `K.α`, `K.λ_sh`), `Emit`/`Nullify`/`Observe`, `idem`, the gate, and the I1a surface-emit induction (clause 7 repairs its concurrent reading).
+- **ASN-0126 (Substrate Shape Framework)** — registry fixity, shape conformance, `FrontierUnification`.
+- **ASN-0086 (Typed Relations)** — `Observe_K` and the active subset `A_K = L_K ∖ nullified`.
+- **ASN-0047 (Transition Model)** — the account's document sub-allocator `A_doc`, for the shared-frontier conditional on `K.σ`.
+
+**Hands to / sits beneath:**
+- The **scheduler/protocol layer** (places proposals into the order — out of scope here).
+- The **coordination layer** (fairness, extinction discipline, and the durability hypothesis that promotes a sound verdict to a durable one).
+- The **termination/quiescence layer** (consumes the snapshot verdict).
+- The **rule-governance layer** (agent activation, rule bodies — opaque here).
+- A future **multi-server/BEBE layer**: G1's per-home independence is the natural seam — homes that never contend could live on different servers — but cross-server uniqueness under home migration is unaddressed (OQ6).
+
+## Decisions for the builder
+
+1. **Sequencing mechanism** — single loop vs per-home actors vs optimistic CAS. (Explicitly out of scope in the note.)
+2. **State representation** — persistent/immutable (makes clauses 1/4/6 near-free) vs mutable + locks. Recommend persistent.
+3. **Frontier** — recompute as a hint vs maintain an aggregate cache. Recommend recompute first.
+4. **Allocator family** — population-coupled `inc(max,·)` (free contiguity) vs counter (loses it). Pick coupled.
+5. **Subspace layout** — disjoint content/link allocators (tight run-exclusion) vs fused (coarse). Pick disjoint.
+6. **Document-registration realization** — shared per-account frontier (incurs account-tier clause 2) vs collision-free fresh addresses (no same-account contention). This single choice decides whether `K.σ` contends at all.
+7. **Run allocation** — hold a critical section across `m` deposits vs reserve `m` slots in one frontier advance.
+8. **`idem=⊤` dedup** — per-coverage-class index + striped serialization vs scan `A_K` vs optimistic retry.
+9. **Rejection semantics** — silent skip vs surfaced typed rejection. Recommend surfaced.
+10. **Multi-store atomicity** — one journal record per step (WAL) vs independent store writes; the latter risks crash divergence with no startup validation.
