@@ -692,9 +692,8 @@ covers `ℓ`, not `b` (`ℓ ≠ b`, both in the flat antichain), so `b` does not
 emitter address; `b` is therefore addressable in `Σ'` (`b ∉ nullified(Σ')`) by RE-ADDR. So a
 single retraction does two things at once — it removes `ℓ` from `addressable` (through the
 nullified marking) *and* adds the emitter `b` to it. We must ask what the emitter `b` can contribute. Its three
-endsets are the from-set `∅` — empty by `Nullify`'s definition (`Emit_Θ(…, ∅, …)`, ASN-0086),
-withdrawal being realised as a `Nullify` — a to-set
-`{(ℓ, δ(1, #ℓ))}` whose single span covers `ℓ` and `ℓ`'s extensions, and the retraction
+endsets are the from-set `∅` — empty by `Nullify`'s definition (`Emit_Θ(…, ∅, …)`, ASN-0086) —
+a to-set `{(ℓ, δ(1, #ℓ))}` whose single span covers `ℓ` and `ℓ`'s extensions, and the retraction
 type-set `Θ`. The first two are content-disjoint *unconditionally*. The from-set is empty, and
 `coverage(∅) = ∅` touches nothing. The to-set is a unit-depth span — ASN-0086's `Nullify` fixes
 its width at `δ(1, #ℓ)` — whose start `ℓ` is a link address `ℓ ∈ dom(Σ.L)` that `Nullify`
@@ -741,9 +740,8 @@ more than its named target. We discharge it by bounding the retraction's reach. 
 `ℓ' ∈ addressable(Σ)` with `ℓ' ≠ ℓ`, bearing `e` in slot `i`. A single Nullify contributes
 *exactly* its target to the nullified set — `{t : ℓ ≼ t} ∩ dom(Σ'.L) = {ℓ}`: the unit-depth
 to-set `{(ℓ, δ(1, #ℓ))}` covers `{t : ℓ ≼ t}` (PrefixSpanCoverage, ASN-0043), which meets the
-prefix-antichain `dom(Σ'.L)` (above) in `ℓ` alone (R-Scope SingleTupleScope, ASN-0086,
-here independent of the retraction's arity since the scope is fixed by the to-set and the
-antichain, not the tuple's slot count) — so the fresh retraction tuple `b` nullifies no link
+prefix-antichain `dom(Σ'.L)` (above) in `ℓ` alone (R-Scope SingleTupleScope, ASN-0086) —
+so the fresh retraction tuple `b` nullifies no link
 address but `ℓ`, leaving every other store element `ℓ' ≠ ℓ` outside its reach.
 Hence `ℓ'`, already `∉ nullified(Σ)` and distinct from `ℓ`, is `∉ nullified(Σ')`:
 `ℓ' ∈ addressable(Σ')`. Its value is unchanged (L12, ASN-0043), so it still bears `e` in
@@ -775,7 +773,7 @@ fate of any one link — the slip RE-UNIT's deduplication guards against.
 | RE-BND | Boundary cases — `RE(W, d, Σ) = ∅` whenever the image is empty (`W ∩ dom(Σ.M(d)) = ∅`) or `addressable(Σ) = ∅`; an empty endset slot has `coverage(∅) = ∅`, so `touch_W(∅)` is false and it is never surfaced | introduced |
 | RE-NCD | Cross-subspace unit-span disjointness — a unit-depth span `(s, δ(1, #s))` whose T4-valid element-level start has a non-content subspace identifier (`zeros(s) = 3`, `E(s)₁ ≠ s_C`) covers no content: `coverage({(s, δ(1, #s))}) ∩ dom(Σ.C) = ∅` (PrefixSpanCoverage, ASN-0043; S7b, ASN-0036; L0, ASN-0093; field-agreement on separator zeros) | introduced |
 | RE-FIN | Finiteness and computability — `RE(W, d, Σ)` is finite *unconditionally* (drawn from the finite supply of slot-endset pairs: `dom(Σ.L)` finite by L-fin, ASN-0093, and each link bears finitely many endsets by L3, ASN-0043); and given a *finitely presented* `W` (region membership `v ∈ W` decidable, e.g. `W` given as finitely many spans), it is computed by finitely many decidable tests over the finite store — image construction over the finite `dom(Σ.M(d))` (S8-fin, ASN-0036), `coverage`-membership by intrinsic comparison on half-open T1-intervals (T12, T2, ASN-0034), and addressability via the computable `nullified` (ASN-0086) | introduced |
-| RE-ADDR | Fresh-output addressability — a fresh `K.λ` output that does not retract its own emitter address is addressable in its post-state (`ℓ_new ∉ nullified(Σ')`); in particular every non-retraction emission (`K ≁ Θ`) is addressable. Conditions: the standing discipline's unit-depth to-set (scoped to the retraction slice `L_Θ`, all that `nullified` consults) and the prefix-antichain of `dom(Σ.L)` (R0a, ASN-0086) | introduced |
+| RE-ADDR | Fresh-output addressability — a fresh `K.λ` output that does not retract its own emitter address is addressable in its post-state (`ℓ_new ∉ nullified(Σ')`); in particular every non-retraction emission (`K ≁ Θ`) is addressable. Conditions: the standing discipline's unit-depth to-set and the prefix-antichain of `dom(Σ.L)` (R0a, ASN-0086) | introduced |
 | RE-SND | Soundness — `(i, e) ∈ RE(W, d, Σ) ⟹ e` is a genuine slot-`i` endset of an addressable link ∧ `touch_W(e)`; no false positives | introduced |
 | RE-CMP | Completeness — every addressable link `a` and slot `i` with `touch_W(Σ.L(a).eᵢ)` has `(i, Σ.L(a).eᵢ) ∈ RE(W, d, Σ)`; the answer is *exactly* the touching set, native or transcluded content alike | introduced |
 | RE-UDIST | Union-distributivity — `RE(W₁ ∪ W₂, d, Σ) = RE(W₁, d, Σ) ∪ RE(W₂, d, Σ)`, the RE-level analogue of F-UDIST/F-VDIST (ASN-0127) | introduced |
