@@ -1,0 +1,72 @@
+# Xanadu Engine — module-DAG (structured form of modules.md).
+# Hand-transcribed from the converged + operator-augmented decomposition.
+# Consumed by scripts/module-design.py:
+#   sources    = ASN notes whose statements feed this module's build-spec design
+#   depends_on = upstream modules whose converged designs are the interfaces it builds against
+# Run module-design in build_order so each module's upstreams exist when it is designed.
+
+modules:
+  M1:
+    name: Address & Span Algebra
+    # pure value-level address/span calculus; no I/O, no state
+    sources: [34, 45, 53]
+    depends_on: []
+
+  M2:
+    name: Transaction, Journal & Concurrency Kernel
+    # atomic-ordered-durable-recoverable steps; generic over caller-supplied opaque keys
+    sources: [47, 134]
+    depends_on: []
+
+  M3:
+    name: "Namespace: Allocation, Registry & Ownership"
+    # mint unique addresses, record existence, resolve ownership by prefix
+    sources: [40, 93, 47, 34, 42, 103, 123]
+    depends_on: [M1, M2]
+
+  M4:
+    name: Content Store (Istream)
+    # permanent append-only immutable byte store keyed by address
+    sources: [36, 93]
+    depends_on: [M1, M2]
+
+  M5:
+    name: Arrangements & Editing (Vstream)
+    # mutable V->I arrangement (POOM) + edit-delta journal + provenance R; the editing/versioning ops
+    sources: [36, 58, 82, 84, 116, 117, 118, 119, 123, 47]
+    depends_on: [M1, M2, M3, M4]
+
+  M6:
+    name: Content Retrieval & Query
+    # read-only observers over documents (content, extents, origin, provenance, version, containment)
+    sources: [115, 112, 113, 77, 75, 122, 124]
+    depends_on: [M1, M2, M3, M4, M5]
+
+  M7:
+    name: Link & Relation Store
+    # authoritative link/typed-relation store + the spanfilade coverage index
+    sources: [43, 93, 120, 111, 114, 86, 126, 128, 125]
+    depends_on: [M1, M2, M3, M5]
+
+  M8:
+    name: Link Query & Discovery
+    # read-only indexed discovery over the link store (project/resolve/count/paginate)
+    sources: [98, 127, 121, 108, 132, 131, 117, 125]
+    depends_on: [M1, M2, M3, M5, M7]
+
+  M9:
+    name: Predicate & Coordination Layer
+    # PL + predicate-defs-as-content + reactive rule engine + quiescence theory
+    sources: [129, 130, 133, 128]
+    depends_on: [M1, M2, M3, M4, M5, M7]
+
+  M10:
+    name: Operation Surface (FEBE Command Layer)
+    # request lifecycle (parse/dispatch/linearize/commit-before-ack/marshal/reject) + cross-family
+    # orchestration. Evidence is 0134 (lifecycle/isolation); the operations it dispatches are
+    # defined in the decomposition (modules.md) and their per-store contracts live in M5/M6/M7/M8,
+    # so they are NOT re-fed here as sources.
+    sources: [134]
+    depends_on: [M1, M2, M3, M5, M6, M7, M8]
+
+build_order: [M1, M2, M3, M4, M5, M6, M7, M8, M9, M10]
