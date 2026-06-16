@@ -18,8 +18,8 @@ derived from the converged decomposition:
 
 Evidence fed to the loop for module M:
   - the whole decomposition (modules.md) — M's brief + its seams to neighbors;
-  - each of M's source notes' design digests (+ claim-statements with
-    --with-statements, for extra contract precision);
+  - each of M's source notes' design digest AND its formal claim-statements
+    (the authoritative contract — fed by default; --no-statements to omit);
   - each upstream module's already-converged detailed design — the concrete
     interface M builds against (run modules in build_order so these exist).
 
@@ -27,7 +27,7 @@ Convergence by stochastic quiescence (2 consecutive CONVERGED), resume-safe,
 per-stage commits — same shape as design-digest.py / design-modules.py.
 
     python scripts/module-design.py M1
-    python scripts/module-design.py M3 --with-statements
+    python scripts/module-design.py M3 --no-statements   # if statements overflow context
     python scripts/module-design.py 5 --max-reviews 8 --no-commit
 """
 
@@ -239,13 +239,15 @@ def main():
     ap.add_argument("module", help="module id (M3, m3, or 3)")
     ap.add_argument("--model", default="opus")
     ap.add_argument("--effort", default="max", help="low|medium|high|xhigh|max")
-    ap.add_argument("--with-statements", action="store_true",
-                    help="also feed each source note's formal claim-statements "
-                         "(more precise contracts, much larger context)")
+    ap.add_argument("--no-statements", action="store_true",
+                    help="omit each source note's formal claim-statements. Default is to "
+                         "FEED them — they are the authoritative contract, not optional; "
+                         "only drop for a module whose combined statements overflow context.")
     ap.add_argument("--max-reviews", type=int, default=8)
     ap.add_argument("--no-commit", action="store_true")
     args = ap.parse_args()
     commit = not args.no_commit
+    with_statements = not args.no_statements
 
     mods = _load_modules()
     mid = _norm_mid(args.module, mods)
@@ -257,7 +259,7 @@ def main():
     if not MODULES_MD.exists():
         sys.exit(f"error: {MODULES_MD.relative_to(ROOT)} missing (the decomposition).")
     decomposition = MODULES_MD.read_text().strip()
-    sources_blob = _sources_blob(sources, args.with_statements)
+    sources_blob = _sources_blob(sources, with_statements)
     upstream_blob = _upstream_blob(deps, mods)
 
     out_dir = OUT_ROOT / mid
@@ -280,10 +282,15 @@ def main():
 
     ev_kb = (len(decomposition) + len(sources_blob) + len(upstream_blob)) // 1024
     print(f"[module-design] {mid} ({name}) | sources {sources} | depends {deps or '—'} | "
-          f"evidence ~{ev_kb}KB{' +statements' if args.with_statements else ''} | "
+          f"evidence ~{ev_kb}KB{' +statements' if with_statements else ' (NO statements)'} | "
           f"{'RESUMING' if resumed else 'fresh'} (next review {next_k}, "
           f"{clean_streak}/{CONVERGE_N} clean) → cap {args.max_reviews} | "
           f"commit={commit}", file=sys.stderr)
+    if with_statements and ev_kb > 400:
+        print(f"[module-design] NOTE: evidence is ~{ev_kb}KB (~{ev_kb//4}K tokens) — large "
+              f"but within the 1M-context model. If a run truncates or degrades, re-run with "
+              f"--no-statements (you lose the precise contracts, keeping digests).",
+              file=sys.stderr)
     if missing_up:
         print(f"[module-design] WARNING: upstream {missing_up} not yet designed — "
               f"their seams are provisional. Run in build_order to avoid this.",
