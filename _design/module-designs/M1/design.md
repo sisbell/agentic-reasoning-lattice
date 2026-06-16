@@ -10,6 +10,18 @@ It deliberately does **not** own: the **allocator** — the durable monotone fro
 
 Indices are **1-based** to match the spec (`#t`, `t₁..t_{#t}`, `actionPoint ∈ [1,#t]`); implement over 0-based storage. `Nat = num_bigint::BigUint` (arbitrary precision — T0(a) is non-negotiable; see Open decisions for the alternatives).
 
+```rust
+// Error types referenced throughout (T4Clause/T12Clause/ElemError are declared with their ops below):
+pub struct EmptySequence;                                 // Tumbler::new on the empty sequence (T0)
+pub struct T4Error { /* the violated T4Clause(s); first-failure vs full-set = Open decision */ }
+pub struct AddPrecond;                                     // ⊕: ¬Pos(w) ∨ actionPoint(w) > #a
+pub struct SubPrecond;                                     // ⊖: a < w  (requires a ≥ w)
+pub struct GateViolation;                                  // checked_inc: inc_preserves_t4(t,k) = false (TA5a)
+pub struct LevelMismatch;                                  // operands not mutually level-compatible (S6/WF)
+pub enum   WfError    { NotIncreasing, LevelMismatch }     // from_endpoints: ¬(s<r) ; #s ≠ #r
+pub enum   SplitError { NotInterior,  LevelMismatch }      // split: ¬(start<p<reach) ; level mismatch
+```
+
 ### A. Tumbler value, identity, order
 
 ```rust
@@ -27,11 +39,12 @@ impl Tumbler {
     pub fn get(&self, i: Pos) -> &Nat;                // tᵢ
 }
 
+impl PartialOrd for Tumbler { /* delegates to `cmp` — required for Ord/PartialOrd consistency */ }
 impl Ord for Tumbler { /* lexicographic, prefix-smaller (T1) */ }
 pub fn is_prefix(p: &Tumbler, q: &Tumbler) -> bool;   // p ≼ q
 ```
 
-`Ord`/`compare` is the intrinsic lexicographic order (T1/T2): total over **all** of carrier T including zero tumblers, no special-casing of zero separators (load-bearing — see Invariants). `==` is sequence equality (T3).
+`Ord`/`compare` is the intrinsic lexicographic order (T1/T2): total over **all** of carrier T including zero tumblers, no special-casing of zero separators (load-bearing — see Invariants). `==` is sequence equality (T3). `PartialOrd` exists only to satisfy `Ord: PartialOrd + Eq` and must return `Some(self.cmp(other))`.
 
 ### B. Validation, classification, field & containment projections
 
@@ -51,15 +64,17 @@ pub fn validate(t: Tumbler) -> Result<Address, T4Error>;
 
 /// A T4-valid, classified tumbler. INVARIANT: every `Address` is T4-valid; that validity
 /// is discharged at each mint site — *checked* by `validate` and `elem_addr`, *preserved*
-/// by `parent` and `checked_inc`. `level` is a derived constant (immutable ⇒ never stale;
-/// not a hint).
+/// by `parent`, `document_of`, and `checked_inc`. `level` is a derived constant (immutable ⇒
+/// never stale; not a hint).
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct Address { /* Tumbler */ , level: Level }
 
 impl Address {
     pub fn tumbler(&self) -> &Tumbler;
     pub fn level(&self) -> Level;
-    // Field projection (T4b N/U/D/E), present per zero-count:
+    // Field projection (T4b N/U/D/E), present per zero-count. NB: the `&[Nat]` slices assume the
+    // inline contiguous tumbler storage (the recommended default); under the `im::Vector` storage
+    // option these must return `impl Iterator<Item = &Nat>` instead — see Open decisions.
     pub fn node_field(&self) -> &[Nat];
     pub fn account_field(&self) -> Option<&[Nat]>;    // Some iff zeros ≥ 1
     pub fn document_field(&self) -> Option<&[Nat]>;   // Some iff zeros ≥ 2
@@ -80,9 +95,10 @@ pub fn under_document(a: &Address, b: &Address) -> bool;   // T6(d): zeros≥2 B
 ### C. Decomposition
 
 ```rust
-pub fn parent(a: &Address) -> Option<Address>;   // structural container (drop trailing field/ordinal)
-pub fn ordinal(t: &Tumbler) -> &Nat;             // t_{#t}, the local index at the current field
-pub fn depth(a: &Address) -> Level;              // = a.level()
+pub fn parent(a: &Address) -> Option<Address>;       // longest T4-valid proper prefix; None for a 1-component node
+pub fn document_of(a: &Address) -> Option<Address>;  // origin Document (zeros=2 prefix N·0·U·0·D) as Address; None if zeros(a)<2
+pub fn ordinal(t: &Tumbler) -> &Nat;                 // t_{#t}, the local index at the current field
+pub fn depth(a: &Address) -> Level;                  // = a.level()
 ```
 
 ### D. Position arithmetic
@@ -144,9 +160,11 @@ impl Span {
 }
 
 /// Subtree-capture (ASN-0034, the 1-position convention): the span denoting exactly prefix
-/// p's subtree — every extension of p (T5 contiguity). Total: inc(p,0) > p and is
-/// length-preserving (TA5(a)/(c)), so WF always fires; returns `Span`, not `Result`.
-pub fn subtree_of(p: &Tumbler) -> Span;                  // from_endpoints(p, inc(p,0))
+/// p's subtree — every extension of p (T5 contiguity), for ANY prefix p including one with a
+/// trailing zero. Width is δ(1,#p) — advance position #p, NOT sig(p) — so the reach is
+/// shift(p,1) = p ⊕ δ(1,#p). Total: shift(p,1) > p (TS4) and is length-preserving (#shift=#v),
+/// so WF always fires; returns `Span`, not `Result`.
+pub fn subtree_of(p: &Tumbler) -> Span;                  // from_endpoints(p, shift(p, &1))
 
 pub enum SpanRel { Separated, Adjacent, ProperOverlap, Containment, Equal }  // SC
 pub fn classify_spans(a: &Span, b: &Span) -> SpanRel;                         // pure order — no level gate
@@ -178,17 +196,18 @@ impl SpanSet {
 }
 pub fn union(a: &SpanSet, b: &SpanSet) -> SpanSet;          // ⊕-free join: CONCATENATION ONLY — never
                                                             // normalizes, never fails; caller normalizes
-pub fn intersect_sets(a: &SpanSet, b: &SpanSet) -> Result<SpanSet, LevelMismatch>;
-pub fn difference_sets(a: &SpanSet, b: &SpanSet) -> Result<SpanSet, LevelMismatch>; // no proven bound
+pub fn intersect_sets(a: &SpanSet, b: &SpanSet) -> Result<SpanSet, LevelMismatch>;  // normalizes inputs internally
+pub fn difference_sets(a: &SpanSet, b: &SpanSet) -> Result<SpanSet, LevelMismatch>; // normalizes inputs; no proven bound
 pub fn equiv(a: &SpanSet, b: &SpanSet) -> Result<bool, LevelMismatch>;  // normalize both, compare (S9)
 pub fn canonical_key(s: &SpanSet) -> Result<CanonicalForm, LevelMismatch>; // dedup/cache key (S9)
 
-/// Single-span convex hull of a finite, LEVEL-UNIFORM point set (S0): `None` if P is empty or
-/// not level-uniform (#min ≠ #max — WF cannot fire); else
-/// `Some(from_endpoints(min P, inc(max P, 0)))` — reach = inc(max,0) is the exclusive upper
-/// bound (> max, length-preserving). The general `|Σ| = |P|` unit-span cover for arbitrary
-/// (possibly non-uniform) finite P (S7) is deliberately NOT packaged here — union per-point
-/// unit spans `from_endpoints(t, inc(t,0))` for that.
+/// Single-span convex hull of a finite point set (S0). The only real precondition is
+/// #min P = #max P (by convexity the hull then covers even a MIXED-length P): `None` if P is
+/// empty or #min ≠ #max (WF cannot fire); else `Some(from_endpoints(min P, inc(max P, 0)))` —
+/// reach = inc(max,0) is the exclusive upper bound (> max ALWAYS, length-preserving), and a
+/// COVER (⊇ P) is all that's needed, so inc(·,0) here is correct (unlike in subtree_of). The
+/// general `|Σ| = |P|` unit-span cover for arbitrary (possibly non-uniform) finite P (S7) is
+/// deliberately NOT packaged here — union per-point unit spans `from_endpoints(t, inc(t,0))`.
 pub fn hull(points: &[Tumbler]) -> Option<Span>;
 ```
 
@@ -196,9 +215,9 @@ pub fn hull(points: &[Tumbler]) -> Option<Span>;
 
 M1 holds **no persistent state**; "authoritative vs hint" collapses to "primary value vs derived value", and every value is immutable (operations yield new values — Xanadu permanence falls out for free).
 
-**`Tumbler` — the literal component sequence.** Store the bare sequence of `Nat` components, zeros explicit. This is the single highest-leverage decision: it makes canonical identity (T3) hold **by construction** — no mantissa/exponent, no normalization map, no quotient — deleting the entire alias bug class (the reference design's leading-zero alias that broke transitivity). Components are `BigUint`: `⊕` has **no carry propagation** (it touches exactly one position), so arbitrary precision is paid at one component, not across the address — cheap in the common case while honoring T0(a)'s unbounded siblings. Sequence storage is an **inline small-sequence** (most addresses are short); reach for `im::Vector` only if profiling shows deep tumblers dominate. Note the contrast with span-sets below: structural sharing buys a short flat tumbler nothing, so `im` does *not* belong on the tumbler value — the cheapest structure that meets the contract is a flat array. Length is `usize`; T0(b) makes length unbounded *in principle*, but 2⁶⁴ components is unreachable, so `usize` is safe without violating the spec (unlike a fixed *component-magnitude* width, which would).
+**`Tumbler` — the literal component sequence.** Store the bare sequence of `Nat` components, zeros explicit. This is the single highest-leverage decision: it makes canonical identity (T3) hold **by construction** — no mantissa/exponent, no normalization map, no quotient — deleting the entire alias bug class (the reference design's leading-zero alias that broke transitivity). Components are `BigUint`: `⊕` has **no carry propagation** (it touches exactly one position), so arbitrary precision is paid at one component, not across the address — cheap in the common case while honoring T0(a)'s unbounded siblings. Sequence storage is an **inline small-sequence** (most addresses are short); reach for `im::Vector` only if profiling shows deep tumblers dominate. The `&[Nat]` field projections (§B) assume this contiguous inline form; choosing `im::Vector` backing would require them to return an iterator/view instead (Open decisions). Note the contrast with span-sets below: structural sharing buys a short flat tumbler nothing, so `im` does *not* belong on the tumbler value — the cheapest structure that meets the contract is a flat array. Length is `usize`; T0(b) makes length unbounded *in principle*, but 2⁶⁴ components is unreachable, so `usize` is safe without violating the spec (unlike a fixed *component-magnitude* width, which would).
 
-**`Address` — the validated, classified value (the hybrid).** Past the front door, an address carries its flat `Tumbler` plus its `Level` as a **derived constant**. Because the tumbler is immutable, the level can never miss — it is a standing fact, not a stale-able cache (had addresses been mutable, level would demote to a recomputed hint). Storage keys and journal entries stay flat `Tumbler`; everything that *reads fields or tests containment* carries `Address`. This is a builder choice (flat-on-demand vs parse-once vs hybrid) — the hybrid is recommended. Validity is the type's standing invariant, discharged at every mint site (§2, §4, §5).
+**`Address` — the validated, classified value (the hybrid).** Past the front door, an address carries its flat `Tumbler` plus its `Level` as a **derived constant**. Because the tumbler is immutable, the level can never miss — it is a standing fact, not a stale-able cache (had addresses been mutable, level would demote to a recomputed hint). Storage keys and journal entries stay flat `Tumbler`; everything that *reads fields or tests containment* carries `Address`. This is a builder choice (flat-on-demand vs parse-once vs hybrid) — the hybrid is recommended. Validity is the type's standing invariant, discharged at every mint site (§2, §3, §4, §5).
 
 **`Span` — `(start, width)` authoritative, `reach` derived.** `(start, width)` is the spec's form and aligns the edit primitive (insert/delete shift widths) with the storage primitive. `reach = start ⊕ width` is a pure function of immutable inputs — a *cache* of a recomputation, not a Lampson hint: recompute on demand, optionally memoize on the hot comparison path, **never persist as authoritative state**, never desynchronizable. The empty designation is `SpanSet::empty()` (`⟨⟩`), structurally distinct from any span — a zero-width span is an illegal state the constructor must reject, never the representation of "nothing."
 
@@ -217,14 +236,14 @@ All four T4-valid clauses (`zeros ≤ 3`; no adjacent zeros; no leading zero; no
 Field projection (`node_field`/`account_field`/…) carves at the separator positions located during the scan (T4b); present-or-absent is encoded by `Option`, never a sentinel. `subspace` reads `element_field[0]` (T7: 1=text, 2=link). Containment (`same_node`/`same_account`/`same_document`/`under_document`) is `tumbleraccounteq`-style: truncate to the scope's field and compare parsed fields (T6 a–d) — decidable from the two addresses alone, the basis of coordination-free operation. **Field-absence is decisive (T6 b/c/d):** the predicate returns **NO** whenever *either* operand lacks the required field — `same_account` requires both `account_field`s present (`zeros ≥ 1`), `same_document`/`under_document` both `document_field`s present (`zeros ≥ 2`). A builder must not implement these as `a.account_field() == b.account_field()`: that gives `None == None ⇒ true`, so two **Node** addresses would falsely report "same account." Test field-presence first, then compare. **Tradeoff:** placing the T4-validity check *only* at admission (`validate`) and trusting internal producers keeps the arithmetic layer (§4) flat and re-validation-free; this is the recommended posture. The depth ceiling and the `T6/T7` field-reads rest *entirely* on the `zeros ≤ 3` clause being checked here — the only thing stopping a four-separator tumbler from being read as a phantom fifth level.
 
 ### 3. Decomposition
-`ordinal(t) = t_{#t}` (the local sibling index). `depth(a) = a.level()`. `parent(a)` returns the structural container: drop the last component; if that exposes a trailing separator (0), drop it too — yielding the next coarser valid address (element→document, document→account, account→node; and within a multi-component field, version→document). Returns `None` for a single-component node base. This is the *containment* parent, recoverable from the address; **it is not the derivation parent** — the document field records who allocated under whom, not what was copied from what (T6(d)), and you cannot read creation time or version lineage off the address. Derivation history is a separate version graph (M3/M5), explicitly not M1's.
+`ordinal(t) = t_{#t}` (the local sibling index). `depth(a) = a.level()`. **`parent(a)` is the longest T4-valid proper prefix of `a`** — equivalently, drop the last component and, if that exposes a trailing separator (0), drop that too (at most a two-component peel, since a valid address has no adjacent zeros). This is a *single structural peel*, not a guaranteed level-coarsening: a full content element `[1,0,2,0,5,0,1,9]` peels to its **subspace-base** `[1,0,2,0,5,0,1]` (still Element-class, element field `[1]`), and *that* peels to the document `[1,0,2,0,5]` — two calls, not one; a versioned document `[1,0,2,0,5,3]` peels to its base document `[1,0,2,0,5]`; a document peels to its account, an account to its node. `parent` returns `None` only for a single-component node (no non-empty proper prefix exists). For the common *level*-coarsening that M6's SHOWORIGIN actually needs — an I-address to its origin **Document `Address`** — use **`document_of`**, which truncates to the zeros=2 document prefix (N·0·U·0·D) and returns it as a classified `Document` address in one call (`None` when `zeros(a) < 2`; a Document input returns itself); this keeps address *construction* in M1 rather than forcing M6 to reassemble an address out of raw `document_field()` components. Both `parent` and `document_of` are the *containment* projection, recoverable from the address; **neither is the derivation parent** — the document field records who allocated under whom, not what was copied from what (T6(d)), and you cannot read creation time or version lineage off the address. Derivation history is a separate version graph (M3/M5), explicitly not M1's.
 
 ### 4. Position arithmetic
 Implement straight from the constructive definitions; do **not** port reference mantissa arithmetic (its add routine carried an operand-order asymmetry that discarded an argument).
 - **`action_point(w)`** = first nonzero index (the level at which a displacement acts); the shared kernel of `⊕`, the ordinal shift, and the span-length convention — a named primitive, not inline recomputation. **`sig(t)`** = last nonzero index; for T4-valid `t` it is `#t` (TA5-SigValid), but it is its own operation precisely so `inc(·,0)` (which advances `sig`) is never conflated with the action-point-driven arithmetic.
 - **`add` (`⊕`)**: `k = action_point(w)`; copy `a₁..a_{k-1}`, set `a_k + w_k`, take `w_{k+1..}` as the tail; result length `#w`. Common case touches one component (no carry). It is **many-to-one** (TA-MTO/TA-RC): the start's structure below `k` is discarded, so a start cannot be recovered from result-plus-displacement in general.
 - **`sub` (`⊖`)**: zero-pad to `L = max(#a,#w)`, find the zero-padded divergence `zpd`, emit zeros before it, the difference at it, `a`'s padded tail after; if padded-equal, the all-zero tumbler of length `L`. Result may be a (non-address) zero tumbler — that is legal here.
-- **`inc`**: `k=0` advances `sig(t)` (next peer, length-preserving); `k>0` appends `k-1` zeros then a `1` (descend `k` levels). **`inc_preserves_t4`** is the TA5a gate: `k∈{0,1}` always, `k=2` iff `zeros(t) ≤ 2`, `k≥3` never. M1 supplies `inc` (pure) and the gate *predicate*; **the gate's enforcement and the frontier it guards are M3's** — an allocator that skips the gate emits T4-invalid addresses that break the level-determination GlobalUniqueness rests on, so M3 must call `inc_preserves_t4`/`checked_inc` before minting. `checked_inc` is the convenience that combines them and reclassifies, and (with `validate`/`elem_addr`/`parent`) is one of the four `Address` mint sites that keep the validity invariant standing.
+- **`inc`**: `k=0` advances `sig(t)` (next peer, length-preserving); `k>0` appends `k-1` zeros then a `1` — extending the component sequence by `k` positions (`k=1` mints a *same-zeros-level* peer/version; `k=2` descends one hierarchy/zeros-level; `k≥3` always breaks T4, hence the gate). **`inc_preserves_t4`** is the TA5a gate: `k∈{0,1}` always, `k=2` iff `zeros(t) ≤ 2`, `k≥3` never. M1 supplies `inc` (pure) and the gate *predicate*; **the gate's enforcement and the frontier it guards are M3's** — an allocator that skips the gate emits T4-invalid addresses that break the level-determination GlobalUniqueness rests on, so M3 must call `inc_preserves_t4`/`checked_inc` before minting. `checked_inc` is the convenience that combines them and reclassifies, and (with `validate`/`elem_addr`/`parent`/`document_of`) is one of the `Address` mint sites that keep the validity invariant standing.
 - **`displacement(a,b)`** returns `Some(b⊖a)` only under D0–D2 (`a<b`, `divergence(a,b)≤#a`, `#a≤#b`), where the round-trip `a⊕(b⊖a)=b` is guaranteed; otherwise `None`. The API thereby *forces* the "store endpoints rather than recompute them" discipline at the type level: outside the safe window, callers cannot get a displacement and must keep the endpoints.
 
 ### 5. Ordinal-only shift
@@ -233,7 +252,7 @@ Implement straight from the constructive definitions; do **not** port reference 
 ### 6. Spans
 The whole single-span engine collapses to **one comparator, one constructor (`WF`/`from_endpoints`: `s<r ∧ #s=#r ⇒ (s, r⊖s)`), and min/max under the order** — resist four independently-reasoned operations.
 - **`Span::new`** enforces full T12 (`width>0` **and** `actionPoint(width) ≤ #start`); both are required for `reach > start`. Routes the empty designation to `⟨⟩`, never a zero-width span.
-- **`subtree_of(p)`** = `from_endpoints(p, inc(p,0))` packages ASN-0034's 1-position subtree-capture convention: the span denoting exactly `p`'s subtree (every extension of `p`), making the T5 contiguity guarantee directly exploitable without re-deriving it. It is total — `inc(p,0) > p` and is length-preserving (TA5(a)/(c)), so `WF` always fires.
+- **`subtree_of(p)`** = `from_endpoints(p, shift(p, &1))` = `from_endpoints(p, p ⊕ δ(1,#p))` packages ASN-0034's 1-position subtree-capture convention: the span denoting exactly `p`'s subtree (every extension of `p`), making the T5 contiguity guarantee directly exploitable without re-deriving it — for **any** prefix `p`, well-formed or not. The width must advance position **`#p`** (the displacement `δ(1,#p)`, i.e. `shift(p,1)`), **not** `sig(p)`: the two coincide only when `p`'s last component is nonzero, so using `inc(p,0)` (which advances `sig(p)`) would over-capture on a trailing-zero prefix — e.g. `inc([2,0],0)=[3,0]` admits `[2,1]`, which is *not* an extension of `[2,0]`. It is total — `shift(p,1) > p` (TS4) and is length-preserving (`#shift = #v`), so `WF` always fires.
 - **`classify_spans` (SC)** is pure order (5 mutually-exclusive cases) — **no level gate** (the classifier doesn't construct).
 - **`intersect`** = `(max start, min reach)`; **self-guarding** — disjoint inputs give `max start ≥ min reach`, failing `WF`'s `s<r`, correctly yielding `None`. Needs the level gate (for equal-length `WF`) but **not** SC.
 - **`merge`** = `(min start, max reach)`, which is *not* self-guarding (two separated spans still satisfy `min start < max reach`). One comparison suffices: `separated ⟺ max start > min reach` → `None`; else `WF(min start, max reach)`. Cheaper than the full classifier — do the cheapest correct thing.
@@ -250,14 +269,14 @@ The whole single-span engine collapses to **one comparator, one constructor (`WF
 The **level gate** (level-uniform operands, mutually level-compatible — all endpoints share length L) sits *after* classification, *before* construction, on `intersect`/`merge`/`split`/`difference`. It is what makes `WF`/width-recovery sound: outside level-uniformity the start↔reach interconversion breaks silently (`[1,5] ⊖ [1,3,5] = [0,2,0] ≠ [0,2]`).
 
 ### 7. Span-sets
-**`normalize`** is the central primitive: sort by `start`, linear left-to-right sweep coalescing any pair with `reach_i ≥ start_{i+1}` (overlap or adjacency), producing the unique N1∧N2 canonical form — O(n log n), dominated by the sort. It is fallible (`Result<SpanSet, LevelMismatch>`): a span-set whose components are not mutually level-compatible cannot be normalized. Uniqueness (S9) makes the canonical form an **equality oracle and cache key**: `equiv` = normalize both, compare — and so `equiv -> Result<bool, LevelMismatch>`, inheriting `normalize`'s fallibility. `canonical_key -> Result<CanonicalForm, LevelMismatch>` returns the unique normalized form wrapped as `CanonicalForm` (`Hash + Eq`), content-addressable for dedup/memoization — the seam M7's coverage-class dedup key rides; raw `SpanSet` `Eq`/`Hash` are structural and must not substitute for it. **`union`** is **concatenation only** — it never normalizes and never fails, so it stays total (`-> SpanSet`); normalization is the caller's separate (eager or lazy) step. Because union is commutative, associative, and idempotent (S10, within one tumbler length), span-sets form a join-semilattice — workers can accumulate and merge in any order to a deterministic canonical result, coordination-free. **`intersect_sets`/`difference_sets`** are one parametrized sweep-line over two already-normalized inputs; difference at the set level has **no proven output bound** (open), so its result is not size-promised. **`hull`** gives the single-span convex hull of a finite *level-uniform* point set (convexity, S0): `None` for empty or non-level-uniform P (`#min ≠ #max`, so `WF` cannot fire), else `from_endpoints(min P, inc(max P, 0))` — reach `= inc(max,0)` is the exclusive upper bound (`> max`, length-preserving). The general `|Σ|=|P|` unit-span cover for arbitrary (possibly non-uniform) finite P (S7) is deliberately not packaged here — a caller wanting it unions per-point unit spans `from_endpoints(t, inc(t,0))`. Note the binding S7 fact — *no* span-set denotes an arbitrary finite P *exactly*, because every span denotes an infinite set (deeper sub-extensions fill every interval). The algebra is interval arithmetic over a hierarchical ordered space — not finite-set manipulation, not byte counting. **Default to eager normalization for stored/handed-off span-sets, lazy in-flight**; default to batch sort-sweep, graduate to the `im::OrdMap` incremental form only for large long-lived edited sets. Keep the commutative merge path **union-only** — difference is not order-free.
+**`normalize`** is the central primitive: sort by `start`, linear left-to-right sweep coalescing any pair with `reach_i ≥ start_{i+1}` (overlap or adjacency), producing the unique N1∧N2 canonical form — O(n log n), dominated by the sort. It is fallible (`Result<SpanSet, LevelMismatch>`): a span-set whose components are not mutually level-compatible cannot be normalized. Uniqueness (S9) makes the canonical form an **equality oracle and cache key**: `equiv` = normalize both, compare — and so `equiv -> Result<bool, LevelMismatch>`, inheriting `normalize`'s fallibility. `canonical_key -> Result<CanonicalForm, LevelMismatch>` returns the unique normalized form wrapped as `CanonicalForm` (`Hash + Eq`), content-addressable for dedup/memoization — the seam M7's coverage-class dedup key rides; raw `SpanSet` `Eq`/`Hash` are structural and must not substitute for it. **`union`** is **concatenation only** — it never normalizes and never fails, so it stays total (`-> SpanSet`); normalization is the caller's separate (eager or lazy) step. Because union is commutative and associative (S10) — with idempotence following as a *derived corollary* — span-sets form a join-semilattice (within one tumbler length); workers can accumulate and merge in any order to a deterministic canonical result, coordination-free. **`intersect_sets`/`difference_sets`** are one parametrized sweep-line; each **normalizes its two inputs internally** (so the `Result<_, LevelMismatch>` is honest — `LevelMismatch` fires when a set is not internally level-uniform *or* the two sets are not mutually level-compatible) and emits a normalized result; set-level difference has **no proven output bound** (open), so its result is not size-promised. **`hull`** gives the single-span convex hull of a finite point set (convexity, S0); its only real precondition is **`#min P = #max P`** (by convexity the hull then covers even a *mixed-length* P) — `None` for empty P or `#min ≠ #max` (so `WF` cannot fire), else `from_endpoints(min P, inc(max P, 0))`. Here `inc(max,0)` is correct (unlike in `subtree_of`): the hull need only **cover** (⊇ P), and `inc(max,0) > max` always holds, so over-capture is harmless. The general `|Σ|=|P|` unit-span cover for arbitrary (possibly non-uniform) finite P (S7) is deliberately not packaged here — a caller wanting it unions per-point unit spans `from_endpoints(t, inc(t,0))`. Note the binding S7 fact — *no* span-set denotes an arbitrary finite P *exactly*, because every span denotes an infinite set (deeper sub-extensions fill every interval). The algebra is interval arithmetic over a hierarchical ordered space — not finite-set manipulation, not byte counting. **Default to eager normalization for stored/handed-off span-sets, lazy in-flight**; default to batch sort-sweep, graduate to the `im::OrdMap` incremental form only for large long-lived edited sets. Keep the commutative merge path **union-only** — difference is not order-free.
 
 ## Invariants & contracts
 
 **By construction** (fall out of the data model / a single-valued function):
 - *Canonical identity* (T3, ASN-0034) — free from literal-sequence storage; no normalization exists to get wrong.
 - *Total order, intrinsic comparison* (T1/T2, ASN-0034) — free from the lexicographic scan; no external read.
-- *Contiguous subtrees* (T5, ASN-0034) — every prefix's subtree is a contiguous interval; holds from the order alone, no field parse, so spans capture subtrees for free (`subtree_of`).
+- *Contiguous subtrees* (T5, ASN-0034) — every prefix's subtree is a contiguous interval; holds from the order alone, no field parse, so spans capture subtrees for free (`subtree_of`, width `δ(1,#p)`).
 - *Exactly-one-level / off-domain vacuity / never-faults* (Partition, OffDomainVacuity, ASN-0045) — from the five-way sum classifier: a function is single-valued and `Invalid` is disjoint. The zero-count is unbounded `usize`, so arbitrarily-many-zeros input lands in `Invalid`, never a wrapped level and never a fault.
 - *Level stability* (ASN-0045) — `Address.level` is a derived constant on an immutable value.
 - *Subspace disjointness* (T7, ASN-0034) — text<link by `1<2` at the subspace position; no enforcement.
@@ -269,11 +288,11 @@ The **level gate** (level-uniform operands, mutually level-compatible — all en
 **By active enforcement** (a named function must guard):
 - *Unbounded component magnitude* (T0(a), ASN-0034) — **`Nat = BigUint`** in every component op; fixed-width is a spec violation absent a discharged finite-model proof. *Where:* the value type and all of §4.
 - *Carrier nonemptiness* (T0, ASN-0034) — `Tumbler::new` rejects the empty sequence. *Where:* the constructor. (This resolves ASN-0045's empty-tumbler question — see Conflicts.)
-- *T4 well-formedness* (T4/ASN-0045) — the single scan in `validate`/`classify`; the depth ceiling and every `T6/T7` field-read rest on the `zeros ≤ 3` check, with `zeros` returning `usize` so unbounded-zero garbage is classified `Invalid` without overflow or fault. **Every `Address` mint site discharges this:** `validate` and `elem_addr` *check* it (the latter additionally guards `doc=Document ∧ subspace≥1 ∧ ordinal≥1`), `parent` and `checked_inc` *preserve* it. *Where:* §2, §4, §5.
+- *T4 well-formedness* (T4/ASN-0045) — the single scan in `validate`/`classify`; the depth ceiling and every `T6/T7` field-read rest on the `zeros ≤ 3` check, with `zeros` returning `usize` so unbounded-zero garbage is classified `Invalid` without overflow or fault. **Every `Address` mint site discharges this:** `validate` and `elem_addr` *check* it (the latter additionally guards `doc=Document ∧ subspace≥1 ∧ ordinal≥1`), and `parent`, `document_of`, and `checked_inc` *preserve* it. *Where:* §2, §3, §4, §5.
 - *Field-absence ⇒ NO* (T6 b/c/d) — the containment predicates test field-presence before comparing fields; `None`-vs-`None` is `false`, never `true`. *Where:* §2.
 - *Allocator-discipline gate* (T10a/TA5a, ASN-0034) — `inc_preserves_t4` must be **correct here**; its *enforcement* is M3's obligation (the producer's, not the caller's). *Where:* §4; flag the seam to M3.
 - *T12 span well-formedness* (T12, ASN-0034/0053) — `width>0 ∧ actionPoint(width)≤#start`. *Where:* `Span::new`.
-- *Level-compatibility* (S6/WF, ASN-0053) — gate before all span/span-set construction (`intersect`/`merge`/`split`/`difference`/`normalize`/`canonical_key`/`equiv`). *Where:* §6/§7.
+- *Level-compatibility* (S6/WF, ASN-0053) — gate before all span/span-set construction (`intersect`/`merge`/`split`/`difference`/`normalize`/`canonical_key`/`equiv`/`intersect_sets`/`difference_sets`). *Where:* §6/§7.
 - *Zero-agnostic total order* (S0/Q11, ASN-0053) — the comparator special-cases nothing; the easiest invariant to break silently. *Where:* §1.
 - *Arithmetic preconditions* — `⊕`: `Pos(w)∧actionPoint(w)≤#a`; `⊖`: `a≥w`; `shift`: `n≥1` (with `shift(v,0)=v` the total extension). *Where:* `add`/`sub`/`shift`.
 - *Zero-sentinel quarantine* (TA6, ASN-0034) — the address validator is **not** reused at the span boundary; an all-zero tumbler is rejected as an address but legal as a span endpoint. *Where:* span constructors keep out of `validate`.
@@ -284,12 +303,12 @@ The **level gate** (level-uniform operands, mutually level-compatible — all en
 
 **Downstream seams (what M1 hands up, and to whom):**
 - **`Tumbler`/`Address`** — the universal key/endpoint/classification type for every module (M3–M10). Flat `Tumbler` is the storage/journal key; `Address` is the past-the-door carried value, T4-valid by its standing invariant.
-- **`inc` + `inc_preserves_t4`/`checked_inc` → M3.** M3's per-(home,subspace) frontier allocator *calls* these; M1 owns neither the frontier, the active-allocator set, nor durability/recovery. The seam contract M3 codes against: `inc(t,0)` = next sibling (length-preserving), `inc(t,k>0)` = descend `k` levels, and `inc_preserves_t4` is the gate it **must** pass before minting. Over-shooting (gaps/ghosts) is harmless to M1's algebra; reuse is fatal — that durability invariant is M3's.
+- **`inc` + `inc_preserves_t4`/`checked_inc` → M3.** M3's per-(home,subspace) frontier allocator *calls* these; M1 owns neither the frontier, the active-allocator set, nor durability/recovery. The seam contract M3 codes against: `inc(t,0)` = next sibling (length-preserving), `inc(t,k>0)` = extend by `k` components (`k=1` same-zeros-level version, `k=2` descends one zeros-level), and `inc_preserves_t4` is the gate it **must** pass before minting. Over-shooting (gaps/ghosts) is harmless to M1's algebra; reuse is fatal — that durability invariant is M3's.
 - **`classify`/`Level`/field projections/containment → M3, M5, M6, M8.** M3's `ω` longest-prefix owner resolver composes `same_account`/`under_document` over its principal registry (M1 gives the per-address predicates, including the field-absence⇒NO rule; the resolver is M3's). M6/M8's registered-empty-vs-unallocated query distinctions, and M5's S3★ content-vs-link V-position routing, all key on `classify`/`subspace`.
 - **`subspace` → M5/M7/M8.** Drives content-subspace (M4-targeted) vs link-subspace (M7-targeted) referential-integrity routing.
 - **`Span`/`SpanSet`/`normalize`/`classify_spans`/`intersect`/`difference`/`canonical_key` → M5, M6, M7, M8.** M7's endsets/link values are span-sets; its link-dedup **coverage-class key** is derived from `canonical_key` (M1 computes the canonical form — `Result<CanonicalForm,_>` on level-uniform inputs; M7 decides the class *policy* and supplies it to M2's keyed critical section — M2 never computes it). M8's coverage/discovery and M6's extent queries consume `classify_spans`/`intersect`/`difference`/membership/`subtree_of`.
 - **`shift`/`ElemPos` → M3/M5.** I-stream element allocation and V-enfilade traversal are driven by the ordinal shift; M1 supplies the pure value tool and the subspace-safe wrapper, the stateful allocation/traversal is upstream.
-- **Pointwise field/origin projectors → M6.** SHOWORIGIN's *pointwise* origin attribution is the pure field/document-prefix projection here; the SHOWORIGIN *operation* (whose I-span/V-span resolvers read arrangement state) is M6.
+- **Field/origin projectors → M6.** SHOWORIGIN's *pointwise* origin attribution is the pure field/document-prefix projection here — in particular **`document_of`** maps an I-address straight to its origin **Document `Address`** (no reassembly from raw `document_field()` components on M6's side); the SHOWORIGIN *operation* (whose I-span/V-span resolvers read arrangement state) is M6.
 
 **Explicitly NOT a seam M1 provides:** the inverse "which spans cover *t*" index / spanfilade (M7); any scale-up interval/segment index (M7/M8); content/byte mapping (M4/M5). M1 hands up span *values*; the indexing that makes the inverse query fast at docuverse scale is downstream.
 
@@ -301,12 +320,12 @@ The **level gate** (level-uniform operands, mutually level-compatible — all en
 - **"coverage-class computed in M1" (decomposition) vs the canonical-form/policy split (here) — a deliberate refinement.** The decomposition's M7 seam says the link-dedup key is "keyed by a coverage-class computed in M1." This design refines that boundary: M1 owns only the **canonical normalization** — `canonical_key` *is* the dedup primitive (the unique normalized form, S9) — while the **coverage-class *policy*** (which classes are equivalent for de-duplication) lives in M7, which supplies the resulting key to M2's keyed critical section. The apparent contradiction is intentional: keeping policy out of the pure value layer is the cleaner placement (mechanism in M1, policy in M7), so this is a sharpening of the decomposition's wording, not a gap against it.
 - **`(start,length)` (ASN-0034) vs `(start,width)`/`(start,reach)` (ASN-0053).** Resolution: `(start, width)` authoritative (aligns edit and storage primitives), `reach` a recomputed/cached derivation. For level-uniform spans the two endpoint forms are interchangeable; outside level-uniformity they are not, so the level gate guards every interconversion.
 - **"account" vs "user" (ASN-0045).** `account` is canonical for the zeros=1 level everywhere in M1 (the level vocabulary, classifier, containment). `user` is confined to M3's ownership layer (session-slot index / ownership predicates) and never crosses into M1's level names. The field-projection symbol `U` is retained unrenamed.
-- **"origin" projector scoping.** No source note defines an `origin` operation; M1 provides the *pure pointwise* field/document-prefix projector (`parent`, `document_field`, `under_document`), and the SHOWORIGIN *operation* — which resolves I-spans/V-spans against arrangement state — is M6. M1 hands up the value-level piece only.
+- **"origin" projector scoping.** No source note defines an `origin` operation; M1 provides the *pure pointwise* field/document-prefix projectors (`document_of`, `document_field`, `under_document`; plus the generic `parent` peel), and the SHOWORIGIN *operation* — which resolves I-spans/V-spans against arrangement state — is M6. M1 hands up the value-level piece only.
 
 ## Open build decisions
 
 - **Component representation:** `BigUint` (recommended) vs varint-only vs fixed-width-with-bignum-fallback — the last *only* with a discharged finite-model obligation; the fixed-width fast path is acceptable solely as a measured cache, never the system of record.
-- **Sequence storage:** inline small-sequence (default) vs `im::Vector` — decided by whether deep tumblers actually dominate the workload.
+- **Sequence storage:** inline small-sequence (default) vs `im::Vector` — decided by whether deep tumblers actually dominate the workload. **Coupling:** the `&[Nat]`-returning field projections (§B) assume the inline contiguous form; selecting `im::Vector` requires them to return an iterator/view instead.
 - **Address-representation strategy:** flat-on-demand vs parse-once vs the hybrid `Address` (recommended); whether to attach a recomputable parsed field-view as a hint (only if a containment-query path proves hot — measure first, `#t` is small).
 - **Level-uniformity as a type invariant** (`LeveledSpan<L>`, mismatches unrepresentable) vs the runtime `LevelMismatch` gate — recommend the runtime gate now, type-encode once cross-level policy settles.
 - **Span-set backing:** flat `im::Vector<Span>` + batch sort-sweep (default) vs `im::OrdMap<Tumbler,Span>` incremental coalescing (large, long-lived, in-place-edited sets — a coalescing insert is O(log n) but absorbing k spans is O(k log n)).
