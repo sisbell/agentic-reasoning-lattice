@@ -9,7 +9,7 @@ M3 owns the **authoritative permanent name/entity space**: the baptismal/entity 
 M3 is generic over the engine's world `W` via a thin composition seam; `Principal` is an ownership prefix (an account/node-tier `Address`; human/session binding is the access layer's job, not M3's).
 
 ```rust
-use m1::{Address, Tumbler, Nat, Level, is_prefix, classify, checked_inc, subtree_of, validate};
+use m1::{Address, Tumbler, Nat, Level, Span, is_prefix, classify, checked_inc, subtree_of, validate};
 use m2::{Kernel, Snapshot, Seq, LockKey, TxnError, WorldState};
 
 pub type Principal = Address;                 // an ownership-root prefix (zeros ≤ 1), O1b-injective
@@ -26,12 +26,15 @@ pub struct NamespaceState {
 
 /// Engine-composition seam: how M3's slice & records sit inside the concrete W.
 pub trait HasNamespace: WorldState {
+    const NS_FRONTIER_TAG: u8;                // engine-owned 1-byte space tag, drawn from the engine
+                                              // crate's single central LockKey tag enum (M2's cross-store
+                                              // uniqueness rule) — never chosen inside M3.
     fn ns(&self) -> &NamespaceState;
     fn wrap(r: NsRecord) -> Self::Record;     // lift an M3 record into W::Record
 }
 
 #[derive(Clone, Serialize, Deserialize)] pub enum NsRecord {
-    RegisterEntity   { addr: Tumbler, kind: EntityKind },   // folds into entities
+    RegisterEntity   { addr: Tumbler, kind: EntityKind },   // folds into entities (kind ADVISORY — see data model)
     RegisterPrincipal{ prefix: Tumbler },                   // folds into principals
 }
 pub fn apply(ns: &NamespaceState, r: &NsRecord) -> NamespaceState;   // pure fold (M2 calls via W::apply)
@@ -40,6 +43,17 @@ pub fn apply(ns: &NamespaceState, r: &NsRecord) -> NamespaceState;   // pure fol
 ### A. The frontier allocator (pure — the one algorithm)
 
 ```rust
+/// A prefix-rangeable view of a member collection — the ONLY capability `Chain::next`'s frontier
+/// scan needs. Implemented in the engine crate for `im::OrdSet<Tumbler>` (entity chains) AND for
+/// `im::OrdMap<Tumbler,V>` keys (content/link chains), so one allocator serves every chain with no
+/// M3→M4/M7 edge. `range` translates the half-open `Span` into the collection's native
+/// `range(span.start()..span.reach())`, ascending; callers `.rev()` to descend from the lex-greatest
+/// member. A bare `DoubleEndedIterator` could not do this — it has no `range`, forces an O(n) scan of
+/// all members, and cannot abstract over both `OrdSet` and `OrdMap`.
+pub trait ChainView {
+    fn range<'a>(&'a self, span: &Span) -> impl DoubleEndedIterator<Item = &'a Tumbler>;
+}
+
 /// A named address chain S(anchor, g): first = inc(anchor, g), then inc(·,0). g ∈ {1,2}.
 pub struct Chain { anchor: Tumbler, g: u8 }
 impl Chain {
@@ -50,9 +64,10 @@ impl Chain {
     pub fn content (doc: &Address)     -> Chain;  // (b_C(doc),1) → element, s_C
     pub fn link    (doc: &Address)     -> Chain;  // (b_L(doc),1) → element, s_L
 
-    /// The frontier address for this chain given the relevant member collection
-    /// (entities for entity chains; M4/M7's slice for content/link — generic over V).
-    pub fn next<'a>(&self, members: impl DoubleEndedIterator<Item=&'a Tumbler>) -> Address;
+    /// The frontier address for this chain over any prefix-rangeable member collection
+    /// (`entities` for entity chains; M4/M7's address-keyed slice for content/link). O(log n + v)
+    /// rightmost-descent via `ChainView::range(&span).rev()` — see §1.
+    pub fn next(&self, members: &impl ChainView) -> Address;
     pub fn first(&self) -> Address;               // inc(anchor, g)
 }
 
@@ -65,7 +80,9 @@ pub fn b_l(d: &Address) -> Address;               // inc(b_c,0)= [d.0.s_L]
 ```rust
 impl<W: HasNamespace> Namespace<'_, W> {           // thin façade over &Kernel<W>
     /// CREATENEWDOCUMENT (ASN-0103). Allocates a document under `account`, registers it. Does NOT
-    /// materialize M(d) (M5, lazy). Pre: account registered & Account-class; `by` owns `account`.
+    /// materialize M(d) (M5, lazy). Pre: `account` registered & Account-class; `by` is the EFFECTIVE
+    /// OWNER of `account` (`effective_owner(account) == Some(by)`, ω — NOT `owns` containment, because
+    /// `account` may itself be delegated), enforced server-side against untrusted `account`/`by`.
     pub fn create_document(&self, account:&Address, by:&Principal)
         -> Result<(Address, Seq), TxnError<CreateDocErr>>;
 
@@ -74,8 +91,12 @@ impl<W: HasNamespace> Namespace<'_, W> {           // thin façade over &Kernel<
     /// registers it as BOTH an entity and a principal in one transaction.
     pub fn delegate(&self, by:&Principal) -> Result<(Principal, Seq), TxnError<DelegateErr>>;
 
-    /// Denial-as-fork (O10): allocate a fresh document under the forker's OWN account. Mechanically
-    /// = create_document(by_account, by); content transclusion is M5's COPY. The trigger is upstream.
+    /// Denial-as-fork (O10), ACCOUNT-TIER forker only: allocate a fresh document under the forker's
+    /// OWN account. Mechanically = create_document(by, by) — for an account-tier `by`, `by` IS its own
+    /// account, and `by` is trivially its own effective owner, so the ω authorization holds by
+    /// construction. Pre: `zeros(by) == 1`; a node-tier forker (O10's account-producing case) is out
+    /// of scope and is rejected `NotAnAccount` — see Open decisions. Content transclusion is M5's COPY;
+    /// the denial-trigger is upstream.
     pub fn fork(&self, by:&Principal) -> Result<(Address, Seq), TxnError<CreateDocErr>>;
 
     /// External NodeBaptism (ASN-0047): record an externally-minted node. Checks T4, NodeLineage
@@ -84,27 +105,40 @@ impl<W: HasNamespace> Namespace<'_, W> {           // thin façade over &Kernel<
         -> Result<((), Seq), TxnError<RegisterNodeErr>>;
 }
 
-pub enum CreateDocErr   { NotAnAccount, Unauthorized }
-pub enum DelegateErr    { NotAPrincipal, AccountFloor }     // (i),(ii),(iv) by construction; (iii),(v) checked
+pub enum CreateDocErr   { NotAnAccount, Unauthorized }   // Unauthorized = effective_owner(account) ≠ Some(by)
+pub enum DelegateErr    { NotAPrincipal }   // (i)–(v) hold by construction given by ∈ principals (O1a ⇒ zeros(by)≤1); only membership is checked
 pub enum RegisterNodeErr{ NotT4, BadLineage, AlreadyExists }
 ```
 
 ### C. Allocation for composites (pure — folded by M5/M7 per M2 contract (3))
 
 ```rust
-/// Content address under d (A_C(d), ASN-0093). M5 passes &stg.working().content; M5 pushes M4's
-/// ContentAlloc record. M3 records NOTHING for content (it is zeros=3, lives in M4's dom(C)).
+/// Content address under d (A_C(d), ASN-0093). M5 passes &stg.working().content (an OrdMap, hence a
+/// ChainView); M5 pushes M4's ContentAlloc record. M3 records NOTHING for content (zeros=3, lives in
+/// M4's dom(C)).
 pub fn alloc_content_address<V>(content:&im::OrdMap<Tumbler,V>, d:&Address) -> Address;
 
-/// Link address under d (A_L(d)). M7 passes &stg.working().links; M7 pushes M7's LinkAlloc record.
+/// Link address under d (A_L(d)). M7 passes &stg.working().links (a ChainView); M7 pushes M7's
+/// LinkAlloc record.
 pub fn alloc_link_address<V>(links:&im::OrdMap<Tumbler,V>, d:&Address) -> Address;
 
-/// Version identity (ASN-0123). Owned (ω(src)=by) → next_version(src); cross-owner account-tier
-/// (zeros(by)=1) → next_document under by's account; cross-owner node-tier → reject (P-tier).
+/// Version identity (ASN-0123). ASSUMES `src` registered — M5 discharges P8 via its own
+/// `is_registered(src)` edit-precondition before folding this in; `SourceNotDocument` here is only the
+/// class check (`src` Document-class). Owned (ω(src)=by) → Chain::version(src); cross-owner account-tier
+/// (zeros(by)=1) → Chain::document(by) — the fork lands in BY's OWN account (severance V9, server-side
+/// confinement), never the source's subtree; cross-owner node-tier → NodeTierCrossOwner (P-tier).
 /// M5 folds this into VERSION and pushes RegisterEntity{v, kind}.
 pub fn alloc_version_identity(ns:&NamespaceState, src:&Address, by:&Principal)
     -> Result<(Address, EntityKind), VersionAllocErr>;
 pub enum VersionAllocErr { SourceNotDocument, NodeTierCrossOwner }
+
+/// The frontier LockKey for a VERSION, resolving the owned-vs-cross-owner branch UP FRONT so M5 can
+/// open its `transact` on the right serialization key BEFORE staging (the per-key M2 realization needs
+/// the key chosen before the txn opens). Owned → frontier_key::<W>(src, Version); cross-owner
+/// account-tier → frontier_key::<W>(by, Document); cross-owner node-tier / non-Document src → Err
+/// (same checks as alloc_version_identity).
+pub fn version_frontier_key<W: HasNamespace>(ns:&NamespaceState, src:&Address, by:&Principal)
+    -> Result<LockKey, VersionAllocErr>;
 
 pub fn ns_record_register(addr:&Address, kind:EntityKind) -> NsRecord;   // for M5 to push
 ```
@@ -112,14 +146,23 @@ pub fn ns_record_register(addr:&Address, kind:EntityKind) -> NsRecord;   // for 
 ### D. Ownership & registry queries (read-only over a Snapshot)
 
 ```rust
-pub fn owns(owner:&Address, a:&Tumbler) -> bool;             // O1: pfx ≼ a — pure, stateless (delegates to M1)
+pub fn owns(owner:&Address, a:&Tumbler) -> bool;             // O1: pfx ≼ a — pure, stateless (delegates to M1).
+                                                            // Containment ONLY; sound for authorization solely
+                                                            // within a principal's own UNDELEGATED subtree.
 pub fn effective_owner(ns:&NamespaceState, a:&Tumbler) -> Option<Principal>; // ω: LONGEST-prefix match (O2)
 
 pub fn is_registered(ns:&NamespaceState, e:&Address) -> bool;            // e ∈ E
 pub fn registration_of(ns:&NamespaceState, e:&Address) -> Registration;  // Registered{level} | Unregistered
 pub enum Registration { Registered(Level), Unregistered }
 
-pub fn frontier_key(home:&Tumbler, mode:ChainMode) -> LockKey;          // M2 keyed-serialization seam
+/// The M2 keyed-serialization seam. Prepends the engine-owned 1-byte space tag `W::NS_FRONTIER_TAG`
+/// (from the engine crate's single central LockKey tag enum — NOT chosen per-call), then the `mode`
+/// and `home` bytes. Generic over W so the tag is sourced centrally per M2's cross-store-uniqueness rule.
+pub fn frontier_key<W: HasNamespace>(home:&Tumbler, mode:ChainMode) -> LockKey;
+
+/// Sub-account delegation keys under `Account` (home = the parent account). This is collision-free:
+/// vs `Document` under the same account-home it differs in `mode`; vs a node-home `Account` key it
+/// differs in `home` (no address is both a node, zeros 0, and an account, zeros 1).
 pub enum ChainMode { Account, Document, Version, Content, Link }
 
 pub fn genesis() -> NamespaceState;                          // Σ₀ slice: {[1]:Node} + Π₀ (O14)
@@ -131,7 +174,7 @@ M3 holds **no persistent state of its own** — its authoritative state is two `
 
 | Structure | Shape | Authority | Why |
 |---|---|---|---|
-| **Entity registry** | `im::OrdSet<Tumbler>` (nodes/accounts/documents/versions, all zeros ≤ 2) | **authoritative**, append-only | An *ordered* set (not the counter-map of ASN-0040) because M3 needs prefix-range queries — frontier max-under-prefix, version enumeration, descendant scans, `ω` — not just `next`. Ordered keys give the rightmost-descent frontier max in O(log n) and range scans free (the granfilade shape, ASN-0093). Membership-only: kind is derivable from the address (M1 `classify` + `document_field` length), so nothing to keep consistent. Structural sharing makes each baptism a cheap new version. |
+| **Entity registry** | `im::OrdSet<Tumbler>` (nodes/accounts/documents/versions, all zeros ≤ 2) | **authoritative**, append-only | An *ordered* set (not the counter-map of ASN-0040) because M3 needs prefix-range queries — frontier max-under-prefix, version enumeration, descendant scans, `ω` — not just `next`. Ordered keys give the rightmost-descent frontier max in O(log n) and range scans free (the granfilade shape, ASN-0093). **Membership-only:** kind is derived from the address — `classify` (M1) gives node/account/document/element by zero-count, and a *version* is distinguished from a *base document* by `document_field` length ≥ 2 (a version `[…,D,k]` vs a base `[…,D]`) — so nothing to keep consistent. The `kind` in `RegisterEntity` is therefore **advisory**: `apply` inserts the address only, storing no kind tag. Structural sharing makes each baptism a cheap new version. |
 | **Principal registry** | `im::OrdSet<Tumbler>` of ownership prefixes (zeros ≤ 1; ⊆ entities) | **authoritative**, append-only, immutable values (O12/O13) | The prefix *is* the principal (O1b injective). Everything else — domains, effective owner, the delegation forest — is derived (ASN-0042). Small (one entry per principal, per node), so this is the only ownership state. |
 | **Frontier** | *(none by default)* | **recomputable hint** | A pure function of the registry (B2; ASN-0093 stateless query-and-increment). Recompute on each allocation (range-max). No counter to drift or recover. |
 | **ω index / frontier counters** | optional `#[serde(skip)]` trie / `HashMap<(Tumbler,mode),Nat>` | **recomputable hints** | Materialize only under measured pressure; maintained in `apply`, reseeded by M2's `rebuild_derived` (Open decisions). |
@@ -142,24 +185,28 @@ Critically, **content/link element addresses (zeros = 3) are NOT in M3's registr
 
 ### 1. The frontier allocator — one `Chain`, level-aware by construction
 
-Every chain — account, document, version, content, link — is `S(anchor, g)`: first emission `inc(anchor, g)`, siblings `inc(·, 0)` (ASN-0040 `SiblingStream`). The single algorithm:
+Every chain — account, document, version, content, link — is `S(anchor, g)`: first emission `inc(anchor, g)`, siblings `inc(·, 0)` (ASN-0040 `SiblingStream`). The single algorithm, over any prefix-rangeable `members`:
 
 ```
-Chain{anchor, g}.next(members):
-    sub_anchor = anchor ++ [0]*(g-1)          // common prefix of all chain members
-    exact_len  = #anchor + g                  // every member has exactly this length
-    span       = subtree_of(sub_anchor)       // M1: half-open [sub_anchor, shift(sub_anchor,1))
-    match members.range(span).rev().find(|k| #k == exact_len) {   // lex-MAX member of this length
-        None      => self.first()             // inc(anchor, g)
+Chain{anchor, g}.next(members):                  // members: &impl ChainView
+    sub_anchor = anchor ++ [0]*(g-1)             // common prefix of all chain members
+    exact_len  = #anchor + g                     // every member has exactly this length
+    span       = subtree_of(sub_anchor)          // M1: half-open [sub_anchor, shift(sub_anchor,1))
+    // ChainView::range(&span) yields the members in [span.start, span.reach) ASCENDING — the
+    // collection's native range(span.start()..span.reach()); .rev() descends from the lex-greatest.
+    match members.range(&span).rev().find(|k| #k == exact_len) {   // lex-MAX member of this length
+        None      => self.first()                // inc(anchor, g)
         Some(max) => checked_inc(validate(max), 0)   // inc(max, 0); T4 preserved (always for k=0)
     }
 ```
+
+`ChainView` (not a bare iterator) is exactly what makes this the **O(log n + v) rightmost-descent** the data model promises — a bare `DoubleEndedIterator` has no `range`, would force an O(n) scan of *all* members, and could not abstract over both `entities: OrdSet<Tumbler>` and the content/link `OrdMap<Tumbler,V>` keys. The `span → start..reach` conversion is `ChainView::range`'s whole job: it maps the half-open `Span` to the collection's `range(span.start()..span.reach())`.
 
 **This is the level-awareness ASN-0103/0123 demand, and it falls out of `(sub_anchor, exact_len)`.** A document under account `A` is `Chain::document(A) = (A, g=2)` → `sub_anchor=[A,0]`, `exact_len=#A+2`. A version of document `d` is `Chain::version(d) = (d, g=1)` → `sub_anchor=d`, `exact_len=#d+1`. The two scans never see each other's members: a version `[A,0,k,m]` (length `#A+3`) is filtered out of the document scan by `exact_len=#A+2`, and a base document `[A,0,k]` is filtered out of the version scan by `exact_len=#d+1`. So `next_document` never re-mints an address a version fork will claim, and vice-versa — exactly ASN-0123's V0 / CND.monotone, achieved by separate frontiers, not by inspecting kinds.
 
 - **Common-case path:** the reverse range-scan skips only the lex-max document's own (few) versions before hitting it; `inc(·,0)` touches one component (M1 has no carry). O(log n + v).
 - **Why the length filter, and the Green-equivalent shortcut:** `truncate-then-increment` (take the overall lex-max under `sub_anchor`, truncate to `exact_len`, `inc(·,0)`) is the O(1)-after-max Green variant (ASN-0103) and is **provably equal** to the length-filter given P8 (a version's parent document exists, so no version ordinal exceeds the max document's). Use either; the length-filter is the spec statement, truncate-then-increment the faster impl. (Recommended choice in Open decisions.)
-- **Content/link** read M4/M7's slice generically (`OrdMap<Tumbler, V>`), so M3's code never names their value types — no `M3 → M4/M7` edge. `Chain::content(d)` anchors at `b_C(d)=inc(d,2)=[d.0.s_C]`, `Chain::link(d)` at `b_L(d)=inc(b_C(d),0)=[d.0.s_L]`, with `s_C=1, s_L=2` the fixed substrate convention (ASN-0093 SubspaceConventionAxiom). Subspace distinctness makes content/link freshness cross-subspace structural (T7).
+- **Content/link** read M4/M7's slice through `ChainView` (an `OrdMap<Tumbler, V>` keys-view), so M3's code never names their value types — no `M3 → M4/M7` edge. `Chain::content(d)` anchors at `b_C(d)=inc(d,2)=[d.0.s_C]`, `Chain::link(d)` at `b_L(d)=inc(b_C(d),0)=[d.0.s_L]`, with `s_C=1, s_L=2` the fixed substrate convention (ASN-0093 SubspaceConventionAxiom). Subspace distinctness makes content/link freshness cross-subspace structural (T7).
 - **Determinism & freshness by construction:** `next` is a pure function of the member set (B2), so it is memoizable, replayable, and the natural property-test oracle. Freshness is structural — the frontier is strictly past the max (FirstEmissionFreshness / SubsequentEmissionFreshness); M3 mints, never validates a caller-supplied address, so no active freshness check is needed.
 
 ### 2. The entity registry & admission gate
@@ -171,18 +218,24 @@ Registration is one `RegisterEntity` record folded into `entities` by `apply` (a
 - **Content/link home-scoping** (C2/L1a): before M5/M7 allocate content/link under `d`, they call `is_registered(document_of(a))`. M3 owns this check; the origin is recoverable from the address (M1 `document_of`), only its registration status needs the registry.
 - **Atomicity** (B4): a registration (and, for delegation, the principal) is one M2 transaction — one commit marker, none-or-all. M3 needs no journal of its own.
 
-`create_document` (ASN-0103): pre-checks `account ∈ entities ∧ Account`, `owns(by, account)`; allocates `Chain::document(account).next(entities)`; pushes `RegisterEntity{d, Document}`; returns `d`. It does **not** touch `M` — the arrangement is M5's, lazy (CND.empty realized as "absent until first edit"). Idempotency: each call baptizes a fresh address (no value-identity), so retry-dedup, if wanted, lives at M10's session layer (CND open decision).
+`create_document` (ASN-0103): pre-checks `account ∈ entities ∧ Account`, and `effective_owner(account) == Some(by)` — **ω effective ownership, not `owns` containment.** `account` may itself be delegated; authorizing by containment would let a covering node operator (`owns([1],[1,0,2]) = true`) baptize a document inside a delegate's account `[1,0,2]`, making `allocated_by([1], d)` hold while `ω(d)` is the delegate — violating ASN-0042 **O5** (the allocator must be the longest-prefix coverer) and O2/O8 (the `ownership-divergence` finding). This check is enforced **server-side**, treating the caller's claimed `account`/`by` as untrusted (ASN-0123). On success it allocates `Chain::document(account).next(entities)`, pushes `RegisterEntity{d, Document}`, and returns `d`. It does **not** touch `M` — the arrangement is M5's, lazy (CND.empty realized as "absent until first edit").
+
+**Entity kind is derived, not authoritative:** the `kind` in `RegisterEntity` is advisory — `apply` inserts the address into the membership set and stores no kind. A consumer recovers the level from the address (`classify`), and a *version* from a *base document* by `document_field` length ≥ 2. Idempotency: each call baptizes a fresh address (no value-identity), so retry-dedup, if wanted, lives at M10's session layer (CND open decision).
 
 ### 3. Ownership: `owns`, `ω`, delegation, fork
 
 - **`owns(owner, a) = is_prefix(owner, a)`** — pure containment (O1), evaluable anywhere, no state. May be true for several principals at once.
 - **`ω(a)` = longest-prefix match** over `principals` (O2). Default impl: `principals.range(..=a).rev()`, return the first element that `is_prefix(·, a)` — the largest set-element ≤ a that is a prefix of a is the longest prefix. Π is small (per node), so this is fine; a radix/PATRICIA trie or a cached `address→owner` hint (a stale entry can only be a prefix-*ancestor* of the true owner by monotonic refinement O3, so it never over-claims) are the scale-ups (Open decisions). **`owns` and `ω` must never be conflated** (ASN-0042 O2; the `tumbleraccounteq` divergence): a node operator's prefix *contains* every delegated account, so authorizing by containment hands it ownership of delegated subdomains — the exact violation of O2/O3/O8 that longest-match exists to prevent. Authorization over a possibly-delegated region uses `ω`; containment is sound only within a principal's own *undelegated* subtree.
-- **`delegate(by)`** = the account/sub-account creation gate (ASN-0042 O15). It allocates the next ownership-tier child under `by` — `Chain::account(by)` if `by` is a node (g=2 → zeros 1), `Chain::subaccount(by)` if `by` is an account (g=1 → zeros 1) — and pushes `RegisterEntity{p, Account} + RegisterPrincipal{p}` in **one** transaction. Of the five conditions, **(i) ancestry**, **(ii) authorization** (the new prefix is `by`'s own child, so `by` is its most-specific coverer), and **(iv) top-down-order** (frontier slot, nothing extends it yet) hold *by construction*; **(iii) account-floor** holds because `zeros(by) ≤ 1 ⇒ result zeros ≤ 1`; **(v) fresh-valid** is the frontier+`checked_inc` guarantee. Allocating at the frontier (not an arbitrary prefix) honors O17c (no delegating account #5 while #1–4 are unbaptized). Delegator identity is *not* stored — it is recomputable as the most-specific coverer (NestingByDelegation), valid while refinement stays monotone (Open decisions).
-- **`fork(by)`** ≡ `create_document` under `by`'s own account (O10): a fresh document one tier below the principal, owned outright (`zeros(a') = zeros(pfx)+1`), original untouched. M3 does only the allocation; the content transclusion is M5's COPY, the denial-trigger is M5/M10 policy.
+- **`delegate(by)`** = the account/sub-account creation gate (ASN-0042 O15). It allocates the next ownership-tier child under `by` — `Chain::account(by)` if `by` is a node (g=2 → zeros 1), `Chain::subaccount(by)` if `by` is an account (g=1 → zeros 1) — and pushes `RegisterEntity{p, Account} + RegisterPrincipal{p}` in **one** transaction. The **sole runtime check is `by ∈ principals`** (else `NotAPrincipal`); given that, O1a gives `zeros(by) ≤ 1`, and **all five O15 conditions hold by construction**: **(i) ancestry** and **(ii) authorization** (the new prefix is `by`'s own frontier child, so `by` is its most-specific coverer), **(iv) top-down-order** (a frontier slot, nothing extends it yet), **(iii) account-floor** (`zeros(by) ≤ 1`, and the mode — g=2 from a node, g=1 from an account — both yield result `zeros ≤ 1`), and **(v) fresh-valid** (the frontier + `checked_inc`). The chain is keyed via `frontier_key::<W>(by, Account)`, which is distinct from the `Document`-mode key under the same account-home, so subaccount and document allocation under one account never collide. Allocating at the frontier (not an arbitrary prefix) honors O17c (no delegating account #5 while #1–4 are unbaptized). Delegator identity is *not* stored — it is recomputable as the most-specific coverer (NestingByDelegation), valid while refinement stays monotone (Open decisions).
+- **`fork(by)`** (account-tier forker) ≡ `create_document(by, by)` (O10): a fresh document one tier below the account principal, owned outright (`zeros(a') = zeros(by)+1 = 2`), original untouched. The ω authorization that `create_document` now requires holds *by construction* — `by` is its own effective owner (`effective_owner(by) = by`; no longer prefix exists). O10's node-tier case (a non-owner *node*, whose fork would be an *account*, `zeros(pfx)+1 = 1`) is out of this operation's scope: `acct(node) = node` is Node-class, so a node-tier `by` is rejected `NotAnAccount` rather than silently mis-served — see Open decisions for the alternative (branch g=2 from the node). M3 does only the allocation; the content transclusion is M5's COPY, the denial-trigger is M5/M10 policy.
 
 ### 4. Version identity (for M5's VERSION)
 
-`alloc_version_identity(ns, src, by)` is the pure branch M5 folds into its VERSION composite (ASN-0123): **owned** (`ω(src)=by`) → `Chain::version(src).next(entities)`; **cross-owner account-tier** (`zeros(by)=1`) → `Chain::document(account_of(by)).next(entities)` (the fork lands in *the forker's own* account namespace — severance V9, server-side confinement, never the foreign document's subtree); **cross-owner node-tier** → `NodeTierCrossOwner` (out of VERSION's single-identity domain, P-tier). M5 pushes the returned `RegisterEntity{v, kind}`; M3 records the identity, M5 records the snapshot+provenance. (VD: reading the address as *derivation* is sound only while nothing but VERSION allocates into a version namespace — an allocator discipline, Open decisions.)
+`alloc_version_identity(ns, src, by)` is the pure branch M5 folds into its VERSION composite (ASN-0123): **owned** (`ω(src)=by`) → `Chain::version(src).next(entities)`; **cross-owner account-tier** (`zeros(by)=1`) → `Chain::document(by).next(entities)` (`by` *is* its own account; the fork lands in *the forker's own* account namespace — severance V9, server-side confinement, never the foreign document's subtree); **cross-owner node-tier** → `NodeTierCrossOwner` (out of VERSION's single-identity domain, P-tier).
+
+It **assumes `src` is registered** — M5 discharges P8 by its own `is_registered(src)` edit-precondition before folding this in, so `SourceNotDocument` here is purely the **class** check (`src` must be Document-class). The frontier *key* differs by branch — `frontier_key::<W>(src, Version)` (owned) vs `frontier_key::<W>(by, Document)` (cross-owner) — and the per-key M2 realization needs that key chosen *before* `transact` opens, so M5 resolves the branch up front via `version_frontier_key(ns, src, by)` (which runs the same `ω(src)`/class checks and returns the matching key, or `NodeTierCrossOwner`/`SourceNotDocument`).
+
+**Derive caveat (V9):** a cross-owner version is minted *as a document* in `by`'s account (`[by,0,j]`), so it derives as `Document` (document_field length 1) — state-indistinguishable from a fresh document, which is exactly correct per V9; only the *owned* version derives as `Version` (document_field length ≥ 2). M5 pushes the returned `RegisterEntity{v, kind}` (kind advisory); M3 records the identity, M5 records the snapshot+provenance. (VD: reading the address as *derivation* is sound only while nothing but VERSION allocates into a version namespace — an allocator discipline, Open decisions.)
 
 ### 5. Genesis & node provisioning
 
@@ -204,18 +257,20 @@ Registration is one `RegisterEntity` record folded into `entities` by `apply` (a
 - **Ownership by prefix, no side table** (O1 ASN-0042); **exclusivity** (O2: longest-match + injectivity); **monotonic refinement** (O3); **node-locality** (O9: delegation extends, never crosses, the node component); **immutable prefixes / no expiry** (O12/O13).
 - **Content-independence / ghosts** (B3 ASN-0040): registration never consults bytes; immediate referability (CND.refer) = membership.
 - **Document-level shape** (M0 ASN-0093): documents have `zeros=2` by the allocator's mode-2 minting.
+- **Delegation conditions** (O15 ASN-0042): given `by ∈ principals` (O1a ⇒ `zeros(by) ≤ 1`), all five O15 conditions hold by construction (§3) — the only runtime check is principal-membership.
 
 **By active enforcement** (a named gate guards):
-- **Same-namespace uniqueness** (B8-same / B-Seq ASN-0040): serialize same-chain commits via M2's keyed critical section, key = `frontier_key(home, mode)`. *Where:* every alloc `transact`.
+- **Same-namespace uniqueness** (B8-same / B-Seq ASN-0040): serialize same-chain commits via M2's keyed critical section, key = `frontier_key::<W>(home, mode)`. *Where:* every alloc `transact`.
 - **B6 / T4 admission** (B6 ASN-0040): `checked_inc` before every mint. *Where:* `Chain::next`/`first`.
 - **Parent-exists** (P8 ASN-0047): `is_registered(parent)` before entity creation. *Where:* entity ops.
 - **Content/link home-scoping** (C2/L1a ASN-0093): `is_registered(document_of(a))` before content/link alloc. *Where:* M5/M7 call M3's check.
 - **Atomicity** (B4 ASN-0040): registration (+ principal) = one M2 transaction. *Where:* the `transact` boundary.
-- **Prefix-injectivity & account-floor** (O1b/O1a/iii ASN-0042): delegation rejects non-fresh or `zeros>1` prefixes. *Where:* `delegate`.
-- **Delegation gate** (O15 ASN-0042): five conditions — three by construction, account-floor + fresh-valid checked. *Where:* `delegate`.
+- **Prefix-injectivity** (O1b ASN-0042): the principal set is injective on prefixes; delegation only ever adds a fresh frontier child. *Where:* `delegate`.
+- **Principal-membership for delegation** (O15 ASN-0042): `delegate` rejects `by ∉ principals` (`NotAPrincipal`); the five O15 conditions then hold by construction. *Where:* `delegate`.
 - **`ω` is longest-match, not containment** (O2 ASN-0042): the resolver picks the longest prefix. *Where:* `effective_owner`.
+- **Authorization uses `ω`, not containment** (O5/O2 ASN-0042): `create_document` (and `fork`) gate on `effective_owner(account) == Some(by)`, never `owns` — `account` may be delegated, and containment would let a covering node operator baptize in a delegate's account (the `ownership-divergence` violation of O5/O2/O8). *Where:* `create_document`, server-side.
 - **Level-aware frontier separation** (ASN-0103, ASN-0123 V0): `(sub_anchor, exact_len)` keep document and version chains disjoint. *Where:* `Chain`.
-- **Cross-owner version confinement** (V9 ASN-0123): seat the fork in the forker's own account, server-side. *Where:* `alloc_version_identity`.
+- **Cross-owner version confinement** (V9 ASN-0123): seat the fork in the forker's own account, server-side. *Where:* `alloc_version_identity` / `version_frontier_key`.
 - **Unbounded extent** (B9 ASN-0040): ordinals are M1 `Nat` (bignum). *Where:* the value type.
 - **Bootstrap conformance** (O14 ASN-0042): `genesis()` satisfies all eight clauses.
 - **Node lineage** (NodeBaptism/NodeLineage ASN-0047): `register_node` checks `n₀ ≼ e` + freshness.
@@ -228,32 +283,33 @@ Registration is one `RegisterEntity` record folded into `entities` by `apply` (a
 - `is_prefix` — `owns`, `ω`, delegation ancestry.
 - `classify`/`Level`, `document_field` length — derived entity kind, version-vs-document.
 - `parent`, `document_of` — P8 parent, content/link origin-scoping.
-- `subtree_of` — the frontier range-scan span.
+- `subtree_of`, `Span` — the half-open frontier-scan interval `ChainView::range` consumes.
 - `validate` — admission of external node addresses; re-Address-ing a registry max.
 
 **Upstream — M2 (Transaction/Journal/Concurrency):**
 - `transact` — all M3 mutations (single-family ops standalone; pure forms folded by M5/M7).
 - `snapshot`/`Snapshot`/`Seq` — read-only queries report against a single pinned state.
 - `WorldState`/`Record`/`apply` — M3 contributes `NamespaceState`, `NsRecord`, `apply` (via `HasNamespace`).
-- `LockKey` — `frontier_key(home, mode)` from the central tag enum (clause-2 serialization seam; subsumed by M2 v1's single applier but the standing seam for the per-key realization).
+- `LockKey` — `frontier_key::<W>(home, mode)` prepends the engine-owned `W::NS_FRONTIER_TAG` (from the engine crate's single central tag enum, never chosen in M3); the clause-2 serialization seam — subsumed by M2 v1's single applier, but the standing seam for the per-key realization.
 - recovery — M3's registry is replay-recovered by M2; no M3 journal.
 
 **Downstream seams (the contracts neighbors build against):**
-- **→ M4:** content addresses arrive as parameters — M3 mints via `alloc_content_address`, M4 stores the value; M4 calls no allocator and M3 records nothing in M4's slice.
-- **→ M5:** `alloc_content_address` and `alloc_version_identity` are **pure** functions M5 folds into its placement/VERSION composites (M2 contract (3) — never nested `transact`s), plus `ns_record_register` to push; `is_registered(d)` is M5's edit precondition (the only `M5 → M3` read). M3 never materializes `M(d)` (no `M3 → M5`).
+- **Engine crate (composition seam):** implements `HasNamespace` for the concrete `W` (supplying `NS_FRONTIER_TAG` from its central `LockKey` tag enum and the `ns`/`wrap` projections), and implements `ChainView` for `im::OrdSet<Tumbler>` and `im::OrdMap<Tumbler,V>` keys so the one `Chain::next` serves every chain.
+- **→ M4:** content addresses arrive as parameters — M3 mints via `alloc_content_address` (a pure `ChainView` scan over M4's address-keyed slice), M4 stores the value; M4 calls no allocator and M3 records nothing in M4's slice.
+- **→ M5:** `alloc_content_address` and `alloc_version_identity` are **pure** functions M5 folds into its placement/VERSION composites (M2 contract (3) — never nested `transact`s), plus `ns_record_register` to push. For VERSION, M5 also calls `version_frontier_key(ns, src, by)` to pick the owned-vs-cross-owner serialization key (an `ω(src)` test) *before* opening its `transact`, and discharges `alloc_version_identity`'s `src`-registered assumption via its own `is_registered(src)` edit-precondition (the only `M5 → M3` read). M3 never materializes `M(d)` (no `M3 → M5`).
 - **→ M6 / M8:** `is_registered` / `registration_of` — M6/M8 own the *registered-empty (⟨⟩) vs unallocated (fail)* distinction by combining M3's membership with M5's arrangement; M3 answers only "registered?".
-- **→ M7:** `alloc_link_address` (pure) + `is_registered(document_of(ℓ))` (L1a scoping). M7 stores the link value and supplies its own dedup coverage-class key to M2.
+- **→ M7:** `alloc_link_address` (pure, `ChainView` over M7's slice) + `is_registered(document_of(ℓ))` (L1a scoping). M7 stores the link value and supplies its own dedup coverage-class key to M2.
 - **→ M9:** `effective_owner` for residence resolution; `is_registered`.
 - **→ M10:** `create_document`, `delegate`, `fork`, `register_node` — the standalone transact ops M10 dispatches and acks after commit.
 
 ## Conflicts resolved
 
 - **No parent-baptized precondition (ASN-0040 Bop) vs parent-exists (ASN-0047 P8).** The "baptize beneath an unbaptized parent" freedom is for **content ghosts** (not in M3's registry); for **entities**, M3 enforces P8 (`is_registered(parent)`). The two notes describe different layers, not a contradiction.
-- **Unified store Σ=(C,L,M) with one allocator (ASN-0093) / `s.B` holding all baptized incl. content (ASN-0040) vs M3 owning only entities.** Resolution (per ASN-0047 `E` ⊆ {zeros ≤ 2}): M3 owns the **allocation discipline** (one `Chain` algorithm for every chain) and the **entity registry**; content/link **membership** lives in M4/M7. The allocator reads the relevant slice for its frontier — its own `entities` for entity chains, M4/M7's slice (generically, no edge) for content/link. This splits ASN-0093's unified state across modules while keeping one minting algorithm.
+- **Unified store Σ=(C,L,M) with one allocator (ASN-0093) / `s.B` holding all baptized incl. content (ASN-0040) vs M3 owning only entities.** Resolution (per ASN-0047 `E` ⊆ {zeros ≤ 2}): M3 owns the **allocation discipline** (one `Chain` algorithm for every chain) and the **entity registry**; content/link **membership** lives in M4/M7. The allocator reads the relevant slice for its frontier through `ChainView` — its own `entities` for entity chains, M4/M7's slice (via the trait, no edge) for content/link. This splits ASN-0093's unified state across modules while keeping one minting algorithm.
 - **Eager `M(d)=∅` at creation (ASN-0103) vs lazy arrangement.** Per the decomposition, M3 registers `d` in `E` only; `M(d)=∅` is M5's lazy state. This breaks the `M3 → M5` cycle the eager form would create.
 - **Counter-only registry (ASN-0040 recommendation) vs ordered map.** Resolved to an **ordered set**: M3 needs prefix-range queries (`ω`, version/descendant enumeration, level-filtered frontier max), which counters cannot serve; the ordered set also subsumes ASN-0040's auxiliary non-child-seed-root set.
 - **Frontier authoritative ("persists frontier", decomposition) vs recomputable (ASN-0040/0093).** The **registry is authoritative**; the **frontier is a recomputable hint** (recompute-default). "Persists frontier" means: any cached frontier hint rides in M2's `W` and is recovered by replay — never an authoritative counter.
-- **`owns` (containment) vs `ω` (longest-match).** Provided as distinct functions; authorization over possibly-delegated regions uses `ω`, never containment — the `tumbleraccounteq`/node-operator divergence (O2/O3/O8).
+- **`owns` (containment) vs `ω` (longest-match).** Provided as distinct functions. **Authorization over any possibly-delegated region uses `ω`, never `owns`:** `create_document`/`fork` gate on `effective_owner(account) == Some(by)`. ASN-0103's literal `pfx(π) ≼ A` (CND.pre) is its *pre-delegation* form, which ASN-0103 explicitly defers; the integrated module sharpens it, because an `account` can be delegated and containment would let a covering node operator (`owns([1],[1,0,2]) = true`) baptize a document in a delegate's account — `ω(d)` the delegate — violating O5 (the allocator must be the longest-prefix coverer) and the `ownership-divergence` finding (O2/O3/O8). `fork`/`delegate`/`alloc_version_identity` allocate strictly under `by`, so `by = ω` holds there by construction. The two-valued `tumbleraccounteq` containment is correct only within a principal's own *undelegated* subtree.
 - **Reserve-then-confirm finality (ASN-0040 option) vs commit-as-finality.** Baptism is final at M2's commit marker; no two-phase reserve window (which would add semantics beyond the notes and risk B1 gaps).
 - **Terminology:** "account" is canonical for the zeros=1 tier (M1's resolution); "user"/`U` is retained only as M1's field-projection symbol.
 
@@ -261,11 +317,13 @@ Registration is one `RegisterEntity` record folded into `entities` by `apply` (a
 
 - **Frontier max impl:** length-filter reverse-scan (the spec form) vs **truncate-then-increment** (Green's O(1)-after-max, provably equal given P8; recommended — needs a truncate-to-length helper over M1's `Tumbler::new`).
 - **Frontier strategy:** recompute-from-registry (recommended default) vs a cached `(home,mode)→ordinal` hint in `W` (only under measured allocation pressure; content/link frontier caches, if any, belong in M4/M7's slice, not M3's).
-- **Content/link frontier-source coupling:** generic `OrdMap<Tumbler,V>` (recommended, dependency-clean) vs a `ChainView` trait vs caller-extracts-max-and-passes-it.
+- **Content/link frontier-source coupling:** *resolved* to a `ChainView` trait — one prefix-rangeable abstraction (`range(&Span) -> impl DoubleEndedIterator<&Tumbler>`) implemented for `OrdSet<Tumbler>` and `OrdMap<Tumbler,V>` keys, so the single `Chain::next` serves entity and content/link chains in O(log n + v) with no M3→M4/M7 edge. (The earlier bare-`OrdMap` option could not also serve `entities: OrdSet`; a bare iterator could not range — both rejected.)
+- **`frontier_key` space tag:** *resolved* — `frontier_key::<W>` and `version_frontier_key::<W>` source the 1-byte tag from `W::NS_FRONTIER_TAG` (the engine crate's central `LockKey` enum), per M2's cross-store-uniqueness rule. Not a v1 blocker (keys are subsumed by the single applier); it is the standing seam for the per-key realization. (Alternative not taken: a tag-less key body the engine completes.)
+- **`fork` node-tier scope:** restrict to account-tier forkers (recommended; a node-tier `by` ⇒ `acct(node)=node` is Node-class ⇒ `NotAnAccount`) vs implement O10's node case (branch `Chain::account(by)` g=2 to produce an owned account, `zeros(pfx)+1 = 1`).
 - **`ω` resolver structure:** linear/floor-walk scan (small Π, default) vs radix/PATRICIA trie vs cached `address→owner` hint (stale entries are safe ancestors by O3).
 - **Delegate-prefix policy:** next-available-slot (Green-faithful, O17c; recommended) vs baptize-intermediates to reach a chosen prefix.
 - **Delegator identity:** recompute via most-specific-cover (recommended while transfer is absent) vs store it (needed if ownership transfer is ever introduced).
-- **Entity record content:** membership-only `OrdSet` (recommended; kind derived) vs a stored `EntityKind` tag for convenience.
+- **Entity record content:** membership-only `OrdSet` (recommended; kind derived and advisory) vs a stored `EntityKind` tag for convenience.
 - **VD enforcement:** enforce "only VERSION allocates into a version namespace" (so the address decodes as derivation) vs accept the final component as *allocation* order and recover derivation otherwise.
 - **Batch content allocator:** offer M5 an `m`-consecutive-addresses helper (one `base()` read + count) vs per-atom recompute-against-`working()` (both correct; the latter is the M2-seam default).
 - **Cross-owner node-tier version:** reject (P-tier, recommended) vs extend VERSION to mint the account+document pair.
