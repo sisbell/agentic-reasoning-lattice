@@ -1,0 +1,19 @@
+## Review: M2 — Transaction, Journal & Concurrency Kernel
+
+I worked through this as a builder would: the trait, the `transact` flow, the two-pass recovery, the keyed sections, and the three conflict resolutions — checking each load-bearing claim against ASN-0047 and ASN-0134. The v1 single-applier kernel is **fully specified and buildable**: the WAL discipline (append→marker→barrier→install), the truncate-or-poison failure path, the `W`-derivation and corrupt-run classification, and the persistent-root snapshot mechanism all typecheck against the interface and hang together. Faithfulness is strong — all seven MIC clauses are discharged or correctly delegated, A1/A2/A5/A7/V0–V2/G1 are honored, the J-couplings and address math are cleanly disclaimed to the stores, and the over-satisfy-clause-5 content-run handling (mint against `working()`, commit as one `transact`) is exactly OQ4 and is correct. The three note-conflicts (composite-atomicity vs A5; single-writer vs G1; visible-after-durable vs durability-orthogonal) are each stated and resolved soundly. The deferred per-key/CAS concurrency is a sanctioned scope-cut, cleanly seamed by the invariant `transact`/`LockKey` signatures.
+
+I found no material problem that would stop or mislead a builder of v1. The items below are polish.
+
+### Revision list
+
+1. **[SHARPENING]** Pin the exact `records_checksum` input. §1/Open-build-decisions fix the *requirement* (a checksum over the txn's record frames, distinct from the per-frame `crc`) but leave the byte-layout open. Because recovery **regroups frames by `txn` after a `magic`-resync may have skipped one**, write-time and recovery-time must provably compute over the same bytes in the same order. State it canonically — e.g. "CRC32C over each record frame's *payload* bytes concatenated in ascending `Seq` order" — so the grouped-recompute and the write-time value cannot diverge by layout choice.
+
+2. **[SHARPENING]** In hard-contract (3) and the seam examples, clarify that a neighbor's *pure step function* takes the **relevant world slice** (extracted by the engine-crate closure from `&W`), or is generic over a view trait the neighbor defines — not the engine's concrete `World` named directly. As written, "a pure function over a supplied `&W`" plus `recompute_max_under(stg.working(), …)` reads as M3 (a foundation crate, below the `World` composition) naming `World`, which is a dependency cycle. M2's own API (`base()/working() -> &W`) is correct; only the depiction of the neighbor signature invites the misread, and it sits in a *hard contract* M3/M5 must publish against up front.
+
+3. **[SHARPENING]** Name the segment-metadata synchronization. Checkpoint-time reclamation drops whole segments while a writer may concurrently rotate to a new segment; both mutate the segment list. State the brief guard (mutex or atomic swap) on the segment-metadata list so "Non-blocking to writers" (§6) is precise — the *append* path is lock-free against checkpoint; only the list mutation briefly synchronizes.
+
+4. **[SHARPENING]** State the `Durability::InMemory` `open()` path explicitly: it ignores `journal_path`, performs no recovery pass, and initializes the root directly from `genesis` at `S_load = 0`. The design implies this ("no recovery story") but never says what `open` actually *does* in that mode — the one constructor whose behavior under InMemory is left to inference.
+
+5. **[SHARPENING]** Consolidate the `Seq`/`idx(σ)`/`𝔼`-refinement exposition. It is stated in full three times — the `Seq` doc-comment, §2, and the first Invariants bullet — for a correspondence M2 **branches on nowhere** ("descriptive only"). Keep one canonical statement (§2) and have the doc-comment and invariant cross-reference it; the triplication is reading-burden, not content.
+
+VERDICT: CONVERGED
