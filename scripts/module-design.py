@@ -51,6 +51,7 @@ NOTE_DIR = ROOT / "_docuverse/documents/1.1/1/note"
 MODULES_DIR = ROOT / "_design" / "modules"
 MODULES_MD = MODULES_DIR / "modules.md"
 MODULES_YAML = MODULES_DIR / "modules.yaml"
+COMPOSITION_MD = MODULES_DIR / "engine-composition.md"  # the cross-cutting store↔engine seam contract
 OUT_ROOT = ROOT / "_design" / "module-designs"
 PROMPTS = ROOT / "prompts/shared/module-design"
 
@@ -284,6 +285,11 @@ def main():
     if not MODULES_MD.exists():
         sys.exit(f"error: {MODULES_MD.relative_to(ROOT)} missing (the decomposition).")
     decomposition = MODULES_MD.read_text().strip()
+    # Append the engine-composition contract — the cross-cutting store↔engine seam every store
+    # must realize identically (generic over W, own XRec, From-lift, no concrete World/Record).
+    # Folded into `decomposition` so it reaches producer + reviewer + reviser with no prompt change.
+    if COMPOSITION_MD.exists():
+        decomposition += "\n\n---\n\n" + COMPOSITION_MD.read_text().strip()
     sources_blob = _sources_blob(sources, with_statements)                 # producer: + digests
     review_sources_blob = _sources_blob(sources, with_statements, digests=False)  # review/revise: statements only
     upstream_blob = _upstream_blob(deps, mods)
