@@ -55,12 +55,18 @@ For a store `X` (e.g. `Namespace`, `ContentStore`):
   store's slice in a closure adds that store's accessor to its bound
   (`W: … + HasNamespace + HasContent`) and calls the upstream's **pure** function —
   never a nested `transact`, never the concrete type.
-- **Shared low-level types live below every store.** The central `LockKey`
-  **space-tag enum** (M2's 1-byte cross-store tag) and any type every store must
-  name live in `skep-kernel` (or a shared base crate) — **never** in the engine
-  assembly crate — so a generic store can reference its tag without depending on
-  the assembler. (Each store is assigned one tag; tags are unique by living in the
-  one enum.)
+- **Shared low-level types live below every store** — **never** in the engine
+  assembly crate (that would cycle), and placed by *what they name*:
+  - The central `LockKey` **space-tag enum** (M2's 1-byte cross-store tag) and
+    subspace constants like `s_C` name only M2 types, so they live in
+    **`skep-kernel`**. (Each store is assigned one tag; tags are unique by living
+    in the one enum.)
+  - A shared **`key(home: &Address, …) -> LockKey`** constructor names *both*
+    `Address` (M1) **and** `LockKey` (M2), so it **cannot** live in `skep-kernel`
+    (M2 has no edge to M1) — it must live in a **shared base crate that depends on
+    both `skep-address` and `skep-kernel`**. Every store building a namespace lock
+    key calls *that* one constructor, so M3-alloc / M4-write / M5-placement keys
+    are byte-identical by construction.
 
 ## The engine crate assembles
 
