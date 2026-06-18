@@ -1,0 +1,15 @@
+## Revision list
+
+1. **[SHARPENING] Make `stage_write` the genuine sole constructor of `ContentWrite` by privatizing its fields.** The design's *one* active guard — S0(b) no-overwrite — lives entirely in `stage_write`, and the fold (`apply_write`) is deliberately total and overwrites via `map.update`. But `ContentWrite { pub addr, pub val }` lets any caller construct a record directly and `stg.push(rec.into())` straight into the total fold, bypassing the `AlreadyPresent` check the design calls "M4's *one* genuine guard." Privatize `addr`/`val` (serde still deserializes private fields for M2's journal replay; the engine only `From`-lifts and folds, never constructs a `ContentWrite` from scratch), so the "sole sanctioned producer" claim becomes compiler-enforced rather than convention. Optionally add a `debug_assert!(!self.map.contains_key(&r.addr))` tripwire inside `apply_write` (it stays total/infallible in release) as a second net.
+
+2. **[SHARPENING] Fix the stray "M1 growth" attribution in the by-construction invariants.** The first bullet reads "S0(a) domain-persistence; S1 / **M1** growth (ASN-0036 S0/S1; ASN-0093 C0)". ASN-0093's **M1 is `ArrangementMonotonicity` (`dom(M) ⊆ dom(M')`)** — an M5/arrangement invariant, not a content-store-growth invariant. The claim itself (`dom(C) ⊆ dom(C')`) and its parenthetical citations (S0/S1 from ASN-0036, C0 from ASN-0093) are correct; just drop/relabel the "M1" so the invariants section doesn't misattribute an M5 invariant to M4.
+
+3. **[SHARPENING] Complete the contract-required standalone `write` body.** Its production-danger is well-flagged, but the wrapper is left implicit: state that it derives its key as `key(document_of(addr), s_C)` via the shared key constructor, calls `stage_write(stg.working().content(), …)` then `stg.push(rec.into())`, and — being test/isolation-only — how it handles `document_of(addr) == None` (internal error / `expect`, since no production caller reaches it). The pure `stage_write` is the real export and is fully specified; this only finishes the mechanical second form.
+
+4. **[SHARPENING] Repair the illustrative `value_at` call so it doesn't model a dangling borrow.** The returned `&Val` borrows *through* the pinning `Snapshot`, so the doc's `k.snapshot().world().content().value_at(a)` (a borrow into a dropped temporary) won't compile as written — the caller must bind the snapshot first: `let s = k.snapshot(); s.world().content().value_at(a)`. Cosmetic, but worth correcting so M6/M9 builders don't copy the pattern.
+
+---
+
+The module is buildable, interface-faithful (engine-plug names match the composition contract exactly; every M1/M2 call exists), and boundary-clean: S0/S1/S3-oracle/S4/S5/no-GC are honored, C1/C1b/C1c/C2 are correctly left to M3 (M4 has no M3 edge to check them), the "(a hint)" → "authoritative slice" reframe is correctly grounded in the Overview and engine contract, and all five note-conflicts are resolved soundly. No dropped contract, no invented upstream API, no overreach, no hole. The items above are hardening, not blockers.
+
+VERDICT: CONVERGED
