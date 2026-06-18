@@ -29,3 +29,9 @@ articles/
 # Rust build artifacts
 target/
 Cargo.lock
+
+# standalone spec export repo (its own git repo)
+xanadu-specification/
+
+# standalone implementation repo (its own git repo; name provisional)
+skep/
