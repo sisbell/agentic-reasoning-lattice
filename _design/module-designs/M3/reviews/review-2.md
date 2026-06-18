@@ -1,0 +1,22 @@
+I reviewed M3 against M1/M2 as given and the six source notes. The allocator core (counter‑frontier, `(parent,g)` keying, `shift`‑based subsequent emission, decompose‑and‑compare membership, the ω walk, the delegation gate, and all five conflict resolutions) is sound and faithful — the document‑vs‑version separation, P8‑for‑delegated‑accounts, and lazy‑arrangement decisions are all correct. One material gap blocks a clean build.
+
+## Revision list
+
+**1. [DEFECT] Add `PrincipalId → prefix` resolution; several ops and a seam need it but nothing provides it.** Every entity op takes `caller`/`delegator: PrincipalId`, yet three places need that principal's ownership prefix:
+- `fork(caller)` is *defined* (Public interface B) as "reduce to `create_new_document(caller, pfx(caller))`" — it must produce `pfx(caller)` from the id.
+- The `M5 → M3` seam for cross‑owner CREATENEWVERSION calls `mint_document(pfx(π))`; M5 holds the forker's id (consistent with M3's id‑centric ops) and has **no exposed M3 query** to obtain `pfx(π)`.
+- `delegate`'s own `DelegatorUnknown` error and condition (i) `pfx(delegator) ≺ new_prefix` (§6) require looking the delegator up by id.
+
+But `principals: im::OrdMap<Tumbler, Principal>` is keyed by **prefix**, and section C exposes no id→prefix lookup, so this is not a point lookup and is unspecified. As written, `fork` cannot compute `pfx(caller)` and M5's cross‑owner branch is unbuildable. **Fix:** add `fn principal_prefix(&self, id: PrincipalId) -> Option<Address>` (and `principal_by_id`) to the section‑C query surface *and* to the M5→M3 seam; implement as an O(|Π|) scan over `principals.values()` (Π is small by O1a) or back it with a folded `im::HashMap<PrincipalId, Tumbler>` reverse index (a recomputable hint). Use it in `fork`/`delegate`. (Alternatively, change the op signatures and the M5 seam to carry the prefix directly — but the resolution must live somewhere, and `principals` being prefix‑keyed means M10 would need the same query.)
+
+**2. [SHARPENING] Single‑source the mint/lock‑key mirror and pin the `NsKey` byte encoding.** The whole serialization argument (§8) rests on the key `mint_content` returns being byte‑identical to the `content_lock_key` passed to `transact` — a divergence under‑serializes a namespace and *reuses an address*, the one fatal error. Make each `mint_*` compute its returned `LockKey` by *calling* the matching `*_lock_key` constructor (one code path), and specify the `NsKey → LockKey` encoding as injective/length‑delimited, prefixed with M2's central‑enum space tag (a `NAMESPACE` tag distinct from the `PRINCIPALS` tag), so distinct namespaces never alias.
+
+**3. [SHARPENING] Specify `register_node`'s transaction keys.** It is the one mutator §8 omits. Because node admission is an idempotent `OrdSet` insert with monotone freshness, it needs no namespace lock for safety — state that — or give it a coarse node‑registry `LockKey` if you want concurrent duplicate `RegisterNode` to surface `NotFresh` rather than silently coalesce.
+
+**4. [SHARPENING] Surface the O10 node‑tier narrowing as an explicit conflict and correct the "must delegate" framing.** Scoping `fork` to account‑tier makes M3 treat accounts as ≡ principals — coherent, and exactly what `create_new_document`'s ω‑auth assumes. But it intentionally drops O10's node‑tier case (a node principal forking a *self‑owned* account with no new principal), and the claim that such a caller "must delegate an account first" (§7) is not an equivalent substitute: `delegate` mints a *new* principal and moves effective ownership to it (O7), rather than leaving the account under the node principal. State this in Conflicts resolved, not just as a fork aside.
+
+**5. [SHARPENING] Fix the `nodes`‑set source attribution.** The data‑model note calls the explicit node set "ASN‑0040's mandatory auxiliary set for non‑child roots." ASN‑0040 mints only children via `baptize(p,d)` and seeds roots in `B₀`; it has no node‑admission mechanism. The ongoing‑admission rationale (externally minted, possibly non‑contiguous) is ASN‑0047 `NodeBaptism` — cite that.
+
+**6. [SHARPENING] Tighten the M1 `Address`/`Tumbler` call sites.** Snippets call `zeros(a)`/`ordinal(a)` with `a: &Address` though M1 types them over `&Tumbler`, and `decompose(addr: &Tumbler)` feeds `parent` (which takes `&Address`) a bare `Tumbler`. Insert the `.tumbler()` projections and the `validate(addr).unwrap()` step (minted addresses are always T4‑valid, so it cannot fail) so the code typechecks as written.
+
+VERDICT: REVISE
