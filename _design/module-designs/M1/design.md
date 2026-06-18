@@ -10,6 +10,8 @@ It deliberately does **not** own: the **allocator** — the durable monotone fro
 
 Indices are **1-based** to match the spec (`#t`, `t₁..t_{#t}`, `actionPoint ∈ [1,#t]`); implement over 0-based storage. `Nat = num_bigint::BigUint` (arbitrary precision — T0(a) is non-negotiable; see Open decisions for the alternatives).
 
+Every value type that crosses a store's journal/checkpoint boundary — `Tumbler`, `Address`, `Span`, `SpanSet`, `Level` — derives **`Serialize + Deserialize`**. M2's `WorldState` slices and `Record`s are `Serialize + DeserializeOwned`, and these types are the stores' keys and payloads, so a store cannot journal or checkpoint without them (surfaced by M4, the thinnest store — it journals a bare `Tumbler` key). This requires `num-bigint` built with its **`serde` feature** so `Nat = BigUint` serializes; M1 (or the shared base crate owning `Tumbler`) carries that obligation.
+
 ```rust
 // Error types referenced throughout (T4Clause/T12Clause/ElemError are declared with their ops below):
 pub struct EmptySequence;                                 // Tumbler::new on the empty sequence (T0)
@@ -25,10 +27,10 @@ pub enum   SplitError { NotInterior,  LevelMismatch }      // split: ¬(start<p<
 ### A. Tumbler value, identity, order
 
 ```rust
-pub type Nat = num_bigint::BigUint;
+pub type Nat = num_bigint::BigUint;   // num-bigint built with its `serde` feature ⇒ Nat serializes
 pub type Pos = usize;                 // 1-based component index; see "unbounded length" below
 
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Tumbler(/* immutable sequence of Nat, len ≥ 1 */);
 
 impl Tumbler {
@@ -49,8 +51,8 @@ pub fn is_prefix(p: &Tumbler, q: &Tumbler) -> bool;   // p ≼ q
 ### B. Validation, classification, field & containment projections
 
 ```rust
-#[derive(Clone, Copy, PartialEq, Eq)] pub enum Level { Node, Account, Document, Element }
-#[derive(Clone, Copy, PartialEq, Eq)] pub enum Class { Node, Account, Document, Element, Invalid }
+#[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize)] pub enum Level { Node, Account, Document, Element }
+#[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize)] pub enum Class { Node, Account, Document, Element, Invalid }
 pub enum T4Clause { LeadingZero, TrailingZero, AdjacentZeros, OverDepth }
 
 pub fn zeros(t: &Tumbler) -> usize;                   // separator count — UNBOUNDED (T0(b)); usize, never u8
@@ -66,7 +68,7 @@ pub fn validate(t: Tumbler) -> Result<Address, T4Error>;
 /// is discharged at each mint site — *checked* by `validate` and `elem_addr`, *preserved*
 /// by `parent`, `document_of`, and `checked_inc`. `level` is a derived constant (immutable ⇒
 /// never stale; not a hint).
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Address { /* Tumbler */ , level: Level }
 
 impl Address {
@@ -145,7 +147,7 @@ pub fn shift_ordinal(p: &ElemPos, n: &Nat) -> ElemPos;    // ordinal += n only (
 ### F. Spans
 
 ```rust
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Span { start: Tumbler, width: Tumbler }        // reach derived; (start,width) authoritative
 pub enum T12Clause { ZeroWidth, ActionPointTooDeep }
 
@@ -181,7 +183,7 @@ pub fn difference(a: &Span, b: &Span)-> Result<SpanSet, LevelMismatch>;      // 
 /// forms and are NOT denotational identity. The denotational, content-addressed identity is
 /// `CanonicalForm` (the unique normalized form, S9); use that as a dedup/cache key, never a
 /// raw `SpanSet`.
-#[derive(Clone, PartialEq, Eq, Hash)] pub struct SpanSet(/* im::Vector<Span> (default) */);
+#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)] pub struct SpanSet(/* im::Vector<Span> (default) */);
 
 /// The unique normalized form (S9) as a content-addressed identity. `Hash + Eq` so it serves
 /// directly as M7's dedup/cache key. Invariant: the inner SpanSet is normalized.
