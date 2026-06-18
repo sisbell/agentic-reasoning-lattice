@@ -21,7 +21,10 @@ modules:
   M3:
     name: "Namespace: Allocation, Registry & Ownership"
     # mint unique addresses, record existence, resolve ownership by prefix
-    sources: [40, 93, 47, 34, 42, 103, 123]
+    # 0034 → digest-only: a full-run test showed M3 cites it 2x (backing theory only); its
+    # inc primitive comes via M1's interface and its allocation contracts from 0093/0040.
+    # Feeding its 212KB claim-aggregate was a third of context and pure dilution.
+    sources: [40, 93, 47, {asn: 34, statements: false}, 42, 103, 123]
     depends_on: [M1, M2]
 
   M4:
