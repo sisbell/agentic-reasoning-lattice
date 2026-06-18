@@ -19,16 +19,25 @@ pub struct ContentStore { map: im::HashMap<Tumbler, Val, FixedHasher> }
 
 /// M4's sole authoritative journal delta. Carries the FLAT Tumbler (M1: the
 /// Tumbler is the storage/journal key; Address is the past-the-door value).
+/// FIELDS ARE PRIVATE: `stage_write` is thereby the compiler-enforced sole
+/// constructor, so no caller can hand-build a record into the total fold and skip
+/// the AlreadyPresent guard. serde deserializes the private fields for M2's replay
+/// (derive expands at the definition site); the engine only `From`-lifts and folds,
+/// never constructs one from scratch.
 #[derive(Clone, Serialize, Deserialize)]
-pub struct ContentWrite { pub addr: Tumbler, pub val: Val }
+pub struct ContentWrite { addr: Tumbler, val: Val }
 
 /// The engine implements this for `World`; M4 reaches its slice off any `&W`.
 pub trait HasContent { fn content(&self) -> &ContentStore; }
 
 impl ContentStore {
     /// The fold — pure, total, deterministic (M2's `apply` obligation). Insert only.
-    /// `stage_write` guarantees `r.addr ∉ dom(C)`, so this never overwrites a live value.
+    /// `stage_write` guarantees `r.addr ∉ dom(C)`, so this never overwrites a live value;
+    /// the `debug_assert!` is a release-free second net behind that guard (stays total/
+    /// infallible in release).
     pub fn apply_write(&self, r: &ContentWrite) -> ContentStore {
+        debug_assert!(!self.map.contains_key(&r.addr),
+            "S0(b): apply_write must not overwrite — stage_write guards this");
         ContentStore { map: self.map.update(r.addr.clone(), r.val.clone()) }
     }
 }
@@ -42,8 +51,9 @@ impl ContentStore {
     /// (M3) and not "registered" (M3). M5 calls this on the content side of placement.
     pub fn contains(&self, a: &Tumbler) -> bool;
 
-    /// C(a): the immutable value at a, else None. Borrow lives for the pinning Snapshot.
-    /// RETRIEVEV (M6, ASN-0115) and predicate-def read-back (M9) call this.
+    /// C(a): the immutable value at a, else None. The returned borrow lives THROUGH the
+    /// pinning Snapshot — bind the snapshot first (see Internal design). RETRIEVEV
+    /// (M6, ASN-0115) and predicate-def read-back (M9) call this.
     pub fn value_at(&self, a: &Tumbler) -> Option<&Val>;
 
     pub fn len(&self) -> usize;        // |dom(C)| — diagnostics only
@@ -57,7 +67,8 @@ impl ContentStore {
 /// PURE STEP — the storage half of K.α. Reads off a supplied working slice, returns the
 /// record, commits nothing. THIS is M4's real export: M5's placement composite (and, via
 /// M5, M9's predicate-def creation) calls it and lifts the result with `.into()`.
-/// Enforces S0's no-overwrite (`AlreadyPresent`); otherwise trusts the address.
+/// Enforces S0's no-overwrite (`AlreadyPresent`); otherwise trusts the address. As the
+/// only constructor of the private-field `ContentWrite`, it is the guard's chokepoint.
 pub fn stage_write(c: &ContentStore, addr: &Address, val: Val)
     -> Result<ContentWrite, ContentError>;
 
@@ -65,6 +76,11 @@ pub fn stage_write(c: &ContentStore, addr: &Address, val: Val)
 /// ISOLATION/TEST USE ONLY: committing a content write *alone* creates content with no
 /// placement, violating J0 (content-allocation ⇒ placement). Production content writes
 /// MUST ride M5's J0/J1★-coupled composite via `stage_write`.
+/// Body: derives the lock key `key(document_of(addr), s_C)` via the shared key constructor,
+/// then `transact([key], |stg| { let r = stage_write(stg.working().content(), addr, val)?;
+/// stg.push(r.into()); Ok(addr.tumbler().clone()) })`. A content address has zeros = 3, so
+/// `document_of(addr)` is always `Some`; a `None` is an internal-invariant violation on this
+/// trusted-address-only op (documented `expect`), never a domain rejection.
 pub fn write<W>(k: &Kernel<W>, addr: &Address, val: Val)
     -> Result<(Tumbler, Seq), TxnError<ContentError>>
 where W: WorldState + HasContent, W::Record: From<ContentWrite>;
@@ -74,7 +90,9 @@ where W: WorldState + HasContent, W::Record: From<ContentWrite>;
 
 ```rust
 /// Opaque, immutable content payload. Write-once ⇒ never edited ⇒ needs no internal COW;
-/// Arc gives O(1) clone for the map's structural sharing. Serializes as a byte blob.
+/// Arc gives O(1) clone for the map's structural sharing. The derive below requires serde's
+/// `rc` feature (for the `Arc<[u8]>` impls); the rc-free alternative is a manual
+/// `&[u8]` ⇄ `Vec<u8>`→`Arc::from` round-trip. Serializes as a plain byte blob either way.
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Val(Arc<[u8]>);
 impl Val { pub fn new(b: impl Into<Arc<[u8]>>) -> Val; pub fn as_bytes(&self) -> &[u8]; pub fn len(&self) -> usize; }
@@ -107,9 +125,9 @@ M4 is deliberately thin in mechanism; each component is a few lines, but the dis
 
 **The address→value map (the store itself).** A content write is one `ContentWrite { addr, val }` record; `apply_write` does a single HAMT `update`. The placement composite (M5) inserting `m` content atoms stages `m` such records in one `transact`; M2 commits them under one marker. *Common case:* O(log₃₂ n) per atom. M4 keys by `Tumbler` and is granularity-agnostic — for text, one address ≈ one atom (many small values, the inline-`Arc` default); a larger element is just a larger `Val`. M4 never groups addresses into runs — that compression is M5's (V-space) concern; M4 is purely per-address.
 
-**Membership & value-at.** `contains`/`value_at` are HAMT point lookups over a slice obtained from a pinned snapshot: M6 does `k.snapshot().world().content().value_at(a)`. O(1)-effective, lock-free (the snapshot is an immutable pinned `World`). These are the hot paths — `contains` on every placement (S3), `value_at` on every retrieval — so they must be cheap, and they are.
+**Membership & value-at.** `contains`/`value_at` are HAMT point lookups over a slice obtained from a pinned snapshot. The returned `&Val` borrows *through* the pinning `Snapshot`, so the caller **binds the snapshot first** — `let s = k.snapshot(); s.world().content().value_at(a)` — never `k.snapshot().world().content().value_at(a)`, which borrows into a dropped temporary and won't compile. O(1)-effective, lock-free (the snapshot is an immutable pinned `World`). These are the hot paths — `contains` on every placement (S3), `value_at` on every retrieval — so they must be cheap, and they are.
 
-**Write-once / immutability discipline.** Two layers. *By construction:* the API and the fold expose **no** modify/delete/GC operation — a `ContentWrite` can only add, so existing entries can never change or vanish (S0 domain-persistence, S1/M1 growth fall straight out; cf. Green's protocol having no MODIFY). *By active guard:* because the fold is total (it cannot reject), the no-**overwrite**-of-an-occupied-address half of S0(b) is enforced in `stage_write`, the sole sanctioned producer of `ContentWrite` — it returns `AlreadyPresent` if `addr ∈ dom(C)`. Without this guard, a buggy double-stage would reach the total fold and `update` would replace the value, silently violating S0; with it, the most sacred invariant degrades to a clean typed rejection. The guard never fires in correct operation (M3 freshness + M5 single-write), but it is the cheap correct-the-rare-case insurance over the permascroll.
+**Write-once / immutability discipline.** Two layers. *By construction:* the API and the fold expose **no** modify/delete/GC operation — a `ContentWrite` can only add, so existing entries can never change or vanish (S0 domain-persistence, S1/C0 growth fall straight out; cf. Green's protocol having no MODIFY). *By active guard:* because the fold is total (it cannot reject), the no-**overwrite**-of-an-occupied-address half of S0(b) is enforced in `stage_write` — which, because `ContentWrite`'s fields are private, is the *compiler-enforced* sole constructor of the record, so no caller can hand-build a record into the total fold and skip the check. It returns `AlreadyPresent` if `addr ∈ dom(C)`. Without this guard, a buggy double-stage would reach the total fold and `update` would replace the value, silently violating S0; with it, the most sacred invariant degrades to a clean typed rejection. (`apply_write`'s `debug_assert!` is a release-free backstop behind the guard.) The guard never fires in correct operation (M3 freshness + M5 single-write), but it is the cheap correct-the-rare-case insurance over the permascroll.
 
 **Origin-identity discipline (no value-as-identity).** Identity is the full allocated address; M4 keys by address and *never* by value, so two equal byte-runs at two addresses are simply two entries (S4). There is no value→address index and no content-addressed identity. Any value-dedup is permitted only *beneath* the map as a blob-compression layer (`value-hash → blobref`, many addresses → one stored byte-run) and must never surface through the `Tumbler`-keyed interface as identity. *Tradeoff:* you forgo automatic content-collapse at the identity level (mandatory — S4 forbids it) in exchange for transclusion-as-address-sharing being decidable by address equality alone.
 
@@ -117,22 +135,24 @@ M4 is deliberately thin in mechanism; each component is a few lines, but the dis
 
 **Recovery (M2-driven — M4 owns none).** This is the deliberate re-homing from the source notes. M4 keeps **no** journal, replay loop, or snapshot machinery. `ContentWrite` is the authoritative delta M2 journals; the slice is `Serialize`/`Deserialize`, so M2's `open` loads the latest checkpoint (deserializing the map) and replays the tail by folding records through `apply` → `apply_write`; a torn/un-acked tail is discarded by M2. Records carry the address verbatim, so replay re-applies (no re-derivation; M2 applies each committed record exactly once) — the deterministic-remint self-check ASN-0093 offered is M3's option for *Alloc* records, not M4's. *Tradeoff to flag for cadence:* an inline-value slice serializes all bytes into every checkpoint, so M2's `CheckpointPolicy` trades recovery time against checkpoint size; out-of-line values (Open decisions) shrink the serialized slice to address→ref and make checkpoints cheap regardless of content volume.
 
-**Concurrency.** None of M4's own. Content writes ride M5's composite under the per-(document, content-subspace) lock key `key(d, s_C)` (the *same* key M3's content allocation holds — alloc, write, and placement serialize on one key, in one composite). Distinct documents' content writes carry distinct keys and may proceed concurrently under M2's per-key model. And because every content address is written exactly once (M3 freshness), no two writers ever target the same address — there is no logical content write-write conflict to resolve, ever.
+**Concurrency.** None of M4's own. Content writes ride M5's composite under the per-(document, content-subspace) lock key `key(d, s_C)` (the *same* key M3's content allocation holds — alloc, write, and placement serialize on one key, in one composite). Distinct documents' content writes carry distinct keys, which *delimit independent serialization scopes* — the invariant `LockKey` seam; whether distinct keys actually execute concurrently is M2's later realization (v1 serializes all writers under the global applier lock, with the `transact`/`LockKey` signatures unchanged across that change). M4's correctness does not hinge on it anyway: because every content address is written exactly once (M3 freshness), no two writers ever target the same address — there is no logical content write-write conflict to resolve, ever.
 
 ## Invariants & contracts
 
 **By construction** (falls out of the data model / API shape):
 
-- **S0(a) domain-persistence; S1 / M1 growth** (ASN-0036 S0/S1; ASN-0093 C0): only-insert fold, no removal op ⇒ `dom(C) ⊆ dom(C')`.
+- **S0(a) domain-persistence; S1 / C0 growth** (ASN-0036 S0/S1; ASN-0093 C0): only-insert fold, no removal op ⇒ `dom(C) ⊆ dom(C')`.
 - **S0(b) value-preservation, modify half** (ASN-0036 S0; ASN-0093 C0): no modify operation exists. (The overwrite half is actively guarded — below.)
 - **S4 origin-based identity** (ASN-0036 S4): keyed by address, never by value; no value→identity collapse.
 - **S5 unbounded sharing** (ASN-0036 S5): by omission — no refcount, no cap; references live in M5.
+- **S7 structural attribution** (ASN-0036 S7): origin is structural — recovered via M1's `document_of` (surfaced as SHOWORIGIN in M6) — so M4 stores no author/source/origin metadata; it holds only `address → Val`.
+- **C-fin finiteness** (ASN-0093 C-fin): `|dom(C)| < ∞` — each commit adds finitely many entries and there is no growth path to infinity.
 - **No-GC / unconditional permanence** (ASN-0036 S0 frame): no reclamation path, not refcount-gated.
 - **S3 at every committed state** (ASN-0036 S3): because M5's composite writes content (M4) and places it (M5) in one atomic M2 transaction, no committed snapshot ever shows a placement referencing absent content — the strongest S3 timing, achieved by M2's atomicity, not by M4. (M4 supplies the oracle; M5 is the enforcer.)
 
 **By active enforcement** (M4 must guard — located in `stage_write`):
 
-- **S0(b) no-overwrite-of-occupied-address** (ASN-0036 S0; ASN-0093 C0): `stage_write` rejects `AlreadyPresent(addr)` because the total fold cannot. This is M4's *one* genuine guard.
+- **S0(b) no-overwrite-of-occupied-address** (ASN-0036 S0; ASN-0093 C0): `stage_write` rejects `AlreadyPresent(addr)` because the total fold cannot; `ContentWrite`'s private fields make `stage_write` the compiler-enforced sole producer of the record, so the guard cannot be bypassed. This is M4's *one* genuine guard.
 
 **Discharged upstream — M4 relies on, does not re-enforce:**
 
@@ -144,15 +164,15 @@ M4 is deliberately thin in mechanism; each component is a few lines, but the dis
 
 **Upstream — concrete use:**
 
-- **M1.** `Tumbler` (slice/record key, `Ord/Eq/Hash`), `Address` (the value `stage_write`/`write` accept — fresh from M3's `checked_inc`), `document_of` (derive the lock key for the standalone op), and — *only if* the optional content-address assertion is on — `subspace`/`classify`/`Level`. No span/span-set use: M4 stores scalar values, not spans.
+- **M1.** `Tumbler` (slice/record key, `Ord/Eq/Hash` — **plus serde `Serialize/Deserialize`**, which M4's serializable slice/record require for M2's checkpoints+journal; M1 designates `Tumbler` "the storage/journal key," which implies this, but if M1's published derive list genuinely omits serde it is an upstream precondition gap to escalate, since no store could journal without it), `Address` (the value `stage_write`/`write` accept — fresh from M3's `checked_inc`), `document_of` (derive the lock key for the standalone op), and — *only if* the optional content-address assertion is on — `subspace`/`classify`/`Level`. No span/span-set use: M4 stores scalar values, not spans.
 - **M2.** Provides `apply`-driven commit + replay (engine wires `apply_write`), `Snapshot`/`world()` (readers obtain `&ContentStore`), `Kernel::transact` (standalone `write` only), `LockKey`, `Seq`. **M4 owns no journal, replay, snapshot, or recovery** — all M2's. The per-(document, content-subspace) `LockKey` is built by the *shared* key constructor (below the stores, drawing its 1-byte space tag from the central enum) so M3 alloc / M4 write / M5 placement produce identical bytes; `s_C` comes from the shared SubspaceConventionAxiom constant, not a locally invented value.
 
 **Downstream — seam contracts neighbors build against:**
 
 - **→ M5 (placement composite).** `stage_write(c, addr, val) -> Result<ContentWrite, _>` is the storage half of K.α that M5 composes inside its `transact([key(d, s_C)], …)`: M5 calls it against `stg.working().content()`, then `stg.push(rec.into())` (engine's `From<ContentWrite> for Record`). `contains(a) -> bool` is the S3 referential-integrity oracle on the content side. The J0/J1★ couplings (content-alloc ⇒ placement ⇒ provenance) are M5's to enforce *around* the write; M4 contributes only the content-write step. M4 never reads M5 (no back-edge).
-- **→ M6 (RETRIEVEV, ASN-0115).** `value_at(a) -> Option<&Val>` over a snapshot, after M6 resolves V→I (M5). M4 does **not** own the registered-empty-vs-unallocated distinction — that is M6's, against M3's registry.
+- **→ M6 (RETRIEVEV, ASN-0115).** `value_at(a) -> Option<&Val>` over a bound snapshot, after M6 resolves V→I (M5). M4 does **not** own the registered-empty-vs-unallocated distinction — that is M6's, against M3's registry.
 - **→ M9 (predicate-def read-back).** `value_at(a)` reads a def's bytes by its content start-address (the def's identity); def *creation* rides M5's composite, which calls M4's `stage_write`.
-- **→ engine crate.** `ContentStore` slice, `ContentWrite` record, `HasContent` trait, `apply_write` fold; the assembler implements `HasContent for World` and `From<ContentWrite> for Record`.
+- **→ engine crate.** `ContentStore` slice, `ContentWrite` record, `HasContent` trait, `apply_write` fold; the assembler implements `HasContent for World` and `From<ContentWrite> for Record`. It `From`-lifts and folds the record only — it never constructs a `ContentWrite` (private fields), so the `stage_write`-sole-constructor invariant survives assembly.
 
 **Seam clarifications the builder must hold:** M4's `contains`/`value_at` mean **content-presence**, decoupled from allocation (M3) and registration (M3) — a content address can be allocated yet content-absent (a ghost), and M4 reports presence only. M4 is **never read by the link layer** (M7/M8 don't touch it); M7 is the parallel value-only store for `L`. M4 reads no module above M1/M2.
 
@@ -174,6 +194,7 @@ The two source notes largely agree on M4's territory; the substantive resolution
 
 1. **Inline vs out-of-line values.** Default: inline `Val(Arc<[u8]>)` in record and slice — simplest, bytes durable in M2's journal, good for many small text atoms. Switch to an out-of-line blob store (slice holds `address → blobref`) **when** content volume makes per-checkpoint slice serialization the bottleneck — it shrinks the serialized slice and cheapens M2's checkpoints, at the cost of reintroducing a blob-durability concern (either M4-owned, a deviation from "M2 owns durability," or rebuildable by replaying M2's `ContentWrite` records, which still carry the bytes). Pick under measurement of content-size distribution and checkpoint cost.
 2. **Internal value-dedup (CAS-underneath).** Optional `value-hash → blobref` compression layer beneath the map (many addresses → one stored byte-run), naturally paired with out-of-line blobs. Pure optimization; **must never surface as identity** (S4). If skip-serialized, it becomes the one derived hint requiring an engine `rebuild_derived` contribution. Enable only if content has high byte-level duplication and space matters.
-3. **Record granularity.** Single `ContentWrite` per atom (matches K.α, `m` records per INSERT) vs a batched `ContentWriteRun { writes: Vec<(Tumbler, Val)> }` folded as `m` inserts. Default single; batch if per-record overhead in M2's journal dominates for large contiguous inserts.
+3. **Record granularity.** Single `ContentWrite` per atom (matches K.α, `m` records per INSERT) vs a batched `ContentWriteRun { writes: Vec<(Tumbler, Val)> }` folded as `m` inserts. Default single; batch if per-record overhead in M2's journal dominates for large contiguous inserts. (A batched record keeps private fields + a `stage_write`-style sole constructor for the same S0(b) guarantee.)
 4. **Defensive content-address assertion strength.** `stage_write` can additionally check `addr.level()==Element ∧ addr.subspace()==Some(s_C)` (→ `NotContentAddress`). Choose: full runtime guard (paranoid, couples M4 to `s_C`), `debug_assert!` only (recommended — catches routing bugs in test, free in release), or off (trust M5's routing + M3's mint entirely). Recommend debug-only.
 5. **HashMap hasher.** A fixed-seed deterministic hasher is decided (reproducible checkpoints); the *specific* one (`FxHasher` / fixed-key SipHash / aHash-fixed-seed) is a minor pick under microbenchmark.
+6. **`value_at` return type — borrowed vs cloned.** Default `Option<&Val>`, which ties the value's lifetime to the pinning `Snapshot` (caller binds the snapshot first). Since `Val` is `Arc<[u8]>` with O(1) clone, returning `Option<Val>` would decouple the value's lifetime from the snapshot for callers like M6/M9, at the cost of one Arc refcount bump per read. Minor ergonomics call; default to the borrowed form, switch to cloned if the snapshot-lifetime coupling proves awkward at a call site.
