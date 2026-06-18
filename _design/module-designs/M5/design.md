@@ -1,0 +1,355 @@
+# M5 — Arrangements & Editing (Vstream): Detailed Design
+
+## Purpose & boundary
+
+M5 owns every document's **mutable V→I arrangement** (the POOM — a content subspace and a link subspace per document) and the **append‑only content‑provenance relation R**, and it is the *only* place in the system where destructive change lives. It provides the editing/versioning operations (INSERT, DELETE, COPY, REARRANGE, CREATENEWVERSION), a semantics‑blind link‑seating step for M7, forward V→I resolution and reverse I→V projection for readers, and the R read surface for provenance queries. It funnels every mutation through one M2 composite, where it enforces the J‑couplings (content‑allocation ⇒ placement ⇒ provenance) and co‑locates each content placement's R‑append with its M‑edit so a reader sees one consistent `(M, R)` root.
+
+It does **not**: store content bytes (M4) or mint addresses (M3) — it *orchestrates* those at its composite boundary; store link values or interpret link semantics (M7 — M5 seats an opaque, already‑allocated link address and never reads M7); register documents (M3, eager‑lazy split — a fresh document's arrangement is left implicit/empty until M5 first touches it); run content/link *queries* (M6/M8); or own ordering, durability, or recovery (M2). One thing well: **the authoritative mutable arrangement plus its write‑local provenance, recovered by replaying one edit‑delta journal.**
+
+---
+
+## Public interface
+
+Types `Tumbler/Address/Span/SpanSet/Nat/Level` are M1's; `Kernel/Snapshot/LockKey/Seq/TxnError` are M2's; `MintError/PrincipalId/M3Rec` are M3's; `Val/ContentWrite/ContentError` are M4's. The slice is reached through an accessor trait the engine implements; write‑driving ops are generic over `W` with the upstream `From` bounds.
+
+```rust
+pub trait HasM5 { fn m5(&self) -> &M5State; }   // engine: W: WorldState + HasM5
+// Subspace convention (ASN-0047): shared base constants, value-equal across the system.
+//   s_C = 1 (content), s_L = 2 (link). V-positions are depth-2 tumblers [subspace, ordinal] (m = 2).
+```
+
+### A. Engine‑plug surface (slice / record / accessor / fold)
+
+```rust
+/// Authoritative folded state: per-document POOM + provenance. The arrangement is
+/// authoritative MUTABLE state recovered by replay — NOT a recomputable hint.
+#[derive(Clone, Default, Serialize, Deserialize)]
+pub struct M5State { /* private; see Core data model */ }
+
+/// M5's sole journal delta — effect-level (carries concrete addresses/ordinals so the
+/// fold needs no upstream access and never re-mints). Fields private ⇒ stage_* are the
+/// only constructors.
+#[derive(Clone, Serialize, Deserialize)]
+pub enum M5Rec {
+    ContentPlace  { /* doc, at: ordinal J, runs: Vec<Run> */ },  // INSERT/COPY: splice + R-append
+    ContentRemove { /* doc, from: ordinal, width */ },           // DELETE: contract+reseat (no C, no R)
+    ContentReorder{ /* doc, cuts: Vec<ordinal> (3|4) */ },       // REARRANGE (no C, no R)
+    LinkSeat      { /* doc, link: Address */ },                  // MAKELINK seating (no R — J-LV)
+    VersionSnapshot{ /* source, new: Address */ },               // CREATENEWVERSION (share + R-append)
+}
+
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Run { pub i_start: Address, pub width: Nat }          // width ≥ 1; i_start element-level
+
+impl M5State {
+    pub fn genesis() -> M5State;                       // {} arrangements, {} provenance
+    pub fn apply_m5(&self, r: &M5Rec) -> M5State;      // the pure/total/deterministic M2 fold
+    pub fn rebuild_derived(self) -> M5State;           // default identity in v1 (no skip-serialized hints)
+}
+```
+
+### B. Editing & versioning — transact‑driving ops (M10, and INSERT for M9)
+
+```rust
+pub struct Vstream<'k, W: WorldState> { /* holds &'k Kernel<W> */ }
+
+impl<'k, W> Vstream<'k, W>
+where W: WorldState + HasM5 + HasM3 + HasContent,
+      W::Record: From<M5Rec> + From<M3Rec> + From<ContentWrite>   // union bound; each op uses a subset
+{
+    /// Mint n fresh content addresses (M3), write their bytes (M4), splice the run at `at`
+    /// (content subspace), record provenance — one M2 composite under key(doc, s_C).
+    /// Returns the inserted run's START address (the predicate-def identity for M9) and the Seq.
+    pub fn insert(&self, doc: &Address, at: VPos, values: Vec<Val>)
+        -> Result<(Address, Seq), TxnError<InsertError>>;
+
+    /// Transclude existing content by reference: resolve `specs` against source arrangements,
+    /// splice into doc's content subspace at `at`, record provenance for the placed runs.
+    /// Allocates NO content. (Uses From<M5Rec> only; reads M3/M4/M5.)
+    pub fn copy(&self, doc: &Address, at: VPos, specs: Vec<VSpec>)
+        -> Result<Seq, TxnError<CopyError>>;
+
+    /// Remove content range [p, p+width) and close the gap (shift suffix left). Content store
+    /// and R untouched. (From<M5Rec> only.)
+    pub fn delete(&self, doc: &Address, p: VPos, width: Nat)
+        -> Result<Seq, TxnError<DeleteError>>;
+
+    /// Pivot (3 cuts) / swap (4 cuts) transpose in the content subspace. Pure permutation;
+    /// content, links, R untouched. (From<M5Rec> only.)
+    pub fn rearrange(&self, doc: &Address, cuts: Vec<VPos>)
+        -> Result<Seq, TxnError<RearrangeError>>;
+
+    /// Fork: mint a new identity (M3), install its content arrangement as a snapshot of
+    /// d_src's content subspace, record provenance. Returns the new document address + Seq.
+    /// (From<M3Rec> + From<M5Rec>.)
+    pub fn version(&self, principal: PrincipalId, d_src: &Address)
+        -> Result<(Address, Seq), TxnError<VersionError>>;
+}
+```
+
+### C. Link seating — pure step composed into M7's MAKELINK
+
+```rust
+/// Append an already-allocated home link `link` at doc's next link V-position. SEMANTICS-BLIND:
+/// trusts M7 that `link ∈ dom(L)`; M5 checks only CL-OWN (origin(link)=doc, via M1) and
+/// CL-UNIQ (not already seated). Returns the delta; M7 lifts via `.into()` and stages it.
+pub fn stage_seat_link(m5: &M5State, doc: &Address, link: &Address) -> Result<M5Rec, SeatError>;
+```
+
+### D. Arrangement reads — pure, over any M2 snapshot (M6, M8)
+
+```rust
+impl M5State {
+    /// V→I resolution: I-runs covering a level-uniform V-span, V-ordered, clipped to the active
+    /// range (accept-and-intersect). Subspace taken from span.start()'s first component.
+    /// Absent doc ⇒ ⟨⟩ (M6/M8 disambiguate registered-empty vs unallocated via M3).
+    pub fn resolve(&self, doc: &Address, span: &Span) -> Vec<Run>;
+    pub fn point(&self, doc: &Address, v: &VPos) -> Option<Address>;       // M(d)(v)
+
+    pub fn content_runs(&self, doc: &Address) -> Vec<Run>;                 // canonical, V-ordered (COMPARE)
+    pub fn link_runs(&self, doc: &Address) -> Vec<Run>;
+    pub fn content_count(&self, doc: &Address) -> Nat;                     // n_C(d)
+    pub fn link_count(&self, doc: &Address) -> Nat;                        // n_L(d)
+    pub fn content_image(&self, doc: &Address) -> SpanSet;                 // I-coverage of current content arr.
+
+    /// I→V: V-positions of doc whose content I-address falls in `coverage` (a link footprint,
+    /// possibly fragmented). Scan of the forward content map by default.
+    pub fn project(&self, doc: &Address, coverage: &SpanSet) -> SpanSet;
+}
+```
+
+### E. Provenance reads — pure (M6: SHOWDELETIONS, FINDDOCSCONTAINING)
+
+```rust
+impl M5State {
+    pub fn ever_placed(&self, doc: &Address) -> SpanSet;                   // R↾doc (content spans ever placed)
+    pub fn docs_containing(&self, coverage: &SpanSet) -> im::OrdSet<Address>; // R⁻¹ candidate documents
+}
+```
+
+### Errors & helper types
+
+```rust
+pub struct VPos { pub subspace: Nat, pub ordinal: Nat }   // depth-2 V-position [subspace, ordinal]
+pub struct VSpec { pub source: Address, pub span: Span }   // one source-span for COPY
+
+pub enum InsertError   { DocNotRegistered, BadPosition, EmptyContent, Mint(MintError), Content(ContentError) }
+pub enum CopyError     { DocNotRegistered, BadPosition, SourceNotRegistered, NotContentSubspace, DanglingSource, EmptyResult }
+pub enum DeleteError   { DocNotRegistered, NotContentSubspace, NotArranged, OutOfBounds, EmptyWidth }
+pub enum RearrangeError{ DocNotRegistered, BadCutCount, NotAscending, NotContentSubspace, OutOfBounds, RegionEmpty }
+pub enum VersionError  { SourceNotRegistered, NotAPrincipal, Mint(MintError) }   // Mint(NotAnAccount) = node-tier cross-owner (scoped out)
+pub enum SeatError     { NotHomeLink, AlreadySeated }
+```
+
+---
+
+## Core data model
+
+```rust
+pub struct M5State {
+    // AUTHORITATIVE, journaled, replay-recovered, serialized in checkpoints:
+    arrangements: im::OrdMap<Address, DocArrangement>,   // sparse: absent doc ⇒ empty arrangement (lazy)
+    prov_by_doc:  im::OrdMap<Address, im::Vector<Span>>, // append-only R, keyed by placing document
+    // (v1 has NO derived-hint fields ⇒ rebuild_derived is identity; see Open build decisions)
+}
+struct DocArrangement { content: RunList, link: RunList }
+```
+
+**The POOM is authoritative mutable state, not a hint** (decomposition; ASN‑0047 P3): it is the only component that *loses* information (`ContentRemove`, `ContentReorder`), it is not recomputable from anything cheaper, and it is recovered by replaying the edit‑delta journal. R is **authoritative and non‑recomputable from the current arrangement** (a deleted address keeps its R pair — ASN‑0047 P2) but, like the POOM, is recovered by replay.
+
+**`RunList` — implicit‑position run‑list, per subspace.** A `RunList` is an ordered sequence of `Run{i_start, width}`. V‑positions are *not stored*: run *j* occupies content/link ordinals `[1 + Σ_{i<j} width_i, …]`. This single choice makes the load‑bearing invariants *free*: density/contiguity/minimum‑position (D‑SEQ★/D‑CTG★/D‑MIN★) hold by construction (a V‑start is always a prefix sum, so no holes), insert/delete shift the suffix for *free* (no renumbering), and storage scales with the number of distinct contiguous transclusions/edit‑runs, not with positions. Depth is fixed at **m = 2** (ASN‑0036 S8‑depth; ASN‑0084 depth‑2 scope; semantically inert — see Open decisions), so a V‑position is just `[subspace, ordinal]` and all V‑side arithmetic is integer ordinal math; only the *I‑addresses* (element‑level, `zeros = 3`) use M1's tumbler arithmetic.
+
+`RunList` exposes a representation‑independent contract — `total_width`, `locate(ord) → (run_idx, offset)`, `point(ord)`, `resolve_range(ord, count)`, `splice_in(ord, runs)`, `remove_range(ord, width)`, `reorder(cuts)`, `iter_runs() → (v_start, i_start, width)`, `image() → SpanSet`. The *physical* persistent structure behind it is an Open build decision (default `im::Vector<Run>`); the algorithms below are stated over the contract.
+
+**Provenance R.** `prov_by_doc` is the authoritative direction (the natural append target: when *d* places a content run, append `span(i_start, width)` to `prov_by_doc[d]`). `ever_placed(d)` reads it directly; `docs_containing(coverage)` scans it (an interval‑index hint for scale is an Open decision). Entries are run‑granular (one `Span` per placed run) and may overlap/duplicate — queries treat R as the set‑union of expanded pairs, so redundant appends are harmless (P2).
+
+| state | authoritative? | recovered by |
+|---|---|---|
+| `arrangements` (POOM) | yes (mutable) | journal replay + checkpoint |
+| `prov_by_doc` (R) | yes (append‑only; not recomputable from POOM) | journal replay + checkpoint |
+| reverse‑prov / inverse‑arrangement index | hint (recomputable) | *not built in v1*; `rebuild_derived` if added |
+
+---
+
+## Internal design
+
+### 1. The run‑list: locate, splice, contract, reorder, coalesce
+
+All four mutators reduce to splits and concatenations of the per‑subspace run‑list; the spec's *displacement* (ASN‑0082 shift) is **never computed** — implicit positions absorb it.
+
+- **locate(ord):** walk runs accumulating widths until the cumulative sum reaches `ord`; return `(run_idx, offset_in_run)`. (`O(#runs)` over `im::Vector`; `O(log #runs)` over a width‑measured tree.)
+- **splice_in(ord, new_runs):** split the run‑list at `ord` (splitting one boundary run if `ord` is interior to it, via `Run(a,w) → Run(a, c), Run(shift(a,c), w−c)` with `shift = M1::shift` on the I‑address ordinal), insert `new_runs`, concat the suffix. The suffix's implicit positions are now `+Σwidth(new_runs)` — the uniform forward shift, *for free*.
+- **remove_range(ord, width):** split at `ord` and `ord+width`, drop the middle, concat prefix+suffix. Suffix positions shift left for free; gap closes by construction (ASN‑0117 P2).
+- **reorder(cuts):** split at each cut ordinal; **tile by placement** — concatenate `[exterior‑left][β][μ?][α][exterior‑right]` (ASN‑0119's collision/subspace‑safe construction), never offset arithmetic, so the bijection is structural (no possibility of the swap‑α offset bug, ASN‑0084 Q14).
+- **Eager seam‑coalesce** after every mutator: at each touched seam, merge adjacent runs `(a₁,w₁),(a₂,w₂)` **iff I‑adjacent** — `M1::shift(a₁.tumbler(), w₁) == a₂.tumbler()`. I‑adjacency is the *complete and safe* guard: it implies same origin (ASN‑0058 M16a) and excludes shared‑I‑extent (M14a), so it can never merge across an origin seam (M16) or collapse a transclusion (M14). **Never coalesce on value** (S4). With eager coalesce the resident form is the unique maximally‑merged decomposition (ASN‑0058 M12), so queries over run structure read it directly; choosing lazy mode (Open decision) instead requires `resolve`/`content_runs` to coalesce on output.
+
+### 2. resolve / point / project
+
+- **resolve(d, span):** `S = span.start().get(1)` selects the subspace run‑list; `k = span.start().get(2)`, `n = span.width().get(2)` (level‑uniform ordinal displacement `[0,n]`). Return `resolve_range(k, n)` clipped to `[1, total_width]` (accept‑and‑intersect — out‑of‑range silently dropped, ASN‑0118). Each within‑run I‑address is `M1::shift(run.i_start, offset)`. Absent doc ⇒ `[]`.
+- **point(d, v):** `locate(v.ordinal)` in the `v.subspace` list; `Some(M1::validate(shift(i_start, offset)))` (T4‑valid by construction) or `None`.
+- **project(d, coverage):** for each content run, intersect its I‑extent `Span(i_start, [0,width])` with `coverage` (M1 `classify_spans`/`intersect`); each I‑sub‑extent maps at equal offset to a V‑sub‑range, emitted as a V‑span. Union the V‑spans (M1 `union` then `normalize`). `O(#runs · #coverage‑spans)`; fragmentation is correct (ASN‑0119 RA7c), never a fault.
+
+### 3. INSERT (ASN‑0116; one composite under `M3::content_lock_key(doc)`)
+
+```
+transact([content_lock_key(doc)], |stg|):
+  m3 = stg.working().m3()
+  reject DocNotRegistered unless m3.is_registered_document(doc)
+  reject EmptyContent if values.is_empty()
+  n_c = stg.working().m5().content_count(doc)
+  reject BadPosition unless valid_insertion(at, n_c)  // subspace=s_C, depth 2, ordinal ∈ [1, n_c+1] (or =1 if n_c=0)
+  first = None; run = None
+  for val in values:
+     (a, m3rec) = stg.working().m3().mint_content(doc)? ; stg.push(m3rec.into())   // re-reads advanced frontier
+     cw = M4::stage_write(stg.working().content(), &a, val)? ; stg.push(cw.into())
+     first.get_or_insert(a.clone()); extend_or_open_run(&mut run, a)               // contiguous mints ⇒ one run
+  stg.push(M5Rec::ContentPlace{ doc, at: at.ordinal, runs: vec![run] }.into())
+  Ok(first.unwrap())
+```
+
+Successive `mint_content` calls read `stg.working()` so they advance the *same* frontier under the held lock → contiguous addresses → one run (concurrency‑freshness handled by the per‑(doc, content‑subspace) lock, ASN‑0116). **J0/J1★ by construction:** mint + write + place + provenance ride one transaction; the `ContentPlace` fold appends `(run, doc)` to R *with* the splice. Return is the run start = the predicate‑def identity for M9.
+
+**Fold:**
+```
+apply_m5(ContentPlace{doc, at, runs}):
+  arr = arrangements.get(doc).unwrap_or(empty); arr.content = arr.content.splice_in(at, runs)  // + eager coalesce
+  R'  = prov_by_doc; for r in runs: R'[doc].push_back(Span(r.i_start, [0, r.width]))
+  M5State{ arrangements: arrangements.update(doc, arr), prov_by_doc: R' }
+```
+
+### 4. DELETE (ASN‑0117; `content_lock_key(doc)`)
+
+Reject unless `doc` registered, `subspace(p)=s_C`, `p ∈ V_{s_C}(d)` and containment `ordinal(p)+width−1 ≤ n_c`, `width ≥ 1`. Stage `ContentRemove{doc, from: p.ordinal, width}`. **NonDestruction is structural** (ASN‑0117 P0): M5 has no path to content reclamation (M4 exposes none); `ContentRemove`'s fold touches neither content nor R. Link survival is automatic — a text delete never touches the link run‑list (ASN‑0117 P4).
+
+### 5. COPY (ASN‑0118; `content_lock_key(doc)`)
+
+```
+transact([content_lock_key(doc)], |stg|):
+  m5,m3,c = stg.working().{m5,m3,content}()
+  reject DocNotRegistered / BadPosition as in INSERT
+  runs = []
+  for VSpec{source, span} in specs:
+     reject SourceNotRegistered unless m3.is_registered_document(&source)
+     reject NotContentSubspace unless span.start().get(1) == s_C        // content-residence (non-transclusion guard)
+     for r in m5.resolve(&source, &span):                              // resolved BEFORE staging ⇒ self-copy sees pre-edit
+        reject DanglingSource unless c.contains(r.i_start.tumbler())   // content-side referential gate (S3★)
+        extend_or_push_run(&mut runs, r)
+  reject EmptyResult if total_width(&runs) == 0
+  stg.push(M5Rec::ContentPlace{ doc, at: at.ordinal, runs }.into())    // same fold as INSERT ⇒ R-append for placed runs
+  Ok(())
+```
+
+No minting — COPY transcludes existing addresses by reference (CP1/CP2). Resolution reads source POOMs; the resolved addresses are immutable (S0), so **no source lock is needed** — COPY bakes concrete addresses into the record and is snapshot‑consistent regardless of later source edits. Recording the *whole* placed run as provenance is correct: range‑new addresses are genuinely new pairs; already‑referenced ones are P2 no‑ops (CP8). Cross‑origin runs never coalesce (I‑adjacency guard), preserving the origin multiset (CP11) and transclusion independence (CP4/M14).
+
+### 6. REARRANGE (ASN‑0119/0084; `content_lock_key(doc)`)
+
+Validate R‑PRE: 3 or 4 cuts, strictly ascending, all `subspace=s_C` at depth 2, affected interval within the active content run (`cut_last ≤ n_c+1`), regions non‑empty. Stage `ContentReorder{doc, cuts: ordinals}`. The fold splits at the cuts and tiles by placement (§1). The permutation is **cut‑determined and value‑blind** — read from cut geometry, never from content values (so a duplicate‑I interval correctly yields `π≠id` with `M'=M`, ASN‑0119). Referential integrity and permanence are automatic (range unchanged, RA1).
+
+### 7. CREATENEWVERSION (ASN‑0123)
+
+Pre‑read `ω(d_src)` off a snapshot (stable for an existing document, per M3) to choose branch + lock:
+
+```
+snap = k.snapshot(); m3 = snap.world().m3()
+reject SourceNotRegistered unless m3.is_registered_document(d_src)
+(lock, branch) = match m3.effective_owner(d_src):
+   Some(p) if p.id == principal => (version_lock_key(d_src), Owned)            // owned fork: serializes forks of d_src (OQ4)
+   _ => { pfx = m3.principal_prefix(principal)?; (document_lock_key(&pfx), Cross(pfx)) }
+transact([lock], |stg|):
+   m3 = stg.working().m3()
+   (v, m3rec) = match branch { Owned => m3.mint_version(d_src), Cross(pfx) => m3.mint_document(pfx) }?  // NotAnAccount = node-tier cross-owner, rejected
+   stg.push(m3rec.into())
+   stg.push(M5Rec::VersionSnapshot{ source: d_src, new: v }.into())
+   Ok(v)
+```
+
+**Fold** shares `source`'s *then‑current* content run‑list into `new` (structural `im` share — O(1)) and appends each shared run as provenance `(run, new)`:
+```
+apply_m5(VersionSnapshot{source, new}):
+  src = arrangements.get(source).map(|a| a.content.clone()).unwrap_or(empty)   // read at fold point = fork linearization
+  arr = DocArrangement{ content: src, link: empty }
+  R'  = prov_by_doc; for r in src.iter_runs(): R'[new].push_back(Span(r.i_start, [0, r.width]))
+  M5State{ arrangements: arrangements.update(new, arr), prov_by_doc: R' }
+```
+This **copies the V→I map, not the I‑range** (ASN‑0123 J4): the share preserves multiplicity, so within‑document transclusion duplicates survive into the fork — a set/range copy would silently drop them. Fixing m = 2 dissolves J4's depth‑rebasing case, so the O(1) share always applies. Source is untouched (V3); the new arrangement diverges copy‑on‑write under later edits (V11).
+
+### 8. Link seating (for M7's MAKELINK)
+
+`stage_seat_link(m5, doc, link)`: reject `NotHomeLink` unless `M1::document_of(link) == Some(doc)` (CL‑OWN); reject `AlreadySeated` if `link ∈ m5.link_runs(doc)` (CL‑UNIQ). Else return `LinkSeat{doc, link}`. The fold appends `link` at the next link V‑position (`n_L(d)+1`), coalescing with the prior link run if I‑adjacent (sequential `A_L(d)` allocations are). **M5 trusts that M7 allocated the link** (it never reads M7 — no back‑edge) and **appends no provenance** (J‑LV: link placements are uncoupled from R). This is the deliberately *trusting* seam: M5's only guards are pure‑M1 (origin) and self‑readable (uniqueness/position); the link‑side referential integrity `M(d)(v_ℓ)∈dom(L)` is discharged by construction inside MAKELINK.
+
+### 9. Provenance R and the single `(M, R)` snapshot
+
+Because `ContentPlace`/`VersionSnapshot` update `arrangements` **and** `prov_by_doc` in one fold → one new `M5State` → one M2 root install, a reader never observes M‑updated‑without‑R. This is exactly ASN‑0075's atomic root‑swap of the M edit and the R append, achieved by **co‑location** rather than a cross‑store protocol. M6 reads both off **one** `Snapshot`:
+- **SHOWDELETIONS(d)** = `ever_placed(d)` `difference` `content_image(d)` (M6 computes the M1 set difference).
+- **FINDDOCSCONTAINING(region)** = `docs_containing(region)` (R candidates, superset) filtered by `region ∩ content_image(d) ≠ ∅` per candidate (current‑containment filter) — both primitives off the one snapshot, so the historical/current join is consistent.
+
+`docs_containing` scans `prov_by_doc` in v1 (an interval index is an Open decision).
+
+### 10. Recovery
+
+`M5State` is recovered by M2: load checkpoint, replay `M5Rec` deltas via `apply_m5`. `apply_m5` is pure/total/deterministic and reads only `M5State` (+ pure M1 arithmetic) — it never re‑mints or touches M3/M4 (those replay as their own records). Determinism holds for `VersionSnapshot` because records replay in journal order, so `source`'s arrangement is reconstructed to its fork‑point value before the snapshot reads it. v1 has no skip‑serialized hints, so `rebuild_derived` is the identity; adding the inverse‑arrangement or reverse‑provenance hint obliges an override that reseeds *exactly* the fold‑equivalent state. Persistent structures make checkpoints structurally shared and VERSION's fork share survives serialization as shared subtrees until divergence.
+
+---
+
+## Invariants & contracts
+
+**By construction** (fall out of the data model above):
+
+- **Functionality S2** — one I‑address per V‑position: the run‑list is a coverage‑disjoint partition (ASN‑0036 S2; ASN‑0058 B1∧B2).
+- **Density / contiguity / minimum‑position** D‑SEQ★/D‑CTG★/D‑MIN★ — implicit positions make every V‑start a prefix sum, so no subspace can be sparse (ASN‑0047 D‑SEQ★; ASN‑0036 D‑CTG/D‑MIN/D‑SEQ).
+- **Depth uniformity** S8‑depth — m = 2 everywhere (ASN‑0036 S8‑depth; ASN‑0084 scope).
+- **Subspace confinement / document isolation** — per‑subspace run‑lists keyed per document: an edit on one `(doc, subspace)` cannot name another (ASN‑0082 I3‑X/D‑CS; ASN‑0084 SUBCONF; ASN‑0119 RA9).
+- **Content/address permanence (NonDestruction)** — DELETE only drops arrangement entries; M5 has no content‑reclamation path (ASN‑0117 P0; ASN‑0047 P0/P3).
+- **Origin invariance, no cross‑origin merge, transclusion independence** — I‑addresses are carried verbatim and coalesce only on I‑adjacency (ASN‑0036 S7; ASN‑0058 M16/M14; ASN‑0118 CP5/CP11; ASN‑0119 RA1).
+- **VERSION copies the map not the range** — multiplicity‑preserving structural share (ASN‑0123 J4/V2).
+- **J0 / J1★ / J‑LV** — enforced at M5's composite boundary: INSERT binds alloc+write+place+provenance in one transaction; `ContentPlace`/`VersionSnapshot` fold M+R together; `LinkSeat` folds no R and link allocation is uncoupled (ASN‑0047 J0/J1★/J‑LV).
+- **R permanence P2** — no `M5Rec` removes from `prov_by_doc` (ASN‑0047 P2).
+- **Link survival under edits** — links anchor I‑addresses; text edits never touch the link store or its anchors (ASN‑0116 IP4; ASN‑0117 P4; ASN‑0119 RA6).
+- **Canonical run uniqueness** — eager coalesce keeps the resident form maximally merged (ASN‑0058 M12), recomputed never stored.
+
+**By active enforcement** (M5 must guard; *where*):
+
+- **Content‑side referential integrity S3★** — COPY asserts each resolved run start `∈ dom(C)` via `M4::contains` (§5); INSERT is automatic (fresh write in the same composite) (ASN‑0047 S3★; ASN‑0036 S3).
+- **Non‑transclusion / subspace routing** — COPY content‑residence (`span.start().get(1) == s_C`, §5); content placements only ever carry content addresses, link seating only the link subspace (ASN‑0118 `enabled(COPY)`; ASN‑0047 S3★‑aux).
+- **CL‑OWN / CL‑UNIQ** — `stage_seat_link` checks `document_of(link)=doc` and not‑already‑seated (§8) (ASN‑0047 CL‑OWN/CL‑UNIQ).
+- **Valid insertion / delete‑containment / cut preconditions** — validated before any record is staged; rejection leaves no state change (ASN‑0036 ValidInsertionPosition; ASN‑0117 containment; ASN‑0084 R‑PRE).
+- **Composite atomicity** — one `transact` per operation; M2 makes the contract‑then‑extend interior of INSERT/COPY non‑observable and a torn composite never visible.
+
+---
+
+## Dependencies & seams
+
+**Upstream (call as given):**
+- **M1** — `Tumbler/Address/Span/SpanSet`; `shift`/`validate` (run coalescing I‑adjacency, within‑run address synthesis, ordinal math); `document_of` (CL‑OWN origin check); `classify_spans`/`intersect`/`union`/`normalize`/`difference_sets` (project, image, ever_placed). V‑positions read first/second components directly (`get(1)/get(2)`) — *not* `subspace()`, which is for element‑level I‑addresses.
+- **M2** — `transact` (every composite, under the M3 lock key), returns `(T, Seq)`; `snapshot` (VERSION's `ω` pre‑read; all reader access). `M5State` is the WorldState slice, `M5Rec` the delta, `apply_m5` the fold.
+- **M3** — pure mints `mint_content` (INSERT), `mint_version`/`mint_document` (VERSION), each with its lock key (`content_lock_key`/`version_lock_key`/`document_lock_key`) taken *before* the closure; `is_registered_document` (edit preconditions); `effective_owner`/`principal_prefix` (VERSION branch, pre‑read off a snapshot). M5 → M3 only.
+- **M4** — `stage_write` (INSERT byte write, composed into M5's transaction); `contains` (COPY content‑side referential gate). M5 → M4, no back‑edge.
+
+**Downstream (seam contracts neighbors build against):**
+- **→ M6** — `resolve`/`point` (RETRIEVEV, extent queries, COMPARE via `content_runs` on multiple docs off one snapshot); `ever_placed` + `content_image` (SHOWDELETIONS) and `docs_containing` + `content_image` (FINDDOCSCONTAINING) — both joins read one consistent `(M,R)` snapshot. M5 returns ⟨⟩ for an absent doc; M6 disambiguates registered‑empty vs unallocated via M3.
+- **→ M7** — `resolve` (turn endset V‑regions into I‑coverage, read inside MAKELINK's closure) and `stage_seat_link` (pure step folded into MAKELINK, returns `M5Rec`). M5 never reads M7.
+- **→ M8** — `resolve` (V→I image), `project` (I→V footprint, fragmentation‑tolerant), `content_count`/`link_count`. The materialized inverse‑arrangement hint, if built, lives here.
+- **→ M9** — `Vstream::insert` for predicate‑definition content (rides M5's placement composite, satisfies J0); returns the def's content start‑address as its identity. (M9 reads the def back via M4 `value_at`; M9's M7 writes are not M5's concern.)
+- **→ M10** — `insert`/`delete`/`copy`/`rearrange`/`version`, each one `transact` returning `(…, Seq)`; M10 acknowledges only after commit and surfaces `TxnError::Rejected(E)` as typed rejections.
+- **→ engine** — `M5State` slice, `M5Rec` record, `HasM5` accessor, `apply_m5` fold, `genesis`; the assembler implements `HasM5 for World`, `From<M5Rec> for Record`, and dispatches `Record::M5(x) => world.m5().apply_m5(x)`. M5 names neither `World` nor the central `Record`.
+
+---
+
+## Conflicts resolved
+
+1. **Link‑subspace gaplessness.** ASN‑0036/0082 model the link subspace as sparse/tombstone‑permitted; ASN‑0047 (the integrating note) *strengthens* it to dense‑gapless (D‑SEQ★, suffix‑only `K.μ⁻`). **Resolution:** follow ASN‑0047 — both subspaces are dense run‑lists, links seated by append; **interior link withdrawal is not offered** (ASN‑0047 leaves it open and Green's behavior is contested). Content interior deletion *is* offered (DELETE = contract‑then‑reseat, keeping the content subspace dense — ASN‑0117).
+2. **"Referential‑integrity gate checked via M3" (decomposition) vs. the content‑presence oracle.** The S3★ predicate that matters for resolve/retrieve is content *presence*, whose declared oracle is `M4::contains` (M4 interface). **Resolution:** COPY gates on `M4::contains` (presence); `M3::is_allocated` is the distinct allocation‑axis check, not used here. INSERT needs no gate (fresh write in‑composite).
+3. **COPY run‑coalescing guard.** ASN‑0118 notes udanax coalesces on `homedoc` equality (immediate source), while bare I‑contiguity coalesces strictly more and drops the immediate‑source distinction (its OQ4). **Resolution:** coalesce on **I‑adjacency** — the spec‑correct, M16‑safe guard; the immediate‑source/correspondence distinction is not carried (consistent with not building the correspondence relation).
+4. **Journal granularity (intent vs. effect).** ASN‑0116/0119 weigh logging the operation vs. the effect. **Resolution:** **effect‑level** deltas (concrete addresses/ordinals) — *forced* by M2's fold being pure and upstream‑blind (it cannot re‑mint). `VersionSnapshot{source,new}` is the one structural‑share record whose fold reads source (O(1)); an explicit‑runs alternative is noted in Open decisions.
+5. **R recomputability.** The decomposition calls R "non‑recomputable." **Resolution:** non‑recomputable *from the current arrangement* (P2 keeps deleted pairs), but recovered by *journal replay* like the POOM — authoritative journaled slice state, not a hint.
+
+---
+
+## Open build decisions
+
+1. **Physical `RunList` structure** (meets one contract either way): `im::Vector<Run>` (v1 default — free structural sharing, `O(#runs)` linear locate, splice via split/insert/concat; fine because #runs scales with transclusions/edit‑sessions, not characters); a **custom `Arc`‑shared width‑measured tree** (`O(log #runs)` locate/splice, no re‑keying) when profiling shows large run counts; or `im::OrdMap<ordinal, Run>` (predecessor‑search locate, `O(suffix)` re‑key on splice).
+2. **Inverse‑arrangement (I→V) hint** for `project`: scan the forward map (v1 default) vs. a materialized, skip‑serialized hint in `M5State` (rebuilt by `rebuild_derived`, maintained by `apply_m5`) if footprint projection is measured hot — note that a splice shifts the suffix, so incremental maintenance is non‑trivial.
+3. **Reverse‑provenance (coverage→docs) index** for FINDDOCSCONTAINING: scan `prov_by_doc` (v1) vs. an interval/segment index hint at scale.
+4. **`VersionSnapshot` record form:** `{source, new}` with the fold sharing source's run‑list (recommended; O(1), structural share) vs. explicit `{new, runs}` (larger record, self‑contained, decoupled from source's replay state).
+5. **COPY referential‑gate strength:** assert resolved run *starts* via `M4::contains` (recommended; cheap, relies on source S3★ for interiors) vs. full‑run `contains` (expensive) vs. trust the source arrangement's S3★ validity and skip.
+6. **Depth m:** fixed at 2 (recommended; semantically inert, matches the reference implementation and ASN‑0084's scope) vs. general depth behind the V‑side arithmetic seam — which reopens ASN‑0082's contraction inverse‑law gap at depth > 1 and a depth‑compatibility precondition on INSERT.
