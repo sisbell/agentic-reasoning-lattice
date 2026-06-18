@@ -99,35 +99,60 @@ def _statements(asn: int) -> str:
     return side[0].read_text().strip() if side else ""
 
 
-def _sources_blob(asns: list[int], with_statements: bool) -> str:
+def _sources_blob(sources: list, with_statements: bool, digests: bool = True) -> str:
+    """Each source is an ASN int (statements per the global flag) OR a
+    {asn, statements: bool} map for a PER-NOTE override — used to feed a heavy
+    note DIGEST-ONLY when its statements are dead weight for this module (the
+    note is pulled for a thin slice covered upstream / by smaller siblings;
+    e.g. M3 pulls 0034 only for backing theory, so 0034 → digest-only). Smaller,
+    higher-signal context = higher-quality output (context-rot).
+
+    `digests=False` drops the per-note design digests entirely (statements only).
+    The producer wants digests (engineering grounding to write the design); the
+    reviewer/reviser check design-against-CONTRACT, so they get statements only —
+    the digest is dead weight there, and dropping it is a large context cut on the
+    exact stages that were timing out."""
     parts = []
-    for asn in asns:
-        body = f"## ASN-{asn:04d} — design digest\n\n{_design_digest(asn)}"
-        if with_statements:
+    for s in sources:
+        asn = s if isinstance(s, int) else s["asn"]
+        want_st = with_statements and (s.get("statements", True) if isinstance(s, dict) else True)
+        chunks = []
+        if digests:
+            chunks.append(f"## ASN-{asn:04d} — design digest\n\n{_design_digest(asn)}")
+        if want_st:
             st = _statements(asn)
             if st:
-                body += f"\n\n## ASN-{asn:04d} — formal statements\n\n{st}"
-        parts.append(body)
+                chunks.append(f"## ASN-{asn:04d} — formal statements\n\n{st}")
+        if chunks:
+            parts.append("\n\n".join(chunks))
     return "\n\n---\n\n".join(parts)
 
 
 def _upstream_blob(mids: list[str], mods: dict) -> str:
-    """Each upstream module's converged detailed design — the interface this
-    module builds against. If one isn't designed yet, fall back to its
-    decomposition brief and say so loudly (run in build_order to avoid this)."""
+    """Each upstream module's consumer-facing interface — the contract this
+    module builds against. Prefers the extracted `interface.md` (the condensed
+    contract from extract-interface.py — public signatures + caller obligations
+    + seams, with the upstream's internals stripped: far less context, no
+    quality loss, since a dependent never needed the internals). Falls back to
+    the full `design.md` with a note when no interface has been extracted, and
+    to the decomposition brief when the module isn't designed yet."""
     if not mids:
         return "(this module is a foundation — it depends on no other module.)"
     parts = []
     for mid in mids:
-        p = OUT_ROOT / mid / "design.md"
-        if p.exists():
-            parts.append(f"## {mid} — {mods.get(mid, {}).get('name', '')} "
-                         f"(detailed design — build against this interface)\n\n"
-                         f"{p.read_text().strip()}")
+        name = mods.get(mid, {}).get("name", "")
+        iface = OUT_ROOT / mid / "interface.md"
+        design = OUT_ROOT / mid / "design.md"
+        if iface.exists():
+            parts.append(f"## {mid} — {name} (interface — build against this)\n\n"
+                         f"{iface.read_text().strip()}")
+        elif design.exists():
+            parts.append(f"## {mid} — {name} (FULL design — no interface extracted "
+                         f"yet; run extract-interface.py {mid} to trim this)\n\n"
+                         f"{design.read_text().strip()}")
         else:
-            parts.append(f"## {mid} — {mods.get(mid, {}).get('name', '')} "
-                         f"(NOT YET DESIGNED — only its decomposition brief is "
-                         f"available; treat its seams as provisional)")
+            parts.append(f"## {mid} — {name} (NOT YET DESIGNED — only its "
+                         f"decomposition brief is available; seams provisional)")
     return "\n\n---\n\n".join(parts)
 
 
@@ -259,7 +284,8 @@ def main():
     if not MODULES_MD.exists():
         sys.exit(f"error: {MODULES_MD.relative_to(ROOT)} missing (the decomposition).")
     decomposition = MODULES_MD.read_text().strip()
-    sources_blob = _sources_blob(sources, with_statements)
+    sources_blob = _sources_blob(sources, with_statements)                 # producer: + digests
+    review_sources_blob = _sources_blob(sources, with_statements, digests=False)  # review/revise: statements only
     upstream_blob = _upstream_blob(deps, mods)
 
     out_dir = OUT_ROOT / mid
@@ -270,6 +296,8 @@ def main():
 
     base = dict(module_id=mid, module_name=name, decomposition=decomposition,
                 sources=sources_blob, upstream=upstream_blob)
+    # The reviewer/reviser verify design-against-contract: statements, no digests.
+    review_base = dict(base, sources=review_sources_blob)
 
     missing_up = [d for d in deps if not (OUT_ROOT / d / "design.md").exists()]
     if design_md.exists():
@@ -314,7 +342,7 @@ def main():
             return
         print(f"[module-design] {mid} review {next_k} (cap {args.max_reviews}, "
               f"{clean_streak}/{CONVERGE_N} clean)...", file=sys.stderr)
-        review = _call("reviewer", {**base, "design": design}, args.effort, args.model)
+        review = _call("reviewer", {**review_base, "design": design}, args.effort, args.model)
         review_md = review_dir / f"review-{next_k}.md"
         review_md.write_text(review.rstrip() + "\n")
         _commit([review_md], f"module-design-review({mid}): review-{next_k}", commit)
@@ -325,7 +353,7 @@ def main():
         else:
             clean_streak = 0
             print(f"[module-design] {mid} applying review-{next_k}...", file=sys.stderr)
-            design = _call("reviser", {**base, "design": design, "review": review},
+            design = _call("reviser", {**review_base, "design": design, "review": review},
                            args.effort, args.model)
             design_md.write_text(design.rstrip() + "\n")
             _commit([design_md], f"module-design-revise({mid}): apply review-{next_k}",
