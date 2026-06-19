@@ -159,11 +159,20 @@ def _upstream_blob(mids: list[str], mods: dict) -> str:
 
 # --- convergence helpers (mirror design-modules.py) --------------------------
 _VERDICT_RE = re.compile(r"VERDICT:\s*\**\s*(CONVERGED|REVISE)\b", re.IGNORECASE)
+# Any actionable item — a defect OR a sharpening. Drives "always apply" (the
+# reviser runs whenever a review has revisions, converged or not); convergence
+# is still gated only on defects (the verdict), so sharpenings don't block it.
+_REVISION_RE = re.compile(r"\[\s*(DEFECT|SHARPEN)", re.IGNORECASE)
 
 
 def _is_converged(text: str) -> bool:
     m = _VERDICT_RE.findall(text)
     return bool(m) and m[-1].upper() == "CONVERGED"
+
+
+def _has_revisions(text: str) -> bool:
+    """True if the review lists any actionable item (defect or sharpening)."""
+    return bool(_REVISION_RE.search(text))
 
 
 def _verdict_converged(p: Path) -> bool:
@@ -203,9 +212,12 @@ def _resume_state(design_md: Path, review_dir: Path, commit: bool) -> tuple[int,
     highest = _highest_review(review_dir)
     if highest == 0:
         return 1, 0
-    if not _verdict_converged(review_dir / f"review-{highest}.md"):
-        if _last_revised(design_md, commit, highest) < highest:
-            return highest, _trailing_converged(review_dir, highest - 1)
+    top = review_dir / f"review-{highest}.md"
+    # Under "always apply", even a CONVERGED review with sharpenings gets a revise —
+    # so re-do the top review whenever it lists revisions (defect OR sharpening) that
+    # weren't committed yet, not only when it was a REVISE verdict.
+    if _has_revisions(top.read_text()) and _last_revised(design_md, commit, highest) < highest:
+        return highest, _trailing_converged(review_dir, highest - 1)
     return highest + 1, _trailing_converged(review_dir, highest)
 
 
@@ -352,13 +364,22 @@ def main():
         review_md = review_dir / f"review-{next_k}.md"
         review_md.write_text(review.rstrip() + "\n")
         _commit([review_md], f"module-design-review({mid}): review-{next_k}", commit)
-        if _is_converged(review):
+        converged = _is_converged(review)
+        if converged:
             clean_streak += 1
             print(f"[module-design] {mid} review {next_k}: CONVERGED "
                   f"({clean_streak}/{CONVERGE_N})", file=sys.stderr)
         else:
             clean_streak = 0
-            print(f"[module-design] {mid} applying review-{next_k}...", file=sys.stderr)
+        # ALWAYS apply the review's revision list — defects AND sharpenings — so no
+        # sharpening is ever left stranded, even on a converged (no-defect) review.
+        # Convergence still requires 2 consecutive NO-DEFECT reviews (clean_streak);
+        # applying sharpenings neither blocks nor resets that streak. A truly empty
+        # review (no defects, no sharpenings) has nothing to apply.
+        if _has_revisions(review):
+            kind = "sharpenings" if converged else "defects + sharpenings"
+            print(f"[module-design] {mid} applying review-{next_k} ({kind})...",
+                  file=sys.stderr)
             design = _call("reviser", {**review_base, "design": design, "review": review},
                            args.effort, args.model)
             design_md.write_text(design.rstrip() + "\n")
