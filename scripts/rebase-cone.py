@@ -13,10 +13,9 @@ interfaces, so module N+1 only starts after module N's interface is republished.
 Each step auto-commits (the underlying scripts do), so a cascade is a clean series
 of per-module commits.
 
-    python scripts/rebase-cone.py --all              # whole stack, build_order (skips M1, the gold root)
+    python scripts/rebase-cone.py --all              # whole stack in build_order (M1 included)
     python scripts/rebase-cone.py M2                 # M2 + every module that transitively depends on it
-    python scripts/rebase-cone.py --all --from M3    # resume the cascade at M3 (after a failure/stop)
-    python scripts/rebase-cone.py --all --include-m1 # include M1 too (normally skipped — oracle-backed)
+    python scripts/rebase-cone.py --all --from M2    # resume/skip-root: cascade from M2 onward
 
 Set CLAUDE_CONFIG_DIRS in the environment as usual; it is inherited by the children.
 """
@@ -68,9 +67,8 @@ def main():
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("modules", nargs="*", help="seed module(s); their downstream cone is rebased")
     ap.add_argument("--all", action="store_true", help="rebase every designed module in build_order")
-    ap.add_argument("--from", dest="start", help="resume the build_order cascade at this module")
-    ap.add_argument("--include-m1", action="store_true",
-                    help="include M1 (skipped by default — gold via the Dafny oracle, no upstream to realign)")
+    ap.add_argument("--from", dest="start", help="resume/start the build_order cascade at this module "
+                    "(e.g. --from M2 to skip the M1 root)")
     ap.add_argument("--effort", default=None, help="override effort passed to module-design --rebase")
     ap.add_argument("--dry-run", action="store_true", help="print the cascade order and exit")
     args = ap.parse_args()
@@ -87,9 +85,6 @@ def main():
         cone = _transitive_dependents(targets, mods)
     else:
         ap.error("give seed module(s) or --all")
-
-    if not args.include_m1:
-        cone.discard("M1")
 
     # Order by build_order; only modules that have a design to rebase.
     seq = [m for m in build_order if m in cone and _designed(m)]
