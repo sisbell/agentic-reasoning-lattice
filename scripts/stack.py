@@ -81,7 +81,14 @@ def main():
     ap.add_argument("modules", nargs="*", help="seed module(s); their dependent cone is processed")
     ap.add_argument("--all", action="store_true", help="process the whole stack")
     ap.add_argument("--rebase", action="store_true", help="rebase (re-review) instead of fresh design")
-    ap.add_argument("--from", dest="start", help="start at this module's level (drop earlier modules)")
+    ap.add_argument("--only", action="store_true",
+                    help="process EXACTLY the listed modules — no cone expansion. The parallel-safe "
+                         "resume: list exactly the modules still needing work (a partial-level failure "
+                         "leaves a non-prefix done-set that --from cannot express). Levels are computed "
+                         "over just the listed set, so inter-dependencies among them still order/barrier.")
+    ap.add_argument("--from", dest="start",
+                    help="linear cutoff: start at this module's build_order position (sequential resume "
+                         "only — for parallel partial-failure resume use --only with the exact list)")
     ap.add_argument("--jobs", type=int, default=None, help="max parallel workers (default: #accounts)")
     ap.add_argument("--effort", default=None, help="override effort for module-design")
     ap.add_argument("--dry-run", action="store_true", help="print the level plan and exit")
@@ -96,7 +103,8 @@ def main():
         bad = [t for t in targets if t not in mods]
         if bad:
             ap.error(f"unknown module(s): {bad}")
-        scope = _dependents(targets, mods)
+        # --only: exactly the listed modules; default: their transitive dependent cone.
+        scope = set(targets) if args.only else _dependents(targets, mods)
     else:
         ap.error("give seed module(s) or --all")
 
