@@ -83,8 +83,11 @@ def main():
     ap.add_argument("--all", action="store_true",
                     help="extract for every module-designs/*/design.md")
     ap.add_argument("--model", default="opus")
-    ap.add_argument("--effort", default="medium",
-                    help="extraction is projection, not deep reasoning — medium is plenty")
+    ap.add_argument("--effort", default="max",
+                    help="interface extraction synthesizes the caller contract (obligations + "
+                         "seams), not just signatures — an A/B showed max yields a finer, more "
+                         "complete contract than xhigh/medium without over-thinking (single small "
+                         "design input). Contrast method-dag.py, which IS mechanical → medium.")
     ap.add_argument("--no-commit", action="store_true")
     args = ap.parse_args()
 
