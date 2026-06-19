@@ -283,6 +283,13 @@ def main():
                          "only drop for a module whose combined statements overflow context.")
     ap.add_argument("--max-reviews", type=int, default=8)
     ap.add_argument("--no-commit", action="store_true")
+    ap.add_argument("--rebase", action="store_true",
+                    help="invalidate a converged module's convergence and re-review it WITHOUT "
+                         "deleting the trailing reviews. Resets the clean streak to 0 and appends "
+                         "fresh reviews after the existing ones, re-reviewing the current design "
+                         "against the CURRENT upstream interfaces (use after an upstream changed) "
+                         "until it re-converges (2 new consecutive no-defect reviews). Analog of "
+                         "the note pipeline's invalidate-note.")
     args = ap.parse_args()
     commit = not args.no_commit
     with_statements = not args.no_statements
@@ -325,11 +332,28 @@ def main():
         design = None
         resumed = False
     next_k, clean_streak = _resume_state(design_md, review_dir, commit)
+    highest = _highest_review(review_dir)
+    rebasing = args.rebase and highest > 0
+    if rebasing:
+        # Invalidate the existing convergence and re-review the current design — against the
+        # CURRENT upstream interfaces — WITHOUT deleting or overwriting any existing review.
+        # APPEND after the highest review with a reset streak (so a module that converged with
+        # stranded sharpenings, or against now-changed upstreams, re-surfaces and re-converges),
+        # allowing --max-reviews more past the existing ones.
+        next_k = highest + 1
+        clean_streak = 0
+        args.max_reviews = highest + args.max_reviews
+        print(f"[module-design] {mid} REBASE — convergence invalidated; appending from "
+              f"review-{next_k}, re-reviewing the current design against current upstream "
+              f"interfaces (cap now {args.max_reviews}).", file=sys.stderr)
+    elif args.rebase:
+        print(f"[module-design] {mid} --rebase given but no prior reviews — proceeding as a "
+              f"normal review pass.", file=sys.stderr)
 
     ev_kb = (len(decomposition) + len(sources_blob) + len(upstream_blob)) // 1024
     print(f"[module-design] {mid} ({name}) | sources {sources} | depends {deps or '—'} | "
           f"evidence ~{ev_kb}KB{' +statements' if with_statements else ' (NO statements)'} | "
-          f"{'RESUMING' if resumed else 'fresh'} (next review {next_k}, "
+          f"{'REBASE' if rebasing else ('RESUMING' if resumed else 'fresh')} (next review {next_k}, "
           f"{clean_streak}/{CONVERGE_N} clean) → cap {args.max_reviews} | "
           f"commit={commit}", file=sys.stderr)
     if with_statements and ev_kb > 400:
