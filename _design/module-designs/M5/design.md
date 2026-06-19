@@ -42,16 +42,22 @@ pub enum M5Rec {
 }
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Run { pub i_start: Address, pub width: Nat }          // width ≥ 1; i_start element-level
+pub struct Run { pub i_start: Address, pub width: Nat }          // standing invariant: width ≥ 1; i_start element-level
 
 impl Run {
+    /// Checked constructor — the seam guard: `None` iff `width == 0`. Every `Run` M5 emits
+    /// (run-list split/coalesce, `resolve`, `content_runs`/`link_runs`) satisfies `width ≥ 1`
+    /// by construction; an external producer (none in v1) MUST build through `new`, so `iextent`
+    /// is never handed a 0.
+    pub fn new(i_start: Address, width: Nat) -> Option<Run>;     // None ⇔ width == 0
+
     /// The ONE admissible Run→Span lift: the level-uniform, element-level I-extent
     /// [i_start, shift(i_start, width)). Centralized (public) so no consumer re-derives it
     /// and none writes the malformed `Span(i_start, [0,width])` (element-level start vs depth-2
-    /// width ⇒ `#start ≠ #width` ⇒ LevelMismatch downstream). Internally level-uniform
-    /// (`#start = #reach`, so `from_endpoints` never faults); a SpanSet aggregating iextents
-    /// across origin-documents is mixed-length — consume it under the level-class discipline
-    /// (see Internal design).
+    /// width ⇒ `#start ≠ #width` ⇒ LevelMismatch downstream). TOTAL given the `width ≥ 1` standing
+    /// invariant: `shift` is length-preserving (`#start = #reach`) and advances (`start < reach`,
+    /// TS4), so `from_endpoints` cannot fault. A SpanSet aggregating iextents across origin-
+    /// documents is mixed-length — consume it under the level-class discipline (see Internal design).
     pub fn iextent(&self) -> Span;
 }
 
@@ -114,10 +120,12 @@ pub fn stage_seat_link(m5: &M5State, doc: &Address, link: &Address) -> Result<M5
 
 ```rust
 impl M5State {
-    /// V→I resolution: I-runs covering a depth-2 level-uniform V-span, V-ordered, clipped to the
-    /// active range (accept-and-intersect). Subspace from span.start().get(1); a malformed span
-    /// with #start < 2 ⇒ ⟨⟩ (cannot fault — no Result). Absent doc ⇒ ⟨⟩ (M6/M8 disambiguate
-    /// registered-empty vs unallocated via M3).
+    /// V→I resolution: I-runs covering an ORDINAL-LEVEL depth-2 V-span (width [0,n], action
+    /// point 2), V-ordered, clipped to the active range (accept-and-intersect). Subspace from
+    /// span.start().get(1), count from span.width().get(2). DEFENSIVE (returns ⟨⟩, cannot fault —
+    /// no Result): #start < 2, #width < 2, or span.width().get(1) ≠ 0 (a non-ordinal width — a
+    /// level-uniform [m,n] with m>0 is action-point-1 and would make get(2) the wrong extraction).
+    /// Absent doc ⇒ ⟨⟩ (M6/M8 disambiguate registered-empty vs unallocated via M3).
     pub fn resolve(&self, doc: &Address, span: &Span) -> Vec<Run>;
     pub fn point(&self, doc: &Address, v: &VPos) -> Option<Address>;       // M(d)(v)
 
@@ -133,8 +141,11 @@ impl M5State {
     pub fn link_count(&self, doc: &Address) -> Nat;                       // n_L(d)
     pub fn content_image(&self, doc: &Address) -> SpanSet;                 // I-coverage of current content arr.
 
-    /// I→V: V-positions of doc whose content I-address falls in `coverage` (a link footprint,
-    /// possibly fragmented). Scan of the forward content map by default.
+    /// I→V (content subspace ONLY, by construction — link reverse-discovery is M7's BH3, not
+    /// this; there is no subspace argument): V-positions of doc whose CONTENT I-address falls in
+    /// `coverage` (a link footprint, possibly fragmented and mixed-length). Total. Coverage spans
+    /// are level-uniform I-extents; each is matched per the level-class discipline (§2). Scan of
+    /// the forward content map by default.
     pub fn project(&self, doc: &Address, coverage: &SpanSet) -> SpanSet;
 }
 ```
@@ -144,6 +155,16 @@ impl M5State {
 ```rust
 impl M5State {
     pub fn ever_placed(&self, doc: &Address) -> SpanSet;                  // R↾doc (content spans ever placed)
+
+    /// SHOWDELETIONS primitive: `ever_placed(doc) ∖ content_image(doc)`, computed PER LEVEL-CLASS
+    /// inside M5 (§2) — both operands are iextent-covers that mix origin-lengths when `doc`
+    /// transcludes across heterogeneous-depth documents, so M5 (owner of R and the iextent
+    /// semantics) partitions each by endpoint length, runs `difference_sets` within each class,
+    /// and unions the results. Per-class is also the correct semantics (different-length addresses
+    /// are distinct and cannot cancel). M6 reads SHOWDELETIONS straight off this — no raw
+    /// length-gated op crosses the seam (Conflicts #6).
+    pub fn deletions(&self, doc: &Address) -> SpanSet;
+
     /// R⁻¹ candidate documents (distinct, deterministic Tumbler order). Returns `Vec<Address>`:
     /// `Address` is not `Ord`, so an `im::OrdSet<Address>` keyed surface is impossible; M5 owns R
     /// and any index over it, M6 owns only the FINDDOCSCONTAINING query (Conflicts #6).
@@ -161,7 +182,7 @@ pub enum InsertError   { DocNotRegistered, BadPosition, EmptyContent, Mint(MintE
 pub enum CopyError     { DocNotRegistered, BadPosition, SourceNotRegistered, EmptySource,
                          NotContentSubspace, DanglingSource, EmptyResult }
 pub enum DeleteError   { DocNotRegistered, NotContentSubspace, NotArranged, OutOfBounds, EmptyWidth }
-pub enum RearrangeError{ DocNotRegistered, BadCutCount, NotAscending, NotContentSubspace, OutOfBounds, RegionEmpty }
+pub enum RearrangeError{ DocNotRegistered, BadCutCount, NotAscending, NotContentSubspace, OutOfBounds, EmptyContentSubspace }
 pub enum VersionError  { SourceNotRegistered, NotAPrincipal, Mint(MintError) }   // Mint(NotAnAccount) = node-tier cross-owner (scoped out)
 pub enum SeatError     { NotHomeLink, AlreadySeated }
 ```
@@ -206,10 +227,10 @@ struct DocArrangement { content: RunList, link: RunList }
 All four mutators reduce to splits and concatenations of the per‑subspace run‑list; the spec's *displacement* (ASN‑0082 shift) is **never computed** — implicit positions absorb it.
 
 - **locate(ord):** walk runs accumulating widths until the cumulative sum reaches `ord`; return `(run_idx, offset_in_run)`. (`O(#runs)` over `im::Vector`; `O(log #runs)` over a width‑measured tree.)
-- **splice_in(ord, new_runs):** split the run‑list at `ord` (splitting one boundary run if `ord` is interior to it, via `Run(a,w) → Run(a, c), Run(a⊕c, w−c)` where the new I‑start `a⊕c = validate(M1::shift(a.tumbler(), c))` — see *Address synthesis* below), insert `new_runs`, concat the suffix. The suffix's implicit positions are now `+Σwidth(new_runs)` — the uniform forward shift, *for free*.
+- **splice_in(ord, new_runs):** split the run‑list at `ord` (splitting one boundary run if `ord` is interior to it, via `Run(a,w) → Run(a, c), Run(a⊕c, w−c)` where the new I‑start `a⊕c = M1::validate(M1::shift(a.tumbler(), &c))` — see *Address synthesis* below), insert `new_runs`, concat the suffix. The suffix's implicit positions are now `+Σwidth(new_runs)` — the uniform forward shift, *for free*.
 - **remove_range(ord, width):** split at `ord` and `ord+width`, drop the middle, concat prefix+suffix. Suffix positions shift left for free; gap closes by construction (ASN‑0117 P2).
 - **reorder(cuts):** split at each cut ordinal; **tile by placement** — concatenate `[exterior‑left][β][μ?][α][exterior‑right]` (ASN‑0119's collision/subspace‑safe construction), never offset arithmetic, so the bijection is structural (no possibility of the swap‑α offset bug, ASN‑0084 Q14).
-- **Eager seam‑coalesce** after every mutator: at each touched seam, merge adjacent runs `(a₁,w₁),(a₂,w₂)` **iff I‑adjacent** — `M1::shift(a₁.tumbler(), w₁) == a₂.tumbler()`. I‑adjacency is the *complete and safe* guard: it implies same origin (ASN‑0058 M16a) and excludes shared‑I‑extent (M14a) — and it is vacuously false across origin‑lengths, since `shift` preserves length (`#shift(a₁,w₁) = #a₁`), so two cross‑length runs never merge — so it can never merge across an origin seam (M16) or collapse a transclusion (M14). **Never coalesce on value** (S4). With eager coalesce the resident form is the unique maximally‑merged decomposition (ASN‑0058 M12), so queries over run structure read it directly; choosing lazy mode (Open decision) instead requires `resolve`/`content_runs` to coalesce on output.
+- **Eager seam‑coalesce** after every mutator: at each touched seam, merge adjacent runs `(a₁,w₁),(a₂,w₂)` **iff I‑adjacent** — `M1::shift(a₁.tumbler(), &w₁) == a₂.tumbler()`. I‑adjacency is the *complete and safe* guard: it implies same origin (ASN‑0058 M16a) and excludes shared‑I‑extent (M14a) — and it is vacuously false across origin‑lengths, since `shift` preserves length (`#shift(a₁,w₁) = #a₁`), so two cross‑length runs never merge — so it can never merge across an origin seam (M16) or collapse a transclusion (M14). **Never coalesce on value** (S4). With eager coalesce the resident form is the unique maximally‑merged decomposition (ASN‑0058 M12), so queries over run structure read it directly; choosing lazy mode (Open decision) instead requires `resolve`/`content_runs` to coalesce on output.
 
 **Address synthesis through `validate`.** `Run.i_start` is an `Address` but `M1::shift` yields a `Tumbler`; every within‑run I‑address M5 synthesizes — the `splice_in`/`reorder` boundary split, `resolve_range`, and `point` — recovers its `Address` via `M1::validate(M1::shift(…)).expect("T4‑valid by construction")`. Shifting a valid element address by an ordinal offset preserves T4‑validity, so the `expect` flags an internal‑invariant violation, never a domain case (mirroring `point`'s synthesis in §2).
 
@@ -221,40 +242,40 @@ All four mutators reduce to splits and concatenations of the per‑subspace run�
 impl Run {
     fn iextent(&self) -> Span {
         Span::from_endpoints(self.i_start.tumbler().clone(), M1::shift(self.i_start.tumbler(), &self.width))
-            .expect("start < reach ∧ #start = #reach ⇒ from_endpoints cannot fault")
+            .expect("width ≥ 1 ⇒ start < reach ∧ #start = #reach ⇒ from_endpoints cannot fault")
     }
 }
 ```
 
 `shift` advances the last component by `width ≥ 1`, so `start < reach` (TS4) and `#start = #reach` (length‑preserving). This is the *only* admissible Run→Span conversion: a naïve `Span(i_start, [0,width])` is **malformed** — `i_start` is element‑level (`zeros = 3`, depth ≈ 8) while `[0,width]` is a depth‑2 displacement, so `add` would advance a field separator (garbage reach) and the span would not be level‑uniform (`#start ≠ #width`), faulting every downstream `intersect`/`difference`/`normalize` with `LevelMismatch`. `iextent` is used by `project`, by `image()` (hence `content_image`/`resolve_coverage`), and by the R‑append folds (§3, §7).
 
-**Level‑class discipline for span‑set algebra.** A document's content runs may reference I‑addresses minted under *different* documents (transclusion via COPY/VERSION), and element‑address total length varies with the node/account/document field widths of the origin (a length‑7 `[1,0,1,0,1,0,s_C,k]` and a length‑9 `[1,5,0,1,0,1,0,s_C,k]` are both legal element addresses). So a SpanSet aggregated across runs — `content_image`, `ever_placed`, a coverage footprint — is in general **mixed‑length**, and M1's length‑gated set ops (`intersect`, `difference_sets`, `intersect_sets`, `normalize`, `canonical_key`) return `Err(LevelMismatch)` on mixed‑length operands. Two M1 primitives are *not* gated and are preferred wherever they suffice: `classify_spans` (pure‑order span relation) for overlap/separation tests, and `SpanSet::denotes`/`Span::contains` (pure‑order membership) for point tests — both correct across lengths (a shorter‑prefix span can legitimately contain a longer address, so cross‑length pairs are **not** safely treated as disjoint). Where the *geometry* of an intersection or difference is actually needed (not just overlap/membership), M5 (or its caller) partitions each operand into level‑classes by endpoint length `#start`, runs M1's op within each class — operands now equal‑length — and unions the per‑class results; genuine cross‑class containment is recovered through `denotes`. Internal run‑list arithmetic needs none of this: `shift`/`==` are total, and the I‑adjacency coalesce guard is false across lengths (§1), so it never merges cross‑origin runs. **No span‑set operation at the M5→M6/M8 seam is unconditionally fault‑free; the discipline above is how M5 and its readers stay clear of `LevelMismatch`.**
+**Level‑class discipline for span‑set algebra.** A document's content runs may reference I‑addresses minted under *different* documents (transclusion via COPY/VERSION), and element‑address total length varies with the node/account/document field widths of the origin (a length‑7 `[1,0,1,0,1,0,s_C,k]` and a length‑9 `[1,5,0,1,0,1,0,s_C,k]` are both legal element addresses). So a SpanSet aggregated across runs — `content_image`, `ever_placed`, a coverage footprint — is in general **mixed‑length**, and M1's length‑gated set ops (`intersect`, `difference_sets`, `intersect_sets`, `normalize`, `canonical_key`) return `Err(LevelMismatch)` on mixed‑length operands. Two M1 primitives are *not* gated and are preferred wherever they suffice: `classify_spans` (pure‑order span relation) for overlap/separation tests, and `SpanSet::denotes`/`Span::contains` (pure‑order membership) for point tests — both correct across lengths (a shorter‑prefix span can legitimately contain a longer address, so cross‑length pairs are **not** safely treated as disjoint). Where the *geometry* of an intersection or difference is actually needed (not just overlap/membership), M5 (or its caller) partitions each operand into level‑classes by endpoint length `#start`, runs M1's op within each class — operands now equal‑length — and unions the per‑class results; genuine cross‑class containment is recovered through `denotes`. Internal run‑list arithmetic needs none of this: `shift`/`==` are total, and the I‑adjacency coalesce guard is false across lengths (§1), so it never merges cross‑origin runs. **No span‑set operation at the M5→M6/M8 seam is unconditionally fault‑free; the discipline above is how M5 and its readers stay clear of `LevelMismatch` — and M5 encapsulates it in `project`/`deletions` rather than handing a raw mixed‑length cover across the seam.**
 
-- **resolve(d, span):** *precondition* — `span` is a depth‑2 level‑uniform V‑span (the global `m = 2` commitment); since `resolve` returns `Vec<Run>` (no `Result`) it cannot signal a malformed span, so it **defensively returns `[]` if `#span.start() < 2`** rather than indexing out of bounds. Otherwise `S = span.start().get(1)` selects the subspace run‑list; `k = span.start().get(2)`, `n = span.width().get(2)` (level‑uniform ordinal displacement `[0,n]`). Return `resolve_range(k, n)` clipped to `[1, total_width]` (accept‑and‑intersect — out‑of‑range silently dropped, ASN‑0118). Each within‑run I‑address is `validate(M1::shift(run.i_start.tumbler(), offset))` (see *Address synthesis*, §1). Absent doc ⇒ `[]`.
+- **resolve(d, span):** *precondition* — `span` is an **ordinal‑level** depth‑2 V‑span: width `[0,n]` with action point 2 (the global `m = 2` commitment), the count taken as `span.width().get(2)`. Since `resolve` returns `Vec<Run>` (no `Result`) it cannot signal a malformed span, so it **defensively returns `[]`** when the span is not a usable ordinal‑level depth‑2 V‑span — `#span.start() < 2`, `#span.width() < 2`, or `span.width().get(1) ≠ 0` (a non‑ordinal width — a level‑uniform `[m,n]` with `m>0` is action‑point‑1 and `get(2)` would extract the wrong count). Otherwise `S = span.start().get(1)` selects the subspace run‑list; `k = span.start().get(2)`, `n = span.width().get(2)`. Return `resolve_range(k, n)` clipped to `[1, total_width]` (accept‑and‑intersect — out‑of‑range silently dropped, ASN‑0118). Each within‑run I‑address is `M1::validate(M1::shift(run.i_start.tumbler(), &offset)).expect(…)` (see *Address synthesis*, §1). Absent doc ⇒ `[]`.
 - **point(d, v):** `locate(v.ordinal)` in the `v.subspace` list; `Some(M1::validate(M1::shift(i_start.tumbler(), &offset)).expect("T4-valid by construction"))` or `None` (`validate` returns `Result`, so the synthesis is `.expect`‑ed — an internal‑invariant failure, never a domain case).
 - **resolve_coverage(d, span):** `resolve(d, span)` then `union` of each run's `iextent()` — the centralized SpanSet lift for M7/M8. Total (concatenation), not normalized, possibly mixed‑length; consumers operate on the result under the level‑class discipline.
 - **content_image(d):** `arrangements.get(d.tumbler()).map(|a| a.content.image()).unwrap_or(SpanSet::empty())`, where `image()` is the `union` of `r.iextent()` over the runs — an element‑level cover that is **possibly mixed‑length** across transcluded origins (not, in general, a single level‑class). It is `union` (concatenation, total) only; consumers operate on it under the level‑class discipline and do **not** blindly `normalize` it.
-- **project(d, coverage):** for each content run `(v_start, i_start, width)` and each span of `coverage`: **(same length)** when the span's endpoint length equals the run's I‑extent length, `intersect` `r.iextent()` with it (M1, within one level‑class); each I‑sub‑extent maps at equal offset to a V‑sub‑range. **(different length)** `coverage` may carry prefix/subtree spans that legitimately denote addresses of other lengths, so fall back to `SpanSet::denotes` membership, which is total: because the run's addresses `shift(i_start, k)` are contiguous and a span is order‑convex, the denoted subset is a contiguous index range (located by boundary search) mapping to one V‑sub‑range. Emit each V‑sub‑range as a depth‑2 V‑span; union them (M1 `union` then `normalize` — the output V‑spans are all depth‑2, hence uniform‑length and safe to normalize). `O(#runs · #coverage‑spans)`; fragmentation is correct (ASN‑0119 RA7c).
+- **project(d, coverage):** *content subspace only* — the scan is over `d`'s content runs and answers "content I‑address falls in `coverage`"; link‑to‑link reverse discovery is M7's BH3, not this, so there is no subspace argument. For each content run `(v_start, i_start, width)` and each span of `coverage`: **(level‑uniform, same length)** when the span `is_level_uniform()` and its endpoint length equals the run's I‑extent length, `intersect` `r.iextent()` with it (M1, within one level‑class); each I‑sub‑extent maps at equal offset to a V‑sub‑range. **(otherwise)** — a different‑length span, *or* a same‑length but non‑level‑uniform span (which `intersect` would fault on) — fall back to `SpanSet::denotes` membership, which is total: because the run's addresses `shift(i_start, k)` are contiguous and a span is order‑convex, the denoted subset is a contiguous index range (located by boundary search) mapping to one V‑sub‑range. Emit each V‑sub‑range as a depth‑2 V‑span; union them (M1 `union` then `normalize` — the output V‑spans are all depth‑2, hence uniform‑length and safe to normalize). `O(#runs · #coverage‑spans)`; fragmentation is correct (ASN‑0119 RA7c).
 
-### 3. INSERT (ASN‑0116; one composite under `M3::content_lock_key(doc)`)
+### 3. INSERT (ASN‑0116; one composite under `M3State::content_lock_key(doc)`)
 
 ```
-transact([content_lock_key(doc)], |stg|):
+transact([M3State::content_lock_key(doc)], |stg|):
   m3 = stg.working().m3()
   reject DocNotRegistered unless m3.is_registered_document(doc)
   reject EmptyContent if values.is_empty()
   n_c = stg.working().m5().content_count(doc)
   reject BadPosition unless valid_insertion(at, n_c)  // subspace=s_C, depth 2, ordinal ∈ [1, n_c+1] (or =1 if n_c=0)
-  first = None; run = None
+  first = None; run: Option<Run> = None
   for val in values:
      (a, m3rec) = stg.working().m3().mint_content(doc)? ; stg.push(m3rec.into())   // re-reads advanced frontier
      cw = M4::stage_write(stg.working().content(), &a, val)? ; stg.push(cw.into())
-     first.get_or_insert(a.clone()); extend_or_open_run(&mut run, a)               // contiguous mints ⇒ one run
-  stg.push(M5Rec::ContentPlace{ doc, at: at.ordinal, runs: vec![run] }.into())
+     first.get_or_insert(a.clone()); extend_run(&mut run, a)                       // held lock ⇒ I-adjacent mints ⇒ ONE run
+  stg.push(M5Rec::ContentPlace{ doc, at: at.ordinal, runs: vec![run.unwrap()] }.into())  // unwrap safe: EmptyContent ⇒ ≥1 val ⇒ run opened
   Ok(first.unwrap())
 ```
 
-Successive `mint_content` calls read `stg.working()` so they advance the *same* frontier under the held lock → contiguous addresses → one run (concurrency‑freshness handled by the per‑(doc, content‑subspace) lock, ASN‑0116). **J0/J1★ by construction:** mint + write + place + provenance ride one transaction; the `ContentPlace` fold appends `(run, doc)` to R *with* the splice. Return is the run start = the predicate‑def identity for M9.
+Successive `mint_content` calls read `stg.working()`, so they advance the *same* frontier under the held lock → contiguous, I‑adjacent addresses → one run; `extend_run` therefore only ever *widens* the single open run (a second run never opens here — COPY is where `ContentPlace.runs` genuinely carries multiple cross‑origin runs). Concurrency‑freshness is handled by the per‑(doc, content‑subspace) lock (ASN‑0116). **J0/J1★ by construction:** mint + write + place + provenance ride one transaction; the `ContentPlace` fold appends `(run, doc)` to R *with* the splice. Return is the run start = the predicate‑def identity for M9.
 
 **Fold:**
 ```
@@ -267,14 +288,14 @@ apply_m5(ContentPlace{doc, at, runs}):
   M5State{ arrangements: arrangements.update(k.clone(), arr), prov_by_doc: R' }
 ```
 
-### 4. DELETE (ASN‑0117; `content_lock_key(doc)`)
+### 4. DELETE (ASN‑0117; `M3State::content_lock_key(doc)`)
 
 Reject unless `doc` registered, `subspace(p)=s_C`, `p ∈ V_{s_C}(d)` and containment `ordinal(p)+width−1 ≤ n_c`, `width ≥ 1`. Stage `ContentRemove{doc, from: p.ordinal, width}`. **NonDestruction is structural** (ASN‑0117 P0): M5 has no path to content reclamation (M4 exposes none); `ContentRemove`'s fold touches neither content nor R. Link survival is automatic — a text delete never touches the link run‑list (ASN‑0117 P4).
 
-### 5. COPY (ASN‑0118; `content_lock_key(doc)`)
+### 5. COPY (ASN‑0118; `M3State::content_lock_key(doc)`)
 
 ```
-transact([content_lock_key(doc)], |stg|):
+transact([M3State::content_lock_key(doc)], |stg|):
   m5,m3,c = stg.working().{m5,m3,content}()
   reject DocNotRegistered / BadPosition as in INSERT
   runs = []
@@ -290,11 +311,11 @@ transact([content_lock_key(doc)], |stg|):
   Ok(())
 ```
 
-No minting — COPY transcludes existing addresses by reference (CP1/CP2). Resolution reads source POOMs; the resolved addresses are immutable (S0), so **no source lock is needed** — COPY bakes concrete addresses into the record and is snapshot‑consistent regardless of later source edits. The per‑spec `EmptySource` guard surfaces ASN‑0118's "source subspace non‑empty" admissibility clause as a typed rejection (rather than silently dropping a registered‑but‑empty source — M10 wants a verdict, not a skip); span‑level out‑of‑range hits remain accept‑and‑intersect (clipped by `resolve`). Recording the *whole* placed run as provenance is correct: range‑new addresses are genuinely new pairs; already‑referenced ones are P2 no‑ops (CP8). Cross‑origin runs never coalesce (I‑adjacency guard), preserving the origin multiset (CP11) and transclusion independence (CP4/M14).
+No minting — COPY transcludes existing addresses by reference (CP1/CP2). Resolution reads source POOMs off the composite's **consistent base** (`stg.working()`/`stg.base()` — the operation's linearization snapshot under v1's single‑linearization realization), so the arrangement read matches the linearization point; **no source lock is needed**. COPY then bakes the concrete resolved addresses into the record, and those addresses stay valid forever by content immutability (S0), so the record is correct regardless of later source edits. The per‑spec `EmptySource` guard surfaces ASN‑0118's "source subspace non‑empty" admissibility clause as a typed rejection (rather than silently dropping a registered‑but‑empty source — M10 wants a verdict, not a skip); span‑level out‑of‑range hits remain accept‑and‑intersect (clipped by `resolve`). Recording the *whole* placed run as provenance is correct: range‑new addresses are genuinely new pairs; already‑referenced ones are P2 no‑ops (CP8). Cross‑origin runs never coalesce (I‑adjacency guard), preserving the origin multiset (CP11) and transclusion independence (CP4/M14).
 
-### 6. REARRANGE (ASN‑0119/0084; `content_lock_key(doc)`)
+### 6. REARRANGE (ASN‑0119/0084; `M3State::content_lock_key(doc)`)
 
-Validate R‑PRE: 3 or 4 cuts, strictly ascending, all `subspace=s_C` at depth 2, affected interval within the active content run (`cut_last ≤ n_c+1`), regions non‑empty. Stage `ContentReorder{doc, cuts: ordinals}`. The fold splits at the cuts and tiles by placement (§1). The permutation is **cut‑determined and value‑blind** — read from cut geometry, never from content values (so a duplicate‑I interval correctly yields `π≠id` with `M'=M`, ASN‑0119). Referential integrity and permanence are automatic (range unchanged, RA1).
+Validate R‑PRE: 3 or 4 cuts (`BadCutCount`), strictly ascending (`NotAscending`), all `subspace=s_C` at depth 2 (`NotContentSubspace`), affected interval within the active content run `cut_last ≤ n_c+1` (`OutOfBounds`), and the content subspace non‑empty `V_{s_C}(d)≠∅` (`EmptyContentSubspace`, R‑PRE(ii)). Strict ascent (`NotAscending`) already forces every region width ≥ 1, so no separate per‑region emptiness check is reachable. Stage `ContentReorder{doc, cuts: ordinals}`. The fold splits at the cuts and tiles by placement (§1). The permutation is **cut‑determined and value‑blind** — read from cut geometry, never from content values (so a duplicate‑I interval correctly yields `π≠id` with `M'=M`, ASN‑0119). Referential integrity and permanence are automatic (range unchanged, RA1).
 
 ### 7. CREATENEWVERSION (ASN‑0123)
 
@@ -304,11 +325,11 @@ Pre‑read `ω(d_src)` off a snapshot (stable for an existing document, per M3) 
 snap = k.snapshot(); m3 = snap.world().m3()
 if !m3.is_registered_document(d_src) { return Err(TxnError::Rejected(VersionError::SourceNotRegistered)) }
 (lock, branch) = match m3.effective_owner(d_src) {
-   Some(p) if p.id == principal => (M3::version_lock_key(d_src), Owned),               // owned fork: serializes forks of d_src (OQ4)
+   Some(p) if p.id == principal => (M3State::version_lock_key(d_src), Owned),         // owned fork: serializes forks of d_src (OQ4)
    _ => {
       let pfx = m3.principal_prefix(principal)
                   .ok_or(TxnError::Rejected(VersionError::NotAPrincipal))?;            // Option → Result before `?`
-      (M3::document_lock_key(&pfx), Cross(pfx))
+      (M3State::document_lock_key(&pfx), Cross(pfx))
    }
 }
 transact([lock], |stg|):
@@ -328,7 +349,7 @@ apply_m5(VersionSnapshot{source, new}):
   arr = DocArrangement{ content: src, link: empty }
   M5State{ arrangements: arrangements.update(new.tumbler().clone(), arr), prov_by_doc: R' }
 ```
-This **copies the V→I map, not the I‑range** (ASN‑0123 J4): the share preserves multiplicity, so within‑document transclusion duplicates survive into the fork — a set/range copy would silently drop them. Fixing m = 2 dissolves J4's depth‑rebasing case, so the O(1) share always applies. Source is untouched (V3); the new arrangement diverges copy‑on‑write under later edits (V11).
+This **copies the V→I map, not the I‑range** (ASN‑0123 V2): the share preserves multiplicity, so within‑document transclusion duplicates survive into the fork — a set/range copy would silently drop them. Fixing m = 2 dissolves the depth‑rebasing case, so the O(1) share always applies. Source is untouched (V3); the new arrangement diverges copy‑on‑write under later edits (V11).
 
 ### 8. Link seating (for M7's MAKELINK)
 
@@ -337,8 +358,8 @@ This **copies the V→I map, not the I‑range** (ASN‑0123 J4): the share pres
 ### 9. Provenance R and the single `(M, R)` snapshot
 
 Because `ContentPlace`/`VersionSnapshot` update `arrangements` **and** `prov_by_doc` in one fold → one new `M5State` → one M2 root install, a reader never observes M‑updated‑without‑R. This is exactly ASN‑0075's atomic root‑swap of the M edit and the R append, achieved by **co‑location** rather than a cross‑store protocol. M6 reads both off **one** `Snapshot`:
-- **SHOWDELETIONS(d)** — M6 computes `ever_placed(d) \ content_image(d)` under the level‑class discipline (§2): both operands are iextent‑covers that may mix origin‑lengths when `d` transcludes across heterogeneous‑depth documents, so M6 partitions each by endpoint length, runs `difference_sets` within each class, and unions the per‑class results — never a bare `difference_sets` over the mixed set. (Per‑class is also the *correct* semantics: iextent addresses of different length are distinct addresses and cannot cancel; a currently‑arranged length‑ℓ address removes only ever‑placed length‑ℓ addresses.)
-- **FINDDOCSCONTAINING(region)** — `docs_containing(region)` (a `Vec<Address>` candidate superset) filtered per candidate by `project(d, region) ≠ ⟨⟩` (current‑containment; `project` already applies the level‑class discipline, so the filter is fault‑free for any `region`, including cross‑length prefix/subtree spans) — both primitives off the one snapshot, so the historical/current join is consistent.
+- **SHOWDELETIONS(d)** — M6 reads M5's `deletions(d)` directly, which computes `ever_placed(d) \ content_image(d)` **per level‑class inside M5** (§2, §E): both operands are iextent‑covers that may mix origin‑lengths when `d` transcludes across heterogeneous‑depth documents, so M5 partitions each by endpoint length, runs `difference_sets` within each class, and unions the per‑class results — never a bare `difference_sets` over the mixed set. Keeping the algebra in M5 (owner of R and the iextent semantics) stops a consumer from naively faulting on a length‑gated op; per‑class is also the *correct* semantics (iextent addresses of different length are distinct addresses and cannot cancel — a currently‑arranged length‑ℓ address removes only ever‑placed length‑ℓ addresses).
+- **FINDDOCSCONTAINING(region)** — `docs_containing(region)` (a `Vec<Address>` candidate superset) filtered per candidate by `project(d, region) ≠ ⟨⟩` (current‑containment; `project` already applies the level‑class discipline internally, so the filter is fault‑free for any `region`, including cross‑length prefix/subtree spans) — both primitives off the one snapshot, so the historical/current join is consistent.
 
 `docs_containing` scans `prov_by_doc` in v1, including a document `d` when some placed span is **not `Separated`** from some span of `coverage` under M1's `classify_spans` (pure order, total — it never faults on a length mismatch), and reconstructing each candidate's `Address` from its registered‑document `Tumbler` key via `M1::validate`; this yields an overlap‑superset (no false negatives — a genuinely contained address forces order‑overlap) that FINDDOCSCONTAINING narrows by the current‑containment filter (an interval index over R is an Open decision). **M5 owns R and any index over it; M6 owns only the FINDDOCSCONTAINING query** that composes these two primitives — see Conflicts #6.
 
@@ -358,12 +379,12 @@ Because `ContentPlace`/`VersionSnapshot` update `arrangements` **and** `prov_by_
 - **Subspace confinement / document isolation** — per‑subspace run‑lists keyed per document: an edit on one `(doc, subspace)` cannot name another (ASN‑0082 I3‑X/D‑CS; ASN‑0084 SUBCONF; ASN‑0119 RA9).
 - **Content/address permanence (NonDestruction)** — DELETE only drops arrangement entries; M5 has no content‑reclamation path (ASN‑0117 P0; ASN‑0047 P0/P3).
 - **Origin invariance, no cross‑origin merge, transclusion independence** — I‑addresses are carried verbatim and coalesce only on I‑adjacency (ASN‑0036 S7; ASN‑0058 M16/M14; ASN‑0118 CP5/CP11; ASN‑0119 RA1).
-- **VERSION copies the map not the range** — multiplicity‑preserving structural share (ASN‑0123 J4/V2).
+- **VERSION copies the map not the range** — multiplicity‑preserving structural share (ASN‑0123 V2).
 - **J0 / J1★ / J‑LV** — enforced at M5's composite boundary: INSERT binds alloc+write+place+provenance in one transaction; `ContentPlace`/`VersionSnapshot` fold M+R together; `LinkSeat` folds no R and link allocation is uncoupled (ASN‑0047 J0/J1★/J‑LV).
 - **R permanence P2** — no `M5Rec` removes from `prov_by_doc` (ASN‑0047 P2).
 - **Link survival under edits** — links anchor I‑addresses; text edits never touch the link store or its anchors (ASN‑0116 IP4; ASN‑0117 P4; ASN‑0119 RA6).
 - **Canonical run uniqueness** — eager coalesce keeps the resident form maximally merged (ASN‑0058 M12), recomputed never stored.
-- **Well‑formed I‑extents** — every Run→Span lift goes through `Run::iextent`, which is *internally* level‑uniform by construction (`#start = #reach`, so `from_endpoints` never faults). A SpanSet that aggregates iextents across origin‑documents is in general **mixed‑length** (transclusion), so every set operation over R spans, `content_image`, or a coverage footprint follows the level‑class discipline (§2 — per‑class `intersect`/`difference_sets` with `union`, or the total `classify_spans`/`denotes` where overlap/membership suffices), never a bare length‑gated op over the mixed set (M1 span contract).
+- **Well‑formed I‑extents** — every Run→Span lift goes through `Run::iextent`, which is *internally* level‑uniform by construction given the `width ≥ 1` standing invariant (`#start = #reach`, so `from_endpoints` never faults; `Run::new` rejects width 0). A SpanSet that aggregates iextents across origin‑documents is in general **mixed‑length** (transclusion), so every set operation over R spans, `content_image`, or a coverage footprint follows the level‑class discipline (§2 — per‑class `intersect`/`difference_sets` with `union`, or the total `classify_spans`/`denotes` where overlap/membership suffices), never a bare length‑gated op over the mixed set (M1 span contract).
 
 **By active enforcement** (M5 must guard; *where*):
 
@@ -372,22 +393,22 @@ Because `ContentPlace`/`VersionSnapshot` update `arrangements` **and** `prov_by_
 - **CL‑OWN / CL‑UNIQ** — `stage_seat_link` checks `document_of(link)=doc` and not‑already‑seated (§8) (ASN‑0047 CL‑OWN/CL‑UNIQ).
 - **Valid insertion / delete‑containment / cut preconditions / COPY source admissibility** — validated before any record is staged; rejection leaves no state change. COPY rejects an unregistered or content‑empty source (`SourceNotRegistered`/`EmptySource`, ASN‑0118 `enabled(COPY)`) (ASN‑0036 ValidInsertionPosition; ASN‑0117 containment; ASN‑0084 R‑PRE).
 - **Composite atomicity** — one `transact` per operation; M2 makes the contract‑then‑extend interior of INSERT/COPY non‑observable and a torn composite never visible.
-- **Span‑set level‑class discipline** — every `intersect`/`difference_sets`/`intersect_sets`/`normalize` at the M5→M6/M8 seam is run per level‑class with `union` (or replaced by total `classify_spans`/`denotes`); M5 never emits an unguarded length‑gated op over a possibly‑mixed‑length cover (§2).
+- **Span‑set level‑class discipline** — every `intersect`/`difference_sets`/`intersect_sets`/`normalize` over a possibly‑mixed‑length cover is run per level‑class with `union` (or replaced by the total `classify_spans`/`denotes`). The discipline is **encapsulated inside M5**: `project` and `deletions` perform their per‑class algebra internally (§2, §E, §9), so no consumer is handed a raw mixed‑length cover to difference/intersect and faults on a length‑gated op.
 
 ---
 
 ## Dependencies & seams
 
 **Upstream (call as given):**
-- **M1** — `Tumbler/Address/Span/SpanSet`; `shift`/`validate` (run coalescing I‑adjacency, within‑run address synthesis, `iextent`, ordinal math); `document_of` (CL‑OWN origin check); `from_endpoints` (the `iextent` lift); `classify_spans`/`denotes`/`contains` (the **total**, length‑gate‑free overlap/membership primitives — `docs_containing`, `project`'s cross‑class fallback, FINDDOCSCONTAINING's filter) and the length‑gated `intersect`/`union`/`normalize`/`difference_sets` (project within‑class, image, ever_placed) used only under the level‑class discipline (§2). V‑positions read first/second components directly (`get(1)/get(2)`) — *not* `subspace()`, which is for element‑level I‑addresses. Maps key by `Tumbler` (the `Ord`‑bearing type), not `Address`.
+- **M1** — `Tumbler/Address/Span/SpanSet`; `shift`/`validate` (run coalescing I‑adjacency, within‑run address synthesis, `iextent`, ordinal math); `document_of` (CL‑OWN origin check); `from_endpoints` (the `iextent` lift); `classify_spans`/`denotes`/`contains` (the **total**, length‑gate‑free overlap/membership primitives — `docs_containing`, `project`'s cross‑class fallback, FINDDOCSCONTAINING's filter) and the length‑gated `intersect`/`union`/`normalize`/`difference_sets` (project within‑class, image, ever_placed, deletions) used only under the level‑class discipline (§2). V‑positions read first/second components directly (`get(1)/get(2)`) — *not* `subspace()`, which is for element‑level I‑addresses. Maps key by `Tumbler` (the `Ord`‑bearing type), not `Address`.
 - **M2** — `transact` (every composite, under the M3 lock key), returns `(T, Seq)`; `snapshot` (VERSION's `ω` pre‑read; all reader access). `M5State` is the WorldState slice, `M5Rec` the delta, `apply_m5` the fold.
-- **M3** — pure mints `mint_content` (INSERT), `mint_version`/`mint_document` (VERSION), each with its lock key (`content_lock_key`/`version_lock_key`/`document_lock_key`) taken *before* the closure; `is_registered_document` (edit preconditions); `effective_owner`/`principal_prefix` (VERSION branch, pre‑read off a snapshot). M5 → M3 only.
+- **M3** — pure mints `mint_content` (INSERT), `mint_version`/`mint_document` (VERSION), each with its lock key (`M3State::content_lock_key`/`version_lock_key`/`document_lock_key`) taken *before* the closure; `is_registered_document` (edit preconditions); `effective_owner`/`principal_prefix` (VERSION branch, pre‑read off a snapshot). M5 → M3 only.
 - **M4** — `stage_write` (INSERT byte write, composed into M5's transaction); `contains` (COPY content‑side referential gate). M5 → M4, no back‑edge.
 
 **Downstream (seam contracts neighbors build against):**
-- **→ M6** — `resolve`/`point` (RETRIEVEV, extent queries, COMPARE via `content_runs` on multiple docs off one snapshot); `ever_placed` + `content_image` (SHOWDELETIONS) and `docs_containing` + `content_image` (FINDDOCSCONTAINING) — both joins read one consistent `(M,R)` snapshot. M6 computes the SHOWDELETIONS difference under the level‑class discipline (§2) and the FINDDOCSCONTAINING current‑containment filter as `project(d, region) ≠ ⟨⟩`. `docs_containing` hands M6 a `Vec<Address>` candidate superset; **M5 owns R and any index over it, M6 owns only the composing query** (Conflicts #6). M5 returns ⟨⟩ for an absent doc; M6 disambiguates registered‑empty vs unallocated via M3.
+- **→ M6** — `resolve`/`point` (RETRIEVEV, extent queries, COMPARE via `content_runs` on multiple docs off one snapshot); `deletions` (SHOWDELETIONS — M5 computes the per‑level‑class `ever_placed ∖ content_image` difference, §E/§9) and `docs_containing` + `content_image` (FINDDOCSCONTAINING) — both read one consistent `(M,R)` snapshot. M6 reads SHOWDELETIONS straight off `deletions`, and computes the FINDDOCSCONTAINING current‑containment filter as `project(d, region) ≠ ⟨⟩`. `docs_containing` hands M6 a `Vec<Address>` candidate superset; **M5 owns R, the iextent algebra, and any index over R; M6 owns only the composing query** (Conflicts #6). M5 returns ⟨⟩ for an absent doc; M6 disambiguates registered‑empty vs unallocated via M3.
 - **→ M7** — `resolve_coverage` (turn endset V‑regions into I‑coverage as a `SpanSet` — the centralized `iextent` lift, so M7 doesn't re‑derive it and inherits the level‑class warning; `resolve` remains for run‑level needs) and `stage_seat_link` (pure step folded into MAKELINK, returns `M5Rec`). M5 never reads M7.
-- **→ M8** — `resolve`/`resolve_coverage` (V→I image), `project` (I→V footprint, fragmentation‑ and length‑class‑tolerant), `content_count`/`link_count`. The materialized inverse‑arrangement hint, if built, lives here.
+- **→ M8** — `resolve`/`resolve_coverage` (V→I image), `project` (I→V *content* footprint, fragmentation‑ and length‑class‑tolerant; content subspace only — link reverse‑discovery is M7's BH3), `content_count`/`link_count`. The materialized inverse‑arrangement hint, if built, lives here.
 - **→ M9** — `Vstream::insert` for predicate‑definition content (rides M5's placement composite, satisfies J0); returns the def's content start‑address as its identity. (M9 reads the def back via M4 `value_at`; M9's M7 writes are not M5's concern.)
 - **→ M10** — `insert`/`delete`/`copy`/`rearrange`/`version`, each one `transact` returning `(…, Seq)`; M10 acknowledges only after commit and surfaces `TxnError::Rejected(E)` as typed rejections.
 - **→ engine** — `M5State` slice, `M5Rec` record, `HasM5` accessor, `apply_m5` fold, `genesis`; the assembler implements `HasM5 for World`, `From<M5Rec> for Record`, and dispatches `Record::M5(x) => world.m5().apply_m5(x)` — moving the whole `M5Rec`, never destructuring it (the `#[non_exhaustive]` variants forbid that outside M5's crate anyway). M5 names neither `World` nor the central `Record`.
