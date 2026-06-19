@@ -72,11 +72,14 @@ impl M3State {
     pub fn link_lock_key(home: &Address)         -> LockKey;   // ns_lock_key(link_ns(home))      = (b_L(home), 1)
     pub fn version_lock_key(source: &Address)    -> LockKey;   // ns_lock_key(version_ns(source))  = (source, 1)
     pub fn document_lock_key(account: &Address)  -> LockKey;   // ns_lock_key(document_ns(account))= (account, 2)
-    /// The single principal-registry key. LOAD-BEARING in `delegate`: serializes its fresh-prefix
-    /// id-freshness / top-down / next-form reads against concurrent same-target delegations. Held
-    /// DEFENSIVELY by create_new_document (whose ω(account) read is stale-safe — ω of an *existing*
-    /// account is stable, §6/§8). M5's cross-owner VERSION does NOT need it: it pre-reads the stable
-    /// ω(d_src). Redundant under M2 v1's global applier lock.
+    /// THE single global principal-registry key (NOT per-subtree — §8 / [Open decisions]).
+    /// LOAD-BEARING in `delegate`: serializes its fresh-prefix top-down / next-form / authorization
+    /// reads against concurrent same-namespace delegations AND its id-freshness read against
+    /// concurrent same-ID delegations — and that id race is CROSS-namespace (same `new_id`, different
+    /// `new_prefix`), so only a single global key serializes it. Held DEFENSIVELY by
+    /// create_new_document (whose ω(account) read is stale-safe — ω of an *existing* account is
+    /// stable, §6/§8). M5's cross-owner VERSION does NOT need it: it pre-reads the stable ω(d_src).
+    /// Redundant under M2 v1's global applier lock.
     pub fn principals_lock_key()                 -> LockKey;   // Space::Principals tag
     /// Coarse node-registry key — held by register_node so a concurrent duplicate RegisterNode
     /// surfaces NotFresh instead of silently coalescing. Node admission needs NO lock for SAFETY
@@ -226,12 +229,13 @@ fn apply_ns(&self, r: &M3Rec) -> M3State {
     s
 }
 
-/// Recover (parent, g, ordinal) from a minted address — pure M1. `parent` takes `&Address`, so the
-/// bare `Tumbler` is `validate`-lifted first (total here — minted addresses are T4-valid); `zeros`
-/// and `ordinal` take `&Tumbler`, so they read `.tumbler()` projections.
+/// Recover (parent, g, ordinal) from a T4-valid address — pure M1. The address is a mint OR
+/// `delegate`'s validated `new_prefix` (this is NOT a mint-only path — §6). `parent` takes
+/// `&Address`, so the bare `Tumbler` is `validate`-lifted first (total — the caller passes a
+/// T4-valid tumbler); `zeros` and `ordinal` take `&Tumbler`, so they read `.tumbler()` projections.
 fn decompose(addr: &Tumbler) -> (Tumbler, u8, Nat) {
-    let ad  = validate(addr.clone()).expect("minted addresses are T4-valid");
-    let par = parent(&ad).expect("a minted address is never a 1-component node");
+    let ad  = validate(addr.clone()).expect("T4-valid by caller contract");
+    let par = parent(&ad).expect("a decomposed address is never a 1-component node");
     let g   = if zeros(addr) == zeros(par.tumbler()) { 1 } else { 2 };
     (par.tumbler().clone(), g, ordinal(addr).clone())
 }
@@ -273,12 +277,17 @@ fn next_in(&self, key: &NsKey) -> Result<Address, GateViolation> {
 ```rust
 // `Space` is M2's SINGLE CENTRAL tag enum (the LockKey contract's 1-byte space tag, never chosen
 // per-store). It lives in `skep-kernel`, BELOW every store — NOT in the engine assembler crate
-// (naming it there would cycle). M3 draws THREE distinct tags from it — Namespace, Principals,
-// Nodes — a deliberate deviation from the contract's one-tag-per-store guidance (M3 genuinely owns
-// three serialization domains), so the assembler must RESERVE all three for M3; the three distinct
-// tags are what keep the three key spaces from aliasing. The byte image is what M2 Eq/Hash/Ord-s;
-// injectivity is what guarantees distinct namespaces map to distinct locks (an alias would
-// under-serialize → REUSE an address).
+// (naming it there would cycle). M3's THREE variants — `Space::Namespace`, `Space::Principals`,
+// `Space::Nodes` — are DECLARED in that central `Space` enum in skep-kernel (where every tag lives);
+// they are NOT "reserved" by the assembler — skep-engine assembles `World`/`Record` and does not
+// own `Space`. Drawing three tags deviates from the contract's one-tag-*per-store* GUIDANCE, but the
+// contract's HARD rule is tag UNIQUENESS (distinct key spaces never collide), which three distinct
+// central-enum variants satisfy exactly. (Stricter-conformance equivalent, if one-tag-per-store is
+// to be honored literally: a single `Space::M3` tag plus a second sub-tag byte selecting
+// namespace/principals/nodes — same byte-level disjointness, one tag.) The three distinct tags are
+// what keep the three key spaces from aliasing; the byte image is what M2 Eq/Hash/Ord-s; injectivity
+// is what guarantees distinct namespaces map to distinct locks (an alias would under-serialize →
+// REUSE an address).
 fn ns_lock_key(k: &NsKey) -> LockKey {
     let mut b = vec![Space::Namespace as u8];
     b.extend((k.parent.len() as u32).to_be_bytes());          // component count
@@ -290,8 +299,6 @@ fn ns_lock_key(k: &NsKey) -> LockKey {
     b.push(k.g);                                              // g ∈ {1,2}
     LockKey(b)
 }
-fn principals_lock_key() -> LockKey { LockKey(vec![Space::Principals as u8]) }
-fn node_lock_key()       -> LockKey { LockKey(vec![Space::Nodes as u8]) }
 
 // The four namespace helpers — the ONE code path each mint and each *_lock_key reuses:
 fn content_ns (d: &Address) -> NsKey { NsKey{ parent: inc(d.tumbler(), 2), g: 1 } }            // b_C(d)=inc(d,2)
@@ -299,20 +306,47 @@ fn link_ns    (d: &Address) -> NsKey { NsKey{ parent: inc(&inc(d.tumbler(), 2), 
 fn version_ns (s: &Address) -> NsKey { NsKey{ parent: s.tumbler().clone(), g: 1 } }            // (source,1)
 fn document_ns(a: &Address) -> NsKey { NsKey{ parent: a.tumbler().clone(), g: 2 } }            // (account,2)
 
-pub fn content_lock_key (home:    &Address) -> LockKey { ns_lock_key(&content_ns(home)) }
-pub fn link_lock_key    (home:    &Address) -> LockKey { ns_lock_key(&link_ns(home)) }
-pub fn version_lock_key (source:  &Address) -> LockKey { ns_lock_key(&version_ns(source)) }
-pub fn document_lock_key(account: &Address) -> LockKey { ns_lock_key(&document_ns(account)) }
+// The six LockKey constructors are `impl M3State` ASSOCIATED functions (Public interface §A) —
+// called on the type (`M3State::content_lock_key(..)`), no instance needed:
+impl M3State {
+    pub fn content_lock_key (home:    &Address) -> LockKey { ns_lock_key(&content_ns(home)) }
+    pub fn link_lock_key    (home:    &Address) -> LockKey { ns_lock_key(&link_ns(home)) }
+    pub fn version_lock_key (source:  &Address) -> LockKey { ns_lock_key(&version_ns(source)) }
+    pub fn document_lock_key(account: &Address) -> LockKey { ns_lock_key(&document_ns(account)) }
+    pub fn principals_lock_key() -> LockKey { LockKey(vec![Space::Principals as u8]) }
+    pub fn node_lock_key()       -> LockKey { LockKey(vec![Space::Nodes as u8]) }
+}
 
 // Every mint advances `next_in(*_ns(..))`; the caller locks with `Self::*_lock_key(..)`. Since BOTH
 // `*_lock_key(..) = ns_lock_key(*_ns(..))` and the frontier advance route through the SAME `*_ns`
 // helper, the staged frontier key and the held lock key are the SAME BYTES — by one code path, with
-// nothing in the return to drift. The pattern, once (the other three differ only in the *_ns helper
-// and the structural precondition: SourceNotRegistered=Document / NotAnAccount=Account):
-pub fn mint_content(&self, home: &Address) -> Result<(Address, M3Rec), MintError> {
-    if !self.is_registered_document(home) { return Err(MintError::HomeNotRegistered); }     // P6/C2
-    let a = self.next_in(&content_ns(home)).map_err(MintError::Gate)?;
-    Ok((a.clone(), M3Rec::Allocate{ addr: a.tumbler().clone() }))
+// nothing in the return to drift. All four mints share one shape; they differ only in the *_ns helper
+// and the structural precondition (HomeNotRegistered / SourceNotRegistered=Document / NotAnAccount=Account):
+impl M3State {
+    pub fn mint_content(&self, home: &Address) -> Result<(Address, M3Rec), MintError> {
+        if !self.is_registered_document(home) { return Err(MintError::HomeNotRegistered); }   // P6/C2
+        let a = self.next_in(&content_ns(home)).map_err(MintError::Gate)?;
+        Ok((a.clone(), M3Rec::Allocate{ addr: a.tumbler().clone() }))
+    }
+    pub fn mint_link(&self, home: &Address) -> Result<(Address, M3Rec), MintError> {
+        if !self.is_registered_document(home) { return Err(MintError::HomeNotRegistered); }   // L1a
+        let a = self.next_in(&link_ns(home)).map_err(MintError::Gate)?;
+        Ok((a.clone(), M3Rec::Allocate{ addr: a.tumbler().clone() }))
+    }
+    pub fn mint_version(&self, source: &Address) -> Result<(Address, M3Rec), MintError> {
+        if self.entity_level(source) != Some(Level::Document) {                                // V-WF: registered Document
+            return Err(MintError::SourceNotRegistered);                                        //   (covers unregistered AND non-document)
+        }
+        let a = self.next_in(&version_ns(source)).map_err(MintError::Gate)?;
+        Ok((a.clone(), M3Rec::Allocate{ addr: a.tumbler().clone() }))
+    }
+    pub fn mint_document(&self, account: &Address) -> Result<(Address, M3Rec), MintError> {
+        if self.entity_level(account) != Some(Level::Account) {                                // P8/CND.pre
+            return Err(MintError::NotAnAccount);                                               //   (covers unregistered AND non-account)
+        }
+        let a = self.next_in(&document_ns(account)).map_err(MintError::Gate)?;
+        Ok((a.clone(), M3Rec::Allocate{ addr: a.tumbler().clone() }))
+    }
 }
 ```
 
@@ -323,7 +357,9 @@ pub fn mint_content(&self, home: &Address) -> Result<(Address, M3Rec), MintError
 
 ### 2. The entity registry (membership without a second structure)
 
-The entity set E is *encoded* by the entity-namespace frontiers plus the node root set — no separate `Set<Address>`. Membership is decompose-and-compare (ASN-0040 counter membership); `zeros`/`ordinal` are M1 functions over `&Tumbler`, so they read `.tumbler()`:
+The entity set E is *encoded* by the entity-namespace frontiers plus the node root set — no separate `Set<Address>`. Membership is decompose-and-compare (ASN-0040 counter membership); `zeros`/`ordinal` are M1 functions over `&Tumbler`, so they read `.tumbler()`.
+
+**Membership-correctness invariant (decompose-and-range *is* chain membership).** For any T4-valid `a`, let `p = parent(a)` (M1's longest T4-valid proper prefix) and `g = (zeros(a) == zeros(p) ? 1 : 2)` — equivalently `g = 1` iff `a` with its last component dropped is itself T4-valid (the `g = 2` form `p ++ [0, n]` has a trailing-zero penultimate, so its longest valid prefix is `p`, not `p ++ [0]`). Then `a` is *exactly* `c_{ordinal(a)}` of namespace `(p, g)` — `a = p ++ [0]^{g−1} ++ [ordinal(a)]` — by ASN-0040's `S(p, g)` canonical form, and distinct T4-valid addresses decompose to distinct `(namespace, ordinal)` pairs (T4b unique-parse). So `a ∈ {c₁..cₘ}` iff `1 ≤ ordinal(a) ≤ m`: the range checks below are genuine chain membership with **no false positives**, not an approximation.
 
 ```rust
 fn entity_level(&self, a: &Address) -> Option<Level> {
@@ -433,7 +469,7 @@ The default walk above point-`get`s at most `#a` tier-prefixes. The optional `Or
 
 **Why in-closure is mandatory (the fix for the pre-snapshot race).** The non-monotone conditions — (ii), (iv), the `!is_allocated` half of (v), id-fresh, next-form — each read state a concurrent `delegate` can advance. Evaluated on a pre-transaction snapshot and then committed blindly, two delegations under the same parent both pass `next-form`/`fresh`/`id-fresh` on that stale view and commit in turn; the second's `RegisterPrincipal{new_prefix, …}` **overwrites** the first at the identical prefix, handing one address to two principals — an O1b/O13 violation and address reuse, the one fatal error. This is harmful **even under M2 v1's global applier lock**: that lock serializes the *commits*, but a pre-snapshot pre-check has already passed *outside* it, and the closure that follows does not re-check. Evaluating the gate in-closure under the held `principals_lock_key()` + namespace key makes the `base()` reads authoritative — no concurrent ω-mutator or same-namespace allocation can commit between the read and our commit — so the losing delegation re-reads the winner's advance and is cleanly rejected (`NotNextForm`/`NotFresh`/`DuplicateId`). The monotone conditions (i, iii, parent-reg) are stale-safe — `pfx` is immutable (O13), `zeros` is pure, and E is append-only (P1) so a registered parent stays registered — so a pre-snapshot fail-fast on them is sound (only their *acceptance* direction matters, and it cannot regress).
 
-Condition (ii) reuses ω directly. **`id-fresh` actively enforces `PrincipalId` injectivity** — the id-axis mirror of (v)'s prefix-freshness. `principals` keys by prefix, but carries a second identity axis, `PrincipalId`, on which `principal_by_id`/`principal_prefix` and the `effective_owner(account).id == caller` auth gate all resolve; (v) guarantees *prefix* uniqueness but says nothing about ids. Without `id-fresh`, a reused id — a fixed "admin" id, `id = hash(user)`, or simply `PrincipalId(0) = BOOTSTRAP_PRINCIPAL` — would make `principal_by_id(new_id)` return an arbitrary match, so `fork`/cross-owner VERSION would mint under the wrong account and `create_new_document`'s ω-gate would mis-authorize (an O8/O5 violation). Rejecting `principal_by_id(new_id).is_some()` with `DuplicateId` makes one id ↦ at most one principal, so all three id-keyed paths are well-defined.
+Condition (ii) reuses ω directly. **`id-fresh` actively enforces `PrincipalId` injectivity** — the id-axis mirror of (v)'s prefix-freshness. `principals` keys by prefix, but carries a second identity axis, `PrincipalId`, on which `principal_by_id`/`principal_prefix` and the `effective_owner(account).id == caller` auth gate all resolve; (v) guarantees *prefix* uniqueness but says nothing about ids. Without `id-fresh`, a reused id — a fixed "admin" id, `id = hash(user)`, or simply `PrincipalId(0) = BOOTSTRAP_PRINCIPAL` — would make `principal_by_id(new_id)` return an arbitrary match, so `fork`/cross-owner VERSION would mint under the wrong account and `create_new_document`'s ω-gate would mis-authorize (an O8/O5 violation). Rejecting `principal_by_id(new_id).is_some()` with `DuplicateId` makes one id ↦ at most one principal, so all three id-keyed paths are well-defined. Note the id race differs in *shape* from the prefix-collision race: prefix-collision is **same-namespace** (two delegations at the *same* `new_prefix`, serialized by the namespace lock `delegate` also holds), whereas id-collision is **cross-namespace** (two delegations with *different* `new_prefix` but the same `new_id`). Only the *single global* `principals_lock_key()` serializes the latter — a per-subtree principal lock would not (§8, [Open decisions](#open-build-decisions)).
 
 **`parent-reg` (P8) is the fix for the ASN‑0040/0042-vs-ASN‑0047 conflict** ([Conflicts resolved](#conflicts-resolved) §5): B6 alone would let an account-tier delegator baptize a sub-account under an account that was never registered. The explicit `entity_level(parent(new_prefix)).is_some()` check (the new account's parent node — or, when delegating a sub-account, the parent account — must be a registered entity) enforces `parent(e) ∈ E`. It is stale-safe (E only grows), so its position relative to the lock is immaterial; it is grouped with the in-closure gate purely to keep one evaluation site.
 
@@ -454,7 +490,7 @@ M3 **rides M2** — it builds no WAL of its own. Its three structures are part o
 
 **Correctness must not lean on M2 v1's global applier lock.** That lock currently masks any lock-key defect; per-key concurrency would expose a same-namespace key collision as address reuse — the one fatal error. So the lock keys mirror the frontier keys exactly, **by construction**: each `mint_*` advances `next_in(*_ns(..))` and the caller locks with `Self::*_lock_key(..)`, and `*_lock_key(..) = ns_lock_key(*_ns(..))` — one `*_ns` helper, one injective space-tagged `ns_lock_key` encoding (§1) — so the held lock key and the staged frontier key are the *same bytes*, with nothing in the mint's return to drift. The distinct `Space::Namespace`/`Space::Principals`/`Space::Nodes` tags keep the three key spaces from aliasing each other.
 
-**`delegate`'s race-prone gates are read *inside* the `transact` closure** (off `stg.base().m3()`), within the held-lock region — a pre-transaction `snapshot()` read sits outside every lock and so can only ever be a fail-fast, never authoritative for those. `delegate` therefore holds `principals_lock_key()` **load-bearingly**: its `new_prefix` is *fresh*, and the id-freshness / top-down / next-form / authorization reads race against concurrent same-target delegations — holding the one principal-registry key serializes them (and serializes the `RegisterPrincipal` insert against a concurrent one). `create_new_document` holds the same key only **defensively**: its `ω(account)` read is *stale-safe* (ω of an existing account is stable — no concurrent delegation can introduce a longer coverer, a sub-account sitting *below* the account and never covering it), so the lock is harmless-redundant, not load-bearing. **M5's cross-owner VERSION needs no principal lock at all** — it **pre-reads** the stable `ω(d_src)` off a snapshot, resolves the owned-vs-cross-owner branch, and holds only the single matching namespace lock (`version_lock_key`/`document_lock_key`). `register_node` holds the coarse `node_lock_key()` to keep its `NotFresh` rejection under per-key concurrency, not for safety (the insert is idempotent). All three principal/node locks are redundant under v1's global applier lock.
+**`delegate`'s race-prone gates are read *inside* the `transact` closure** (off `stg.base().m3()`), within the held-lock region — a pre-transaction `snapshot()` read sits outside every lock and so can only ever be a fail-fast, never authoritative for those. `delegate` therefore holds `principals_lock_key()` **load-bearingly**: its `new_prefix` is *fresh*, and the top-down / next-form / authorization reads race against concurrent **same-namespace** delegations while the id-freshness read races against concurrent **same-id** delegations — which may target a *different* namespace (a different `new_prefix` carrying the same `new_id`). Because that id race is **cross-namespace**, only the *single global* principal-registry key serializes it (alongside the same-namespace reads and the `RegisterPrincipal` insert); a per-subtree principal key would let two same-id delegations in different subtrees both pass id-freshness off stale `base()` and both commit `RegisterPrincipal{_, new_id}` — a duplicate id, the O1b-mirror violation. (The prefix-collision race is already covered by the namespace lock `delegate` also holds; see [Open decisions](#open-build-decisions).) `create_new_document` holds the same key only **defensively**: its `ω(account)` read is *stale-safe* (ω of an existing account is stable — no concurrent delegation can introduce a longer coverer, a sub-account sitting *below* the account and never covering it), so the lock is harmless-redundant, not load-bearing. **M5's cross-owner VERSION needs no principal lock at all** — it **pre-reads** the stable `ω(d_src)` off a snapshot, resolves the owned-vs-cross-owner branch, and holds only the single matching namespace lock (`version_lock_key`/`document_lock_key`). `register_node` holds the coarse `node_lock_key()` to keep its `NotFresh` rejection under per-key concurrency, not for safety (the insert is idempotent). All three principal/node locks are redundant under v1's global applier lock.
 
 The minted address (and its commit `Seq`) is returned only after M2 commits (commit-before-acknowledge), so a crash never loses a handed-out address — over-shooting (a gap) is safe (permanent ghost), reuse is fatal, and we never reuse.
 
@@ -466,6 +502,7 @@ The minted address (and its commit `Seq`) is returned only after M2 commits (com
 - **Determinism & finiteness** — `next_in` is a pure function of the frontier; growth is one-at-a-time. [ASN-0040 B2/B_fin]
 - **Unbounded extent** — `Nat = BigUint` for every ordinal and count. [ASN-0040 B9]
 - **T4-validity of every minted address** — valid parents + `checked_inc`. [ASN-0040 B10, ASN-0093 StoreT4Validity]
+- **Membership correctness (no false positives)** — every T4-valid `a` is *exactly* the `ordinal(a)`-th member `c_{ordinal(a)}` of its decomposed `(parent, g)` namespace, so the `entity_level`/`is_allocated` decompose-and-range check is exact chain membership, not an approximation. [ASN-0040 `S(p,d)` canonical form, ASN-0034 T4b unique-parse → *§2*]
 - **Cross-namespace uniqueness; document↔version separation; content↔link disjointness** — distinct `(p,g)` keys, `s_C ≠ s_L`. [ASN-0040 B7/B8-cross, ASN-0093 SD/Cross-doc, ASN-0123 V0/VD, ASN-0034 T10]
 - **Content-independence (ghosts)** — registry is M3, content is M4; allocated ≠ has-bytes. [ASN-0040 B3]
 - **No internal node minting** — internal baptism applies only `inc(parent, g)` for a non-node result ((iii) `== 1`); a zeros=0 address never arises from a mint or `delegate`. [ASN-0047 NodeBaptism → *§6, Conflicts §7*]
@@ -477,7 +514,7 @@ The minted address (and its commit `Seq`) is returned only after M2 commits (com
 - **Parent/origin registered (P8/P6/C2/L1a)** — `entity_level`/`is_registered_document` before minting (`mint_document`/`mint_version`/`mint_content`/`mint_link`) *and* `entity_level(parent(new_prefix))` in `delegate` (P8 for delegated accounts — [Conflicts resolved](#conflicts-resolved) §5). [ASN-0047 P8/P6, ASN-0093 C2/L1a] → *§4, §6*
 - **Account-tier delegation (no node minting)** — `delegate` condition (iii) narrowed `≤1 → ==1`; a zeros≠1 `new_prefix` → `NotAccountTier`. [ASN-0047 NodeBaptism, narrowing ASN-0042 O15(iii)] → *§6, Conflicts §7*
 - **Prefix-injectivity & account-floor** — delegation (v) freshness + (iii) tier (`==1`). [ASN-0042 O1b/O1a]
-- **PrincipalId injectivity** — `delegate` rejects a reused id (`principal_by_id(new_id).is_some()` → `DuplicateId`), so `principal_by_id`/`principal_prefix`/the ω-auth gate are single-valued (one id ↦ at most one principal). [id-axis mirror of ASN-0042 O1b] → *§6*
+- **PrincipalId injectivity** — `delegate` rejects a reused id (`principal_by_id(new_id).is_some()` → `DuplicateId`), so `principal_by_id`/`principal_prefix`/the ω-auth gate are single-valued (one id ↦ at most one principal). Enforced under the **single global** `principals_lock_key()`, since the id-freshness race is cross-namespace (a per-subtree lock would not serialize it — §8). [id-axis mirror of ASN-0042 O1b] → *§6, §8*
 - **Delegation gate (5 conditions + id-fresh + P8 + next-form)** — `delegate`; the non-monotone conditions (ii/iv/v-freshness/id-fresh/next-form) evaluated in-closure under the held locks. [ASN-0042 O15] → *§6*
 - **Authorization by ω (never bare `owns`)** — `create_new_document`/`fork`/`delegate`/M5-VERSION; ω resolves the authorizing/branching principal. For `delegate` the in-closure reads under `principals_lock_key()` are **load-bearing** (fresh prefix); `create_new_document`/`fork`/M5-VERSION authorize/branch on a *stable* ω (defensive lock / pre-read, §8). [ASN-0042 O5, ownership-divergence] → *§5/§7/§8*
 - **Node freshness + bootstrap lineage** — `register_node`. [ASN-0047 NodeBaptism] → *§7*
@@ -487,7 +524,7 @@ The minted address (and its commit `Seq`) is returned only after M2 commits (com
 
 **Upstream — M1 (calls):** `checked_inc`/`inc_preserves_t4` (B6 gate on every mint), `inc` (anchors `b_C = inc(d,2)`/`b_L`), `shift` (ordinal-only — mints `cₘ₊₁` from the gated `c₁`, §1), `parent`/`zeros`/`ordinal` (decomposition & membership — `zeros`/`ordinal` over `&Tumbler`, `parent` over `&Address`, so call sites project via `.tumbler()`/`validate`), `classify`/`Level`/field projections (entity-level + acct/node prefixes for ω), `is_prefix`/`validate`, `subspace` (content vs link). M3 holds **no** address algebra of its own.
 
-**Upstream — M2 (calls):** `transact(&[<namespace LockKey>], …)` — the namespace key from `content`/`link`/`version`/`document_lock_key` (plus `principals_lock_key()` for `delegate` (load-bearing) and `create_new_document` (defensive), and `node_lock_key()` for `register_node`, §8) — for every mutating op (atomic + serialized + durable), receiving each op's commit `Seq` from `transact`'s `(T, Seq)` return; `snapshot()` for query reads; M3 provides its fold `M3State::apply_ns` — which the engine's `World::apply` dispatches via the `Record::Ns` variant — and relies on M2's **default `rebuild_derived`** (its slice is fully `Serialize`d, nothing to re-seed). M3 stages `M3Rec` **lifted to `W::Record` via the `W::Record: From<M3Rec>` bound** (`stg.push(rec.into())` — Public interface B); M2 owns ordering/durability/recovery. The 1-byte space tags (`Space::Namespace`/`Principals`/`Nodes`) are drawn from M2's single central `Space` enum, which lives in `skep-kernel` below every store (not the engine assembler crate — that would cycle); M3 is the one store drawing *three* tags from it (three serialization domains), so the assembler must reserve all three.
+**Upstream — M2 (calls):** `transact(&[<namespace LockKey>], …)` — the namespace key from `content`/`link`/`version`/`document_lock_key` (plus `principals_lock_key()` for `delegate` (load-bearing) and `create_new_document` (defensive), and `node_lock_key()` for `register_node`, §8) — for every mutating op (atomic + serialized + durable), receiving each op's commit `Seq` from `transact`'s `(T, Seq)` return; `snapshot()` for query reads; M3 provides its fold `M3State::apply_ns` — which the engine's `World::apply` dispatches via the `Record::Ns` variant — and relies on M2's **default `rebuild_derived`** (its slice is fully `Serialize`d, nothing to re-seed). M3 stages `M3Rec` **lifted to `W::Record` via the `W::Record: From<M3Rec>` bound** (`stg.push(rec.into())` — Public interface B); M2 owns ordering/durability/recovery. The 1-byte space tags (`Space::Namespace`/`Principals`/`Nodes`) are **declared in** M2's single central `Space` enum, which lives in `skep-kernel` below every store (not the engine assembler crate — that would cycle); M3 is the one store drawing *three* tags from it (three serialization domains). The contract's one-tag-*per-store* line is *guidance*; its hard rule is tag **uniqueness**, which three distinct `Space` variants satisfy — and those variants live in skep-kernel's enum, not "reserved" by skep-engine (which only assembles `World`/`Record`).
 
 **Downstream seams M3 exposes (build neighbors against these):**
 Consumers reach M3's `&self` methods through the `HasM3::m3()` accessor — `stg.working().m3()` inside a composite, `snapshot.world().m3()` for a read (M2's `Staging::working`/`Snapshot::world` hand back `&W: HasM3`, not `&M3State`); the `*_lock_key` associated functions are called on the type. So e.g. M5's INSERT does `stg.working().m3().mint_content(d)` and takes its key from `M3State::content_lock_key(d)` before the closure; the mint hands back an `M3Rec` the caller stages via the same `W::Record: From<M3Rec>` lift.
@@ -509,19 +546,20 @@ Consumers reach M3's `&self` methods through the `HasM3::m3()` accessor — `stg
 
 5. **Baptism under an unbaptized parent (ASN‑0040/0042) vs P8 (ASN‑0047).** B6 (ValidDepth) does *not* require the parent `p ∈ B`, so ASN‑0040/0042's delegation would let a delegator baptize an account under a node/account that was never registered. ASN‑0047 P8 forbids it (`parent(e) ∈ E` for every non-node entity), and this design commits to P8 (it lists P8 under active enforcement). Resolution: **P8 wins for delegated accounts** — `delegate` adds the `entity_level(parent(new_prefix)).is_some()` gate (`ParentNotRegistered` otherwise). `mint_document`/`mint_version` already discharged P8 via their `entity_level` checks; `delegate` was the one account-minting path that skipped it.
 
-6. **O10 node-tier fork (ASN‑0042 O10) vs the account ≡ principal model.** O10 (DenialAsFork) lets *any* principal fork a self-owned address one structural tier below its prefix — including a **node-tier** principal minting a self-owned *account* (zeros=1) with **no** new principal. M3 deliberately scopes `fork` to the **account-tier** case only: a fork mints a *document* (zeros=2) under an account-tier caller's prefix. This makes M3 treat an account-tier prefix as the unit of principal identity — coherent with, and assumed by, `create_new_document`'s ω-authorization (the authorizing principal sits at an account, and `fork` relies on `ω(pfx(caller))=caller`). **Resolution / consequence:** the node-tier O10 case is **dropped, not relocated.** A node-tier caller is rejected `Mint(NotAnAccount)`; this is *not* silently equivalent to "delegate an account first," because `delegate` mints a **new** principal and moves effective ownership to it (O7), whereas O10's node-tier fork would leave the new account owned by the *same* node principal. We accept the narrowing — in the multi-tier model an account is the natural home of a principal, and a node operator provisioning accounts *via delegation* (new principals) is the intended path — and flag re-admitting node-tier `fork` under [Open decisions](#open-build-decisions).
+6. **O10 node-tier fork (ASN‑0042 O10) vs the account ≡ principal model.** O10 (DenialAsFork) lets *any* principal fork a self-owned address one structural tier below its prefix — including a **node-tier** principal minting a self-owned *account* (zeros=1) with **no** new principal. M3 deliberately scopes `fork` to the **account-tier** case only: a fork mints a *document* (zeros=2) under an account-tier caller's prefix. This makes M3 treat an account-tier prefix as the unit of principal identity — coherent with, and assumed by, `create_new_document`'s ω-authorization (the authorizing principal sits at an account, and `fork` relies on `ω(pfx(caller))=caller`). **Resolution / consequence:** the node-tier O10 case is **dropped, not relocated.** A node-tier caller is rejected `Mint(NotAnAccount)`; this is *not* silently equivalent to "delegate an account first," because `delegate` mints a **new** principal and moves effective ownership to it (O7), whereas O10's node-tier fork would leave the new account owned by the *same* node principal. **The load-bearing reason for the drop** (not mere taste): a node-tier fork would register an *account* (zeros=1) with **no account principal of its own** — covered only by the node principal via ω — which breaks the implicit invariant that *every registered account carries its own account principal*. `create_new_document`'s ω-authorization leans on exactly that invariant: it reads `ω(account)` as the account's *own* principal (`p.id == caller`), never an ancestor, and its stale-safety argument (§7) holds *because* an account never exists without a principal sitting at its prefix. Manufacturing principal-less accounts would defeat both. We accept the narrowing — an account is the natural home of a principal, and a node operator provisioning accounts *via delegation* (new principals) is the intended path — and flag re-admitting node-tier `fork` under [Open decisions](#open-build-decisions).
 
 7. **Internal node minting via delegation (ASN‑0040 `baptize(node,1)` + ASN‑0042 O15(iii) `≤1`) vs NodeBaptism (ASN‑0047).** O15(iii) admits a delegate prefix with `zeros ≤ 1`, and ASN‑0040's `baptize(p,1)` with a *node* parent `p` mints a **child node** (`baptize([1],1) = [1,1]`, still zeros=0) — ASN‑0040 *does* have a node-admission mechanism, contrary to a naive reading. Composed, `delegate` would mint a child node and register a principal there: a node-tier delegator `[1]` supplying `[1,1]` passes every condition (§6). But ASN‑0047 NodeBaptism states *no docuverse transition mints a node address*, and this design originates nodes only via `register_node`. Resolution: **narrow O15(iii) `≤1 → ==1`** and **suppress ASN‑0040's `baptize(node,1)` child-node capability** — `delegate` produces an *account* (zeros=1) only; a node-tier (or document-tier) `new_prefix` is rejected `NotAccountTier`. **Consequence:** beyond bootstrap, principals exist only at accounts (no per-node principals); every provisioned node is bootstrap-owned via ω until an account is delegated beneath it — re-admitting node-tier principals is flagged under [Open decisions](#open-build-decisions).
 
 ## Open build decisions
 
 - **Frontier representation:** counter map (recommended; B1 free) vs. explicit allocated-set/trie (fast arbitrary-`t` membership, contiguity becomes enforced — **and the only representation under which a gap-creating supplied delegate-prefix is admissible**; see Delegate-prefix policy) vs. hierarchical tree (only if subtree/range queries are needed elsewhere).
+- **`Space`-tag encoding:** three distinct top-level variants (`Space::Namespace`/`Principals`/`Nodes`) in skep-kernel's central enum (recommended — satisfies the contract's tag-uniqueness hard rule directly) vs. one `Space::M3` tag plus a sub-tag byte distinguishing the three domains (literal one-tag-per-store conformance, byte-equivalent). Either way the variants live in `skep-kernel`, never the engine assembler.
 - **ω resolver structure & caching:** linear scan over Π (default, ASN-0042) vs. `OrdMap` descending range-walk (`principals.range(..=a.tumbler().clone()).rev().find(|(k, _)| is_prefix(k, a.tumbler()))`, §5) vs. radix/PATRICIA trie — sized to |Π| and query rate; plus an optional `address → owner` hint cache.
 - **Id→prefix resolution:** default O(|Π|) `principal_by_id` scan over `principals` (Π small, O1a; single-valued by `delegate`'s id-freshness gate); fold a recomputable `im::HashMap<PrincipalId, Tumbler>` reverse-index *hint* (and maintain it in `apply_ns` alongside `RegisterPrincipal`) only if id-keyed lookups get hot — never authoritative, `principals` stays the source of truth.
 - **Delegate-prefix policy** (under the counter rep, next-form is *mandatory* — §6; the open choice is *who picks the address*, not whether to check it): (a) keep `delegate(new_prefix)` and *validate* the supplied prefix is next-form (current design, O17c-faithful) — a caller obtains the required next-form value from the `next_account_prefix` peek (§ Public interface C), so this path is callable without guess-and-retry; or (b) drop `new_prefix` from the signature and have `delegate` *mint* the next account slot (next-by-construction, no check) — Green-faithful, but the caller no longer names the prefix. Admitting an *arbitrary* (gap-creating) supplied prefix is unsound here — it writes phantom entities into the count-compressed registry — and would require switching the frontier to an explicit allocated-set; reaching a chosen non-next prefix under the counter rep instead means baptizing the intervening slots (filling the gap, at the cost of extra allocations).
 - **Per-node principals:** delegation is now account-tier only ((iii) `== 1`, §6 / [Conflicts resolved](#conflicts-resolved) §7), so beyond bootstrap no principal sits at a node — every provisioned node is bootstrap-owned via ω until an account is delegated beneath it. Admit a node-tier principal — a registration variant that registers a principal at a `zeros=0` prefix *without* minting the node (the node still arriving via `register_node`) — only if multiple independent node operators each need to own their own subtree. This is distinct from the dropped node-tier `fork` (below): one is about *who owns a node*, the other about *forking a self-owned account under a node*.
-- **Node-tier `fork` (O10):** dropped today ([Conflicts resolved](#conflicts-resolved) §6); re-admit a node-principal forking a *self-owned* account (no new principal, ownership stays at the node) only if that provisioning path is needed — it requires a node-tier "mint a self-owned account" branch distinct from `delegate`, which moves ownership to a new principal.
-- **Serialization granularity:** the per-namespace `LockKey` (recommended — concurrency by B7) vs. a single global writer. **Resolved default:** `delegate` holds `principals_lock_key()` **load-bearingly** (its fresh-prefix id-freshness / top-down / next-form reads race against concurrent same-target delegations); `create_new_document` holds it **defensively** (its `ω(account)` read is stale-safe — ω of an existing account is stable, §8); M5's cross-owner VERSION holds **no** principal lock, pre-reading the stable `ω(d_src)`; `register_node` holds `node_lock_key()` to preserve `NotFresh`. All are redundant under v1's global lock. The remaining open question is only `delegate`'s principal-lock *granularity* — one global principal key (safe, coarse) vs. a finer per-account-subtree key.
+- **Node-tier `fork` (O10):** dropped today ([Conflicts resolved](#conflicts-resolved) §6); re-admit a node-principal forking a *self-owned* account (no new principal, ownership stays at the node) only if that provisioning path is needed — it requires a node-tier "mint a self-owned account" branch distinct from `delegate` (which moves ownership to a new principal), **and relaxing the "every registered account carries its own account principal" invariant that `create_new_document`'s ω-authorization leans on** (Conflicts §6).
+- **Serialization granularity:** the per-namespace `LockKey` (recommended — concurrency by B7) vs. a single global writer. **Resolved default:** `delegate` holds `principals_lock_key()` **load-bearingly** (its fresh-prefix top-down / next-form / authorization reads race against concurrent same-namespace delegations, and its id-freshness read against concurrent same-id delegations — which can target a *different* namespace, §8); `create_new_document` holds it **defensively** (its `ω(account)` read is stale-safe — ω of an existing account is stable, §8); M5's cross-owner VERSION holds **no** principal lock, pre-reading the stable `ω(d_src)`; `register_node` holds `node_lock_key()` to preserve `NotFresh`. All are redundant under v1's global lock. The remaining question is `delegate`'s principal-lock *granularity*, and it is **constrained**: a per-account-subtree key is **unsafe** — id-freshness races *across* subtrees (same `new_id`, different `new_prefix`), which a per-subtree lock would not serialize → duplicate id. The only sound finer granularity than the single global `principals_lock_key()` is a per-***id*** key (`Space::Principals` tag + `new_id` bytes), which serializes exactly the same-id delegations id-freshness needs, with the *prefix*-collision (same-namespace) race covered separately by the namespace lock `delegate` already holds. Default to the single global key.
 - **Record delegator identity vs. recompute the forest** (NestingByDelegation): recompute suffices while refinement stays monotonic (no ownership transfer); store it only if transfer is later introduced.
 - **Node tracking:** explicit `OrdSet` for all nodes (recommended — tolerates non-contiguous external minting) vs. a node-frontier if provisioning guarantees contiguity.
 - **`PrincipalId` shape & session binding:** opaque here; id *uniqueness* is now enforced inside M3 by `delegate`'s `DuplicateId` gate (§6), so M10 need not guarantee it — what remains M10's is the session→id binding and idempotency/exactly-once for retried `create_new_document`.
