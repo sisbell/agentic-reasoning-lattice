@@ -1,0 +1,281 @@
+claims:
+  M1::checked_inc:
+    follows_from: []
+  M1::classify:
+    follows_from: []
+  M1::classify_spans:
+    follows_from: []
+  M1::denotes:
+    follows_from: []
+  M1::document_of:
+    follows_from: []
+  M1::from_endpoints:
+    follows_from: []
+  M1::inc:
+    follows_from: []
+  M1::intersect:
+    follows_from: []
+  M1::is_prefix:
+    follows_from: []
+  M1::normalize:
+    follows_from: []
+  M1::ordinal:
+    follows_from: []
+  M1::parent:
+    follows_from: []
+  M1::shift:
+    follows_from: []
+  M1::union:
+    follows_from: []
+  M1::validate:
+    follows_from: []
+  M1::zeros:
+    follows_from: []
+  M2::apply:
+    follows_from: []
+  M2::base:
+    follows_from: []
+  M2::checkpoint:
+    follows_from: []
+  M2::current_seq:
+    follows_from: []
+  M2::flush:
+    follows_from: []
+  M2::open:
+    follows_from:
+    - M2::apply
+    - M2::rebuild_derived
+  M2::push:
+    follows_from:
+    - M2::apply
+  M2::rebuild_derived:
+    follows_from: []
+  M2::seq:
+    follows_from: []
+  M2::snapshot:
+    follows_from: []
+  M2::transact:
+    follows_from: []
+  M2::working:
+    follows_from: []
+  M2::world:
+    follows_from: []
+  M3::apply:
+    follows_from:
+    - M1::ordinal
+    - M1::parent
+    - M1::validate
+    - M1::zeros
+  M3::content_lock_key:
+    follows_from:
+    - M1::inc
+  M3::create_new_document:
+    follows_from:
+    - M3::document_lock_key
+    - M3::effective_owner
+    - M3::mint_document
+    - M3::principals_lock_key
+  M3::delegate:
+    follows_from:
+    - M1::checked_inc
+    - M1::is_prefix
+    - M1::ordinal
+    - M1::parent
+    - M1::shift
+    - M1::validate
+    - M1::zeros
+    - M3::effective_owner
+    - M3::entity_level
+    - M3::is_allocated
+    - M3::principal_by_id
+    - M3::principal_prefix
+    - M3::principals_lock_key
+  M3::document_lock_key:
+    follows_from: []
+  M3::effective_owner:
+    follows_from:
+    - M1::validate
+    - M1::zeros
+  M3::entity_level:
+    follows_from:
+    - M1::classify
+    - M1::ordinal
+    - M1::parent
+    - M1::zeros
+  M3::fork:
+    follows_from:
+    - M3::create_new_document
+    - M3::principal_prefix
+  M3::genesis:
+    follows_from: []
+  M3::is_allocated:
+    follows_from:
+    - M1::classify
+    - M1::ordinal
+    - M1::parent
+    - M1::zeros
+  M3::is_registered_document:
+    follows_from:
+    - M3::entity_level
+  M3::link_lock_key:
+    follows_from:
+    - M1::inc
+  M3::mint_content:
+    follows_from:
+    - M1::checked_inc
+    - M1::inc
+    - M1::shift
+    - M1::validate
+    - M3::is_registered_document
+  M3::mint_document:
+    follows_from:
+    - M1::checked_inc
+    - M1::shift
+    - M1::validate
+    - M3::entity_level
+  M3::mint_link:
+    follows_from:
+    - M1::checked_inc
+    - M1::inc
+    - M1::shift
+    - M1::validate
+    - M3::is_registered_document
+  M3::mint_version:
+    follows_from:
+    - M1::checked_inc
+    - M1::shift
+    - M1::validate
+    - M3::is_registered_document
+  M3::next_account_prefix:
+    follows_from:
+    - M1::checked_inc
+    - M1::classify
+    - M1::shift
+    - M1::validate
+  M3::node_lock_key:
+    follows_from: []
+  M3::owns:
+    follows_from:
+    - M1::is_prefix
+  M3::principal_by_id:
+    follows_from: []
+  M3::principal_prefix:
+    follows_from:
+    - M3::principal_by_id
+  M3::principals_lock_key:
+    follows_from: []
+  M3::register_node:
+    follows_from:
+    - M1::classify
+    - M1::is_prefix
+    - M1::validate
+    - M3::node_lock_key
+  M3::version_lock_key:
+    follows_from: []
+  M4::apply_write:
+    follows_from: []
+  M4::contains:
+    follows_from: []
+  M4::content:
+    follows_from: []
+  M4::is_empty:
+    follows_from: []
+  M4::len:
+    follows_from: []
+  M4::stage_write:
+    follows_from:
+    - M4::contains
+  M4::value_at:
+    follows_from: []
+  M4::write:
+    follows_from:
+    - M1::document_of
+    - M4::stage_write
+  M5::apply_m5:
+    follows_from:
+    - M1::shift
+    - M1::validate
+    - M5::iextent
+  M5::content_count:
+    follows_from: []
+  M5::content_image:
+    follows_from:
+    - M1::union
+    - M5::iextent
+  M5::content_runs:
+    follows_from: []
+  M5::copy:
+    follows_from:
+    - M3::content_lock_key
+    - M3::is_registered_document
+    - M4::contains
+    - M5::content_count
+    - M5::resolve
+  M5::delete:
+    follows_from:
+    - M3::content_lock_key
+    - M3::is_registered_document
+    - M5::content_count
+  M5::docs_containing:
+    follows_from:
+    - M1::classify_spans
+    - M1::validate
+  M5::ever_placed:
+    follows_from: []
+  M5::genesis:
+    follows_from: []
+  M5::iextent:
+    follows_from:
+    - M1::from_endpoints
+    - M1::shift
+  M5::insert:
+    follows_from:
+    - M3::content_lock_key
+    - M3::is_registered_document
+    - M3::mint_content
+    - M4::stage_write
+    - M5::content_count
+  M5::link_count:
+    follows_from: []
+  M5::link_runs:
+    follows_from: []
+  M5::point:
+    follows_from:
+    - M1::shift
+    - M1::validate
+  M5::project:
+    follows_from:
+    - M1::denotes
+    - M1::intersect
+    - M1::normalize
+    - M1::union
+    - M5::iextent
+  M5::rearrange:
+    follows_from:
+    - M3::content_lock_key
+    - M3::is_registered_document
+    - M5::content_count
+  M5::rebuild_derived:
+    follows_from: []
+  M5::resolve:
+    follows_from:
+    - M1::shift
+    - M1::validate
+  M5::resolve_coverage:
+    follows_from:
+    - M1::union
+    - M5::iextent
+    - M5::resolve
+  M5::stage_seat_link:
+    follows_from:
+    - M1::document_of
+    - M5::link_runs
+  M5::version:
+    follows_from:
+    - M3::document_lock_key
+    - M3::effective_owner
+    - M3::is_registered_document
+    - M3::mint_document
+    - M3::mint_version
+    - M3::principal_prefix
+    - M3::version_lock_key
