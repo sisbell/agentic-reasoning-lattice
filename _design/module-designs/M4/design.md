@@ -76,6 +76,18 @@ impl ContentStore {
 /// M5, M9's predicate-def creation) calls it and lifts the result with `.into()`.
 /// Enforces S0's no-overwrite (`AlreadyPresent`); otherwise trusts the address. As the
 /// only constructor of the private-field `ContentWrite`, it is the guard's chokepoint.
+///
+/// Body (base build):
+///   `if c.contains(addr.tumbler()) { Err(ContentError::AlreadyPresent(addr.tumbler().clone())) }
+///    else { Ok(ContentWrite { addr: addr.tumbler().clone(), val }) }`.
+/// With Open #4's `content-addr-guard` feature on, a routing check is PREPENDED (cfg-gated),
+/// running BEFORE the overwrite check:
+///   `#[cfg(feature = "content-addr-guard")]
+///    if addr.level() != Level::Element || addr.subspace() != Some(S_C_SUBSPACE.clone()) {
+///        return Err(ContentError::NotContentAddress(addr.tumbler().clone()));  // full-guard sub-choice;
+///    }`                                                                        //  debug_assert! sub-choice panics instead
+/// Check order: NotContentAddress (routing) precedes AlreadyPresent (overwrite), so a
+/// mis-routed address is rejected on its own terms, never masked by a coincidental occupancy.
 pub fn stage_write(c: &ContentStore, addr: &Address, val: Val)
     -> Result<ContentWrite, ContentError>;
 
@@ -83,12 +95,16 @@ pub fn stage_write(c: &ContentStore, addr: &Address, val: Val)
 /// ISOLATION/TEST USE ONLY: committing a content write *alone* creates content with no
 /// placement, violating J0 (content-allocation ⇒ placement). Production content writes
 /// MUST ride M5's J0/J1★-coupled composite via `stage_write`.
+/// `#[doc(hidden)]` — exists ONLY to satisfy the contract's two-composable-forms rule; hidden
+/// from docs so callers reach for M5's J0-coupled composite instead. The symbol is KEPT in the
+/// production build (NOT `#[cfg(test)]`-gated) — the contract requires the form to exist.
 /// Body: `let home = document_of(addr).expect("content address ⇒ zeros=3");` then
-/// `transact(&[key(&home, s_C)], |stg| { let r = stage_write(stg.working().content(), addr, val)?;
+/// `k.transact(&[key(&home, s_C)], |stg| { let r = stage_write(stg.working().content(), addr, val)?;
 /// stg.push(r.into()); Ok(addr.tumbler().clone()) })` — deriving the lock key via the shared
 /// `key(...)` constructor with the `s_C` LockKey space-tag. A content address has zeros = 3, so
 /// `document_of(addr)` is always `Some`; the `.expect` above turns the unreachable `None` into a
 /// documented internal-invariant violation on this trusted-address-only op, never a domain rejection.
+#[doc(hidden)]
 pub fn write<W>(k: &Kernel<W>, addr: &Address, val: Val)
     -> Result<(Tumbler, Seq), TxnError<ContentError>>
 where W: WorldState + HasContent, W::Record: From<ContentWrite>;
@@ -105,7 +121,12 @@ where W: WorldState + HasContent, W::Record: From<ContentWrite>;
 pub struct Val(Arc<[u8]>);
 impl Val { pub fn new(b: impl Into<Arc<[u8]>>) -> Val; pub fn as_bytes(&self) -> &[u8]; pub fn len(&self) -> usize; }
 
+/// `#[non_exhaustive]`: the `content-addr-guard` feature adds/removes `NotContentAddress`,
+/// changing the variant set across build configs, so every downstream matcher — chiefly M10's
+/// surfacing of `TxnError::Rejected(ContentError)` — must carry a wildcard arm; flipping the
+/// feature then cannot break a `match`.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum ContentError {
     /// Defensive S0 guard: a value is already stored at this address. Cannot occur in
     /// production (M3 mints fresh; M5 writes once) — converts an upstream bug into a clean
@@ -171,7 +192,7 @@ M4 is deliberately thin in mechanism; each component is a few lines, but the dis
 - **C1 / C1b / L0** element-level, `#E≥2`, content-subspace numeral `S_C_SUBSPACE` (ASN-0093's `s_C` = 1; see Dependencies for why M4 keeps this address numeral distinct from the `s_C` LockKey space-tag): M3 mints conforming content addresses; M5 routes content V-positions to M4. M4 stores by-address; an optional boundary assertion (`NotContentAddress`, Open #4) is defense-in-depth, not the source of truth.
 - **C1c allocator conformance, C2 origin-registered scoping** (ASN-0093): M3's mint + register-before-allocate gate.
 - **S7 structural attribution** (ASN-0036 S7): a *theorem* established by the allocation discipline (S7a/S7b/S7d, T4, T10a — all M3) and computed pointwise by M1's `document_of` (surfaced as the SHOWORIGIN operation in M6); M4 neither establishes nor enforces it. M4's lone, complementary contribution is by-construction: it stores **no** author/source/origin metadata — only `address → Val` — so there is no redundant origin field that could diverge from the structural origin.
-- **SD store-disjointness** (`dom(C) ∩ dom(L) = ∅`, ASN-0093, from L0 + SC-NEQ + T7): a cross-store guarantee M4 cannot enforce alone. M4 upholds its half by storing only the content-subspace (`S_C_SUBSPACE`) addresses M5 routes to it, with M7 the disjoint `L` value store. The optional `NotContentAddress` assertion (Open #4) is M4's only local guard against a mis-routed `s_L` address ever landing in `dom(C)`.
+- **SD store-disjointness** (`dom(C) ∩ dom(L) = ∅`, ASN-0093, from L0 + SC-NEQ + StoreT4Validity + T7): a cross-store guarantee M4 cannot enforce alone. StoreT4Validity discharges T7's T4-validity precondition (with `zeros(·) = 3` from C1/L1 discharging the rest); M4 upholds its half by storing only the content-subspace (`S_C_SUBSPACE`) addresses M5 routes to it, with M7 the disjoint `L` value store. The optional `NotContentAddress` assertion (Open #4) is M4's only local guard against a mis-routed `s_L` address ever landing in `dom(C)`.
 
 ## Dependencies & seams
 
@@ -209,6 +230,6 @@ The two source notes largely agree on M4's territory; the substantive resolution
 1. **Inline vs out-of-line values.** Default: inline `Val(Arc<[u8]>)` in record and slice — simplest, bytes durable in M2's journal, good for many small text atoms. Switch to an out-of-line blob store (slice holds `address → blobref`) **when** content volume makes per-checkpoint slice serialization the bottleneck — it shrinks the serialized slice and cheapens M2's checkpoints, at the cost of reintroducing a blob-durability concern (either M4-owned, a deviation from "M2 owns durability," or rebuildable by replaying M2's `ContentWrite` records, which still carry the bytes). Pick under measurement of content-size distribution and checkpoint cost.
 2. **Internal value-dedup (CAS-underneath).** Optional `value-hash → blobref` compression layer beneath the map (many addresses → one stored byte-run), naturally paired with out-of-line blobs. Pure optimization; **must never surface as identity** (S4). If skip-serialized, it becomes the one derived hint requiring an engine `rebuild_derived` contribution. Enable only if content has high byte-level duplication and space matters.
 3. **Record granularity.** Single `ContentWrite` per atom (matches K.α, `m` records per INSERT) vs a batched `ContentWriteRun { writes: Vec<(Tumbler, Val)> }` folded as `m` inserts. Default single; batch if per-record overhead in M2's journal dominates for large contiguous inserts. (A batched record keeps private fields + a `stage_write`-style sole constructor for the same S0(b) guarantee.)
-4. **Defensive content-address assertion strength.** `stage_write` can additionally check `addr.level()==Element ∧ addr.subspace()==Some(S_C_SUBSPACE)` (→ `NotContentAddress`), where `S_C_SUBSPACE: Nat` is the content-subspace numeral (ASN-0093's `s_C = 1`, sourced as a shared address-level constant — *not* the `s_C` LockKey space-tag, against which `addr.subspace(): Option<Nat>` would not even typecheck). This whole surface — the added check in `stage_write`, the `NotContentAddress` variant, the `S_C_SUBSPACE` constant, and the `subspace`/`classify`/`Level` imports — is `cfg`-gated behind the `content-addr-guard` feature so the base build stays dead-code/unused-import clean. Choose: full runtime guard (paranoid, couples M4 to `S_C_SUBSPACE`), `debug_assert!` only (recommended — catches routing bugs in test, free in release), or off (trust M5's routing + M3's mint entirely). Recommend debug-only, with the feature off by default.
+4. **Defensive content-address assertion strength.** `stage_write` can additionally check `addr.level()==Element ∧ addr.subspace()==Some(S_C_SUBSPACE)` (→ `NotContentAddress`), where `S_C_SUBSPACE: Nat` is the content-subspace numeral (ASN-0093's `s_C = 1`, sourced as a shared address-level constant — *not* the `s_C` LockKey space-tag, against which `addr.subspace(): Option<Nat>` would not even typecheck). This whole surface — the added check in `stage_write` (which runs *before* the `AlreadyPresent` overwrite check, per the body sketch), the `NotContentAddress` variant, the `S_C_SUBSPACE` constant, and the `subspace`/`classify`/`Level` imports — is `cfg`-gated behind the `content-addr-guard` feature so the base build stays dead-code/unused-import clean. Choose: full runtime guard (paranoid, couples M4 to `S_C_SUBSPACE`, returns `NotContentAddress`), `debug_assert!` only (recommended — catches routing bugs in test, free in release), or off (trust M5's routing + M3's mint entirely). Recommend debug-only, with the feature off by default.
 5. **HashMap hasher.** A fixed-seed deterministic hasher is decided (reproducible checkpoints), surfaced as the `FixedHasher` alias on `ContentStore`'s `map`; the *specific* type that alias resolves to (`BuildHasherDefault<FxHasher>` / fixed-key SipHash / aHash-fixed-seed) is a minor pick under microbenchmark, constrained only to be `BuildHasher + Default + Clone` so the slice's `Default`/`Clone`/`Deserialize` derives hold.
 6. **`value_at` return type — borrowed vs cloned.** Default `Option<&Val>`, which ties the value's lifetime to the pinning `Snapshot` (caller binds the snapshot first). Since `Val` is `Arc<[u8]>` with O(1) clone, returning `Option<Val>` would decouple the value's lifetime from the snapshot for callers like M6/M9, at the cost of one Arc refcount bump per read. Minor ergonomics call; default to the borrowed form, switch to cloned if the snapshot-lifetime coupling proves awkward at a call site.
