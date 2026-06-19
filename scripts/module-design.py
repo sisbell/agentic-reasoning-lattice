@@ -281,7 +281,7 @@ def main():
                     help="omit each source note's formal claim-statements. Default is to "
                          "FEED them — they are the authoritative contract, not optional; "
                          "only drop for a module whose combined statements overflow context.")
-    ap.add_argument("--max-reviews", type=int, default=8)
+    ap.add_argument("--max-reviews", type=int, default=24)
     ap.add_argument("--no-commit", action="store_true")
     ap.add_argument("--rebase", action="store_true",
                     help="invalidate a converged module's convergence and re-review it WITHOUT "
