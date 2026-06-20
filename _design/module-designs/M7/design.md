@@ -8,7 +8,7 @@ It does **not** own: address minting or the home-existence/ownership facts (**M3
 
 ## Public interface
 
-Types `Tumbler/Address/Span/SpanSet/CanonicalForm/Nat` are M1's; `Kernel/Snapshot/LockKey/Seq/TxnError/WorldState` are M2's; `M3Rec/HasM3/MintError`, `M5Rec/HasM5/VSpec` are M3/M5's. Pure reads are methods on `LinkState` over any `Snapshot`; transact-driving ops hang off `LinkStore<'k,W>` (holds `&'k Kernel<W>`) and are generic over `W` per the engine composition contract. Slots are 1-based: `FROM=1, TO=2, TYPE=3`.
+Types `Tumbler/Address/Span/SpanSet/CanonicalForm/Nat` are M1's; `Kernel/Snapshot/LockKey/Seq/TxnError/WorldState` are M2's; `M3Rec/HasM3/MintError`, `M5Rec/HasM5/VSpec` are M3/M5's. Pure reads are methods on `LinkState` over any `Snapshot`; transact-driving ops hang off `LinkStore<'k,W>` (holds `&'k Kernel<W>`) and are generic over `W` per the engine composition contract. Slots are 1-based: `FROM=1, TO=2, TYPE=3`. Subspace constants are ASN-0093's `s_C = 1` (content), `s_L = 2` (link).
 
 ### A. Engine-plug surface
 
@@ -25,8 +25,8 @@ pub enum LinkRec { Emit { addr: Tumbler, value: Link } }
 impl LinkState {
     /// Validate `decls` against `reserved` (TypeRegistry::build), seal BOTH as authoritative genesis
     /// config, start from links = ∅. The built lookup registry and EVERY hint are RECOMPUTABLE
-    /// (rebuild_derived); only `reserved` + `decls` (all Serialize) are checkpointed. The engine builds
-    /// the genesis slice here at assembly, propagating RegistryError.
+    /// (rebuild_derived); only `reserved` + `decls` (Serialize, `Arc`-wrapped) are checkpointed. The
+    /// engine builds the genesis slice here at assembly, propagating RegistryError.
     pub fn genesis(reserved: ReservedAddrs, decls: Vec<TypeDecl>) -> Result<LinkState, RegistryError>;
     /// Pure/total/deterministic M2 fold; maintains ALL hints incrementally and carries the genesis
     /// config (`reserved`/`decls`/`registry`) forward unchanged. Applied exactly once per record.
@@ -54,19 +54,24 @@ pub struct ReservedAddrs {            // the five reserved type addresses — pa
     pub pred_def: Address, pub pred_stable: Address,            // coordinated with M9
     pub retired: Address,  pub supersedes: Address, pub retraction: Address,  // [K_ret]/[K_sup]/[R]
 }
-pub enum RegistryError { KeyCollision, EmptyKey, BadBehavior, ReservedClassClash }
+pub enum RegistryError {
+    KeyCollision, EmptyKey, BadBehavior, ReservedClassClash, ReservedSubspaceClash, NonAddressDenotingKey,
+}
 
 impl TypeRegistry {
-    /// Validate-once-or-fail (C0 + R-C0 + R-C1) — the registry's only write point. Seeds the five
-    /// shipped types (each `key = enc({reserved.<addr>})`) BEFORE app decls.
+    /// Validate-once-or-fail (C0 + R-C0 + R-C1 + reserved-isolation + idem-key denotation) — the
+    /// registry's only write point. Seeds the five shipped types (each `key = enc({reserved.<addr>})`)
+    /// BEFORE app decls.
     pub fn build(reserved: ReservedAddrs, decls: Vec<TypeDecl>) -> Result<TypeRegistry, RegistryError>;
     pub fn registration(&self, class: &CoverageClass) -> Option<&Registration>;  // internal lookup
     pub fn reserved(&self, t: ShippedType) -> &Endset;   // the genesis-fixed type endset for a shipped class
 }
+impl Default for TypeRegistry { /* the empty registry — serde seeds the #[serde(skip)] field with it;
+                                  rebuild_derived replaces it from reserved+decls before replay */ }
 pub enum ShippedType { Retired, Supersedes, Retraction, PredDef, PredStable }
 ```
 
-`TypeRegistry::build` enforces **C0** (finite, key uniqueness → `KeyCollision`, non-empty representatives → `EmptyKey`); **R-C0**'s behavior↔shape compatibility → `BadBehavior` — **BH1 (ReadFilter) ⇒ Unary; BH2 (Walk) ⇒ Binary; BH3 (ReverseLookup) ⇒ Binary; BH4 (Age) ⇒ idem = ⊥** (any shape); and **R-C1** (no app key coverage-equal to a reserved shipped class → `ReservedClassClash`). `genesis` wraps `build`, storing `reserved`+`decls` as authoritative config and the built registry as a recomputable lookup (§Core data model). Shipped registrations are fixed: `Retired = Unary/⊤/{ReadFilter}`, `Supersedes = Binary/⊤/{Walk}`, `Retraction = Binary/⊤/{}`, `PredDef = Unary/⊤/{}`, `PredStable = Unary/⊤/{}`.
+`TypeRegistry::build` enforces **C0** (finite, key uniqueness → `KeyCollision`, non-empty representatives → `EmptyKey`); **R-C0**'s behavior↔shape compatibility → `BadBehavior` — **BH1 (ReadFilter) ⇒ Unary; BH2 (Walk) ⇒ Binary; BH3 (ReverseLookup) ⇒ Binary; BH4 (Age) ⇒ idem = ⊥** (any shape); **R-C1** (no app key coverage-equal to a reserved shipped class → `ReservedClassClash`); the **reserved-isolation** precondition (every `ReservedAddrs` entry is element-level with `subspace ∉ {s_C, s_L}` → `ReservedSubspaceClash`, §Core data model); and the **idem-key denotation** precondition (every idem⊤ `TypeDecl.key` is address-denoting → `NonAddressDenotingKey`, §3). `genesis` wraps `build`, storing `reserved`+`decls` (each `Arc`-wrapped) as authoritative config and the built registry as a recomputable lookup (§Core data model); `TypeRegistry` also implements `Default` so serde can seed the `#[serde(skip)] registry` field on deserialize. Shipped registrations are fixed: `Retired = Unary/⊤/{ReadFilter}`, `Supersedes = Binary/⊤/{Walk}`, `Retraction = Binary/⊤/{}`, `PredDef = Unary/⊤/{}`, `PredStable = Unary/⊤/{}` — the `PredDef`/`PredStable` shape/idem/behavior values are **M9-coordination assumptions** (no digested note pins them; they are M7↔M9 build-time agreements, alongside the `ReservedAddrs` addresses).
 
 ### C. Write — open content links (ASN-0120 MAKELINK)
 
@@ -76,9 +81,9 @@ where W: WorldState + HasLinks + HasM3 + HasM5,
       W::Record: From<LinkRec> + From<M3Rec> + From<M5Rec>
 {
     /// Resolve three V-spec-sets to content I-coverage endsets, require the type endset non-empty,
-    /// mint a fresh home-scoped link, deposit the standard triple, seat it in `home`'s link subspace.
-    /// ONE M2 composite under `link_lock_key(home)`. NO shape gate, NO idem dedup (distinct links
-    /// always — ML0). NO provenance. Resolution reads off the txn base (single linearization, §2).
+    /// mint a fresh home-scoped link, deposit the standard triple, then seat it in `home`'s link
+    /// subspace. ONE M2 composite under `link_lock_key(home)`. NO shape gate, NO idem dedup (distinct
+    /// links always — ML0). NO provenance. Resolution reads off the txn base (single linearization, §2).
     pub fn makelink(&self, home: &Address, from: Vec<VSpec>, to: Vec<VSpec>, ty: Vec<VSpec>)
         -> Result<(Address, Seq), TxnError<MakeLinkError>>;
 }
@@ -95,7 +100,8 @@ where W: WorldState + HasLinks + HasM3, W::Record: From<LinkRec> + From<M3Rec>
     /// idem(K)=⊤ ⇒ dedup against the ACTIVE view; a hit returns the incumbent and commits NOTHING
     /// (zero-step). Does NOT seat. value = Link[enc({from}), enc(to), ty] — `from` single (|F|=1
     /// forced), `to` cardinality shape-checked, `ty` stored verbatim as e₃. Used by M9 (pdef/pd_stable,
-    /// rule fires) and managed app relations. Lock set [dedup_key, link_lock_key(home)] when idem⊤.
+    /// rule fires) and managed app relations. The op acquires [dedup_key, link_lock_key(home)] (idem⊤)
+    /// or [link_lock_key(home)] (idem⊥) before the transact (§3).
     pub fn emit(&self, home: &Address, ty: &Endset, from: &Address, to: &[Address])
         -> Result<(Address, Seq), TxnError<EmitError>>;
 
@@ -113,10 +119,10 @@ where W: WorldState + HasLinks + HasM3, W::Record: From<LinkRec> + From<M3Rec>
         -> Result<(Address, Seq), TxnError<AssertSupError>>;
 
     /// editlink: ONE composite over [link_lock_key(d_s), link_lock_key(d_a)] — allocate a fresh
-    /// successor link (value supplied directly; build via `Link::new`), then assert it supersedes
-    /// `original`. CANNOT call public assert_sup (M2 non-reentrant). Successor born UNSEATED. DC
-    /// guard: reject a retraction-typed successor; schema-conform a claim-typed one. Claim dedup is
-    /// vacuous/lock-free (its key carries the fresh successor — §2).
+    /// successor link (value supplied directly; build via `Link::new`, arity 3), then assert it
+    /// supersedes `original`. CANNOT call public assert_sup (M2 non-reentrant). Successor born
+    /// UNSEATED. DC guard: reject a retraction-typed successor; schema-conform a claim-typed one. Claim
+    /// dedup is vacuous/lock-free (its key carries the fresh successor — §2/§3).
     pub fn editlink(&self, original: &Address, successor: Link, d_s: &Address, d_a: &Address)
         -> Result<(Address /*successor*/, Address /*claim*/, Seq), TxnError<EditLinkError>>;
 
@@ -164,14 +170,14 @@ impl LinkState {
     pub fn is_active(&self, a: &Address) -> bool;  pub fn is_nullified(&self, a: &Address) -> bool;
     // BH1 read-filter | BH2 walk | BH3 reverse | BH4 age — served entirely from M7's own indexes
     pub fn is_filtered(&self, a: &Address) -> bool;                       // v1: single shipped BH1 (Retired) — see §7
-    pub fn succs(&self, ty: &Endset, x: &Address) -> Vec<Address>;
+    pub fn succs(&self, ty: &Endset, x: &Address) -> Vec<Address>;        // BH2 walk family — v1 serves only the shipped Supersedes class (§5); empty for other ty
     pub fn chain(&self, ty: &Endset, x: &Address) -> Vec<Address>;   pub fn tip(&self, ty: &Endset, x: &Address) -> Tip;
     pub fn sources_to(&self, ty: &Endset, target: &Address) -> Vec<Address>;
     pub fn target_of(&self, ty: &Endset, source: &Address) -> Option<Address>;
     pub fn targets_keyed(&self, source: &Address) -> im::HashMap<CoverageClass, Address>;  // BH3: target_of joined over all BH3 Binary types
     pub fn age(&self, a: &Address) -> Option<u64>;   pub fn stale(&self, ty: &Endset, h: u64) -> Vec<Address>;
     // ASN-0125 currency (BH2 over the operative supersession graph)
-    pub fn current(&self, y: &Address) -> Vec<CurrentMember>;             // set-valued disclosure (EL14)
+    pub fn current(&self, y: &Address) -> Vec<CurrentMember>;             // set-valued disclosure (EL14); hardwired to [K_sup]
     // shipped reserved-type endsets — M9 reads PredDef/PredStable here (registry lookup is internal)
     pub fn reserved_type(&self, t: ShippedType) -> &Endset;
 }
@@ -199,8 +205,9 @@ pub type Endset = SpanSet;                 // M1 SpanSet, stored VERBATIM — ne
 pub struct Link { slots: im::Vector<Endset> }   // arity = slots.len() ≥ 3; positional accessors only
 
 impl Link {
-    pub fn new(slots: impl IntoIterator<Item = Endset>) -> Option<Link>;  // None ⇔ arity < 3 (the type floor;
-                                                                          // e₃ ≠ ∅ is a WRITE-boundary check, not here)
+    pub fn new(slots: impl IntoIterator<Item = Endset>) -> Option<Link>;  // None ⇔ arity < 3 (the type floor /
+                                                                          // ASN-0043 L3 capacity; e₃ ≠ ∅ is a
+                                                                          // WRITE-boundary check, not here)
     pub fn arity(&self) -> usize;                       // |L| ≥ 3
     pub fn slot(&self, i: usize) -> Option<&Endset>;    // 1-based; None iff i < 1 ∨ i > arity
     pub fn from_slot(&self) -> &Endset;                 // e₁ (FROM=1)
@@ -217,18 +224,18 @@ pub fn enc(addrs: &[Address]) -> Endset;
 #[derive(Clone, Serialize, Deserialize)]
 pub struct LinkState {
     links:    im::OrdMap<Tumbler, Link>,         // ── AUTHORITATIVE ── append-only, immutable values
-    reserved: ReservedAddrs,                      // ── AUTHORITATIVE ── genesis type config (serializable build input)
-    decls:    Vec<TypeDecl>,                      // ── AUTHORITATIVE ── genesis type config (serializable build input)
-    #[serde(skip)] registry: Arc<TypeRegistry>,   // ── RECOMPUTABLE ── lookup map; rebuilt from reserved+decls
-    #[serde(skip)] hints:    Hints,               // ── RECOMPUTABLE ── rebuilt from links+registry
+    reserved: Arc<ReservedAddrs>,                 // ── AUTHORITATIVE ── genesis type config; Arc ⇒ O(1) per-fold clone (serde `rc`)
+    decls:    Arc<Vec<TypeDecl>>,                 // ── AUTHORITATIVE ── genesis type config; Arc ⇒ O(1) per-fold clone (serde `rc`)
+    #[serde(skip)] registry: Arc<TypeRegistry>,   // ── RECOMPUTABLE ── lookup map; rebuilt from reserved+decls (TypeRegistry: Default seeds the skip)
+    #[serde(skip)] hints:    Hints,               // ── RECOMPUTABLE ── rebuilt from links+registry (Hints: Default seeds the skip)
 }
 ```
 
-**The authoritative state is one map plus the genesis type config.** `links : Tumbler ⇀ Link` is append-only and immutable: a `LinkRec::Emit` only ever *inserts* at a fresh key, never mutates or removes. This single decision makes **Permanence (L12/R2), append-only audit (R3), retraction stability (R6a)**, and lock-free MVCC reads *free* — every `Snapshot` pins an immutable root, and a reader is untouched by concurrent appends. `im::OrdMap` keyed by `Tumbler` (the `Ord`-bearing type; callers pass `&Address`, M7 converts) gives O(log n) point lookup *and* the prefix-range scans that home-set enumeration and the frontier want — the one structure serving readlink, allocation-adjacent scans, and the indexes. **Identity is the key, never the value:** the store is *never* content-addressed on the endset (NonInjectivity L11b — two byte-identical links are distinct objects); hashing the payload would collapse them, so this is forbidden.
+**The authoritative state is one map plus the genesis type config.** `links : Tumbler ⇀ Link` is append-only and immutable: a `LinkRec::Emit` only ever *inserts* at a fresh key, never mutates or removes. This single decision makes **Permanence (L12/R2), append-only audit (R3), retraction stability (R6a)**, and lock-free MVCC reads *free* — every `Snapshot` pins an immutable root, and a reader is untouched by concurrent appends. `im::OrdMap` keyed by `Tumbler` (the `Ord`-bearing type; callers pass `&Address`, M7 converts) gives O(log n) point lookup *and* the prefix-range scans that home-set enumeration and the frontier want — the one structure serving readlink, allocation-adjacent scans, and the indexes. `reserved`/`decls` are `Arc`-wrapped so the clone-and-modify `apply_link`/`World::apply` bumps a refcount rather than copying the declaration vector on every record. **Identity is the key, never the value:** the store is *never* content-addressed on the endset (NonInjectivity L11b — two byte-identical links are distinct objects); hashing the payload would collapse them, so this is forbidden.
 
-**The registry is genesis config, not a fold of records**, yet `apply_link` must consult it *during replay* (to recognize the `[R]`/`[K_sup]` coverage classes that drive `nullified`/`sup_fwd`). The lookup `registry` is keyed by `CoverageClass`, which is *not* `Serialize` (its `Extents` variant wraps M1's non-`Serialize` `CanonicalForm`), so the registry cannot itself ride a checkpoint. M7 therefore persists the *serializable build inputs* — `reserved: ReservedAddrs` and `decls: Vec<TypeDecl>` (both `Serialize`) — as **authoritative** state, and treats the lookup `registry` as `#[serde(skip)]` recomputable. `rebuild_derived` reconstructs `registry = TypeRegistry::build(reserved, decls).expect("validated at genesis")` (the inputs are already-validated authoritative state, so the rebuild cannot fail) **before** replay, then recomputes every hint. This is load-bearing because M2 recovers from the deserialized checkpoint whenever a retained one exists — genesis `W` is consulted only on full fallback — so a skip-the-registry-and-reseed-from-engine-genesis scheme would deserialize an empty registry and silently mis-replay. That option is rejected.
+**The registry is genesis config, not a fold of records**, yet `apply_link` must consult it *during replay* (to recognize the `[R]`/`[K_sup]` coverage classes that drive `nullified`/`sup_fwd`). The lookup `registry` is keyed by `CoverageClass`, which is *not* `Serialize` (its `Extents` variant wraps M1's non-`Serialize` `CanonicalForm`), so the registry cannot itself ride a checkpoint. M7 therefore persists the *serializable build inputs* — `reserved: Arc<ReservedAddrs>` and `decls: Arc<Vec<TypeDecl>>` (both `Serialize` under serde's `rc` feature) — as **authoritative** state, and treats the lookup `registry` as `#[serde(skip)]` recomputable. On deserialize, serde seeds the two `#[serde(skip)]` fields via `Default` — `TypeRegistry: Default` (the empty registry) and `Hints: Default` (derived) — placeholders that `rebuild_derived` replaces *before* replay: it reconstructs `registry = TypeRegistry::build(reserved, decls).expect("validated at genesis")` (the inputs are already-validated authoritative state, so the rebuild cannot fail), then recomputes every hint. This is load-bearing because M2 recovers from the deserialized checkpoint whenever a retained one exists — genesis `W` is consulted only on full fallback — so a skip-the-registry-and-reseed-from-engine-genesis scheme would deserialize an empty registry and silently mis-replay. That option is rejected.
 
-**`Link` is a positional sequence of endsets.** `im::Vector` because slot index is a primitive (L6) and arity is read off the value (FOLLOWLINK's post-lookup bound). Each `Endset` is M1's `SpanSet` held **verbatim** — the as-created span decomposition is observable through raw read-back (ML2/RL1), so we never canonicalize at rest; coverage is a *query-time projection*. `Link::new(slots)` enforces only the type floor (arity ≥ 3); the store invariant `e₃ ≠ ∅` (L3) is enforced at the *write boundary*, not the type (Conflicts §3).
+**`Link` is a positional sequence of endsets.** `im::Vector` because slot index is a primitive (L6) and arity is read off the value (FOLLOWLINK's post-lookup bound). Each `Endset` is M1's `SpanSet` held **verbatim** (the as-created span decomposition is observable through raw read-back — ML2/RL1 — so we never canonicalize at rest; coverage is a *query-time projection*). `Link::new(slots)` enforces only the type floor — arity ≥ 3, ASN-0043 L3's *capacity*; the store invariant `e₃ ≠ ∅` (L3) is enforced at the *write boundary*, not the type (Conflicts §3). **No creation op realizes arity > 3:** MAKELINK builds the standard triple `[e₁,e₂,e₃]`, Emit_K/`assert_sup`/the editlink claim build arity-3, and `editlink` rejects a successor whose `arity() ≠ 3` (`IllFormedSuccessor`). So the store holds only arity-3 links — the spanfilade's three slots are exhaustive, RL2's "N > 3" read branch is vacuous over this store, and `type_class`/`type_slice`/`observe` meet ASN-0086's `|Σ.L(a)| = 3` restriction with no explicit arity filter.
 
 **Everything else is a recomputable hint** — a pure function of `links` (+ `registry`), maintained incrementally in `apply_link` and re-seeded by `rebuild_derived`. This is the Lampson spine: the journal (via M2) is truth; lose any hint and replay rebuilds it, never wrong.
 
@@ -242,7 +249,7 @@ struct Hints {
     type_class: im::HashMap<CoverageClass, im::OrdSet<Tumbler>>,  // typed slices L_K (Observe, type-match)
     nullified:  im::OrdSet<Tumbler>,                       // resident retraction roots — the tombstone set (active = audit ∖ this)
     dedup:      im::HashMap<DedupKey, im::OrdSet<Tumbler>>, // I0-class → addrs (audit; active-filtered at the check)
-    sup_fwd:    im::HashMap<Tumbler, im::OrdSet<(Tumbler /*new*/, Tumbler /*claim*/)>>, // BH2 old→{(new,claim)}
+    sup_fwd:    im::HashMap<Tumbler, im::OrdSet<(Tumbler /*new*/, Tumbler /*claim*/)>>, // BH2 old→{(new,claim)}; [K_sup] only (v1)
     home_count: im::HashMap<Tumbler, u64>,                 // BH4: home document → # homed links (the frontier index)
 }
 ```
@@ -268,15 +275,17 @@ pub enum CoverageClass {                                // (lives only in the sk
 pub struct DedupKey { ty: CoverageClass, from: CoverageClass, to: CoverageClass }  // I0 = (cov(F),cov(G)) within [K]
 ```
 
-The per-length partition is **conservative**: it can *over*-discriminate two content endsets whose equal coverage straddles lengths, never *merge* distinct ones. Over-discrimination is the safe direction for both type-matching (you under-match, never false-match) and dedup (you deposit a second tuple, never wrongly suppress). The managed surface always lands in `Addrs` (exact); only MAKELINK content-type grouping touches `Extents`. The exact cross-length class is left open (M1 provides no cross-length normal form) — see Open build decisions.
+The per-length partition is **conservative**: it can *over*-discriminate two content endsets whose equal coverage straddles lengths, never *merge* distinct ones. Over-discrimination is the safe direction for both type-matching (you under-match, never false-match) and dedup (you deposit a second tuple, never wrongly suppress). **Address-denoting endsets land in `Addrs` (exact)** — the entire managed surface *and* any MAKELINK type that resolves to a single content address; **only a multi-span or mixed-length content extent reaches `Extents`** (a MAKELINK type spanning content). **Reserved-class isolation:** `TypeRegistry::build` requires every `ReservedAddrs` entry to be element-level with `subspace ∉ {s_C, s_L}` (`ReservedSubspaceClash`), so a content link's type class (always within `s_C`) and a link-store address (within `s_L`) can never coverage-equal a reserved class — the no-collision guarantee Conflict §1 leans on (e.g. a content-typed link can never be misread into the `[R]` class and spuriously inserted into `nullified`). The exact cross-length class is left open (M1 provides no cross-length normal form) — see Open build decisions.
+
+Because the dedup **`LockKey`** serializes `DedupKey.ty = CoverageClass(ty)` and the `Extents` variant wraps M1's non-`Serialize` `CanonicalForm`, `TypeRegistry::build` constrains every **idem⊤** type key to be address-denoting (`NonAddressDenotingKey`), so its class is the serializable `Addrs`. `DedupKey.from`/`.to` are always `Addrs` (single source address / `enc`'d to-set), and MAKELINK/idem⊥ types never take a dedup lock — so no `Extents` class is ever serialized into a `LockKey`.
 
 ## Internal design
 
 ### 1. The store, recovery, and the engine plug
 
-`apply_link(LinkRec::Emit{addr, value})` inserts `addr↦value` into `links` and folds **every** hint incrementally — O(log n) `im` operations throughout: each slot's spans into `spanfilade`; `CoverageClass(value.e₃)` into `type_class`; if that class is `[R]`, the to-root into `nullified`; the `DedupKey` into `dedup`; if `[K_sup]`, the old→(new,addr) edge into `sup_fwd`; `home_count[origin(addr)] += 1`. It carries the genesis config — `reserved`, `decls`, and the rebuilt `registry` — forward unchanged (they are not records and never change). `apply_link` reads only `LinkState` + M1 arithmetic + `registry`, is deterministic and total, and is applied exactly once per committed record (M2 guarantees this — do **not** code it idempotent).
+`apply_link(LinkRec::Emit{addr, value})` inserts `addr↦value` into `links` and folds **every** hint incrementally — O(log n) `im` operations throughout: each slot's spans into `spanfilade`; `CoverageClass(value.e₃)` into `type_class`; if that class is `[R]`, the to-root into `nullified`; the `DedupKey` into `dedup`; if `[K_sup]`, the old→(new,addr) edge into `sup_fwd`; `home_count[origin(addr)] += 1`. It carries the genesis config — `reserved`, `decls` (`Arc`-shared, so "carrying forward" is a refcount bump, not a copy), and the rebuilt `registry` — forward unchanged (they are not records and never change). `apply_link` reads only `LinkState` + M1 arithmetic + `registry`, is deterministic and total, and is applied exactly once per committed record (M2 guarantees this — do **not** code it idempotent).
 
-`rebuild_derived` runs once at load, before replay: it first reconstructs `registry = TypeRegistry::build(reserved, decls)` from the deserialized authoritative config (a `.expect()` — the inputs passed validation at genesis), then recomputes `hints` entirely from the checkpointed `links` + `registry`. Because **all** hints are pure functions of `links`+`registry`, this is a single pass; and because the registry is reconstructed before replay, the post-checkpoint `apply_link` folds see it. Recovery is therefore *pure replay*: no undo log, no compaction for correctness; the only knob is M2's checkpoint cadence (it bounds the rebuild pass).
+`rebuild_derived` runs once at load, before replay (serde having seeded the two `#[serde(skip)]` fields with their `Default`s on deserialize — an empty `TypeRegistry` and empty `Hints`, both immediately overwritten here): it first reconstructs `registry = TypeRegistry::build(reserved, decls)` from the deserialized authoritative config (a `.expect()` — the inputs passed validation at genesis), then recomputes `hints` entirely from the checkpointed `links` + `registry`. Because **all** hints are pure functions of `links`+`registry`, this is a single pass; and because the registry is reconstructed before replay, the post-checkpoint `apply_link` folds see it. Recovery is therefore *pure replay*: no undo log, no compaction for correctness; the only knob is M2's checkpoint cadence (it bounds the rebuild pass).
 
 The engine assembles `World{ …, links: LinkState, … }`, implements `HasLinks`, `From<LinkRec> for Record`, and dispatches `Record::Links(x) => world.links().apply_link(x)`. M7 names neither `World` nor `Record`; its transact-ops are `impl<W: WorldState + HasLinks + HasM3 [+ HasM5]> LinkStore<W> where W::Record: From<LinkRec> + From<M3Rec> [+ From<M5Rec>]`.
 
@@ -287,88 +296,96 @@ The store holds links from **two disciplines that never unify** (Conflicts §1):
 - **MAKELINK — the open content-link surface** (ASN-0043/0120). Resolves V-specs, admits multi-span endsets, admits ghost/unregistered types, applies **no shape gate** and **no idem dedup** (distinct links always — ML0). Seats the link in its home.
 - **Emit_K — the managed typed-relation surface** (ASN-0086/0126/0128). Address-level, **shape-gated**, **idem-deduped per type**, `K ≁ R` rejected; **never seats**.
 
-They share `links`, the spanfilade, every read path, and one internal `emit_core`. They differ only in admission and in the seat step. A MAKELINK content link's type resolves to `s_C` I-addresses, whose coverage class can never collide with a reserved managed class (different subspace), so MAKELINK links never pollute the managed slices; and the behaviors degrade gracefully (`target_of` returns ⊥ on a non-single-address endset, BH2 reads single-address claims) if an app ever registers a managed type coverage-equal to a MAKELINK type.
+They share `links`, the spanfilade, every read path, and one internal `emit_core`. They differ only in admission (the gate) and in whether the *op* seats afterward (MAKELINK does; Emit_K/Nullify/assert_sup/editlink do not). A MAKELINK content link's type resolves to `s_C` I-addresses, whose coverage class can never collide with a reserved managed class (reserved type addresses lie outside `s_C`/`s_L`, §Core data model), so MAKELINK links never pollute the managed slices; and the behaviors degrade gracefully (`target_of` returns ⊥ on a non-single-address endset, BH2 reads single-address claims) if an app ever registered a managed type coverage-equal to a MAKELINK type.
 
-**`emit_core` (shared)** — the single choke point, run inside one `transact`:
+**`emit_core` (shared)** — the single choke point, run inside one `transact`. Its bounds are `W: WorldState + HasLinks + HasM3` only (gate + `mint_link` + deposit `LinkRec`); it has **no `seat` step** and so needs neither `HasM5` nor `From<M5Rec>` — the seat is staged by MAKELINK itself, the lone `HasM5` caller, after `emit_core` returns. Any dedup **lock** is acquired by the public op *before* this transact (§3 step 1); `emit_core` does only the in-txn active-view **check** (§3 step 2):
 
 ```text
-emit_core(stg, home, value, seat, gate) -> Result<Address, EmitCoreError>:
+emit_core(stg, home, value, gate) -> Result<Address, EmitCoreError>:
   match gate:
-    Open (MAKELINK):       require value.arity()==3 ∧ value.type_slot() ≠ ⟨⟩          // wf + type-nonempty (EmptyType)
-    Managed (Emit_K):      let K = CoverageClass(value.type_slot())
-                           require registry.registration(K).is_some()                 // (i) registered (NotRegistered)
-                           require K ≠ CoverageClass(reserved(Retraction))            // K ≁ R (RetractionClass)
-                           require Sh-conf(reg.shape, |F|, |G|)                        // (ii) span-count gate (ShapeViolation)
-                           if reg.idem: DEDUP (§3) — hit ⇒ return incumbent, stage NOTHING
-    Retraction (Nullify):  require registry.registration([R]).shape == Binary         // defensive (genesis-fixed)
-                           require Sh-conf(Binary, |F|, |G|)                           // |F|=1, |G|=1
-                           DEDUP (§3, idem⊤) — hit ⇒ return incumbent, stage NOTHING
-  let (addr, m3rec) = stg.working().m3().mint_link(home)?                              // K.λ via M3 (MintError → HomeNotRegistered/Mint)
-  stg.push(m3rec.into()); stg.push(LinkRec::Emit{addr, value}.into())
-  if seat: stg.push(stage_seat_link(stg.working().m5(), home, addr)?.into())           // K.μ⁺_L via M5 (SeatError → Seat); no R (J-LV)
+    Open (MAKELINK / editlink successor):
+        require value.type_slot() ≠ ⟨⟩                                         // EmptyType (arity 3 guaranteed by caller)
+    Managed (Emit_K / assert_sup / editlink claim):
+        let K = CoverageClass(value.type_slot())
+        require registry.registration(K).is_some()                             // (i) registered (NotRegistered)
+        require K ≠ CoverageClass(reserved(Retraction))                        // K ≁ R (RetractionClass)
+        require Sh-conf(reg.shape, |F|, |G|)                                   // (ii) span-count gate (ShapeViolation)
+        if reg.idem: DEDUP-CHECK (§3 step 2, vs stg.working() active) — hit ⇒ return incumbent, stage NOTHING
+    Retraction (Nullify):
+        require registry.registration(CoverageClass(reserved(Retraction))).shape == Binary  // defensive (genesis-fixed)
+        require Sh-conf(Binary, |F|, |G|)                                      // |F|=1, |G|=1
+        DEDUP-CHECK (§3 step 2, idem⊤) — hit ⇒ return incumbent, stage NOTHING
+  let (addr, m3rec) = stg.working().m3().mint_link(home)?                       // K.λ via M3 (MintError → HomeNotRegistered/Mint)
+  stg.push(m3rec.into()); stg.push(LinkRec::Emit{addr, value}.into())          // deposit; NO seat, NO R here
   return addr
 ```
 
-`Sh-conf` reads `shape(K)` from the registry and tests *span counts* (Unary `|G|=0`, Binary `|G|=1`, Multi `|G|<∞`; all require `|F|=1`) — never inferring shape from the tuple (a `(1,0)` tuple conforms under Unary *and* Multi). The gate adds preconditions only and never alters `value` (**effect-identity** — the ASN-0126 `π` bridge): do not "normalize on the way in."
+`Sh-conf` reads `shape(K)` from the registry and tests *span counts* (Unary `|G|=0`, Binary `|G|=1`, Multi `|G|<∞`; all require `|F|=1`) — never inferring shape from the tuple (a `(1,0)` tuple conforms under Unary *and* Multi). The gate adds preconditions only and never alters `value` (**effect-identity** — the ASN-0126 `π` bridge): do not "normalize on the way in." Both `Open` callers supply an arity-3 value (MAKELINK builds `[e₁,e₂,e₃]`; `editlink` pre-checks `successor.arity()==3`), so `emit_core` carries no arity guard and the store holds only arity-3 links.
 
-**`emit_core` error mapping.** It returns `EmitCoreError { HomeNotRegistered, NotRegistered, ShapeViolation, RetractionClass, EmptyType, Mint(MintError), Seat(SeatError) }` (`HomeNotRegistered` and `Mint` both originate at `mint_link` — `MintError::HomeNotRegistered` is split out, every other `MintError` rides `Mint`). Each public op maps it:
+**`emit_core` error mapping.** It returns `EmitCoreError { HomeNotRegistered, NotRegistered, ShapeViolation, RetractionClass, EmptyType, Mint(MintError) }` (`HomeNotRegistered` and `Mint` both originate at `mint_link` — `MintError::HomeNotRegistered` is split out, every other `MintError` rides `Mint`). Each public op maps it:
 
-- **MAKELINK** (`Open`, seats): `EmptyType→EmptyTypeResolution`, `Mint→Mint`, `Seat→Seat`, `HomeNotRegistered→HomeNotRegistered`; the `Managed`/`Retraction` branches are unreachable.
-- **emit** (`Managed`, no seat): `HomeNotRegistered/NotRegistered/ShapeViolation/RetractionClass/Mint` pass through to the like-named `EmitError` variants; `EmptyType` unreachable (managed `e₃ = ty` non-empty by `T_admissible`), `Seat` unreachable.
+- **MAKELINK** (`Open`): maps `emit_core`'s `EmptyType→EmptyTypeResolution`, `Mint→Mint`, `HomeNotRegistered→HomeNotRegistered` (the `Managed`/`Retraction` branches are unreachable); and — since MAKELINK, not `emit_core`, now stages the seat — maps `stage_seat_link`'s `SeatError→Seat` directly.
+- **emit** (`Managed`, no seat): `HomeNotRegistered/NotRegistered/ShapeViolation/RetractionClass/Mint` pass through to the like-named `EmitError` variants; `EmptyType` unreachable (managed `e₃ = ty` non-empty by `T_admissible`).
 - **nullify** (`Retraction`): `HomeNotRegistered→HomeNotRegistered`, `Mint→Mint`; the gate variants are defensive (the `[R]` type is genesis-fixed Binary); P-tgt is checked in `nullify` itself (`BadTarget`).
 - **assert_sup / editlink-claim** (`Managed`, K_sup): `HomeNotRegistered→HomeNotRegistered`, `Mint→Mint`; `NotRegistered/ShapeViolation/RetractionClass` are unreachable for the registry-fixed K_sup. editlink's successor (`Open`): `EmptyType→IllFormedSuccessor`, `Mint→Mint`.
 
-**MAKELINK** wraps `emit_core` with the resolver, resolving `ρ` **inside** the transact off the txn base (so the whole operation linearizes at its commit — ASN-0134's single linearization point; ML8 keeps the endsets valid either way, but this removes the read-write gap):
+**MAKELINK** wraps `emit_core` with the resolver, resolving `ρ` **inside** the transact off the txn base (so the whole operation linearizes at its commit — ASN-0134's single linearization point; ML8 keeps the endsets valid either way, but this removes the read-write gap), and **stages the seat itself** after `emit_core` returns the address:
 
 ```text
-makelink(home, R₁, R₂, R₃):
+makelink(home, R₁, R₂, R₃):                                  // Rᵢ : Vec<VSpec>, VSpec{ source, span:(start,width) }
   transact([M3State::link_lock_key(home)], |stg| {           // home minted on the LINK frontier ⇒ link_lock_key (Conflicts §7)
      let m3 = stg.base().m3(); let m5 = stg.base().m5();
-     require m3.is_registered_document(home)                                          // HomeNotRegistered
-     for each Rᵢ, each (d_j, σ_j):
-        require m3.is_registered_document(d_j) ∧ subspace(u_j)=s_C ∧ #u_j≥2 ∧ ordinal-disp(σ_j)  // IllFormedSpec (M1 wf)
-     eᵢ = ⋃_j m5.resolve_coverage(d_j, span(σ_j))            // ρ as content I-coverage — read off the txn BASE
-     require e₃ ≠ ⟨⟩                                          // EmptyTypeResolution (ML6)
-     emit_core(stg, home, Link::new([e₁,e₂,e₃]).unwrap(), seat=true, Open)            // arity 3 by construction
+     require m3.is_registered_document(home)                                   // HomeNotRegistered
+     for each Rᵢ, each VSpec{source: d_j, span: σ_j}:                          // wf(R,Σ) by CONCRETE component tests:
+        require m3.is_registered_document(d_j)                                 //   d_j ∈ dom(M)
+              ∧ #σ_j.start() == 2 ∧ σ_j.start().get(1) == s_C                  //   depth-2 CONTENT V-position
+              ∧ #σ_j.width() == 2 ∧ σ_j.width().get(1) == 0                    //   ordinal displacement δ(n,2)   → else IllFormedSpec
+     eᵢ = ⋃_j m5.resolve_coverage(d_j, σ_j)                                    // ρ as content I-coverage — read off the txn BASE
+     require e₃ ≠ ⟨⟩                                                           // EmptyTypeResolution (ML6)
+     let addr = emit_core(stg, home, Link::new([e₁,e₂,e₃]).unwrap(), Open)?    // arity 3 by construction; deposits, no seat
+     stg.push(stage_seat_link(stg.working().m5(), home, addr)?.into())         // K.μ⁺_L via M5 — the seat (no R, J-LV)
+     Ok(addr)
   })
 ```
 
-Recording `resolve_coverage`'s output *as* the endset makes the **coverage-exactness recovery equation** (ML1: `coverage(eᵢ) ∩ dom(C) = ρ`) hold by construction — M5's runs trace exactly allocated content and never over-reach the frontier, and cross-origin runs arrive un-coalesced (M16). The wf checks reject malformed specs (a *rejection*, not the silent ⟨⟩ that `resolve_coverage` returns for non-content spans). The held key is `link_lock_key(home)` — `emit_core`'s `mint_link(home)` advances the link frontier, so the held lock and the advanced frontier are byte-identical (M3's contract); a content key would not serialize MAKELINK against `emit`/`assert_sup`/`nullify` at the same home (colliding link addresses) under a multi-applier realization. MAKELINK touches **no R** (J-LV), allocates content nowhere (J0 vacuous), and seats exactly one link V-position.
+Recording `resolve_coverage`'s output *as* the endset makes the **coverage-exactness recovery equation** (ML1: `coverage(eᵢ) ∩ dom(C) = ρ`) hold by construction — M5's runs trace exactly allocated content and never over-reach the frontier, and cross-origin runs arrive un-coalesced (M16). The `wf` checks are *concrete component tests* on the V-span — `subspace(u_j)=s_C` of ASN-0120 is the V-position's first component `start.get(1)`, **not** M1's `Address::subspace()` (which needs `zeros=3` and returns `None` for a depth-2 V-position, so a naïve builder would reject every spec); the length checks `#start==2`/`#width==2` precede the `get(1)` indexing so the 1-based `Tumbler::get` never panics. These mirror M5's `resolve` precondition and produce `IllFormedSpec` *rejections*, distinct from the silent ⟨⟩ that `resolve_coverage` returns for a non-content/malformed span. The held key is `link_lock_key(home)` — `emit_core`'s `mint_link(home)` advances the link frontier, so the held lock and the advanced frontier are byte-identical (M3's contract); a content key would not serialize MAKELINK against `emit`/`assert_sup`/`nullify` at the same home (colliding link addresses) under a multi-applier realization. MAKELINK touches **no R** (J-LV), allocates content nowhere (J0 vacuous), and seats exactly one link V-position.
 
-**Emit_K** wraps `emit_core` with the value construction: `value = Link::new([enc(&[from]), enc(to), ty.clone()]).unwrap()` (F single-address, G the to-set encoding, e₃ = `ty` verbatim), then `emit_core(stg, home, value, seat=false, Managed)` under `[dedup_key, link_lock_key(home)]` when the type is idem⊤.
+**Emit_K** wraps `emit_core` with the value construction: `value = Link::new([enc(&[from]), enc(to), ty.clone()]).unwrap()` (F single-address, G the to-set encoding, e₃ = `ty` verbatim), then `emit_core(stg, home, value, Managed)`. The public op computes the `dedup_key` from its args **before** the transact and supplies `[dedup_key, link_lock_key(home)]` (idem⊤) or `[link_lock_key(home)]` (idem⊥) to `transact` (§3).
 
-**editlink** is one M2 composite over **two home alloc keys** — `transact([M3State::link_lock_key(d_s), M3State::link_lock_key(d_a)], …)` — inlining two `emit_core` calls; it **cannot** call the public `assert_sup` (itself a `transact`: M2 is non-reentrant — a nested write deadlocks — and a second `transact` would forfeit EL7 atomicity). A **DC** guard precedes the transact: reject a successor whose type class is `[R]` (`DcViolation` — else step 1 would silently nullify its to-set) and, for a `[K_sup]`-typed successor, require it schema-conform (unit-depth single-address F/G, both endpoints resident, irreflexive). Inside:
+**editlink** is one M2 composite over **two home alloc keys** — `transact([M3State::link_lock_key(d_s), M3State::link_lock_key(d_a)], …)` — inlining two `emit_core` calls; it **cannot** call the public `assert_sup` (itself a `transact`: M2 is non-reentrant — a nested write deadlocks — and a second `transact` would forfeit EL7 atomicity). The residence/arity preconditions and the **DC** guard run *inside* the closure against `stg.base()` (DC's `[K_sup]`-witness check is a base-state read):
 
 ```text
-editlink(original, successor, d_s, d_a):
-  require is_registered_document(d_s) ∧ is_registered_document(d_a)     // HomeNotRegistered
-  require original ∈ links                                              // OriginalNotResident
-  require successor.arity() ≥ 3 ∧ successor.type_slot() ≠ ⟨⟩            // IllFormedSuccessor (L3 floor)
-  require DC(successor): CoverageClass(successor.e₃) ≠ [R]              // DcViolation
-                       ∧ (class == [K_sup] ⟹ schema-conforming witnesses ∈ base links)
-  transact([link_lock_key(d_s), link_lock_key(d_a)], |stg| {
-     let a' = emit_core(stg, d_s, successor, seat=false, Open)?          // born unseated; content type idem⊥ ⇒ no dedup
-     let b  = emit_core(stg, d_a,                                        // claim: "original superseded by a'"
+editlink(original, successor, d_s, d_a):                      // successor : Link, supplied (built via Link::new)
+  transact([link_lock_key(d_s), link_lock_key(d_a)], |stg| {  // two home alloc keys only — no dedup key (claim key carries fresh a')
+     let base = stg.base();
+     require base.m3().is_registered_document(d_s) ∧ base.m3().is_registered_document(d_a)  // HomeNotRegistered
+     require original ∈ base.links()                                                        // OriginalNotResident
+     require successor.arity() == 3 ∧ successor.type_slot() ≠ ⟨⟩                            // IllFormedSuccessor (arity-3 store)
+     require DC(successor):  CoverageClass(successor.e₃) ≠ CoverageClass(reserved(Retraction))  // DcViolation
+                          ∧ (CoverageClass(successor.e₃) == CoverageClass(reserved(Supersedes)) ⟹
+                               schema-conforming witnesses ∈ base.links())                  // unit-depth single-addr F/G, endpoints resident, irreflexive
+     let a' = emit_core(stg, d_s, successor, Open)?           // born unseated; content type idem⊥ ⇒ no dedup deposit
+     let b  = emit_core(stg, d_a,                             // claim: "original superseded by a'"
                         Link::new([enc(&[original]), enc(&[a']), reserved(Supersedes)]).unwrap(),
-                        seat=false, Managed)?                            // F=old, G=new (Conflicts §2)
+                        Managed)?                             // claim dedup-CHECK is a guaranteed miss (fresh a') ⇒ lock-free (§3)
      Ok((a', b))
   })
 ```
 
-The claim's dedup is **vacuous and lock-free** here: its `DedupKey` carries the freshly minted successor `a'` (unknowable before the closure, and M2 takes `keys` up front), so the active check is a guaranteed miss — no claim dedup `LockKey` is needed, only the two home alloc keys. Both writes commit atomically (EL7); the original is untouched (L12). The DC guard is what keeps editlink discipline-preserving and therefore chainable.
+The claim's dedup is **vacuous and lock-free** here: its `DedupKey` carries the freshly minted successor `a'` (unknowable before the closure, and M2 takes `keys` up front), so the active check is a guaranteed miss — no claim dedup `LockKey` is needed, only the two home alloc keys. Both writes commit atomically (EL7); the original is untouched (L12). The DC guard is what keeps editlink discipline-preserving and therefore chainable; rejecting an `[R]`-typed successor stops step 1 from silently nullifying its to-set, and schema-conforming a `[K_sup]`-typed successor keeps the supersession discipline.
 
 ### 3. De-duplication and the M2 keyed critical section
 
-Idempotence is a **computed equivalence at the surface, never stored identity** (I1) — the store stays pluralistic underneath; a hit returns the incumbent's address and *commits nothing*. For an idem type, `emit_core` computes the `DedupKey = (CoverageClass(ty), Addrs({from}), Addrs(to))` and:
+Idempotence is a **computed equivalence at the surface, never stored identity** (I1) — the store stays pluralistic underneath; a hit returns the incumbent's address and *commits nothing*. The dedup **lock** and the dedup **check** are split across the transact boundary, because `emit_core` runs *inside* an already-open `transact` and cannot itself acquire keys:
 
-1. **Acquires the dedup lock.** M7 serializes `DedupKey` bytes into a `LockKey` (M7's space tag + the minimal antichains) and passes it to `transact` *alongside* the home alloc key: `transact(&[dedup_key, M3State::link_lock_key(home)], …)`. Same I0-class ⇒ same `LockKey` ⇒ M2 serializes the check-and-deposit (I1a/I4); different I0-class ⇒ no contention. This is the only cross-home synchronization point, partitioned **by I0-class, never by home** — sharding dedup by home would let two same-class different-home emits both miss.
-2. **Checks the ACTIVE view inside the txn:** `dedup[key]` filtered by `∉ nullified` (reads `stg.working().links()`). Several active matches (only off a raw path) → return the T1-least (deterministic). One → return it, stage nothing (zero-step; M2 returns the base `Seq`). None → fall through and deposit.
+1. **The public op acquires the dedup lock — *before* the transact.** For an idem type, the op computes `DedupKey = (CoverageClass(ty), Addrs({from}), Addrs(to))` from its *arguments*, serializes it into a `LockKey` (M7's space tag + the minimal antichains), and supplies it alongside the home alloc key: `transact(&[dedup_key, M3State::link_lock_key(home)], …)`. Same I0-class ⇒ same `LockKey` ⇒ M2 serializes the check-and-deposit (I1a/I4); different I0-class ⇒ no contention. This is the only cross-home synchronization point, partitioned **by I0-class, never by home** — sharding dedup by home would let two same-class different-home emits both miss.
+2. **`emit_core` performs the active-view check — *inside* the txn.** It recomputes the same `DedupKey` from `value` (identical to the op's, by construction) and looks up `dedup[key]` filtered by `∉ nullified` off `stg.working().links()`. Several active matches (only off a raw path) → return the T1-least (deterministic). One → return it, stage nothing (zero-step; M2 returns the base `Seq`). None → fall through and deposit.
 
-Reading the *active* view (I2) is what gives **resurrection**: a nullified tuple is invisible to dedup, so re-emitting lands at a fresh address — the audit trail keeps both. MAKELINK and idem⊥ app types skip steps 1–2 entirely (only the home key); the editlink claim skips the dedup lock as well (vacuous miss, §2).
+Reading the *active* view (I2) is what gives **resurrection**: a nullified tuple is invisible to dedup, so re-emitting lands at a fresh address — the audit trail keeps both. MAKELINK and idem⊥ app types skip both the lock and the check (only the home key); the editlink claim skips the dedup **lock** too — its `DedupKey` carries the freshly minted successor `a'` (unobtainable as a `transact` key before the closure), and the in-txn check is a guaranteed miss, so editlink supplies only the two home alloc keys (§2).
 
 ### 4. Retraction, the nullified set, and the active view
 
-`nullify(d_retr, target)` is `emit_core` of an `[R]` tuple with canonical from-fill `enc({d_retr})` and unit-depth to-span `enc({target})`, run through the **Retraction** gate (which requires the genesis-fixed `[R]` Binary type and the `|F|=|G|=1` span counts), idem⊤ — so re-retracting the same target from the same document dedups — under `transact([dedup_key, M3State::link_lock_key(d_retr)], …)`. It checks **P0** (`is_registered_document(d_retr)` → `HomeNotRegistered`) and **P-tgt** as a rejecting precondition inside (`target ∈ stg.base().links()` resident, or `target` equals nullify's own fresh emitter → else `BadTarget`). Public `emit` rejects `K ~ R` (the Managed gate's `K ≠ [R]`), so `nullify` is the *sole* `[R]`-writer.
+`nullify(d_retr, target)` is `emit_core` of an `[R]` tuple with canonical from-fill `enc({d_retr})` and unit-depth to-span `enc({target})`, run through the **Retraction** gate (which requires the genesis-fixed `[R]` Binary type and the `|F|=|G|=1` span counts), idem⊤ — so re-retracting the same target from the same document dedups. The public op computes `dedup_key` (the `[R]` class, from=`{d_retr}`, to=`{target}`) before the transact and supplies `[dedup_key, M3State::link_lock_key(d_retr)]`. It checks **P0** (`is_registered_document(d_retr)` → `HomeNotRegistered`) and **P-tgt** as a rejecting precondition in `nullify`'s closure against `stg.base()`: `target` is a resident link (`target ∈ stg.base().links()`) **or** `target` equals nullify's own would-be fresh emitter. M7 computes that would-be emitter without reading M3's frontier: `inc^{home_count[d_retr]}([d_retr.0.s_L.1], 0)` — the first link V-position `[d_retr.0.s_L.1]` (= `elem_addr(ElemPos{doc: d_retr, subspace: s_L, ordinal: 1})`) sibling-advanced `home_count[d_retr]` times via M1's `inc`, equal to `mint_link(d_retr)`'s output by construction (FrontierUnification; §Conflicts 7; `home_count[d_retr] == 0` ⇒ the first emission itself). Else `BadTarget`. Public `emit` rejects `K ~ R` (the Managed gate's `K ≠ [R]`), so `nullify` is the *sole* `[R]`-writer.
 
 `nullified` is a monotone tombstone set of **resident retraction roots**. Under the unit-depth + antichain discipline, R-Scope makes each retraction nullify exactly one resident link, so "is `a` nullified?" is a plain `nullified.contains(a)` (a prefix-trie variant covers the off-surface range case — Open decisions). The **active view of any slice is `audit ∖ nullified`**, derived at query time; the spanfilade and `type_class` index the *audit* slice (append-only, never delete on nullification), and `View::Active`/`Default` filters results by `nullified`. Only `dedup` consults active (above). This keeps every index a pure append-only hint.
 
@@ -376,13 +393,15 @@ Reading the *active* view (I2) is what gives **resurrection**: a nullified tuple
 
 ### 5. Supersession and the BH2 walk
 
-`assert_sup(home, old, new)` emits a `[K_sup]` claim with **F = enc({old}), G = enc({new})** (slot convention resolved in Conflicts §2 — F holds the *old/superseded* link, edges run old→new) through the Managed gate under `[dedup_key, link_lock_key(home)]` (idem⊤). It requires `is_registered_document(home)` (P0 → `HomeNotRegistered`), both endpoints resident (`old, new ∈ links` → `EndpointNotResident`), and `old ≠ new` (→ `SelfSupersession`, Df-DISC(ii) irreflexivity). `sup_fwd` maps `old → {(new, claim_addr)}` over the audit `[K_sup]` slice. `succs(old)` returns the `new`s whose `claim_addr ∉ nullified` (operative `succ_o`). `chain` is a bounded iterative walk over `succs` with a visited-set, halting at **sink** (no succ), **branch** (≥2 succs), or **cycle** (repeat) — the finite link set is the termination bound; `tip` returns `Sink(head)` or `Indeterminate` at branch/cycle.
+`assert_sup(home, old, new)` emits a `[K_sup]` claim with **F = enc({old}), G = enc({new})** (slot convention resolved in Conflicts §2 — F holds the *old/superseded* link, edges run old→new) through the Managed gate (idem⊤). Like `emit`, it computes `dedup_key` from (`[K_sup]`, {old}, {new}) before the transact and supplies `[dedup_key, link_lock_key(home)]`. It requires `is_registered_document(home)` (P0 → `HomeNotRegistered`), both endpoints resident (`old, new ∈ links` → `EndpointNotResident`), and `old ≠ new` (→ `SelfSupersession`, Df-DISC(ii) irreflexivity). `sup_fwd` maps `old → {(new, claim_addr)}` over the audit `[K_sup]` slice. `succs(old)` returns the `new`s whose `claim_addr ∉ nullified` (operative `succ_o`). `chain` is a bounded iterative walk over `succs` with a visited-set, halting at **sink** (no succ), **branch** (≥2 succs), or **cycle** (repeat) — the finite link set is the termination bound; `tip` returns `Sink(head)` or `Indeterminate` at branch/cycle.
+
+v1's `sup_fwd` (and the whole `succs`/`chain`/`tip`/`current` walk family) serve **only** the shipped `Supersedes` class: `succs(ty, x)`/`chain(ty, x)`/`tip(ty, x)` validate `CoverageClass(ty) == CoverageClass(reserved(Supersedes))` and return empty for any other `ty` (a second registered BH2 Binary type's walk is a deferred Open decision — the general path would scan `type_class[ty]` active with `sup_fwd` as the `[K_sup]` accelerator). `current(y)` is hardwired to `[K_sup]`.
 
 `current(y)` is BH2 generalized to sets: the operative sinks reachable from `y` via `succ_o`, returned **entire** as `Vec<CurrentMember>` — linear→1, forked→≥2, mutual-supersession standoff→0, all legitimate. Each `CurrentMember` carries the sink address, its **own** activity status (a member can be a current sink yet itself nullified — EL14e), and its **supporting `[K_sup]` claim addresses** (their homes recoverable by `document_of` — EL8b), discharging EL14d's *disclosure, not decision* contract: M7 hands the reader the entire set with attribution so the reader applies its own narrowing policy. M7 never fabricates a single "latest." A *per-home* latest is recoverable (claims homed on one chain are T1-ordered, EL13); a cross-home latest is not a state function and M7 does not invent one.
 
 ### 6. The spanfilade and the matcher (the M7↔M8 seam)
 
-The spanfilade answers the one primitive both Observe and M8 stand on: **`stab(i, Q)` = link addresses whose slot-`i` endset coverage overlaps `Q`** (interval-overlap / stabbing). Per slot (the three standard slots only — higher-slot search is deferred), it maps covered I-extents to the link addresses covering them; M1's `classify_spans`/`intersect` decide overlap. The baseline is a **brute-force scan** of `links` (trivially correct, O(n) — the bootstrap default, with the `SlotIndex` hint empty); the scale structure is an interval/segment index keyed in tumbler order (concrete shape = Open decisions). It is rebuilt by replay — never persisted transactionally — so durability (the journal) is decoupled from query performance.
+The spanfilade answers the one primitive both Observe and M8 stand on: **`stab(i, Q)` = link addresses whose slot-`i` endset coverage overlaps `Q`** (interval-overlap / stabbing). Per slot (the three standard slots — **exhaustive**, since the store holds only arity-3 links, §Core data model), it maps covered I-extents to the link addresses covering them; M1's **`classify_spans`** decides overlap (`Separated` ⟹ none) — never `intersect`, which gates on level and `Err(LevelMismatch)`es on the mixed-length endpoints that `resolve_coverage` routinely produces. The baseline is a **brute-force scan** of `links` (trivially correct, O(n) — the bootstrap default, with the `SlotIndex` hint empty); the scale structure is an interval/segment index keyed in tumbler order (concrete shape = Open decisions). It is rebuilt by replay — never persisted transactionally — so durability (the journal) is decoupled from query performance.
 
 Two combiners sit on `stab`, and to remove the double-implementation noted as the design's softest seam, **both live in M7** (M8 becomes pure presentation):
 
@@ -405,6 +424,7 @@ M8 reads `stab`/`match_links`/`type_slice`/`is_active`/the BH3 family across the
 
 - **Permanence / immutability** of every link value and address — L12 (ASN-0043), R2 (ASN-0086), C0/L12 (ASN-0093), ML7 (ASN-0120), RL5/RL6 (ASN-0111), F5 (ASN-0114), EL0 (ASN-0125). *Where:* no update/delete record exists; `apply_link` only inserts.
 - **Uniqueness / freshness / flat prefix-antichain** — L11a (0043), R0/R0a/R1 (0086). *Where:* M3 mints monotone home-scoped siblings; M7 never chooses an address.
+- **Arity-3 store** — every creation op realizes arity exactly 3 (MAKELINK standard triple, Emit_K, supersession claims; `editlink` rejects a non-arity-3 successor). ASN-0043 L3's N≥3 is a *type capacity* `Link::new` admits but no op exceeds; the spanfilade's three slots are exhaustive, and `type_class`/`type_slice`/`observe` satisfy ASN-0086's `|Σ.L(a)|=3` restriction without an explicit filter.
 - **Ownership derivability** (home = address projection) — L2 (0043). *Where:* M1's `document_of`/`origin`.
 - **Subspace disjointness** (links in `s_L`, never colliding with `s_C` content) — L1d/L14 (0043), SD/R4 (0093/0086). *Where:* M3 keeps links in `s_L`; M7 stores only what M3 mints there.
 - **Type-by-coverage / ghost permission** — L8/L9 (0043), RL3 (0111). *Where:* matching computes `CoverageClass`, never dereferences a type address.
@@ -417,14 +437,16 @@ M8 reads `stab`/`match_links`/`type_slice`/`is_active`/the BH3 family across the
 
 **By active enforcement** (M7 must guard):
 
-- **Home existence** (L1a/0043, ML0/0120, P0): `is_registered_document(home)` (and each `d_j`) before any emit — at `makelink`/`emit`/`nullify`/`assert_sup`/`editlink` entry.
+- **Home existence** (L1a/0043, ML0/0120, P0): `is_registered_document(home)` (and each `d_j`) before any emit — at `makelink`/`emit`/`nullify`/`assert_sup`/`editlink` entry (the latter against `stg.base()`).
 - **Home-registration even on a dedup hit** (deliberate divergence from ASN-0128 I1): M7's caller-facing contract requires a registered `home` on *every* emit, including a dedup hit — callers cannot observe the hit/miss branch, so portability demands the unconditional precondition (Conflicts §8). The *internal* check stays branch-local (a hit answers whatever `home` holds); the contract strengthens I1's branch-local precondition.
 - **Type-endset non-empty** (L3/0043, ML6/0120): `e₃ ≠ ∅` — MAKELINK rejects empty type resolution; managed `e₃ = K` is non-empty by `T_admissible`.
 - **Shape conformance** (P3/0126, |F|=1, arity 3): `Sh-conf` in the Managed/Retraction gates (Emit_K/Nullify — *not* MAKELINK).
-- **Dedup identity = coverage** (I0/I1, 0128): the dedup key/index compare `CoverageClass`, never value; idem-uniqueness (I1a) needs surface-routing + the M2 dedup `LockKey`.
+- **Dedup identity = coverage** (I0/I1, 0128): the dedup key/index compare `CoverageClass`, never value; idem-uniqueness (I1a) needs surface-routing + the M2 dedup `LockKey` (acquired by the public op pre-transact, §3).
 - **`[R]` / reserved-class reservation** (R-C1, registry): `TypeRegistry::build` rejects any app key coverage-equal to a shipped class or another app key.
-- **Unit-depth retraction + P-tgt** (R-Scope/DR, 0128): `nullify` writes only `{(target,δ(1,#target))}` and rejects a non-resident/non-self target.
-- **Supersession schema** (Df-DISC, ASN-0125): `assert_sup` rejects `old == new` (`SelfSupersession`) and a non-resident endpoint (`EndpointNotResident`); `editlink`'s DC guard rejects a `[R]`-typed successor and a schema-non-conforming `[K_sup]` successor (`DcViolation`).
+- **Reserved-class isolation** (Conflict §1): `build` requires every `ReservedAddrs` entry element-level with `subspace ∉ {s_C, s_L}` (`ReservedSubspaceClash`), so content-link type classes (in `s_C`) and link addresses (in `s_L`) never coverage-collide with a reserved class.
+- **Idem-key denotation** (dedup serializability): `build` requires every idem⊤ type key address-denoting (`NonAddressDenotingKey`), so the dedup `LockKey` (serializing `CoverageClass(ty)`) has bytes (`Addrs`, not the non-`Serialize` `Extents`).
+- **Unit-depth retraction + P-tgt** (R-Scope/DR, 0128): `nullify` writes only `{(target,δ(1,#target))}` and rejects a non-resident/non-self target (the would-be self emitter computed via M7's own `home_count` + M1 arithmetic).
+- **Supersession schema** (Df-DISC, ASN-0125): `assert_sup` rejects `old == new` (`SelfSupersession`) and a non-resident endpoint (`EndpointNotResident`); `editlink`'s DC guard rejects a `[R]`-typed successor and a schema-non-conforming `[K_sup]` successor (`DcViolation`), and rejects a non-arity-3 successor (`IllFormedSuccessor`).
 - **Observe is exact membership** (ASN-0086): `observe`/`is_k` test `⊆ coverage(·)` via `denotes`/prefix, using `stab` overlap only as a prefilter — never as the match.
 - **Recovery** of all indexes: `rebuild_derived` rebuilds `registry` from `reserved`+`decls`, then every hint from `links`+`registry`.
 
@@ -434,25 +456,27 @@ M8 reads `stab`/`match_links`/`type_slice`/`is_active`/the BH3 family across the
 
 **Upstream calls:**
 
-- **M1** — pervasive: `Tumbler/Address/Span/SpanSet`; `coverage`/`subtree_of`/`denotes` for endset denotation and Observe membership; `canonical_key`/`CanonicalForm` for the `Extents` coverage-class partition; `classify`/`subspace`/`#u`/`document_of` for wf checks and `origin`/home; `classify_spans`/`intersect` for the spanfilade overlap; `is_prefix` for antichain minimization, nullified-root tests, and `is_k`/`observe` membership.
-- **M2** — `transact(keys, f)` for every write (one `transact` per op, composites staging M3+M7+M5 records); `snapshot` for every read; the dedup `LockKey` supplied to the keyed critical section; `apply_link` plugged via `WorldState`; index rebuild via `rebuild_derived`. M7 contributes its own `Space` tag for the dedup `LockKey`; namespace alloc keys come from M3's `link_lock_key`.
+- **M1** — pervasive: `Tumbler/Address/Span/SpanSet`; `subtree_of`/`denotes`/`contains` for endset denotation and Observe membership (M1 exposes no `coverage` function — coverage is computed via `denotes`/`subtree_of`); `canonical_key`/`CanonicalForm` for the `Extents` coverage-class partition; `classify`/`subspace`/`elem_addr`/`inc`/`#u`/`document_of` for wf checks, `origin`/home, the reserved-isolation `subspace` test, and the BH4/P-tgt frontier arithmetic; `classify_spans` for the spanfilade overlap (never `intersect` — it faults on mixed-length endpoints); `is_prefix` for antichain minimization, nullified-root tests, and `is_k`/`observe` membership.
+- **M2** — `transact(keys, f)` for every write (one `transact` per op, composites staging M3+M7+M5 records); `snapshot` for every read; the dedup `LockKey` supplied by the *public op* to the keyed critical section; `apply_link` plugged via `WorldState`; index rebuild via `rebuild_derived`. M7 contributes its own `Space` tag for the dedup `LockKey`; namespace alloc keys come from M3's `link_lock_key`.
 - **M3** — `mint_link(home) → (Address, M3Rec)` and `M3State::link_lock_key(home)` inside every emit composite (stage the `M3Rec`); `is_registered_document` (home/spec preconditions). The frontier is M3's; M7 reads no M3 state for BH4 (it derives the frontier from its own `home_count`).
-- **M5** — `resolve_coverage(d_j, span) → SpanSet` (MAKELINK V→I endset construction, the centralized `iextent` lift, read off the txn base — consume per level-class) and `stage_seat_link(&M5State, doc, link) → M5Rec` (the semantics-blind home seating, folded into MAKELINK's composite — the `M7→M5` edge with no return). M7 never reads link semantics back from M5 and never resolves anything itself.
+- **M5** — `resolve_coverage(d_j, span) → SpanSet` (MAKELINK V→I endset construction, the centralized `iextent` lift, read off the txn base — consume per level-class) and `stage_seat_link(&M5State, doc, link) → M5Rec` (the semantics-blind home seating, staged by MAKELINK *after* `emit_core` — the `M7→M5` edge with no return). M7 never reads link semantics back from M5 and never resolves anything itself.
+
+**Build precondition** — `LinkState` checkpointing needs the `im` crate's `serde` feature (for `OrdMap`/`Vector`/`OrdSet`) and serde's `rc` feature (for the `Arc<ReservedAddrs>`/`Arc<Vec<TypeDecl>>` config); `Link`/`Endset`(=`SpanSet`)/`Tumbler` are all `Serialize`/`DeserializeOwned`. `TypeRegistry` and `Hints` impl `Default` so serde can seed the `#[serde(skip)]` fields (replaced by `rebuild_derived` before replay).
 
 **Downstream seams (make these explicit so M8/M9 build against them):**
 
 - **→ M8** (`M8→M7` edge): `stab(i, Q, view)`, `match_links(constraints, view)`, `type_slice(K, view)`, `is_active`/`is_nullified`, the BH3 reverse family, and `readlink` — M8 layers cursors, counting, windowed pagination, projection (via M5's `project`), RETRIEVEENDSETS, and archival `in/out` (composing BH3) on top. M8 owns no index and writes nothing.
-- **→ M9** (`M9→M7` edge, including writes): the full PL read surface — `observe` + BH1–BH4 + `is_k`/`members`/`targets_of` — all from M7's own indexes (so M9 needs no M8 dependency); and the gated write path — `emit(home, ty, …)` for `register_pred`/`certify_pd_stable`, and `emit`/`nullify` for reactive rule fires. M9 obtains the type endset via `LinkState::reserved_type(ShippedType::PredDef|PredStable)` read off a snapshot (the registry lookup is internal; `reserved_type` is the public read). The `pdef`/`pd_stable` reserved classes sit in the genesis registry (M9 coordinates their addresses via `ReservedAddrs`).
+- **→ M9** (`M9→M7` edge, including writes): the full PL read surface — `observe` + BH1–BH4 + `is_k`/`members`/`targets_of` — all from M7's own indexes (so M9 needs no M8 dependency); and the gated write path — `emit(home, ty, …)` for `register_pred`/`certify_pd_stable`, and `emit`/`nullify` for reactive rule fires. M9 obtains the type endset via `LinkState::reserved_type(ShippedType::PredDef|PredStable)` read off a snapshot (the registry lookup is internal; `reserved_type` is the public read). The `pdef`/`pd_stable` reserved classes sit in the genesis registry: M9 coordinates their **addresses** via `ReservedAddrs` *and* their `Unary/⊤/{}` registrations — both are M7↔M9 build-time agreements, not pinned by any digested note.
 - **→ M10**: the transact-driving ops in §C/§D, each returning `(…, Seq)` post-commit; M10 surfaces `TxnError::Rejected(E)` as typed rejections.
 - **→ engine**: `LinkState` slice, `LinkRec` record, `HasLinks` accessor, `apply_link` fold, `genesis(reserved, decls)`, `rebuild_derived`.
 
 ## Conflicts resolved
 
-1. **MAKELINK's multi-span endsets vs the shape gate's `|F|=1` (ASN-0120 vs 0126/0128).** ASN-0126 OQ6 itself defers multi-span sources, and ASN-0120 admits them. **Resolution: two write surfaces, one store.** MAKELINK is the *open* content-link surface (wf + type-nonempty, multi-span, ghost types, no dedup, seats); Emit_K is the *managed* typed-relation surface (shape-gated, idem, `K≁R`, no seat). They share `links`, the indexes, and `emit_core`; only admission and the seat differ. Managed types reserve `s_L`/coordinated classes; MAKELINK types resolve into `s_C`, so the populations never collide, and behaviors degrade gracefully (`target_of`→⊥) if they ever did.
+1. **MAKELINK's multi-span endsets vs the shape gate's `|F|=1` (ASN-0120 vs 0126/0128).** ASN-0126 OQ6 itself defers multi-span sources, and ASN-0120 admits them. **Resolution: two write surfaces, one store.** MAKELINK is the *open* content-link surface (wf + type-nonempty, multi-span, ghost types, no dedup, seats); Emit_K is the *managed* typed-relation surface (shape-gated, idem, `K≁R`, no seat). They share `links`, the indexes, and `emit_core`; only admission and (for MAKELINK) the seat differ. **Managed types occupy reserved coverage classes whose type addresses lie outside `s_C`/`s_L`** (a `build` precondition, `ReservedSubspaceClash`); **MAKELINK types resolve into `s_C`**; so the populations never coverage-collide, and behaviors degrade gracefully (`target_of`→⊥) if an app ever registered a managed type coverage-equal to a MAKELINK type.
 
 2. **Supersedes slot direction (ASN-0125 Df-DIR vs ASN-0128 S2).** ASN-0125 puts the *new* link in F ("F replaces G"); ASN-0128 puts the *old* in F ("F is superseded by G; edges old→new"). Both agree the *edge* runs old→new and the walk goes version→head; they disagree only on which slot holds old. **Resolution: adopt ASN-0128 (F = old/superseded, G = new/superseding)** — it is the note where BH2/the walk is defined, and the decomposition endorses old→new so that `succs(old)=new` is the natural forward step and `tip` is the head. `assert_sup(home, old, new)` keeps its caller-facing meaning ("old is superseded by new") and maps `old→F, new→G` internally. This overrides ASN-0125 Df-DIR's labels.
 
-3. **`e₃ ≠ ∅`: store invariant vs link type (ASN-0043 L3 vs ASN-0111).** ASN-0111 notes the `Link` *type* admits `e₃=∅` (∅ is a valid endset); L3 is a *store* invariant. **Resolution:** `Link::new` enforces only arity ≥ 3 (the type floor); `e₃ ≠ ∅` is enforced at the *write boundary* (`emit_core`'s `Open`/`Managed` gate, MAKELINK's `ML6`), so READLINK's verbatim disclosure inherits a non-empty type for free without the type over-constraining.
+3. **`e₃ ≠ ∅`: store invariant vs link type (ASN-0043 L3 vs ASN-0111).** ASN-0111 notes the `Link` *type* admits `e₃=∅` (∅ is a valid endset); L3 is a *store* invariant. **Resolution:** `Link::new` enforces only the arity floor (≥ 3 — ASN-0043 L3's *capacity*, of which creation realizes only 3, §Core data model); `e₃ ≠ ∅` is enforced at the *write boundary* (`emit_core`'s `Open`/`Managed` gate, MAKELINK's `ML6`), so READLINK's verbatim disclosure inherits a non-empty type for free without the type over-constraining.
 
 4. **MAKELINK "distinct links always" (ML0) vs idempotent dedup (ASN-0128).** **Resolution:** dedup is *per type's idem flag*. The store never merges (NonInjectivity L11b — distinct addresses always); the idem *surface* returns an incumbent *without depositing*. Content-link types are idem⊥ (every MAKELINK deposits fresh — ML0 honored); only the shipped/registered idem⊤ types dedup. The two compose without contradiction.
 
@@ -460,7 +484,7 @@ M8 reads `stab`/`match_links`/`type_slice`/`is_active`/the BH3 family across the
 
 6. **Spanfilade placement and the double-implemented combiner (the decomposition's softest seam).** **Resolution: the spanfilade *and* the matchers (`stab`, `match_links`, `observe`) live in M7**, co-located with the link writer; M8 is pure discovery presentation over them. This restores ASN-0086's indexed Observe on M9's hot polling path and removes the duplicated per-slot-match + combiner.
 
-7. **Frontier ownership for BH4 (M3 mints, M7 needs the frontier).** **Resolution:** M7 computes the frontier from its *own* homed-link count (`home_count`), equal to M3's frontier index by construction (every minted link is stored). No `M7→M3` read on the BH4 path; M3 stays the authoritative minter.
+7. **Frontier ownership for BH4 (M3 mints, M7 needs the frontier).** **Resolution:** M7 computes the frontier from its *own* homed-link count (`home_count`), equal to M3's frontier index by construction (every minted link is stored). No `M7→M3` read on the BH4 path (nor on `nullify`'s P-tgt self-emit computation); M3 stays the authoritative minter.
 
 8. **Dedup's state-dependent home validation (ASN-0128 I1: `home` read only on the miss branch).** **Resolution:** the *internal* check stays branch-local (a hit answers whatever `home` holds), but M7's *caller-facing contract* requires a registered `home` unconditionally — callers cannot evaluate the hit/miss branch, so portability demands it (surfaced in §Invariants active enforcement).
 
@@ -475,4 +499,5 @@ M8 reads `stab`/`match_links`/`type_slice`/`is_active`/the BH3 family across the
 - **READLINK fast paths.** Whether to run the structural screen as a pre-probe and whether to keep a ⊥-permanence negative cache (permitted only for provably-permanent absence; usually redundant against the in-memory map). Default: rely on the map, screen only untrusted boundary addresses.
 - **Endset backing.** Store verbatim `SpanSet` (decided — decomposition is observable, ML2/RL1) but optionally back each by a canonical span order for cheap structural equality and deterministic serialization — a representation nicety that must never become a *contract* (order is not promised).
 - **Multi-BH1 `is_filtered`.** The v1 type-less `is_filtered` assumes the single shipped `Retired` filter; a second registered BH1 type requires `is_filtered` to take the queried `K'` to honor ASN-0128's `J ≠ K'` exclusion. Parameterize when a second filter type is registered.
+- **Multi-BH2 walk family.** v1's `sup_fwd` accelerates only the shipped `Supersedes` class, and `succs`/`chain`/`tip`/`current` serve the walk only for it (empty for any other `ty`). A second registered BH2 Binary type needs either a class-keyed `sup_fwd` or the general scan path (`succs(ty,x)` over `type_class[ty]` active, `sup_fwd` as the `[K_sup]` accelerator). Parameterize when a second BH2 type is registered — symmetric to the multi-BH1 decision.
 - **BH2 audit-view recovery (OQ6) and `current` reader policy.** Whether to offer an audit-view `chain`/`tip` reconstructing nullified-mid-chain history; and the default the client applies to set-valued `current` (per-home-latest, curator-trust, drop-retracted) — M7 discloses, the consumer decides.
