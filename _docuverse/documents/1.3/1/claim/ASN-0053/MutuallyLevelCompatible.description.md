@@ -1,0 +1,1 @@
+Defines what it means for a collection of spans to be mutually level-compatible: all start tumblers share the same address length L. When each span is also level-uniform, this single length constraint propagates to every boundary tumbler in every span, so any two endpoints drawn from anywhere in the collection are directly comparable without consulting an external index.
