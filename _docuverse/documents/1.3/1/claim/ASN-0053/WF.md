@@ -7,3 +7,7 @@
 - *Preconditions:* s, r ∈ T with s < r and #s = #r.
 - *Definition:* γ = (start(γ), width(γ)) = (s, r ⊖ s).
 - *Postconditions:* γ is a well-formed level-uniform span satisfying T12 — its width r ⊖ s is positive with action point k ≤ #s, and #width(γ) = #start(γ); and reach(γ) = s ⊕ (r ⊖ s) = r.
+
+- *Depends:*
+  - T12 (SpanWellDefinedness, ASN-0034) — supplies the well-formedness predicate (Pos(ℓ) and actionPoint(ℓ) ≤ #s) that the proof verifies and the claim's conclusion targets
+  - D1 (DisplacementRoundTrip, ASN-0034) — supplies the identity a ⊕ (b ⊖ a) = b used in the proof step reach(γ) = s ⊕ (r ⊖ s) = r
