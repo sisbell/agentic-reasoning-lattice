@@ -1,0 +1,3 @@
+- `merge` — binary operation on spans defined as the span whose point set is the union of the operands' point sets: merge(α, β) = ⟦α⟧ ∪ ⟦β⟧
+- `⟦·⟧` — denotation bracket mapping a span to its underlying point set
+- `∪` — set union operator; used to define merge and axiomatized here as commutative via the commutativity of logical disjunction
