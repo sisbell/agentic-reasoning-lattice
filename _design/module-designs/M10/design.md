@@ -11,8 +11,9 @@ It owns **no** per-store operation logic (that is M5/M6/M7/M8), **no** automatio
 M10 is **generic over `W`** and names no concrete `World`/`Record` (it follows M6/M8: a non-store consumer below the engine in the crate graph). The transport (binary) drives it.
 
 ```rust
-// W must support every store M10 dispatches into. ContentWrite/Val/HasContent are M4 types named
-// only to satisfy Vstream::insert's public bound (see Conflicts resolved).
+// W must support every store M10 dispatches into. Val/ContentWrite/ContentError/HasContent are M4
+// types named DIRECTLY (the type-only M10→M4 edge — Conflicts resolved #4) only to satisfy
+// Vstream::insert's public bound; M10 calls no M4 function.
 pub struct Operation<W: WorldState> { /* private */ }
 
 impl<W> Operation<W>
@@ -53,7 +54,7 @@ pub enum Op {
     RegisterNode { addr: Tumbler },
     Fork,
     // ── arrangement writes (→ M5) ──
-    Insert    { doc: Address, at: VPos, values: Vec<Val> },     // Val via M5 re-export
+    Insert    { doc: Address, at: VPos, values: Vec<Val> },     // Val from M4 (type-only M10→M4 edge)
     Delete    { doc: Address, p: VPos, width: Nat },
     Copy      { doc: Address, at: VPos, specs: Vec<VSpec> },
     Rearrange { doc: Address, cuts: Vec<VPos> },
@@ -113,12 +114,50 @@ pub enum Response {
 }
 ```
 
-**Typed rejection** (the never-silent contract; `disposition` is an advisory hint, `code` is authoritative):
+**Typed rejection** (the never-silent contract; `code` is authoritative, `disposition` is an advisory hint, `site` localizes span/operand faults, `detail` is an optional message):
 
 ```rust
-pub struct Rejection { pub op: OpKind, pub code: RejectCode, pub disposition: Disposition, pub detail: Option<String> }
+pub struct Rejection {
+    pub op: OpKind, pub code: RejectCode, pub disposition: Disposition,
+    pub site: Option<FaultSite>, pub detail: Option<String>,
+}
 pub enum Disposition { Permanent, Reorder, Retry, Halt }   // hint: client may reissue under Reorder/Retry
-pub enum RejectCode { /* deduped union of every store error variant + Unauthenticated + Durability + Poisoned + Malformed */ }
+
+/// Where in a multi-part request a fault landed — threaded from M6/M5's variant-carried localization
+/// (RetrieveError::MalformedSpec{index}, COMPARE's {operand, region, index}) so the client keeps the
+/// site. `Operand`/`SpecFault` are M6's (named over the M10→M6 edge).
+pub struct FaultSite {
+    pub operand: Option<Operand>, pub region: Option<usize>,
+    pub index: Option<usize>, pub fault: Option<SpecFault>,
+}
+
+/// Fieldless echo of `Op` (one unit variant per operation), produced by `Op::kind()`.
+pub enum OpKind { /* CreateNewDocument … OutClaims — one per Op */ }
+
+/// The deduped union of every store error variant plus M10's own — flat & `Copy`, keyed by the
+/// disposition table. Built mechanically: each store error enum lowers to (RejectCode, Option<FaultSite>) (see §5).
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum RejectCode {
+    // ── M10-originated ──
+    Unauthenticated, Malformed, Durability, Poisoned,
+    // ── registration / residence (M3/M5/M7/M8) ──
+    HomeNotRegistered, DocNotRegistered, SourceNotRegistered, ParentNotRegistered,
+    NotRegistered, OriginalNotResident, EndpointNotResident,
+    // ── M3 namespace / authority ──
+    NotOwner, NotAnAccount, Gate, DelegatorUnknown, DuplicateId, NotAncestor, NotAuthorized,
+    NotAccountTier, NotTopDown, NotNextForm, NotValid, NotNode, NotDescendantOfBootstrap, NotFresh,
+    // ── M5 arrangement ──
+    BadPosition, EmptyContent, Content, EmptySource, BadSpan, DanglingSource, EmptyResult, NotArranged,
+    OutOfBounds, EmptyWidth, BadCutCount, NotAscending, EmptyContentSubspace, NotAPrincipal,
+    NodeTierCrossOwner, NotHomeLink, AlreadySeated, NotContentSubspace,
+    // ── M7 link ──
+    IllFormedSpec, EmptyTypeResolution, ShapeViolation, RetractionClass, NonAddressDenotingType,
+    BadTarget, SelfSupersession, IllFormedSuccessor, DcViolation,
+    // ── M6 content/provenance read (MalformedSpan also covers RetrieveError::MalformedSpec) ──
+    NoSuchSubspace, EmptySubspace, DepthIncompatible, RangeNotPresent, MalformedSpan,
+    // ── M8 link discovery read ──
+    NotALink, BadRegion,
+}
 ```
 
 **The wire codec is a seam, not decided here** (no source note fixes the FEBE byte format):
@@ -140,7 +179,7 @@ M10 owns **no authoritative substrate state and no `im` structure** — it takes
 | `kernel: Arc<Kernel<W>>` | borrowed authority (M2 owns real state) | n/a |
 | `registry: Arc<TypeRegistry>` | borrowed (M7 genesis-immutable) | n/a |
 | `sessions: Mutex<HashMap<SessionId, PrincipalId>>` | **ephemeral authoritative** connection state | lost — clients re-authenticate |
-| `idem: Mutex<LruCache<ReqId, Response>>` | **hint** (best-effort retry memo) | lost — a post-restart retry re-executes (duplicate, by design — ASN-0134 §A7) |
+| `idem: Mutex<LruCache<ReqId, Response>>` | **hint** (best-effort *committed-write* retry memo) | lost — a post-restart retry re-executes (duplicate, by design — ASN-0134 §A7) |
 | `poisoned: AtomicBool` | **hint** (recomputable by attempting `transact`) | re-derived on first `TxnError::Poisoned` |
 
 The dispatch table is a `match`, not data. Plain `Mutex<HashMap>`/`LruCache` (or a sharded map) — **not `im`** — because no field is ever snapshotted or replayed; the system-wide "persistent collection" discipline is for journaled slices, which M10 has none of. This is the one module that legitimately departs from the `im`-everywhere convention, and saying so is the point.
@@ -153,7 +192,7 @@ The dispatch table is a `match`, not data. Plain `Mutex<HashMap>`/`LruCache` (or
 
 ```rust
 pub fn execute(&self, s: SessionId, req: Request) -> Response {
-    // (a) idempotency: a repeated client key returns the cached response, never re-executing.
+    // (a) idempotency: a repeated client key returns the cached committed-write ack, never re-executing.
     if let Some(id) = &req.id { if let Some(r) = self.idem_get(id) { return r; } }
     // (b) session: a write needs a bound principal; reads tolerate an unbound session.
     let ctx = match self.sessions.lock().get(&s) {
@@ -166,8 +205,17 @@ pub fn execute(&self, s: SessionId, req: Request) -> Response {
         return reject(req.op.kind(), RejectCode::Poisoned, Disposition::Halt);
     }
     let resp = self.dispatch(&ctx, req.op).unwrap_or_else(Response::Rejected);
-    if let Some(id) = req.id { self.idem_put(id, resp.clone()); }     // (d) cache after the fact
+    // (d) cache ONLY a committed-write ack — the sole response a lost acknowledgment can duplicate.
+    //     Never cache a Rejected (a Reorder/Retry reissue MUST re-execute) nor a read (a cached read
+    //     replays a stale snapshot).
+    if let Some(id) = req.id { if resp.is_committed_write() { self.idem_put(id, resp.clone()); } }
     resp
+}
+
+impl Response {
+    fn is_committed_write(&self) -> bool {                  // the only responses a lost ack can duplicate
+        matches!(self, Response::Ack { .. } | Response::AckAddr { .. } | Response::AckEdit { .. })
+    }
 }
 ```
 
@@ -199,17 +247,17 @@ A write arm calls the owning store's transact-driving op and returns only its po
 ```rust
 Op::Insert { doc, at, values } => {
     let (start, at_seq) = Vstream::new(&self.kernel).insert(&doc, at, values)
-        .map_err(|e| map_txn(OpKind::Insert, e))?;          // returns post-commit
+        .map_err(|e| self.map_txn(OpKind::Insert, e))?;     // returns post-commit
     Ok(Response::AckAddr { addr: start, at: at_seq })        // committed_at = the exact V1 coordinate
 }
 Op::Version { d_src } => {
     let (addr, seq) = Vstream::new(&self.kernel).version(ctx.principal, &d_src)
-        .map_err(|e| map_txn(OpKind::Version, e))?;          // M5 does the owned/cross-owner branch
+        .map_err(|e| self.map_txn(OpKind::Version, e))?;     // M5 does the owned/cross-owner branch
     Ok(Response::AckAddr { addr, at: seq })
 }
 Op::MakeLink { home, from, to, ty } => {
     let (addr, seq) = LinkStore::new(&self.kernel, self.registry.clone())
-        .makelink(&home, from, to, ty).map_err(|e| map_txn(OpKind::MakeLink, e))?;
+        .makelink(&home, from, to, ty).map_err(|e| self.map_txn(OpKind::MakeLink, e))?;
     Ok(Response::AckAddr { addr, at: seq })                  // M7 resolves V-specs INSIDE its transact
 }
 ```
@@ -232,8 +280,24 @@ Op::EditLink { original, successor, d_s, d_a } => {
     };
     let link = Link::new([from, to, ty]).ok_or_else(|| reject1(OpKind::EditLink, RejectCode::IllFormedSpec))?;
     let (succ, claim, seq) = LinkStore::new(&self.kernel, self.registry.clone())
-        .editlink(&original, link, &d_s, &d_a).map_err(|e| map_txn(OpKind::EditLink, e))?;
+        .editlink(&original, link, &d_s, &d_a).map_err(|e| self.map_txn(OpKind::EditLink, e))?;
     Ok(Response::AckEdit { successor: succ, claim, at: seq })
+}
+```
+
+`endset_from_vspecs` is the fallible helper the `?`s propagate. `M5State::resolve` *cannot* fault (it clips a malformed span to ⟨⟩ silently), so to keep M10's never-silent contract the helper first **rejects any ill-formed VSpec** — each must be a content-subspace, ordinal-level depth-2 V-span — and that `IllFormedSpec` rejection is the *only* thing the `?` carries; the resolve→lift→assemble tail is infallible (`Run::iextent` is total — every `Run` has `width ≥ 1` and an element-level `i_start`):
+
+```rust
+fn endset_from_vspecs(m5: &M5State, specs: &[VSpec]) -> Result<Endset, Rejection> {
+    let mut spans = Vec::new();
+    for vs in specs {
+        // M10-side well-formedness (same content-V check makelink applies): else a typed reject, not a silent ⟨⟩.
+        if !is_content_vspan(&vs.span) {                     // #start==2 ∧ start[1]==s_C ∧ #width==2 ∧ width[1]==0
+            return Err(reject1(OpKind::EditLink, RejectCode::IllFormedSpec));
+        }
+        spans.extend(m5.resolve(&vs.source, &vs.span).iter().map(Run::iextent));   // resolve total; iextent total
+    }
+    Ok(Endset::from_spans(spans))                            // empty from/to is structurally fine; M7 gates the type slot
 }
 ```
 
@@ -241,25 +305,43 @@ This is *request marshaling that reads*, not a cross-family atomic composite (no
 
 ### 5. Rejection surfacing & the disposition hint
 
-Two converters map every upstream failure to a `Rejection`; neither ever returns `Ok`:
+Every upstream failure is lowered to a `Rejection`; neither converter ever returns `Ok`. Each store error enum implements a mechanical `lower(self) -> (RejectCode, Option<FaultSite>)` (the `From`-equivalent, extended so the localized M5/M6 variants thread their fault site through `FaultSite`; every other variant gives `None`). `map_txn` is a **`&self` method** so it can latch the poison flag on the spot; `map_read` stays a free function (a read can never poison the kernel):
 
 ```rust
-fn map_txn<E: Into<RejectCode>>(op: OpKind, e: TxnError<E>) -> Rejection { match e {
-    TxnError::Rejected(inner) => Rejection::classified(op, inner.into()),     // typed precondition
-    TxnError::Durability(_)   => Rejection { op, code: Durability, disposition: Retry,  detail: None },
-    TxnError::Poisoned        => { /* set self.poisoned */ Rejection { op, code: Poisoned, disposition: Halt, .. } }
+trait Lower { fn lower(self) -> (RejectCode, Option<FaultSite>); }   // one impl per store error enum (mechanical)
+
+fn map_read<E: Lower>(op: OpKind, e: E) -> Rejection { let (c, s) = e.lower(); Rejection::classified(op, c, s) }
+
+impl<W> Operation<W> /* … */ {
+    fn map_txn<E: Lower>(&self, op: OpKind, e: TxnError<E>) -> Rejection { match e {
+        TxnError::Rejected(inner) => { let (c, s) = inner.lower(); Rejection::classified(op, c, s) } // typed precondition
+        TxnError::Durability(_)   => Rejection::classified(op, RejectCode::Durability, None),
+        TxnError::Poisoned        => { self.poisoned.store(true);                                     // LATCH — step (c) now fires
+                                       Rejection::classified(op, RejectCode::Poisoned, None) }
+    }}
+}
+
+impl Rejection { fn classified(op: OpKind, code: RejectCode, site: Option<FaultSite>) -> Rejection {
+    Rejection { op, code, disposition: disposition_of(code), site, detail: None }   // disposition recomputed from the flat code
 }}
-fn map_read<E: Into<RejectCode>>(op: OpKind, e: E) -> Rejection { Rejection::classified(op, e.into()) }
+fn reject1(op: OpKind, code: RejectCode) -> Rejection { Rejection::classified(op, code, None) }
 ```
 
-`RejectCode` is the **deduped union of every store error variant** (`HomeNotRegistered`, `BadTarget`, `MalformedSpec(SpecFault)`, …) plus M10's own `Unauthenticated`, `Malformed` (codec), `Durability`, `Poisoned`. The `From<E>` impls are mechanical, one per store error enum. M10's *design content* here is the **disposition policy** — an advisory Lampson hint (recomputable, the client's `code` is the truth):
+`RejectCode` is the **enumerated, deduped union of every store error variant** (Public interface) plus M10's own `Unauthenticated`/`Malformed`/`Durability`/`Poisoned`; it is flat and `Copy`, so `disposition_of: RejectCode → Disposition` is a single total lookup. Variant-carried localization (`MalformedSpec{index, fault}`, COMPARE's `{operand, region, index}`) survives into `Rejection.site`, so the client keeps the fault site. M10's *design content* here is the **disposition policy** — an advisory Lampson hint (recomputable; the client's `code` is the truth):
 
 | Disposition | When | Examples |
 |---|---|---|
-| **Permanent** | reissuing identically cannot succeed | `Malformed`, `MalformedSpec/Span`, `BadRegion`, `BadPosition`, `BadCutCount`, `NotAscending`, `Empty*`, `NotOwner`, `NotAuthorized`, `SelfSupersession`, `NodeTierCrossOwner`, `DcViolation`, `Unauthenticated` |
-| **Reorder** | a *future* committed state may satisfy the precondition (the ASN-0134 out-of-order case) | `BadTarget` (target not yet present), `DocNotRegistered`, `HomeNotRegistered`, `SourceNotRegistered`, `OriginalNotResident`, `EndpointNotResident`, `NotFresh`, `ParentNotRegistered`, `NotRegistered`(type) |
+| **Permanent** | reissuing identically cannot succeed | `Malformed`, `MalformedSpan`, `BadRegion`, `BadPosition`, `BadCutCount`, `NotAscending`, `Empty*`, `NotOwner`, `NotAuthorized`, `SelfSupersession`, `NodeTierCrossOwner`, `DcViolation`, `Unauthenticated`, **`NotFresh`**, **`NotRegistered`** (type) |
+| **Reorder** | a *future* committed state may satisfy the precondition (the ASN-0134 out-of-order case) | `BadTarget` (target not yet present), `DocNotRegistered`, `HomeNotRegistered`, `SourceNotRegistered`, `OriginalNotResident`, `EndpointNotResident`, `ParentNotRegistered` |
 | **Retry** | transient, true no-op | `Durability` (barrier failed before install; M2 truncated the tail — safe to re-invoke) |
 | **Halt** | kernel stopped | `Poisoned` |
+
+`disposition_of` returns exactly those explicit Reorder/Retry/Halt cases and **defaults everything else to `Permanent`** (the catch-all), so a code absent from this table is `Permanent` by construction.
+
+Two reclassifications keep the table honest against upstream invariants — both moved *out* of `Reorder`, where a "future committed state may satisfy it" was factually false:
+
+- **`NotRegistered` (an `Emit` type) is `Permanent`** — M7's type registry is genesis-immutable (`RegistryInvariance`, W4); no runtime step ever registers a new type (M9 emits only *tuples* of already-registered types), so the precondition can never later hold.
+- **`NotFresh` is `Permanent`** — allocations are append-only and never freed (M3), so reissuing the *identical* request can never succeed. `register_node`'s `NotFresh` is unconditionally terminal; a `delegate` client recovers *not by reordering* but by re-deriving a **fresh** prefix via `next_account_prefix` — a *different* request, not a hinted retry of this one. A flat `code → disposition` table classes both as `Permanent`, with the delegate-side recovery owned by the caller.
 
 This is the surfaced-typed-re-orderable contract (ASN-0134 rejection path): the canonical out-of-order retraction — `nullify` whose target isn't present — returns `Rejection { code: BadTarget, disposition: Reorder }`, so a coordination layer or client can reissue once the target exists. M10 **surfaces, it does not reorder** — buffering/reordering is policy that belongs above M10. Ambiguous codes (`DocNotRegistered` could be a typo *or* an out-of-order create) are classed optimistically as `Reorder`; the hint is advisory and the `code` lets the client decide.
 
@@ -269,7 +351,11 @@ M10 owns the *policy* "which principal does this connection speak for" (`session
 
 ### 7. Idempotency cache
 
-Per M3's boundary ("exactly-once/idempotency for retried `create_new_document` are M10's"), M10 memoizes `ReqId → Response`. A retried request with the same client key returns the cached response without re-executing — defeating the lost-acknowledgment duplicate that A7 explicitly does *not* prevent (ASN-0134 §A7/§SAFE(b)(iii)). Scope: keyed by client-supplied `ReqId` (the client guarantees uniqueness); LRU/TTL eviction. **It is a hint, not a guarantee**: in-memory, so a retry *after an M10 restart* re-executes (a duplicate INSERT / `idem=⊥` emit) — which is exactly ASN-0134's "by design, needs a client key, not a substrate clause." Journaling the cache for cross-restart exactly-once is an open decision (§ Open build decisions).
+Per M3's boundary ("exactly-once/idempotency for retried `create_new_document` are M10's"), M10 memoizes `ReqId → Response`. A retried request with the same client key returns the cached response without re-executing — defeating the lost-acknowledgment duplicate that A7 explicitly does *not* prevent (ASN-0134 §A7/§SAFE(b)(iii)).
+
+**Only a committed-write response (`Ack`/`AckAddr`/`AckEdit`) is memoized** — that is the sole response a lost acknowledgment can turn into a duplicate. A `Rejected` is **never** cached: a `Reorder`/`Retry` rejection invites the client to reissue the same logical op once the precondition clears, and a cached rejection would wrongly short-circuit that reissue — e.g. a `Nullify` rejected `{code: BadTarget, disposition: Reorder}` must re-execute after the target appears, never replay the stale rejection. Reads are not cached either: a cached read would replay a stale snapshot. (This gating lives in `execute` step (d).)
+
+Scope: keyed by client-supplied `ReqId` (the client guarantees uniqueness); LRU/TTL eviction. **It is a hint, not a guarantee**: in-memory, so a retry *after an M10 restart* re-executes (a duplicate INSERT / `idem=⊥` emit) — which is exactly ASN-0134's "by design, needs a client key, not a substrate clause." Journaling the cache for cross-restart exactly-once is an open decision (§ Open build decisions).
 
 ### 8. Client model — pipelining vs sequential
 
@@ -283,7 +369,7 @@ The *concurrency policy* — sequential dispatch vs bounded/unbounded pipeline, 
 
 ### 9. Poisoned-halt & startup
 
-M10 has no journaled state, so it has nothing to recover. The binary calls `Kernel::open` (M2 replays the world) and handles `OpenError::{Corruption, BadCheckpoint}` (operator intervention, not auto-retry) *before* constructing `Operation`. At runtime, the first `TxnError::Poisoned` sets `self.poisoned`; thereafter writes fail fast with `Disposition::Halt` while **reads keep being served** (M2 snapshots survive a poisoned kernel) — a clean degraded mode until an operator restarts.
+M10 has no journaled state, so it has nothing to recover. The binary calls `Kernel::open` (M2 replays the world) and handles `OpenError::{Corruption, BadCheckpoint}` (operator intervention, not auto-retry) *before* constructing `Operation`. At runtime, the first `TxnError::Poisoned` latches `self.poisoned` inside `map_txn` (§5); thereafter writes fail fast with `Disposition::Halt` at step (c) while **reads keep being served** (M2 snapshots survive a poisoned kernel) — a clean degraded mode until an operator restarts.
 
 ### 10. Cross-family composite orchestration (latent)
 
@@ -291,7 +377,10 @@ M10 retains direct `kernel.transact` access as the home for an operation whose a
 
 ```rust
 // HYPOTHETICAL — no v1 op needs this. Requires M3+M5 to publish pure stage_* steps first.
-self.kernel.transact(&[M3State::document_lock_key(acct), M3State::content_lock_key(&d)], |stg| {
+// Lock only the account's document frontier: a freshly-minted d's content frontier is uncontended
+// (no concurrent writer knows d's address before this commit), so no content lock is taken here —
+// the content-key acquisition design is deferred until this path is actually populated.
+self.kernel.transact(&[M3State::document_lock_key(acct)], |stg| {
     let (d, ns_rec) = stg.working().m3().mint_document(acct)?;  stg.push(ns_rec.into());
     /* … M5::stage_register + M5::stage_content_place over stg.working() … */  Ok(d)
 })
@@ -310,10 +399,10 @@ self.kernel.transact(&[M3State::document_lock_key(acct), M3State::content_lock_k
 
 **By active enforcement**
 - **Never a silent skip (ASN-0134 rejection path).** `map_txn`/`map_read` are total; `dispatch` is exhaustive with no error-swallowing fallthrough — *enforced at every dispatch arm*.
-- **Typed, classified rejections (ASN-0134, OQ8).** `Rejection` carries the upstream `code` verbatim plus a disposition hint — *enforced in the two converters*.
+- **Typed, classified rejections (ASN-0134, OQ8).** `Rejection` carries the upstream `code` verbatim, plus the structured `FaultSite` for span/operand-localized faults and an advisory disposition hint — *enforced in the two converters*.
 - **Session-principal binding & write authorization gate.** A write on an unbound session is rejected `Unauthenticated` before any transaction — *enforced in `execute` step (b)*; fine-grained `ω` is M3's atomic check, passed through.
-- **Best-effort exactly-once for retried writes (M3 boundary; ASN-0134 §A7).** The idempotency cache short-circuits a repeated `ReqId` — *enforced in `execute` steps (a)/(d)*.
-- **Poisoned halt (M2 `TxnError::Poisoned`).** First poison latches `self.poisoned`; subsequent writes fail fast, reads continue — *enforced in `execute` step (c)*.
+- **Best-effort exactly-once for retried writes (M3 boundary; ASN-0134 §A7).** The idempotency cache short-circuits a repeated `ReqId`, **caching only committed-write acks** (`Ack`/`AckAddr`/`AckEdit`) — rejections and reads are never memoized, so a `Reorder`/`Retry` reissue re-executes — *enforced in `execute` steps (a)/(d)*.
+- **Poisoned halt (M2 `TxnError::Poisoned`).** The first `Poisoned` conversion latches `self.poisoned` inside `map_txn` (§5); subsequent writes fail fast and reads continue — *the latch is set in `map_txn`, read in `execute` step (c)*.
 - **No batch fusion (A5, M2 boundary).** A multi-step batch is surfaced as a sequence, never collapsed into one `transact`.
 
 ## Dependencies & seams
@@ -321,15 +410,16 @@ self.kernel.transact(&[M3State::document_lock_key(acct), M3State::content_lock_k
 **Upstream calls (as given — not redesigned):**
 - **M2** — `kernel.snapshot()` (every read; owns `as_of`); `kernel.current_seq()` (`log_position`); `kernel.transact` directly *only* for the latent composite (none in v1). Consumes `TxnError::{Rejected,Durability,Poisoned}`. The binary, not M10, calls `Kernel::open` and handles `OpenError`.
 - **M3** — `Namespace::{create_new_document, delegate, register_node, fork}`; passes `ctx.principal` as caller/delegator. (M5/M7 do their own M3 mints internally.)
-- **M5** — `Vstream::{insert, delete, copy, rearrange, version}`; for `editlink`, `M5State::resolve` + `Run::iextent` off a snapshot to assemble the successor. Names M4's `Val`/`ContentWrite`/`HasContent` only to satisfy `insert`'s public bound (see below).
-- **M6** — `Query::{retrieve_v, doc_vspan, doc_vspanset, show_origin_v, show_deletions, compare, find_docs_containing}` over M10's snapshot; `VPos` named via M6's re-export.
+- **M5** — `Vstream::{insert, delete, copy, rearrange, version}`; for `editlink`, `M5State::resolve` + `Run::iextent` off a snapshot to assemble the successor. Names M4's `Val`/`ContentWrite`/`ContentError`/`HasContent` directly to satisfy `insert`'s public bound — the type-only `M10 → M4` edge (Conflicts resolved #4).
+- **M6** — `Query::{retrieve_v, doc_vspan, doc_vspanset, show_origin_v, show_deletions, compare, find_docs_containing}` over M10's snapshot; `VPos`/`Operand`/`SpecFault` named via M6.
 - **M7** — `LinkStore::{makelink, emit, nullify, assert_sup, editlink}`; `LinkState::{readlink, followlink}`; `Endset`/`enc`/`Link::new`/`View`/`TypeRegistry` for arg construction.
 - **M8** — the `*_on(&snap, …)` pure twins for all discovery/window/projection/orphan/lineage reads (so M10 owns the snapshot and reports `as_of`).
 - **M1** — `Address/Tumbler/Span/SpanSet/Nat` for parsing/marshaling.
-- **Not M4 directly** (only M4 *type names*, via M5 re-export — below). **Not M9** (parallel).
+- **M4 — type-only edge:** M10 names `Val`/`ContentWrite`/`ContentError`/`HasContent` to satisfy `Vstream::insert`'s public bound and carries `W: HasContent`, `W::Record: From<ContentWrite>`; it calls **no** M4 function. This is a type/trait-only `M10 → M4` edge (acyclic, behavior-free) that the module DAG must include alongside M1/M2/M3/M5/M6/M7/M8. **Not M9** (parallel).
+- **Assumed upstream constructors** (implied by each interface's `holds … Kernel<W>` prose but not published as `::new`): `Namespace::new(Arc<Kernel<W>>)` (M3), `Vstream::new(&Kernel<W>)` (M5), `LinkStore::new(&Kernel<W>, Arc<TypeRegistry>)` (M7). M10 constructs each per-op from its borrowed `kernel`/`registry`; if upstream withholds these constructors, request them. (`Query::new(&Snapshot<W>)` for M6 and `LinkQuery::new`/the `*_on` twins for M8 *are* published.)
 
 **Downstream seam — the external FEBE client (the only consumer of M10):**
-The contract neighbors (the transport in the binary) build against is `Operation<W>::execute(SessionId, Request) -> Response` plus a `Codec`. Guarantees the client may rely on: commit-before-acknowledge; `committed_at`/`as_of` on every response; typed `Rejection` with an advisory `disposition`; idempotency-key honoring within M10's uptime; session→principal binding. The transport supplies: a concrete `Codec`, the connection→`PrincipalId` authentication, and the concurrency policy (sequential vs pipelined). **M10 ⟂ M9:** M9's rule fires reach M7's gated write path directly; M10 never sees them except as committed state in later snapshots — no edge, no shared lifecycle.
+The contract neighbors (the transport in the binary) build against is `Operation<W>::execute(SessionId, Request) -> Response` plus a `Codec`. Guarantees the client may rely on: commit-before-acknowledge; `committed_at`/`as_of` on every response; typed `Rejection` with an advisory `disposition` and a structured fault `site`; idempotency-key honoring within M10's uptime; session→principal binding. The transport supplies: a concrete `Codec`, the connection→`PrincipalId` authentication, and the concurrency policy (sequential vs pipelined). **M10 ⟂ M9:** M9's rule fires reach M7's gated write path directly; M10 never sees them except as committed state in later snapshots — no edge, no shared lifecycle.
 
 ## Conflicts resolved
 
@@ -339,7 +429,7 @@ The contract neighbors (the transport in the binary) build against is `Operation
 
 3. **ASN-0134 re-homing (A7).** *Resolved: M2 keeps the commit-gate mechanism (`transact` returns post-commit); M10 keeps the request/response path and the client model.* M10 does not re-implement the gate — it *leverages* it (§3), which is why the udanax response-before-check defect is unrepresentable here rather than merely discouraged.
 
-4. **M4 types leak through M5's public `insert` signature.** The DAG omits `M10 → M4`, yet `Vstream::insert` exposes `Vec<Val>` and a `W::Record: From<ContentWrite>` / `W: HasContent` bound that M10 must name to call it. *Resolved, preferred:* M5 re-exports `Val`, `ContentWrite`, `ContentError`, `HasContent` (the M6/`VPos` precedent), so M10 names them via M5 and the DAG holds. *Fallback:* a **type/trait-only** `M10 → M4` edge — benign (still acyclic, carries no logic). This is flagged as an assumption on M5's surface.
+4. **M4 types surface through M5's public `insert` signature.** `Vstream::insert` exposes `Vec<Val>` and a `W: HasContent` / `W::Record: From<ContentWrite>` bound, and `InsertError::Content(ContentError)` carries an M4 error — all of which M10 must *name* to call `insert`. M5's interface as given names these as "M4's" and publishes **no** re-export of them (unlike M6's `pub use m5::VPos`), so M10 cannot route them through M5. *Resolved:* M10 names `Val`/`ContentWrite`/`ContentError`/`HasContent` from M4 directly — a **type/trait-only `M10 → M4` edge**: acyclic, carries no behavior (M10 calls no M4 function), and **added to the module DAG** alongside M10's other edges (`M10 → M1, M2, M3, M4, M5, M6, M7, M8`). (If M5 later publishes the re-export, the edge collapses into `M10 → M5` with no other change.)
 
 5. **Reader snapshot ownership.** M8 offers self-snapshotting handle methods *and* pure `*_on` twins; M6 offers `Query::new(&snap)`. *Resolved: M10 always owns the snapshot* (takes it, passes to the snapshot-based surfaces), so it can report the exact `as_of` and discharge clause 6 for any future multi-constituent read — it never uses M8's self-snapshotting handles.
 
@@ -347,8 +437,8 @@ The contract neighbors (the transport in the binary) build against is `Operation
 
 1. **FEBE wire codec** — the concrete byte format (`Codec::parse`/`marshal`) is fixed by no source note; pick it when you build the transport. The typed `Op`/`Response`/`Rejection` above are the codec's target.
 2. **Transport & concurrency policy** — TCP/IPC/framing, and sequential vs bounded-pipeline vs unbounded, threadpool vs async. M10 supports all (reentrant `execute`); M2's v1 single applier serializes writes regardless, so unbounded pipelining buys read concurrency only.
-3. **Idempotency durability** — in-memory LRU (v1, best-effort within uptime) vs a journaled key→`Seq` record for cross-restart exactly-once (heavier; would make the cache authoritative). Also: cache scope (per-session vs global) and eviction (LRU/TTL).
+3. **Idempotency durability** — in-memory LRU (v1, best-effort within uptime, committed-write acks only) vs a journaled key→`Seq` record for cross-restart exactly-once (heavier; would make the cache authoritative). Also: cache scope (per-session vs global) and eviction (LRU/TTL).
 4. **Snapshot-pinned read sessions** — v1 reads are present-tense, each a fresh snapshot (pagination tolerates this — cursors survive across snapshots). Add an explicit "pin a snapshot for this session's reads" only if a client needs strict repeatable-read across multiple FEBE requests.
 5. **Out-of-order policy** — v1 *surfaces* `Reorder` rejections and stops. Whether to add an M10-side reorder/retry buffer (vs leaving it to the client/coordination layer) is a policy choice deliberately left out of the mechanism.
-6. **`RejectCode` shape** — a flat deduped enum (ergonomic Rust client) vs a `(category, store_code)` pair (smaller, more stable across store-error churn). The disposition policy table is the same either way.
-7. **Disposition refinement** — the `Reorder`/`Permanent` split for ambiguous codes (`DocNotRegistered`) is a heuristic hint; tune it (or expose both the raw code and let the client decide entirely) under real client traffic.
+6. **`RejectCode` compaction** — the union is now enumerated as a flat deduped `Copy` enum (Public interface), with localization carried in `FaultSite` and disposition recomputed by `disposition_of`; the `lower` impls and disposition table write directly off it. A `(category, store_code)` pair shape (smaller, more stable across store-error churn) remains a possible future compaction — the disposition table and `lower` impls port unchanged.
+7. **Disposition refinement** — the `Reorder`/`Permanent` split for ambiguous codes (`DocNotRegistered`) is a heuristic hint; tune it (or expose both the raw code and let the client decide entirely) under real client traffic. (The `NotFresh`/`NotRegistered` reclassifications of §5 are *not* heuristic — they are forced by upstream append-only / registry-immutable invariants.)
