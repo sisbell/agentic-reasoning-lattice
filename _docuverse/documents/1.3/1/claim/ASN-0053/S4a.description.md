@@ -1,1 +1,0 @@
-Proves that split and merge are mutual inverses for level-uniform spans: splitting a span at a valid interior point and then merging the two resulting pieces recovers the original span exactly. The key step is that the merged width equals the original length because the span is level-uniform, guaranteeing the width-reach identity holds throughout.

@@ -1,1 +1,0 @@
-Proves that any two same-depth tumblers s < r can be directly assembled into a well-formed level-uniform span without consulting any external structure: the pair (s, r ⊖ s) satisfies the span well-formedness condition, and its reach is exactly r.

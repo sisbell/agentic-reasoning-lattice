@@ -1,9 +1,0 @@
-**S3b** (*MergeSplitInverse*). For adjacent level-uniform spans α and β with level_compat(start(α), start(β)), merging α and β (S3) and splitting the result at the shared boundary (S4) recovers the unordered pair {α, β} exactly: the split yields a left part λ and a right part ρ with {λ, ρ} = {α, β}. The assignment of α and β to the left/right positions is determined by the adjacency direction: in Case A (reach(α) = start(β)), λ = α and ρ = β; in Case B (reach(β) = start(α)), λ = β and ρ = α.
-
-*Proof.* Adjacency means reach(α) = start(β) or reach(β) = start(α). We handle each disjunct.
-
-*Case A: reach(α) = start(β).* The merge produces γ = (start(α), r ⊖ start(α)) where r = max(reach(α), reach(β)) = reach(β), since reach(α) = start(β) < reach(β) (β is non-empty). So γ = (start(α), reach(β) ⊖ start(α)) with reach(γ) = reach(β). The shared boundary p = start(β) is interior to γ: start(α) < start(β) (since α is non-empty, start(α) < reach(α) = start(β)) and start(β) < reach(β) = reach(γ) (since β is non-empty). Level compatibility holds by assumption.
-
-Splitting γ at p yields λ = (start(α), p ⊖ start(α)) and ρ = (p, reach(γ) ⊖ p). For λ: p ⊖ start(α) = reach(α) ⊖ start(α) = width(α) by WR (α is level-uniform). So λ = (start(α), width(α)) = α. For ρ: reach(γ) ⊖ p = reach(β) ⊖ start(β) = width(β) by WR (β is level-uniform). So ρ = (start(β), width(β)) = β.
-
-*Case B: reach(β) = start(α).* By S3a (merge commutativity) the merge of α and β equals the merge of β and α, which is the Case A configuration with the roles of α and β exchanged. Applying Case A to the pair ⟨β, α⟩, splitting the merged span at the shared boundary start(α) yields left part λ = β and right part ρ = α. The unordered pair {λ, ρ} = {β, α} = {α, β} is recovered exactly; the left-right assignment is reversed relative to Case A.  ∎

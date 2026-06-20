@@ -1,1 +1,0 @@
-Defines a strict-interior notion for positions within a span: p is interior to σ when it lies strictly between the start and the reach, excluding both endpoints. Since the span's extent ⟦σ⟧ already includes the start but excludes the reach, every interior point is guaranteed membership in ⟦σ⟧.
