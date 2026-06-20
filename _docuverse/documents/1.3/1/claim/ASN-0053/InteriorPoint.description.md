@@ -1,0 +1,1 @@
+Defines a strict-interior predicate for a span: position p is interior to σ when it falls strictly between the start and the reach, excluding both endpoints. Because the denotation ⟦σ⟧ uses a closed-open interval [start, reach), every interior point is automatically a member of the span's point set.
