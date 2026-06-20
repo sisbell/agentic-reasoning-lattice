@@ -1,1 +1,4 @@
 **Definition** (*Mutually level-compatible*). A span-set Σ = ⟨σ₁, ..., σₙ⟩ is *mutually level-compatible* when level_compat(start(σᵢ), start(σⱼ)) holds for all 1 ≤ i, j ≤ n. By S6, this is equivalent to: there exists a single length L with #start(σᵢ) = L for every i. When each component σᵢ is also level-uniform, all boundary tumblers of every span — start(σᵢ), width(σᵢ), reach(σᵢ) — share the common length L, so any pair of distinct endpoints a < b drawn from any pair of spans has #a = #b.
+
+- *Depends:*
+  - S6 (LevelConstraint) — supplies the definition of level_compat and level-uniform used in the equivalence step and boundary-tumbler conclusion
