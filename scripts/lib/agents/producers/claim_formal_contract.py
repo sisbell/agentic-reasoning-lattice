@@ -34,7 +34,7 @@ from lib.shared.common import find_asn
 from lib.shared.foundation import _extract_formal_contract
 from lib.shared.invoke_claude import invoke_claude
 from lib.shared.paths import (
-    FORMAL_CONTRACT_DIR, LATTICE, claim_statements, prompt_path,
+    FORMAL_CONTRACT_DIR, claim_statements, prompt_path,
 )
 from lib.shared.prompts import read_prompt
 
@@ -290,7 +290,7 @@ class ClaimFormalContractAgent(Agent):
             return AgentResult(success=False, detail="unparseable-claim-path")
         asn_label, claim_label, asn_num = parsed
 
-        claim_md_full = LATTICE / claim_rel
+        claim_md_full = session.store.lattice_dir / claim_rel
         if not claim_md_full.exists():
             return AgentResult(success=False, detail="no-claim-file")
 

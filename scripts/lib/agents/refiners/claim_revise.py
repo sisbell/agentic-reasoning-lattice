@@ -33,7 +33,7 @@ from lib.protocols.febe.protocol import Session
 from lib.lattice.labels import extract_label_digits, format_label
 from lib.shared.common import find_asn, read_file
 from lib.shared.invoke_claude import EFFORT_LEVELS, MODEL_FLAGS
-from lib.shared.paths import LATTICE, USAGE_LOG, WORKSPACE, prompt_path
+from lib.shared.paths import USAGE_LOG, WORKSPACE, prompt_path
 from lib.shared.prompts import read_prompt
 
 
@@ -168,7 +168,7 @@ class ClaimReviseAgent(Agent):
         finding_rel = session.get_path_for_addr(finding_addr)
         if finding_rel is None:
             return AgentResult(success=False, detail="no-finding-path")
-        finding_full = LATTICE / finding_rel
+        finding_full = session.store.lattice_dir / finding_rel
         if not finding_full.exists():
             return AgentResult(success=False, detail="no-finding-file")
         finding_body = finding_full.read_text().strip()

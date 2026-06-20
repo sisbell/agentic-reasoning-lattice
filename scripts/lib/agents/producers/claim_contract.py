@@ -31,7 +31,7 @@ from lib.protocols.febe.protocol import Session
 from lib.shared.common import read_file
 from lib.shared.llm_response import invoke_text, parse_yaml_dict
 from lib.lattice.labels import parse_claim_doc_path
-from lib.shared.paths import CLAIM_CONTRACT_DIR, LATTICE, prompt_path
+from lib.shared.paths import CLAIM_CONTRACT_DIR, prompt_path
 from lib.shared.prompts import read_prompt
 
 
@@ -163,7 +163,7 @@ class ClaimContractAgent(Agent):
             return AgentResult(success=False, detail="unparseable-claim-path")
         asn_label, claim_label, asn_num = parsed
 
-        claim_md_full = LATTICE / claim_rel
+        claim_md_full = session.store.lattice_dir / claim_rel
         if not claim_md_full.exists():
             return AgentResult(success=False, detail="no-claim-file")
 

@@ -36,7 +36,7 @@ from lib.shared.claim_files import build_label_index
 from lib.shared.common import read_file
 from lib.shared.llm_response import invoke_text, parse_two_sections
 from lib.shared.paths import (
-    LATTICE, SIGNATURE_RESOLVE_DIR, prompt_path,
+    SIGNATURE_RESOLVE_DIR, prompt_path,
 )
 
 
@@ -318,7 +318,7 @@ class ClaimSignatureResolveAgent(Agent):
 
         os.environ.setdefault("PROTOCOL_ASN_LABEL", asn_label)
 
-        claim_md_full = LATTICE / claim_rel
+        claim_md_full = session.store.lattice_dir / claim_rel
         if not claim_md_full.exists():
             return AgentResult(success=False, detail="no-claim-file")
 
