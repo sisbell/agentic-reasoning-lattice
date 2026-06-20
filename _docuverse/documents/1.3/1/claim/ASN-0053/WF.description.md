@@ -1,0 +1,1 @@
+Proves that any pair of same-depth tumblers s < r can be directly packaged into a well-formed level-uniform span: the constructed span (s, r ⊖ s) satisfies the well-formedness condition T12 — its width is positive with action point within the common depth — and its reach recovers exactly r.
