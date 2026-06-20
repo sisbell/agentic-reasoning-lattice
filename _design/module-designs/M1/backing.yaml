@@ -1,0 +1,79 @@
+# M1 contract-backing manifest — tells contracts.py where each method's authoritative
+# contract comes from, and the intra-M1 call edges (callee-before-caller order).
+#
+#   mode: transcribe  → ASN-0034 has VERIFIED Dafny: the contract's pre/post are a faithful
+#                       transcription of the Dafny `requires`/`ensures` (do not re-derive).
+#   mode: derive      → no Dafny (ASN-0053 span algebra, and everything outside M1): derive the
+#                       contract from the design + note statements, and DISCHARGE every callee
+#                       precondition against the callee's contract (the alignment check).
+#   dafny:  files under verification/dafny/ASN-0034/  (transcribe mode)
+#   asn:    source note number                        (derive mode)
+#   calls:  intra-M1 callees — compose their contracts; they fix the bucket order.
+#
+# ASN-0034 is the ONLY Dafny we have; span algebra (ASN-0053) derives and is checked for
+# consistency against the transcribed tumbler contracts it composes.
+
+methods:
+  # ── tumbler / address primitives: TRANSCRIBE from verified ASN-0034 ──────────────
+  cmp:
+    mode: transcribe
+    dafny: [IntrinsicComparison.dfy, LexicographicOrder.dfy, CarrierSetDefinition.dfy]
+    claims: [T1, T2]            # ASN-0034 claim narrative (reference; Dafny stays authoritative)
+    calls: []
+  is_prefix:
+    mode: transcribe
+    dafny: [PrefixRelation.dfy]
+    claims: [Prefix]
+    calls: []
+  zeros:
+    mode: transcribe
+    dafny: [HierarchicalParsing.dfy]
+    claims: [T4]
+    calls: []
+  action_point:
+    mode: transcribe
+    dafny: [ActionPoint.dfy]
+    claims: [ActionPoint]
+    calls: []
+  inc:
+    mode: transcribe
+    dafny: [HierarchicalIncrement.dfy]
+    claims: [TA5]
+    calls: []
+  sub:
+    mode: transcribe
+    dafny: [TumblerSub.dfy, ZeroPaddedDivergence.dfy]
+    claims: [TumblerSub]
+    calls: []
+  shift:
+    mode: transcribe
+    dafny: [OrdinalShift.dfy, OrdinalDisplacement.dfy]
+    claims: [OrdinalShift]
+    calls: []
+  validate:
+    mode: transcribe
+    dafny: [HierarchicalParsing.dfy, LevelDetermination.dfy, CarrierSetDefinition.dfy]
+    claims: [T4]
+    calls: [zeros]
+
+  # ── span algebra: DERIVE from ASN-0053, DISCHARGE against the tumbler contracts ───
+  from_endpoints:
+    mode: derive
+    asn: 53
+    calls: [sub, cmp]              # WF: s<r (cmp); width = r⊖s (sub)
+  subtree_of:
+    mode: derive
+    asn: 53
+    calls: [shift, from_endpoints]     # reach = shift(p,1)
+  classify_spans:
+    mode: derive
+    asn: 53
+    calls: [cmp]                   # SC is pure order
+  intersect:
+    mode: derive
+    asn: 53
+    calls: [cmp, from_endpoints]   # (max start, min reach), self-guarding via WF
+  normalize:
+    mode: derive
+    asn: 53
+    calls: [cmp, classify_spans]   # sort by start + sweep-coalesce
