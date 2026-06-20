@@ -1,0 +1,5 @@
+- `start` — function extracting the lower-bound position of a span; appears in the interior condition start(σ) < p
+- `reach` — function extracting the upper-bound position of a span; appears in the interior condition p < reach(σ)
+- `⟦·⟧` — denotation of a span as a set of positions, defined as ⟦σ⟧ = {t : start(σ) ≤ t < reach(σ)}
+- `<` — strict order on positions; used in both the interior-point condition and the span denotation bound
+- `≤` — non-strict order on positions; used in the closed lower bound of the span denotation
