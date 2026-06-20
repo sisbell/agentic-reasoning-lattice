@@ -29,11 +29,13 @@ M9 contributes **no `WorldState` slice and no record variant** — it is a pure 
 impl<W> Coordinator<W> {
     /// Type-check `body` UNDER the ordered parameter context `params` (Γ_D — the free parameter
     /// Var sorts in positional order; empty for a closed term, ASN-0129 WT being a Γ-parameterized
-    /// CHECKING judgment), EXPAND Reg-quantifiers to concrete-class instances, and reject
-    /// ill-typed / dangling-reference / unregistered-type / unbound-variable terms. The result
-    /// TypedTerm CARRIES Γ_D (so define_predicate / evaluate_def / ST⁺ read it back) and an
-    /// `is_ref_free()` flag. Reads no structural state for a ref-free body; consults the immutable
-    /// signature memo for any Ref. Once Ok, valid at every reachable state.
+    /// CHECKING judgment), EXPAND Reg-quantifiers to concrete-class instances (substituting each
+    /// TypeRef::ClassVar to the concrete class), and reject ill-typed / dangling-reference /
+    /// unregistered-type / unbound-(value-or-class-)variable / non-Codomain-parameter terms. The
+    /// result TypedTerm CARRIES Γ_D (so define_predicate / evaluate_def / ST⁺ read it back) and an
+    /// `is_ref_free()` flag, and holds ONLY Concrete TypeRefs (no Reg quantifier survives). Reads no
+    /// structural state for a ref-free body; consults the immutable signature memo for any Ref.
+    /// Once Ok, valid at every reachable state.
     pub fn type_check(&self, params: Vec<(VarId, Sort)>, body: Term) -> Result<TypedTerm, TypeError>;
 
     /// Pure, total, terminating denotation at one view against one committed snapshot.
@@ -74,8 +76,9 @@ impl<W> Coordinator<W> {
         -> Result<Value, EvalError>;
 
     /// (Γ_D, C_D); ever-registered only. Answered from the immutable DefMemo; on a MISS it pins its
-    /// OWN snapshot to check ever-registration + parse + derive, then memoizes (sound: content
-    /// immutable, ever-registration monotone). No snapshot parameter.
+    /// OWN snapshot to check ever-registration; a Some answer is memoized PERMANENTLY (content
+    /// immutable, ever-registration monotone), a None is NOT memoized (transient — a later
+    /// registration must surface). No snapshot parameter.
     pub fn signature(&self, start: &Address) -> Option<Signature>;
     pub fn is_active_pred(&self, start: &Address, snap: &Snapshot<W>) -> bool;
     pub fn is_ever_pred(&self,   start: &Address, snap: &Snapshot<W>) -> bool;
@@ -110,7 +113,7 @@ impl<W> Coordinator<W> {
     pub fn quiescent_scoped(&self, scope: &TypedTerm, body: ScopeBody, snap: &Snapshot<W>) -> bool; // Q7
 
     pub fn next_enabled(&self, snap: &Snapshot<W>) -> Option<Enabled>;          // fair scheduler pick
-    pub fn fire(&self, e: &Enabled) -> Result<FireOutcome, FireError>;          // 1 emit, atomic, H-*
+    pub fn fire(&self, e: &Enabled) -> Result<FireOutcome, FireError>;          // 1 deposit (emit|nullify), atomic, H-*
     pub fn step(&mut self, snap: &Snapshot<W>) -> StepOutcome;                  // pick+fire driver
 
     pub fn fire_count(&self, rule: RuleId, x: &Address) -> u64;                 // divergence backstop
@@ -118,7 +121,7 @@ impl<W> Coordinator<W> {
 }
 ```
 
-Public datatypes: `Term`/`Dom`/`Lit`/`Prim`/`TypedTerm`/`Value`/`Sort`/`Signature`/`Env`/`Dynamics`, `Rule`/`TriggerRef`/`FireAction`/`ScopeBody`/`Enabled`/`RuleId`, and the result/error types (`TypeError`, `DefineError`, `RegisterError`, `EvalError`, `CertifyError`, `RetractError`, `FireError`, `RuleError`, `FireOutcome`, `StepOutcome`, `RuleCertification`) — all in Core data model.
+Public datatypes: `Term`/`Dom`/`TypeRef`/`Lit`/`Prim`/`TypedTerm`/`Value`/`Sort`/`Signature`/`Env`/`Dynamics`, `Rule`/`TriggerRef`/`FireAction`/`ScopeBody`/`Enabled`/`RuleId`, and the result/error types (`TypeError`, `DefineError`, `RegisterError`, `EvalError`, `CertifyError`, `RetractError`, `FireError`, `RuleError`, `FireOutcome`, `StepOutcome`, `RuleCertification`) — all in Core data model.
 
 ---
 
@@ -134,6 +137,11 @@ A finite, acyclic, tagged-union tree in two mutually-recursive families. **Reifi
 type ArcTerm = Arc<Term>;  type ArcDom = Arc<Dom>;
 #[derive(Clone, PartialEq, Eq, Hash)] pub struct VarId(u32);
 #[derive(Clone, PartialEq, Eq, Hash)] pub struct TypeKey(Endset);   // a registered/reserved type, named by its key endset
+
+/// A type position: a concrete cataloged type OR a class variable bound by an enclosing `Reg`
+/// quantifier (V-IDX). Reg-expansion (type_check) substitutes ClassVar(cvar) → Concrete(class) per
+/// registered class, so a TypedTerm holds ONLY Concrete refs (the evaluator never sees a ClassVar).
+#[derive(Clone, PartialEq, Eq, Hash)] pub enum TypeRef { Concrete(TypeKey), ClassVar(VarId) }
 
 pub enum Term {
     Var(VarId),
@@ -151,24 +159,24 @@ pub enum Term {
     Ref{addr:Address, args:Vec<ArcTerm>},        // ASN-0130; only inside stored-def bodies — ref-bearing ⇒ is_ref_free=false
 }
 pub enum Atom {
-    IsK(TypeKey,ArcTerm), Members(TypeKey), TargetsOf(TypeKey,ArcTerm),          // core (view-parameterized)
-    IsFiltered(TypeKey,ArcTerm),                                                 // BH1
-    Succs(TypeKey,ArcTerm), Chain(TypeKey,ArcTerm), Tip(TypeKey,ArcTerm),
-        IsInChain(TypeKey,ArcTerm,ArcTerm),                                      // BH2 (fixed active)
-    SourcesTo(TypeKey,ArcTerm), TargetOf(TypeKey,ArcTerm), TargetsKeyed(ArcTerm),// BH3 (fixed active)
-    Age(TypeKey,ArcTerm), Stale(TypeKey,ArcTerm),                                // BH4 (fixed active + home-frontier)
+    IsK(TypeRef,ArcTerm), Members(TypeRef), TargetsOf(TypeRef,ArcTerm),          // core (view-parameterized)
+    IsFiltered(TypeRef,ArcTerm),                                                 // BH1
+    Succs(TypeRef,ArcTerm), Chain(TypeRef,ArcTerm), Tip(TypeRef,ArcTerm),
+        IsInChain(TypeRef,ArcTerm,ArcTerm),                                      // BH2 (fixed active)
+    SourcesTo(TypeRef,ArcTerm), TargetOf(TypeRef,ArcTerm), TargetsKeyed(ArcTerm),// BH3 (fixed active; TargetsKeyed class-unindexed)
+    Age(TypeRef,ArcTerm), Stale(TypeRef,ArcTerm),                                // BH4 (fixed active + home-frontier)
     IsDoc(ArcTerm),                                                              // V-DOC
     TupAddr(VarId), TupAddrsF(VarId), TupAddrsG(VarId),
         InCoverageF(ArcTerm,VarId), InCoverageG(ArcTerm,VarId),                  // V-TUP (state-independent)
 }
 pub enum Dom {
-    MembersDom(TypeKey),   // M_K   : dom(T), view-parameterized
-    ActiveSlice(TypeKey),  // A_K   : dom(Tup), fixed active
-    AuditSlice(TypeKey),   // L_K   : dom(Tup), fixed audit
+    MembersDom(TypeRef),   // M_K   : dom(T), view-parameterized
+    ActiveSlice(TypeRef),  // A_K   : dom(Tup), fixed active
+    AuditSlice(TypeRef),   // L_K   : dom(Tup), fixed audit
     LinkDom,               // L_dom : dom(T)
     Reg,                   // class-valued; quantification-only; expanded at type_check
     Filter{dom:ArcDom,var:VarId,pred:ArcTerm},
-    SetTerm(ArcTerm),      // QD-refl: a ℘_fin(T)-valued term reflected as a domain
+    SetTerm(ArcTerm),      // QD set-valued-term closure: a ℘_fin(T)-valued term reflected as a domain
 }
 
 pub enum Lit { True, False, Nat(Nat), Addr(Address), BotAddr, BotNat }   // BotAddr:T∪{⊥}, BotNat:ℕ∪{⊥}
@@ -177,12 +185,14 @@ pub enum Prim {
     SetMem(ArcTerm,ArcTerm), SetEq(ArcTerm,ArcTerm), IsEmpty(ArcTerm),         // ℘_fin(T): ∈, =, =∅
     Elems(ArcTerm),                                                            // Seq_fin(T)→℘_fin(T)
     NatEq(ArcTerm,ArcTerm), NatLe(ArcTerm,ArcTerm), NatAdd(ArcTerm,ArcTerm),   // ℕ: =, ≤, +
-    MapGet(ArcTerm,TypeKey),                                                   // ·[K] on Map_fin
+    MapGet(ArcTerm,TypeRef),                                                   // ·[K] on Map_fin
     Def(ArcTerm),                                                              // definedness · ≠ ⊥
 }
 ```
 
-`TypedTerm` is the **post-type-check, post-`Reg`-expansion** form: every `Forall/ExistsReg` is rewritten to the finite `And/Or` of its concrete-class instances, so the evaluator never sees a class variable, and `count(Reg)` is a `Lit`. It carries, alongside the synthesized codomain `Sort` per node (an immutable side-table or annotated tree): the **ordered parameter context `Γ_D`** it was checked under (read back via `TypedTerm::params() -> &[(VarId, Sort)]` and `result_sort()`), and a **ref-free flag** (`TypedTerm::is_ref_free() -> bool`, false iff any `Ref` node survives — every PL evaluator *but* `evaluate_def` requires it true).
+A `Forall/Exists` whose `dom` is `Dom::Reg` binds `var` as a **class variable**, referenced inside `body` *only* through `TypeRef::ClassVar(var)` (Reg being outside COD, a class var is never a `Term::Var` value); `Reg`-expansion substitutes it away at type-check. Every other `Forall/Exists` binds a value/tuple var. There is **no** general domain→term reflection node: the one address-valued domain reflected as a term is `M_K`, spelled `Atom::Members(TypeRef)` (its view-parameterized M7 twin); `L_dom` and `Filter` reach term position only through the `Dom`-accepting formers (`Exists`/`Forall`/`Count`/`BigUnion`/`SetTerm`), which keeps the AST minimal while staying denotationally complete (QD-refl, reconciled — §Internal 1).
+
+`TypedTerm` is the **post-type-check, post-`Reg`-expansion** form: every `Forall/ExistsReg` is rewritten to the finite `And/Or` of its concrete-class instances and every `TypeRef::ClassVar` substituted to `Concrete`, so the evaluator never sees a class variable nor a `ClassVar` type-ref, and `count(Reg)` is a `Lit`. It carries, alongside the synthesized codomain `Sort` per node (an immutable side-table or annotated tree): the **ordered parameter context `Γ_D`** it was checked under (read back via `TypedTerm::params() -> &[(VarId, Sort)]` and `result_sort()`), and a **ref-free flag** (`TypedTerm::is_ref_free() -> bool`, false iff any `Ref` node survives — every PL evaluator *but* `evaluate_def` requires it true).
 
 ### Values, sorts, signatures
 
@@ -193,7 +203,7 @@ pub enum Value {
     AddrSeq(im::Vector<Address>), Map(im::HashMap<CoverageClass,Address>),
     Nat(Nat), OptNat(Option<Nat>), Tuple(Tuple),                                  // Tuple binds a Tup var
 }
-pub struct Signature { pub params: Vec<(VarId, Sort)>, pub result: Sort }         // (Γ_D, C_D)
+pub struct Signature { pub params: Vec<(VarId, Sort)>, pub result: Sort }         // (Γ_D, C_D); each param sort ∈ COD
 
 /// Eval environment: free-param + quantifier/Let-bound VarId → Value.
 pub struct Env { /* im::HashMap<VarId, Value> */ }
@@ -213,13 +223,13 @@ Set values are `im::OrdSet` (cheap union for `⋃`-folds, dedup = set semantics 
 
 ### The type catalog (immutable, build-time-shared)
 
-M9 is constructed with the **same** `(ReservedAddrs, Vec<TypeDecl>)` that seeds M7's `LinkState::genesis` (the M7↔M9 build-time coordination point), and folds it into a frozen **`TypeCatalog: HashMap<TypeKey, (CoverageClass, Registration)>`** — keyed by the verbatim **type-key endset** — plus the five `ShippedType` endsets. Keying by `TypeKey` (not by `CoverageClass`) is load-bearing for the guard in item below: a catalog lookup is a plain `Endset`-equality probe that **both authorizes a TypeKey and yields its *precomputed* `CoverageClass`** (computed once at build over the genesis-validated, address-denoting keys), so M9 *never* calls M7's `coverage_class` on unvalidated input. This is a *cached copy of genesis-immutable data* (R1 — constant at every reachable state), so it never goes stale; it backs type-checking and footprint analysis without a runtime M7 read. M9 hands callers the canonical type endsets (via `reserved_type`/a catalog accessor) so PL-term `TypeKey`s are built from them. (If M7 later exposes `registration_of(&Endset)`, the catalog is replaceable by that read — same answer.)
+M9 is constructed with the **same** `(ReservedAddrs, Vec<TypeDecl>)` that seeds M7's `LinkState::genesis` (the M7↔M9 build-time coordination point), and folds it into a frozen **`TypeCatalog: HashMap<TypeKey, (CoverageClass, Registration)>`** — keyed by the verbatim **type-key endset** — plus the five `ShippedType` endsets. From that same pair M9 *also* builds an **`Arc<TypeRegistry>`** (via `TypeRegistry::build(reserved, decls)` — the identical validate-once M7 runs at genesis), which it holds to construct its internal `LinkStore<W>` handle (M7's transact-driving ops take a construction-time `Arc<TypeRegistry>`). The five `ShippedType` endsets are each computed **once** as `enc(&[reserved.X])` (e.g. `pred_def ↦ enc(&[reserved.pred_def])`) — byte-identical to M7's `reserved_type` by construction — and M9 exposes them through its **own** catalog accessor `reserved_type(ShippedType) -> &Endset` (over the cached table, no snapshot), the `&Endset` every `emit(d, reserved_type(…), …)` / PL-`TypeKey` construction reads; this is distinct from M7's snapshot-bound `LinkState::reserved_type`. Keying by `TypeKey` (not by `CoverageClass`) is load-bearing for the guard in item below: a catalog lookup is a plain `Endset`-equality probe that **both authorizes a TypeKey and yields its *precomputed* `CoverageClass`** (computed once at build via `coverage_class` over the genesis-validated, address-denoting keys), so M9 *never* calls M7's `coverage_class` on unvalidated input. This is a *cached copy of genesis-immutable data* (R1 — constant at every reachable state), so it never goes stale; it backs type-checking and footprint analysis without a runtime M7 read. M9 hands callers the canonical type endsets (via `reserved_type`/a catalog accessor) so PL-term `TypeKey`s are built from them. (If M7 later exposes `registration_of(&Endset)`, the catalog is replaceable by that read — same answer.)
 
 ### Hints / working sets (all recomputable)
 
 | structure | shape | recovered from |
 |---|---|---|
-| `DefMemo` | `addr → (Signature, ResolvedBody)` + `addr → ExpandedTerm` | M4 content (immutable; never invalidate) |
+| `DefMemo` | `addr → (Signature, ResolvedBody)` + `addr → ExpandedTerm` | M4 content (immutable; **Some-only** — a not-yet-ever-registered addr is never cached) |
 | active/ever pdef lookup | *delegated to M7* `members(pdef, {Active,Audit})` | M7 spanfilade |
 | `RuleRegistry` | `RuleId → Rule` | re-registered by the coordination layer (effects already durable in M7) |
 | agenda (optional) | enabled `(RuleId, x)` set | full Q0 scan / journal replay |
@@ -233,9 +243,11 @@ The **active-pdef-by-start index is *not* materialized by M9** — M7 already in
 ```rust
 pub enum TypeError {
     UnboundVariable(VarId),                        // a free Var outside the supplied Γ_D (the missing-context case)
+    UnboundClassVar(VarId),                        // a TypeRef::ClassVar under no enclosing Reg binder (V-IDX)
+    TupParameter(VarId),                           // a Γ_D parameter sorted Tup — excluded from Codom (ASN-0130 SignedTerm)
     SortMismatch { expected: Sort, found: Sort },
-    BehaviorMissing { ty: TypeKey, needs: Behavior },  // an atom needs a behavior the type's registration lacks
-    UnregisteredType(TypeKey),                     // TypeKey absent from the catalog (subsumes non-address-denoting:
+    BehaviorMissing { ty: TypeKey, needs: Behavior },  // an atom needs a behavior the (concrete) type's registration lacks
+    UnregisteredType(TypeKey),                     // concrete TypeKey absent from the catalog (subsumes non-address-denoting:
                                                    //   every cataloged key is genesis-validated address-denoting)
     DanglingReference(Address),                    // Ref to a never-registered address (WT-ref domain failure)
     RegInstanceIllTyped(TypeError /* boxed */),    // a Reg-quantified body has an ill-typed concrete instance (V-IDX)
@@ -247,7 +259,7 @@ pub enum RegisterError  { NotResident, ParseFailed, IllTyped(TypeError),
 pub enum EvalError      { NotEverRegistered, ArgArityMismatch, ArgSortMismatch }
 pub enum CertifyError   { NotEverRegistered, NotBoolean, NotActive, ViewDependent, NotStable, Emit(TxnError<EmitError>) }
 pub enum RetractError   { NotActive, Nullify(TxnError<NullifyError>) }            // NotActive: no active pdef tuple (item 8)
-pub enum FireError      { HomeNotRegistered, Emit(TxnError<EmitError>) }          // (Nullify variant when nullify-actions land)
+pub enum FireError      { HomeNotRegistered, Emit(TxnError<EmitError>), Nullify(TxnError<NullifyError>) }  // HomeNotRegistered shared by Marker emit + Nullify
 pub enum RuleError      { RefBearingInlineTrigger }                               // Inline must be ref-free; use a def + Def
 
 pub struct RuleId(u64);
@@ -273,11 +285,11 @@ impl From<TxnError<NullifyError>> for RetractError { /* ::Nullify */ }
 
 ### 1. Term representation & the type checker (incl. `Reg` expansion)
 
-A single **bottom-up (post-order) synthesis pass** over the raw `Term`, **checked under the caller-supplied ordered parameter context `Γ_D`** (ASN-0129 WT is a Γ-parameterized *checking* judgment, not a free synthesis). The context `Γ` is **seeded with `Γ_D`** — the free parameter `VarId → Sort` map, kept in positional order so the result `Signature.params` re-emits Γ_D faithfully — and **extended** with bound vars under quantifiers/`Let`/the binder guard (including `Tup` for tuple binders consumed only by V-TUP). Each former has one match arm transcribing its WT rule: connectives `Bool→Bool`; quantifiers `Bool` from `D dom(s)` + body at `Bool`; plain composition substitutes a child sort into a context; the **binder guard** `IfSome` narrows `T∪{⊥}→T` (resp. `ℕ∪{⊥}→ℕ`) in its then-branch via the V-PRIM `def` test; `Count:ℕ`, T1-extrema at `T∪{⊥}`, `⋃:℘_fin(T)`; QD-refl types an address-valued domain as a `℘_fin(T)` term. A `Var` resolved in neither Γ_D nor a binder is **`TypeError::UnboundVariable`** (the missing-context failure mode). Every side condition is a finite match against the static `Codom`/catalog (V-STAT), so the pass **reads no structural state for a ref-free body and is decided once at construction**, valid at every reachable state (WT).
+A single **bottom-up (post-order) synthesis pass** over the raw `Term`, **checked under the caller-supplied ordered parameter context `Γ_D`** (ASN-0129 WT is a Γ-parameterized *checking* judgment, not a free synthesis). Before seeding Γ, `type_check` rejects any `Γ_D` parameter whose sort is **not** a codomain — a `Tup`-sorted parameter (`TupParameter`), since tuples are never term values (ASN-0130 SignedTerm) and `evaluate_def` could never bind one. The context `Γ` is then **seeded with `Γ_D`** — the free parameter `VarId → Sort` map, kept in positional order so the result `Signature.params` re-emits Γ_D faithfully — and **extended** with bound vars under quantifiers/`Let`/the binder guard (including `Tup` for tuple binders consumed only by V-TUP). Each former has one match arm transcribing its WT rule: connectives `Bool→Bool`; quantifiers `Bool` from `D dom(s)` + body at `Bool`; plain composition substitutes a child sort into a context; the **binder guard** `IfSome` narrows `T∪{⊥}→T` (resp. `ℕ∪{⊥}→ℕ`) in its then-branch via the V-PRIM `def` test; `Count:ℕ`, T1-extrema at `T∪{⊥}`, `⋃:℘_fin(T)`. (QD-refl is hosted minimally — the one address-valued domain with a term twin is `M_K`/`Atom::Members`; `L_dom` and filters reach term position only through the `Dom`-accepting formers, so no general domain→term node exists — see Core data model.) A `Var` resolved in neither Γ_D nor a binder is **`TypeError::UnboundVariable`** (the missing-context failure mode). Every side condition is a finite match against the static `Codom`/catalog (V-STAT), so the pass **reads no structural state for a ref-free body and is decided once at construction**, valid at every reachable state (WT).
 
-**Atom typing (TypeKey guard + behavior guard).** Typing an `Atom` (or a `Dom`/`MapGet` naming a `TypeKey`): (i) **look the `TypeKey` up in the cached catalog** — absent ⇒ `TypeError::UnregisteredType`, which *also* rules out a non-address-denoting key (every cataloged key is genesis-validated address-denoting). This is the single guard that makes every later `coverage_class(ty)`/`MapGet` keying total: only cataloged (registered, address-denoting) `TypeKey`s ever reach the evaluator, and the evaluator keys `Map_fin` lookups through the catalog's *precomputed* `CoverageClass`, never a runtime `coverage_class` on user input. (ii) Check the registration supports the atom's behavior (e.g., `Succs` requires BH2/Binary), else `TypeError::BehaviorMissing`.
+**Atom typing (TypeRef resolution + catalog guard + behavior guard).** Typing an `Atom` (or a `Dom`/`MapGet`) that names a `TypeRef`: a `TypeRef::ClassVar` is valid *only* under an enclosing `Reg` binder that `Reg`-expansion has not yet reached — at the point an instance is type-checked every such ref is already `Concrete`, so a surviving `ClassVar` is rejected **`UnboundClassVar`**. For the `Concrete(k)`: (i) **look `k` up in the cached catalog** — absent ⇒ `TypeError::UnregisteredType`, which *also* rules out a non-address-denoting key (every cataloged key is genesis-validated address-denoting). This is the single guard that makes every later `coverage_class(ty)`/`MapGet` keying total: only cataloged (registered, address-denoting) **concrete** keys ever reach the evaluator, which keys `Map_fin` lookups through the catalog's *precomputed* `CoverageClass`, never a runtime `coverage_class` on user input. (ii) Check the registration supports the atom's behavior (e.g., `Succs` requires BH2/Binary), else `TypeError::BehaviorMissing`.
 
-**`Reg` expansion (V-IDX).** On `Forall/ExistsReg{cvar, body}`, instantiate `body` once per registered class in the catalog (finite, fixed), type-check each instance, and emit the `And/Or` of the well-typed instances as the `TypedTerm`. Well-formedness is *instance-wise*: a body applying a class-indexed behavior atom (`succs`, `target_of`, …) at the bound class is well-typed only if **every** class carries that behavior — discovered by instantiation (the mandatory `R` instance, behaviors=∅, kills any such body, surfaced as `RegInstanceIllTyped`). The one survivor is the class-unindexed `targets_keyed(s)[K]` join (well-typed whenever *some* class attaches BH3, the body never applying an atom a class may lack). Expanding here hands the evaluator a plain finite tree.
+**`Reg` expansion (V-IDX).** On `Forall/ExistsReg{cvar, dom: Reg, body}`, instantiate `body` once per registered class in the catalog (finite, fixed) — **substituting `TypeRef::ClassVar(cvar) → TypeRef::Concrete(class)` throughout `body`** — type-check each instance, and emit the `And/Or` of the well-typed instances as the `TypedTerm` (nested `Reg` binders each substitute their own `cvar`). Well-formedness is *instance-wise*: a body applying a class-indexed behavior atom (`succs`, `target_of`, …) at the bound class is well-typed only if **every** class carries that behavior — discovered by instantiation (the mandatory `R` instance, behaviors=∅, kills any such body, surfaced as `RegInstanceIllTyped`). The one survivor is the class-unindexed `targets_keyed(s)[K]` join — `MapGet(TargetsKeyed(s), ClassVar(cvar))` (well-typed whenever *some* class attaches BH3, the body never applying an atom a class may lack). Expanding here hands the evaluator a plain finite tree whose every `TypeRef` is `Concrete`. (`Count(Dom::Reg)` is the one `Reg` use without a class-variable body: it folds to a `Lit` — the registered-class count, constant by R1/C0.)
 
 **References (WT-ref).** A `Ref{addr, args}` types to `C_r` where `signature(addr) = (⟨xᵢ:Cᵢ⟩, C_r)`, each `argᵢ` checks at `Cᵢ`, and `addr` is ever-registered (signature defined). A reference to a never-registered address has *no* typing judgment → `TypeError::DanglingReference`. Signature lookup is the only external consultation, and it reads the (immutable) sig memo — so even ref-bearing type-checking is "decided once." **A surviving `Ref` makes the `TypedTerm` ref-bearing** (`is_ref_free() == false`): such a term is admissible only as a stored-def body via `define_predicate`; `eval`/`decide`/`classify` and `TriggerRef::Inline` require ref-free, and `register_rule` rejects a ref-bearing `Inline` trigger (`RuleError::RefBearingInlineTrigger`).
 
@@ -285,9 +297,9 @@ A single **bottom-up (post-order) synthesis pass** over the raw `Term`, **checke
 
 ### 2. The pure evaluator
 
-A **syntax-directed tree-walk** threading `(env: Env, view, snap)`. **Precondition: the `TypedTerm` is ref-free** — `eval` has *no* `Ref` arm; a surviving `Ref` is a precondition violation (panic, exactly as `decide` panics on a non-Bool codomain). Ref-bearing terms are evaluated only by `evaluate_def`'s DAG-recursive driver (§4), which is `eval`'s walk *plus* the one `Ref` arm. Reads route **only** through M7 (`snap.world().links()`) and M3 (`snap.world().m3()`) — never content or arrangement dereference — which is exactly what discharges *structural-reads-only* as a wiring discipline (PC4). Every constituent read of one verdict comes off the **single pinned `Snapshot`**, discharging the multi-read soundness obligation (ASN-0134/M2 clause 6) by construction.
+A **syntax-directed tree-walk** threading `(env: Env, view, snap)`. **Precondition: the `TypedTerm` is ref-free** — `eval` has *no* `Ref` arm; a surviving `Ref` is a precondition violation (panic, exactly as `decide` panics on a non-Bool codomain). By the post-expansion invariant the walk also sees only `Concrete` `TypeRef`s and no `Reg` quantifier. Ref-bearing terms are evaluated only by `evaluate_def`'s DAG-recursive driver (§4), which is `eval`'s walk *plus* the one `Ref` arm. Reads route **only** through M7 (`snap.world().links()`) and M3 (`snap.world().m3()`) — never content or arrangement dereference — which is exactly what discharges *structural-reads-only* as a wiring discipline (PC4). Every constituent read of one verdict comes off the **single pinned `Snapshot`**, discharging the multi-read soundness obligation (ASN-0134/M2 clause 6) by construction.
 
-**Atom dispatch** (the load-bearing table — view threaded):
+**Atom dispatch** (the load-bearing table — view threaded; every `K` concrete):
 
 | PL atom @ term view *v* | M7/M3 read |
 |---|---|
@@ -302,6 +314,8 @@ A **syntax-directed tree-walk** threading `(env: Env, view, snap)`. **Preconditi
 | `is_doc(d)` | **M3** `is_registered_document(d)` |
 | V-TUP / V-PRIM | pure, on the bound `Tuple` value / by arithmetic — no state read |
 
+**Audit-slice reliance.** `is_K@audit`, `L_K`, and `L_dom` all pass `View::Audit` to `observe` and require M7 to return the **audit** slice for it (ASN-0086's hist selector; `A_K`/`L_K` are `Observe_K`'s two selectable slices). M7's interface prose describes `observe` as "over the active typed slice"; M9's audit reads are correct only because the `View::Audit` parameter selects the audit slice — a **seam dependency named here** so an M7 build that ignored `Audit` (and silently returned active data for M9's audit reads) is caught at the boundary.
+
 **View handling.** Core atoms + `M_K` take the *term* view; fixed-view atoms (BH1–BH4, `A_K`, `L_K`) read their named slice regardless. **The UV default-view rewrite is M9's** (M7 only filters `members`/`targets_of` and coerces other collection atoms to active): for a `default` term, M9 drops elements `e` with `is_filtered(e)` from the *returned* collections of `succs`/`chain`/`sources_to`/`stale`, while `tip`/`is_in_chain` use the **unfiltered active walk** (verdicts/traversal never rewritten — UV). In v1 the single shipped BH1 type is `retired`, so `filtered(x) = M7::is_filtered(x)` directly; adding a second BH1 type requires per-type `is_filtered` with the `K_queried` exclusion (M7 currently exposes only the aggregate — flagged below).
 
 **Common case + short-circuit.** Most triggers are existence checks. `Exists` returns at the first witness, `Forall` at the first counterexample, `Filter` composes lazily over the materialized slice `Vec`. The full-pass folds — `Count` (single-pass accumulator), `MaxT1`/`MinT1` (the running **global T1-extremum over the address-valued domain** — PC2a's order-extremum, `⊥` at empty, composing through the binder guard), `BigUnion` (the only fold that materializes an `OrdSet`) — cannot short-circuit. (T1-extrema *are* global order extrema: T1 is M1's intrinsic total order on addresses and `max_{T1}`/`min_{T1}` read it directly. The "never read global emission order" caution is a separate **BH4 `age`/`stale`** ordinal-time doctrine — frontier-relative, home-denominated — not a constraint on T1-extrema.) **No feedback/loop former and no arbitrary fold accumulator is offered** — admitting either silently computes `reach`/parity and voids the closed ceiling (PC6a, OQ6).
@@ -314,7 +328,7 @@ A **syntax-directed tree-walk** threading `(env: Env, view, snap)`. **Preconditi
 
 ### 3. The dynamics / stability analyzer
 
-A **second bottom-up pass** (after type-check, over a **ref-free** `TypedTerm`), fusing FP footprint and PD0–PD2 stability per node, with `Reg` already expanded.
+A **second bottom-up pass** (after type-check, over a **ref-free** `TypedTerm` with `Reg` already expanded and every `TypeRef` concrete), fusing FP footprint and PD0–PD2 stability per node.
 
 - **Footprint** (`Footprint`): per atom — audit-slice atoms read `L_K`; active atoms read `L_K ∪ L_R`; BH4 adds the home-wide frontier of `home(a)`; `targets_keyed` reads every BH3-attached type's active slice; `is_doc` reads the residence domain; default-view collections add each BH1 type's footprint.
 - **Stability** (`Stability`, the 4-point lattice `StSf`/`StOnly`/`SfOnly`/`Neither`) by the PD0 mutual induction: step-constants in `ST∩SF`; `is_doc`, audit `is_K`, grow-only membership in `ST`; emptiness/upper-bound counts in `SF`; `¬` swaps, `∧`/`∨` preserve, `⇒` combines `SF⇒ST`; quantifiers/aggregates per grow-only/step-constant domain. T1-extrema are in neither.
@@ -345,7 +359,7 @@ The certifier is **sound but incomplete**: it classifies by spelling, surfaces "
 
 **Resolution / signature / expansion** (all immutable-once-defined hints; memoize, recompute on a miss, never invalidate, never journal):
 - `resolve(a)` — `value_at(a)` → decode → `(Γ_D, body)`; reads content only.
-- `sig(a)` — `(Γ_D, C_D)`; `C_D` re-derives identically forever (PR-SIG); defined on ever-registered, by induction on registration order (well-founded — references name strictly-earlier defs, PR2). `signature(start)` answers from the `DefMemo`; on a **miss** it pins its own snapshot, checks ever-registration + parses + derives, then memoizes — sound because content is immutable and ever-registration monotone, so a once-`Some` answer stays valid.
+- `sig(a)` — `(Γ_D, C_D)`; `C_D` re-derives identically forever (PR-SIG); defined on ever-registered, by induction on registration order (well-founded — references name strictly-earlier defs, PR2). `signature(start)` answers from the `DefMemo`; on a **miss** it pins its own snapshot and checks ever-registration: **if ever-registered**, it parses + derives and **memoizes the `Some`** (permanent — content immutable, ever-registration monotone, so a once-`Some` answer stays valid); **if not ever-registered**, it returns `None` and **memoizes nothing** (a `None` is transient — a later registration must be observed).
 - `expand(a)` — **for evaluation, never materialized**: `evaluate_def` drives the denotation by **DAG-recursion** — its driver is `eval`'s ref-free walk (§2) *plus the one `Ref` arm `eval` lacks*: at a `Ref{addr,args}` node, resolve `addr` (M4 content read), evaluate `args` to *values* (recursively, so nested refs are handled), and denote the referent's body in a fresh env bound to those values (denotation is compositional → sound, no flat string built). Content reads (resolution) and structural reads (denotation) stay distinct passes, so the denotation remains content-free — *this* is why self-hosting doesn't re-open the structural-reads-only surface, and why `eval` itself can keep its ref-free precondition. **For certification, the flat `expand` is built** (§3) with a **content-deterministic fresh-name counter** — one counter per top-level expand, advanced across the whole traversal, never reset per sub-call, never global — so two evaluators obtain the same concrete term (the cross-evaluator agreement that licenses shared caching). De Bruijn / locally-nameless + hash-consing is the alternative if a flat form must be cached.
 
 **Versioning.** `supersede(d, old, new_term)` registers `new_term` (define-style: insert + `register_pred`), then records `old→new` via **`emit(d, reserved_type(Supersedes), old_start, slice::from_ref(&new_start))`** — content-address endpoints (`from` the single `&Address`, `to` the one-element slice), the shipped `Supersedes` class reused — **not** M7's `assert_sup` (which requires resident *links*; def starts are content addresses). `current_version(start)` = `tip(reserved_type(Supersedes), start)` → `Sink(head)` / `Indeterminate` (branch/cycle). The reference DAG is acyclic by registration order, so the lineage is a strict order with no cycle check.
@@ -366,9 +380,13 @@ pub enum FireAction {
     /// Canonical certifiable Marker: emit ONE Unary K-tuple covering the bound argument `a`
     /// at `home`, flipping audit `is_K(a)` false→true. (Binary/coverage_G generalization noted.)
     Marker { home: Address, ty: TypeKey },
-    // multi-emit / emit-and-nullify (multi-DEPOSIT) fires deferred — they need M7 to expose a pure
-    // `stage_emit`. A single-`nullify` action is buildable TODAY (one M7 `nullify` transact), but
-    // its active-state trigger isn't SF-certifiable, so it ships outside the certified regime — see Open.
+    /// Single retraction: `nullify(home, a)` on the bound argument `a` — one atomic M7 `nullify`
+    /// transact (H-ATOM/H-FIN exactly as Marker). idem⊤. NOT SF-certifiable (active-state trigger),
+    /// so it ships UNCERTIFIED (admitted with divergence monitoring, §8), never CertifiedTerminating.
+    Nullify { home: Address },
+    // multi-DEPOSIT fires (multi-emit, or emit-and-nullify composed atomically within one fire)
+    // remain deferred — they alone need M7 to expose a pure `stage_emit` to stage several deposits
+    // into one `transact`. See Open.
 }
 ```
 
@@ -378,11 +396,13 @@ pub enum FireAction {
 
 **Fire executor** `fire(Enabled{rule, x})`:
 1. snapshot; evaluate `T_ρ(x)`. False ⇒ **`FireOutcome::NoOp`** (absorption Q1 — never fire on a false trigger).
-2. True ⇒ run `action` → one `emit(home, ty_endset, a, &[])` (canonical Marker; `a` = the bound argument's address, `Value::Addr(a)` or `Value::Tuple(t)→t.addr`) through M7's gated write path → `FireOutcome::Fired { effect, seq }`.
+2. True ⇒ run `action` through M7's gated write path → `FireOutcome::Fired { effect, seq }` (`a` = the bound argument's address, `Value::Addr(a)` or `Value::Tuple(t) → t.addr`):
+   - **`Marker { home, ty }`** → one `emit(home, ty_endset, a, &[])`; `effect` = the deposited tuple's address.
+   - **`Nullify { home }`** → one `nullify(home, a)`; `effect` = the deposited `[R]` tuple's address.
 
-This is **one M2 transaction (m=1) ⇒ H-ATOM by M2's per-transact atomicity, H-FIN by single-emit**; M9 takes the fire's `Seq` from M7's return. M7's `emit` checks the home is registered ⇒ **H-HOME**; an unregistered home yields **`FireError::HomeNotRegistered`** (no admissible emission), never a silent skip. For an **idem⊤ Marker** the emit is necessarily a *miss* (the true trigger certifies no covering audit tuple), so it grows `L_K` and flips the audit-read trigger — extinction by construction. v1 fires are single-emit; multi-deposit *atomic* fires would need M7 to expose a pure `stage_emit` (open).
+Either action is **one M2 transaction (m=1) ⇒ H-ATOM by M2's per-transact atomicity, H-FIN by single-deposit**; M9 takes the fire's `Seq` from M7's return. M7 checks the home is registered ⇒ **H-HOME**: an unregistered home maps to `FireError::HomeNotRegistered` (the shared variant — from `emit` for Marker, from `nullify`'s `NullifyError::HomeNotRegistered` for Nullify), never a silent skip; other emit/nullify rejections wrap in `FireError::Emit`/`FireError::Nullify` respectively. For an **idem⊤ Marker** the emit is necessarily a *miss* (the true trigger certifies no covering audit tuple), so it grows `L_K` and flips the audit-read trigger — extinction by construction; a **Nullify** fire instead *shrinks* an active slice, flipping an active-state trigger that PD0 does **not** make ⊥-stable, so it is uncertified (§8) and re-armable. v1 ships single-emit (Marker) and single-nullify; only multi-deposit *atomic* fires await M7's pure `stage_emit` (open).
 
-*Recovery.* Fire effects are durable in M7's journal; the in-memory registry is re-registered on restart by the coordination layer. SF/Marker semantics make re-evaluation **idempotent** — already-fired arguments read their audit trigger as false, so no double-fire. `FireCounters` rebuild by replay.
+*Recovery.* Fire effects are durable in M7's journal; the in-memory registry is re-registered on restart by the coordination layer. **SF/Marker** semantics make re-evaluation **idempotent** — already-fired arguments read their audit trigger as false, so no double-fire; a **Nullify** rule (uncertified) carries no such guarantee — its replay-time re-fire is bounded only by the divergence monitor (§8). `FireCounters` rebuild by replay.
 
 ### 6. Quiescence detection & scoping
 
@@ -390,7 +410,7 @@ This is **one M2 transaction (m=1) ⇒ H-ATOM by M2's per-transact atomicity, H-
 
 **Strategy.** The authoritative mechanism is the **full Q0 scan** (always correct, no derived state to corrupt; cost O(total domain size)). An optional **incremental agenda** (RETE-style: maintain enabled occurrences, flip only those touched by each write using the Q-FLIP falsifier inventory + the armer graph) serves the hot "anything enabled?" check — but it is a **hint**: reconcile against a periodic full Q0 scan and on recovery; a buggy delta yields *false quiescence*, the dangerous failure, so Q0 is the authority. This is the journal-as-truth / derived-as-hint discipline.
 
-**Scoped** `quiescent_scoped(scope, body, snap)` (Q7) adds a per-rule filter `{x∈[D_ρ] : β_ρ^S(x)}` — `ScopeBody::{PerEmitter|PerTarget|PerSource|PerAddress}` mapping to `S(addr(x))` / `∃y∈addrs_G(x)::S(y)` / `∃y∈addrs_F(x)::S(y)` / `S(x)`. The scope body **must be S-monotone** (`S` positive) to preserve the global⟹scope inference (Q9 anti-monotonicity); M9 rejects a non-monotone scope-body declaration (a syntactic positivity scan) rather than silently voiding the inference. Hazard surfaced to callers: an *out-of-scope* fire can re-arm an in-scope trigger (Q8), detectable per-state by re-evaluating Q7.
+**Scoped** `quiescent_scoped(scope, body, snap)` (Q7) adds a per-rule filter `{x∈[D_ρ] : β_ρ^S(x)}` — `ScopeBody::{PerEmitter|PerTarget|PerSource|PerAddress}` mapping to `S(addr(x))` / `∃y∈addrs_G(x)::S(y)` / `∃y∈addrs_F(x)::S(y)` / `S(x)`. All four canonical bodies use `S` **only positively**, so each restriction is S-monotone **by construction** and Q9's global⟹scope inference (`quiescent_S ⟹ quiescent_{S'}` for `S' ⟹ S`) holds automatically — there is no non-monotone body to reject, the interface admitting only these four forms and not a caller-supplied `β`. (A future custom-`β` `ScopeBody` would reinstate the positivity-scan obligation; not in v1.) Hazard surfaced to callers: an *out-of-scope* fire can re-arm an in-scope trigger (Q8), detectable per-state by re-evaluating Q7.
 
 ### 7. The scheduler
 
@@ -402,7 +422,7 @@ This is **one M2 transaction (m=1) ⇒ H-ATOM by M2's per-transact atomicity, H-
 - (a) trigger ∈ **SF** (via `classify` — for a `Def` trigger, over its flat, ref-free expansion; for `Inline`, directly);
 - (b) action is the **Marker pattern** — a syntactic match that the emitted tuple's slot-coverage is exactly the witness the trigger's negated-existential quantifies over (canonical: trigger `¬is_K(a)` @ audit ⟺ `Marker{_, K}`);
 - (c) domain **grow-only**.
-All three + bounded input ⇒ **`CertifiedTerminating`** under weak fairness; otherwise `Uncertified { sf, marker, grow_only }` naming the failed legs. The **armer graph** (`ρ → ρ'` when ρ's emitted type ∈ footprint(`T_ρ'`)) is built here; `armer_cycles()` flags cycles, and a cycle of **non-SF** rules is a divergence risk (local extinction discipline alone diverges; SF immunity is what breaks the cycle). Rules outside SF/Marker are `Uncertified` (reject or admit-with-monitoring is a policy choice, §Open).
+All three + bounded input ⇒ **`CertifiedTerminating`** under weak fairness; otherwise `Uncertified { sf, marker, grow_only }` naming the failed legs. A **`FireAction::Nullify`** rule fails (b) (it is not the Marker emit) and so is *always* `Uncertified`; it is admissible under the uncertified-rule policy (reject vs admit-with-monitoring, §Open) with the divergence monitor as backstop. The **armer graph** (`ρ → ρ'` when ρ's emitted type ∈ footprint(`T_ρ'`)) is built here; `armer_cycles()` flags cycles, and a cycle of **non-SF** rules is a divergence risk (local extinction discipline alone diverges; SF immunity is what breaks the cycle). Rules outside SF/Marker are `Uncertified` (reject or admit-with-monitoring is a policy choice, §Open).
 
 The **divergence monitor**: `FireCounters` per `(ρ, x)`; for an SF/Marker rule, **count > 1 certifies misbehavior** (Q-EXT bounds each argument to one fire — domain growth adds *new* arguments, never re-fires an existing one), a cheap livelock watchdog paired with the static cycle check.
 
@@ -412,7 +432,7 @@ The **divergence monitor**: `FireCounters` per `(ρ, x)`; for an SF/Marker rule,
 
 ## Invariants & contracts
 
-**By construction** (fall out of the closed algebra, the immutable-content def store, and single-emit fires):
+**By construction** (fall out of the closed algebra, the immutable-content def store, and single-deposit fires):
 
 - **Termination & decidability of every PL term** — finite substrate, no fixpoint/recursion former (ASN-0129 PC5, PC6a).
 - **Well-typing decided once, valid forever** — static vocabulary, checked under a fixed Γ_D; re-check is wasted work (WT, V-STAT).
@@ -429,19 +449,21 @@ The **divergence monitor**: `FireCounters` per `(ρ, x)`; for an SF/Marker rule,
 
 **By active enforcement** (M9 must guard, at the named site):
 
-- **Γ_D is part of the checking judgment** — `type_check` is *given* the ordered Γ_D and seeds Γ with it; a free `Var` outside it is `UnboundVariable`; the `TypedTerm` carries Γ_D so `define_predicate`/`evaluate_def`/ST⁺ have their context (ASN-0129 WT; ASN-0130 SignedTerm/PR5).
+- **Γ_D is part of the checking judgment** — `type_check` is *given* the ordered Γ_D and seeds Γ with it; a free `Var` outside it is `UnboundVariable`; every Γ_D parameter sort must be a codomain (a `Tup`-sorted parameter is `TupParameter`, since a tuple is never a value `evaluate_def` could bind); the `TypedTerm` carries Γ_D so `define_predicate`/`evaluate_def`/ST⁺ have their context (ASN-0129 WT; ASN-0130 SignedTerm/PR5).
+- **Class-variable bodies fully expanded** — every type position is a `TypeRef`; `Reg`-expansion substitutes `ClassVar(cvar) → Concrete(class)` per registered class so the `TypedTerm` holds only `Concrete` refs; a `ClassVar` no enclosing `Reg` binder substitutes is `UnboundClassVar`; an instance applying a behavior some class lacks is `RegInstanceIllTyped` (ASN-0129 PC1/V-IDX).
 - **Ref-free for every non-def evaluator** — `eval`/`decide`/`classify` and `TriggerRef::Inline` require `is_ref_free`; `register_rule` rejects a ref-bearing `Inline`; all ref-bearing terms route only through `define_predicate → evaluate_def`'s resolve-then-denote passes, keeping the denotation content-free (ASN-0130; PC4).
-- **Registered/address-denoting TypeKeys only** — `type_check` rejects an uncataloged `TypeKey` (`UnregisteredType`) before any `coverage_class`, and the catalog supplies each class's precomputed `CoverageClass`, so every coverage keying is total (M7).
+- **Registered/address-denoting TypeKeys only** — `type_check` rejects an uncataloged `Concrete` ref (`UnregisteredType`) and a stray `ClassVar` (`UnboundClassVar`) before any `coverage_class`, and the catalog supplies each class's precomputed `CoverageClass`, so every coverage keying is total (M7).
 - **Single-coherent-pre-state for every multi-read verdict** — read all constituents off one M2 `Snapshot`; sites: `eval`, `quiescent[_scoped]`, `register_pred`/`certify_stable` validation (PC4/ASN-0134 clause 6, ASN-0130 single-coherent-pre-state).
-- **Structural-reads-only as a wiring discipline** — the atom dispatch (§2) exposes no M4-content or M5-arrangement-dereference read; only M7 + M3-residence (ASN-0129 "structural reads only").
+- **Structural-reads-only as a wiring discipline** — the atom dispatch (§2) exposes no M4-content or M5-arrangement-dereference read; only M7 + M3-residence (ASN-0129 "structural reads only"). The `View::Audit` reads (`is_K@audit`/`L_K`/`L_dom`) rely on M7's `observe` honoring `Audit` (named at the seam).
 - **No feedback / no arbitrary fold accumulator** — the former set admits neither (PC6a, OQ6).
 - **Dynamics certifier soundness** — honor polarity/footprint rules exactly; err toward "not certified" (ASN-0129; ASN-0130 PR5).
 - **≤1 active `pdef` per start** — gate-first idem⊤ dedup at `register_pred`, served by M7's `emit` (single-`&Address` `from`); (ASN-0130 PR0; ASN-0128 I1a).
 - **Endorsement is non-permanent; never key a stored/cached fact on it** — evaluation keys on ever-registration; the two-transaction split weakens (iv) to validation-time, sound for that reason (ASN-0130 PR1).
-- **Fire atomicity/finiteness/home** — one M7 `emit` per fire; M7 checks the home (Q's H-ATOM/H-FIN/H-HOME).
-- **At-most-once per argument** — by construction for SF+Marker (Q-EXT); for non-SF rules, an obligation the divergence monitor watches.
+- **`signature` memoizes only `Some`** — ever-registration is monotone, so a `Some` is permanent and cacheable forever; a `None` (not-yet-ever-registered) is transient and never memoized, else a later registration goes unobserved.
+- **Fire atomicity/finiteness/home** — one M7 `emit` *or* `nullify` per fire; M7 checks the home (Q's H-ATOM/H-FIN/H-HOME).
+- **At-most-once per argument** — by construction for SF+Marker (Q-EXT); for non-SF rules (every `Nullify` among them), an obligation the divergence monitor watches.
 - **`retract_pred` no-active guard** — `.first().ok_or(NotActive)?`, never `[0]` (item 8).
-- **S-monotone scope bodies** — reject non-monotone declarations to keep the global⟹scope inference (Q9).
+- **S-monotone scope bodies (by construction)** — the four canonical `ScopeBody` forms use `S` only positively, so Q9's global⟹scope inference holds with no positivity-rejection path (Q9).
 
 ---
 
@@ -453,8 +475,8 @@ The **divergence monitor**: `FireCounters` per `(ρ, x)`; for an SF/Marker rule,
 - **M2** — `kernel.snapshot()` for every verdict; reads each slice off `snap.world()`; stamps verdicts with `snap.seq()` (V1). **M9 drives no `transact` directly** — fires/registrations ride M5's and M7's transact-wrapped ops; M9 takes their returned `Seq`.
 - **M3** — `is_registered_document(d)` is PL's `is_doc` *and* the emit home-gate (this maps ASN-0129's `dom(Σ.M)` to M3's registry per the decomposition's eager/lazy split: a registered-but-arrangementless doc is a valid residence). *(No `effective_owner`: residence reduces to `is_registered_document`; no M9 algorithm consults ownership.)*
 - **M4** — `value_at(start)` for resolve/parse/expand of stored defs (the only content read; lives in the operation-surface pass, never the denotation).
-- **M5** — `Vstream::insert(d, at, vec![blob])` to write def content through the placement composite (J0); `content_count(d)` for the append position.
-- **M7** — the **entire PL read surface** (`observe`, `members`, `targets_of`, `is_k`, BH1–BH4, `is_active`/`is_nullified`, `coverage_class`, `reserved_type`) — `L_dom` is `⋃_K observe(K,&[],&[],Audit)↦addr`, *not* `type_slice` (that is M8's seam) — plus gated writes `emit` (`pdef`/`pd_stable`/`supersedes`/Marker tuples; single-`&Address` `from`) and `nullify` (de-register). `reserved_type(PredDef|PredStable)` and the `Unary/⊤/{}` registrations are M7↔M9 **build-time constants** (the PredLayer agreement); M9 caches the catalog from the same `(ReservedAddrs, Vec<TypeDecl>)`.
+- **M5** — `Vstream::insert(d, at, vec![blob])` to write def content through the placement composite (J0); `content_count(d)` for the append position. M9 constructs its `Vstream<W>` handle from the engine `Arc<Kernel<W>>` (it holds only `&Kernel<W>`).
+- **M7** — the **entire PL read surface** (`observe`, `members`, `targets_of`, `is_k`, BH1–BH4, `is_active`/`is_nullified`, `coverage_class`, `reserved_type`) — `L_dom` is `⋃_K observe(K,&[],&[],Audit)↦addr`, *not* `type_slice` (that is M8's seam). **Audit reliance:** `is_K@audit`, `L_K`, and `L_dom` pass `View::Audit` and require `observe` to return the **audit** slice for it (ASN-0086's hist selector); M7's prose says "active typed slice," so this audit dependency is named to catch an M7 build that ignored `Audit`. **Gated writes:** `emit` (`pdef`/`pd_stable`/`supersedes`/Marker tuples; single-`&Address` `from`) and `nullify` (both de-register *and* `FireAction::Nullify` fires). **Construction:** from the shared `(ReservedAddrs, Vec<TypeDecl>)` M9 builds an `Arc<TypeRegistry>` (`TypeRegistry::build`) and uses it to construct the internal `LinkStore<W>` backing those writes; the `reserved_type(PredDef|PredStable|Supersedes|…)` calls resolve through **M9's own** cached catalog accessor (each endset `enc(&[reserved.X])`, byte-identical to M7's), needing no snapshot. The `Unary/⊤/{}` `pdef`/`pd_stable` registrations and the reserved addresses are M7↔M9 **build-time constants** (the PredLayer agreement); M9 caches the catalog from that same pair.
 
 **No M8 edge** (PL is fenced off from M8's content-region/arrangement queries — ASN-0129). **No M10 edge** (parallel; fires reach M7 directly).
 
@@ -487,7 +509,7 @@ The **divergence monitor**: `FireCounters` per `(ρ, x)`; for an SF/Marker rule,
 - **Quiescence strategy.** Full Q0 poll (authoritative, simple) vs incremental agenda-as-hint reconciled against periodic Q0 — pick incremental for large domains with sparse change.
 - **Scheduler discipline.** Weak fairness + grow-only domains (default) vs strong-fairness turn machinery for non-grow-only domains under an adversarial environment.
 - **ST⁺ certifier internals.** The stability-checking algorithm beyond PD0's literal rules is explicitly uncommitted; you may add *sound* certification patterns and choose how to present "not certified," never over-certifying.
-- **Rule action language richness.** v1 ships the single-emit Marker `FireAction`. A **single-`nullify` action is buildable today** — M7 already exposes `nullify(home, target) -> Result<(Address, Seq), …>`, a complete atomic transact-wrapped retraction, so one nullify-fire is one transaction satisfying H-ATOM/H-FIN exactly as the Marker emit does, needing no new M7 surface. It is deferred not for a missing primitive but because a nullify rule's **active-state trigger is not SF-certifiable** (outside the certified-terminating regime, §8). Only **multi-deposit** fires (multi-emit, or emit-and-nullify composed atomically within one fire) actually require M7 to expose a pure `stage_emit` to stage several deposits into one `transact`.
+- **Rule action language richness.** v1 ships **two** single-deposit `FireAction`s: the SF-certifiable **Marker** `emit` and the (uncertified, monitored) single **`Nullify`** — both one atomic M7 transact (H-ATOM/H-FIN), needing no new M7 surface. Only **multi-deposit** fires (multi-emit, or emit-and-nullify composed atomically within one fire) remain deferred, as they alone require M7 to expose a pure `stage_emit` to stage several deposits into one `transact`. Open: the multi-deposit surface itself (and whether uncertified single-`nullify` rules are admitted — next item).
 - **Universal-lint scoping.** How to scope `∀ t∈M_pdef :: is_pd_stable(t)` so legitimately non-Boolean helper defs don't spuriously violate it — a membership-filter to a protocol's own classifier (the language can't read a def's result sort to narrow the domain itself).
 - **Divergence-monitor / armer-graph persistence cadence** — both are recomputable hints; how often to reconcile counters against the journal is a policy/latency call.
-- **Uncertified-rule policy** — reject at `register_rule` vs admit with runtime divergence monitoring (the lint is sound-but-incomplete; strictness is yours). *(Distinct from the ref-bearing-`Inline` rejection, which is a hard well-formedness gate, not a termination-policy choice.)*
+- **Uncertified-rule policy** — reject at `register_rule` vs admit with runtime divergence monitoring (the lint is sound-but-incomplete; strictness is yours). This policy now also governs every `FireAction::Nullify` rule (always `Uncertified`, §8). *(Distinct from the ref-bearing-`Inline` rejection, which is a hard well-formedness gate, not a termination-policy choice.)*
