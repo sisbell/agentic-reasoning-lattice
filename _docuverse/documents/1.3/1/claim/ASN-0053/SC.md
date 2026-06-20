@@ -27,3 +27,6 @@ In case (iii), start(α) < start(β) < reach(α) < reach(β): the position start
 - *Definition:* The denotation of a span γ is the half-open position set ⟦γ⟧ = { p : start(γ) ≤ p < reach(γ) } (reach exclusive); this is the convention under which adjacency (reach(α) = start(β)) shares no position.
 - *Axiom:* T1 — positions are totally ordered, so any two of the four boundary points {start(α), reach(α), start(β), reach(β)} are comparable, which is what makes the case split exhaustive and the cases mutually exclusive.
 - *Frame:* Classification reads only the four boundary points start(α), reach(α), start(β), reach(β); it neither modifies α, β, nor their denotations.
+
+- *Depends:*
+  - T1 (LexicographicOrder, ASN-0034) — supplies the total order on positions whose comparability of any two boundary points makes the five-case split exhaustive and mutually exclusive
