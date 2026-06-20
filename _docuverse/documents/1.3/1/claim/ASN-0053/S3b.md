@@ -14,3 +14,9 @@ Splitting γ at p yields λ = (start(α), p ⊖ start(α)) and ρ = (p, reach(γ
 - *Postconditions:* Let γ = merge(α, β) (S3) and let p be the shared boundary (p = start(β) in Case A, p = start(α) in Case B); then split(γ, p) (S4) yields ⟨λ, ρ⟩ with {λ, ρ} = {α, β}. In Case A (reach(α) = start(β)): λ = α and ρ = β. In Case B (reach(β) = start(α)): λ = β and ρ = α.
 - *Frame:* No spans other than α, β are read or produced; γ, λ, ρ are the only constructed values.
 - *Definition:* The shared boundary p is the interior point of γ at which the original adjacency met (start(β) in Case A, start(α) in Case B); interiority start(γ) < p < reach(γ) is what makes p an admissible split point for S4.
+
+- *Depends:*
+  - S3 (MergeEquivalence) — supplies the merge operation and the endpoint formula γ = (start(α), r ⊖ start(α)) used throughout the proof
+  - S4 (SplitPartition) — supplies the split operation; the proof invokes split(γ, p) and reads off λ and ρ from S4's output structure
+  - S3a (MergeCommutativity) — supplies merge commutativity invoked in Case B to reduce to the Case A configuration with roles of α and β exchanged
+  - WR (WidthRecovery) — supplies reach(σ) ⊖ start(σ) = width(σ), used twice in Case A to identify λ = α and ρ = β
