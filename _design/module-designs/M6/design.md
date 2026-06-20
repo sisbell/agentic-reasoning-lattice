@@ -150,6 +150,8 @@ M6 owns **no persistent and no derived-authoritative state**. It declares no `Wo
 - the **per-subspace common depth `m_S(d)`** that the source notes fret over (cache vs. recompute) is the **constant 2** — M5 fixes V-positions at depth 2, so `m_S(d) ≡ 2` and the depth-compatibility test is the static `#start == 2`;
 - the **I-ordered content index** that SHOWORIGIN's de-scoped I-arity would need is **not placed here** at all (it would belong to M4 or a dedicated index; the I-arity is de-scoped — *Conflicts resolved* 2).
 
+**Dense occupancy (D-CTG★) — the one upstream structural fact M6 leans on, stated once with provenance.** Two M6 paths read M5's O(1) `content_count`/`link_count` *instead of* scanning positions, and one accumulates a V-cursor by run width rather than re-resolving each position: `doc_vspan`/`doc_vspanset` treat the counts *as* the extents (`n_S` ⇒ the span `([S,1],[0,n_S])`), and COMPARE's `resolve_blocks` starts its V-cursor at `span.start()` and advances by each run's width with no V-gap to skip. Both are correct **only** because each subspace's occupied V-positions form a dense, origin-anchored, gap-free run — content at `[s_C, 1..n_C]`, links at `[s_L, 1..n_L]`, ordinals `1..n` with no hole. This is **not** spelled as a named invariant in M5's as-given interface; M6 relies on it under the name **D-CTG★**, and it follows from four upstream facts: (a) **ASN-0113 W2/W4** — the per-subspace extent is exactly `ext(d,S) = ([S,1], [0,n_S])` with `⟦ext(d,S)⟧ ∩ VSlice(S,m_S) = V_S(d)` (the formula `ext_span` literally builds, and the reason a count fixes an extent); (b) **ASN-0112 V8** (origin permanence) — while content is present the content anchor is pinned at `[s_C,1]`, so the run always starts at ordinal 1; (c) **M5's contiguity/reseat maintenance** — every DELETE closes its gap and every INSERT reseats, so live ordinals stay `1..n` densely; (d) **append-only link seating** — MAKELINK seats at the next link V-position, so links accrete densely at `[s_L, 1..n_L]`, never sparsely. M6 **trusts** D-CTG★ (it is M5's write-path obligation, not M6's) and keeps it falsifiable: a debug build may cross-check `Σ content_runs(d).width == content_count(d)` with the first run anchored at `[s_C,1]` (and COMPARE `debug_assert`s the V-cursor against `point` per run); a release build reads the counts directly. Every site that depends on D-CTG★ is tagged with that name.
+
 ## Internal design
 
 Every operation begins by reading its slices off the single bound snapshot, runs its gate (typed rejection), then composes upstream primitives. Shared helpers:
@@ -157,8 +159,13 @@ Every operation begins by reading its slices off the single bound snapshot, runs
 ```rust
 fn require_registered(m3: &M3State, d: &Address) -> bool { m3.is_registered_document(d) }
 
-fn s_c() -> Nat { Nat::from(1u8) }   // content subspace (s_C = 1, ASN-0047) — Nat = BigUint, so a fn, not a const
-fn s_l() -> Nat { Nat::from(2u8) }   // link subspace    (s_L = 2)
+// content (s_C = 1) / link (s_L = 2) subspace constants (ASN-0047). `Nat = BigUint` cannot be `const`,
+// so memoize each ONCE via `once_cell::sync::Lazy` instead of re-allocating a fresh `BigUint` on every
+// reference. The hot per-position loop (`retrieve_v`) only COMPARES against them — `sub == *S_C` is a
+// reference compare with no allocation — while the O(1)-per-query construction sites clone via
+// `(*S_C).clone()`.
+static S_C: Lazy<Nat> = Lazy::new(|| Nat::from(1u8));
+static S_L: Lazy<Nat> = Lazy::new(|| Nat::from(2u8));
 
 /// VSpec WELL-FORMEDNESS only (ASN-0115): zero-free, ordinal-level, level-uniform, depth #start ≥ 2.
 /// It deliberately does NOT gate depth-COMPATIBILITY (#start == 2): ASN-0115 is explicit that
@@ -179,6 +186,15 @@ fn gate_vspec(span: &Span) -> Result<(), SpecFault> {
 /// ElemPos{ doc, subspace, ordinal } and advancing the ordinal is faithful and dodges the raw-shift
 /// subspace-crossing footgun — but a LONGER element field would be silently truncated here, so a
 /// debug tripwire fails loudly if one ever arrives (M3 makes it unreachable — a guard, not a path).
+///
+/// WHY THE ElemPos ROUND-TRIP, NOT A RAW `shift`: `run_addr` returns a validated **`Address`** (not the
+/// bare `Tumbler` a raw `shift` would give) because two of its consumers are `Address`-typed and cannot
+/// take a `Tumbler` — `DeliveryItem::Ref(Address)` (RETRIEVEV link references) and
+/// `dedup_addrs(impl Iterator<Item = Address>)` (SHOWDELETIONS); the others (`value_at`/`denotes`) read
+/// `.tumbler()`, but the `Ref`/dedup paths fix the return type. Do NOT "simplify" this to a raw shift.
+/// COMPARE's `reach_i` *does* raw-`shift` an identical element-level i_start — deliberately — because it
+/// needs only a `Tumbler` endpoint for the half-open I-interval compare (`lo < hi`), where no `Address`
+/// invariant is consumed. Same i_start shape, two different lifts, because the consumers differ.
 fn run_addr(i_start: &Address, k: &Nat) -> Address {
     debug_assert!(i_start.element_field().map_or(false, |e| e.len() == 2),
         "run_addr: I-address must carry a 2-component element field [subspace, ordinal] (else silent truncation)");
@@ -234,10 +250,10 @@ pub fn retrieve_v(&self, specs: &[Spec]) -> Result<Delivery, RetrieveError> {
             let mut k = Nat::zero();
             while &k < &run.width {                     // per active position, ascending V (R3) — no dedup (R8)
                 let a = run_addr(&run.i_start, &k);
-                if sub == s_c() {
+                if sub == *S_C {
                     out.push(DeliveryItem::Content(
                         c.value_at(a.tumbler()).expect("S3★: content position ⇒ a∈dom(C)").clone()));
-                } else if sub == s_l() {
+                } else if sub == *S_L {
                     out.push(DeliveryItem::Ref(a));     // link reference IS the address — never reads M4
                 } else {
                     // UNREACHABLE for an ACTIVE position: S3★-aux confines every bound V-position to
@@ -269,9 +285,14 @@ pub fn doc_vspan(&self, doc: &Address) -> Result<SpanSet, ExtentError> {
     if !require_registered(m3, doc) { return Err(ExtentError::DocNotRegistered); }   // unallocated ⇒ fail
     let (nc, nl) = (m5.content_count(doc), m5.link_count(doc));
     if nc.is_zero() && nl.is_zero() { return Ok(SpanSet::empty()); }                 // registered-empty ⇒ ⟨⟩
-    let min = vpos(if !nc.is_zero() { s_c() } else { s_l() }, &Nat::one());          // min O(d): anchor of lowest occupied subspace
-    let max = vpos(if !nl.is_zero() { s_l() } else { s_c() }, if !nl.is_zero() { &nl } else { &nc });
+    let min = vpos(if !nc.is_zero() { (*S_C).clone() } else { (*S_L).clone() }, &Nat::one());          // min O(d): anchor of lowest occupied subspace
+    let max = vpos(if !nl.is_zero() { (*S_L).clone() } else { (*S_C).clone() }, if !nl.is_zero() { &nl } else { &nc });
     let reach = shift(&max, &Nat::one());                                            // one ordinal step past max
+    // from_endpoints is INFALLIBLE here: #min == #reach == 2 (both depth-2 V-positions ⇒ no
+    // LevelMismatch) and min ≤ max < reach ⇒ min < reach (no NotIncreasing). The stored width
+    // reach⊖min round-trips exactly — divergence(min,reach) ≤ #min (=2) discharges D1, INCLUDING the
+    // cross-subspace box (min=[s_C,1], reach=[s_L,n_L+1], diverging at position 1) — so Span::reach()
+    // recovers reach and the singleton is faithfully ASN-0112's σ_d = (origin_d, extent_d).
     Ok(SpanSet::singleton(Span::from_endpoints(min, reach).unwrap()))                // origin=min; width=reach⊖min
 }
 
@@ -280,8 +301,8 @@ pub fn doc_vspanset(&self, doc: &Address) -> Result<SpanSet, ExtentError> {
     if !require_registered(m3, doc) { return Err(ExtentError::DocNotRegistered); }
     let (nc, nl) = (m5.content_count(doc), m5.link_count(doc));
     let mut result = SpanSet::empty();
-    if !nc.is_zero() { result = union(&result, &SpanSet::singleton(ext_span(s_c(), &nc))); }  // ext(d,s_C) = ([1,1],[0,n_C])
-    if !nl.is_zero() { result = union(&result, &SpanSet::singleton(ext_span(s_l(), &nl))); }  // ext(d,s_L) = ([2,1],[0,n_L])
+    if !nc.is_zero() { result = union(&result, &SpanSet::singleton(ext_span((*S_C).clone(), &nc))); }  // ext(d,s_C) = ([1,1],[0,n_C])
+    if !nl.is_zero() { result = union(&result, &SpanSet::singleton(ext_span((*S_L).clone(), &nl))); }  // ext(d,s_L) = ([2,1],[0,n_L])
     debug_assert!(result.is_normalized(), "W13: content-before-link, subspace-separated ⇒ already normal");
     Ok(result)   // disjoint, content-before-link, appended in order ⇒ already W13-normal (union is concat, never normalizes/faults)
 }
@@ -310,8 +331,8 @@ pub fn show_origin_v(&self, doc: &Address, span: &Span) -> Result<Vec<Address>, 
     if !require_registered(m3, doc)        { return Err(OriginError::DocNotRegistered); }   // WF_V (i)
     gate_vspec(span).map_err(OriginError::MalformedSpan)?;                                  // (ii),(iv): ordinal-level, level-uniform, #start ≥ 2 (well-formedness)
     let sub = span.start().get(1);                                                          // subspace at any depth
-    let n_s = if *sub == s_c() { m5.content_count(doc) }
-              else if *sub == s_l() { m5.link_count(doc) }
+    let n_s = if *sub == *S_C { m5.content_count(doc) }
+              else if *sub == *S_L { m5.link_count(doc) }
               else { return Err(OriginError::NoSuchSubspace); };                            // foreign subspace ∉ {s_C,s_L}: distinct from a real-but-empty subspace
     if n_s.is_zero() { return Err(OriginError::EmptySubspace); }                            // (iii) inadmissible on a real but empty subspace
     let runs = m5.resolve(doc, span);                                                       // ⟨⟩ if #start ≥ 3 (depth-incompatible) — caught below
@@ -379,7 +400,7 @@ pub fn compare(&self, rho1: &[Region], rho2: &[Region]) -> Result<CompareReport,
         for (ri, r) in regions.iter().enumerate() {
             if !require_registered(m3, &r.doc) { return Err(CompareError::DocNotRegistered(r.doc.clone())); }
             for (si, span) in r.spans.iter().enumerate() {
-                if *span.start().get(1) != s_c() {                                            // start in content subspace
+                if *span.start().get(1) != *S_C {                                            // start in content subspace
                     return Err(CompareError::NotContentSubspace { operand, region: ri, index: si });
                 }
                 gate_vspec(span).map_err(|f| CompareError::MalformedSpan { operand, region: ri, index: si, fault: f })?;
@@ -430,7 +451,7 @@ fn resolve_blocks(m5: &M5State, regions: &[Region]) -> Vec<Block> {
 // (shared origin sub-allocator ⇒ equal-length, equal prefix below the action point), so a bare
 // ordinal subtraction is a TOTAL `Nat` op — no borrow, no underflow. Different-chain pairs have
 // disjoint I-intervals and are rejected by the guard before any ordinal arithmetic runs.
-fn reach_i(b: &Block) -> Tumbler { shift(b.i_start.tumbler(), &b.width) }   // i_start ⊕ δ(width,#): one I-step past the run; raw shift SAFE — i_start is element-level (last component = ordinal)
+fn reach_i(b: &Block) -> Tumbler { shift(b.i_start.tumbler(), &b.width) }   // i_start ⊕ δ(width,#): one I-step past the run; raw shift SAFE (i_start element-level, last comp = ordinal) — a bare `Tumbler` endpoint is all the `lo < hi` compare needs; cf. `run_addr`'s `Address` round-trip
 fn ordinal_gap(hi: &Tumbler, lo: &Tumbler) -> Nat { ordinal(hi).clone() - ordinal(lo).clone() }  // co-chain ⇒ ordinal(hi) ≥ ordinal(lo)
 fn max_tumbler(a: &Tumbler, b: &Tumbler) -> Tumbler { if a >= b { a.clone() } else { b.clone() } }
 fn min_tumbler(a: &Tumbler, b: &Tumbler) -> Tumbler { if a <= b { a.clone() } else { b.clone() } }
@@ -462,9 +483,12 @@ fn interval_join(p: &[Block], q: &[Block]) -> Vec<CorrPair> {
 
 fn canonicalize(mut pairs: Vec<CorrPair>) -> Vec<CorrPair> {
     // Deterministic presentation (X12 R3) of the complete+sound relation (R1/R2); NOT claimed maximal
-    // (R4 optional). Sort lexicographically by (d1, u1, d2, u2); the adjacent-pair fold is the
-    // IDENTITY in v1 (a finer-than-maximal, per-overlap report conforms — see `fold_adjacent`).
-    pairs.sort_by(|x, y| corr_key(x).cmp(&corr_key(y)));
+    // (R4 optional). Sort lexicographically by (d1, u1, d2, u2). `sort_by_cached_key` computes each
+    // four-`Tumbler` key ONCE per element — not twice per *comparison* as a bare
+    // `sort_by(|x,y| corr_key(x).cmp(&corr_key(y)))` would, which clones O(n log n) keys — and stays a
+    // STABLE sort, so duplicate overlaps keep a deterministic listed order (R3). The adjacent-pair fold
+    // is the IDENTITY in v1 (a finer-than-maximal, per-overlap report conforms — see `fold_adjacent`).
+    pairs.sort_by_cached_key(corr_key);
     fold_adjacent(pairs)
 }
 fn corr_key(c: &CorrPair) -> (Tumbler, Tumbler, Tumbler, Tumbler) {
@@ -485,7 +509,7 @@ fn fold_adjacent(pairs: Vec<CorrPair>) -> Vec<CorrPair> { pairs }   // identity 
 - **Co-chain totality of the ordinal arithmetic.** Every `ordinal_gap` in `overlap_pair` runs only after the `lo < hi` overlap guard, hence only on addresses sharing one content chain (equal-length, equal prefix below the action point) — so the bare `ordinal(·) − ordinal(·)` subtractions are total `Nat` operations. Different-chain block pairs have disjoint I-intervals and are rejected by the guard before any subtraction. The helpers (`reach_i`/`ordinal_gap`/`max_tumbler`/`min_tumbler`/`vpos_shift`/`vpos_of`) all operate on `Tumbler` (callers thread `.tumbler()` off the `Address`), so the I-axis comparison typechecks uniformly (no `Address`/`Tumbler` mixing).
 - **V-reconstruction lemma (load-bearing for X12-R1 soundness).** `resolve_blocks` sets the first run's `v_start = span.start()` and accumulates `v_start` by each run's width. This is correct **only because content is gap-free** (D-CTG★): the first bound V-position of a content span *is* `span.start()`, and `resolve`'s runs tile the bound prefix contiguously in V, so there are no V-gaps to skip. The code states this as the lemma it is and **`debug_assert`s it on *every* run** (`M(d)(v-cursor) == this run's i_start`, via `m5.point`), so a future M5 regression to V-gapped content runs fails loudly **at the exact mis-aligning run** rather than silently mis-aligning `u1`/`u2` (it would then need per-position `point` resolution or a V-carrying run type). Asserting per-run, not first-run-only, is what localizes the failure: under D-CTG★ a first-run check would transitively cover the rest, but a per-run check pins a regression to the precise run that broke density. The tripwire is a `debug_assert!` with `==` (not `debug_assert_eq!`) precisely because `Address`/`Tumbler` are `PartialEq` but not `Debug` — the `*_eq!` form's failure-path `{:?}` formatting would fail to compile in every profile.
 - **Fan-out completeness is the whole game** (the place a naïve implementation goes wrong): when an address occurs in multiple P-blocks and/or Q-blocks, `interval_join` must emit the **full cross-product** over each I-overlap, not a lockstep merge. The recommended structure is sort-by-`i_start` + sweep (or interval tree); the O(|P|·|Q|) double loop is the simplicity oracle. Either consumes blocks directly and reads only addresses (never bytes) — simultaneously the correctness property (value-matching over-reports) and the perf property (no content fault).
-- **Overlapping windows within one operand are redundant, not wrong.** ASN-0122 X12 permits a spec-set to name overlapping (or repeated) windows; `resolve_blocks` then double-covers the shared V-positions, and `interval_join` emits the overlap pair more than once. This is **denotationally conforming** — `⟦Γ⟧` is a set-union, so duplicates collapse in the denotation (R1/R2 hold), and the *stable* `sort_by` in `canonicalize` keeps the listed order deterministic (R3) regardless of duplicate count. A builder may pre-dedupe each operand's regions to shrink the cross-product; correctness does not require it.
+- **Overlapping windows within one operand are redundant, not wrong.** ASN-0122 X12 permits a spec-set to name overlapping (or repeated) windows; `resolve_blocks` then double-covers the shared V-positions, and `interval_join` emits the overlap pair more than once. This is **denotationally conforming** — `⟦Γ⟧` is a set-union, so duplicates collapse in the denotation (R1/R2 hold), and the *stable* `sort_by_cached_key` in `canonicalize` keeps the listed order deterministic (R3) regardless of duplicate count. A builder may pre-dedupe each operand's regions to shrink the cross-product; correctness does not require it.
 - **`canonicalize`** sorts the pairs lexicographically by `(d1, u1, d2, u2)`, then applies `fold_adjacent`. This is a **deterministic** presentation (X12 R3) of the **complete and sound** relation (R1/R2); it is **not** claimed to be the X11 **maximal** form — X12 **R4 (maximal pairs) is explicitly not required for conformance**. In v1 `fold_adjacent` is the **identity** (a finer-than-maximal, per-overlap report fully conforms under R1–R3); a builder wanting maximal output merges feet-successor-adjacent pairs (pair₂'s feet are the unit-successors of pair₁'s last positions *and* their I-addresses are consecutive) into one wider pair — a pure presentation post-pass that never changes `⟦Γ⟧`. The second-foot tie-break in the sort key is load-bearing under fan-out.
 
 ### FINDDOCSCONTAINING — resolve, then a present-tense filter over M5's R⁻¹ superset
@@ -547,7 +571,7 @@ pub fn find_docs_containing(&self, regions: &[Region]) -> Result<Vec<Address>, F
 - *Completeness under fan-out; deterministic canonical order* — cross-product `interval_join` + `canonicalize`. (X8/R1/R2/R3 0122; X11 maximal / R4 not required.)
 - *Present-tense soundness filter* — `project`-narrowing of `docs_containing`. (FD-SOUND 0124.)
 
-**Delegated (M6 relies on, does not enforce):** contiguity D-CTG★ and referential integrity S3★ (M5 write path); R permanence/monotonicity, the J-couplings, the **level-class discipline on every coverage set-op**, the R⁻¹ index `docs_containing`, and the per-document `deletions`/`content_runs` covers from which M6 composes the cross-document SHOWDELETIONS combine (M5); durability/recovery (M2). M6 trusts these and panics (not silently skips) if S3★ is observed broken on the content side. Every primitive M6 calls is in M1–M5's interface as given — no upstream amendment is required.
+**Delegated (M6 relies on, does not enforce):** contiguity D-CTG★ (the dense-occupancy reliance stated once under *Core data model*) and referential integrity S3★ (M5 write path); R permanence/monotonicity, the J-couplings, the **level-class discipline on every coverage set-op**, the R⁻¹ index `docs_containing`, and the per-document `deletions`/`content_runs` covers from which M6 composes the cross-document SHOWDELETIONS combine (M5); durability/recovery (M2). M6 trusts these and panics (not silently skips) if S3★ is observed broken on the content side. Every primitive M6 calls is in M1–M5's interface as given — no upstream amendment is required.
 
 ## Dependencies & seams
 
