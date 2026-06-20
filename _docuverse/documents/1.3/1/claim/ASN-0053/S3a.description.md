@@ -1,0 +1,1 @@
+Proves that span merge is order-independent: merging α with β yields the same point set as merging β with α. The result is a direct instance of set-union commutativity, requiring no properties of spans beyond their point sets.
