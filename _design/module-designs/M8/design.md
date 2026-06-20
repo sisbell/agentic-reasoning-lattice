@@ -31,7 +31,8 @@ pub struct SupClaim { pub claim: Address, pub old: Address, pub new: Address,
                       pub home: Address, pub active: bool }
 pub struct OrphanReport { pub orphaned: Vec<Address> }   // links the proposed DELETE drops from d
 
-pub enum QueryError { DocNotRegistered, NotALink, BadRegion }
+pub enum QueryError { DocNotRegistered, NotALink, BadRegion,
+                      NotContentSubspace, EmptyWidth, OutOfBounds }  // last three: delete_orphans preview, mirroring M5 DeleteError
 
 pub struct LinkQuery<'k, W: WorldState> { kernel: &'k Kernel<W> }
 ```
@@ -44,15 +45,19 @@ where W: WorldState + HasLinks + HasM5 + HasM3
 
     // ── Content-region discovery (V-anchored, present-tense, doc-gated; disjunctive over slots; ──
     // ── every result is foundation ∩ View::Active = addressable, so nullified links never appear) ──
-    /// V→I resolution of `region` through d's live arrangement (ASN-0127 image). MAY repeat a Run
-    /// when input spans overlap; ASN-0127 `image` is a SET — a caller wanting set semantics dedups
-    /// at the boundary (`Run: Eq`).
+    /// V→I resolution of `region` through d's live arrangement (ASN-0127 image). Deduped at the
+    /// boundary by `Run: Eq` — the result is a SET (ASN-0127 `image`): no exact-equal Run repeat,
+    /// no caller dedup obligation.
     pub fn image(&self, d: &Address, region: &[Span]) -> Result<Vec<Run>, QueryError>;          // V→I
-    /// foundation ∩ addressable — diverges from ASN-0127's UNFILTERED findlinks_V (active only).
+    /// result = foundation ∩ active (View::Active) — nullified links never surface; diverges from
+    /// ASN-0127's UNFILTERED findlinks_V (active only).
     pub fn findlinks_v(&self, d: &Address, region: &[Span]) -> Result<Vec<Address>, QueryError>;
-    pub fn count_v(&self, d: &Address, region: &[Span]) -> Result<usize, QueryError>;           // present-tense census ∩ active
+    /// Present-tense census; result = foundation ∩ active — nullified links never surface.
+    pub fn count_v(&self, d: &Address, region: &[Span]) -> Result<usize, QueryError>;
+    /// Windowed enumeration (ASN-0108); result = foundation ∩ active — nullified links never
+    /// surface. `n = 0` is clamped to 1 (the API is total).
     pub fn window_v(&self, d: &Address, region: &[Span], cur: Cursor, n: usize)
-        -> Result<Window, QueryError>;                                                          // ASN-0108 (∩ active)
+        -> Result<Window, QueryError>;
     pub fn retrieve_endsets(&self, d: &Address, region: &[Span])
         -> Result<Vec<(usize, Endset)>, QueryError>;                                            // ASN-0131
 
@@ -75,6 +80,9 @@ where W: WorldState + HasLinks + HasM5 + HasM3
     pub fn discoverable_from(&self, a: &Address, d: &Address) -> Result<bool, QueryError>;
 
     // ── Pre-edit link-survival (read-only; never touches the edit path) ──
+    /// Pre-edit what-if (read-only; never the edit path). result = foundation ∩ active — a nullified
+    /// link that lost its last witness in d is NOT reported (diverges from ASN-0117's D(d,Σ) over
+    /// dom(L)). Mirrors DELETE's preconditions: NotContentSubspace / EmptyWidth / OutOfBounds.
     pub fn delete_orphans(&self, d: &Address, p: &VPos, width: &Nat)
         -> Result<OrphanReport, QueryError>;                                                    // ASN-0117
 
@@ -111,7 +119,7 @@ pub fn out_claims_on      <W>(s: &Snapshot<W>, x: &Address, v: View) -> Vec<SupC
 
 Its "data model" is therefore just (a) the request/result value types above and (b) one load-bearing representation decision:
 
-- **Result sets are carried internally as `im::OrdSet<Tumbler>` — M7's native discovery return type — and converted to `Vec<Address>` only at the output boundary.** M7's primitives yield `&Tumbler` under iteration (`iter`/`range`); M8 **clones each key and `validate`s it at the lift** — infallible, since every key is a T4-valid minted address (M7's §G→§F note). This is the whole engine: `union`/`difference`/`range` on a persistent ordered set are cheap and structurally-shared, and **`OrdSet<Tumbler>` is ordered by tumbler = link address = exactly ASN-0108's permanent enumeration key.** So windowing is a `range(Excluded(cursor)..).take(n)` — no M8-side index, no re-sort. This is what lets M8 "own no index" yet page efficiently. The same convert-at-the-boundary discipline applies to every other M7 `im` container M8 touches (e.g. the `im::HashSet` it deduplicates RETRIEVEENDSETS pairs in is collected to a `Vec` before it crosses the public seam).
+- **Result sets are carried internally as `im::OrdSet<Tumbler>` — M7's native discovery return type — and converted to `Vec<Address>` only at the output boundary.** M7's primitives yield `&Tumbler` under iteration (`iter`/`range`); M8 **clones each key and `validate`s it at the lift** — infallible, since every key is a T4-valid minted address (M7's §G→§F note). This is the whole engine: `union`/`difference`/`range` on a persistent ordered set are cheap and structurally-shared, and **`OrdSet<Tumbler>` is ordered by tumbler = link address = exactly ASN-0108's permanent enumeration key.** So windowing is a `range(Excluded(cursor)..).take(n)` — no M8-side index, no re-sort. This is what lets M8 "own no index" yet page efficiently. The same convert-at-the-boundary discipline applies to every M7 `im` container M8 touches: each result `OrdSet<Tumbler>` is collected to `Vec<Address>` before it crosses the public seam. (RETRIEVEENDSETS deduplicates its `(slot, endset)` pairs in a throwaway `std::collections::HashSet` — *not* an `im` container — so nothing `im`-shaped reaches that seam either.)
 
 - **Authoritative state owned: none.** The link store, active/audit slices, spanfilade, type registry (M7); arrangements and R (M5); registry (M3). **Recomputable hints owned: none.** M8 recomputes every answer from upstream each call; the only index it leans on (M7's spanfilade) is M7's hint, recovered by M7. The unit of consistency is the M2 `Snapshot` threaded through one operation.
 
@@ -157,15 +165,19 @@ fn image_on(snap, d, region) -> Result<Vec<Run>, QueryError> {
     let w = snap.world();
     if !w.m3().is_registered_document(d) { return Err(QueryError::DocNotRegistered); }
     check_region(region)?;                                  // BadRegion: not content-subspace depth-2 V-spans
-    let mut runs = vec![];
-    for span in region { runs.extend(w.m5().resolve(d, span)); }   // clips silently to arranged positions
-    Ok(runs)   // MAY repeat a Run under overlapping input spans — harmless: set-idempotent in from_spans/stab below
+    let mut runs: Vec<Run> = vec![];
+    for span in region {
+        for r in w.m5().resolve(d, span) {                 // resolve clips silently to arranged positions
+            if !runs.contains(&r) { runs.push(r); }        // dedup by Run: Eq ⇒ public image is a SET (ASN-0127), no caller obligation
+        }
+    }
+    Ok(runs)
 }
 ```
 
 A registered-but-empty `d` then yields a legitimate `∅` (defined); an unregistered `d` surfaces as `DocNotRegistered`, not a masquerading "no links here"; a non-content / non-depth-2 region surfaces as `BadRegion`, not a silently-clipped different query (ASN-0127 F-IMG/F-V; ASN-0131; the decomposition seam).
 
-**`image`** resolves the V-region to I-runs through the live arrangement. I use `resolve` (runs), **not** `resolve_coverage` (an opaque `SpanSet`) — runs carry `i_start + width`, expose `iextent() -> Span`, and dodge both the `SpanSet`-iteration gap and the level-class trap. `resolve` is defensive (silently clips out-of-range, returns `⟨⟩` for a malformed span), so the image is exactly the currently-arranged subset of the region (ASN-0127's load-bearing `W ∩ dom M(d)` intersection — unarranged positions contribute nothing). The returned `Vec<Run>` may repeat a run when input spans overlap; downstream this is harmless (the runs feed a set-valued `from_spans`/`stab` pipeline), and a caller wanting a deduped image dedups at the boundary (the public `image` contract states this, since ASN-0127 `image` is a set).
+**`image`** resolves the V-region to I-runs through the live arrangement. I use `resolve` (runs), **not** `resolve_coverage` (an opaque `SpanSet`) — runs carry `i_start + width`, expose `iextent() -> Span`, and dodge both the `SpanSet`-iteration gap and the level-class trap. `resolve` is defensive (silently clips out-of-range, returns `⟨⟩` for a malformed span), so the image is exactly the currently-arranged subset of the region (ASN-0127's load-bearing `W ∩ dom M(d)` intersection — unarranged positions contribute nothing). The returned `Vec<Run>` is **deduped at the boundary** (by `Run: Eq`), so it carries no exact-equal repeat and matches ASN-0127's set semantics with no caller obligation; downstream the dedup is belt-and-suspenders, the runs feeding a set-valued `from_spans`/`stab` pipeline that is already repeat-idempotent.
 
 **`findlinks_v`** is the disjunctive ASN-0127 `findlinks(image(W,d))`, **intersected with the active view** (`View::Active` — the addressability the operation owes its readers; reconciled in *Conflicts resolved* #8). So `findlinks_v`/`count_v`/`window_v` realize *foundation ∩ addressable*, **not** ASN-0127/0108's unfiltered `findlinks_V`/`Match`: a nullified link never appears, even when still arrangement-reachable.
 
@@ -194,6 +206,8 @@ The protocol is **stateless**: the entire continuation is the client's cursor, a
 ```rust
 fn window_over(matched: &im::OrdSet<Tumbler>, cur: Cursor, n: usize,
                keep: impl Fn(&Tumbler) -> bool) -> Window {
+    let n = n.max(1);                                          // total API: n = 0 would give exhausted = (0<0) = false,
+                                                              // an empty batch with an unchanged cursor — a silent non-terminal
     let lo = match &cur { None => Unbounded, Some(c) => Excluded(c.tumbler().clone()) };
     let batch: Vec<Address> = matched.range((lo, Unbounded))   // ascending = address order = the key
         .filter(|t| keep(*t))                                  // t: &&Tumbler → deref to &Tumbler
@@ -220,7 +234,7 @@ Why this is correct and cheap:
 - **No duplicate, no skip** of continuously-matching links (W4/W5): the address key's comparisons never move, so a delivered link stays below every later cursor. **Append-at-tail** for newly created links holds within a home document (addresses are allocation-monotone, W6) — the documented cross-home blind spot stands (cross-home order is not state-recoverable).
 - **Exhaustion = short window**, zero included: `exhausted = batch.len() < n` (W9). The caller stops on the first short batch.
 
-`window_v`'s set is `findlinks_v` (disjunctive V-region — the ASN-0108 `Match = findlinks_V` reading); `window_ftt`'s set is `match_core`'s (below) — ASN-0108's *other* Match reading, `Match = findlinks_FTT`, the **same windowing mechanism instantiated over the conjunctive descriptor family** — with the home filter applied **lazily during the range walk** (`keep = home_ok`) — so a home-narrow query never materializes the full filtered set. (ASN-0108's cursor/window theory is thus instantiated over *both* Match readings.) Caller obligation: `n ≥ 1`.
+`window_v`'s set is `findlinks_v` (disjunctive V-region — the ASN-0108 `Match = findlinks_V` reading); `window_ftt`'s set is `match_core`'s (below) — ASN-0108's *other* Match reading, `Match = findlinks_FTT`, the **same windowing mechanism instantiated over the conjunctive descriptor family** — with the home filter applied **lazily during the range walk** (`keep = home_ok`) — so a home-narrow query never materializes the full filtered set. (ASN-0108's cursor/window theory is thus instantiated over *both* Match readings.) Caller obligation: `n ≥ 1` — and a passed `n = 0` is **clamped to `1`** in `window_over` (an unclamped `n = 0` yields `exhausted = (0 < 0) = false` with an empty batch and an unchanged cursor, a silent non-terminating signal), so the windowed API is total.
 
 ### 3. Four-set descriptor query (`findlinks_ftt`, `count_ftt`, `window_ftt`)
 
@@ -272,7 +286,7 @@ fn retrieve_endsets_on(snap, d, region) -> Result<Vec<(usize, Endset)>, QueryErr
     if img.is_empty() { return Ok(vec![]); }
     let q = Endset::from_spans(img.iter().map(Run::iextent));
     let candidates = stab_union(w, &q);                          // sel = findlinks_v ∩ active (stab_union ⇒ View::Active)
-    let mut out = im::HashSet::new();                             // INTERNAL dedup by structural Eq (not the return type)
+    let mut out = std::collections::HashSet::new();              // INTERNAL throwaway dedup by structural Eq — never crosses a seam
     for c in candidates.iter() {
         let link = w.links().readlink(&validate(c.clone()).unwrap()).unwrap();  // resident (from active slice)
         for i in 1..=link.arity() {                              // ALL slots of a found candidate (arity-3 in v1)
@@ -280,7 +294,7 @@ fn retrieve_endsets_on(snap, d, region) -> Result<Vec<(usize, Endset)>, QueryErr
             if touches(e, &img) { out.insert((i, e.clone())); }  // WHOLE endset, no clip
         }
     }
-    Ok(out.into_iter().collect())                                // im::HashSet → Vec at the output boundary
+    Ok(out.into_iter().collect())                                // HashSet → Vec at the output boundary
 }
 fn touches(e: &Endset, img: &[Run]) -> bool {                    // coverage(e) ∩ image ≠ ∅, per slot
     e.spans().any(|s| img.iter().any(|r| matches!(
@@ -289,7 +303,7 @@ fn touches(e: &Endset, img: &[Run]) -> bool {                    // coverage(e) 
 }
 ```
 
-`touches` reuses M1 `classify_spans` (pure order, no level gate — total on cross-length spans; a link-address endset reports `Separated` against a content image, so it is correctly not surfaced). Key decisions, all forced by the note: **whole-endset surfacing** (emit `e.clone()` — the full stored value from `readlink`, never clipped, RE-CLIP), which preserves union-distributivity (RE-UDIST); **dedup by structural endset equality** (`Endset: Eq + Hash`) in an internal `im::HashSet`, **converted to a `Vec` at the output boundary** (keeping M7's `im` containers off M8's public seam, as everywhere else), so value-identical endsets from distinct links collapse to one pair and identity is genuinely withheld (RE-UNIT); **content-identity answer** (I-address endsets — permanent), with V-rendering left to a lossy layer above. The candidate union is `{1,2,3}` (the v1 arity-3 invariant of §1); emission iterates a candidate's full arity, so any touching slots on a *found* candidate are surfaced.
+`touches` reuses M1 `classify_spans` (pure order, no level gate — total on cross-length spans; a link-address endset reports `Separated` against a content image, so it is correctly not surfaced). Key decisions, all forced by the note: **whole-endset surfacing** (emit `e.clone()` — the full stored value from `readlink`, never clipped, RE-CLIP), which preserves union-distributivity (RE-UDIST); **dedup by structural endset equality** (`Endset: Eq + Hash`) in an internal `std::collections::HashSet` — a throwaway local that never crosses a seam, so it needs none of `im`'s structural-sharing machinery — **converted to a `Vec` at the output boundary**, so value-identical endsets from distinct links collapse to one pair and identity is genuinely withheld (RE-UNIT); **content-identity answer** (I-address endsets — permanent), with V-rendering left to a lossy layer above. The candidate union is `{1,2,3}` (the v1 arity-3 invariant of §1); emission iterates a candidate's full arity, so any touching slots on a *found* candidate are surfaced.
 
 ### 5. Projection & discoverability (`project`, `discoverable_from`)
 
@@ -341,10 +355,10 @@ where `A_del` is the I-coverage of the deleted V-range and `retained_range = ran
 fn delete_orphans_on(snap, d, p, width) -> Result<OrphanReport, QueryError> {
     let w = snap.world();
     if !w.m3().is_registered_document(d) { return Err(QueryError::DocNotRegistered); }
-    if p.subspace != Nat::one()          { return Err(QueryError::BadRegion); }   // s_C only (mirror NotContentSubspace)
+    if p.subspace != Nat::one()          { return Err(QueryError::NotContentSubspace); }  // s_C only (mirror M5 DeleteError)
     let np = p.ordinal.clone();  let nc = w.m5().content_count(d);
-    if width.is_zero()                                  { return Err(QueryError::BadRegion); }  // EmptyWidth
-    if np < Nat::one() || &np + width > &nc + Nat::one() { return Err(QueryError::BadRegion); }  // unarranged / OutOfBounds
+    if width.is_zero()                                  { return Err(QueryError::EmptyWidth); }   // mirror M5 EmptyWidth
+    if np < Nat::one() || &np + width > &nc + Nat::one() { return Err(QueryError::OutOfBounds); }  // unarranged / OOB (mirror M5)
 
     let del_span = vspan(&Nat::one(), &np, width);                    // [s_C, np] width [0, width]
     let a_del    = w.m5().resolve(d, &del_span);                      // no clipping now (bounds checked)
@@ -367,7 +381,7 @@ fn vspan(subspace: &Nat, ordinal: &Nat, width: &Nat) -> Span {           // a si
 }
 ```
 
-Per-document orphaning is the deliverable. Rejecting a non-`s_C` `p` and an out-of-bounds `(p, width)` up front (as `BadRegion`) means the report is of exactly the delete the caller named — `resolve`'s silent clipping never coerces it into a different one — and pins every `vspan` width to `≥ 1`, so its `Span::new` lift never faults. When `retained` is empty (delete-everything from a link-free document), `surv` short-circuits to `∅` rather than handing M7's `stab` an empty query — mirroring `findlinks_v`/`discoverable_from` so the empty-query reliance stays off the `stab` surface uniformly (`cand` is always non-empty under the bounds check, so it needs no such guard). The final set is the **relative complement** `cand \ surv` — `im::OrdSet::relative_complement(self, other)` returns `self \ other`; the similarly-named `difference` is `im`'s alias for *symmetric* difference and would wrongly fold in `surv \ cand` (every link reaching the retained range, i.e. links that plainly survive), so the call site uses `relative_complement` and nothing else. The **global ghost** determination (LP17: discoverable from *no* document) requires checking each orphan against every other document's range — that reaches into provenance R (M5's `docs_containing`) and is M6 territory; M8 stops at the per-document set and a caller composes the escalation. Read-only throughout.
+Per-document orphaning is the deliverable. Rejecting a non-`s_C` `p` (`NotContentSubspace`), a zero `width` (`EmptyWidth`), and an out-of-range `(p, width)` (`OutOfBounds`) up front — mirroring M5's `DeleteError` granularity so the preview's rejection is *actionable*, the caller fixing the delete before issuing it — means the report is of exactly the delete the caller named (`resolve`'s silent clipping never coerces it into a different one) and pins every `vspan` width to `≥ 1`, so its `Span::new` lift never faults. When `retained` is empty (delete-everything from a link-free document), `surv` short-circuits to `∅` rather than handing M7's `stab` an empty query — mirroring `findlinks_v`/`discoverable_from` so the empty-query reliance stays off the `stab` surface uniformly (`cand` is always non-empty under the bounds check, so it needs no such guard). The final set is the **relative complement** `cand \ surv` — `im::OrdSet::relative_complement(self, other)` returns `self \ other`; the similarly-named `difference` is `im`'s alias for *symmetric* difference and would wrongly fold in `surv \ cand` (every link reaching the retained range, i.e. links that plainly survive), so the call site uses `relative_complement` and nothing else. The **global ghost** determination (LP17: discoverable from *no* document) requires checking each orphan against every other document's range — that reaches into provenance R (M5's `docs_containing`) and is M6 territory; M8 stops at the per-document set and a caller composes the escalation. Read-only throughout.
 
 ### 7. Archival supersession/edit lineage (`in_claims`, `out_claims`)
 
@@ -418,7 +432,7 @@ This design follows **M7's flipped storage convention — `FROM = old/superseded
 
 **By active enforcement** (M8 must guard):
 
-- **Document-existence + region gate.** `is_registered_document(d)` then `check_region(region)` *before* any M5 read on every V-anchored op — M5 conflates registered-empty (`∅`, defined) with unregistered (error) and silently clips a malformed span. Guarded at the top of `image_on` (inherited by `findlinks_v`/`count_v`/`window_v`/`retrieve_endsets`) and at `project`/`discoverable_from`/`delete_orphans`. `delete_orphans` additionally mirrors DELETE's `s_C`/in-bounds/non-empty-width preconditions (`BadRegion`), never previewing a coerced delete, and thereby pins every survival-check `vspan` to width ≥ 1. (ASN-0127 F-IMG/F-V, ASN-0131, ASN-0117, decomposition seam)
+- **Document-existence + region gate.** `is_registered_document(d)` then `check_region(region)` *before* any M5 read on every V-anchored op — M5 conflates registered-empty (`∅`, defined) with unregistered (error) and silently clips a malformed span. Guarded at the top of `image_on` (inherited by `findlinks_v`/`count_v`/`window_v`/`retrieve_endsets`) and at `project`/`discoverable_from`/`delete_orphans`. `delete_orphans` additionally mirrors DELETE's preconditions with M5-matching granularity — non-`s_C` `p` → `NotContentSubspace`, zero `width` → `EmptyWidth`, out-of-range `(p, width)` → `OutOfBounds` (an *actionable* rejection a caller can fix before issuing the delete, not an opaque `BadRegion`), never previewing a coerced delete, and thereby pins every survival-check `vspan` to width ≥ 1. (ASN-0127 F-IMG/F-V, ASN-0131, ASN-0117, decomposition seam)
 - **Snapshot consistency.** Read L, M, and the registry off **one** `Snapshot` per op, and **thread that one `snap` through internal composition** (`image_on`, never `self.image`); the `_on` twins let M10 share a snapshot across count+window. Guarded by snapshotting once and reading only `snap.world()`. (ASN-0127 Recovery; M2 clause 6)
 - **Relative complement, not symmetric difference, in the survival check.** `delete_orphans` computes `findlinks(A_del) \ findlinks(retained)` via `OrdSet::relative_complement`; `im`'s `difference` is symmetric difference and would invert the report. Guarded at the one call site. (ASN-0117)
 - **Addressability filter (foundation ∩ active).** Pass `View::Active` (not `Audit`) for every present-state query, so nullified links never appear — making `findlinks_v`/`count_v`/`window_v`/`discoverable_from`/`delete_orphans` realize *foundation ∩ addressable*, a deliberate divergence from ASN-0127/0098/0108/0117's UNFILTERED `findlinks_V`/`discoverable_from`/`Match`/`D(d,Σ)` (Conflicts #8). In particular `discoverable_from` is the compound "arrangement-reachable AND active", not pure LP12: a nullified-but-reachable link returns `Ok(false)`; and `delete_orphans` reports orphans over the active view, so a nullified link that loses its last witness in `d` is **not** reported, where ASN-0117's `D(d,Σ) = {a ∈ dom(Σ.L) : …}` ranges over `dom(L)`. Guarded at each `stab`/`match_links`/`type_slice` call site. (ASN-0121 FL-RET, ASN-0132 CN-RETRACT, ASN-0117)
@@ -426,7 +440,8 @@ This design follows **M7's flipped storage convention — `FROM = old/superseded
 - **Resident-key gate on archival lineage.** `claims_on` returns `[]` when `readlink(key).is_none()`, so a non-link `y`/`x` cannot over-match prefix-comparable claims. Guarded at the top of `claims_on`. (ASN-0125 EL4; ASN-0086 R0a)
 - **Home filter via address projection, never arrangement presence.** `home_ok` uses M1 `document_of`. (ASN-0132 CN-STAB)
 - **Present-tense discovery (no stale serve).** M8 owns no cache and always recomputes — the enforcement *is* the no-cache design. (ASN-0127 D-NONMONO, ASN-0108 W7)
-- **Withhold identity + dedup by structural endset value** in RETRIEVEENDSETS; **no clipping**; converted to a `Vec` at the seam. Guarded in the projection-and-dedup loop. (ASN-0131 RE-UNIT/RE-CLIP)
+- **Total windowing API.** `window_over` clamps `n` to `≥ 1` (`n.max(1)`), so a misusing `n = 0` never produces `exhausted = false` with an empty batch and an unchanged cursor (a silent non-terminating signal). Guarded once in the shared combinator, covering both `window_v` and `window_ftt`. (ASN-0108 W9)
+- **Withhold identity + dedup by structural endset value** in RETRIEVEENDSETS; **no clipping**; converted to a `Vec` at the seam (the dedup uses a throwaway `std::collections::HashSet`, never an `im` container). Guarded in the projection-and-dedup loop. (ASN-0131 RE-UNIT/RE-CLIP)
 - **No raw mixed-length span algebra.** Coverage overlap → M7; I→V → M5; query endsets → `from_spans(run.iextent())`. Guarded by never calling M1 `intersect_sets`/`difference_sets` on upstream covers. (M5/M7 level-class warnings)
 
 ## Dependencies & seams
@@ -441,13 +456,14 @@ This design follows **M7's flipped storage convention — `FROM = old/superseded
 
 **Downstream / seam contracts M10 builds against:**
 
-- **Region family** (`image`/`findlinks_v`/`count_v`/`window_v`/`retrieve_endsets`): take `(d, region: &[Span])`; **return `Err(DocNotRegistered)` for an unregistered `d`**, **`Err(BadRegion)` for a region that is not content-subspace ordinal-level depth-2 V-spans**, and a defined empty result for a registered-empty `d`. Present-tense, non-monotone, and **addressable-filtered** — every result is *foundation ∩ active*, so nullified links never surface. `image` MAY **repeat a Run** under overlapping input spans (ASN-0127 `image` is a set — a caller wanting set semantics dedups at the boundary). `retrieve_endsets` returns a `Vec<(usize, Endset)>` (deduped internally; no `im` container crosses the seam). M10 phrases the V-region (content subspace, depth-2).
+- **Region family** (`image`/`findlinks_v`/`count_v`/`window_v`/`retrieve_endsets`): take `(d, region: &[Span])`; **return `Err(DocNotRegistered)` for an unregistered `d`**, **`Err(BadRegion)` for a region that is not content-subspace ordinal-level depth-2 V-spans**, and a defined empty result for a registered-empty `d`. Present-tense, non-monotone, and **addressable-filtered** — every result is *foundation ∩ active*, so nullified links never surface. `image` is **deduped at M8's boundary** (`Run: Eq`) — no exact-equal Run repeat, matching ASN-0127's set semantics with no caller obligation. `retrieve_endsets` returns a `Vec<(usize, Endset)>` (deduped internally in a throwaway `std::collections::HashSet`; no `im` container crosses the seam). M10 phrases the V-region (content subspace, depth-2).
 - **Descriptor family** (`findlinks_ftt`/`count_ftt`/`window_ftt`): take an address-phrased `FourSet`; total (no doc gate); monotone; `count_ftt` is ASN-0132's operation. A `SlotSpec::Spans` **must carry a non-empty `Endset`** — an empty one is normalized onto the zero (`Empty`/annihilate) path (FL-EMP), so M7 never sees an empty `match_links` `Endset`. M10 resolves any reader content-pointings to addresses upstream.
 - **Projection** (`project`): content-subspace only; `NotALink` covers both a non-link `a` and an out-of-range `slot`. **Discoverability** (`discoverable_from`): compound "reachable AND active", **not** raw LP12 (its doc-comment leads with the NOT-LP12 warning); a nullified-but-reachable link answers `Ok(false)`.
+- **Pre-edit survival** (`delete_orphans`): read-only what-if; orphans over the active view (a nullified link that lost its last witness in `d` is not reported — divergence from ASN-0117's `D(d,Σ)` over `dom(L)`); rejects with M5-matching granularity — `NotContentSubspace` (non-`s_C` `p`), `EmptyWidth` (zero `width`), `OutOfBounds` (out-of-range `(p, width)`) — so the rejection is *actionable*, never an opaque `BadRegion`.
 - **Archival lineage** (`in_claims`/`out_claims`): intended for resident link addresses (`dom(L)`); a non-link key is **gated internally** (returns `[]`) rather than over-matching prefix-comparable claims; `v = Active` yields the operative graph, `Audit` the full history. Faithful because the assembled system keeps the Supersedes slice schema-conforming (Ŝ^Σ = S^Σ — §7).
-- **Windowing**: cursor is a bare `Address`; `Window.exhausted` is the terminal signal; `next` resumes; stateless across calls (`n ≥ 1`). M10 carries the cursor; a partial/empty batch ends the pass.
+- **Windowing**: cursor is a bare `Address`; `Window.exhausted` is the terminal signal; `next` resumes; stateless across calls (`n ≥ 1`; `n = 0` is clamped to `1`, never a false non-terminal). M10 carries the cursor; a partial/empty batch ends the pass.
 - **Pure twins** (`*_on(&Snapshot<W>, …)`): M10 uses these to read a count and its window — or any pair — off one snapshot, satisfying the snapshot-token consistency need.
-- M8 returns `Vec<Address>` / `usize` / `Window` / `Vec<(usize, Endset)>` / `SupClaim` / `OrphanReport`; M10 marshals to the wire and surfaces precondition failures (`DocNotRegistered`/`NotALink`/`BadRegion`) as typed rejections (never a silent skip). These are reads — no commit — but still snapshot-isolated.
+- M8 returns `Vec<Address>` / `usize` / `Window` / `Vec<(usize, Endset)>` / `SupClaim` / `OrphanReport`; M10 marshals to the wire and surfaces precondition failures (`DocNotRegistered`/`NotALink`/`BadRegion`/`NotContentSubspace`/`EmptyWidth`/`OutOfBounds`) as typed rejections (never a silent skip). These are reads — no commit — but still snapshot-isolated.
 
 Crate graph: `skep-linkquery → skep-address, skep-kernel, skep-namespace, skep-arrangement, skep-links` (pure surfaces); `skep-operation (M10) → skep-linkquery`. M8 names no `World`/`Record`; contributes no slice to `skep-engine`. Acyclic, mirroring `M8 → M1, M2, M3, M5, M7`.
 
@@ -475,7 +491,7 @@ Crate graph: `skep-linkquery → skep-address, skep-kernel, skep-namespace, skep
 - **Survival-check scope.** Per-document orphan set (the "breaks N links here" feature — cheap, recommended default) vs. also the **global-ghost** escalation (each orphan checked against every other document via M5's R-index — expensive, and it crosses into M6/provenance). Default per-document; expose global only if a caller needs LP17 ghost determination, and route it through M6.
 - **Contextual claim discovery (EL11a).** Left out of M8 (scope = archival `in/out` = EL11b). If a reader wants "which claims does `d` list," compose M8's archival output with an M5/M6 listing check at a higher layer — do not push an M5-projection-emptiness probe into M8 (M1 gives no such test). This is also the accurate home for the link-subspace *positional* projection §5 declines (BH3 is the wrong tool — it is target→sources lookup, not V-position projection).
 - **`project` error granularity.** `NotALink` currently subsumes both a non-link `a` and an out-of-range `slot` (M7's `followlink` conflates them). A `BadSlot` split is deferred — it would cost an extra `readlink` to read arity; add it only if a caller needs to distinguish the two failures.
-- **`View: Copy` (optional upstream nicety, not relied on).** M8 builds against M7 *as given*: `View` is **not** `Copy`, so `stab_union` uses a fresh `View::Active` literal per slot (it is always the active view) and `claims_on` rebinds `v` locally (a fieldless-enum match) for its second use — no upstream derive assumed. Were M7 to add `Copy` on `View` (a fieldless tag enum, as `Shape`/`Behavior` already are), those two spots could shed the rebinds — a cosmetic simplification to raise with M7, never a dependency. Not a structural choice.
+- **`View: Copy` (optional upstream nicety, not relied on).** M8 builds against M7 *as given*: `View` is **not** `Copy`, so `stab_union` uses a fresh `View::Active` literal per slot (it is always the active view) and `claims_on` rebinds `v` locally (a fieldless-enum match) for its second use — no upstream derive assumed. The one-line ask to M7 — derive `Copy` on `View` (a fieldless tag enum, as `Shape`/`Behavior` already are) — is *filed* with M7 as a cosmetic simplification that would let those two spots shed the rebinds; it is **never a dependency** and not a structural choice.
 - **Secondary enumeration key.** Address-only (default; free from M7's order) vs. also offering content-order (least-covered-tumbler) pagination at O(|Match|·log) per-window re-sort. Add the re-sort only if a reader needs content-ordered windows; never build a persistent key index (M8 owns none).
 - **Count caching.** M8 recomputes (owns no state). Whether M10 wraps `count_ftt` with an epoch-tagged cache (CN-STAB: changes only on `K.λ`) and whether to special-case the all-wildcard count to `len()` of M7's active slice are M10/M7 choices, not M8's.
 - **Cursor token shape.** Bare `Address` (sufficient — the key *is* the address) vs. a fattened opaque token. Default bare; fatten only to skip a (zero-cost here) key recompute, never to carry a server-side materialized list.
