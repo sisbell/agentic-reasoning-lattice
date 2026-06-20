@@ -54,7 +54,7 @@ where W: WorldState + HasLinks + HasM5 + HasM3
     pub fn window_v(&self, d: &Address, region: &[Span], cur: Cursor, n: usize)
         -> Result<Window, QueryError>;                                                          // ASN-0108 (∩ active)
     pub fn retrieve_endsets(&self, d: &Address, region: &[Span])
-        -> Result<im::HashSet<(usize, Endset)>, QueryError>;                                    // ASN-0131
+        -> Result<Vec<(usize, Endset)>, QueryError>;                                            // ASN-0131
 
     // ── Four-set descriptor query (address-keyed, conjunctive, link-store-local, monotone) ──
     pub fn findlinks_ftt(&self, q: &FourSet) -> Vec<Address>;                                   // ASN-0121
@@ -67,15 +67,16 @@ where W: WorldState + HasLinks + HasM5 + HasM3
     /// solely through d's LINK subspace projects ∅ here (link-side reverse discovery is M7's BH3).
     /// `NotALink` subsumes BOTH `a ∉ dom(L)` AND an out-of-range `slot` (M7's followlink conflates them).
     pub fn project(&self, a: &Address, slot: usize, d: &Address) -> Result<SpanSet, QueryError>;// ASN-0098 I→V
-    /// Compound "arrangement-reachable AND active", NOT pure LP12: a nullified-but-reachable link
-    /// returns Ok(false). For raw LP12 compose `followlink` + M5 `project`. NotALink if a ∉ dom(L).
+    /// NOT pure LP12 — active-filtered. Compound "arrangement-reachable AND active": a
+    /// nullified-but-reachable link returns Ok(false) where LP12 would call it discoverable. For
+    /// raw LP12 compose `followlink` + M5 `project`. NotALink if a ∉ dom(L).
     pub fn discoverable_from(&self, a: &Address, d: &Address) -> Result<bool, QueryError>;
 
     // ── Pre-edit link-survival (read-only; never touches the edit path) ──
     pub fn delete_orphans(&self, d: &Address, p: &VPos, width: &Nat)
         -> Result<OrphanReport, QueryError>;                                                    // ASN-0117
 
-    // ── Archival supersession/edit lineage (y/x MUST be resident link addresses — dom(L)) ──
+    // ── Archival supersession/edit lineage (y/x intended as resident link addresses — dom(L)) ──
     pub fn in_claims(&self, y: &Address, v: View) -> Vec<SupClaim>;   // claims with old = y
     pub fn out_claims(&self, x: &Address, v: View) -> Vec<SupClaim>;  // claims with new = x
 }
@@ -88,7 +89,7 @@ pub fn image_on           <W>(s: &Snapshot<W>, d: &Address, region: &[Span]) -> 
 pub fn findlinks_v_on     <W>(s: &Snapshot<W>, d: &Address, region: &[Span]) -> Result<Vec<Address>, QueryError>;
 pub fn count_v_on         <W>(s: &Snapshot<W>, d: &Address, region: &[Span]) -> Result<usize, QueryError>;
 pub fn window_v_on        <W>(s: &Snapshot<W>, d: &Address, region: &[Span], cur: Cursor, n: usize) -> Result<Window, QueryError>;
-pub fn retrieve_endsets_on<W>(s: &Snapshot<W>, d: &Address, region: &[Span]) -> Result<im::HashSet<(usize, Endset)>, QueryError>;
+pub fn retrieve_endsets_on<W>(s: &Snapshot<W>, d: &Address, region: &[Span]) -> Result<Vec<(usize, Endset)>, QueryError>;
 pub fn findlinks_ftt_on   <W>(s: &Snapshot<W>, q: &FourSet) -> Vec<Address>;
 pub fn count_ftt_on       <W>(s: &Snapshot<W>, q: &FourSet) -> usize;
 pub fn window_ftt_on      <W>(s: &Snapshot<W>, q: &FourSet, cur: Cursor, n: usize) -> Window;
@@ -108,7 +109,7 @@ pub fn out_claims_on      <W>(s: &Snapshot<W>, x: &Address, v: View) -> Vec<SupC
 
 Its "data model" is therefore just (a) the request/result value types above and (b) one load-bearing representation decision:
 
-- **Result sets are carried internally as `im::OrdSet<Tumbler>` — M7's native discovery return type — and converted to `Vec<Address>` only at the output boundary.** M7's primitives yield `&Tumbler` under iteration (`iter`/`range`); M8 **clones each key and `validate`s it at the lift** — infallible, since every key is a T4-valid minted address (M7's §G→§F note). This is the whole engine: `union`/`difference`/`range` on a persistent ordered set are cheap and structurally-shared, and **`OrdSet<Tumbler>` is ordered by tumbler = link address = exactly ASN-0108's permanent enumeration key.** So windowing is a `range(Excluded(cursor)..).take(n)` — no M8-side index, no re-sort. This is what lets M8 "own no index" yet page efficiently.
+- **Result sets are carried internally as `im::OrdSet<Tumbler>` — M7's native discovery return type — and converted to `Vec<Address>` only at the output boundary.** M7's primitives yield `&Tumbler` under iteration (`iter`/`range`); M8 **clones each key and `validate`s it at the lift** — infallible, since every key is a T4-valid minted address (M7's §G→§F note). This is the whole engine: `union`/`difference`/`range` on a persistent ordered set are cheap and structurally-shared, and **`OrdSet<Tumbler>` is ordered by tumbler = link address = exactly ASN-0108's permanent enumeration key.** So windowing is a `range(Excluded(cursor)..).take(n)` — no M8-side index, no re-sort. This is what lets M8 "own no index" yet page efficiently. The same convert-at-the-boundary discipline applies to every other M7 `im` container M8 touches (e.g. the `im::HashSet` it deduplicates RETRIEVEENDSETS pairs in is collected to a `Vec` before it crosses the public seam).
 
 - **Authoritative state owned: none.** The link store, active/audit slices, spanfilade, type registry (M7); arrangements and R (M5); registry (M3). **Recomputable hints owned: none.** M8 recomputes every answer from upstream each call; the only index it leans on (M7's spanfilade) is M7's hint, recovered by M7. The unit of consistency is the M2 `Snapshot` threaded through one operation.
 
@@ -129,7 +130,7 @@ fn addrs(keys: &im::OrdSet<Tumbler>) -> Vec<Address> {
 /// Exact over ALL slots by the v1 arity-3 invariant (below). View::Active discharges addressability.
 fn stab_union<W: HasLinks>(w: &W, q: &Endset, v: View) -> im::OrdSet<Tumbler> {
     let mut out = im::OrdSet::new();
-    for i in [FROM, TO, TYPE] { out = out.union(w.links().stab(i, q, v)); }
+    for i in [FROM, TO, TYPE] { out = out.union(w.links().stab(i, q, v)); }  // v passed by value per slot ⇒ relies on View: Copy (M7 build dep)
     out
 }
 /// Region gate: each span must be a CONTENT-subspace, ordinal-level, depth-2 V-span (else BadRegion).
@@ -263,21 +264,21 @@ The all-wildcard `(∗,∗,∗,∗)` is `match_links(&[], Active)` = the whole a
 Same selection index as `findlinks_v`, a different read-out: report `(slot, endset)` pairs touching the region, **withholding link identity** (ASN-0131 RE-UNIT).
 
 ```rust
-fn retrieve_endsets_on(snap, d, region) -> Result<im::HashSet<(usize, Endset)>, QueryError> {
+fn retrieve_endsets_on(snap, d, region) -> Result<Vec<(usize, Endset)>, QueryError> {
     let w = snap.world();
     let img = image_on(snap, d, region)?;                          // gate + region-check inside, on THIS snap
-    if img.is_empty() { return Ok(im::HashSet::new()); }
+    if img.is_empty() { return Ok(vec![]); }
     let q = Endset::from_spans(img.iter().map(Run::iextent));
     let candidates = stab_union(w, &q, View::Active);             // sel = findlinks_v ∩ active
-    let mut out = im::HashSet::new();
+    let mut out = im::HashSet::new();                             // INTERNAL dedup by structural Eq (not the return type)
     for c in candidates.iter() {
         let link = w.links().readlink(&validate(c.clone()).unwrap()).unwrap();  // resident (from active slice)
         for i in 1..=link.arity() {                              // ALL slots of a found candidate (arity-3 in v1)
             let e = link.slot(i).unwrap();
-            if touches(e, &img) { out.insert((i, e.clone())); }  // WHOLE endset, no clip; dedup by structural Eq
+            if touches(e, &img) { out.insert((i, e.clone())); }  // WHOLE endset, no clip
         }
     }
-    Ok(out)
+    Ok(out.into_iter().collect())                                // im::HashSet → Vec at the output boundary
 }
 fn touches(e: &Endset, img: &[Run]) -> bool {                    // coverage(e) ∩ image ≠ ∅, per slot
     e.spans().any(|s| img.iter().any(|r| matches!(
@@ -286,7 +287,7 @@ fn touches(e: &Endset, img: &[Run]) -> bool {                    // coverage(e) 
 }
 ```
 
-`touches` reuses M1 `classify_spans` (pure order, no level gate — total on cross-length spans; a link-address endset reports `Separated` against a content image, so it is correctly not surfaced). Key decisions, all forced by the note: **whole-endset surfacing** (emit `e.clone()` — the full stored value from `readlink`, never clipped, RE-CLIP), which preserves union-distributivity (RE-UDIST); **dedup by structural endset equality** (`Endset: Eq + Hash`), so value-identical endsets from distinct links collapse to one pair and identity is genuinely withheld (RE-UNIT); **content-identity answer** (I-address endsets — permanent), with V-rendering left to a lossy layer above. The candidate union is `{1,2,3}` (the v1 arity-3 invariant of §1); emission iterates a candidate's full arity, so any touching slots on a *found* candidate are surfaced.
+`touches` reuses M1 `classify_spans` (pure order, no level gate — total on cross-length spans; a link-address endset reports `Separated` against a content image, so it is correctly not surfaced). Key decisions, all forced by the note: **whole-endset surfacing** (emit `e.clone()` — the full stored value from `readlink`, never clipped, RE-CLIP), which preserves union-distributivity (RE-UDIST); **dedup by structural endset equality** (`Endset: Eq + Hash`) in an internal `im::HashSet`, **converted to a `Vec` at the output boundary** (keeping M7's `im` containers off M8's public seam, as everywhere else), so value-identical endsets from distinct links collapse to one pair and identity is genuinely withheld (RE-UNIT); **content-identity answer** (I-address endsets — permanent), with V-rendering left to a lossy layer above. The candidate union is `{1,2,3}` (the v1 arity-3 invariant of §1); emission iterates a candidate's full arity, so any touching slots on a *found* candidate are surfaced.
 
 ### 5. Projection & discoverability (`project`, `discoverable_from`)
 
@@ -324,7 +325,7 @@ fn discoverable_from_on(snap, a, d) -> Result<bool, QueryError> {
 }
 ```
 
-Including `link_runs` makes this faithful to LP12's `coverage ∩ ran(M(d))` across both subspaces, with M7's stab handling the level classes; the `full.is_empty()` short-circuit returns `Ok(false)` for a registered-but-empty `d` (nothing is reachable) and keeps the empty-query reliance off M7's `stab` surface — it mirrors `findlinks_v`'s `img.is_empty()` guard. **`discoverable_from` is the compound "arrangement-reachable AND active", not pure LP12:** because the membership test runs over `View::Active`, a nullified-but-still-reachable link returns `Ok(false)` here, whereas LP12 (which predates retraction) would call it discoverable — a caller wanting raw LP12 composes `followlink` + M5 `project` itself. **Non-link handling is aligned:** both `project` and `discoverable_from` answer `Err(NotALink)` when `a ∉ dom(L)` — `project` via `followlink`'s `Invalid`, `discoverable_from` via an explicit `readlink` gate. A *nullified* link is still a link: it passes the gate (`readlink` reads `dom(L)` verbatim) and `discoverable_from` returns `Ok(false)` under the active view — distinguishing "not a link" from "a retracted link."
+Including `link_runs` makes this faithful to LP12's `coverage ∩ ran(M(d))` across both subspaces, with M7's stab handling the level classes; the `full.is_empty()` short-circuit returns `Ok(false)` for a registered-but-empty `d` (nothing is reachable) and keeps the empty-query reliance off M7's `stab` surface — it mirrors `findlinks_v`'s `img.is_empty()` guard. **`discoverable_from` is the compound "arrangement-reachable AND active", not pure LP12:** because the membership test runs over `View::Active`, a nullified-but-still-reachable link returns `Ok(false)` here, whereas LP12 (which predates retraction) would call it discoverable — a caller wanting raw LP12 composes `followlink` + M5 `project` itself (and the public doc-comment leads with this NOT-LP12 warning). **Non-link handling is aligned:** both `project` and `discoverable_from` answer `Err(NotALink)` when `a ∉ dom(L)` — `project` via `followlink`'s `Invalid`, `discoverable_from` via an explicit `readlink` gate. A *nullified* link is still a link: it passes the gate (`readlink` reads `dom(L)` verbatim) and `discoverable_from` returns `Ok(false)` under the active view — distinguishing "not a link" from "a retracted link."
 
 ### 6. Pre-edit link-survival check (`delete_orphans`)
 
@@ -352,7 +353,8 @@ fn delete_orphans_on(snap, d, p, width) -> Result<OrphanReport, QueryError> {
     for s in [pre, suf].into_iter().flatten() { retained.extend(w.m5().resolve(d, &s)); }
     let cand = stab_union(w, &Endset::from_spans(a_del.iter().map(Run::iextent)),    View::Active);
     let surv = stab_union(w, &Endset::from_spans(retained.iter().map(Run::iextent)), View::Active);
-    Ok(OrphanReport { orphaned: addrs(&cand.difference(surv)) })
+    // relative_complement = cand \ surv (im's `difference` is SYMMETRIC difference — NOT what we want)
+    Ok(OrphanReport { orphaned: addrs(&cand.relative_complement(surv)) })
 }
 
 fn vspan(subspace: &Nat, ordinal: &Nat, width: &Nat) -> Span {           // a single V-span value, no algebra
@@ -362,7 +364,7 @@ fn vspan(subspace: &Nat, ordinal: &Nat, width: &Nat) -> Span {           // a si
 }
 ```
 
-Per-document orphaning is the deliverable. Rejecting a non-`s_C` `p` and an out-of-bounds `(p, width)` up front (as `BadRegion`) means the report is of exactly the delete the caller named — `resolve`'s silent clipping never coerces it into a different one — and pins every `vspan` width to `≥ 1`, so its `Span::new` lift never faults. The **global ghost** determination (LP17: discoverable from *no* document) requires checking each orphan against every other document's range — that reaches into provenance R (M5's `docs_containing`) and is M6 territory; M8 stops at the per-document set and a caller composes the escalation. Read-only throughout.
+Per-document orphaning is the deliverable. Rejecting a non-`s_C` `p` and an out-of-bounds `(p, width)` up front (as `BadRegion`) means the report is of exactly the delete the caller named — `resolve`'s silent clipping never coerces it into a different one — and pins every `vspan` width to `≥ 1`, so its `Span::new` lift never faults. The final set is the **relative complement** `cand \ surv` — `im::OrdSet::relative_complement(self, other)` returns `self \ other`; the similarly-named `difference` is `im`'s alias for *symmetric* difference and would wrongly fold in `surv \ cand` (every link reaching the retained range, i.e. links that plainly survive), so the call site uses `relative_complement` and nothing else. The **global ghost** determination (LP17: discoverable from *no* document) requires checking each orphan against every other document's range — that reaches into provenance R (M5's `docs_containing`) and is M6 territory; M8 stops at the per-document set and a caller composes the escalation. Read-only throughout.
 
 ### 7. Archival supersession/edit lineage (`in_claims`, `out_claims`)
 
@@ -373,6 +375,8 @@ fn in_claims_on (snap, y, v) -> Vec<SupClaim> { claims_on(snap, FROM, y, v) }   
 fn out_claims_on(snap, x, v) -> Vec<SupClaim> { claims_on(snap, TO,   x, v) }   // new(e) = x  (TO   = new)
 fn claims_on(snap, slot, key, v) -> Vec<SupClaim> {
     let l   = snap.world().links();
+    if l.readlink(key).is_none() { return vec![]; }   // RESIDENCE GATE: a non-link key's enc([key]) prefix-
+                                                       // coverage would over-match prefix-comparable claims (EL4 + R0a)
     let sup = l.reserved_type(ShippedType::Supersedes);
     let hits = l.match_links(&[(slot, enc(slice::from_ref(key)))], v)            // claims naming `key` at `slot`
                 .intersection(l.type_slice(sup, v));                            // restrict to supersession claims
@@ -389,9 +393,9 @@ fn claims_on(snap, slot, key, v) -> Vec<SupClaim> {
 }
 ```
 
-This design follows **M7's flipped storage convention — `FROM = old/superseded`, `TO = new/superseding`** (the M7→M8 seam), diverging from ASN-0125's textual Df-DIR; so `in(y)` (old = y) probes FROM, `out(x)` (new = x) probes TO. `v = Active` gives the operative graph (`succ_o`), `v = Audit` the full history (`succ_h`). Attribution is the pure M1 `document_of` projection — no store lookup (EL8b).
+This design follows **M7's flipped storage convention — `FROM = old/superseded`, `TO = new/superseding`** (the M7→M8 seam), diverging from ASN-0125's textual Df-DIR; so `in(y)` (old = y) probes FROM, `out(x)` (new = x) probes TO. `v = Active` gives the operative graph (`succ_o`), `v = Audit` the full history (`succ_h`). Attribution is the pure M1 `document_of` projection — no store lookup (EL8b). Both probes pass `v` by value twice (`match_links` then `type_slice`), so this composition leans on the same `View: Copy` build dependency stab_union does.
 
-**Caller precondition: `y`/`x` are resident link addresses (`dom(L)`).** Exactness of `match_links(slot, enc([key])) ∩ type_slice(Supersedes)` ⟺ a claim names `key` at that slot rests on the `dom(L)` prefix-antichain (EL4 + R0a): for a non-link `key`, `enc([key])`'s prefix coverage `{t : key ≼ t}` could overlap a prefix-comparable claim and **over-match**. M8 documents the precondition rather than gating (these reads return `Vec`, not `Result`); a caller unsure of residence checks `readlink(key).is_some()` first.
+**Resident-key gate (enforced, not merely documented).** Exactness of `match_links(slot, enc([key])) ∩ type_slice(Supersedes)` ⟺ "a claim names `key` at that slot" rests on the `dom(L)` prefix-antichain (EL4 + R0a): for a non-link `key`, `enc([key])`'s prefix coverage `{t : key ≼ t}` could overlap a prefix-comparable claim and **over-match**, returning a silently wrong lineage. Because these reads return `Vec` (not `Result`), M8 **gates internally** rather than leaving a trap behind a comment: `claims_on` short-circuits to `[]` when `readlink(key).is_none()`, so a non-link `y`/`x` yields the (correct) empty lineage. Callers should still pass resident link addresses; the gate is a defensive backstop, not a license to pass arbitrary tumblers.
 
 **Contextual discovery (EL11a — a claim visible in `d` iff `d` lists the endpoint) is out of M8's decomposed scope** (M8 owns the *archival* `in/out` = EL11b). A reader needing it composes M8's archival output with an M5/M6 listing check; M8 does not ship it, precisely because the in-place V-listing test would require an emptiness probe on M5's opaque projection that M1 does not provide (§5).
 
@@ -410,12 +414,13 @@ This design follows **M7's flipped storage convention — `FROM = old/superseded
 
 - **Document-existence + region gate.** `is_registered_document(d)` then `check_region(region)` *before* any M5 read on every V-anchored op — M5 conflates registered-empty (`∅`, defined) with unregistered (error) and silently clips a malformed span. Guarded at the top of `image_on` (inherited by `findlinks_v`/`count_v`/`window_v`/`retrieve_endsets`) and at `project`/`discoverable_from`/`delete_orphans`. `delete_orphans` additionally mirrors DELETE's `s_C`/in-bounds/non-empty-width preconditions (`BadRegion`), never previewing a coerced delete, and thereby pins every survival-check `vspan` to width ≥ 1. (ASN-0127 F-IMG/F-V, ASN-0131, ASN-0117, decomposition seam)
 - **Snapshot consistency.** Read L, M, and the registry off **one** `Snapshot` per op, and **thread that one `snap` through internal composition** (`image_on`, never `self.image`); the `_on` twins let M10 share a snapshot across count+window. Guarded by snapshotting once and reading only `snap.world()`. (ASN-0127 Recovery; M2 clause 6)
+- **Relative complement, not symmetric difference, in the survival check.** `delete_orphans` computes `findlinks(A_del) \ findlinks(retained)` via `OrdSet::relative_complement`; `im`'s `difference` is symmetric difference and would invert the report. Guarded at the one call site. (ASN-0117)
 - **Addressability filter (foundation ∩ active).** Pass `View::Active` (not `Audit`) for every present-state query, so nullified links never appear — making `findlinks_v`/`count_v`/`window_v`/`discoverable_from` realize *foundation ∩ addressable*, a deliberate divergence from ASN-0127/0098/0108's UNFILTERED `findlinks_V`/`discoverable_from`/`Match` (Conflicts #8). In particular `discoverable_from` is the compound "arrangement-reachable AND active", not pure LP12: a nullified-but-reachable link returns `Ok(false)`. Guarded at each `stab`/`match_links`/`type_slice` call site. (ASN-0121 FL-RET, ASN-0132 CN-RETRACT)
 - **Empty constrained slot → zero, never an empty M7 query.** `match_core` annihilates to `∅` on any `SlotSpec::Empty` *or* empty-coverage `SlotSpec::Spans` before building constraints, so M7's `match_links` never receives an empty `Endset` (which it forbids) — exactly FL-EMP respected by construction. (ASN-0121 FL-EMP; M7 `match_links` contract)
+- **Resident-key gate on archival lineage.** `claims_on` returns `[]` when `readlink(key).is_none()`, so a non-link `y`/`x` cannot over-match prefix-comparable claims. Guarded at the top of `claims_on`. (ASN-0125 EL4; ASN-0086 R0a)
 - **Home filter via address projection, never arrangement presence.** `home_ok` uses M1 `document_of`. (ASN-0132 CN-STAB)
 - **Present-tense discovery (no stale serve).** M8 owns no cache and always recomputes — the enforcement *is* the no-cache design. (ASN-0127 D-NONMONO, ASN-0108 W7)
-- **Withhold identity + dedup by structural endset value** in RETRIEVEENDSETS; **no clipping**. Guarded in the projection-and-dedup loop. (ASN-0131 RE-UNIT/RE-CLIP)
-- **Last-witness set algebra** in the survival check (`findlinks(A_del) \ findlinks(retained)`), never per-pair. (ASN-0117)
+- **Withhold identity + dedup by structural endset value** in RETRIEVEENDSETS; **no clipping**; converted to a `Vec` at the seam. Guarded in the projection-and-dedup loop. (ASN-0131 RE-UNIT/RE-CLIP)
 - **No raw mixed-length span algebra.** Coverage overlap → M7; I→V → M5; query endsets → `from_spans(run.iextent())`. Guarded by never calling M1 `intersect_sets`/`difference_sets` on upstream covers. (M5/M7 level-class warnings)
 
 ## Dependencies & seams
@@ -426,17 +431,17 @@ This design follows **M7's flipped storage convention — `FROM = old/superseded
 - **M2** — `kernel.snapshot()` for one consistent (L, M, registry) read; `snapshot.world()`/`seq()`; no writes.
 - **M3** — `is_registered_document(d)` only (the doc-existence gate).
 - **M5** — `resolve` (V→I runs, the image source), `project` (I→V content, level-class-safe), `content_runs`/`link_runs` (`ran M(d)` for discoverability/survival), `content_count` (delete bounds), `point`. M8 never reads R.
-- **M7** — `stab`/`match_links`/`type_slice` (the spanfilade — *the* matcher; M8 does not reimplement it), `readlink`/`followlink`, `is_active`, `reserved_type(Supersedes)`, `enc`/`Endset::from_spans`, `View::Active`/`Audit`; archival composes `match_links ∩ type_slice` + `readlink`. M8 lifts a §G `Tumbler` to `Address` via `validate` before any `readlink`.
+- **M7** — `stab`/`match_links`/`type_slice` (the spanfilade — *the* matcher; M8 does not reimplement it), `readlink`/`followlink`, `is_active`, `reserved_type(Supersedes)`, `enc`/`Endset::from_spans`, `View::Active`/`Audit`; archival composes `match_links ∩ type_slice` + `readlink`. M8 lifts a §G `Tumbler` to `Address` via `validate` before any `readlink`. **Build-time dependency: M8 passes `View` by value to `stab`/`match_links`/`type_slice` repeatedly within one op (`stab_union`'s 3-slot loop, `claims_on`'s two probes), so it relies on M7's `View` deriving `Copy`** — a fieldless tag enum (`Shape`/`Behavior` already derive `Copy`); flagged here for M7 to confirm on `View`, exactly the kind of cross-module build constant the PredLayer agreements are. (If M7 declines `Copy`, M8 rebinds the view per use locally; either way no upstream API is added.)
 
 **Downstream / seam contracts M10 builds against:**
 
-- **Region family** (`image`/`findlinks_v`/`count_v`/`window_v`/`retrieve_endsets`): take `(d, region: &[Span])`; **return `Err(DocNotRegistered)` for an unregistered `d`**, **`Err(BadRegion)` for a region that is not content-subspace ordinal-level depth-2 V-spans**, and a defined empty result for a registered-empty `d`. Present-tense, non-monotone, and **addressable-filtered** — every result is *foundation ∩ active*, so nullified links never surface. `image` MAY **repeat a Run** under overlapping input spans (ASN-0127 `image` is a set — a caller wanting set semantics dedups at the boundary). M10 phrases the V-region (content subspace, depth-2).
+- **Region family** (`image`/`findlinks_v`/`count_v`/`window_v`/`retrieve_endsets`): take `(d, region: &[Span])`; **return `Err(DocNotRegistered)` for an unregistered `d`**, **`Err(BadRegion)` for a region that is not content-subspace ordinal-level depth-2 V-spans**, and a defined empty result for a registered-empty `d`. Present-tense, non-monotone, and **addressable-filtered** — every result is *foundation ∩ active*, so nullified links never surface. `image` MAY **repeat a Run** under overlapping input spans (ASN-0127 `image` is a set — a caller wanting set semantics dedups at the boundary). `retrieve_endsets` returns a `Vec<(usize, Endset)>` (deduped internally; no `im` container crosses the seam). M10 phrases the V-region (content subspace, depth-2).
 - **Descriptor family** (`findlinks_ftt`/`count_ftt`/`window_ftt`): take an address-phrased `FourSet`; total (no doc gate); monotone; `count_ftt` is ASN-0132's operation. A `SlotSpec::Spans` **must carry a non-empty `Endset`** — an empty one is normalized onto the zero (`Empty`/annihilate) path (FL-EMP), so M7 never sees an empty `match_links` `Endset`. M10 resolves any reader content-pointings to addresses upstream.
-- **Projection** (`project`): content-subspace only; `NotALink` covers both a non-link `a` and an out-of-range `slot`. **Discoverability** (`discoverable_from`): compound "reachable AND active", not raw LP12.
-- **Archival lineage** (`in_claims`/`out_claims`): `y`/`x` **must be resident link addresses** (`dom(L)`) — a non-link key can over-match a prefix-comparable claim; `v = Active` yields the operative graph, `Audit` the full history.
+- **Projection** (`project`): content-subspace only; `NotALink` covers both a non-link `a` and an out-of-range `slot`. **Discoverability** (`discoverable_from`): compound "reachable AND active", **not** raw LP12 (its doc-comment leads with the NOT-LP12 warning); a nullified-but-reachable link answers `Ok(false)`.
+- **Archival lineage** (`in_claims`/`out_claims`): intended for resident link addresses (`dom(L)`); a non-link key is **gated internally** (returns `[]`) rather than over-matching prefix-comparable claims; `v = Active` yields the operative graph, `Audit` the full history.
 - **Windowing**: cursor is a bare `Address`; `Window.exhausted` is the terminal signal; `next` resumes; stateless across calls (`n ≥ 1`). M10 carries the cursor; a partial/empty batch ends the pass.
 - **Pure twins** (`*_on(&Snapshot<W>, …)`): M10 uses these to read a count and its window — or any pair — off one snapshot, satisfying the snapshot-token consistency need.
-- M8 returns `Vec<Address>` / `usize` / `Window` / `HashSet<(usize, Endset)>` / `SupClaim` / `OrphanReport`; M10 marshals to the wire and surfaces precondition failures (`DocNotRegistered`/`NotALink`/`BadRegion`) as typed rejections (never a silent skip). These are reads — no commit — but still snapshot-isolated.
+- M8 returns `Vec<Address>` / `usize` / `Window` / `Vec<(usize, Endset)>` / `SupClaim` / `OrphanReport`; M10 marshals to the wire and surfaces precondition failures (`DocNotRegistered`/`NotALink`/`BadRegion`) as typed rejections (never a silent skip). These are reads — no commit — but still snapshot-isolated.
 
 Crate graph: `skep-linkquery → skep-address, skep-kernel, skep-namespace, skep-arrangement, skep-links` (pure surfaces); `skep-operation (M10) → skep-linkquery`. M8 names no `World`/`Record`; contributes no slice to `skep-engine`. Acyclic, mirroring `M8 → M1, M2, M3, M5, M7`.
 
@@ -464,6 +469,7 @@ Crate graph: `skep-linkquery → skep-address, skep-kernel, skep-namespace, skep
 - **Survival-check scope.** Per-document orphan set (the "breaks N links here" feature — cheap, recommended default) vs. also the **global-ghost** escalation (each orphan checked against every other document via M5's R-index — expensive, and it crosses into M6/provenance). Default per-document; expose global only if a caller needs LP17 ghost determination, and route it through M6.
 - **Contextual claim discovery (EL11a).** Left out of M8 (scope = archival `in/out` = EL11b). If a reader wants "which claims does `d` list," compose M8's archival output with an M5/M6 listing check at a higher layer — do not push an M5-projection-emptiness probe into M8 (M1 gives no such test).
 - **`project` error granularity.** `NotALink` currently subsumes both a non-link `a` and an out-of-range `slot` (M7's `followlink` conflates them). A `BadSlot` split is deferred — it would cost an extra `readlink` to read arity; add it only if a caller needs to distinguish the two failures.
+- **`View: Copy` vs. local rebind.** The default (above) pins `View: Copy` as an M7 build constant, keeping the helpers clean. If M7 declines to derive `Copy` on `View`, the fallback is a local per-use rebind in `stab_union`/`claims_on` (a fieldless-enum match-reconstruction) — invents no upstream API either way. Decide alongside M7; not a structural choice.
 - **Secondary enumeration key.** Address-only (default; free from M7's order) vs. also offering content-order (least-covered-tumbler) pagination at O(|Match|·log) per-window re-sort. Add the re-sort only if a reader needs content-ordered windows; never build a persistent key index (M8 owns none).
 - **Count caching.** M8 recomputes (owns no state). Whether M10 wraps `count_ftt` with an epoch-tagged cache (CN-STAB: changes only on `K.λ`) and whether to special-case the all-wildcard count to `len()` of M7's active slice are M10/M7 choices, not M8's.
 - **Cursor token shape.** Bare `Address` (sufficient — the key *is* the address) vs. a fattened opaque token. Default bare; fatten only to skip a (zero-cost here) key recompute, never to carry a server-side materialized list.
