@@ -1,0 +1,3 @@
+- `start` — projection function extracting the coordinate node s from a span σ = (s, ℓ); defined as start(σ) = s
+- `width` — projection function extracting the displacement ℓ from a span σ = (s, ℓ); defined as width(σ) = ℓ
+- `reach` — derived accessor computing the endpoint of a span as reach(σ) = s ⊕ ℓ; the target of the width-recovery equation
