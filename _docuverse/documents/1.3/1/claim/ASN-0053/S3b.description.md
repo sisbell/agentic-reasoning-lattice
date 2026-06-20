@@ -1,0 +1,1 @@
+Proves that merge followed by split is a lossless round-trip: merging two adjacent, level-uniform spans and then splitting the result at their shared boundary exactly recovers the original pair. The left/right assignment of the output is not arbitrary — it tracks the adjacency direction, with the left-to-right ordering of the inputs preserved.
