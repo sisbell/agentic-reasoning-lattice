@@ -31,10 +31,13 @@ impl<'s, W: M6World> Query<'s, W> {
 ### Shared request types
 
 ```rust
-/// One document + one ordinal-level depth-2 V-span. A spec-set is `&[Spec]`. Used by RETRIEVEV
-/// (content OR link) and COMPARE (content only).
+/// One document + one ordinal-level depth-2 V-span. RETRIEVEV's spec-set is the ORDERED `&[Spec]` —
+/// per-spec order is denotational (R5) and each spec carries a single span. This is the single-span,
+/// order-bearing idiom; the SET-shaped operations (COMPARE, FINDDOCSCONTAINING) use `Region` instead.
 pub struct Spec  { pub doc: Address, pub span: Span }
-/// One document + a finite V-region (set of spans). FINDDOCSCONTAINING (FD-CONVEX wants multi-span).
+/// One document + a finite V-region (set of spans) — the shared "(document, span-set)" idiom for the
+/// two SET-shaped operations: COMPARE (content only; the unordered set ASN-0122's `ρ` is) and
+/// FINDDOCSCONTAINING (FD-CONVEX wants multi-span). Both take `&[Region]`.
 pub struct Region { pub doc: Address, pub spans: Vec<Span> }
 ```
 
@@ -96,9 +99,10 @@ impl<'s, W: M6World> Query<'s, W> {
     /// nothing. See the SHOWDELETIONS section.
     pub fn show_deletions(&self, d_a: &Address, d_b: &Address) -> Result<Deletions, DeletionsError>;
 
-    /// COMPARE / SHOWRELATIONOF2VERSIONS (ASN-0122). Content-subspace spec-sets; reports address-equal
+    /// COMPARE / SHOWRELATIONOF2VERSIONS (ASN-0122). Two content-subspace spec-sets, each a set of
+    /// `Region`s (the shared (document, span-set) idiom — ASN-0122's `ρ`); reports address-equal
     /// correspondences (NEVER opens M4). Complete under fan-out, deterministic canonical order.
-    pub fn compare(&self, rho1: &[Spec], rho2: &[Spec]) -> Result<CompareReport, CompareError>;
+    pub fn compare(&self, rho1: &[Region], rho2: &[Region]) -> Result<CompareReport, CompareError>;
 }
 ```
 
@@ -123,7 +127,7 @@ pub enum RetrieveError  { DocNotRegistered(Address), MalformedSpec { index: usiz
 pub enum ExtentError    { DocNotRegistered }
 pub enum OriginError    { DocNotRegistered, NoSuchSubspace, EmptySubspace, RangeNotPresent, MalformedSpan(SpecFault) }
 pub enum DeletionsError { DocNotRegistered(Address) }
-pub enum CompareError   { DocNotRegistered(Address), NotContentSubspace, MalformedSpan { operand: Operand, index: usize, fault: SpecFault } }
+pub enum CompareError   { DocNotRegistered(Address), NotContentSubspace { operand: Operand, region: usize, index: usize }, MalformedSpan { operand: Operand, region: usize, index: usize, fault: SpecFault } }
 pub enum FindError      { DocNotRegistered(Address), MalformedSpan { region: usize, index: usize, fault: SpecFault } }
 ```
 
@@ -171,14 +175,22 @@ fn gate_vspec(span: &Span) -> Result<(), SpecFault> {
 /// content/link I-address has a 2-COMPONENT element field [subspace, ordinal] (zeros = 3), as M3 mints
 /// them. `ElemPos` models exactly that 2-component field, so reconstructing i_start as
 /// ElemPos{ doc, subspace, ordinal } and advancing the ordinal is faithful and dodges the raw-shift
-/// subspace-crossing footgun — but a LONGER element field would be silently truncated here.
+/// subspace-crossing footgun — but a LONGER element field would be silently truncated here, so a
+/// debug tripwire fails loudly if one ever arrives (M3 makes it unreachable — a guard, not a path).
 fn run_addr(i_start: &Address, k: &Nat) -> Address {
+    debug_assert!(i_start.element_field().map_or(false, |e| e.len() == 2),
+        "run_addr: I-address must carry a 2-component element field [subspace, ordinal] (else silent truncation)");
     let p = ElemPos { doc: document_of(i_start).unwrap(), subspace: i_start.subspace().unwrap(),
                       ordinal: ordinal(i_start.tumbler()).clone() };
     elem_addr(&shift_ordinal(&p, k)).unwrap()
 }
 
-fn dedup_docs(it: impl Iterator<Item = Address>) -> Vec<Address> { /* HashSet<Tumbler> → sort by Tumbler */ }
+/// Dedup a stream of addresses by their `Tumbler` and return them T1-sorted. `Address` is `Eq + Hash`
+/// but not `Ord`, so the `Tumbler` carries the order. Used for origin DOCUMENTS (SHOWORIGIN_V) and
+/// content I-ADDRESSES (SHOWDELETIONS) alike — both are `Address`, so one neutral helper serves either
+/// (the name says "addrs", not "docs", because at the SHOWDELETIONS site the deduped elements are
+/// content addresses, not documents).
+fn dedup_addrs(it: impl Iterator<Item = Address>) -> Vec<Address> { /* HashSet<Tumbler> → sort by Tumbler */ }
 
 /// CURRENT(·, d) on the content side — every content I-address d's arrangement currently binds (the
 /// math `content_image(d)`, realized in M6 by enumerating M5's V-ordered content runs per-position,
@@ -297,7 +309,7 @@ pub fn show_origin_v(&self, doc: &Address, span: &Span) -> Result<Vec<Address>, 
     let runs = m5.resolve(doc, span);                                                       // ⟨⟩ if #start ≥ 3 (depth-incompatible) — caught below
     let resolved: Nat = runs.iter().map(|r| &r.width).sum();
     if &resolved < ordinal(span.width()) { return Err(OriginError::RangeNotPresent); }      // (v)/(vi): unbound OR depth-incompatible — reject (O13), never clamp
-    Ok(dedup_docs(runs.iter().map(|r| document_of(&r.i_start).unwrap())))                   // link case ⇒ {doc} by CL-OWN
+    Ok(dedup_addrs(runs.iter().map(|r| document_of(&r.i_start).unwrap())))                  // link case ⇒ {doc} by CL-OWN
 }
 ```
 
@@ -311,7 +323,7 @@ pub fn show_origin_v(&self, doc: &Address, span: &Span) -> Result<Vec<Address>, 
 
 Two flags travel with the ruling so it does not silently diverge from the system docs:
 - **Preferring the V-arity is M6's call, not ASN-0077's.** The note designates *neither* arity "reader-facing"; M6 rules the V-arity the one it ships.
-- **The de-scope is settled, not conditional.** It is settled **by construction**: M10 can marshal only what M6's `Query` exposes, and that is `show_origin_v` alone — there is no I-arity method *anywhere* for the FEBE surface to reach (the I-arity would need the forbidden M4 index, which no module provides). The client surface therefore promises no SHOWORIGIN-over-I. (Corroborated by M10's enumerated reader-marshaling sources — ASN-0111/0112/0113/0114/0115/0121/0122/0124/0131/0132 — which list no SHOWORIGIN-over-I command.) The recorded amendment stands as future work (the new I-ordered index is where the I-arity would land *if* ever surfaced), not a live capability hole.
+- **The de-scope is settled, not conditional.** It is settled **by construction**: M10 can marshal only what M6's `Query` exposes, and that is `show_origin_v` alone — there is no I-arity method *anywhere* for the FEBE surface to reach (the I-arity would need the forbidden M4 index, which no module provides). The client surface therefore promises no SHOWORIGIN-over-I. This by-construction argument is the load-bearing one; M10's enumerated reader-marshaling sources (ASN-0111/0112/0113/0114/0115/0121/0122/0124/0131/0132) corroborate it only **vacuously**, since that list omits ASN-0077 **and** ASN-0075 *entirely* — its silence on a SHOWORIGIN-over-I command therefore says nothing positive. (That same omission is itself an **M10-side reader-marshaling reconciliation item, not an M6 defect**: 0077 and 0075 are exactly the two M6 readers M6 *does* ship — `show_origin_v` and `show_deletions` — so M10's source list should name them.) The recorded amendment stands as future work (the new I-ordered index is where the I-arity would land *if* ever surfaced), not a live capability hole.
 
 ### SHOWDELETIONS — gate, then membership-test the cross-document combine in M6
 
@@ -332,9 +344,9 @@ pub fn show_deletions(&self, d_a: &Address, d_b: &Address) -> Result<Deletions, 
     let del_a = m5.deletions(d_a);   // { a : DELETED(a, d_a) } as a per-level-class cover
     let del_b = m5.deletions(d_b);   // { a : DELETED(a, d_b) }
     // a_with_b = current-in-B ∧ deleted-from-A;  b_with_a = current-in-A ∧ deleted-from-B
-    let a_with_b = dedup_docs(arranged_content(m5, d_b).into_iter()
+    let a_with_b = dedup_addrs(arranged_content(m5, d_b).into_iter()
         .filter(|a| del_a.denotes(a.tumbler())));
-    let b_with_a = dedup_docs(arranged_content(m5, d_a).into_iter()
+    let b_with_a = dedup_addrs(arranged_content(m5, d_a).into_iter()
         .filter(|a| del_b.denotes(a.tumbler())));
     Ok(Deletions { a_with_b, b_with_a })
 }
@@ -351,14 +363,19 @@ pub fn show_deletions(&self, d_a: &Address, d_b: &Address) -> Result<Deletions, 
 The contract is a relational join keyed on **address equality, never value** — so COMPARE **never opens M4**. Three phases: resolve regions to blocks, interval-join on the I-axis with cross-product on overlap, coalesce-and-canonicalize.
 
 ```rust
-pub fn compare(&self, rho1: &[Spec], rho2: &[Spec]) -> Result<CompareReport, CompareError> {
+pub fn compare(&self, rho1: &[Region], rho2: &[Region]) -> Result<CompareReport, CompareError> {
     let (m3, m5) = (self.0.world().m3(), self.0.world().m5());
-    // Gate per operand so a MalformedSpan/NotContentSubspace fault carries an unambiguous (operand, index).
-    for (operand, specs) in [(Operand::First, rho1), (Operand::Second, rho2)] {
-        for (i, s) in specs.iter().enumerate() {
-            if !require_registered(m3, &s.doc) { return Err(CompareError::DocNotRegistered(s.doc.clone())); }
-            if *s.span.start().get(1) != s_c()  { return Err(CompareError::NotContentSubspace); }   // start in content subspace
-            gate_vspec(&s.span).map_err(|f| CompareError::MalformedSpan { operand, index: i, fault: f })?;
+    // Gate per operand so a MalformedSpan/NotContentSubspace fault carries an unambiguous
+    // (operand, region, span-index) — FINDDOCSCONTAINING's (region, index) plus the operand tag.
+    for (operand, regions) in [(Operand::First, rho1), (Operand::Second, rho2)] {
+        for (ri, r) in regions.iter().enumerate() {
+            if !require_registered(m3, &r.doc) { return Err(CompareError::DocNotRegistered(r.doc.clone())); }
+            for (si, span) in r.spans.iter().enumerate() {
+                if *span.start().get(1) != s_c() {                                            // start in content subspace
+                    return Err(CompareError::NotContentSubspace { operand, region: ri, index: si });
+                }
+                gate_vspec(span).map_err(|f| CompareError::MalformedSpan { operand, region: ri, index: si, fault: f })?;
+            }
         }
     }
     let (p, q) = (resolve_blocks(m5, rho1), resolve_blocks(m5, rho2));   // Vec<Block>; reads ONLY M5
@@ -366,27 +383,28 @@ pub fn compare(&self, rho1: &[Spec], rho2: &[Spec]) -> Result<CompareReport, Com
     Ok(CompareReport(canonicalize(pairs)))                              // R1–R3 conforming, deterministic order (X12)
 }
 
-fn resolve_blocks(m5: &M5State, specs: &[Spec]) -> Vec<Block> {
+fn resolve_blocks(m5: &M5State, regions: &[Region]) -> Vec<Block> {
     let mut out = Vec::new();
-    for s in specs {
-        // V-RECONSTRUCTION LEMMA (load-bearing for X12-R1 soundness, correct ONLY under D-CTG★):
-        // content is gap-free, so the FIRST bound V-position of a content span IS span.start(), and
-        // resolve's runs tile the bound prefix CONTIGUOUSLY in V. Hence the V-cursor starts at
-        // span.start() and advances by each run's width — there are no V-gaps to skip. A depth-
-        // incompatible (#start ≥ 3) content span resolves to ⟨⟩, so produces no blocks (empty region).
-        let mut v = s.span.start().clone();
-        let mut first = true;
-        for run in m5.resolve(&s.doc, &s.span) {
-            if first {
-                // Assert the lemma in debug: M(d)(span.start()) == first run's i_start. A future M5
-                // regression to V-gapped content runs then fails LOUDLY rather than mis-aligning u1/u2.
-                debug_assert_eq!(m5.point(&s.doc, &vpos_of(&v)).as_ref(), Some(&run.i_start),
-                    "D-CTG★: first content run must begin at span.start()");
-                first = false;
+    for r in regions {
+        for span in &r.spans {
+            // V-RECONSTRUCTION LEMMA (load-bearing for X12-R1 soundness, correct ONLY under D-CTG★):
+            // content is gap-free, so the FIRST bound V-position of a content span IS span.start(), and
+            // resolve's runs tile the bound prefix CONTIGUOUSLY in V. Hence the V-cursor starts at
+            // span.start() and advances by each run's width — there are no V-gaps to skip. A depth-
+            // incompatible (#start ≥ 3) content span resolves to ⟨⟩, so produces no blocks (empty region).
+            let mut v = span.start().clone();
+            for run in m5.resolve(&r.doc, span) {
+                // Assert the lemma on EVERY run: M(d)(v-cursor) == this run's i_start. Firing per run
+                // (not first-run-only) localizes a future M5 density regression to the EXACT mis-aligning
+                // run, instead of letting a mid-document V-gap slip past a first-run check and silently
+                // mis-set a later block's v_start. (`vpos_of(&v)` is depth-2-safe each iteration — a run
+                // exists only for a depth-2 span.)
+                debug_assert_eq!(m5.point(&r.doc, &vpos_of(&v)).as_ref(), Some(&run.i_start),
+                    "D-CTG★: each content run must begin at the V-cursor (gap-free tiling)");
+                out.push(Block { doc: r.doc.clone(), v_start: v.clone(),
+                                 i_start: run.i_start.clone(), width: run.width.clone() });
+                v = shift(&v, &run.width);                                  // accumulate V offset by run width (no V-gaps in content)
             }
-            out.push(Block { doc: s.doc.clone(), v_start: v.clone(),
-                             i_start: run.i_start.clone(), width: run.width.clone() });
-            v = shift(&v, &run.width);                                  // accumulate V offset by run width (no V-gaps in content)
         }
     }
     out
@@ -451,7 +469,7 @@ fn fold_adjacent(pairs: Vec<CorrPair>) -> Vec<CorrPair> { pairs }   // identity 
 
 - **The second foot is computed within its own block.** `u2` offsets `qb.v_start` by `lo ⊖ qb.i_start` (lo's position *inside the Q-block*), not `lo ⊖ pb.i_start`. In the normal cross-document case `lo = max(pb.i_start, qb.i_start)` is one operand's start, so the inter-block gap would otherwise shift `u2` and make `res_Σ(d2, u2) ≠ a` — a violation of X12 **R1 (soundness)**. With the per-block offset, both feet resolve to the shared address `lo`.
 - **Co-chain totality of the ordinal arithmetic.** Every `ordinal_gap` in `overlap_pair` runs only after the `lo < hi` overlap guard, hence only on addresses sharing one content chain (equal-length, equal prefix below the action point) — so the bare `ordinal(·) − ordinal(·)` subtractions are total `Nat` operations. Different-chain block pairs have disjoint I-intervals and are rejected by the guard before any subtraction. The helpers (`reach_i`/`ordinal_gap`/`max_tumbler`/`min_tumbler`/`vpos_shift`/`vpos_of`) all operate on `Tumbler` (callers thread `.tumbler()` off the `Address`), so the I-axis comparison typechecks uniformly (no `Address`/`Tumbler` mixing).
-- **V-reconstruction lemma (load-bearing for X12-R1 soundness).** `resolve_blocks` sets the first run's `v_start = span.start()` and accumulates `v_start` by each run's width. This is correct **only because content is gap-free** (D-CTG★): the first bound V-position of a content span *is* `span.start()`, and `resolve`'s runs tile the bound prefix contiguously in V, so there are no V-gaps to skip. The code states this as the lemma it is and **`debug_assert`s it** (`M(d)(span.start()) == first_run.i_start`, via `m5.point`), so a future M5 regression to V-gapped content runs fails loudly rather than silently mis-aligning `u1`/`u2` (it would then need per-position `point` resolution or a V-carrying run type).
+- **V-reconstruction lemma (load-bearing for X12-R1 soundness).** `resolve_blocks` sets the first run's `v_start = span.start()` and accumulates `v_start` by each run's width. This is correct **only because content is gap-free** (D-CTG★): the first bound V-position of a content span *is* `span.start()`, and `resolve`'s runs tile the bound prefix contiguously in V, so there are no V-gaps to skip. The code states this as the lemma it is and **`debug_assert`s it on *every* run** (`M(d)(v-cursor) == this run's i_start`, via `m5.point`), so a future M5 regression to V-gapped content runs fails loudly **at the exact mis-aligning run** rather than silently mis-aligning `u1`/`u2` (it would then need per-position `point` resolution or a V-carrying run type). Asserting per-run, not first-run-only, is what localizes the failure: under D-CTG★ a first-run check would transitively cover the rest, but a per-run check pins a regression to the precise run that broke density.
 - **Fan-out completeness is the whole game** (the place a naïve implementation goes wrong): when an address occurs in multiple P-blocks and/or Q-blocks, `interval_join` must emit the **full cross-product** over each I-overlap, not a lockstep merge. The recommended structure is sort-by-`i_start` + sweep (or interval tree); the O(|P|·|Q|) double loop is the simplicity oracle. Either consumes blocks directly and reads only addresses (never bytes) — simultaneously the correctness property (value-matching over-reports) and the perf property (no content fault).
 - **Overlapping windows within one operand are redundant, not wrong.** ASN-0122 X12 permits a spec-set to name overlapping (or repeated) windows; `resolve_blocks` then double-covers the shared V-positions, and `interval_join` emits the overlap pair more than once. This is **denotationally conforming** — `⟦Γ⟧` is a set-union, so duplicates collapse in the denotation (R1/R2 hold), and the *stable* `sort_by` in `canonicalize` keeps the listed order deterministic (R3) regardless of duplicate count. A builder may pre-dedupe each operand's regions to shrink the cross-product; correctness does not require it.
 - **`canonicalize`** sorts the pairs lexicographically by `(d1, u1, d2, u2)`, then applies `fold_adjacent`. This is a **deterministic** presentation (X12 R3) of the **complete and sound** relation (R1/R2); it is **not** claimed to be the X11 **maximal** form — X12 **R4 (maximal pairs) is explicitly not required for conformance**. In v1 `fold_adjacent` is the **identity** (a finer-than-maximal, per-overlap report fully conforms under R1–R3); a builder wanting maximal output merges feet-successor-adjacent pairs (pair₂'s feet are the unit-successors of pair₁'s last positions *and* their I-addresses are consecutive) into one wider pair — a pure presentation post-pass that never changes `⟦Γ⟧`. The second-foot tie-break in the sort key is load-bearing under fan-out.
@@ -520,11 +538,11 @@ pub fn find_docs_containing(&self, regions: &[Region]) -> Result<Vec<Address>, F
 ## Dependencies & seams
 
 **Upstream calls (concrete):**
-- **M1** — `document_of` (origin projection, SHOWORIGIN_V; I-address → origin Document in `run_addr`); `shift`/`shift_ordinal`+`ElemPos`/`elem_addr` (run-address enumeration, V-cursor advance, COMPARE `reach_i`); `from_endpoints`/`Span::new` (extent synthesis); `action_point`/`zeros`/`ordinal`/`Tumbler::get`/`Tumbler::new`/`is_level_uniform` (gates, the depth-agnostic count read, COMPARE ordinal arithmetic); `union`/`SpanSet::singleton`/`SpanSet::empty`/`SpanSet::is_normalized`/`SpanSet::denotes`/`SpanSet` `PartialEq` and tumbler `Ord` (set algebra, COMPARE overlaps, the FINDDOCSCONTAINING filter test, the **SHOWDELETIONS membership test**, dedup ordering, normal-form assert).
+- **M1** — `document_of` (origin projection, SHOWORIGIN_V; I-address → origin Document in `run_addr`); `shift`/`shift_ordinal`+`ElemPos`/`elem_addr` (run-address enumeration, V-cursor advance, COMPARE `reach_i`); `from_endpoints`/`Span::new` (extent synthesis); `action_point`/`zeros`/`ordinal`/`Tumbler::get`/`Tumbler::new`/`is_level_uniform`/`element_field` (gates, the depth-agnostic count read, the `run_addr` element-field tripwire, COMPARE ordinal arithmetic); `union`/`SpanSet::singleton`/`SpanSet::empty`/`SpanSet::is_normalized`/`SpanSet::denotes`/`SpanSet` `PartialEq` and tumbler `Ord` (set algebra, COMPARE overlaps, the FINDDOCSCONTAINING filter test, the **SHOWDELETIONS membership test**, dedup ordering, normal-form assert).
 - **M2** — `snapshot()` (one per logical query; M10 takes it), `Snapshot::world()`/`seq()`. No `transact`, no `Kernel` — M6 never writes.
 - **M3** — `is_registered_document` (the universal allocation gate). Not `effective_owner` (authorization is M10's; SHOWORIGIN reports origin *documents*, not owners).
 - **M4** — `value_at` (RETRIEVEV content only). `contains` available as a defensive S3★ check but not needed (M5 guarantees it). Never touched by COMPARE/extent/containment/deletions.
-- **M5** — the workhorse: `resolve` (RETRIEVEV, SHOWORIGIN_V, COMPARE), `resolve_coverage` (FINDDOCSCONTAINING phase 1), `content_count`/`link_count` (extent queries, SHOWORIGIN_V subspace gate), `point` (COMPARE's debug-assert of the V-reconstruction lemma), `project` (FINDDOCSCONTAINING present-tense filter), `docs_containing` (FINDDOCSCONTAINING phase 2), `content_runs` + `deletions` (SHOWDELETIONS: enumerate `content_image` and membership-test the per-document deleted cover; `ever_placed` is the exactness-independent fallback). All of these are in M5's interface **as given** — no amendment.
+- **M5** — the workhorse: `resolve` (RETRIEVEV, SHOWORIGIN_V, COMPARE), `resolve_coverage` (FINDDOCSCONTAINING phase 1), `content_count`/`link_count` (extent queries, SHOWORIGIN_V subspace gate), `point` (COMPARE's per-run debug-assert of the V-reconstruction lemma), `project` (FINDDOCSCONTAINING present-tense filter), `docs_containing` (FINDDOCSCONTAINING phase 2), `content_runs` + `deletions` (SHOWDELETIONS: enumerate `content_image` and membership-test the per-document deleted cover; `ever_placed` is the exactness-independent fallback). All of these are in M5's interface **as given** — no amendment.
 
 **Downstream seam (what M6 exposes — only M10 consumes it):** the seven read methods on `Query<'s, W>`. The contract M10 codes against: take a snapshot, build a `Query`, call the op, **marshal the returned value, and surface any `Err(_)` as a typed rejection** (these are precondition/well-formedness failures, never silent skips); a registered-empty document yields the operation's empty form (`⟨⟩`/empty `Delivery`/empty halves/`[]`), an unallocated one yields the op's `*NotRegistered` error. M6 returns by value and never commits, so there is no commit-before-acknowledge step for reads. All seven operations ship against the upstream interfaces as given; M10's reader surface carries no SHOWORIGIN-over-I (it cannot — M6 exposes only the V-arity), so the V-arity-only origin path is settled (Conflicts resolved 2).
 
@@ -534,7 +552,7 @@ pub fn find_docs_containing(&self, regions: &[Region]) -> Result<Vec<Address>, F
 
 1. **Where the R index and coverage set-ops live; how the SHOWDELETIONS combine is built.** The decomposition lists M6 as owning the "reverse-index hint over R" and "deletion classification (SHOWDELETIONS)." M5's *as-built interface* exposes `docs_containing`, `deletions`, and `ever_placed` as **M5 methods**, co-locating the R index with R's authoritative state (Lampson: a hint belongs with the store that recomputes it on replay — only M5 folds R). **Resolution:** M6 owns **no index and no coverage set-op**. FINDDOCSCONTAINING contributes only the phase-1 resolve-union and the present-tense `project` filter over M5's `docs_containing` superset. SHOWDELETIONS's cross-document `DELETED(·,d_A) ∧ CURRENT(·,d_B)` is a **pure per-query read** M6 composes from M5's *per-document* primitives — `content_runs(d_B)` enumerates CURRENT(·,d_B), and `deletions(d_A).denotes(a)` (with M1's `denotes`) tests DELETED(·,d_A) by **membership**, not set intersection. This sidesteps the two dead ends the design must reject: the SpanSet-*intersection* route faults (`intersect_sets`/`normalize` choke on mixed-length covers), and the in-M6-*authoritative-state* route is misplaced (stateless M6 cannot recover a fold). Membership-testing needs neither — `denotes` faults on nothing and is exact on the real content addresses tested (prefix-free, with the deleted cover chain-confined; see the SHOWDELETIONS section) — so the combine lives where the decomposition puts it (M6), on the seam M5 already advertises (`deletions`: "SHOWDELETIONS primitive… **M6 reads it straight off**"). **No M5 amendment is required; all seven operations build against the interfaces as given.**
 
-2. **SHOWORIGIN_I de-scoped — a settled decomposition amendment.** `origins_I(σ) = {document_of(a) : a ∈ ⟦σ⟧ ∩ dom(C)}` needs an *enumeration of allocated content addresses across an I-interval*. M4 is point-only with `Ord` **deliberately** unused (its boundary forbids range/prefix/ordered scans) and M3 is point-only (`is_allocated`); neither exposes — and M4 by its stated design *excludes* — the I-ordered index this arity requires. Adding such a scan to M4 would itself be an upstream-overreach defect, and stateless M6 (no slice, no fold hook) cannot grow its own index. **Resolution:** M6 ships `show_origin_v` only. The I-arity is **de-scoped to a recorded decomposition amendment** — it belongs to a *new* I-ordered content index (a recomputable hint over M4's append-only writes, e.g. `allocated_content_in(span)`), a change to the module decomposition, not an M6 internal. Two caveats made explicit: (i) ASN-0077 designates *neither* arity "reader-facing" — preferring the V-arity is **M6's ruling**, not the note's; (ii) the de-scope is **settled by construction** — M10 can marshal only what M6's `Query` exposes (`show_origin_v` alone), so no I-arity surface exists for the FEBE layer to reach (corroborated by M10's enumerated reader sources, which list no SHOWORIGIN-over-I). The amendment is future work, not a live capability hole. The prior `show_origin_i`/`ISpanIndexUnavailable` placeholders are removed.
+2. **SHOWORIGIN_I de-scoped — a settled decomposition amendment.** `origins_I(σ) = {document_of(a) : a ∈ ⟦σ⟧ ∩ dom(C)}` needs an *enumeration of allocated content addresses across an I-interval*. M4 is point-only with `Ord` **deliberately** unused (its boundary forbids range/prefix/ordered scans) and M3 is point-only (`is_allocated`); neither exposes — and M4 by its stated design *excludes* — the I-ordered index this arity requires. Adding such a scan to M4 would itself be an upstream-overreach defect, and stateless M6 (no slice, no fold hook) cannot grow its own index. **Resolution:** M6 ships `show_origin_v` only. The I-arity is **de-scoped to a recorded decomposition amendment** — it belongs to a *new* I-ordered content index (a recomputable hint over M4's append-only writes, e.g. `allocated_content_in(span)`), a change to the module decomposition, not an M6 internal. Two caveats made explicit: (i) ASN-0077 designates *neither* arity "reader-facing" — preferring the V-arity is **M6's ruling**, not the note's; (ii) the de-scope is **settled by construction** — M10 can marshal only what M6's `Query` exposes (`show_origin_v` alone), so no I-arity surface exists for the FEBE layer to reach. (M10's enumerated reader sources omit ASN-0077 and ASN-0075 *entirely*, so their silence on a SHOWORIGIN-over-I command corroborates this only **vacuously** — the by-construction argument carries it; and that omission of 0077/0075, the two readers M6 actually ships, is an **M10-side reconciliation item, not an M6 defect**.) The amendment is future work, not a live capability hole. The prior `show_origin_i`/`ISpanIndexUnavailable` placeholders are removed.
 
 3. **`m_S(d)` depth hint collapses to a constant.** ASN-0115/0112/0113 all weigh caching vs. recomputing the per-subspace common depth `m_S(d)`. **Resolution:** M5 fixes V-positions at depth 2, so `m_S(d) ≡ 2`; the depth-compatibility test is the static `#start == 2`, enforced by M5's defensive `resolve` (which returns ⟨⟩ for any non-depth-2 span). `gate_vspec` does **not** fold depth-compatibility into well-formedness — it admits any well-formed `#start ≥ 2` start and lets a depth-incompatible (`#start ≥ 3`) span resolve to ⟨⟩ (ASN-0115: depth-compatibility is consulting-state, not a well-formedness condition; see *Conflicts resolved* 8 and the gate revision). No hint, no per-document scalar.
 
