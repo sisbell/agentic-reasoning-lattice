@@ -1,0 +1,1 @@
+Proves that merging two adjacent level-uniform spans and then splitting the result at their shared boundary is lossless: the original pair {α, β} is recovered exactly. The left/right assignment after the split is not arbitrary — it is fully determined by the adjacency direction, with the span whose reach meets the other's start occupying the left position.
