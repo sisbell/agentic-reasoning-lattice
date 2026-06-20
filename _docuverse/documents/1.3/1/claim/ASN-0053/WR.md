@@ -9,3 +9,11 @@ A worked instance of the unequal-length failure: σ = ([1, 3, 5], [0, 2]) has re
 - *Preconditions:* σ = (s, ℓ) is a level-uniform span; ℓ > 0 with action point k ≤ #s (T12); s < reach(σ) (TA-strict on T12); s ⊕ ℓ = reach(σ) satisfies TA0's preconditions; divergence(s, reach(σ)) = k ≤ #s of type (i).
 - *Postconditions:* reach(σ) ⊖ start(σ) = width(σ).
 - *Definition:* start(σ) = s; width(σ) = ℓ; reach(σ) = s ⊕ ℓ.
+
+- *Depends:*
+  - D2 (DisplacementUnique, ASN-0034) — supplies the displacement uniqueness result `reach(σ) ⊖ start(σ) = ℓ` that is the claim's conclusion, once its preconditions are discharged for (a, b, w) = (s, reach(σ), ℓ)
+  - T12 (SpanWellDefinedness, ASN-0034) — supplies the well-formedness predicate (Pos(ℓ) and actionPoint(ℓ) ≤ #s) that qualifies the level-uniform span; the proof cites T12 to discharge D2's preconditions on ℓ
+  - TA-strict (StrictIncrease, ASN-0034) — supplies `a ⊕ w > a` instantiated as s < reach(σ), discharging D2's precondition a < b
+  - TA0 (WellDefinedAddition, ASN-0034) — supplies the result-length identity `#(s ⊕ ℓ) = #ℓ = #s` used to pin #reach(σ) = #s and to confirm TA0's own preconditions for the s ⊕ ℓ = reach(σ) step
+- *Forward References:*
+  - WF (WellFormedSpanFromEndpoints) — sibling claim whose proof contains the equal-length/divergence-type argument reproduced inline here; cited as a navigation pointer
