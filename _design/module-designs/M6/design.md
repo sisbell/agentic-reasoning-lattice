@@ -72,9 +72,10 @@ impl<'s, W: M6World> Query<'s, W> {
 impl<'s, W: M6World> Query<'s, W> {
     /// SHOWORIGIN over a V-span (ASN-0077, V-arity). The I-arity is de-scoped to a decomposition
     /// amendment (M6's ruling — 0077 designates neither arity reader-facing); see *Conflicts resolved* 2.
-    /// Deduplicated origin documents, in tumbler order. Inadmissible (Err) on an empty/unallocated
-    /// document or when the span's positions are not all currently bound (WF_V (iii)/(vi); O13) —
-    /// reject, never silently clamp.
+    /// Deduplicated origin documents, in tumbler order. Inadmissible (Err) on an unallocated document,
+    /// a foreign subspace (`NoSuchSubspace`) or empty real subspace (`EmptySubspace`), or a span whose
+    /// positions are not all currently bound — including a depth-incompatible `#start ≥ 3` span, which
+    /// rejects as `RangeNotPresent` (WF_V (iii)/(v)/(vi); O13) — reject, never silently clamp.
     pub fn show_origin_v(&self, doc: &Address, span: &Span) -> Result<Vec<Address>, OriginError>;
 }
 ```
@@ -105,9 +106,9 @@ impl<'s, W: M6World> Query<'s, W> {
 
 ```rust
 impl<'s, W: M6World> Query<'s, W> {
-    /// FINDDOCSCONTAINING (ASN-0124). Every named document must be registered (Err otherwise;
-    /// allocated-empty contributes nothing). Returns the PRESENT-TENSE containers (filtered), tumbler-
-    /// ordered, deduplicated — bare identities, no positions, no counts.
+    /// FINDDOCSCONTAINING (ASN-0124). Every named document must be registered and every region span
+    /// well-formed (Err otherwise; allocated-empty contributes nothing). Returns the PRESENT-TENSE
+    /// containers (filtered), tumbler-ordered, deduplicated — bare identities, no positions, no counts.
     pub fn find_docs_containing(&self, regions: &[Region]) -> Result<Vec<Address>, FindError>;
 }
 ```
@@ -115,13 +116,15 @@ impl<'s, W: M6World> Query<'s, W> {
 ### Errors (all typed; M10 surfaces verbatim — never a silent skip)
 
 ```rust
-pub enum SpecFault { NotOrdinalLevel, NotLevelUniform, StartNotZeroFree, StartNotDepth2 }
+pub enum SpecFault { NotOrdinalLevel, NotLevelUniform, StartNotZeroFree, StartTooShallow }  // StartTooShallow: #start < 2
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Operand   { First, Second }   // which COMPARE spec-set (ρ₁/ρ₂) a fault came from — Copy, captured into the gate closure
 pub enum RetrieveError  { DocNotRegistered(Address), MalformedSpec { index: usize, fault: SpecFault } }
 pub enum ExtentError    { DocNotRegistered }
-pub enum OriginError    { DocNotRegistered, EmptySubspace, RangeNotPresent, MalformedSpan(SpecFault) }
+pub enum OriginError    { DocNotRegistered, NoSuchSubspace, EmptySubspace, RangeNotPresent, MalformedSpan(SpecFault) }
 pub enum DeletionsError { DocNotRegistered(Address) }
-pub enum CompareError   { DocNotRegistered(Address), NotContentSubspace, MalformedSpan { index: usize, fault: SpecFault } }
-pub enum FindError      { DocNotRegistered(Address) }
+pub enum CompareError   { DocNotRegistered(Address), NotContentSubspace, MalformedSpan { operand: Operand, index: usize, fault: SpecFault } }
+pub enum FindError      { DocNotRegistered(Address), MalformedSpan { region: usize, index: usize, fault: SpecFault } }
 ```
 
 ## Core data model
@@ -151,11 +154,15 @@ fn require_registered(m3: &M3State, d: &Address) -> bool { m3.is_registered_docu
 fn s_c() -> Nat { Nat::from(1u8) }   // content subspace (s_C = 1, ASN-0047) — Nat = BigUint, so a fn, not a const
 fn s_l() -> Nat { Nat::from(2u8) }   // link subspace    (s_L = 2)
 
+/// VSpec WELL-FORMEDNESS only (ASN-0115): zero-free, ordinal-level, level-uniform, depth #start ≥ 2.
+/// It deliberately does NOT gate depth-COMPATIBILITY (#start == 2): ASN-0115 is explicit that
+/// depth-compatibility is a consulting-state predicate, NOT a well-formedness condition, so a
+/// well-formed #start ≥ 3 span passes here and resolves to ⟨⟩ downstream (R6 silent-empty).
 fn gate_vspec(span: &Span) -> Result<(), SpecFault> {
     if !span.is_level_uniform()                               { return Err(SpecFault::NotLevelUniform); }   // #start == #width
     if action_point(span.width()) != Some(span.width().len()) { return Err(SpecFault::NotOrdinalLevel); }   // width acts at deepest
     if zeros(span.start()) != 0                               { return Err(SpecFault::StartNotZeroFree); }  // ⇒ all components > 0
-    if span.start().len() != 2                                { return Err(SpecFault::StartNotDepth2); }    // m_S ≡ 2: depth-2 is the EXACT admissible V-position depth
+    if span.start().len() < 2                                 { return Err(SpecFault::StartTooShallow); }   // ASN-0115 WF: #start ≥ 2; #start ≥ 3 is depth-INCOMPATIBLE (consulting-state), passes → ⟨⟩ (R6)
     Ok(())
 }
 
@@ -194,15 +201,16 @@ Two phases, kept separate (the load-bearing factoring of ASN-0115): resolve V-sp
 ```rust
 pub fn retrieve_v(&self, specs: &[Spec]) -> Result<Delivery, RetrieveError> {
     let (m3, m5, c) = (self.0.world().m3(), self.0.world().m5(), self.0.world().content());
-    // Gate the whole request first — well-formedness is the only in-model failure (ASN-0115).
+    // Gate the whole request first — VSpec WELL-FORMEDNESS is the only in-model failure (ASN-0115).
+    // A well-formed but depth-incompatible (#start ≥ 3) spec is NOT rejected here (R6).
     for (i, s) in specs.iter().enumerate() {
         if !require_registered(m3, &s.doc) { return Err(RetrieveError::DocNotRegistered(s.doc.clone())); }
         gate_vspec(&s.span).map_err(|f| RetrieveError::MalformedSpec { index: i, fault: f })?;
     }
     let mut out = Vec::new();
     for s in specs {                                   // concatenate per spec, IN ORDER (R5) — no global sort
-        let sub = s.span.start().get(1).clone();       // 1=content, 2=link (gate_vspec ⇒ #start == 2, zero-free)
-        for run in m5.resolve(&s.doc, &s.span) {       // V-ordered, clipped, gap-aligned; #start≠2 ⇒ ⟨⟩ (depth-incompat)
+        let sub = s.span.start().get(1).clone();       // 1=content, 2=link (gate ⇒ #start ≥ 2, zero-free; get(1) is the subspace at any depth)
+        for run in m5.resolve(&s.doc, &s.span) {       // V-ordered, clipped, gap-aligned; #start ≠ 2 ⇒ ⟨⟩ (depth-incompat)
             let mut k = Nat::zero();
             while &k < &run.width {                     // per active position, ascending V (R3) — no dedup (R8)
                 let a = run_addr(&run.i_start, &k);
@@ -227,7 +235,7 @@ pub fn retrieve_v(&self, specs: &[Spec]) -> Result<Delivery, RetrieveError> {
 ```
 
 - **Common case:** a single content spec over a contiguous run — one M5 range scan, *w* M4 point lookups (one `Val` per address, each an `Arc` clone). Links never touch M4.
-- **Gaps / depth-incompat / foreign subspaces** all funnel through M5's defensive `resolve` returning fewer-or-zero runs → silent empty contribution; the request still succeeds (R6). The `m_S ≡ 2` simplification means depth-incompatibility *is* `#start ≠ 2`, which `resolve` already force-empties (and `gate_vspec` now rejects up front). A start subspace ∉ {1,2} is likewise force-empted upstream (M5 holds no such positions), so the closed `else` arm is unreachable while a run exists — its `debug_assert` records that as intent.
+- **Gaps / depth-incompat / foreign subspaces** all funnel through M5's defensive `resolve` returning fewer-or-zero runs → silent empty contribution; the request still succeeds (R6). The `m_S ≡ 2` simplification means depth-incompatibility *is* `#start ≥ 3`: such a start is **well-formed** (ASN-0115 admits `#s ≥ 2`), so `gate_vspec` *passes* it and `resolve` force-empties it — the R6 silent-empty contribution, never a rejection (depth-compatibility is consulting-state, *not* well-formedness). A start subspace ∉ {1,2} is likewise force-empted upstream (M5 holds no such positions), so the closed `else` arm is unreachable while a run exists — its `debug_assert` records that as intent.
 - **Tradeoff:** I deliver **one item per active V-position** (one `Val` or one `Ref`), not coalesced segments. This is the exact, no-dedup form (R3/R8) and sidesteps byte-clipping entirely — at M4's granularity each address holds one opaque `Val`, so there is no intra-position byte boundary for M6 to realize. Streamed/segmented delivery is an open decision; M5's runs are already gap-aligned, so a segment form would also be safe.
 - The `expect` trusts S3★ (M5's content-side referential integrity); a `None` there means upstream corruption, and panicking is the correct read-path response (silently skipping would violate exactness).
 
@@ -280,20 +288,21 @@ Origin is the pure address projection `document_of` (M1). Block uniformity (O2) 
 pub fn show_origin_v(&self, doc: &Address, span: &Span) -> Result<Vec<Address>, OriginError> {
     let (m3, m5) = (self.0.world().m3(), self.0.world().m5());
     if !require_registered(m3, doc)        { return Err(OriginError::DocNotRegistered); }   // WF_V (i)
-    gate_vspec(span).map_err(OriginError::MalformedSpan)?;                                  // (ii),(iv),(v): depth-2, ordinal-level
-    let sub = span.start().get(1);
+    gate_vspec(span).map_err(OriginError::MalformedSpan)?;                                  // (ii),(iv): ordinal-level, level-uniform, #start ≥ 2 (well-formedness)
+    let sub = span.start().get(1);                                                          // subspace at any depth
     let n_s = if *sub == s_c() { m5.content_count(doc) }
-              else if *sub == s_l() { m5.link_count(doc) } else { Nat::zero() };
-    if n_s.is_zero() { return Err(OriginError::EmptySubspace); }                            // (iii) inadmissible on empty subspace
-    let runs = m5.resolve(doc, span);
+              else if *sub == s_l() { m5.link_count(doc) }
+              else { return Err(OriginError::NoSuchSubspace); };                            // foreign subspace ∉ {s_C,s_L}: distinct from a real-but-empty subspace
+    if n_s.is_zero() { return Err(OriginError::EmptySubspace); }                            // (iii) inadmissible on a real but empty subspace
+    let runs = m5.resolve(doc, span);                                                       // ⟨⟩ if #start ≥ 3 (depth-incompatible) — caught below
     let resolved: Nat = runs.iter().map(|r| &r.width).sum();
-    if &resolved < ordinal(span.width()) { return Err(OriginError::RangeNotPresent); }      // (vi) some position unbound — reject (O13)
+    if &resolved < ordinal(span.width()) { return Err(OriginError::RangeNotPresent); }      // (v)/(vi): unbound OR depth-incompatible — reject (O13), never clamp
     Ok(dedup_docs(runs.iter().map(|r| document_of(&r.i_start).unwrap())))                   // link case ⇒ {doc} by CL-OWN
 }
 ```
 
-- The `(iii)`/`(vi)` checks are the deliberate strictness: SHOWORIGIN_V is **inadmissible on an empty document and on a span overrunning the bound prefix** — reject-and-signal, never clamp to the surviving sub-span (the digest's explicit choice, O13).
-- **The nominal count is read via `ordinal(span.width())`** (the last component), not a hard-coded `width.get(2)`. `gate_vspec` now pins `#start == 2`, rejecting every non-depth-2 span *at the gate* as `MalformedSpan(StartNotDepth2)`; level-uniformity then forces `#width == 2`, so this read *is* `width.get(2)`. Reading it positionally via `ordinal` keeps it free of a hard-coded index and consistent with the gate — there is no depth-3 span left to slip through and mis-read a `0` at index 2, and `RangeNotPresent` is now reserved for genuinely unbound positions (no longer misattributed to depth).
+- The `(iii)`/`(v)`/`(vi)` checks are the deliberate strictness: SHOWORIGIN_V is **inadmissible on an empty document, a foreign or empty subspace, and a span overrunning or depth-incompatible with the bound prefix** — reject-and-signal, never clamp to the surviving sub-span (the digest's explicit choice, O13). A start subspace ∉ {s_C, s_L} is `NoSuchSubspace` — kept distinct from `EmptySubspace`, which means a *real* subspace (s_C or s_L) with no occupied positions (WF_V(iii)).
+- **The nominal count is read via `ordinal(span.width())`** (the last component, which level-uniformity ties to `#start`), not a hard-coded `width.get(2)`. After the gate relaxation (*Conflicts resolved* 1/8), `gate_vspec` no longer pins `#start == 2` — it enforces only VSpec well-formedness (`#start ≥ 2`, ordinal-level, level-uniform, zero-free). SHOWORIGIN_V's own depth-2 requirement (WF_V(v): the span's depth must equal the subspace common depth `m_S ≡ 2`) is discharged instead by the `resolved < ordinal(span.width())` ⇒ `RangeNotPresent` test: a depth-incompatible (`#start ≥ 3`) span resolves to ⟨⟩ upstream (M5's `resolve` requires `#start == 2`), so `resolved = 0 < ordinal(width)` and the operation rejects with `RangeNotPresent` — the correct inadmissibility outcome. Reading the count positionally via `ordinal` keeps the test depth-agnostic, so one check covers both the depth-2 overrun and the depth-incompatible case.
 - For the link subspace, `document_of(link)` is the home `doc` (CL-OWN) — handled uniformly, no special case.
 
 ### SHOWORIGIN_I — de-scoped (ruling)
@@ -311,7 +320,7 @@ Two flags travel with the ruling so it does not silently diverge from the system
 > `a_with_b = { a ∈ content_image(d_B) : DELETED(a, d_A) }`
 
 - enumerate `content_image(d_B)` exactly as RETRIEVEV enumerates content — `m5.content_runs(d_b)` per-position through `run_addr` (this *is* CURRENT(·, d_B) for content addresses, by definition of `ran`; realized by the `arranged_content` helper);
-- test `DELETED(a, d_A)` by membership in M5's per-document deleted cover: `m5.deletions(d_a).denotes(a.tumbler())`. `deletions(d) = ever_placed(d) ∖ content_image(d) = { a : DELETED(a, d) }` (M5 computes it per level-class, fault-free); `denotes` (M1) faults on nothing and is **exact** on real content addresses — no content address is a strict prefix of another (each is an element-level `zeros=3` tumbler `doc·0·s·ord` under a distinct `zeros=2` origin document), so the cover denotes exactly its address set with no subtree phantom;
+- test `DELETED(a, d_A)` by membership in M5's per-document deleted cover: `m5.deletions(d_a).denotes(a.tumbler())`. `deletions(d) = ever_placed(d) ∖ content_image(d) = { a : DELETED(a, d) }` (M5 computes it per level-class, fault-free); `denotes` (M1) faults on nothing and is **exact** on the real content addresses we test it against — prefix-freeness (each content address is an element-level `zeros=3` tumbler `origin·0·s·ord` under a distinct `zeros=2` origin) rules out a *subtree* phantom, and chain-confinement of the cover (below) rules out an *interval* phantom — so the cover denotes exactly its deleted-address set;
 - symmetric for `b_with_a`: `content_image(d_A)` filtered by `deletions(d_b).denotes(·)`.
 
 ```rust
@@ -333,7 +342,7 @@ pub fn show_deletions(&self, d_a: &Address, d_b: &Address) -> Result<Deletions, 
 
 - **Output is address sets** — each half is the deduped, Tumbler-ordered `Vec<Address>` of the *existing* I-addresses (D-IDENT: "the returned reference is precisely the I-address `a`," never a copy; D-ORD: T1-orderable). No SpanSet re-encoding, so no exactness/lossless caveat applies.
 - **No M4 access** — DELETED/CURRENT are arrangement + R facts; bytes are never fetched. Both documents registered-but-empty ⇒ `deletions` and `content_runs` both empty ⇒ empty halves.
-- **`denotes` exactness, with a fallback.** Testing `denotes(a)` recovers membership exactly because content I-addresses are prefix-free (above). If M5's cover should ever *coalesce* spans (admitting an interval phantom between two real deleted addresses), the **exactness-independent** test `DELETED(a, d_A) ≡ ever_placed(d_a).denotes(a) ∧ a ∉ arranged_content(d_a)` uses only `ever_placed` (raw, unit-cover) + `content_runs` — both M5 as given. v1 uses the `deletions` form on M5's stated fault-free, read-straight-off seam.
+- **`denotes` exactness, by chain-confinement (with a fallback).** Testing `denotes(a)` recovers `DELETED(a, d_A)` exactly. Prefix-freeness (above) only rules out a *subtree* phantom; the guarantee against an *interval* phantom — a real content address falling inside a coalesced cover span without itself being deleted — is that every cover span is confined to **one origin's content chain**. A foreign-origin address carries a different `origin·0·s` prefix and so cannot lie inside a chain-pinned interval; native-chain content is *allocated contiguously* (the J0/J1★ couplings advance one content chain by one ordinal per placement); and `merge` (M1, inside M5's per-level-class normalization) coalesces only *adjacent* same-chain spans — so a coalesced interval `[origin·0·s·lo .. origin·0·s·(hi+1))` spans a contiguous ordinal run every member of which is a real, placed, deleted address (a non-deleted ordinal would break the adjacency and leave the units unmerged). The test inputs are themselves real content addresses (from `arranged_content`), so no deeper tumbler is ever offered to `denotes`. **Fallback:** were M5's cover ever shown to coalesce *across* a non-deleted ordinal, the **exactness-independent** test `DELETED(a, d_A) ≡ ever_placed(d_a).denotes(a) ∧ a ∉ arranged_content(d_a)` — using only `ever_placed` (raw unit-cover) + `content_runs`, both M5 as given — recovers membership with no coalescing assumption. v1 ships the `deletions` form on M5's stated fault-free, read-straight-off seam.
 - **Single consistent `(M, R)`** — every read is off the one bound `&Snapshot`; M2 commits composites atomically, so the digest's "R-ahead-of-M phantom deletion" cannot arise (no torn read).
 - **D-DISJ guard (optional, M6-local)** — when `deletions(d_a)` is empty, `a_with_b` is empty without enumerating `arranged_content(d_b)` (symmetrically for `b_with_a`): a cheap sufficient case of D-DISJ's R-disjointness, folded into M6 since the combine now lives here.
 
@@ -344,10 +353,13 @@ The contract is a relational join keyed on **address equality, never value** —
 ```rust
 pub fn compare(&self, rho1: &[Spec], rho2: &[Spec]) -> Result<CompareReport, CompareError> {
     let (m3, m5) = (self.0.world().m3(), self.0.world().m5());
-    for (i, s) in rho1.iter().chain(rho2).enumerate() {
-        if !require_registered(m3, &s.doc) { return Err(CompareError::DocNotRegistered(s.doc.clone())); }
-        if *s.span.start().get(1) != s_c()  { return Err(CompareError::NotContentSubspace); }   // start in content subspace
-        gate_vspec(&s.span).map_err(|f| CompareError::MalformedSpan { index: i, fault: f })?;
+    // Gate per operand so a MalformedSpan/NotContentSubspace fault carries an unambiguous (operand, index).
+    for (operand, specs) in [(Operand::First, rho1), (Operand::Second, rho2)] {
+        for (i, s) in specs.iter().enumerate() {
+            if !require_registered(m3, &s.doc) { return Err(CompareError::DocNotRegistered(s.doc.clone())); }
+            if *s.span.start().get(1) != s_c()  { return Err(CompareError::NotContentSubspace); }   // start in content subspace
+            gate_vspec(&s.span).map_err(|f| CompareError::MalformedSpan { operand, index: i, fault: f })?;
+        }
     }
     let (p, q) = (resolve_blocks(m5, rho1), resolve_blocks(m5, rho2));   // Vec<Block>; reads ONLY M5
     let pairs  = interval_join(&p, &q);                                  // cross-product per overlap (X8 completeness)
@@ -360,7 +372,8 @@ fn resolve_blocks(m5: &M5State, specs: &[Spec]) -> Vec<Block> {
         // V-RECONSTRUCTION LEMMA (load-bearing for X12-R1 soundness, correct ONLY under D-CTG★):
         // content is gap-free, so the FIRST bound V-position of a content span IS span.start(), and
         // resolve's runs tile the bound prefix CONTIGUOUSLY in V. Hence the V-cursor starts at
-        // span.start() and advances by each run's width — there are no V-gaps to skip.
+        // span.start() and advances by each run's width — there are no V-gaps to skip. A depth-
+        // incompatible (#start ≥ 3) content span resolves to ⟨⟩, so produces no blocks (empty region).
         let mut v = s.span.start().clone();
         let mut first = true;
         for run in m5.resolve(&s.doc, &s.span) {
@@ -450,15 +463,22 @@ This is the digest's recommended "monotone index + present-tense filter," with *
 ```rust
 pub fn find_docs_containing(&self, regions: &[Region]) -> Result<Vec<Address>, FindError> {
     let (m3, m5) = (self.0.world().m3(), self.0.world().m5());
-    // NOTE: Region spans are NOT gated to the content subspace, and that is CORRECT — FD's image_C
-    // content-restriction is realized DOWNSTREAM: a link/foreign-subspace coverage contribution is inert
-    // against M5's R⁻¹ (`docs_containing`, which indexes content provenance only — link placement is
-    // R-uncoupled, J-LV) and against the content-only `project` filter, so it can add no spurious
-    // container. A content-subspace gate here would be redundant and FD-unfaithful.
+    // Gate each region span for WELL-FORMEDNESS (gate_vspec: zero-free, #start≥2, ordinal-level,
+    // level-uniform) — a malformed / non-ordinal-level span (e.g. [s_C,3] width [1,0]) would otherwise
+    // silently UNDER-resolve through `resolve_coverage` and drop containers (FD-COMPLETE), inconsistent
+    // with M6's typed-rejection-over-silent-empty rule elsewhere. The gate does NOT restrict subspace:
+    // a link/foreign-subspace span [s_L,·] passes and stays inert downstream — FD's image_C content-
+    // restriction is realized by M5's R⁻¹ (`docs_containing` indexes content provenance only; link
+    // placement is R-uncoupled, J-LV) and the content-only `project` filter, so it can add no spurious
+    // container. A depth-incompatible (#start≥3) span passes the gate and `resolve_coverage` empties it
+    // (consulting-state, exactly like RETRIEVEV's R6) — contributing nothing, never a rejection.
     let mut coverage = SpanSet::empty();                                // Phase 1: resolve to content I-coverage
-    for r in regions {
+    for (ri, r) in regions.iter().enumerate() {
         if !require_registered(m3, &r.doc) { return Err(FindError::DocNotRegistered(r.doc.clone())); }
-        for span in &r.spans { coverage = union(&coverage, &m5.resolve_coverage(&r.doc, span)); }  // raw mixed-length; concat
+        for (si, span) in r.spans.iter().enumerate() {
+            gate_vspec(span).map_err(|f| FindError::MalformedSpan { region: ri, index: si, fault: f })?;
+            coverage = union(&coverage, &m5.resolve_coverage(&r.doc, span));   // raw mixed-length; concat
+        }
     }
     let candidates = m5.docs_containing(&coverage);                     // Phase 2: R⁻¹ superset, tumbler-ordered (handles level-classes internally)
     Ok(candidates.into_iter()
@@ -468,6 +488,7 @@ pub fn find_docs_containing(&self, regions: &[Region]) -> Result<Vec<Address>, F
 ```
 
 - **The filter is the only difference between the live answer and the historical "ever-contained" answer** (`docs_containing` alone) — exactly the step the reference omits. `project(d, coverage)` is an I→V lookup, not a re-search; cost is proportional to the candidate set. Emptiness is tested with **`!= SpanSet::empty()`** (derived structural `PartialEq`; a non-empty result is structurally distinct from the empty vector and never carries a zero-width member) — not a fabricated `.is_empty()`.
+- **Each region span is well-formedness-gated** (`gate_vspec`), so a malformed or non-ordinal-level span is a typed `MalformedSpan { region, index, fault }` rejection rather than a silent under-resolution that drops containers (FD-COMPLETE). The gate checks *well-formedness only*, never subspace — a link/foreign-subspace span passes and stays inert downstream (it adds nothing to the content-only R⁻¹/`project` machinery), and a depth-incompatible (`#start ≥ 3`) span passes and resolves to empty coverage (consulting-state, contributing nothing — never a rejection).
 - `resolve_coverage` returns raw, possibly mixed-length covers; `docs_containing`/`project` apply the level-class discipline **internally** (M5 contract), so M6 passes the raw union straight through — M6 owns no level-class discipline anywhere.
 - Bare deduplicated identities, no positions/counts (FD codomain), tumbler-ordered (deterministic).
 
@@ -485,11 +506,11 @@ pub fn find_docs_containing(&self, regions: &[Region]) -> Result<Vec<Address>, F
 - *Two-kinds-only, disjoint, pre-normalized extents* — fixed two-subspace iteration. (W9/W11/W13 0113.)
 
 **By active enforcement** (M6 must guard, with the site named):
-- *Well-formedness gates → typed rejection* — `gate_vspec` + `require_registered` at each operation's entry; the only in-model failures. The depth check is `#start == 2` (the exact admissible depth under `m_S ≡ 2`), so a non-depth-2 span is rejected uniformly at the gate as `StartNotDepth2` across RETRIEVEV / SHOWORIGIN_V / COMPARE. (0115 well-formedness; WF_V 0077; W-pre 0112/0113; precondition 0122.)
-- *Registered-empty → result vs. unallocated → fail* — **M6's owned distinction**, via `m3.is_registered_document`, applied per-operation (and tightened for SHOWORIGIN_V, which also rejects an empty *subspace*). (Decomposition; W-pre 0113; WF_V(iii) 0077.)
+- *Well-formedness gates → typed rejection* — `gate_vspec` + `require_registered` at each operation's entry; the chief in-model failures. `gate_vspec` enforces VSpec *well-formedness only* — zero-free, ordinal-level, level-uniform, depth `#start ≥ 2` (`StartTooShallow` for `#start < 2`) — and does **not** gate depth-*compatibility*: a `#start ≥ 3` span is well-formed (ASN-0115 admits `#s ≥ 2`) and passes, resolving to ⟨⟩ downstream (R6 silent-empty for RETRIEVEV; empty region for COMPARE; `RangeNotPresent` for SHOWORIGIN_V). Folding `#start == 2` into the gate would be an over-reach — ASN-0115 makes depth-compatibility a consulting-state predicate, not well-formedness. (0115 well-formedness; WF_V 0077; W-pre 0112/0113; precondition 0122.)
+- *Registered-empty → result vs. unallocated → fail* — **M6's owned distinction**, via `m3.is_registered_document`, applied per-operation (and tightened for SHOWORIGIN_V, which additionally rejects an empty *real* subspace as `EmptySubspace` and a *foreign* subspace as `NoSuchSubspace`). (Decomposition; W-pre 0113; WF_V(iii) 0077.)
 - *Single-subspace at the gate* — the ordinal-level check in `gate_vspec` makes a straddle unrepresentable for RETRIEVEV. (R10 0115.)
 - *Partial-delivery never fails* — gaps/depth-incompat/foreign-subspace become empty contributions, never errors. (R6 0115.)
-- *SHOWORIGIN_V admissibility* — reject empty document and unbound-range spans (the depth-agnostic `resolved < ordinal(width)` test), never clamp. (WF_V(iii,vi)/O13 0077.)
+- *SHOWORIGIN_V admissibility* — reject empty document, foreign subspace (`NoSuchSubspace`), empty real subspace (`EmptySubspace`), and unbound-range *or* depth-incompatible spans (the depth-agnostic `resolved < ordinal(width)` ⇒ `RangeNotPresent` test), never clamp. (WF_V(iii,v,vi)/O13 0077.)
 - *SHOWDELETIONS cross-document combine* — `arranged_content(d_X)` filtered by `deletions(d_Y).denotes(·)`, both halves off one snapshot. (DeletedFromAWithB/BWithA 0075.)
 - *Completeness under fan-out; deterministic canonical order* — cross-product `interval_join` + `canonicalize`. (X8/R1/R2/R3 0122; X11 maximal / R4 not required.)
 - *Present-tense soundness filter* — `project`-narrowing of `docs_containing`. (FD-SOUND 0124.)
@@ -511,11 +532,11 @@ pub fn find_docs_containing(&self, regions: &[Region]) -> Result<Vec<Address>, F
 
 ## Conflicts resolved
 
-1. **Where the R index and coverage set-ops live; how the SHOWDELETIONS combine is built.** The decomposition lists M6 as owning the "reverse-index hint over R" and "deletion classification (SHOWDELETIONS)." M5's *as-built interface* exposes `docs_containing`, `deletions`, and `ever_placed` as **M5 methods**, co-locating the R index with R's authoritative state (Lampson: a hint belongs with the store that recomputes it on replay — only M5 folds R). **Resolution:** M6 owns **no index and no coverage set-op**. FINDDOCSCONTAINING contributes only the phase-1 resolve-union and the present-tense `project` filter over M5's `docs_containing` superset. SHOWDELETIONS's cross-document `DELETED(·,d_A) ∧ CURRENT(·,d_B)` is a **pure per-query read** M6 composes from M5's *per-document* primitives — `content_runs(d_B)` enumerates CURRENT(·,d_B), and `deletions(d_A).denotes(a)` (with M1's `denotes`) tests DELETED(·,d_A) by **membership**, not set intersection. This sidesteps the two dead ends the design must reject: the SpanSet-*intersection* route faults (`intersect_sets`/`normalize` choke on mixed-length covers), and the in-M6-*authoritative-state* route is misplaced (stateless M6 cannot recover a fold). Membership-testing needs neither — `denotes` faults on nothing and is exact on prefix-free content addresses — so the combine lives where the decomposition puts it (M6), on the seam M5 already advertises (`deletions`: "SHOWDELETIONS primitive… **M6 reads it straight off**"). **No M5 amendment is required; all seven operations build against the interfaces as given.**
+1. **Where the R index and coverage set-ops live; how the SHOWDELETIONS combine is built.** The decomposition lists M6 as owning the "reverse-index hint over R" and "deletion classification (SHOWDELETIONS)." M5's *as-built interface* exposes `docs_containing`, `deletions`, and `ever_placed` as **M5 methods**, co-locating the R index with R's authoritative state (Lampson: a hint belongs with the store that recomputes it on replay — only M5 folds R). **Resolution:** M6 owns **no index and no coverage set-op**. FINDDOCSCONTAINING contributes only the phase-1 resolve-union and the present-tense `project` filter over M5's `docs_containing` superset. SHOWDELETIONS's cross-document `DELETED(·,d_A) ∧ CURRENT(·,d_B)` is a **pure per-query read** M6 composes from M5's *per-document* primitives — `content_runs(d_B)` enumerates CURRENT(·,d_B), and `deletions(d_A).denotes(a)` (with M1's `denotes`) tests DELETED(·,d_A) by **membership**, not set intersection. This sidesteps the two dead ends the design must reject: the SpanSet-*intersection* route faults (`intersect_sets`/`normalize` choke on mixed-length covers), and the in-M6-*authoritative-state* route is misplaced (stateless M6 cannot recover a fold). Membership-testing needs neither — `denotes` faults on nothing and is exact on the real content addresses tested (prefix-free, with the deleted cover chain-confined; see the SHOWDELETIONS section) — so the combine lives where the decomposition puts it (M6), on the seam M5 already advertises (`deletions`: "SHOWDELETIONS primitive… **M6 reads it straight off**"). **No M5 amendment is required; all seven operations build against the interfaces as given.**
 
 2. **SHOWORIGIN_I de-scoped — a settled decomposition amendment.** `origins_I(σ) = {document_of(a) : a ∈ ⟦σ⟧ ∩ dom(C)}` needs an *enumeration of allocated content addresses across an I-interval*. M4 is point-only with `Ord` **deliberately** unused (its boundary forbids range/prefix/ordered scans) and M3 is point-only (`is_allocated`); neither exposes — and M4 by its stated design *excludes* — the I-ordered index this arity requires. Adding such a scan to M4 would itself be an upstream-overreach defect, and stateless M6 (no slice, no fold hook) cannot grow its own index. **Resolution:** M6 ships `show_origin_v` only. The I-arity is **de-scoped to a recorded decomposition amendment** — it belongs to a *new* I-ordered content index (a recomputable hint over M4's append-only writes, e.g. `allocated_content_in(span)`), a change to the module decomposition, not an M6 internal. Two caveats made explicit: (i) ASN-0077 designates *neither* arity "reader-facing" — preferring the V-arity is **M6's ruling**, not the note's; (ii) the de-scope is **settled by construction** — M10 can marshal only what M6's `Query` exposes (`show_origin_v` alone), so no I-arity surface exists for the FEBE layer to reach (corroborated by M10's enumerated reader sources, which list no SHOWORIGIN-over-I). The amendment is future work, not a live capability hole. The prior `show_origin_i`/`ISpanIndexUnavailable` placeholders are removed.
 
-3. **`m_S(d)` depth hint collapses to a constant.** ASN-0115/0112/0113 all weigh caching vs. recomputing the per-subspace common depth `m_S(d)`. **Resolution:** M5 fixes V-positions at depth 2, so `m_S(d) ≡ 2`; the depth-compatibility test is the static `#start == 2`, which both `gate_vspec` (rejecting `#start != 2` as `StartNotDepth2`) and M5's defensive `resolve` enforce. No hint, no per-document scalar.
+3. **`m_S(d)` depth hint collapses to a constant.** ASN-0115/0112/0113 all weigh caching vs. recomputing the per-subspace common depth `m_S(d)`. **Resolution:** M5 fixes V-positions at depth 2, so `m_S(d) ≡ 2`; the depth-compatibility test is the static `#start == 2`, enforced by M5's defensive `resolve` (which returns ⟨⟩ for any non-depth-2 span). `gate_vspec` does **not** fold depth-compatibility into well-formedness — it admits any well-formed `#start ≥ 2` start and lets a depth-incompatible (`#start ≥ 3`) span resolve to ⟨⟩ (ASN-0115: depth-compatibility is consulting-state, not a well-formedness condition; see *Conflicts resolved* 8 and the gate revision). No hint, no per-document scalar.
 
 4. **RETRIEVEDOCVSPAN: count-read vs. confluent summary, and the negative-origin hazard (0112 OQ5).** The note offers a min/max read or a maintained summary tree whose relative displacement can drive the **origin negative** (violating S8a). **Resolution:** M6 synthesizes from M5's authoritative `content_count`/`link_count`, reading `min` as the subspace anchor `[s,1]` — never negative. The hazard is exclusive to the summary-tree path and is designed out. (This also resolves "trust counts vs. scan": trust M5's counts; D-CTG★ is M5's write-path obligation; debug-assert optionally.)
 
@@ -525,7 +546,7 @@ pub fn find_docs_containing(&self, regions: &[Region]) -> Result<Vec<Address>, F
 
 7. **SHOWORIGIN vs. FINDDOCSCONTAINING (a distinction to *preserve*, not a conflict).** SHOWORIGIN reports the **original allocator** (`document_of`), FINDDOCSCONTAINING the **current holders** (R⁻¹ filtered to present). Different questions; M6 keeps them on different machinery (M1 projection vs. M5's R index + filter) so neither is mistaken for the other.
 
-8. **`gate_vspec`'s ordinal-level requirement is an upstream-forced narrowing, recorded deliberately.** ASN-0077 WF_V(iv) requires only `actionPoint(ℓ) ≤ #u`, and ASN-0122 X12 requires only T12-well-formedness + a content-subspace start — *not* strict ordinal-level. M6 nonetheless gates all three resolve-based ops (RETRIEVEV, SHOWORIGIN_V, COMPARE) to **ordinal-level, depth-2** spans. **Resolution:** the narrowing is forced by M5's `resolve`, which is defensive and yields ⟨⟩ for any span that is not `#start == 2 ∧ #width == 2 ∧ width.get(1) == 0` (ordinal-level depth-2). A non-ordinal-level (or non-depth-2) span would therefore resolve to nothing upstream regardless, and every selection these notes name is expressible as an ordinal-level depth-2 span in the `m_S ≡ 2` model — so gating up front turns a silent upstream empty into an explicit, typed rejection (`MalformedSpec`/`MalformedSpan`) without losing any admissible query. Recorded here as a deliberate, M5-driven restriction rather than an implicit one.
+8. **`gate_vspec`'s ordinal-level requirement is an upstream-acceptable narrowing; depth-compatibility is deliberately *not* gated.** ASN-0077 WF_V(iv) requires only `actionPoint(ℓ) ≤ #u`, and ASN-0122 X12 requires only T12-well-formedness + a content-subspace start — *not* strict ordinal-level. M6 nonetheless gates all three resolve-based ops (RETRIEVEV, SHOWORIGIN_V, COMPARE) to **ordinal-level, level-uniform** spans. **Resolution:** for RETRIEVEV this is exactly ASN-0115 VSpec well-formedness (which *does* require ordinal-level + level-uniform), so rejecting is faithful; for COMPARE it is a narrowing beyond X12's T12-only precondition, acceptable because every selection these notes name is expressible as an ordinal-level span in the `m_S ≡ 2` model — gating up front turns a silent upstream empty into an explicit typed rejection (`MalformedSpec`/`MalformedSpan`) without losing any admissible query. **What `gate_vspec` does *not* do is gate the depth:** it admits any well-formed `#start ≥ 2` start and lets a depth-incompatible (`#start ≥ 3`) span pass to M5's `resolve`, which force-empties it. Gating depth-2 *as well-formedness* would be an over-reach — ASN-0115 is explicit that depth-compatibility is a consulting-state predicate, **not** a well-formedness condition, and R6 mandates a depth-incompatible spec yield `act = ∅` *without failure* (and X12 reports a depth-incompatible content span's empty region as success). So depth-incompatibility stays a silent ⟨⟩ (RETRIEVEV R6 / COMPARE empty region), surfacing as a typed rejection only where the operation's *own* precondition demands the common depth — SHOWORIGIN_V's WF_V(v), discharged via `RangeNotPresent`. Recorded here as the deliberate split: ordinal-level/level-uniform gated (well-formedness, or acceptable narrowing); depth-compatibility *not* gated (consulting-state).
 
 ## Open build decisions
 
@@ -534,7 +555,7 @@ pub fn find_docs_containing(&self, regions: &[Region]) -> Result<Vec<Address>, F
 - **RETRIEVEV delivery shape.** Per-position items (chosen default — exact, simplest) vs. coalesced gap-aligned segments vs. lazy streaming for large spec-sets. If streaming, decide how back-pressure interacts with partial-delivery (a stream still "succeeds" while emitting nothing for gaps), and whether `DeliveryItem::Content` borrows through the snapshot (zero-copy) instead of cloning the `Arc`.
 - **Snapshot ownership.** M6 methods take `&Snapshot` so M10 controls the consistency scope (recommended); a convenience that snapshots per call is possible but couples M6 to `&Kernel`.
 - **Extent contiguity check.** Trust `content_count`/`link_count` (O(1)) vs. debug-build cross-check against `content_runs` (catches a broken D-CTG★ from upstream). Trust in release, assert in debug.
-- **SHOWDELETIONS exactness source.** Use `deletions(d).denotes(·)` (default — M5's stated fault-free, read-straight-off seam, exact on prefix-free content addresses) vs. the exactness-independent `ever_placed(d).denotes(·) ∧ a ∉ arranged_content(d)` (robust even if M5's cover should ever coalesce spans). Default to `deletions`; switch only if M5's cover is shown to coalesce.
+- **SHOWDELETIONS exactness source.** Use `deletions(d).denotes(·)` (default — M5's stated fault-free, read-straight-off seam; exact by prefix-freeness + chain-confinement of the deleted cover) vs. the exactness-independent `ever_placed(d).denotes(·) ∧ a ∉ arranged_content(d)` (robust even if M5's cover should ever coalesce spans). Default to `deletions`; switch only if M5's cover is shown to coalesce.
 - **SHOWDELETIONS D-DISJ short-circuit.** M6-local: skip enumerating one document's `arranged_content` when the other's `deletions` cover is empty (its half is then empty) — a cheap guard in the spirit of D-DISJ's R-disjointness. Optional; default computes both halves directly.
 - **COMPARE link-start spans.** Reject loudly (recommended — `NotContentSubspace`) vs. leniently strip via a content-subspace front-filter. (Spans that merely *denote* link positions from a content start are always legal — `resolve` clips them — so this is only about a span whose *start* is in the link subspace.)
 - **COMPARE overlapping-region dedup.** Leave overlapping/repeated windows within an operand to collapse denotationally (default — conforming, deterministic via the stable sort) vs. pre-dedupe each operand's regions to shrink the cross-product. Perf-only; pick per profile.
