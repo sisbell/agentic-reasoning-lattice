@@ -1,0 +1,1 @@
+Proves that split-then-merge is a lossless round-trip on level-uniform spans: splitting σ at any interior point and immediately merging the two resulting parts recovers σ exactly, with the same start and width. The guarantee rests on the adjacency of the produced halves and the WR axiom, which together force the merged width to equal the original.
