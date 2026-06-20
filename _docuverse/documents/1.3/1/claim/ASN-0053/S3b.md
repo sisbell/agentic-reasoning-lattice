@@ -7,3 +7,10 @@
 Splitting γ at p yields λ = (start(α), p ⊖ start(α)) and ρ = (p, reach(γ) ⊖ p). For λ: p ⊖ start(α) = reach(α) ⊖ start(α) = width(α) by WR (α is level-uniform). So λ = (start(α), width(α)) = α. For ρ: reach(γ) ⊖ p = reach(β) ⊖ start(β) = width(β) by WR (β is level-uniform). So ρ = (start(β), width(β)) = β.
 
 *Case B: reach(β) = start(α).* By S3a (merge commutativity) the merge of α and β equals the merge of β and α, which is the Case A configuration with the roles of α and β exchanged. Applying Case A to the pair ⟨β, α⟩, splitting the merged span at the shared boundary start(α) yields left part λ = β and right part ρ = α. The unordered pair {λ, ρ} = {β, α} = {α, β} is recovered exactly; the left-right assignment is reversed relative to Case A.  ∎
+
+*Formal Contract:*
+
+- *Preconditions:* α and β are level-uniform spans; both are non-empty (width(α) > 0 and width(β) > 0); level_compat(start(α), start(β)) holds; α and β are adjacent, i.e. reach(α) = start(β) ∨ reach(β) = start(α).
+- *Postconditions:* Let γ = merge(α, β) (S3) and let p be the shared boundary (p = start(β) in Case A, p = start(α) in Case B); then split(γ, p) (S4) yields ⟨λ, ρ⟩ with {λ, ρ} = {α, β}. In Case A (reach(α) = start(β)): λ = α and ρ = β. In Case B (reach(β) = start(α)): λ = β and ρ = α.
+- *Frame:* No spans other than α, β are read or produced; γ, λ, ρ are the only constructed values.
+- *Definition:* The shared boundary p is the interior point of γ at which the original adjacency met (start(β) in Case A, start(α) in Case B); interiority start(γ) < p < reach(γ) is what makes p an admissible split point for S4.
