@@ -1,0 +1,22 @@
+## Review of M6 — Content Retrieval & Query
+
+I traced every operation against M1–M5 *as given* and the seven source notes. The design is strong: the COMPARE interval-join arithmetic (co-chain totality of the ordinal subtractions under the `lo < hi` guard) is correct; the SHOWDELETIONS membership-test combine genuinely builds on M5-as-given (`deletions().denotes()` is fault-free on mixed-length covers, unlike the set-algebra route, so the "no M5 amendment" claim holds); the FINDDOCSCONTAINING present-tense `project`-filter over M5's `docs_containing` superset is sound and complete; SHOWORIGIN_V's `resolved < ordinal(width)` range check correctly covers both overrun and depth-incompatibility; extent synthesis from counts can't go negative or fail its `unwrap`s; the "never opens M4" claims (COMPARE/extent/deletions/find/origin) all hold; and the SHOWORIGIN_I de-scope and "R index lives in M5" reconciliations are sound conflict resolutions (the former is forced by M4's deliberately point-only boundary; the latter follows M5's binding interface). All upstream calls typecheck against the interfaces as given — except one line.
+
+### Revision list
+
+1. **[DEFECT] The `debug_assert_eq!` in `resolve_blocks` does not compile.** M1's `Address`/`Tumbler` derive only `Clone, PartialEq, Eq, Hash, Serialize, Deserialize` — **not `Debug`**. `debug_assert_eq!(left, right, …)` expands to `if cfg!(debug_assertions) { assert_eq!(left, right, …) }`; the `assert_eq!` `{:?}`-formats its operands on failure, and that body is type-checked in *every* profile (`cfg!` is a bool literal, not `#[cfg]`-stripping — the `if false { … }` branch is still compiled). So `Option<&Address>: Debug` is unsatisfied → E0277, in release and debug alike. This is not cosmetic: the assert *is* the design's load-bearing per-run D-CTG★ tripwire (the stated mechanism that localizes a future M5 density regression), so the diagnostic the design leans on is absent until the line is changed. Fix to a `Debug`-free form:
+   ```rust
+   debug_assert!(m5.point(&r.doc, &vpos_of(&v)).as_ref() == Some(&run.i_start),
+       "D-CTG★: each content run must begin at the V-cursor (gap-free tiling)");
+   ```
+   (`==` needs only `PartialEq`, which `Address` has.) The design is otherwise meticulous about M1's derive set — it correctly avoids `Address: Ord`, keys all dedup/sort on `Tumbler`, and uses `!= SpanSet::empty()` precisely because there is no `SpanSet::is_empty` — so this is an isolated slip, not a pattern.
+
+2. **[SHARPENING] Hoist `Block` into a fenced definition.** It is constructed and consumed across `resolve_blocks`/`overlap_pair`/`interval_join`/`reach_i`, but defined only in prose inside *Core data model* (`Block { doc: Address, v_start: Tumbler, i_start: Address, width: Nat }`). Give it a code block beside `CorrPair` so a builder copies it directly rather than reconstructing it from a sentence.
+
+3. **[SHARPENING] Strengthen Conflicts-8's justification for the ordinal-level gate from "loses no region" to "prevents silent incompleteness."** The binding reason M6 must *reject* a WF_V/X12-admissible-but-non-ordinal-level span (rather than accept it) is that M5's only resolution primitives — `resolve`/`resolve_coverage` — **force-empty** any span that isn't depth-2 ordinal-level. So *accepting* such a span and resolving it through M5 would silently drop its contribution, violating COMPARE **R2-completeness** / FINDDOCSCONTAINING **FD-COMPLETE**. State this: the gate is a *completeness guard* against M5's narrow resolve domain — the rejected spans are exactly the ones M6 cannot answer correctly with the upstream as given — not merely "a narrowing that happens to lose no region." This makes the narrowing's faithfulness self-evident.
+
+4. **[SHARPENING] Surface that `CorrPair` re-exports M5's `VPos`.** `CorrPair { u1: VPos, u2: VPos }` and the COMPARE helpers (`vpos_of`/`vpos_shift`/`vpos_tumbler`) use M5's `VPos`, so M6's public `CompareReport` surfaces an M5 type to M10's marshaler. A one-line `pub use`/re-export note in the interface removes the ambiguity. (Minor companion: spell out `dedup_addrs`'s body — `HashSet<Tumbler>` first-insert-wins, then `sort_by` on `Tumbler` — rather than the `/* … */` stub; the intent is clear but the one site that dedups *content addresses* rather than documents benefits from it being explicit.)
+
+The single defect is a one-line mechanical compile blocker, but it is a genuine typecheck failure against the interface as given, so per the rubric:
+
+VERDICT: REVISE
