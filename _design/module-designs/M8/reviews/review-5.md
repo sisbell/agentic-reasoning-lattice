@@ -1,0 +1,19 @@
+I worked through this adversarially: I checked every upstream call against the M1/M2/M3/M5/M7 interfaces, traced each pseudo-code routine for type/borrow correctness, verified the `im` API usage (including the genuinely tricky `relative_complement`-vs-`difference` distinction), re-derived the `delete_orphans` set identity and its handling of intra-document transclusion, confirmed the residence-gate exactness argument against R0a, and cross-checked the addressability and slot-flip divergences against the source notes.
+
+The design is unusually solid. All upstream calls are real and well-typed; no upstream API is invented or contradicted; the spanfilade/matcher stays in M7 (Conflict #1), the two `findlinks` families are kept distinct and neither built on the other (Conflict #2), the address key is the `OrdSet<Tumbler>` native order (Conflict #3), the residence gate is *enforced* not merely documented, and the arity-3 invariant that makes `{FROM,TO,TYPE}` an *exact* (not approximate) disjunction is stated and its breakage condition pinned. The two notable semantic divergences — uniform `View::Active` filtering vs. the unfiltered ASN-0127/0098/0108/0117 foundations, and the flipped `FROM=old/TO=new` storage vs. ASN-0125 Df-DIR — are both loud, sound (the *operation* notes RE-DEF/FL-DEF/CN-DEF are themselves addressable; the flip is M7's stated storage), and faithfully tracked everywhere they propagate. I found **no material defect**: nothing unbuildable, no dropped operation, no overreach into M6/M7/M9, no internal inconsistency, no signature that fails to typecheck.
+
+The remaining items are genuine polish, none load-bearing:
+
+- **[SHARPENING]** `delete_orphans` collapses three distinct DELETE precondition failures (non-`s_C` `p`, zero `width`, out-of-bounds `(p,width)`) into one `BadRegion`. Since this is a *preview* whose value is letting a caller fix the delete before issuing it, mirror M5's `DeleteError` granularity (`NotContentSubspace`/`EmptyWidth`/`OutOfBounds`) so the rejection is actionable rather than opaque.
+
+- **[SHARPENING]** Windowing leans on the documented `n ≥ 1` precondition; `n = 0` yields `exhausted = (0 < 0) = false` with an empty batch and an unchanged cursor — a silent non-terminating signal for a misusing caller. Either reject `n = 0` as a typed error or clamp via `n.max(1)` to make the API total.
+
+- **[SHARPENING]** The active-filter divergence is documented in the seam-contract prose and `discoverable_from` leads with its NOT-LP12 warning; replicate that one-line "result = foundation ∩ active; nullified links never surface" verbatim in the *rustdoc* of `findlinks_v`/`count_v`/`window_v`/`delete_orphans` too, so a builder reading only signature+doc-comment (not the Conflicts section) is never surprised.
+
+- **[SHARPENING]** `image` returns a possibly-redundant `Vec<Run>` and pushes set-dedup to the caller. Since every internal consumer (`from_spans`/`stab`/`touches`) is already set-idempotent, either dedup at the `image` boundary (`Run: Eq`) so the *public* result matches ASN-0127's set semantics with no caller obligation, or state the redundancy bound (≤ one repeat per overlapping input-span pair).
+
+- **[SHARPENING]** `retrieve_endsets` dedups in an `im::HashSet` then collects to `Vec`; since this set never crosses a seam, a `std::collections::HashSet` is simpler and avoids `im`'s structural-sharing overhead for a throwaway local.
+
+- **[SHARPENING]** The `View`-rebind in `claims_on` and the per-slot `View::Active` re-literal in `stab_union` are correct given M7 ships `View` without `Copy`. As already noted in Open build decisions, file the one-line request to M7 to derive `Copy` on `View` (a fieldless tag enum like `Shape`/`Behavior`); it would let both spots shed the workaround. Not a dependency.
+
+VERDICT: CONVERGED
