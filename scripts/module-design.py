@@ -271,6 +271,20 @@ def _commit(paths, message, enabled):
     print(f"  [commit] {message}", file=sys.stderr)
 
 
+def _apply_revise(mid: str, design_md: Path, design: str, review: str, k: int,
+                  review_base: dict, effort: str, model: str, commit: bool) -> str:
+    """Run the reviser on review-k, write + commit the revised design, return its text.
+
+    Shared by the review loop and the crash-recovery path so applying a review's
+    revision list is identical whether it happens inline or on a later resume.
+    """
+    revised = _call("reviser", {**review_base, "design": design, "review": review},
+                    effort, model)
+    design_md.write_text(revised.rstrip() + "\n")
+    _commit([design_md], f"module-design-revise({mid}): apply review-{k}", commit)
+    return revised
+
+
 def main():
     ap = argparse.ArgumentParser(
         description="Detailed build-spec design for one module (Phase B).")
@@ -331,6 +345,25 @@ def main():
     else:
         design = None
         resumed = False
+
+    # Crash/hang recovery — BEFORE any resume/rebase bookkeeping. If the most recent
+    # review is committed but its revision list was never applied (e.g. the process
+    # died or the API stream hung mid-reviser), apply it now. This must run ahead of
+    # the rebase branch below, which sets next_k = highest+1 and would otherwise skip
+    # the pending revise entirely (and a plain resume would short-circuit on the
+    # reconstructed clean streak). Once applied + committed here, _resume_state and
+    # the rebase branch both see the revise as done and continue correctly.
+    if design is not None:
+        _h = _highest_review(review_dir)
+        if _h > 0:
+            _top = (review_dir / f"review-{_h}.md").read_text()
+            if _has_revisions(_top) and _last_revised(design_md, commit, _h) < _h:
+                print(f"[module-design] {mid} RESUME-FIX — review-{_h} is committed but its "
+                      f"revise never applied (interrupted reviser); applying it now before "
+                      f"continuing.", file=sys.stderr)
+                design = _apply_revise(mid, design_md, design, _top, _h,
+                                       review_base, args.effort, args.model, commit)
+
     next_k, clean_streak = _resume_state(design_md, review_dir, commit)
     highest = _highest_review(review_dir)
     rebasing = args.rebase and highest > 0
@@ -404,11 +437,8 @@ def main():
             kind = "sharpenings" if converged else "defects + sharpenings"
             print(f"[module-design] {mid} applying review-{next_k} ({kind})...",
                   file=sys.stderr)
-            design = _call("reviser", {**review_base, "design": design, "review": review},
-                           args.effort, args.model)
-            design_md.write_text(design.rstrip() + "\n")
-            _commit([design_md], f"module-design-revise({mid}): apply review-{next_k}",
-                    commit)
+            design = _apply_revise(mid, design_md, design, review, next_k,
+                                   review_base, args.effort, args.model, commit)
         next_k += 1
 
     if clean_streak >= CONVERGE_N:
