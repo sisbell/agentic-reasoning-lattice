@@ -230,6 +230,25 @@ def _existing_section_labels(lines, header):
     return labels
 
 
+def _ensure_section(lines, header):
+    """Ensure a `- *<Field>:*` section header exists; append at EOF if absent.
+
+    The decompose-produced claim format carries a `*Formal Contract:*`
+    block but no `- *Depends:*` / `- *Forward References:*` metadata
+    sections, so on the first citation-resolve pass these don't exist
+    yet. A freshly created section is just the header line (no bullets);
+    `_find_section` then locates it and the caller's bullet inserts
+    append right after the header. Mutates and returns `lines`.
+    """
+    if _find_section(lines, header) is not None:
+        return lines
+    while lines and lines[-1].strip() == "":
+        lines.pop()
+    lines.append("")
+    lines.append(header)
+    return lines
+
+
 def _apply_changes(claim_md_path, classifications, retractions):
     """Apply classifications (insert bullets) and retractions (remove
     bullets). Retractions first (so a reclassify works: retract old
@@ -268,12 +287,8 @@ def _apply_changes(claim_md_path, classifications, retractions):
     ]
 
     if depends_to_add:
-        section = _find_section(lines, DEPENDS_HEADER)
-        if section is None:
-            raise ValueError(
-                f"no {DEPENDS_HEADER!r} section in {claim_md_path}; "
-                f"cannot add depends bullets"
-            )
+        if _find_section(lines, DEPENDS_HEADER) is None:
+            _ensure_section(lines, DEPENDS_HEADER)
         existing = _existing_section_labels(lines, DEPENDS_HEADER)
         depends_to_add = [
             c for c in depends_to_add if c["label"] not in existing
@@ -293,17 +308,21 @@ def _apply_changes(claim_md_path, classifications, retractions):
             if section is None:
                 depends_section = _find_section(lines, DEPENDS_HEADER)
                 if depends_section is None:
-                    raise ValueError(
-                        f"cannot create {FORWARD_HEADER!r}: no "
-                        f"{DEPENDS_HEADER!r} to anchor it after in "
-                        f"{claim_md_path}"
-                    )
-                _, depends_last = depends_section
-                new_block = [FORWARD_HEADER]
-                for c in forwards_to_add:
-                    new_block.append("  " + c["bullet"].lstrip())
-                for ln in reversed(new_block):
-                    lines.insert(depends_last + 1, ln)
+                    # No Depends anchor (derived-claim format) — create
+                    # the Forward section at EOF instead of failing.
+                    _ensure_section(lines, FORWARD_HEADER)
+                    _, last_bullet_idx = _find_section(lines, FORWARD_HEADER)
+                    for c in reversed(forwards_to_add):
+                        lines.insert(
+                            last_bullet_idx + 1, "  " + c["bullet"].lstrip()
+                        )
+                else:
+                    _, depends_last = depends_section
+                    new_block = [FORWARD_HEADER]
+                    for c in forwards_to_add:
+                        new_block.append("  " + c["bullet"].lstrip())
+                    for ln in reversed(new_block):
+                        lines.insert(depends_last + 1, ln)
             else:
                 _, last_bullet_idx = section
                 for c in reversed(forwards_to_add):
