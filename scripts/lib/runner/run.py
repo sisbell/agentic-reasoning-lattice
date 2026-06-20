@@ -158,7 +158,7 @@ def run_until_quiescent(
                 fired_this_pass.add(key)
                 start = time.time()
                 try:
-                    trigger.agent(session, addr)
+                    result = trigger.agent(session, addr)
                 except Exception as exc:
                     errors.append((trigger.name, str(addr), repr(exc)))
                     print(
@@ -167,11 +167,22 @@ def run_until_quiescent(
                     )
                     continue
                 fires.append((trigger.name, str(addr)))
-                print(
-                    f"  [RUNNER] fired {trigger.name} on {addr} "
-                    f"({time.time() - start:.0f}s)",
-                    file=sys.stderr,
-                )
+                if result is not None and not getattr(result, "success", True):
+                    # Agent ran but reported failure (e.g. no-claim-file) — surface it;
+                    # a bare success=False used to be masked by the "fired" line.
+                    detail = getattr(result, "detail", "")
+                    errors.append((trigger.name, str(addr), f"success=False:{detail}"))
+                    print(
+                        f"  [RUNNER] ⚠ {trigger.name} on {addr} returned "
+                        f"success=False: {detail} ({time.time() - start:.0f}s)",
+                        file=sys.stderr,
+                    )
+                else:
+                    print(
+                        f"  [RUNNER] fired {trigger.name} on {addr} "
+                        f"({time.time() - start:.0f}s)",
+                        file=sys.stderr,
+                    )
                 if auto_commit:
                     paths = None
                     if trigger.commit_paths is not None:
@@ -222,7 +233,7 @@ def run_force_pass(
         for addr in trigger.scope_query(session, scope):
             start = time.time()
             try:
-                trigger.agent(session, addr)
+                result = trigger.agent(session, addr)
             except Exception as exc:
                 errors.append((trigger.name, str(addr), repr(exc)))
                 print(
@@ -231,11 +242,20 @@ def run_force_pass(
                 )
                 continue
             fires.append((trigger.name, str(addr)))
-            print(
-                f"  [RUNNER] forced {trigger.name} on {addr} "
-                f"({time.time() - start:.0f}s)",
-                file=sys.stderr,
-            )
+            if result is not None and not getattr(result, "success", True):
+                detail = getattr(result, "detail", "")
+                errors.append((trigger.name, str(addr), f"success=False:{detail}"))
+                print(
+                    f"  [RUNNER] ⚠ {trigger.name} on {addr} returned "
+                    f"success=False: {detail} ({time.time() - start:.0f}s)",
+                    file=sys.stderr,
+                )
+            else:
+                print(
+                    f"  [RUNNER] forced {trigger.name} on {addr} "
+                    f"({time.time() - start:.0f}s)",
+                    file=sys.stderr,
+                )
             if auto_commit:
                 paths = None
                 if trigger.commit_paths is not None:
