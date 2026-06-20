@@ -1,0 +1,10 @@
+- `start` — accessor function returning the start position of a span; used in preconditions and the WR axiom
+- `reach` — accessor function returning the end position of a span; used in split/merge definitions and WR
+- `width` — accessor function returning the width of a span; asserted equal to `reach ⊖ start` by WR
+- `⊖` — position subtraction operator; computes widths as `reach(σ) ⊖ start(σ)` and sub-span widths in S4
+- `<` — strict ordering on positions; used in the interior-point precondition `start(σ) < p < reach(σ)`
+- `min` — binary minimum on positions; determines `s_m = min(start(λ), start(ρ))` in the S3 merge
+- `max` — binary maximum on positions; determines `r_m = max(reach(λ), reach(ρ))` in the S3 merge
+- `level_compat` — predicate asserting level compatibility between a start position and a second position; guards applicability of S3 at the seam
+- `S3` — merge operation that combines two adjacent spans into a single span with the enclosing extent
+- `S4` — split operation that divides a span at an interior point into two sub-spans
