@@ -16,6 +16,17 @@ module PartitionMonotonicity {
   import AD = AllocatorDiscipline
   import FA = ForwardAllocation
 
+  // Invariant predicate: the addresses within prefix-delimited partition p
+  // are totally ordered by T1 — every distinct pair is T1-comparable.
+  ghost predicate PartitionTotallyOrdered(p: Tumbler, addrs: set<Tumbler>)
+    requires InT(p)
+  {
+    (forall t :: t in addrs ==> InT(t) && PrefixOf(p, t)) &&
+    (forall a, b :: a in addrs && b in addrs && a != b ==>
+      LexicographicOrder.LexicographicOrder(a, b) ||
+      LexicographicOrder.LexicographicOrder(b, a))
+  }
+
   ghost predicate PartitionMonotonicity(p1: Tumbler, p2: Tumbler,
                                          part1: set<Tumbler>, part2: set<Tumbler>)
     requires InT(p1) && InT(p2)
