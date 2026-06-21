@@ -107,7 +107,18 @@ def revise(
     elapsed = time.time() - start
 
     if result.returncode != 0:
-        print(f" failed ({elapsed:.0f}s)", file=sys.stderr)
+        # Surface the subprocess error instead of swallowing it. A fast
+        # failure (a few seconds) is almost always an infra problem —
+        # expired auth, rate limit, network — not a content failure; the
+        # stderr/stdout tail distinguishes them. Without this, every such
+        # failure printed an identical "failed (3s)" and looked like the
+        # reviser couldn't fix the finding.
+        err = (result.stderr or "").strip() or (result.stdout or "").strip()
+        err_tail = err[-500:] if err else "(no stderr/stdout)"
+        print(
+            f" failed (exit {result.returncode}, {elapsed:.0f}s): {err_tail}",
+            file=sys.stderr,
+        )
         return False
 
     cost = 0
