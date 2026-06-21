@@ -1,0 +1,24 @@
+I read the foundation statements and then ASN-0053 as a system — tracing the level_compat/level-uniform precondition chains through WF/WR into S1–S11, checking that every `r ⊖ s`, `s ⊕ ℓ`, and `max/min` endpoint is grounded, and cross-checking the main-prose proofs against the per-claim standalone contracts. Most of the algebra is sound and the precondition chains from WF/WR into the intersection/merge/split/difference claims hold. Three issues surfaced, one of them a wrong-foundation inference in a proof step.
+
+### S7 main-prose proof grounds span-infinitude in T0(b), the wrong claim
+**Class**: REVISE
+**Foundation**: T0(b) (UnboundedLength) — postcondition is purely existential: "For every n ∈ ℕ with n ≥ 1, there exists t ∈ T with #t ≥ n."
+**ASN**: S7 main prose: "Thus every extension lies in [s, reach(s, ℓ)) = ⟦(s, ℓ)⟧, and by T0(b) there are infinitely many of them."
+**Issue**: T0(b) only asserts that *some* tumbler of length ≥ n exists; it says nothing about the trailing-zero extensions `s.0ⁿ` of this particular `s`, nor that they populate `⟦σ⟧`. Concluding "there are infinitely many of them" from T0(b) is a non-sequitur — the infinitude of the extension family is what's load-bearing, and T0(b) does not supply it. The S7 standalone formal contract recognizes this and explicitly disclaims T0(b): "the existential UnboundedLength claim T0(b) ... says nothing about extensions of this particular s and is not what we invoke," grounding infinitude instead in T0's comprehension axiom (each `s.0ⁿ ∈ T`) plus the pairwise-distinct lengths `#s + n`. The main prose and the standalone contract directly contradict each other on the foundation cited.
+**What needs resolving**: The main-prose S7 proof must ground the infinitude of `⟦σ⟧` the way the standalone contract does — T0 comprehension placing each `s.0ⁿ` in T with distinct lengths — rather than citing T0(b).
+
+### S9 invokes TA-LC without stating the well-formedness preconditions its widths must satisfy
+**Class**: OBSERVE
+**Foundation**: TA-LC (LeftCancellation) — preconditions `Pos(x)`, `Pos(y)`, `actionPoint(x) ≤ #a`, `actionPoint(y) ≤ #a`.
+**ASN**: S9 standalone preconditions: "each satisfies N1, N2, and each span is non-empty (start(γₖ) < reach(γₖ))." Proof step: "start ⊕ w₁ = reach = start ⊕ w₂ forces w₁ = w₂ by left cancellation (TA-LC, ASN-0034)."
+**Issue**: TA-LC requires `Pos(width)` and `actionPoint(width) ≤ #start` for both `w₁ = width(αᵢ)` and `w₂ = width(βᵢ)`. These are the T12 well-formedness conditions, not implied by N1/N2/non-emptiness as stated. They hold here only because the definition `reach = start ⊕ width` presupposes `⊕` is defined (hence Pos and the action-point bound), but that presupposition is silent in the precondition list. The reasoning is sound under the ASN-wide convention that "span" means well-formed; the precondition list does not say so.
+**What needs resolving**: State T12 well-formedness (or equivalently that each `reach(γₖ) = start(γₖ) ⊕ width(γₖ)` is a defined sum) among S9's preconditions, so the TA-LC invocation has an explicit license.
+
+### S3b main-prose Case B routes through S3a commutativity, which is denotational only
+**Class**: OBSERVE
+**Foundation**: S3a (MergeCommutativity) — standalone note: the equality "is denotational ... not that the merge constructs an identical (start, width) pair ... that the constructed pairs coincide is a separate fact ... and is not what this lemma establishes."
+**ASN**: S3b main prose, Case B: "By S3a (merge commutativity) the merge of α and β equals the merge of β and α, which is the Case A configuration ... Applying Case A to the pair ⟨β, α⟩, splitting the merged span at the shared boundary ... yields left part λ = β and right part ρ = α."
+**Issue**: To split `merge(α,β)` and read off `{β,α}`, the argument needs the *constructed span pair* `(s, r⊖s)` — not merely the denotation. S3a supplies only denotational equality and explicitly declines to establish pair-identity. The pair-identity is in fact true (S3's `min`/`max` endpoint formula is symmetric in α,β), but it comes from S3's construction, not from S3a's lemma. The S3b standalone contract recognized this and "derive[s] the split directly from the merge formula rather than routing through commutativity." The main prose still routes through the lemma that does not provide what it uses.
+**What needs resolving**: Reconcile the main-prose Case B with the standalone's direct derivation — either cite S3's symmetric endpoint construction for pair-identity or replicate the direct merge-formula computation, rather than leaning on S3a's denotational commutativity.
+
+VERDICT: REVISE
