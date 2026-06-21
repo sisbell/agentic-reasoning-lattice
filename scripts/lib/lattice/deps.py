@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-from lib.shared.paths import LATTICE, CLAIM_DIR
+from lib.shared.paths import LATTICE, CLAIM_DIR, resolve_claim_docs_dir
 from lib.shared.claim_files import load_claim_metadata
 from lib.shared.common import find_asn
 from lib.shared.foundation import claim_asn_dep_ids
@@ -35,8 +35,10 @@ def build_deps_for_asn(asn_num, claim_base_dir=None):
         print(f"  [ERROR] {format_label(asn_num)} not found", file=sys.stderr)
         return None
 
-    base = claim_base_dir if claim_base_dir is not None else CLAIM_DIR
-    claim_dir = base / asn_label
+    if claim_base_dir is not None:
+        claim_dir = Path(claim_base_dir) / asn_label
+    else:
+        claim_dir = resolve_claim_docs_dir(asn_label)
     depends = claim_asn_dep_ids(asn_num)
     metadata = load_claim_metadata(claim_dir) if claim_dir.exists() else {}
 

@@ -17,7 +17,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.backend.schema import ATTRIBUTE_SUFFIXES as _ATTR_SUFFIXES
-from lib.shared.paths import NOTE_DIR, USAGE_LOG, CLAIM_DIR
+from lib.shared.paths import (
+    NOTE_DIR, USAGE_LOG, CLAIM_DIR, resolve_claim_docs_dir,
+)
 
 
 def read_file(path):
@@ -99,8 +101,10 @@ def assemble_readonly(asn_label, claim_base_dir=None):
     digits = extract_label_digits(asn_label)
     asn_num = int(digits) if digits else 0
     note_path, _ = find_asn(str(asn_num))
-    base = claim_base_dir if claim_base_dir is not None else CLAIM_DIR
-    docs_dir = base / asn_label
+    if claim_base_dir is not None:
+        docs_dir = Path(claim_base_dir) / asn_label
+    else:
+        docs_dir = resolve_claim_docs_dir(asn_label)
 
     parts = []
     if note_path is not None and note_path.exists():

@@ -23,7 +23,9 @@ import sys
 from pathlib import Path
 
 from lib.runner import Scope, run_until_quiescent
-from lib.shared.paths import CLAIM_DIR  # default base; callers may override
+from lib.shared.paths import (  # default base; callers may override
+    CLAIM_DIR, resolve_claim_docs_dir,
+)
 
 
 _SCRIPTS = Path(__file__).resolve().parent.parent.parent
@@ -40,8 +42,10 @@ VALIDATE = _load("claim_validate", _SCRIPTS / "claim-validate.py")
 
 
 def _run_validator(asn_label, claim_base_dir=None):
-    base = Path(claim_base_dir) if claim_base_dir is not None else CLAIM_DIR
-    claim_dir = base / asn_label
+    if claim_base_dir is not None:
+        claim_dir = Path(claim_base_dir) / asn_label
+    else:
+        claim_dir = resolve_claim_docs_dir(asn_label)
     pairs = VALIDATE.load_pairs(claim_dir)
     return VALIDATE.run_all_checks(pairs, claim_dir=claim_dir)
 
