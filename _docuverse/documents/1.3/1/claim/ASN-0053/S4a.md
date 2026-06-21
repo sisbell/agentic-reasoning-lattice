@@ -4,7 +4,7 @@
 
 *Formal Contract:*
 
-- *Preconditions:* σ = (s, ℓ) is level-uniform; p is interior to σ, i.e. start(σ) < p < reach(σ); level_compat(s, p).
+- *Preconditions:* σ = (s, ℓ) is a well-formed level-uniform span; p is interior to σ, i.e. start(σ) < p < reach(σ); level_compat(s, p).
 - *Postconditions:* S3(S4(σ, p)) = σ — merging the two parts produced by splitting σ at p yields γ with start(γ) = s and width(γ) = ℓ, hence γ = σ.
 - *Definition:* Split S4 at interior p yields λ = (s, p ⊖ s) with reach(λ) = p and ρ = (p, reach(σ) ⊖ p) with reach(ρ) = reach(σ). Merge S3 of adjacent λ, ρ yields γ = (s_m, r_m ⊖ s_m) with s_m = min(start(λ), start(ρ)) and r_m = max(reach(λ), reach(ρ)).
 - *Frame:* The level of every position is preserved; only the partitioning of σ changes and is then undone.
