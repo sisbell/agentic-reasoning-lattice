@@ -11,7 +11,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from lib.lattice.labels import extract_label_digits, format_label
-from lib.shared.paths import WORKSPACE, CLAIM_DIR, LATTICE
+from lib.shared.paths import (
+    WORKSPACE, CLAIM_DIR, LATTICE, resolve_claim_docs_dir,
+)
 from lib.shared.claim_files import build_label_index, load_claim_metadata
 
 
@@ -60,7 +62,7 @@ def _load_claim_statement(dep_asn_num, label):
     Returns formatted section text or None if not found.
     """
     asn_label = format_label(dep_asn_num)
-    claim_dir = CLAIM_DIR / asn_label
+    claim_dir = resolve_claim_docs_dir(asn_label)
     if not claim_dir.exists():
         return None
 
@@ -125,7 +127,7 @@ def load_foundation_statements(asn_id, dep_ids=None):
     sections = []
     for dep_id in all_dep_ids:
         asn_label = format_label(dep_id)
-        claim_dir = CLAIM_DIR / asn_label
+        claim_dir = resolve_claim_docs_dir(asn_label)
         if not claim_dir.exists():
             print(f"  [ERROR] No claim doc dir for {asn_label}",
                   file=sys.stderr)

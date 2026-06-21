@@ -28,7 +28,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.paths import (
-    CLAIM_DIR, CLAIM_FINDINGS_DIR, LATTICE, NOTE_FINDINGS_DIR,
+    CLAIM_DIR, CLAIM_FINDINGS_DIR, DERIVED_CLAIM_DIR, LATTICE, NOTE_FINDINGS_DIR,
 )
 from lib.protocols.febe.session import open_session
 from lib.predicates import (
@@ -47,9 +47,12 @@ SURFACES = ("attributes", "claim-findings", "note-findings")
 def _check_attributes(session, quiet):
     """Run reconciliation predicates against attribute sidecars."""
     orphans = []
-    if CLAIM_DIR.exists():
-        # Walk every ASN dir under CLAIM_DIR
-        for asn_dir in sorted(CLAIM_DIR.iterdir()):
+    # Walk both claim regions: foundation/legacy (CLAIM_DIR, 1.1) and
+    # derived claims (DERIVED_CLAIM_DIR, 1.3).
+    for region in (CLAIM_DIR, DERIVED_CLAIM_DIR):
+        if not region.exists():
+            continue
+        for asn_dir in sorted(region.iterdir()):
             if not asn_dir.is_dir() or asn_dir.name.startswith("_"):
                 continue
             orphans.extend(orphan_sidecars(session, asn_dir))

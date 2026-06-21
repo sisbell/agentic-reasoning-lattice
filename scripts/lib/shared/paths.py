@@ -108,6 +108,12 @@ CAMPAIGN_DIR = DOCUVERSE_AUTHOR_DIR / "campaign"
 INQUIRY_DIR = DOCUVERSE_AUTHOR_DIR / "inquiry"
 NOTE_DIR = DOCUVERSE_AUTHOR_DIR / "note"
 CLAIM_DIR = DOCUVERSE_AUTHOR_DIR / "claim"
+# Claim-derivation writes per-claim files to the 1.3 region (the agents
+# set node="1.3"); foundation/legacy claims live in the default region
+# (CLAIM_DIR). `resolve_claim_docs_dir` finds whichever region a given
+# ASN's claims actually occupy — prefer 1.3, fall back to the default —
+# so callers don't hardcode one region and silently miss the other.
+DERIVED_CLAIM_DIR = DOCUVERSE_DOCS_DIR / "1.3" / LATTICE_USER / "claim"
 MOTIFS_DIR = DOCUVERSE_AUTHOR_DIR / "motifs"  # scout snapshot docs
 MOTIF_DIR = DOCUVERSE_AUTHOR_DIR / "motif"    # materialized motif docs + sidecars
 # Discovery-stage consultation directory.
@@ -214,7 +220,7 @@ def claim_statements_aggregate_path(asn_label: str) -> Path:
     is generated (not live-rendered) and is a substrate citizen with its
     own supersession chain.
     """
-    return CLAIM_DIR / asn_label / "_statements.md"
+    return resolve_claim_docs_dir(asn_label) / "_statements.md"
 
 
 # Promotion reports (classified by `promotion.<kind>`). One doc per
@@ -333,9 +339,15 @@ def claim_doc_path(asn_label, label):
     address. Per the Xanadu-aligned design, callers pass labels rather
     than path strings; the path convention is the local-reference's
     way of mapping label-as-identity to a filesystem address.
+
+    Region-aware: uses the 1.3 derived-claim region when that's where the
+    ASN's claims live, else the default region.
     """
+    node = (
+        "1.3" if (DERIVED_CLAIM_DIR / asn_label).exists() else LATTICE_NODE
+    )
     return (
-        f"_docuverse/documents/{LATTICE_NODE}/{LATTICE_USER}/"
+        f"_docuverse/documents/{node}/{LATTICE_USER}/"
         f"claim/{asn_label}/{label}.md"
     )
 
@@ -348,18 +360,37 @@ def consultation_dir(asn):
     return CONSULTATIONS_DIR / format_label(asn)
 
 
+def _asn_label_of(asn) -> str:
+    """Normalize int / `<prefix>-NNNN` to the `<prefix>-NNNN` label string."""
+    from lib.lattice.labels import format_label, label_pattern
+    if isinstance(asn, str) and label_pattern().fullmatch(asn):
+        return asn
+    return format_label(asn)
+
+
+def resolve_claim_docs_dir(asn) -> Path:
+    """Region-aware per-ASN claim directory.
+
+    Derived claims live in the 1.3 region; foundation/legacy claims in
+    the default region (CLAIM_DIR). Returns whichever currently exists,
+    preferring 1.3. If neither exists, returns the default (CLAIM_DIR) as
+    the creation target. Accepts int or `<prefix>-NNNN` label.
+    """
+    asn_label = _asn_label_of(asn)
+    derived = DERIVED_CLAIM_DIR / asn_label
+    if derived.exists():
+        return derived
+    return CLAIM_DIR / asn_label
+
+
 def claim_docs_dir(asn):
     """Per-ASN claim files directory under the substrate document store.
 
-    Accepts int or `<prefix>-NNNN` label. Holds the per-claim body markdown
-    plus `<stem>.{label,name,description}.md` sidecars. Reviews, caches, and
-    structural section files stay alongside under
-    `claim-convergence/<asn>/` (work products, not substrate-managed).
+    Region-aware (prefers the 1.3 derived-claim region, falls back to the
+    default). Accepts int or `<prefix>-NNNN` label. Holds the per-claim
+    body markdown plus `<stem>.{label,name,description}.md` sidecars.
     """
-    from lib.lattice.labels import format_label, label_pattern
-    if isinstance(asn, str) and label_pattern().fullmatch(asn):
-        return CLAIM_DIR / asn
-    return CLAIM_DIR / format_label(asn)
+    return resolve_claim_docs_dir(asn)
 
 
 def inquiry_doc_path(asn_num):

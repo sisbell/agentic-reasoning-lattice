@@ -17,7 +17,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 from lib.shared.paths import (WORKSPACE, CLAIM_DIR, PROOFS_DIR, USAGE_LOG,
-                    prompt_path)
+                    prompt_path, resolve_claim_docs_dir)
 from lib.shared.claim_files import build_label_index, load_claim_metadata
 from lib.shared.common import assemble_readonly, find_asn
 from lib.verification.dafny.common import read_file
@@ -37,7 +37,7 @@ def build_claim_list_from_asn(asn_num):
     if asn_label is None:
         return []
 
-    claim_dir = CLAIM_DIR / asn_label
+    claim_dir = resolve_claim_docs_dir(asn_label)
     if not claim_dir.exists():
         return []
 
