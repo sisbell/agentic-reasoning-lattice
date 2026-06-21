@@ -46,6 +46,14 @@ DEPENDS_HEADER = "- *Depends:*"
 FORWARD_HEADER = "- *Forward References:*"
 PROMPT_TEMPLATE = prompt_path("agents/producers/citation_resolve.md")
 
+# Source-quote citations (Q1, Q2, … ) are provenance pointers to the
+# original inquiry/consultation quotes embedded in proof prose, NOT
+# claim dependency labels. The LLM sees parentheticals like "(Q2)" and
+# sometimes emits them as classifications; they never resolve in the
+# claim label index. Dropped before validation so an unknown *quote*
+# ref doesn't abort the fire — genuine unknown labels still raise.
+_QUOTE_LABEL_RE = re.compile(r"^Q\d+$")
+
 
 # ─── LLM helper ─────────────────────────────────────────────────────
 
@@ -81,6 +89,7 @@ def extract_citation_classifications(
     classifications, retractions = parse_two_sections(
         raw_text, "CLASSIFICATIONS", "RETRACTIONS",
     )
+    _drop_quote_citations(classifications, retractions)
     _validate_classifications(classifications)
     _validate_retractions(retractions)
     return CitationClassifications(
@@ -113,6 +122,32 @@ def _render_prompt(
         .replace("{{existing_depends}}", _format_label_list(depends))
         .replace("{{existing_forwards}}", _format_label_list(forwards))
     )
+
+
+def _drop_quote_citations(classifications: list, retractions: list) -> None:
+    """Remove source-quote citations (Q1, Q2, …) in place.
+
+    These are provenance refs to inquiry quotes, not claim deps; they
+    never resolve in the claim label index. Dropping them here keeps a
+    stray "(Q2)" in proof prose from aborting the whole fire at
+    `_validate_labels`, while genuinely unknown claim labels still raise.
+    """
+    def _is_quote(entry) -> bool:
+        return (
+            isinstance(entry, dict)
+            and bool(_QUOTE_LABEL_RE.match(str(entry.get("label", ""))))
+        )
+
+    dropped = [e["label"] for e in (*classifications, *retractions)
+               if _is_quote(e)]
+    if dropped:
+        classifications[:] = [c for c in classifications if not _is_quote(c)]
+        retractions[:] = [r for r in retractions if not _is_quote(r)]
+        print(
+            f"  [CITATION-RESOLVE] dropped quote-citation ref(s): "
+            f"{', '.join(sorted(set(dropped)))}",
+            file=sys.stderr,
+        )
 
 
 def _validate_classifications(classifications: list) -> None:
