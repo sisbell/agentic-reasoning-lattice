@@ -153,6 +153,26 @@ def build_note_label_index(store: Store) -> Dict[str, Address]:
     return out
 
 
+def _version_head_via_state(state, addr: Address) -> Address:
+    """Head version of `addr` using only `state` (no Session).
+
+    Mirrors `lib.predicates.versions.version_head`: walk the parent map
+    up to the version root, then down picking the max-tumbler child at
+    each level. citation links are emitted from (and target) version
+    heads, so callers querying links from a base address find nothing —
+    they must resolve to the head first. `aggregate_asn_deps` only has a
+    Store, so it can't use the Session-based `version_head`.
+    """
+    cur = addr
+    while state.parent.get(cur) is not None:
+        cur = state.parent[cur]
+    while True:
+        children = state.version_children(cur)
+        if not children:
+            return cur
+        cur = children[-1]
+
+
 def aggregate_asn_deps(
     store: Store, asn_label: str,
 ) -> List[int]:
@@ -162,6 +182,11 @@ def aggregate_asn_deps(
     `citation.depends` links from it; extract the cited claim's ASN id
     from its path; collect the set, excluding self-references. Returns
     a sorted list of int ASN ids.
+
+    Links are emitted from each claim's version HEAD, not its base
+    identity (which is what `path_to_addr` yields), so each own doc is
+    resolved to its head before the citation walk — otherwise a versioned
+    claim's deps are silently missed.
     """
     asn_pattern = re.compile(rf"/{re.escape(asn_label)}/")
     deps_set: set[int] = set()
@@ -174,8 +199,9 @@ def aggregate_asn_deps(
             own_addrs.add(addr)
 
     for src_addr in own_addrs:
+        src_head = _version_head_via_state(store.state, src_addr)
         for link in active_links(
-            store.state, "citation.depends", from_set=[src_addr],
+            store.state, "citation.depends", from_set=[src_head],
         ):
             for cited in link.to_set:
                 cited_path = store.path_for_addr(cited)
