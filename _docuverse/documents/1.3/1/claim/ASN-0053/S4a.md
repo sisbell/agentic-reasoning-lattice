@@ -1,4 +1,4 @@
-**S4a** (*SplitMergeInverse*). For a level-uniform span σ = (s, ℓ) and an interior point p with level_compat(s, p), splitting σ at p (S4) and merging the two parts (S3) recovers σ exactly.
+**S4a (SplitMergeInverse).** For a level-uniform span σ = (s, ℓ) and an interior point p with level_compat(s, p), splitting σ at p (S4) and merging the two parts (S3) recovers σ exactly.
 
 *Proof.* Because p is interior to σ, we have start(σ) < p < reach(σ); writing start(σ) = s, this gives s < p and p < reach(σ), facts we use throughout. The split produces λ = (s, d) with reach(λ) = p, and ρ = (p, d') with reach(ρ) = reach(σ). Since reach(λ) = p = start(ρ), the two parts are adjacent, and level_compat(s, p) carries the level agreement from σ to the seam, so S3 applies. The merge constructs γ = (s_m, r_m ⊖ s_m) where s_m = min(s, p) = s (since s < p) and r_m = max(p, reach(σ)) = reach(σ) (since p < reach(σ)). The merged width is reach(σ) ⊖ s = reach(σ) ⊖ start(σ) = ℓ, by WR (σ is level-uniform). So γ = (s, ℓ) = σ — the original span is recovered exactly.  ∎
 

@@ -1,4 +1,4 @@
-**Definition** (*Normalized span-set*). A span-set Σ = ⟨σ₁, ..., σₙ⟩ is normalized iff:
+**NormalizedSpanSet (NormalizedSpanSet).** A span-set Σ = ⟨σ₁, ..., σₙ⟩ is normalized iff:
 
   (N1) *Sorted.* `(A i : 1 ≤ i < n : start(σᵢ) < start(σᵢ₊₁))`
   (N2) *Separated.* `(A i : 1 ≤ i < n : reach(σᵢ) < start(σᵢ₊₁))`

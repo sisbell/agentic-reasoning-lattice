@@ -1,4 +1,4 @@
-**S3a** (*MergeCommutativity*). The merge of α and β yields the same span as the merge of β and α: ⟦α⟧ ∪ ⟦β⟧ = ⟦β⟧ ∪ ⟦α⟧. This follows from set union being commutative.
+**S3a (MergeCommutativity).** The merge of α and β yields the same span as the merge of β and α: ⟦α⟧ ∪ ⟦β⟧ = ⟦β⟧ ∪ ⟦α⟧. This follows from set union being commutative.
 
 We are proving that merge is commutative: merging α with β produces exactly the same span as merging β with α, with no dependence on the order of the operands. Formally, ⟦α⟧ ∪ ⟦β⟧ = ⟦β⟧ ∪ ⟦α⟧.
 

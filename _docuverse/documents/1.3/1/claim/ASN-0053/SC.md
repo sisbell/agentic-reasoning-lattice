@@ -1,4 +1,4 @@
-**SC** (*SpanClassification*). Given spans α and β, their relationship is determined by comparing starts and reaches under T1. Since T1 is a total order, five mutually exclusive cases arise:
+**SC (SpanClassification).** Given spans α and β, their relationship is determined by comparing starts and reaches under T1. Since T1 is a total order, five mutually exclusive cases arise:
 
 (i) *Separated.* reach(α) < start(β) or reach(β) < start(α). The spans share no positions and have space between them.
 
