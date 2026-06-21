@@ -294,18 +294,27 @@ def check_depends_agreement(pairs, citation_graph):
     return findings
 
 
-def check_references_resolve(pairs, citation_graph):
+def check_references_resolve(pairs, citation_graph, label_index=None):
     """Every store citation and md Depends entry must name a claim that
-    exists in the lattice (i.e., has a file pair). Inline prose citations
-    are not checked."""
+    exists in the lattice (per #1) — same-ASN (a local file pair) OR
+    cross-ASN (a label in the substrate cross-ASN index, which means the
+    target carries a `label` link and therefore exists as a claim
+    elsewhere in the lattice, e.g. a foundation ASN in another region).
+    Inline prose citations are not checked.
+
+    `label_index` is the cross-ASN {label: addr} map. When omitted the
+    check is same-ASN-only (legacy strict mode) — but then any dependent
+    note's cross-ASN deps false-flag, so callers should pass it."""
     findings = []
-    labels = set(pairs.keys())
+    known = set(pairs.keys())
+    if label_index:
+        known |= set(label_index.keys())
 
     for stem, entry in sorted(pairs.items()):
         text = entry["md"]
 
         for dep in citation_graph.get(stem, []):
-            if dep not in labels:
+            if dep not in known:
                 findings.append({
                     "rule": "references-resolve",
                     "file": f"{stem}.md",
@@ -315,7 +324,7 @@ def check_references_resolve(pairs, citation_graph):
 
         if text:
             for dep in sorted(parse_md_depends(text)):
-                if dep not in labels:
+                if dep not in known:
                     findings.append({
                         "rule": "references-resolve",
                         "file": f"{stem}.md",
@@ -644,7 +653,7 @@ def run_all_checks(pairs, store=None, label_index=None, claim_dir=None):
     findings = []
     findings.extend(check_contract_classifier_present(pairs, store, label_index))
     findings.extend(check_depends_agreement(pairs, citation_graph))
-    findings.extend(check_references_resolve(pairs, citation_graph))
+    findings.extend(check_references_resolve(pairs, citation_graph, label_index))
     findings.extend(check_declared_symbols_resolve(pairs, citation_graph, store))
     findings.extend(check_acyclic_dependency_graph(pairs, citation_graph))
     findings.extend(check_declaration_and_body_uniqueness(pairs))
