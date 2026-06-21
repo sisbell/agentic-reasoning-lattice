@@ -5,6 +5,7 @@ include "./CarrierSetDefinition.dfy"
 include "./PrefixRelation.dfy"
 include "./LexicographicOrder.dfy"
 include "./PrefixOrderingExtension.dfy"
+include "./ForwardAllocation.dfy"
 
 module PartitionMonotonicity {
   import opened CarrierSetDefinition
@@ -12,6 +13,8 @@ module PartitionMonotonicity {
   import opened PrefixRelation
   import opened LexicographicOrder
   import POE = PrefixOrderingExtension
+  import AD = AllocatorDiscipline
+  import FA = ForwardAllocation
 
   ghost predicate PartitionMonotonicity(p1: Tumbler, p2: Tumbler,
                                          part1: set<Tumbler>, part2: set<Tumbler>)
@@ -39,5 +42,23 @@ module PartitionMonotonicity {
     {
       POE.PrefixOrderingExtension(p1, p2, a, b);
     }
+  }
+
+  // Postcondition (2): per-allocator forward allocation implies T1 ordering.
+  // allocated_before(a, b) ⟹ a < b, for any a, b from the same allocator stream.
+  lemma PartitionForwardAllocation(a: Tumbler, b: Tumbler)
+    requires FA.AllocatedBefore(a, b)
+    ensures InT(a) && InT(b)
+    ensures LexicographicOrder.LexicographicOrder(a, b)
+  {
+    var A: AD.Allocator, i: nat, j: nat :|
+      AD.AllocatorDiscipline(A)
+      && AD.SiblingAt(A, i) == a
+      && AD.SiblingAt(A, j) == b
+      && i < j;
+    assert AD.InDomain(a, A);
+    assert AD.InDomain(b, A);
+    assert AD.SameAllocator(a, b);
+    FA.ForwardAllocation(a, b);
   }
 }
