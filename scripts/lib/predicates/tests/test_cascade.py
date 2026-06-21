@@ -33,17 +33,19 @@ from lib.predicates import (
 )
 
 
-def _emit_clean_review(state, addr, lattice_addr):
-    """Emit a review.content classifier + review.coverage targeting addr.
-    Used to satisfy is_claim_confirmed (which needs latest_review_was_clean).
-    Returns the review doc addr.
+def _emit_clean_review(state, addr, lattice_addr, n=2):
+    """Emit `n` review.content classifiers + review.coverage targeting addr.
+    Used to satisfy is_claim_confirmed, which is n=2 (two consecutive
+    clean reviews) — so default n=2. Returns the last review doc addr.
     """
-    review_doc = state.create_doc(
-        kind="review.content", lattice=lattice_addr,
-    )
-    state.make_link(
-        review_doc, [review_doc], [addr], "review.coverage",
-    )
+    review_doc = None
+    for _ in range(n):
+        review_doc = state.create_doc(
+            kind="review.content", lattice=lattice_addr,
+        )
+        state.make_link(
+            review_doc, [review_doc], [addr], "review.coverage",
+        )
     return review_doc
 
 

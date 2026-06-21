@@ -250,19 +250,24 @@ def is_confirmed_n(session: Session, addr: Address, n: int) -> bool:
     )
 
 
+CLAIM_CONFIRMATION_N = 2
+
+
 def is_claim_confirmed(session: Session, addr: Address) -> bool:
-    """Claim-side confirmation (n=1). The convergence-protocol's
-    confirmation condition for claims: quiescent AND the most recent
-    review on its scope was clean.
+    """Claim-side confirmation (n=2): quiescent AND the most recent TWO
+    reviews on its scope were both clean, AND no revise landed after the
+    latest review.
 
-    Per `docs/hypergraph-protocol/convergence.md`: a clean review IS
-    the confirmation. The orchestrator's "+1 review-only after N
-    cycles" collapses into "the next cycle that comes up clean."
-
-    Note-side gates that want the 2-consecutive stochastic floor use
-    `is_confirmed_n(..., n=2)` directly.
+    Two-consecutive, not one: the claim reviewer is the same stochastic
+    Opus/Sonnet as the note reviewer, so a single clean draw is just as
+    unstable for a claim as for a note (see
+    `docs/design-notes/stochastic-quiescence.md`). A lone CONVERGED can
+    be a lucky draw; requiring two consecutive clean reviews is the
+    empirical floor. Previously n=1 ("a clean review IS the
+    confirmation"), which let a single fluke-clean review confirm a
+    claim — raised to n=2 to match the note-side gate.
     """
-    return is_confirmed_n(session, addr, n=1)
+    return is_confirmed_n(session, addr, n=CLAIM_CONFIRMATION_N)
 
 
 def derived_claims(session: Session, note_addr: Address):

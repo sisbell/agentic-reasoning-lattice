@@ -175,15 +175,17 @@ class ConeReviewPredicateGate(unittest.TestCase):
         emit_claim(self.store, self.apex)
 
     def _confirm(self):
-        """Emit a clean review covering self.apex; advances
-        is_claim_confirmed True."""
+        """Emit two clean reviews covering self.apex; advances
+        is_claim_confirmed True (n=2). Returns the latest review."""
         from lib.backend.emit import emit_review_content
-        rev_path = (
-            "_docuverse/documents/review/claims/ASN-0099/r-1.md"
-        )
-        review = self.session.register_path(rev_path)
-        emit_review_content(self.store, review)
-        emit_review_coverage(self.store, review, self.apex)
+        review = None
+        for i in (1, 2):
+            rev_path = (
+                f"_docuverse/documents/review/claims/ASN-0099/r-{i}.md"
+            )
+            review = self.session.register_path(rev_path)
+            emit_review_content(self.store, review)
+            emit_review_coverage(self.store, review, self.apex)
         return review
 
     def test_fires_when_confirmed_clean_but_no_cone_review_yet(self):

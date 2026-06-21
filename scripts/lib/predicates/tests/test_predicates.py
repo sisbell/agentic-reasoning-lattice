@@ -424,13 +424,19 @@ class ConfirmationPredicateTests(unittest.TestCase):
         self.assertFalse(is_claim_confirmed(self.session, self.claim))
 
     def test_clean_review_confirms_claim(self):
-        self._make_review(finding_kinds=())  # zero findings
+        # Claim confirmation is n=2: two consecutive clean reviews.
+        self._make_review(finding_kinds=())  # clean #1
         self.assertTrue(has_been_reviewed(self.session, self.claim))
         self.assertTrue(latest_review_was_clean(self.session, self.claim))
+        # one clean review is not enough under n=2
+        self.assertFalse(is_claim_confirmed(self.session, self.claim))
+        self._make_review(finding_kinds=())  # clean #2
         self.assertTrue(is_claim_confirmed(self.session, self.claim))
 
     def test_observe_only_review_is_clean(self):
         # comment.observe doesn't block quiescence or confirmation.
+        # Two clean (observe-only) reviews confirm (n=2).
+        self._make_review(finding_kinds=("observe",))
         self._make_review(finding_kinds=("observe",))
         self.assertTrue(latest_review_was_clean(self.session, self.claim))
         self.assertTrue(is_claim_confirmed(self.session, self.claim))
@@ -452,7 +458,8 @@ class ConfirmationPredicateTests(unittest.TestCase):
         self.state.make_link(
             self.claim, [self.claim], [old_revise.addr], "resolution.edit",
         )
-        # now a clean review covers the claim
+        # now two clean reviews cover the claim (n=2 confirmation)
+        self._make_review(finding_kinds=())
         new = self._make_review(finding_kinds=())
         self.assertEqual(
             latest_review_for_addr(self.session, self.claim), new,
