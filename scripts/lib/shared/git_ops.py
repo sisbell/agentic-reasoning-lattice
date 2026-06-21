@@ -17,7 +17,7 @@ from lib.lattice.labels import format_label
 from lib.shared.paths import (
     WORKSPACE, NOTE_DIR,
     CLAIM_REVIEWS_DIR, NOTE_REVIEWS_DIR,
-    CLAIM_DIR,
+    CLAIM_DIR, DERIVED_CLAIM_DIR,
     CONSULTATIONS_DIR, EXAMPLES_DIR,
     CLAIM_FINDINGS_DIR, NOTE_FINDINGS_DIR,
     CITATION_RESOLVE_DIR, SIGNATURE_RESOLVE_DIR,
@@ -46,6 +46,7 @@ def stage_asn_files(label):
         CLAIM_REVIEWS_DIR / label,
         NOTE_REVIEWS_DIR / label,
         CLAIM_DIR / label,
+        DERIVED_CLAIM_DIR / label,
         CONSULTATIONS_DIR / label,
         EXAMPLES_DIR / label,
         CLAIM_FINDINGS_DIR / label,

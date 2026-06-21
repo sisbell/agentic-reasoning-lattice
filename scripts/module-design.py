@@ -44,9 +44,9 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 from lib.shared.invoke_claude import invoke_claude
+from lib.shared.paths import claim_statements_aggregate_path
 
 DESIGNS_DIR = ROOT / "_design" / "designs"
-CLAIM_DIR = ROOT / "_docuverse/documents/1.1/1/claim"
 NOTE_DIR = ROOT / "_docuverse/documents/1.1/1/note"
 MODULES_DIR = ROOT / "_design" / "modules"
 MODULES_MD = MODULES_DIR / "modules.md"
@@ -93,7 +93,7 @@ def _design_digest(asn: int) -> str:
 def _statements(asn: int) -> str:
     """Best-available formal contract: claim-statements aggregate preferred,
     else the note .statements.md sidecar, else nothing."""
-    claim = CLAIM_DIR / f"ASN-{asn:04d}" / "_statements.md"
+    claim = claim_statements_aggregate_path(f"ASN-{asn:04d}")
     if claim.exists():
         return claim.read_text().strip()
     side = list(NOTE_DIR.glob(f"ASN-{asn:04d}-*.statements.md"))
