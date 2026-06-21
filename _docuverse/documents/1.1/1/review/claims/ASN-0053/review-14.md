@@ -1,0 +1,24 @@
+I read the foundation statements and then the full ASN, tracing the precondition chains across the WF/D1/D2/TA-assoc/TA-LC seam into the span-algebra claims. The arithmetic and the case structure of SC, S1–S5, S8, S9, S11–S11d hold up: the level-uniform/level-compatible hypotheses propagate correctly into WF's `#s = #r` precondition everywhere it is invoked, the split/merge/difference partitions are exhaustive and disjoint, and S9's divergence-index case split is genuinely exhaustive (the shared-start-shared-reach configuration is correctly excluded via TA-LC). One grounding issue and two style issues surfaced.
+
+### S7 grounds the infinitude of ⟦σ⟧ on the wrong foundation claim
+**Class**: REVISE
+**Foundation**: T0(b) (UnboundedLength) — postcondition `For every n ∈ ℕ with n ≥ 1, there exists t ∈ T with #t ≥ n`; T0 (CarrierSetDefinition) — comprehension axiom
+**ASN**: S7 (CoveringExistence), main body: "Thus every extension lies in [s, reach(s, ℓ)) ... and by T0(b) there are infinitely many of them." And appendix *Axiom*: "T0(b) — every tumbler admits infinitely many proper deeper extensions — supplies the infinitude of ⟦σ⟧," while the appendix *Depends* attributes it instead to "T0 ... sub-clause (b), the comprehension axiom."
+**Issue**: The load-bearing fact is "the specific extensions `s.0, s.0.0, …` are each in T, and there are infinitely many of them." Membership of each `s.0ⁿ` in T comes from T0's comprehension axiom (present a length and a component map, get a `t ∈ T`); the infinitude is just that `n` ranges over ℕ with distinct lengths. T0(b)'s formal postcondition is purely existential about *length* (`∃t : #t ≥ n`) and says nothing about extensions of a *given* `s` — it does not formally supply "infinitely many proper extensions of s in T." The appendix *Axiom* field misstates T0(b) as "every tumbler admits infinitely many proper deeper extensions" (that is not what UnboundedLength says), and then the *Depends* field contradicts it by crediting T0 comprehension — but mislabels comprehension as "sub-clause (b)," when (b) denotes the separate UnboundedLength claim. A consumer tracing the dependency graph is pointed at the wrong axiom.
+**What needs resolving**: Ground the infinitude of `⟦σ⟧` on T0's comprehension axiom (each `s.0ⁿ ∈ T`) together with the infinitude of ℕ, and correct the main-body "by T0(b)" citation and the appendix *Axiom*/*Depends* fields so they name the actual supplying axiom consistently rather than restating UnboundedLength as an extension-existence claim.
+
+### Meta-prose: *Depends* entries explain why an axiom is needed and inventory its use-sites
+**Class**: OBSERVE
+**Foundation**: TumblerAdd, TumblerSub (ASN-0034)
+**ASN**: S6 (LevelConstraint) *Depends* on TumblerAdd: "This is the sole source of the addition result-length: the in-scope foundations supply only the subtraction length (TumblerSub: ...) and the round-trip identity (D1: ...), neither of which yields #(s ⊕ ℓ) = #ℓ ..."; likewise the WF *Depends* on TumblerSub and the S11 *Depends* on TumblerAdd run to paragraph-length use-site inventories.
+**Issue**: These *Depends* slots argue *why* the cited axiom is necessary (ruling out alternative foundations) and catalog every consumption site, rather than stating what the axiom supplies. This is the "new prose around an axiom explaining why it is needed rather than what it says" / use-site-inventory pattern the precise reader must skip past to find the actual dependency. The S6 main-body hypothetical ("Drop a precondition — say Pos(ℓ) — and s ⊕ ℓ need not be defined") imagines a configuration that is not a span at all, since the Span definition already carries `Pos(ℓ)`.
+**What needs resolving**: (OBSERVE — no change required.)
+
+### "level-uniform span" in claim statements vs "well-formed level-uniform span" in contracts
+**Class**: OBSERVE
+**Foundation**: Span (preconditions `Pos(ℓ)`, `actionPoint(ℓ) ≤ #s`)
+**ASN**: Main-body statements of S1, S3, S4, S5, S11, etc. say "level-uniform spans," while the corresponding formal contracts say "well-formed level-uniform spans"; S6 itself stresses that level-uniformity alone does not entitle a reach length.
+**Issue**: The proofs uniformly require well-formedness (to have `reach` defined and `#reach = #s`). Because the foundation term "span" already bundles `Pos(ℓ)` and `actionPoint(ℓ) ≤ #s`, a "(level-uniform) span" is well-formed by definition, so there is no soundness gap — but the inconsistent phrasing between body and contract invites the misreading that a bare "level-uniform pair" (which S6 explicitly warns has no defined reach) is admissible.
+**What needs resolving**: (OBSERVE — no change required.)
+
+VERDICT: REVISE
