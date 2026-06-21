@@ -37,7 +37,9 @@ from __future__ import annotations
 
 import argparse
 import re
+import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -183,6 +185,50 @@ def _decomposed_asns_topo_sorted() -> list[str]:
     return sorted_list
 
 
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+
+
+def _git_push(reason: str = "") -> None:
+    """Push committed work to the remote. Non-fatal on any failure
+    (rejected push, no remote, network) — logged, never raised."""
+    try:
+        r = subprocess.run(
+            ["git", "push"], cwd=str(_REPO_ROOT),
+            capture_output=True, text=True, timeout=180,
+        )
+        if r.returncode == 0:
+            print(f"  [CLAIM-SCHED] git push ok {reason}".rstrip(),
+                  file=sys.stderr)
+        else:
+            tail = (r.stderr or r.stdout or "").strip()[:200]
+            print(f"  [CLAIM-SCHED] git push failed "
+                  f"({r.returncode}) {reason}: {tail}".rstrip(),
+                  file=sys.stderr)
+    except Exception as exc:  # subprocess timeout / OS error
+        print(f"  [CLAIM-SCHED] git push error {reason}: {exc!r}".rstrip(),
+              file=sys.stderr)
+
+
+def _start_pusher(interval: int):
+    """Start a daemon thread that pushes every `interval` seconds.
+    Returns (stop_event, thread); pass to `_stop_pusher`."""
+    stop = threading.Event()
+
+    def _loop():
+        while not stop.wait(interval):
+            _git_push("(periodic)")
+
+    t = threading.Thread(target=_loop, name="claim-pusher", daemon=True)
+    t.start()
+    return stop, t
+
+
+def _stop_pusher(handle) -> None:
+    stop, t = handle
+    stop.set()
+    t.join(timeout=5)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         prog="claim-scheduler",
@@ -244,6 +290,18 @@ def main() -> int:
             "(default 4, or the CONE_MIN_DEPS env var). Lower → more apexes "
             "→ more focused per-cone reviews (higher coverage, higher cost)."
         ),
+    )
+    parser.add_argument(
+        "--push", action="store_true",
+        help=(
+            "git push committed work to the remote: periodically during the "
+            "run and once at the end (also on Ctrl-C). Non-fatal on failure. "
+            "Use for direct runs; run-claims-continuous.sh already pushes."
+        ),
+    )
+    parser.add_argument(
+        "--push-interval", type=int, default=120, metavar="SECONDS",
+        help="Seconds between background pushes when --push is set (default 120).",
     )
     args = parser.parse_args()
 
@@ -328,6 +386,25 @@ def main() -> int:
         f"{len(asn_labels)} ASNs: {', '.join(asn_labels)}",
         file=sys.stderr,
     )
+
+    # Optional git push: a daemon thread pushes every --push-interval
+    # seconds; atexit pushes once more at the end and on Ctrl-C (the
+    # daemon thread dies with the process). Registered here, after scope
+    # setup, so an early arg/scope error doesn't push.
+    if args.push:
+        import atexit
+        _pusher = _start_pusher(args.push_interval)
+        print(
+            f"  [CLAIM-SCHED] --push on: background push every "
+            f"{args.push_interval}s + final push",
+            file=sys.stderr,
+        )
+
+        def _push_at_exit():
+            _stop_pusher(_pusher)
+            _git_push("(final)")
+
+        atexit.register(_push_at_exit)
 
     total_fires = 0
     total_errors: list[tuple[str, str, str, str]] = []
