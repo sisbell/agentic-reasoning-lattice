@@ -33,7 +33,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.common import find_asn
-from lib.shared.paths import CLAIM_DIR, LATTICE
+from lib.shared.paths import CLAIM_DIR, LATTICE, WORKSPACE
 from lib.protocols.febe.session import open_session
 from lib.lattice.labels import build_cross_asn_label_index, format_label
 from lib.backend.predicates import active_links
@@ -692,9 +692,20 @@ def main():
         print(f"{format_label(asn_num)} not found", file=sys.stderr)
         return 2
 
-    claim_dir = CLAIM_DIR / asn_label
-    if not claim_dir.exists():
-        print(f"No claim directory: {claim_dir}", file=sys.stderr)
+    # Auto-detect the claim region: derived claims live in 1.3, legacy /
+    # foundation claims in 1.1 (CLAIM_DIR). Prefer 1.3, fall back to 1.1.
+    _docs = WORKSPACE / "_docuverse" / "documents"
+    candidates = [
+        _docs / "1.3" / "1" / "claim" / asn_label,
+        CLAIM_DIR / asn_label,
+    ]
+    claim_dir = next((c for c in candidates if c.exists()), None)
+    if claim_dir is None:
+        print(
+            f"No claim directory for {asn_label} "
+            f"(checked 1.3 and 1.1 regions)",
+            file=sys.stderr,
+        )
         return 2
 
     pairs = load_pairs(claim_dir)
