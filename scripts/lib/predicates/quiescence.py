@@ -151,6 +151,41 @@ def _review_filed_revise(session: Session, review_addr: Address) -> bool:
     return False
 
 
+def revised_after_latest_review(session: Session, addr: Address) -> bool:
+    """True iff `addr` was revised AFTER its most recent review covered it.
+
+    A revise edits the claim/note body and closes its finding via a
+    `resolution` link — but `claim_revise` does not reliably advance the
+    doc's version (and review.coverage is keyed on the base identity),
+    so a clean review emitted BEFORE a revise still satisfies
+    `latest_review_was_clean`, falsely confirming post-revise content the
+    reviewer never saw. This guards against that: compare the newest
+    `resolution` on this doc's revise-comments against the newest
+    coverage link from its latest review. If a revise is newer, the
+    confirming review is stale and the doc must be re-reviewed.
+
+    False when there's no review, or no revise newer than it.
+    """
+    review_meta = latest_review_for_addr(session, addr)
+    if review_meta is None:
+        return False
+    cov_ts = max(
+        (l.ts for l in session.active_links(
+            "review.coverage", from_set=[review_meta], to_set=[addr])),
+        default=None,
+    )
+    if cov_ts is None:
+        return False
+    from lib.predicates.versions import version_head
+    targets = {addr, version_head(session, addr)}
+    for tgt in targets:
+        for cmt in session.active_links("comment.revise", to_set=[tgt]):
+            for res in session.active_links("resolution", to_set=[cmt.addr]):
+                if res.ts > cov_ts:
+                    return True
+    return False
+
+
 def latest_review_was_clean(session: Session, addr: Address) -> bool:
     """True iff the most recent review on `addr`'s scope filed zero
     `comment.revise` findings at emit time (retracted findings still
@@ -211,6 +246,7 @@ def is_confirmed_n(session: Session, addr: Address, n: int) -> bool:
         is_claim_quiescent(session, addr)
         and has_been_reviewed(session, addr)
         and last_n_reviews_were_clean(session, addr, n=n)
+        and not revised_after_latest_review(session, addr)
     )
 
 
