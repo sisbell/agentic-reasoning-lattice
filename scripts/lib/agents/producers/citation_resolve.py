@@ -65,6 +65,9 @@ class CitationClassifications(NamedTuple):
     elapsed_seconds: float
 
 
+PARSE_ATTEMPTS = 3  # 1 initial + 2 retries on malformed LLM output
+
+
 def extract_citation_classifications(
     claim_md_content: str,
     claim_dir: Path,
@@ -77,27 +80,42 @@ def extract_citation_classifications(
     """Run Sonnet against the citation-resolve prompt; return parsed
     CLASSIFICATIONS / RETRACTIONS.
 
-    Raises on malformed LLM output (missing headers, YAML parse errors,
-    malformed entries, invalid direction values) — no graceful
-    degradation.
+    The strict parser is the arbiter — a malformed response (code-fence
+    wrapping, trailing prose, missing headers, bad YAML) raises
+    ValueError, which we treat as a transient format-compliance failure
+    and retry the LLM call (up to PARSE_ATTEMPTS). The parser is never
+    loosened. After the last attempt the parse error propagates.
     """
     prompt = _render_prompt(
         claim_md_content, claim_dir, claims_root,
         existing_depends, existing_forwards,
     )
-    raw_text, elapsed = invoke_text(prompt, model=model, tools="Read")
-    classifications, retractions = parse_two_sections(
-        raw_text, "CLASSIFICATIONS", "RETRACTIONS",
-    )
-    _drop_quote_citations(classifications, retractions)
-    _validate_classifications(classifications)
-    _validate_retractions(retractions)
-    return CitationClassifications(
-        classifications=classifications,
-        retractions=retractions,
-        raw_text=raw_text,
-        elapsed_seconds=elapsed,
-    )
+    last_err: ValueError | None = None
+    for attempt in range(1, PARSE_ATTEMPTS + 1):
+        raw_text, elapsed = invoke_text(prompt, model=model, tools="Read")
+        try:
+            classifications, retractions = parse_two_sections(
+                raw_text, "CLASSIFICATIONS", "RETRACTIONS",
+            )
+            _drop_quote_citations(classifications, retractions)
+            _validate_classifications(classifications)
+            _validate_retractions(retractions)
+        except ValueError as e:
+            last_err = e
+            print(
+                f"  [CITATION-RESOLVE] malformed response "
+                f"(attempt {attempt}/{PARSE_ATTEMPTS}); retrying: "
+                f"{str(e).splitlines()[0][:100]}",
+                file=sys.stderr,
+            )
+            continue
+        return CitationClassifications(
+            classifications=classifications,
+            retractions=retractions,
+            raw_text=raw_text,
+            elapsed_seconds=elapsed,
+        )
+    raise last_err
 
 
 def _format_label_list(labels: List[str]) -> str:
