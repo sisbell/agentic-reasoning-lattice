@@ -12,6 +12,8 @@ apex scope.
 
 from __future__ import annotations
 
+import os
+
 from typing import Iterator
 
 from lib.agents.producers.cone_review import ConeReviewAgent
@@ -36,7 +38,14 @@ from lib.shared.topological_sort import topological_levels
 _AGENT = ConeReviewAgent()
 
 
-CONE_MIN_DEPS = 4
+# Minimum direct same-ASN dependencies for a claim to be an apex (and so
+# get its own focused cone review). Read at module load from the
+# CONE_MIN_DEPS env var (default 4) so run-claims-continuous.sh can set
+# it via runner.env; claim-scheduler.py's --cone-min-deps overrides this
+# module global directly at runtime. Lower → more apexes → more focused
+# per-cone reviews (higher coverage, higher cost). The apex-selection
+# code reads this global at call time, so a runtime override takes effect.
+CONE_MIN_DEPS = int(os.environ.get("CONE_MIN_DEPS", "4"))
 
 
 def apex_labels_in_topological_order(

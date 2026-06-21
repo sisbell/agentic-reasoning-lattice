@@ -237,7 +237,31 @@ def main() -> int:
             "Class membership is read from _workspace/asn-classes.yaml."
         ),
     )
+    parser.add_argument(
+        "--cone-min-deps", type=int, default=None, metavar="N",
+        help=(
+            "Min direct same-ASN deps for a claim to be a cone-review apex "
+            "(default 4, or the CONE_MIN_DEPS env var). Lower → more apexes "
+            "→ more focused per-cone reviews (higher coverage, higher cost)."
+        ),
+    )
     args = parser.parse_args()
+
+    # Apply the cone-apex threshold override before any apex query runs.
+    # NB: `lib.triggers.__init__` binds the name `cone_review` to the
+    # Trigger object, shadowing the submodule — so fetch the real module
+    # via importlib (sys.modules), not `import lib.triggers.cone_review`.
+    if args.cone_min_deps is not None:
+        if args.cone_min_deps < 1:
+            parser.error("--cone-min-deps must be >= 1")
+        import importlib
+        _cone_review_mod = importlib.import_module("lib.triggers.cone_review")
+        _cone_review_mod.CONE_MIN_DEPS = args.cone_min_deps
+        print(
+            f"  [CLAIM-SCHED] cone-min-deps override: "
+            f"apex threshold = {args.cone_min_deps}",
+            file=sys.stderr,
+        )
 
     from lib.shared.asn_classes import apply_exclude, parse_exclude_arg
     try:
