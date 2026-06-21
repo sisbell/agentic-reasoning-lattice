@@ -132,16 +132,20 @@ def run_until_quiescent(
                 if key in fired_this_pass:
                     continue
                 # File-based shutdown gate. Checked before any
-                # CHAIN-STARTING fire: note-review (starts a
-                # review→consult→revise cycle), inquiry-consult
-                # (starts a consultation campaign), and note-draft
-                # (starts a draft→review convergence run). In-flight
-                # chains still complete naturally — consult/revise
-                # predicates remain True while their work exists —
-                # but no new chain starts after the operator places
-                # the sentinel.
+                # CHAIN-STARTING fire:
+                #   - note-review   (review→consult→revise cycle)
+                #   - inquiry-consult (consultation campaign)
+                #   - note-draft    (draft→review convergence run)
+                #   - cone-review   (claim regional review→findings→revise)
+                #   - full-review   (whole-ASN claim review→findings→revise)
+                # The in-flight fire completes (the gate is checked before
+                # the NEXT fire, not mid-fire), and committed work is
+                # resumable — but no new chain starts after the operator
+                # places the sentinel. Downstream findings/revise from an
+                # already-emitted review are picked up on the next run.
                 if (trigger.name in
-                        ("note-review", "inquiry-consult", "note-draft")
+                        ("note-review", "inquiry-consult", "note-draft",
+                         "cone-review", "full-review")
                         and shutdown_requested()):
                     print(
                         f"  [RUNNER] shutdown sentinel detected — "
