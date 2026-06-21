@@ -46,7 +46,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib import triggers as triggers_module
 from lib.runner import (
-    Scope, Trigger, compute_active_ready_partition, run_until_quiescent,
+    RunResult, Scope, Trigger,
+    compute_active_ready_partition, run_until_quiescent,
 )
 
 
@@ -72,10 +73,10 @@ CLAIM_CYCLE_TRIGGER_NAMES = (
 )
 
 
-def _claim_cycle_triggers() -> list[Trigger]:
-    """Resolve the claim-cycle triggers from the registry."""
+def _resolve_triggers(names) -> list[Trigger]:
+    """Resolve named triggers from the registry, in order."""
     found = []
-    for name in CLAIM_CYCLE_TRIGGER_NAMES:
+    for name in names:
         trig = getattr(triggers_module, name, None)
         if not isinstance(trig, Trigger):
             raise SystemExit(
@@ -83,6 +84,67 @@ def _claim_cycle_triggers() -> list[Trigger]:
             )
         found.append(trig)
     return found
+
+
+def _claim_cycle_triggers() -> list[Trigger]:
+    """Resolve all claim-cycle triggers from the registry."""
+    return _resolve_triggers(CLAIM_CYCLE_TRIGGER_NAMES)
+
+
+# Convergence is PHASED, not interleaved: run the whole-ASN review loop
+# (full_review) to quiescence first, THEN the per-apex cone-review loop to
+# quiescence. Interleaving them in one walk made cone-review re-review
+# content full_review had just flagged but not yet revised — wasted Opus
+# passes and duplicate findings. Each phase carries the construction,
+# findings/revise, structural-gate, and cascade-refresh triggers (all
+# predicate-fired, so they no-op when there's nothing to do); the phases
+# differ only in which review trigger is present.
+_GLOBAL_PHASE_NAMES = tuple(
+    n for n in CLAIM_CYCLE_TRIGGER_NAMES if n != "cone_review"
+)
+_CONE_PHASE_NAMES = tuple(
+    n for n in CLAIM_CYCLE_TRIGGER_NAMES if n != "full_review"
+)
+
+
+def _run_asn_phased(
+    global_triggers, cone_triggers, scope, *, max_iterations, auto_commit,
+) -> RunResult:
+    """Run an ASN to convergence in two phases — global then cone — and
+    return a combined RunResult. Phase 1 (global) runs full_review to
+    quiescence; phase 2 (cone) then runs cone_review to quiescence on the
+    now-globally-consistent content. Stops early on shutdown."""
+    asn = scope.asn_label
+    fires: list[tuple[str, str]] = []
+    errors: list[tuple[str, str, str]] = []
+    iterations = 0
+    quiescent = True
+    for phase_name, phase_triggers in (
+        ("global", global_triggers), ("cone", cone_triggers),
+    ):
+        r = run_until_quiescent(
+            triggers=phase_triggers, scope=scope,
+            max_iterations=max_iterations, auto_commit=auto_commit,
+        )
+        print(
+            f"  [CLAIM-SCHED] {asn} [{phase_name}]: "
+            f"iters={r.iterations} fires={len(r.fires)} "
+            f"errors={len(r.errors)} quiescent={r.quiescent}",
+            file=sys.stderr,
+        )
+        fires.extend(r.fires)
+        errors.extend(r.errors)
+        iterations += r.iterations
+        quiescent = quiescent and r.quiescent
+        if r.shutdown:
+            return RunResult(
+                quiescent=False, iterations=iterations,
+                fires=fires, errors=errors, shutdown=True,
+            )
+    return RunResult(
+        quiescent=quiescent, iterations=iterations,
+        fires=fires, errors=errors, shutdown=False,
+    )
 
 
 def _parse_asn(raw: str) -> str:
@@ -367,7 +429,11 @@ def main() -> int:
         if not args.asns:
             parser.error("ASN(s) required, or use --dag")
         asn_labels = [_parse_asn(a) for a in args.asns]
+    # All triggers (for the partition-readiness query) plus the two
+    # phase-specific lists (global = no cone_review, cone = no full_review).
     triggers = _claim_cycle_triggers()
+    global_triggers = _resolve_triggers(_GLOBAL_PHASE_NAMES)
+    cone_triggers = _resolve_triggers(_CONE_PHASE_NAMES)
 
     import os as _os
     worker_idx = _os.environ.get("CLAUDE_WORKER_INDEX", "(unset)")
@@ -467,9 +533,8 @@ def main() -> int:
         for asn_label in asn_labels:
             scope = Scope(asn_label=asn_label)
             inner_start = time.time()
-            result = run_until_quiescent(
-                triggers=triggers,
-                scope=scope,
+            result = _run_asn_phased(
+                global_triggers, cone_triggers, scope,
                 max_iterations=args.max_inner,
                 auto_commit=not args.no_commit,
             )
