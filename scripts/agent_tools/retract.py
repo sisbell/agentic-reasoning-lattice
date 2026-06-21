@@ -32,6 +32,7 @@ from lib.shared.paths import claim_doc_path, LATTICE
 from lib.protocols.febe.session import open_session
 from lib.backend.emit import emit_retraction
 from lib.lattice.labels import build_doc_label_index
+from lib.predicates.versions import version_head, version_root
 
 
 def main():
@@ -72,9 +73,20 @@ def main():
         return 1
     cited_addr = label_index[args.to]
     type_str = f"citation.{args.direction}"
-    candidates = session.active_links(
-        type_str, from_set=[citing_addr], to_set=[cited_addr],
-    )
+    # Citations are filed from the citing claim's version-head and target
+    # each dependency's version-head (see citation.py). An exact match on
+    # the base/identity addresses therefore misses every citation on a
+    # claim that has been versioned. Match the way citation_resolve.py
+    # does: enumerate active citations from the head, then normalize each
+    # candidate's to_set targets to their version root before comparing
+    # against the dependency's address from the label index.
+    citing_head = version_head(session, citing_addr)
+    cited_root = version_root(session, cited_addr)
+    candidates = [
+        cand
+        for cand in session.active_links(type_str, from_set=[citing_head])
+        if any(version_root(session, t) == cited_root for t in cand.to_set)
+    ]
     if not candidates:
         print(f"error: no active {type_str} from {args.from_label} to {args.to}",
               file=sys.stderr)
@@ -84,7 +96,7 @@ def main():
               file=sys.stderr)
         return 1
     target_link = candidates[0]
-    retraction = emit_retraction(store, citing_addr, target_link.addr)
+    retraction = emit_retraction(store, citing_head, target_link.addr)
     print(retraction.addr)
     return 0
 
