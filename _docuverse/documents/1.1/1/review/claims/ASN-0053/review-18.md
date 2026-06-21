@@ -1,0 +1,26 @@
+I read the foundation contracts and then the full ASN as a system, tracing the precondition chains that cross claim boundaries — particularly the WF/D1/D2/TA-assoc/TA-LC entry points and the level-uniformity discipline that connects S6 → WF → S1/S3/S4/S8/S11x.
+
+One systemic issue surfaced: the carrier-membership precondition of WF (and of the underlying TumblerSub) is discharged in **S11** but silently assumed everywhere else that feeds a *reach* tumbler into WF.
+
+### Reach tumblers fed to WF/TumblerSub without discharging carrier membership (reach ∈ T)
+**Class**: REVISE
+**Foundation**: WF (WellFormedSpanFromEndpoints) — preconditions `s, r ∈ T with s < r and #s = #r`; TumblerSub — precondition `a ∈ T, w ∈ T, a ≥ w`. Both depend on TA0/TumblerAdd's carrier postcondition `start(σ) ⊕ width(σ) ∈ T` to place a reach in T.
+**ASN**: **S11c** Case 2: "Define γ' = (reach(β), reach(α) ⊖ reach(β)). We establish #reach(β) = #reach(α): ... With reach(β) < reach(α) given, WF gives a well-formed level-uniform span." S11c's declared *Depends* are only SC, T1, WF. The parallel construction in **S11** ("Unlike λ's, ρ's endpoints reach(β) and reach(α) are not primitive start tumblers but the sums reach(σ) = start(σ) ⊕ width(σ), so WF's carrier preconditions reach(β) ∈ T and reach(α) ∈ T are not immediate and must be discharged before WF can apply") explicitly discharges this via TumblerAdd's carrier postcondition and lists TumblerAdd as a dependency.
+**Issue**: S11c's γ' construction has `reach(β)` as WF's `s`-endpoint and `reach(α)` as its `r`-endpoint; both are sums `start ⊕ width`, not primitive start tumblers, so WF's `s, r ∈ T` (and the subtraction `reach(α) ⊖ reach(β)`'s carrier/ordering preconditions) require establishing `reach(β), reach(α) ∈ T`. S11c neither states this nor depends on TumblerAdd/TA0. This is exactly the gap S11 was hardened to close — and S11c is the structural twin of S11's ρ-branch. The same silent assumption recurs in: **S1** (`γ = (s', r' ⊖ s')` with `r' = min(reach(α), reach(β))` as WF's `r`), **S3** (`γ = (s, r ⊖ s)` with `r = max(reach(α), reach(β))`), **S4** ρ-branch (`ρ = (p, reach(σ) ⊖ p)` with `reach(σ)` as WF's `r`), and **S8** (each emitted `(s, r ⊖ s)` with `r` a reach). None of these lists TumblerAdd/TA0 nor discharges `reach ∈ T`.
+**What needs resolving**: Each claim that supplies a reach tumbler as a WF endpoint (or as a TumblerSub operand) must establish that reach lies in T — via the same TumblerAdd/TA0 carrier postcondition S11 invokes — and declare the corresponding dependency, or WF's contract must be restated so the carrier-membership of a reach endpoint is guaranteed by the well-formedness of the originating span at a single shared site the algebra can cite. The discharge should be uniform across S1, S3, S4 (ρ), S8, S11c, matching S11.
+
+### N1 is redundant given N2 plus non-emptiness
+**Class**: OBSERVE
+**Foundation**: —
+**ASN**: NormalizedSpanSet / Definition (Normalized span-set): "(N1) Sorted ... start(σᵢ) < start(σᵢ₊₁); (N2) Separated ... reach(σᵢ) < start(σᵢ₊₁)."
+**Issue**: For non-empty spans `start(σᵢ) < reach(σᵢ)`, so N2 (`reach(σᵢ) < start(σᵢ₊₁)`) already entails N1 (`start(σᵢ) < reach(σᵢ) < start(σᵢ₊₁)`). S8's *N1* paragraph in fact derives strictness from the emit condition rather than from sortedness, implicitly re-proving what N2 gives directly. The two-condition definition is sound but carries a derivable conjunct; this is framing, not a correctness defect.
+**What needs resolving**: —
+
+### S7 cardinality uses set notation for a span-set defined as a sequence
+**Class**: OBSERVE
+**Foundation**: —
+**ASN**: S7 *Definition*: "the witness span-set is Σ = {(t, ℓₜ) : t ∈ P}" with postcondition "|Σ| = |P|"; span-sets are defined upstream as "a finite *sequence* of spans Σ = ⟨σ₁, ..., σₙ⟩".
+**Issue**: The covering witness is presented as a set-builder while `|Σ|` is read as sequence length elsewhere; `|·|` is doing double duty (sequence length vs. set cardinality). The justification "distinct positions t are distinct span starts" is correct, so the count is right, but the construction should be expressed as a sequence to match the span-set definition in scope.
+**What needs resolving**: —
+
+VERDICT: REVISE
