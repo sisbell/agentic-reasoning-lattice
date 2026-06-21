@@ -128,8 +128,10 @@ class FullReviewAgent(Agent):
         )
 
         # 5. Sync substrate citations against md across every derived claim.
+        #    sync_claim_citations takes a Session (it does session.store
+        #    internally) — pass `session`, not `session.store`.
         for claim_addr in ctx.derived_claim_addrs:
-            sync_claim_citations(session.store, claim_addr, label_index)
+            sync_claim_citations(session, claim_addr, label_index)
 
         # 6. Commit the review-doc emission as a cycle event.
 
