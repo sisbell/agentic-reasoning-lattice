@@ -597,9 +597,20 @@ def check_attribute_coverage(pairs, store, label_index, kind):
     return findings
 
 
+# Optional sidecars may legitimately be empty: an empty file means
+# "resolution ran, nothing to declare" — a signature sidecar for a claim
+# that introduces no non-logical symbols, or a references sidecar for a
+# claim with no dependencies. The empty file is the producer's
+# done-marker (the freshness predicate keys on sidecar existence). The
+# required sidecars (label, name, description) must still be non-empty.
+OPTIONAL_EMPTY_KINDS = {"signature", "references"}
+
+
 def check_attribute_doc_format(claim_dir, kind):
     """For each `<stem>.<kind>.md` doc in claim_dir, verify content format.
-    Common rule: doc must be non-empty.
+    Common rule: doc must be non-empty — EXCEPT optional sidecars
+    (`signature`, `references`), where empty means "resolved, nothing to
+    declare" and is valid.
     Label-specific (stage-1 bridge): the first line must equal the
     filename stem.
     """
@@ -610,6 +621,8 @@ def check_attribute_doc_format(claim_dir, kind):
             continue
         content = doc.read_text()
         if not content.strip():
+            if kind in OPTIONAL_EMPTY_KINDS:
+                continue  # resolved, nothing to declare — valid
             findings.append({
                 "rule": f"{kind}-doc-format",
                 "file": doc.name,
