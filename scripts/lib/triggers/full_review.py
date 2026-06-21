@@ -44,8 +44,22 @@ from lib.triggers.scope import asn_first_claim
 
 def _predicate(session: Session, addr: Address) -> bool:
     """True (skip) iff already confirmed, revises pending, any claim
-    of the ASN is held by another agent, or any derived claim is
-    missing its Formal Contract section."""
+    of the ASN is held by another agent, or any claim that REQUIRES a
+    Formal Contract is still missing it.
+
+    The Formal Contract gate waits for `claim_formal_contract` to land
+    before the first whole-ASN review. But only theorem/lemma/corollary
+    claims get a Formal Contract — axiom/definition/design-requirement
+    claims never do (KINDS_REQUIRING_CONTRACT). The gate must therefore
+    check the kind first; otherwise a single definition claim (which is
+    permanently FC-less) blocks full-review forever, leaving every
+    non-apex claim of the ASN unreviewed (cone-review covers only apex
+    cones)."""
+    from lib.agents.producers.claim_formal_contract import (
+        KINDS_REQUIRING_CONTRACT,
+    )
+    from lib.predicates import current_contract_kind
+
     note_addr = resolve_to_scope(session, addr, "note")
     if note_addr is None:
         return True
@@ -63,7 +77,17 @@ def _predicate(session: Session, addr: Address) -> bool:
             continue
         if is_held(session, claim):
             return True
-        if not has_formal_contract(session, claim):
+        # FC gate: a claim blocks the whole-ASN review only if it lacks a
+        # Formal Contract AND it is not an FC-exempt kind. Theorem/lemma/
+        # corollary need an FC (wait for claim_formal_contract); an
+        # unclassified claim (kind=None) is mid-construction (claim_contract
+        # runs first) and also waits. Axiom/definition/design-requirement
+        # never get an FC, so a missing FC there is the permanent correct
+        # state and must NOT block — otherwise one definition claim wedges
+        # full-review forever, leaving every non-apex claim unreviewed.
+        kind = current_contract_kind(session, claim)
+        fc_exempt = kind is not None and kind not in KINDS_REQUIRING_CONTRACT
+        if not fc_exempt and not has_formal_contract(session, claim):
             return True
     return False
 
