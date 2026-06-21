@@ -250,17 +250,26 @@ def _decomposed_asns_topo_sorted() -> list[str]:
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
-def _git_push(reason: str = "") -> None:
+def _git_push(reason: str = "", *, quiet: bool = False) -> None:
     """Push committed work to the remote. Non-fatal on any failure
-    (rejected push, no remote, network) — logged, never raised."""
+    (rejected push, no remote, network) — logged, never raised.
+
+    quiet=True suppresses the routine success line (used by the periodic
+    pusher so idle polls don't flood the log) — failures and actual
+    pushes that moved commits are still logged."""
     try:
         r = subprocess.run(
             ["git", "push"], cwd=str(_REPO_ROOT),
             capture_output=True, text=True, timeout=180,
         )
         if r.returncode == 0:
-            print(f"  [CLAIM-SCHED] git push ok {reason}".rstrip(),
-                  file=sys.stderr)
+            out = (r.stderr or "") + (r.stdout or "")
+            no_op = "Everything up-to-date" in out
+            # Stay silent for quiet no-op polls; still note a real push.
+            if not quiet or not no_op:
+                state = "up-to-date" if no_op else "pushed"
+                print(f"  [CLAIM-SCHED] git push ok ({state}) {reason}".rstrip(),
+                      file=sys.stderr)
         else:
             tail = (r.stderr or r.stdout or "").strip()[:200]
             print(f"  [CLAIM-SCHED] git push failed "
@@ -278,7 +287,7 @@ def _start_pusher(interval: int):
 
     def _loop():
         while not stop.wait(interval):
-            _git_push("(periodic)")
+            _git_push("(periodic)", quiet=True)
 
     t = threading.Thread(target=_loop, name="claim-pusher", daemon=True)
     t.start()
