@@ -155,7 +155,17 @@ def main():
                         help="Parallel workers per level (default: 3)")
     parser.add_argument("--force", action="store_true",
                         help="Ignore cache, regenerate all")
+    parser.add_argument("--skip-contract", default="", metavar="LABELS",
+                        help="Comma-separated claim labels for which to SKIP "
+                             "the LLM contract-validation step (recorded as "
+                             "contract=SKIPPED). Use for design-requirement / "
+                             "definition claims the contract check mis-flags, "
+                             "or claims already validated by hand. Dafny "
+                             "verification still runs.")
     args = parser.parse_args()
+    skip_contract = {
+        s.strip() for s in args.skip_contract.split(",") if s.strip()
+    }
 
     # --- Locate inputs ---
 
@@ -356,9 +366,14 @@ def main():
                 n = m.group(1) if m else "?"
                 print(f" verified({n})", file=sys.stderr, end="", flush=True)
 
-                # Validate contract
+                # Validate contract — unless this label is on the skip list
+                # (design-requirement / definition claims the LLM check
+                # mis-flags, or claims validated by hand).
                 section = claim_contents.get(label, "")
-                if section:
+                if label in skip_contract:
+                    result["contract"] = "SKIPPED"
+                    print(f" (contract check skipped)", file=sys.stderr)
+                elif section:
                     contract_result, reason, a_cost = align_validate_cycle(
                         out_path, section, label,
                         asn_label=asn_label,
