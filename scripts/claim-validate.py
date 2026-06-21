@@ -45,14 +45,24 @@ from lib.lattice.notation import read_notation
 VALID_TYPES = subtypes_of("contract")
 
 
+# Label group is intentionally permissive (`.+?`, any character) rather
+# than an ASCII class: claim labels are not all ASCII S-numbers. ASN-0036
+# uses Greek + dotted-letter + parameterized labels (Σ.C, Σ.M(d)). The
+# required `\s+\(` before the name parenthetical disambiguates a label's
+# internal parens (the `(d)` in Σ.M(d) has no preceding space) from the
+# name's wrapping parens. Name stays ASCII PascalCase (that convention
+# holds across notes). Matches both Σ.M(d) and ASCII S0/S11/WF/T4a.
 DECLARATION_RE = re.compile(
-    r"\*\*([A-Za-z0-9()-]+(?:\.[0-9]+)?)"
+    r"\*\*(.+?)"
     r"\s+\(([A-Za-z][A-Za-z0-9-]*)\)"
     r"\.\s*\*\*"
 )
 FORMAL_CONTRACT_RE = re.compile(r"^\*Formal Contract:\*\s*$", re.MULTILINE)
 DEPENDS_MARKER_RE = re.compile(r"^-\s*\*Depends:\*")
-DEP_ENTRY_RE = re.compile(r"^\s+-\s+([A-Za-z0-9()-]+(?:\.[0-9]+)?)(?:\s|$|,)")
+# First non-space token after the bullet marker is the dependency label —
+# mirrors citation_resolve._bullet_label's split()[0] semantics, and is
+# label-charset-agnostic (handles Σ.C, Σ.M(d) as well as ASCII labels).
+DEP_ENTRY_RE = re.compile(r"^\s+-\s+(\S+?)(?:\s|,|$)")
 TYPE_KEYWORDS = {
     "Axiom", "Definition", "Design-requirement", "Lemma", "Theorem", "Corollary", "Consequence",
 }
