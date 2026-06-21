@@ -25,9 +25,20 @@ module DomainDisjointness {
   import CAI = CrossAllocatorIncomparability
 
   // Per-element form: t cannot lie in dom(X) and dom(Y) simultaneously.
+  //
+  // Single-root model (ASN-0034 T10a): the allocator tree 𝒯 has ONE
+  // distinguished root — the bootstrap node n₀ = [1] — and every allocator
+  // (including, in a distributed deployment, every node, which M3 admits via
+  // NodeBaptism only as a fresh n₀-lineage descendant) is a member of that
+  // one tree. So `Root(X) == Root(Y)` always holds for any two allocators of
+  // 𝒯; we state it as a precondition because the Dafny `Allocator` datatype
+  // (RootAllocator(rootBase) | …) admits multiple roots the model forbids.
+  // With it, the case analysis below is total — there is no Root(X) != Root(Y)
+  // case in the model.
   lemma DomainDisjointnessPair(X: Allocator, Y: Allocator, t: Tumbler)
     requires AllocatorDiscipline.AllocatorDiscipline(X)
     requires AllocatorDiscipline.AllocatorDiscipline(Y)
+    requires Root(X) == Root(Y)
     requires X != Y
     requires InDomain(t, X)
     requires InDomain(t, Y)
@@ -59,9 +70,12 @@ module DomainDisjointness {
   }
 
   // T10a.6: dom(X) ∩ dom(Y) = ∅ whenever X and Y are distinct allocators.
+  // Single-root model (see DomainDisjointnessPair): both allocators belong to
+  // the one n₀-rooted tree 𝒯, so Root(X) == Root(Y).
   lemma DomainDisjointness(X: Allocator, Y: Allocator)
     requires AllocatorDiscipline.AllocatorDiscipline(X)
     requires AllocatorDiscipline.AllocatorDiscipline(Y)
+    requires Root(X) == Root(Y)
     requires X != Y
     ensures forall t: Tumbler :: !(InDomain(t, X) && InDomain(t, Y))
   {

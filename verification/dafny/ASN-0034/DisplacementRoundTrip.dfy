@@ -102,10 +102,16 @@ module DisplacementRoundTrip {
     requires LexicographicOrder.LexicographicOrder(a, b)
     requires Divergence.Divergence(a, b) <= Length(a)
     requires Length(a) <= Length(b)
-    ensures
-      var w := TumblerSub.TumblerSub(b, a);
-      PositiveTumbler.PositiveTumbler(w) && ActionPoint.ActionPoint(w) <= Length(a)
-      ==> TumblerAdd.TumblerAdd(a, w) == b
+    // Matches the formal contract: a ⊕ (b ⊖ a) = b, UNCONDITIONALLY. The
+    // prior conditional ensures (Pos(w) ∧ AP(w)≤#a ⟹ …) was strictly weaker
+    // (vacuous when the guard failed) and did not actually prove the
+    // round-trip. TumblerAdd is partial (requires Pos(w), AP(w)≤#a), so the
+    // round-trip equality is only well-formed once those hold; the proof
+    // discharges them from the preconditions, and we export them as their
+    // own ensures (a strengthening) so the final equality type-checks.
+    ensures PositiveTumbler.PositiveTumbler(TumblerSub.TumblerSub(b, a))
+    ensures ActionPoint.ActionPoint(TumblerSub.TumblerSub(b, a)) <= Length(a)
+    ensures TumblerAdd.TumblerAdd(a, TumblerSub.TumblerSub(b, a)) == b
   {
     LexImpliesNotEqual(a, b);
     var k := Divergence.Divergence(a, b);
