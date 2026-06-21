@@ -39,7 +39,10 @@ def validate(dafny_source, formal_contract, label):
               .replace("{{formal_contract}}", formal_contract))
 
     cmd = [
-        "claude", "--print", "--model", "claude-fable-5[1m]",
+        # was claude-fable-5[1m] — Anthropic disabled fable-5 (2026-06-12),
+        # so every contract-validation call failed → contract=ERROR on all
+        # checked claims. Use opus (what the error message already names).
+        "claude", "--print", "--model", "claude-opus-4-8[1m]",
     ]
     env = os.environ.copy()
     env.pop("CLAUDECODE", None)

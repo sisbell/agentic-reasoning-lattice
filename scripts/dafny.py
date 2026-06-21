@@ -59,7 +59,8 @@ def _review_failure(claim_text, dfy_path, verification_errors):
               .replace("{{dafny_source}}", dfy_source)
               .replace("{{verification_errors}}", verification_errors))
     import os, subprocess
-    cmd = ["claude", "--print", "--model", "claude-fable-5[1m]"]
+    # fable-5 disabled by Anthropic (2026-06-12); use opus.
+    cmd = ["claude", "--print", "--model", "claude-opus-4-8[1m]"]
     env = os.environ.copy()
     env.pop("CLAUDECODE", None)
     env["CLAUDE_CODE_EFFORT_LEVEL"] = "high"
