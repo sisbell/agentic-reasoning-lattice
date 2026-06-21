@@ -6,7 +6,9 @@
 
 Splitting γ at p yields λ = (start(α), p ⊖ start(α)) and ρ = (p, reach(γ) ⊖ p). For λ: p ⊖ start(α) = reach(α) ⊖ start(α) = width(α) by WR (α is level-uniform). So λ = (start(α), width(α)) = α. For ρ: reach(γ) ⊖ p = reach(β) ⊖ start(β) = width(β) by WR (β is level-uniform). So ρ = (start(β), width(β)) = β.
 
-*Case B: reach(β) = start(α).* By S3a (merge commutativity) the merge of α and β equals the merge of β and α, which is the Case A configuration with the roles of α and β exchanged. Applying Case A to the pair ⟨β, α⟩, splitting the merged span at the shared boundary start(α) yields left part λ = β and right part ρ = α. The unordered pair {λ, ρ} = {β, α} = {α, β} is recovered exactly; the left-right assignment is reversed relative to Case A.  ∎
+*Case B: reach(β) = start(α).* Here β abuts α from the left, so we derive the split directly from the merge formula rather than routing through commutativity. Since β is non-empty, start(β) < reach(β) = start(α); and since α is non-empty, start(α) < reach(α). The merge formula (S3) gives γ = (s, r ⊖ s) with s = min(start(α), start(β)) = start(β) (as start(β) < start(α)) and r = max(reach(α), reach(β)) = reach(α) (as reach(β) = start(α) < reach(α)). So γ = (start(β), reach(α) ⊖ start(β)) with start(γ) = start(β) and reach(γ) = reach(α). The shared boundary p = start(α) is interior to γ: start(γ) = start(β) < start(α) and start(α) < reach(α) = reach(γ). Level compatibility level_compat(start(γ), p) = level_compat(start(β), start(α)) holds — it is the assumed level_compat(start(α), start(β)) read in the other order, both asserting #start(α) = #start(β).
+
+Splitting γ at p yields λ = (start(β), p ⊖ start(β)) and ρ = (p, reach(γ) ⊖ p). For λ: p ⊖ start(β) = start(α) ⊖ start(β) = reach(β) ⊖ start(β) = width(β) by WR (β is level-uniform), using start(α) = reach(β). So λ = (start(β), width(β)) = β. For ρ: reach(γ) ⊖ p = reach(α) ⊖ start(α) = width(α) by WR (α is level-uniform). So ρ = (start(α), width(α)) = α. Thus {λ, ρ} = {β, α} = {α, β}, with λ = β and ρ = α — the left-right assignment reversed relative to Case A, as required.  ∎
 
 *Formal Contract:*
 
@@ -16,7 +18,6 @@ Splitting γ at p yields λ = (start(α), p ⊖ start(α)) and ρ = (p, reach(γ
 - *Definition:* The shared boundary p is the interior point of γ at which the original adjacency met (start(β) in Case A, start(α) in Case B); interiority start(γ) < p < reach(γ) is what makes p an admissible split point for S4.
 
 - *Depends:*
-  - S3 (MergeEquivalence) — supplies the merge operation and the endpoint formula γ = (start(α), r ⊖ start(α)) used throughout the proof
+  - S3 (MergeEquivalence) — supplies the merge operation and the endpoint formula γ = (s, r ⊖ s) with s = min(start(α), start(β)) and r = max(reach(α), reach(β)), used in both cases
   - S4 (SplitPartition) — supplies the split operation; the proof invokes split(γ, p) and reads off λ and ρ from S4's output structure
-  - S3a (MergeCommutativity) — supplies merge commutativity invoked in Case B to reduce to the Case A configuration with roles of α and β exchanged
-  - WR (WidthRecovery) — supplies reach(σ) ⊖ start(σ) = width(σ), used twice in Case A to identify λ = α and ρ = β
+  - WR (WidthRecovery) — supplies reach(σ) ⊖ start(σ) = width(σ), used twice in each case to identify the split parts as α and β
