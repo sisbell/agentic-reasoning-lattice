@@ -22,12 +22,11 @@ from lib.lattice.deps import build_deps_for_asn
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.predicates import (
     has_formal_contract,
-    is_cascade_fresh_one_hop,
-    is_claim_confirmed,
     is_claim_quiescent,
     is_held,
     is_upstream_settled_one_hop,
 )
+from lib.predicates.quiescence import _review_filed_revise
 from lib.predicates.versions import version_head
 from lib.protocols.febe.protocol import Session
 from lib.runner import Scope, Trigger
@@ -116,34 +115,51 @@ def _scope_query(session: Session, scope: Scope) -> Iterator[Address]:
             yield addr
 
 
-def _has_been_cone_reviewed(
+# An apex is cone-converged at two consecutive clean cone reviews — the
+# same n=2 rule the global phase uses (quiescence.CLAIM_CONFIRMATION_N),
+# but counted over the apex's OWN cone reviews, not whole-ASN full reviews.
+CONE_CONFIRMATION_N = 2
+
+
+def _clean_cone_review_streak(
     session: Session, claim_addr: Address,
-) -> bool:
-    """True iff some `review.coverage` link targeting `claim_addr`
-    was emitted by the cone-review agent.
+) -> int:
+    """Number of trailing consecutive CLEAN cone-attributed reviews of
+    `claim_addr`. The apex is cone-converged once this reaches
+    CONE_CONFIRMATION_N.
 
-    Walks the `manages` graph: every substrate write the cone-review
-    agent emits is auto-tagged with `manages(cone-review-agent → link)`
-    via `AttributingStore`. The query reads that record — find every
-    review.coverage covering the claim, check if any has a `manages`
-    edge from the cone-review agent doc.
+    Cone reviews are distinguished from whole-ASN full reviews via the
+    `manages` graph: every substrate write the cone-review agent emits is
+    auto-tagged `manages(cone-review-agent → link)` by AttributingStore,
+    so a `review.coverage` with such an edge is a cone review. Ordered by
+    emission (link address); a REVISE-filing cone review resets the
+    streak (same emit-time-verdict rule as global, see
+    quiescence._review_filed_revise).
 
-    Distinguishes "this apex has had its own focused cone review" from
-    "this apex was touched by a whole-ASN full review" — both emit
-    `review.coverage` to the claim, but only the cone-review-attributed
-    one means the apex has received its focused per-cone treatment.
+    This replaces the old boolean `_has_been_cone_reviewed` (≥1 ever),
+    which let the skip predicate mark an apex done after a SINGLE cone
+    review — the "two" in the old skip came from is_claim_confirmed, the
+    GLOBAL n=2, so the cone phase never actually converged on its own.
     """
     cone_agent = session.get_addr_for_path(agent_doc_path("cone-review"))
     if cone_agent is None:
-        return False
-    for cov in session.active_links(
-        "review.coverage", to_set=[claim_addr],
-    ):
-        if session.active_links(
+        return 0
+    covs = [
+        cov for cov in session.active_links(
+            "review.coverage", to_set=[claim_addr],
+        )
+        if cov.from_set
+        and session.active_links(
             "manages", from_set=[cone_agent], to_set=[cov.addr],
-        ):
-            return True
-    return False
+        )
+    ]
+    covs.sort(key=lambda cov: cov.addr.digits)
+    streak = 0
+    for cov in reversed(covs):
+        if _review_filed_revise(session, cov.from_set[0]):
+            break
+        streak += 1
+    return streak
 
 
 def _predicate(session: Session, addr: Address) -> bool:
@@ -162,11 +178,11 @@ def _predicate(session: Session, addr: Address) -> bool:
          False. Wait for direct citation upstream to be locally
          settled before reviewing this claim. Implements the chaining
          model's layered-convergence gate.
-      4. Claim is confirmed AND cascade-fresh AND has already had a
-         cone-attributed review — no further cone review needed
-         until upstream advances or confirmation breaks. The
-         agent-attributed check distinguishes "covered by full
-         review only" from "had its own cone review."
+      4. The apex has CONE_CONFIRMATION_N (=2) consecutive clean cone
+         reviews — its own n=2 convergence. Two converged cone reviews
+         and it's done; otherwise it still needs one. (The old skip
+         used is_claim_confirmed — the GLOBAL n=2 — plus "≥1 cone review
+         ever", so it declared an apex done after a SINGLE cone review.)
       5. Open revises pending on this claim — let the refiner close
          them before re-reviewing.
     """
@@ -176,11 +192,7 @@ def _predicate(session: Session, addr: Address) -> bool:
         return True
     if not is_upstream_settled_one_hop(session, addr):
         return True
-    if (
-        is_claim_confirmed(session, addr)
-        and is_cascade_fresh_one_hop(session, addr)
-        and _has_been_cone_reviewed(session, addr)
-    ):
+    if _clean_cone_review_streak(session, addr) >= CONE_CONFIRMATION_N:
         return True
     if not is_claim_quiescent(session, addr):
         return True
