@@ -25,6 +25,7 @@ from lib.predicates import (
     is_claim_cascade_fresh,
     is_claim_quiescent,
     is_held,
+    is_review_decomposed,
     is_upstream_settled_one_hop,
 )
 from lib.predicates.quiescence import _review_filed_revise
@@ -104,7 +105,19 @@ def apex_labels_in_topological_order(
 
 
 def _scope_query(session: Session, scope: Scope) -> Iterator[Address]:
-    """Yield apex claim addresses, optionally filtered by scope.labels."""
+    """Yield the FIRST apex (topological order) that still needs work,
+    then stop — the cone phase advances ONE apex at a time.
+
+    Cone reviews interact: a revise on one apex edits a shared dependency
+    (e.g. WF) that other apexes' cones include, so a later apex must be
+    reviewed against the EARLIER apex's post-revise content. Yielding all
+    apexes at once made the runner batch-review every apex against stale
+    content before any revise ran. Yielding a single apex lets the runner
+    drive its full chain this pass — cone_review, then claim_findings,
+    then claim_revise (in that trigger order) — so the apex is
+    reviewed→revised→re-reviewed to convergence before the next apex is
+    touched. Skipped/converged apexes (per `_predicate`) are passed over.
+    """
     if scope.asn_label is None:
         return
     label_index = build_cross_asn_label_index(session.store)
@@ -112,8 +125,11 @@ def _scope_query(session: Session, scope: Scope) -> Iterator[Address]:
         if scope.labels is not None and label not in scope.labels:
             continue
         addr = label_index.get(label)
-        if addr is not None:
+        if addr is None:
+            continue
+        if not _predicate(session, addr):
             yield addr
+            return
 
 
 # An apex is cone-converged at two consecutive clean cone reviews — the
@@ -157,7 +173,15 @@ def _clean_cone_review_streak(
     covs.sort(key=lambda cov: cov.addr.digits)
     streak = 0
     for cov in reversed(covs):
-        if _review_filed_revise(session, cov.from_set[0]):
+        r = cov.from_set[0]
+        # A cone review not yet decomposed into findings has no
+        # comment.revise, so _review_filed_revise reads it as clean — but
+        # its verdict is unknown until claim_findings runs. Treat pending
+        # (undecomposed) as NOT clean so an apex can't be marked converged
+        # on reviews whose findings haven't been processed yet.
+        if not is_review_decomposed(session, r) or _review_filed_revise(
+            session, r
+        ):
             break
         streak += 1
     return streak
