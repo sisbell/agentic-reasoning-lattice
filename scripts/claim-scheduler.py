@@ -300,6 +300,48 @@ def _stop_pusher(handle) -> None:
     t.join(timeout=5)
 
 
+def _clear_orphan_holds(asn_labels) -> None:
+    """Retract `holding` mutex links left orphaned by a prior crashed or
+    killed run of this scheduler on the target ASNs.
+
+    A `holding` link makes `is_held` True, which every trigger predicate
+    skips on (the stigmergic mutex). An agent killed mid-fire never
+    retracts its holds, so they persist and silently block all triggers
+    for those claims — e.g. claims_statements_refresh holds every claim
+    of the ASN, so one killed run strands the whole ASN and the next run
+    does nothing. The diagnostics threshold (`stale_holdings --retract-all`,
+    135 min) misses holds younger than that, so a quick kill-and-restart
+    stays stuck.
+
+    Only safe for a STANDALONE run: with no sibling workers, any active
+    hold on a target ASN's docs is by definition orphaned (this process
+    hasn't acquired any yet). The caller gates on `--partition` being
+    unset; in multi-worker mode run-claims-continuous.sh pre-cleans once
+    before spawning workers, and clobbering a live sibling's holds would
+    be wrong. Scoped to the target ASNs so a concurrent standalone run on
+    a different ASN is untouched.
+    """
+    from lib.protocols.febe.session import open_session
+    from lib.shared.paths import LATTICE
+
+    wanted = set(asn_labels)
+    retracted = 0
+    with open_session(LATTICE) as session:
+        for link in list(session.active_links("holding")):
+            if not link.to_set:
+                continue
+            path = session.get_path_for_addr(link.to_set[0]) or ""
+            if any(lbl in path for lbl in wanted):
+                session.retract(link.addr)
+                retracted += 1
+    if retracted:
+        print(
+            f"  [CLAIM-SCHED] cleared {retracted} orphan holding(s) from a "
+            f"prior run",
+            file=sys.stderr,
+        )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         prog="claim-scheduler",
@@ -480,6 +522,13 @@ def main() -> int:
             _git_push("(final)")
 
         atexit.register(_push_at_exit)
+
+    # Standalone run (no --partition → no sibling workers): retract any
+    # holds orphaned by a prior crashed/killed run on these ASNs, which
+    # would otherwise silently block every trigger (is_held). Multi-worker
+    # runs skip this — run-claims-continuous.sh pre-cleans before spawning.
+    if partition_index is None:
+        _clear_orphan_holds(asn_labels)
 
     total_fires = 0
     total_errors: list[tuple[str, str, str, str]] = []
