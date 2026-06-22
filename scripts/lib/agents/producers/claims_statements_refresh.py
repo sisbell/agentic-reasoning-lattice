@@ -62,6 +62,25 @@ from lib.renderers.claim_statements import render_claim_statements
 from lib.lattice.labels import extract_label_digits, format_label
 
 
+# The render header carries a volatile `Extracted: YYYY-MM-DD` stamp
+# (renderers/claim_statements.py) that changes daily regardless of claim
+# content. The content-unchanged guard must ignore it, else the aggregate
+# would re-version once per day for no semantic reason — defeating the
+# guard. Mask it on both sides before comparing; the on-disk stamp is left
+# at the date of the last *real* extraction, which is the correct meaning.
+_VOLATILE_STAMP = re.compile(r"Extracted: \d{4}-\d{2}-\d{2}")
+
+
+def _content_equiv(current: Optional[str], rendered: str) -> bool:
+    """True iff current on-disk and freshly-rendered content are equal
+    ignoring the volatile extraction-date stamp."""
+    if current is None:
+        return False
+    mask = "Extracted: <date>"
+    return (_VOLATILE_STAMP.sub(mask, current)
+            == _VOLATILE_STAMP.sub(mask, rendered))
+
+
 class ClaimsStatementsRefreshAgent(Agent):
     """Create-or-advance the claims.statements aggregate.
 
@@ -107,7 +126,34 @@ class ClaimsStatementsRefreshAgent(Agent):
             )
             return AgentResult(success=True, detail="created")
 
-        self._write_content(session, doc)
+        # Advance path. A claim can advance its version (its anchor goes
+        # stale → this trigger fires) WITHOUT its rendered statement
+        # changing — e.g. claim_revise resolving a finding that left the
+        # body text untouched. Re-versioning the aggregate on every such
+        # cycle grew the _statements chain without bound and made
+        # register_version O(chain) (see store.register_version). So only
+        # register a new version when the rendered content actually
+        # changed. When it's identical, re-anchor to the new claim heads
+        # so is_claims_statements_fresh is satisfied (it walks anchors over
+        # the full chain, not version count) and the trigger quiesces — but
+        # mint no new version.
+        rel = session.get_path_for_addr(doc)
+        full = (session.store.lattice_dir / rel) if rel else None
+        new_content = render_claim_statements(session, doc)
+        current = full.read_text() if (full and full.exists()) else None
+
+        if full is not None and _content_equiv(current, new_content):
+            self._emit_anchors(session, doc, note_addr)
+            print(
+                f"  [CLAIMS-STATEMENTS-REFRESH] unchanged {doc} "
+                f"(re-anchored, no new version)",
+                file=sys.stderr,
+            )
+            return AgentResult(success=True, detail="unchanged")
+
+        if full is not None:
+            full.parent.mkdir(parents=True, exist_ok=True)
+            full.write_text(new_content)
         new_addr = session.register_version(doc)
         self._emit_anchors(session, doc, note_addr)
         print(
