@@ -501,11 +501,28 @@ class Store:
         # (prior_head == new_addr). Parallel to _reconcile_link_cursor
         # for link allocators.
         if max_emitted != identity:
-            from .addressing import inc
+            from .addressing import inc, Address
             owner = self.state._owner[identity]
             child_alloc = owner.get_or_spawn_child(identity, k_prime=1)
-            while child_alloc._cursor.digits <= max_emitted.digits:
-                child_alloc._cursor = inc(child_alloc._cursor, 0)
+            cur_d = child_alloc._cursor.digits
+            max_d = max_emitted.digits
+            # Advance the cursor past max_emitted. Reconciliation only ever
+            # varies the LAST digit (inc(·, 0)); when the cursor and
+            # max_emitted share a prefix that is a single arithmetic jump,
+            # so do it in O(1) instead of one increment per version. The
+            # old one-at-a-time loop was O(version-count) and pegged the
+            # CPU for minutes on frequently re-versioned aggregates like
+            # the _statements doc (claims_statements_refresh re-versions it
+            # every cascade cycle, so its version count grows unbounded).
+            if cur_d <= max_d:
+                if cur_d[:-1] == max_d[:-1]:
+                    child_alloc._cursor = Address(cur_d[:-1] + (max_d[-1] + 1,))
+                else:
+                    # Prefixes differ — a last-digit bump can't reorder the
+                    # tuple comparison; fall back to the stepwise loop (rare,
+                    # never the hot path) to preserve exact legacy behavior.
+                    while child_alloc._cursor.digits <= max_emitted.digits:
+                        child_alloc._cursor = inc(child_alloc._cursor, 0)
 
         new_addr = self.state._allocate_child(identity)
         self.state._set_parent(new_addr, identity)
