@@ -116,6 +116,37 @@ def record_findings(
         if cls_normalized not in {"REVISE", "OBSERVE"}:
             cls_normalized = "REVISE"
 
+        # A REVISE mints a blocking `comment.revise` that the revise loop
+        # must resolve to converge. Downgrade to OBSERVE (non-blocking)
+        # when the loop CANNOT durably resolve it, otherwise the next
+        # full-review re-flags the same defect forever (the ASN-0053
+        # livelock). Two unresolvable cases:
+        #   (1) the reviewer marked it non-actionable
+        #       (`What needs resolving: N/A`, empty, or absent), or
+        #   (2) the fix locus is not an editable claim in THIS ASN's
+        #       claim dir — e.g. the frozen source note's Properties
+        #       table, or a foreign-ASN foundation claim like D0
+        #       (ASN-0034). `claim_revise` only edits this ASN's claim
+        #       files, so it can never change those.
+        if cls_normalized == "REVISE":
+            reason = None
+            if not _finding_actionable(body):
+                reason = "non-actionable (What-needs-resolving N/A/absent)"
+            elif not _target_is_editable_claim(session, claim_addr, asn_label):
+                reason = "fix locus not an editable claim in this ASN"
+            if reason is not None:
+                import sys as _sys
+                print(
+                    f"  [emit] finding {n} '{title}' REVISE→OBSERVE: "
+                    f"{reason}",
+                    file=_sys.stderr,
+                )
+                cls_normalized = "OBSERVE"
+                body = body.rstrip() + (
+                    f"\n\n**Routing**: emitted as comment.observe "
+                    f"(non-blocking) — {reason}.\n"
+                )
+
         _, comment = record_one_finding(
             session,
             finding_path_rel=finding_rel,
@@ -134,6 +165,44 @@ def record_findings(
         })
 
     return results
+
+
+_NONACTIONABLE_RE = re.compile(
+    r"^\s*(n/?a\b|none\b|—|-+|\(observe\))", re.IGNORECASE
+)
+
+
+def _finding_actionable(body: str) -> bool:
+    """True iff the finding carries an actionable `What needs resolving`
+    instruction. A REVISE finding the reviewer marked `N/A`, left blank,
+    or omitted entirely cannot be acted on — the reviser is told to
+    "apply exactly the fix described in What needs resolving," and there
+    is none. Treat such findings as OBSERVE so they don't mint a
+    `comment.revise` the loop can never close.
+    """
+    m = re.search(r"\*\*What needs resolving\*\*\s*[:\-]\s*(.*)", body)
+    if not m:
+        return False
+    text = m.group(1).strip()
+    if not text:
+        return False
+    return _NONACTIONABLE_RE.match(text) is None
+
+
+def _target_is_editable_claim(
+    session: Session, claim_addr: Address, asn_label: str
+) -> bool:
+    """True iff `claim_addr` is an editable claim file in THIS ASN's
+    claim dir. `claim_revise` only edits `{claim_dir}/{asn_label}/*.md`,
+    so findings whose target resolves to the frozen source note, a
+    generated aggregate (`_statements`), or a foreign-ASN foundation
+    claim (e.g. D0 in ASN-0034) cannot be durably fixed by the loop and
+    must not mint a blocking `comment.revise`.
+    """
+    path = session.get_path_for_addr(claim_addr)
+    if not path:
+        return False
+    return f"/claim/{asn_label}/" in path and "/_statements" not in path
 
 
 def _extract_target_label(body: str, label_index: dict) -> Optional[str]:
