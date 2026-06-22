@@ -29,7 +29,7 @@ from typing import Optional, Tuple
 
 from lib.backend.addressing import Address
 from lib.backend.emit import (
-    emit_comment, emit_derivation, emit_finding,
+    emit_citation_bundle, emit_comment, emit_derivation, emit_finding,
     emit_review_content, emit_review_coverage,
 )
 from lib.backend.links import Link
@@ -44,6 +44,7 @@ def emit_review_doc(
     *,
     body: str,
     covered_addrs: list[Address] | None = None,
+    cascade_anchor_heads: list[Address] | None = None,
 ) -> tuple[Address, Path]:
     """Persist the LLM's review output as a substrate-citizen document.
 
@@ -56,6 +57,12 @@ def emit_review_doc(
     links which docs were within this review's coverage. The
     `is_claim_confirmed` predicate consults these links to find the
     most recent review covering a given doc.
+
+    `cascade_anchor_heads`, when provided, records via a single bundled
+    `citation.depends` link the foundation version_heads this review
+    actually read. `is_claim_cascade_fresh` later walks this anchor and
+    re-fires review if any upstream has advanced — the claim-side port
+    of the note's review-anchored cascade.
 
     Returns `(review_addr, review_path)`.
     """
@@ -70,6 +77,12 @@ def emit_review_doc(
     if covered_addrs:
         for covered in covered_addrs:
             emit_review_coverage(session.store, review_addr, covered)
+
+    if cascade_anchor_heads:
+        emit_citation_bundle(
+            session.store, review_addr, cascade_anchor_heads,
+            direction="depends",
+        )
 
     return review_addr, review_path
 

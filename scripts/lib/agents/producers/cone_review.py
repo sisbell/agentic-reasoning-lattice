@@ -406,10 +406,25 @@ class ConeReviewAgent(Agent):
             reviews_dir=CLAIM_REVIEWS_DIR / ctx.asn_label,
         )
 
+        # Cascade anchor: snapshot the version_head of each dep the apex
+        # cites at review time. is_claim_cascade_fresh walks this bundled
+        # link on the review-N doc and re-fires the cone if any upstream
+        # advanced — the claim-side port of the note's review-anchored
+        # cascade. Citations are emitted from the apex's version_head.
+        apex_head = version_head(session, ctx.addr)
+        cascade_anchor_heads = [
+            version_head(session, t)
+            for link in session.active_links(
+                "citation.depends", from_set=[apex_head],
+            )
+            for t in link.to_set
+        ]
+
         review_addr, _ = emit_review_doc(
             session, ctx.asn_label, review_num,
             body=findings_text,
             covered_addrs=cone_addrs,
+            cascade_anchor_heads=cascade_anchor_heads,
         )
 
         # 5. Sync substrate citations against md as source of truth.

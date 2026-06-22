@@ -22,6 +22,7 @@ from lib.lattice.deps import build_deps_for_asn
 from lib.lattice.labels import build_cross_asn_label_index
 from lib.predicates import (
     has_formal_contract,
+    is_claim_cascade_fresh,
     is_claim_quiescent,
     is_held,
     is_upstream_settled_one_hop,
@@ -179,9 +180,12 @@ def _predicate(session: Session, addr: Address) -> bool:
          settled before reviewing this claim. Implements the chaining
          model's layered-convergence gate.
       4. The apex has CONE_CONFIRMATION_N (=2) consecutive clean cone
-         reviews — its own n=2 convergence. Two converged cone reviews
-         and it's done; otherwise it still needs one. (The old skip
-         used is_claim_confirmed — the GLOBAL n=2 — plus "≥1 cone review
+         reviews AND is cascade-fresh — its own n=2 convergence with no
+         stale upstream. Two converged cone reviews and a still-current
+         cascade anchor and it's done; if an upstream advanced since the
+         streak was earned (`is_claim_cascade_fresh` False), the apex is
+         not skipped so the cone re-fires. (The old skip used
+         is_claim_confirmed — the GLOBAL n=2 — plus "≥1 cone review
          ever", so it declared an apex done after a SINGLE cone review.)
       5. Open revises pending on this claim — let the refiner close
          them before re-reviewing.
@@ -192,7 +196,10 @@ def _predicate(session: Session, addr: Address) -> bool:
         return True
     if not is_upstream_settled_one_hop(session, addr):
         return True
-    if _clean_cone_review_streak(session, addr) >= CONE_CONFIRMATION_N:
+    if (
+        _clean_cone_review_streak(session, addr) >= CONE_CONFIRMATION_N
+        and is_claim_cascade_fresh(session, addr)
+    ):
         return True
     if not is_claim_quiescent(session, addr):
         return True

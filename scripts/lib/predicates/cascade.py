@@ -154,6 +154,32 @@ def is_note_cascade_fresh(
     return True
 
 
+def is_claim_cascade_fresh(
+    session: Session, addr: Address,
+) -> bool:
+    """True iff the claim's latest review's cascade anchor still points
+    at head versions of every dep it read.
+
+    The claim-side port of `is_note_cascade_fresh`. It replaces the
+    re-anchor-fooled `is_cascade_fresh_one_hop`: that predicate read
+    citations from the *mutable* claim head, so re-running
+    sync_claim_citations on the head silently re-anchored the cascade
+    signal to the new upstream heads, masking staleness. This anchors
+    instead on the immutable review-N doc — each review fire records the
+    foundation/dep heads it actually read via a bundled
+    `citation.depends`, and freshness is checked against that snapshot.
+
+    Walks the latest review's outgoing `citation.depends` and checks
+    `is_head_version` on each target. Any non-head target means an
+    upstream has advanced since the review was emitted → cascade-stale.
+
+    Vacuously fresh when there is no review yet, or the latest review
+    has no anchor (no deps, or pre-feature review) — same semantics as
+    the note-side predicate it delegates to.
+    """
+    return is_note_cascade_fresh(session, addr)
+
+
 def _assembly_artifact_or_self(
     session: Session, addr: Address,
 ) -> Address:

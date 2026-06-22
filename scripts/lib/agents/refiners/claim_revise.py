@@ -33,7 +33,9 @@ from lib.protocols.febe.protocol import Session
 from lib.lattice.labels import extract_label_digits, format_label
 from lib.shared.common import find_asn, read_file
 from lib.shared.invoke_claude import EFFORT_LEVELS, MODEL_FLAGS
-from lib.shared.paths import USAGE_LOG, WORKSPACE, prompt_path
+from lib.shared.paths import (
+    USAGE_LOG, WORKSPACE, prompt_path, worker_pending_jsonl,
+)
 from lib.shared.prompts import read_prompt
 
 
@@ -207,10 +209,46 @@ class ClaimReviseAgent(Agent):
         # Advance the claim's version chain iff the reviser accepted.
         # resolution.py used to do this per-accept; lifecycle now lives
         # in the refiner. claim_revise fires per-comment so accept is
-        # binary (this comment is closed via resolution.edit or not),
-        # but we keep the structural check for clarity and symmetry
-        # with note_revise.
-        if session.active_links("resolution.edit", to_set=[comment_addr]):
+        # binary (this comment is closed via resolution.edit or not).
+        #
+        # In worker mode the LLM's tool subprocess emits the
+        # resolution.edit link to _workspace/links.worker-N.jsonl (the
+        # per-worker pending buffer), NOT to canonical links.jsonl. This
+        # session's in-memory state was loaded from canonical at session
+        # start and does not reflect pending writes, so
+        # session.active_links alone returns 0 acceptances and
+        # register_version never fires — the version-unreliably-advances
+        # bug. Scan the pending buffer too (mirrors note_revise), keyed
+        # on the single comment_addr this agent processes.
+        accepted = bool(
+            session.active_links("resolution.edit", to_set=[comment_addr])
+        )
+        if not accepted:
+            worker_idx_env = os.environ.get("CLAUDE_WORKER_INDEX")
+            if worker_idx_env not in (None, ""):
+                pending_path = worker_pending_jsonl(int(worker_idx_env))
+                if pending_path and pending_path.exists():
+                    res_edit_type = str(
+                        session.store.state.types.address_for(
+                            "resolution.edit"
+                        )
+                    )
+                    target = str(comment_addr)
+                    with open(pending_path) as pf:
+                        for line in pf:
+                            line = line.rstrip("\n")
+                            if not line:
+                                continue
+                            try:
+                                entry = json.loads(line)
+                            except json.JSONDecodeError:
+                                continue
+                            if res_edit_type not in entry.get("type_set", []):
+                                continue
+                            if target in entry.get("to_set", []):
+                                accepted = True
+                                break
+        if accepted:
             session.register_version(claim_addr)
 
         return AgentResult(

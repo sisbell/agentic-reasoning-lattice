@@ -37,9 +37,10 @@ from lib.backend.addressing import Address
 from lib.lattice.findings import emit_review_doc
 from lib.lattice.context import asn_context_from_note
 from lib.lattice.labels import build_cross_asn_label_index
-from lib.predicates import derived_claims, resolve_to_scope
+from lib.predicates import derived_claims, resolve_to_scope, version_head
 from lib.protocols.febe.protocol import Session
 from lib.shared.common import assemble_readonly
+from lib.shared.foundation import FoundationError, foundation_dep_addrs
 from lib.shared.paths import CLAIM_REVIEWS_DIR, next_review_number
 from lib.shared.validate_gate import run_validate_gate
 
@@ -121,10 +122,31 @@ class FullReviewAgent(Agent):
             reviews_dir=CLAIM_REVIEWS_DIR / ctx.asn_label,
         )
 
+        # Cascade anchor: snapshot the foundation version each upstream
+        # was at when this review read the ASN — exactly the note-side
+        # mechanism (see note_review). is_claim_cascade_fresh walks this
+        # bundled link and re-fires review if any upstream advanced.
+        # Defensive try/except mirrors note_review: skip the anchor
+        # rather than leave the review partial if deps go unresolvable
+        # between load and emit. Missing anchor → vacuously fresh.
+        try:
+            cascade_anchor_heads = [
+                version_head(session, dep)
+                for dep in foundation_dep_addrs(session, ctx.asn_num)
+            ]
+        except FoundationError as e:
+            print(
+                f"  [FOUNDATION] {ctx.asn_label}: cascade-anchor emission "
+                f"skipped — deps unresolvable post-load ({e})",
+                file=sys.stderr,
+            )
+            cascade_anchor_heads = []
+
         review_addr, _ = emit_review_doc(
             session, ctx.asn_label, review_num,
             body=findings_text,
             covered_addrs=derived_addrs,
+            cascade_anchor_heads=cascade_anchor_heads,
         )
 
         # 5. Sync substrate citations against md across every derived claim.
