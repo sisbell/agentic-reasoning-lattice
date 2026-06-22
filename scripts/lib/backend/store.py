@@ -515,14 +515,16 @@ class Store:
             # the _statements doc (claims_statements_refresh re-versions it
             # every cascade cycle, so its version count grows unbounded).
             if cur_d <= max_d:
-                if cur_d[:-1] == max_d[:-1]:
-                    child_alloc._cursor = Address(cur_d[:-1] + (max_d[-1] + 1,))
-                else:
-                    # Prefixes differ — a last-digit bump can't reorder the
-                    # tuple comparison; fall back to the stepwise loop (rare,
-                    # never the hot path) to preserve exact legacy behavior.
-                    while child_alloc._cursor.digits <= max_emitted.digits:
-                        child_alloc._cursor = inc(child_alloc._cursor, 0)
+                # Position the cursor at max_emitted's NEXT SIBLING — where
+                # the next version belongs — in O(1), for ANY prefix/length.
+                # The old stepwise inc(·,0) only changed the last digit, so
+                # when the freshly-spawned cursor differed from max_emitted
+                # before its last digit (which a bloated/mis-aligned version
+                # chain like _statements produces) it could never reorder
+                # the tuple comparison and spun forever. Jumping onto
+                # max_emitted's track guarantees cursor > max_emitted and is
+                # the correct allocation point regardless.
+                child_alloc._cursor = Address(max_d[:-1] + (max_d[-1] + 1,))
 
         new_addr = self.state._allocate_child(identity)
         self.state._set_parent(new_addr, identity)
