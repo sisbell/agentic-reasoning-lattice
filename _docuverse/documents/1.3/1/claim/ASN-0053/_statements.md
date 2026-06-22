@@ -1,6 +1,6 @@
 # ASN-0053 Formal Statements
 
-*Source: ASN-0053-span-algebra.md (revised 2026-03-19) — Extracted: 2026-06-21*
+*Source: ASN-0053-span-algebra.md (revised 2026-03-19) — Extracted: 2026-06-22*
 
 ## S4a — SplitMergeInverse
 
@@ -12,7 +12,6 @@ Proves that split-then-merge is a lossless round-trip on level-uniform spans: sp
 - *Postconditions:* S3(S4(σ, p)) = σ — merging the two parts produced by splitting σ at p yields γ with start(γ) = s and width(γ) = ℓ, hence γ = σ.
 - *Definition:* Split S4 at interior p yields λ = (s, p ⊖ s) with reach(λ) = p and ρ = (p, reach(σ) ⊖ p) with reach(ρ) = reach(σ). Merge S3 of adjacent λ, ρ yields γ = (s_m, r_m ⊖ s_m) with s_m = min(start(λ), start(ρ)) and r_m = max(reach(λ), reach(ρ)).
 - *Frame:* The level of every position is preserved; only the partitioning of σ changes and is then undone.
-- *Axiom:* WR — for a level-uniform span, width = reach ⊖ start.
 
 - *Depends:*
   - S4 (SplitPartition) — supplies the split operation and its outputs λ = (s, p ⊖ s), ρ = (p, reach(σ) ⊖ p) whose properties the proof traces through to recover σ
@@ -35,8 +34,11 @@ Proves that any pair of same-depth tumblers s < r can be directly packaged into 
   - T12 (SpanWellDefinedness, ASN-0034) — supplies the well-formedness predicate (Pos(ℓ) and actionPoint(ℓ) ≤ #s) that the proof verifies and the claim's conclusion targets
   - D1 (DisplacementRoundTrip, ASN-0034) — supplies the identity a ⊕ (b ⊖ a) = b used in the proof step reach(γ) = s ⊕ (r ⊖ s) = r; its precondition divergence(s, r) ≤ #s is discharged in the proof from T1 and Divergence
   - T1 (LexicographicOrder, ASN-0034) — its definition of s < r supplies the witness k (with sᵢ = rᵢ for 1 ≤ i < k) in case (i) `k ≤ #s ∧ k ≤ #r ∧ sₖ < rₖ` or case (ii) `k = #s + 1 ≤ #r`; #s = #r excludes case (ii), leaving k ≤ #s and sₖ ≠ rₖ; its trichotomy disjointness `¬(s < r ∧ s = r)` yields s ≠ r, well-defining divergence(s, r); and its ≤/≥ abbreviations turn s < r into r ≥ s, discharging TumblerSub's precondition
-  - Divergence (Divergence, ASN-0034) — its case-(i) uniqueness clause identifies the T1 witness k with divergence(s, r), so k ≤ #s discharges D1's precondition divergence(s, r) ≤ #s
-  - TumblerSub (TumblerSub, ASN-0034) — supplies the width r ⊖ s and the well-formedness facts D1 leaves internal: carrier membership r ⊖ s ∈ T; at its divergence index j = zpd(r, s) the component formula (r ⊖ s)ⱼ = rⱼ − sⱼ (padded projections native since #r = #s) with its divergence-point inequality rⱼ > sⱼ, giving Pos(r ⊖ s); the action-point identification actionPoint(r ⊖ s) = j, which as a component index satisfies j ≤ #(r ⊖ s); and the length #(r ⊖ s) = max(#r, #s) = #s, which bounds actionPoint(r ⊖ s) ≤ #s and supplies level-uniformity. Its precondition r ≥ s follows from s < r (T1); zpd(r, s) is defined since s ≠ r
+  - Divergence (Divergence, ASN-0034) — its case-(i) uniqueness clause identifies the T1 witness k with divergence(s, r), so k ≤ #s discharges D1's precondition divergence(s, r) ≤ #s; and its symmetry divergence(r, s) = divergence(s, r), with the case-(i) qualifier invariant under operand swap, carries that case-(i) witness to the pair (r, s) for ZPD's Relationship-to-Divergence
+  - TumblerSub (TumblerSub, ASN-0034) — supplies the width r ⊖ s and the well-formedness facts D1 leaves internal: carrier membership r ⊖ s ∈ T; the positive-branch postcondition Pos(r ⊖ s), exported directly whenever zpd(r, s) is defined (no detour through the divergence-point components is needed); the action-point identification actionPoint(r ⊖ s) = zpd(r, s) = k, which as a component index satisfies k ≤ #(r ⊖ s); and the length #(r ⊖ s) = max(#r, #s) = #s, which bounds actionPoint(r ⊖ s) ≤ #s and supplies level-uniformity. Its precondition r ≥ s follows from s < r (T1); zpd(r, s) is defined via the Divergence case-(i) witness through ZPD's Relationship-to-Divergence (below)
+  - ZPD (ZeroPaddedDivergence, ASN-0034) — its Relationship-to-Divergence postcondition equates zpd(r, s) = divergence(r, s) in Divergence's case (i); fed the case-(i) witness k = divergence(s, r) ≤ #s (carried from the pair (s, r) to (r, s) by Divergence's symmetry, with k ≤ #r since #s = #r), it certifies that zpd(r, s) = k is defined — the guard that licenses TumblerSub's positive branch and its Pos(r ⊖ s) postcondition
+  - NAT-addcompat (NatAdditionOrderAndSuccessor, ASN-0034) — supplies the strict successor inequality #s < #s + 1 used to eliminate T1 case (ii): with #s = #r the case bound k = #s + 1 ≤ #r forces #s + 1 ≤ #s, which #s < #s + 1 contradicts
+  - NAT-order (NatStrictTotalOrder, ASN-0034) — its transitivity chains #s < #s + 1 ≤ #s to #s < #s and its irreflexivity `¬(#s < #s)` refutes that, completing the T1 case (ii) elimination; and its exactly-one trichotomy disjointness clause `¬(sₖ < rₖ ∧ sₖ = rₖ)` converts T1 case (i)'s sₖ < rₖ into sₖ ≠ rₖ to qualify k for Divergence case (i)
 
 ---
 
@@ -48,13 +50,14 @@ Proves that two overlapping or adjacent level-uniform spans can always be merged
 
 - *Preconditions:* α and β are well-formed level-uniform spans; level_compat(start(α), start(β)); the spans overlap or are adjacent — equivalently, taking start(α) ≤ start(β) without loss of generality, reach(α) ≥ start(β).
 - *Definition:* The merged span is γ = (s, r ⊖ s) with s = min(start(α), start(β)) and r = max(reach(α), reach(β)).
-- *Postconditions:* γ is a well-formed level-uniform span (by S6, #s = #r; s < r; and both WF endpoints in T — s = min(start(α), start(β)) is a span start, while r = max(reach(α), reach(β)) is placed in T by TumblerAdd's carrier postcondition a ⊕ w ∈ T instantiated at (start(σ), width(σ)) under each well-formed σ ∈ {α, β}, since r is one of reach(α), reach(β)); start(γ) = s, reach(γ) = r; and ⟦γ⟧ = ⟦α⟧ ∪ ⟦β⟧. Moreover γ is identical to any span specified directly with endpoints s and r.
+- *Postconditions:* γ is a well-formed level-uniform span (by S6, #s = #r; s < r by TA-strict, reach(α) = start(α) ⊕ width(α) > start(α) = s with r ≥ reach(α); and both WF endpoints in T — s = min(start(α), start(β)) is a span start, while r = max(reach(α), reach(β)) is placed in T by TumblerAdd's carrier postcondition a ⊕ w ∈ T instantiated at (start(σ), width(σ)) under each well-formed σ ∈ {α, β}, since r is one of reach(α), reach(β)); start(γ) = s, reach(γ) = r; and ⟦γ⟧ = ⟦α⟧ ∪ ⟦β⟧. Moreover γ is identical to any span specified directly with endpoints s and r.
 - *Frame:* The denotation of γ depends only on its endpoints s and r, not on the derivation history of α and β; representations {[s, m], [m, r]} and {[s, r]} of the same range are equivalent.
 
 - *Depends:*
   - S6 (LevelConstraint) — supplies the level-uniformity property (#s = #r for all boundary tumblers) invoked in the proof to satisfy the equal-length precondition passed to WF
   - WF (WellFormedSpanFromEndpoints) — supplies the well-formedness construction invoked in the proof step concluding that γ = (s, r ⊖ s) is a valid level-uniform span with reach(γ) = r
   - TumblerAdd (TumblerAdd, ASN-0034) — supplies the carrier postcondition a ⊕ w ∈ T, instantiated at (a, w) = (start(σ), width(σ)) under each well-formed σ ∈ {α, β}, to place reach(α), reach(β) ∈ T; the reach endpoint r = max(reach(α), reach(β)) is one of these, so r ∈ T, discharging WF's carrier precondition for the reach endpoint (the start endpoint s = min(start(α), start(β)) being a span start, already in T)
+  - TA-strict (StrictIncrease, ASN-0034) — supplies the strict-advance postcondition a ⊕ w > a, instantiated at (a, w) = (start(σ), width(σ)) under each well-formed span σ: at α it gives reach(α) = start(α) ⊕ width(α) > start(α) = s, whence (with r = max(reach(α), reach(β)) ≥ reach(α)) s < r, discharging WF's strict-inequality precondition; at β it gives start(β) < reach(β), the inequality that renders the disjunct reach(β) = start(α) vacuous under the WLOG ordering. Its preconditions — Pos(width(σ)) and actionPoint(width(σ)) ≤ #start(σ) — are the same ones each σ's well-formedness supplies for the TumblerAdd citation above
 - *Forward References:*
   - S1 (IntersectionClosure) — its concrete spans α and β are reused in the example; S1 is downstream context, not a dependency of this claim's proof
 
@@ -144,13 +147,14 @@ Proves that when two level-uniform, level-compatible spans overlap properly — 
 - *Preconditions:* α and β are well-formed level-uniform spans; level_compat(start(α), start(β)) holds; the pair lies in SC case (iii) (proper overlap), i.e. either start(α) < start(β) < reach(α) < reach(β) (Case 1) or start(β) < start(α) < reach(β) < reach(α) (Case 2).
 - *Postconditions:* ⟦α⟧ \ ⟦β⟧ is expressible as a span-set of exactly 1 span. In Case 1 that span is γ with ⟦γ⟧ = {t : start(α) ≤ t < start(β)}; in Case 2 it is γ' with ⟦γ'⟧ = {t : reach(β) ≤ t < reach(α)}.
 - *Definition:* The witness span is constructed per sub-case. Case 1: γ = (start(α), start(β) ⊖ start(α)), with reach(γ) = start(β). Case 2: γ' = (reach(β), reach(α) ⊖ reach(β)), with reach(γ') = reach(α).
-- *Axiom:* For any span σ, ⟦σ⟧ = {t : start(σ) ≤ t < reach(σ)} — reach(σ) is the exclusive upper bound of σ's denotation. In Case 2, where the witness γ' = (reach(β), reach(α) ⊖ reach(β)) draws both endpoints from reaches, TumblerAdd's carrier postcondition a ⊕ w ∈ T — instantiated at (start(σ), width(σ)) under each well-formed σ ∈ {α, β} — places reach(β) ∈ T and reach(α) ∈ T, discharging WF's carrier preconditions (Case 1's γ draws primitive span starts as endpoints, already in T).
+- *Axiom:* For any span σ, ⟦σ⟧ = {t : start(σ) ≤ t < reach(σ)} — reach(σ) is the exclusive upper bound of σ's denotation. In Case 2, where the witness γ' = (reach(β), reach(α) ⊖ reach(β)) draws both endpoints from reaches, TumblerAdd's carrier postcondition a ⊕ w ∈ T — instantiated at (start(σ), width(σ)) under each well-formed σ ∈ {α, β} — places reach(β) ∈ T and reach(α) ∈ T, discharging WF's carrier preconditions (Case 1's γ draws primitive span starts as endpoints, already in T). WF's length precondition for that witness, #reach(β) = #reach(α), is discharged by S6: level-uniformity of α and β forces each span's start, width, and reach to one tumbler length (#reach(σ) = #start(σ)), so level_compat(start(α), start(β)) propagates through #reach(β) = #start(β) = #start(α) = #reach(α).
 - *Frame:* α and β are unchanged; the construction produces a new span and does not mutate either operand.
 
 - *Depends:*
   - SC (SpanClassification) — supplies the case taxonomy (case iii = proper overlap) that defines S11c's precondition and whose sub-case split structures the entire proof
   - T1 (LexicographicOrder, ASN-0034) — supplies the strict total order whose transitivity underwrites the element-chasing in both sub-cases. In Case 1 the chains start(α) ≤ t < start(β) < reach(α) (yielding t ∈ ⟦α⟧) and start(β) ≤ t < reach(α) < reach(β) (yielding t ∈ ⟦β⟧) compose strict inequalities transitively; in Case 2 the same transitivity orders a fresh t ∈ ⟦α⟧ against reach(β), via start(β) < start(α) ≤ t and reach(β) < reach(α), to split ⟦α⟧ at reach(β), and in that split's ⊇ direction it composes the Case 2 hypothesis start(α) < reach(β) with reach(β) ≤ t to recover the lower guard start(α) ≤ t. SC supplies only the ordering of the four boundary points; the step-by-step transitivity applied to the fresh variable t drawn from ⟦α⟧ is T1's
   - WF (WellFormedSpanFromEndpoints) — supplies the well-formedness guarantee invoked in both Case 1 and Case 2 to licence the constructed witness spans γ and γ' as well-formed level-uniform spans
+  - S6 (LevelConstraint) — supplies the level-uniformity consequence that a well-formed level-uniform span's start, width, and reach share one tumbler length, i.e. #reach(σ) = #start(σ) via TumblerAdd's result-length identity #(start(σ) ⊕ width(σ)) = #width(σ) composed with the defining #width(σ) = #start(σ); applied to α and β and combined with level_compat(start(α), start(β)), it discharges WF's length precondition #reach(β) = #reach(α) for the Case 2 witness γ', whose endpoints reach(β), reach(α) are reaches and so depend on this reach-length equality. Case 1's witness γ has primitive span starts as endpoints, so its length precondition #start(α) = #start(β) is level_compat directly and does not call on S6's reach-length consequence
   - TumblerAdd (TumblerAdd, ASN-0034) — supplies the carrier postcondition a ⊕ w ∈ T, instantiated at (a, w) = (start(σ), width(σ)) under each well-formed σ ∈ {α, β}, to place reach(β) ∈ T and reach(α) ∈ T; in Case 2 the witness γ' = (reach(β), reach(α) ⊖ reach(β)) supplies both as WF's endpoints, so this discharges WF's carrier preconditions s, r ∈ T (Case 1's endpoints are primitive span starts, already in T)
 
 ---
@@ -178,13 +182,13 @@ Proves that the normalization of a span sequence is unique: any two normalized s
 
 *Formal Contract:*
 
-- *Preconditions:* Σ̂₁ = ⟨α₁, ..., αₘ⟩ and Σ̂₂ = ⟨β₁, ..., βₙ⟩ are both normalized span sequences — each satisfies N1 (strictly increasing starts: start(γₖ) < start(γₖ₊₁)) and N2 (strict separation: reach(γₖ) < start(γₖ₊₁)), and each span is non-empty (start(γₖ) < reach(γₖ)). The two sequences are span-equivalent: ⟦Σ̂₁⟧ = ⟦Σ̂₂⟧ = S.
+- *Preconditions:* Σ̂₁ = ⟨α₁, ..., αₘ⟩ and Σ̂₂ = ⟨β₁, ..., βₙ⟩ are both normalized span sequences — each satisfies N1 (strictly increasing starts: start(γₖ) < start(γₖ₊₁)) and N2 (strict separation: reach(γₖ) < start(γₖ₊₁)). Each component span γₖ = (start(γₖ), width(γₖ)) is well-formed: start(γₖ), width(γₖ) ∈ T, the width is positive Pos(width(γₖ)), and its action point lies within the start's depth, actionPoint(width(γₖ)) ≤ #start(γₖ). Well-formedness is strictly stronger than the non-emptiness the case analysis invokes and subsumes it: a positive width strictly advances the start, so start(γₖ) < reach(γₖ). The two sequences are span-equivalent: ⟦Σ̂₁⟧ = ⟦Σ̂₂⟧ = S.
 - *Postconditions:* Σ̂₁ = Σ̂₂ as sequences — equal length (m = n) and αₖ = βₖ for every index k.
 - *Definition:* ⟦⟨γ₁, ..., γₖ⟩⟧ = ⋃ₗ ⟦γₗ⟧, where each span denotes the half-open interval ⟦γₗ⟧ = [start(γₗ), reach(γₗ)) and reach(γₗ) = start(γₗ) ⊕ width(γₗ); a span is identified by its start and width, so start and reach together determine it.
-- *Axiom:* Left cancellation on the position monoid (TA-LC, ASN-0034): start ⊕ w₁ = start ⊕ w₂ ⟹ w₁ = w₂.
+- *Axiom:* Left cancellation on the position monoid (TA-LC, ASN-0034): for a common start s and widths w₁, w₂ with s, w₁, w₂ ∈ T, Pos(w₁), Pos(w₂), actionPoint(w₁) ≤ #s, and actionPoint(w₂) ≤ #s, s ⊕ w₁ = s ⊕ w₂ ⟹ w₁ = w₂. These four operand preconditions are exactly the well-formedness of the two spans sharing start s, furnished by the well-formedness precondition above.
 
 - *Depends:*
-  - TA-LC (ASN-0034) — supplies the left-cancellation axiom (start ⊕ w₁ = start ⊕ w₂ ⟹ w₁ = w₂) used to rule out the equal-start-equal-reach divergence case
+  - TA-LC (ASN-0034) — supplies the left-cancellation axiom (s ⊕ w₁ = s ⊕ w₂ ⟹ w₁ = w₂) used to rule out the equal-start-equal-reach divergence case; its operand preconditions Pos(w₁), Pos(w₂), actionPoint(w₁) ≤ #s, actionPoint(w₂) ≤ #s (at the shared start s) are discharged by S9's well-formedness precondition on the component spans
 
 ---
 
@@ -207,12 +211,12 @@ Proves that any two non-degenerate spans stand in exactly one of five mutually e
 
 ## S11d — GeneralDifferenceBound
 
-Proves that for any two level-uniform, level-compatible spans, their set difference is always expressible as a span-set of at most 2 spans. The bound is tight: the containment case where ⟦β⟧ ⊂ ⟦α⟧ requires exactly 2 spans, while all other span-comparison cases yield 0 or 1. This confirms that Nelson's span-set representation is sufficient to close the span algebra under difference.
+Proves that for any two level-uniform, level-compatible spans, their set difference is always expressible as a span-set of at most 2 spans. The bound is achievable rather than universal: within the containment case ⟦β⟧ ⊂ ⟦α⟧, the difference is 2 spans exactly when neither boundary coincides and 1 span when one coincides, so no single span suffices in general; all other span-comparison cases yield 0 or 1. This confirms that Nelson's span-set representation is sufficient to close the span algebra under difference.
 
 *Formal Contract:*
 
 - *Preconditions:* α and β are well-formed level-uniform spans; level_compat(start(α), start(β)) holds.
-- *Postconditions:* ⟦α⟧ \ ⟦β⟧ is expressible as a span-set of at most 2 spans. The bound 2 is tight — it is achieved exactly when ⟦β⟧ ⊂ ⟦α⟧ (SC case iv); every other SC case yields at most 1 span, and SC cases (iv reverse) and (v) yield 0.
+- *Postconditions:* ⟦α⟧ \ ⟦β⟧ is expressible as a span-set of at most 2 spans. The bound 2 is achievable — and hence cannot be reduced globally to 1 — because S11's sub-case (c) exhibits a proper-containment instance (⟦β⟧ ⊂ ⟦α⟧ with neither boundary coinciding) in which no single span represents the difference. Achievability is not universality, however: the count is exactly 2 precisely when ⟦β⟧ ⊂ ⟦α⟧ *and* neither boundary coincides — equivalently start(α) < start(β) and reach(β) < reach(α), S11 sub-case (c) — whereas proper containment with exactly one boundary coinciding (S11 sub-case b) yields 1 span, not 2. Hence ⟦β⟧ ⊂ ⟦α⟧ (SC case iv) does not by itself force the count to 2. Every other SC case yields at most 1 span, and SC cases (iv reverse) and (v) yield 0.
 - *Definition:* The difference span-set is determined by the SC case of (α, β): SC(i)/(ii) → {α}; SC(iii) → the single residual span from S11c; SC(iv) with ⟦β⟧ ⊂ ⟦α⟧ → the at-most-2 residual spans from S11; SC(iv) with ⟦α⟧ ⊆ ⟦β⟧ → ∅; SC(v) → ∅.
 
 - *Depends:*
@@ -240,6 +244,7 @@ Proves that merge followed by split is a lossless round-trip: merging two adjace
   - S3 (MergeEquivalence) — supplies the merge operation and the endpoint formula γ = (s, r ⊖ s) with s = min(start(α), start(β)) and r = max(reach(α), reach(β)), used in both cases
   - S4 (SplitPartition) — supplies the split operation; the proof invokes split(γ, p) and reads off λ and ρ from S4's output structure
   - WR (WidthRecovery) — supplies reach(σ) ⊖ start(σ) = width(σ), used twice in each case to identify the split parts as α and β
+  - TA-strict (StrictIncrease, ASN-0034) — supplies the strict-advance postcondition a ⊕ w > a at (a, w) = (start(σ), width(σ)) for each well-formed σ ∈ {α, β}, yielding the two non-emptiness facts start(α) < reach(α) and start(β) < reach(β) (cited as (†) in the proof); these ground every interiority step start(γ) < p < reach(γ) in both Case A and Case B, and the min/max determination of γ's endpoints from the adjacency hypothesis
 
 ---
 
@@ -332,7 +337,7 @@ Proves that splitting a level-uniform span σ at any interior, level-compatible 
 
 *Formal Contract:*
 
-- *Preconditions:* σ = (s, ℓ) is a well-formed level-uniform span; p is an interior point of σ, i.e. s < p < reach(σ); level_compat(s, p) holds, i.e. #p = #s.
+- *Preconditions:* σ = (s, ℓ) is a well-formed level-uniform span; p ∈ T — the interiority constraint below asserts s < p < reach(σ), and < compares only members of the carrier T, so p must lie in T for that assertion to be well-defined; this membership is the consumer's to supply, p being given rather than constructed, whereas the companion operands are placed within the contract — s ∈ T is subsumed by σ's well-formedness and reach(σ) ∈ T by TumblerAdd's carrier postcondition; p is an interior point of σ, i.e. s < p < reach(σ); level_compat(s, p) holds, i.e. #p = #s.
 - *Definition:* d = p ⊖ s and d' = reach(σ) ⊖ p; the left span is λ = (s, d) and the right span is ρ = (p, d').
 - *Postconditions:* λ and ρ are well-formed level-uniform spans (by T12) with #d = #s = #d'; their WF endpoints lie in T — λ's are the span start s and the given interior point p, while ρ's reach endpoint reach(σ) = start(σ) ⊕ width(σ) is placed in T by TumblerAdd's carrier postcondition a ⊕ w ∈ T instantiated at (start(σ), width(σ)) under σ's well-formedness; reach(λ) = p and reach(ρ) = reach(σ); ⟦λ⟧ ∪ ⟦ρ⟧ = ⟦σ⟧ (a); ⟦λ⟧ ∩ ⟦ρ⟧ = ∅ (b); reach(λ) = start(ρ) = p (c).
 - *Frame:* σ = (s, ℓ) is unchanged; the split produces λ and ρ without modifying the original span.
