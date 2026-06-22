@@ -165,7 +165,7 @@ def latest_review_was_clean(session: Session, addr: Address) -> bool:
 
 
 def last_n_reviews_were_clean(
-    session: Session, addr: Address, n: int,
+    session: Session, addr: Address, n: int, *, exclude_cone: bool = False,
 ) -> bool:
     """True iff the most recent N reviews on `addr`'s scope all filed
     zero `comment.revise` findings.
@@ -175,20 +175,50 @@ def last_n_reviews_were_clean(
     CONVERGED is statistically unstable, two-consecutive is the empirical
     note-scope gate. See `docs/design-notes/stochastic-quiescence.md`.
 
+    `exclude_cone`: skip cone-attributed `review.coverage` (a coverage
+    link carrying a `manages` edge from the cone-review agent). The
+    claim/global confirmation gate (`is_claim_confirmed`) sets this so it
+    counts WHOLE-ASN full reviews only — the cone phase has its own n=2
+    stream (`_clean_cone_review_streak`). Counting cone reviews here too
+    couples the phases: a cone-phase REVISE would linger in this gate and
+    re-open `is_asn_confirmed`, re-firing the global phase next outer
+    pass. Notes have no cone attribution, so the default (False) leaves
+    the note path — and the generic attribute gates in factory.py —
+    unchanged.
+
     Returns False when fewer than N reviews have covered `addr`.
     n <= 0 is vacuously True.
     """
     if n <= 0:
         return True
-    coverage_links = [
-        link for link in session.active_links(
-            "review.coverage", to_set=[addr],
-        )
-        if link.from_set
-        and session.active_links(
+    cone_agent = None
+    if exclude_cone:
+        from lib.shared.paths import agent_doc_path
+        # Resolve defensively: in-memory (State-only) sessions raise, and
+        # a lattice with no cone-review agent returns None. Either way,
+        # fall back to counting all reviews — there's nothing to exclude.
+        try:
+            cone_agent = session.get_addr_for_path(
+                agent_doc_path("cone-review")
+            )
+        except (NotImplementedError, KeyError, AttributeError):
+            cone_agent = None
+    coverage_links = []
+    for link in session.active_links("review.coverage", to_set=[addr]):
+        if not link.from_set:
+            continue
+        if not session.active_links(
             "review.content", to_set=[link.from_set[0]],
-        )
-    ]
+        ):
+            continue
+        if (
+            cone_agent is not None
+            and session.active_links(
+                "manages", from_set=[cone_agent], to_set=[link.addr],
+            )
+        ):
+            continue  # cone-attributed → counted by the cone gate, not here
+        coverage_links.append(link)
     if len(coverage_links) < n:
         return False
     coverage_links.sort(key=lambda link: link.addr.digits)
@@ -198,7 +228,9 @@ def last_n_reviews_were_clean(
     return True
 
 
-def is_confirmed_n(session: Session, addr: Address, n: int) -> bool:
+def is_confirmed_n(
+    session: Session, addr: Address, n: int, *, exclude_cone: bool = False,
+) -> bool:
     """Generalized confirmation: quiescent AND the most recent N
     reviews on its scope were all clean. Convergence-protocol gate
     with operator-tunable stochastic-quiescence depth.
@@ -206,6 +238,12 @@ def is_confirmed_n(session: Session, addr: Address, n: int) -> bool:
     n=1 = "most recent review clean" (claim default).
     n=2 = "last two consecutive reviews clean" (note default; see
     stochastic-quiescence.md).
+
+    `exclude_cone` (threaded to `last_n_reviews_were_clean`): count
+    whole-ASN full reviews only, excluding the per-apex cone stream.
+    `is_claim_confirmed` sets it so the global gate and the cone gate
+    stay independent; factory.py's generic attribute gates keep the
+    default (mixed) — they have no cone tier to separate.
 
     The final clause is `is_claim_cascade_fresh`: the latest review's
     foundation cascade-anchor must still point at head versions. This
@@ -219,7 +257,9 @@ def is_confirmed_n(session: Session, addr: Address, n: int) -> bool:
     return (
         is_claim_quiescent(session, addr)
         and has_been_reviewed(session, addr)
-        and last_n_reviews_were_clean(session, addr, n=n)
+        and last_n_reviews_were_clean(
+            session, addr, n=n, exclude_cone=exclude_cone,
+        )
         and is_claim_cascade_fresh(session, addr)
     )
 
@@ -240,8 +280,15 @@ def is_claim_confirmed(session: Session, addr: Address) -> bool:
     empirical floor. Previously n=1 ("a clean review IS the
     confirmation"), which let a single fluke-clean review confirm a
     claim — raised to n=2 to match the note-side gate.
+
+    `exclude_cone=True`: the global/full gate counts whole-ASN full
+    reviews only; per-apex cone reviews converge on their own n=2 stream
+    (`_clean_cone_review_streak`). This keeps the two phases independent
+    so cone-phase REVISEs don't re-open `is_asn_confirmed`.
     """
-    return is_confirmed_n(session, addr, n=CLAIM_CONFIRMATION_N)
+    return is_confirmed_n(
+        session, addr, n=CLAIM_CONFIRMATION_N, exclude_cone=True,
+    )
 
 
 def derived_claims(session: Session, note_addr: Address):
