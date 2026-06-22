@@ -8,7 +8,6 @@
 - *Postconditions:* S3(S4(σ, p)) = σ — merging the two parts produced by splitting σ at p yields γ with start(γ) = s and width(γ) = ℓ, hence γ = σ.
 - *Definition:* Split S4 at interior p yields λ = (s, p ⊖ s) with reach(λ) = p and ρ = (p, reach(σ) ⊖ p) with reach(ρ) = reach(σ). Merge S3 of adjacent λ, ρ yields γ = (s_m, r_m ⊖ s_m) with s_m = min(start(λ), start(ρ)) and r_m = max(reach(λ), reach(ρ)).
 - *Frame:* The level of every position is preserved; only the partitioning of σ changes and is then undone.
-- *Axiom:* WR — for a level-uniform span, width = reach ⊖ start.
 
 - *Depends:*
   - S4 (SplitPartition) — supplies the split operation and its outputs λ = (s, p ⊖ s), ρ = (p, reach(σ) ⊖ p) whose properties the proof traces through to recover σ
