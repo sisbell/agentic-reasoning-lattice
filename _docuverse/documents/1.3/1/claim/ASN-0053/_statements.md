@@ -269,14 +269,14 @@ Proves that any finite set of positions can be covered by a matching-cardinality
 - *Preconditions:* P ⊂ T is a finite set of positions.
 - *Postconditions:* there exists a span-set Σ with |Σ| = |P| and ⟦Σ⟧ ⊇ P; moreover, when P is non-empty and finite no span-set Σ satisfies ⟦Σ⟧ = P, since ⟦Σ⟧ is infinite for every non-empty Σ.
 - *Definition:* The covering construction. Enumerate the finite set P as t₁, ..., tₘ with m = |P|. For each position tᵢ set ℓᵢ = [0, ..., 0, 1] with #ℓᵢ = #tᵢ (zero in every component except the last, which is 1), and take the span (tᵢ, ℓᵢ). The witness span-set is the sequence Σ = ⟨(t₁, ℓ₁), ..., (tₘ, ℓₘ)⟩, whose length is |Σ| = m = |P|.
-- *Axiom:* T0's comprehension axiom — T is the set of all finite sequences over ℕ of length ≥ 1 — supplies the membership s.0ⁿ ∈ T of each trailing-zero extension of s; together with the infinitude of ℕ (the extensions s.0ⁿ have pairwise distinct lengths #s + n, so they are infinitely many) this makes ⟦σ⟧ infinite and forces the finite-vs-infinite mismatch. The separate UnboundedLength claim T0(b), being purely existential about length, is not invoked here.
+- *Axiom:* T0's comprehension axiom — T is the set of all finite sequences over ℕ of length ≥ 1 — supplies the membership s.0ⁿ ∈ T of each trailing-zero extension of s; together with the infinitude of ℕ (the extensions s.0ⁿ have pairwise distinct lengths #s + n, so they are infinitely many) this makes ⟦σ⟧ infinite and forces the finite-vs-infinite mismatch.
 
 - *Depends:*
   - T12 (SpanWellDefinedness, ASN-0034) — supplies the span well-formedness predicate (Pos(ℓ) and actionPoint(ℓ) ≤ #t) that certifies the constructed span (t, ℓ) is valid, invoked in the covering construction and again in the exact-representation argument
   - TA-strict (StrictIncrease, ASN-0034) — supplies t ⊕ ℓ > t, establishing t ∈ [t, t ⊕ ℓ) and confirming each covering span contains its target position
   - TumblerAdd (TumblerAdd, ASN-0034) — supplies the component-level definition reach(s, ℓ)ₖ = sₖ + ℓₖ used to show rₖ > sₖ when establishing that every proper deeper extension lies strictly below reach(s, ℓ)
   - T1 (LexicographicOrder, ASN-0034) — supplies case (ii) (prefix convention) to place every deeper extension e strictly above s, and case (i) (component divergence) to place e strictly below reach(s, ℓ), together confirming e ∈ ⟦(s, ℓ)⟧
-  - T0 (CarrierSetDefinition, ASN-0034) — its comprehension axiom populates T with every finite sequence over ℕ of length ≥ 1, so each trailing-zero extension s.0ⁿ is a member of T; together with the infinitude of ℕ (the extensions have pairwise distinct lengths #s + n) this grounds the infinite-span argument that forces the finite-vs-infinite mismatch. The infinitude is supplied by comprehension over ℕ, not by the separate UnboundedLength claim T0(b), whose postcondition is purely existential about length
+  - T0 (CarrierSetDefinition, ASN-0034) — its comprehension axiom populates T with every finite sequence over ℕ of length ≥ 1, so each trailing-zero extension s.0ⁿ is a member of T; together with the infinitude of ℕ (the extensions have pairwise distinct lengths #s + n) this grounds the infinite-span argument that forces the finite-vs-infinite mismatch
 
 ---
 
