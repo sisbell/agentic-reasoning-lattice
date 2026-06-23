@@ -54,7 +54,7 @@ module DifferenceBound {
     SpanModule.Span(sigma.start, sigma.width)
   }
 
-  // LexicographicOrder is strict: a < a is impossible
+  // LexicographicOrder is strict and irreflexive
   lemma LexOrderIrreflexive(a: Tumbler)
     requires InT(a)
     ensures !LexicographicOrder.LexicographicOrder(a, a)
@@ -70,7 +70,6 @@ module DifferenceBound {
       if k <= Length(a) && Less(Component(a, k), Component(a, k)) {
         Irreflexive(Component(a, k));
       }
-      // else: k = Length(a)+1 ≤ Length(a) — arithmetic contradiction
     }
   }
 
@@ -89,7 +88,6 @@ module DifferenceBound {
          Component(a, i) == Component(b, i)) &&
       ((k <= Length(a) && k <= Length(b) && Less(Component(a, k), Component(b, k))) ||
        (k == Length(a) + 1 && k <= Length(b)));
-    // Case (ii): k = m+1 ≤ m is false by arithmetic
     assert k <= m;
     var fm := DivModule.FirstMismatch(a, b, 1, m);
     assert DivModule.Divergence(a, b) == fm;
@@ -102,7 +100,7 @@ module DifferenceBound {
     }
   }
 
-  // WF: from s < r with equal length, (s, r⊖s) is valid and level-uniform with reach = r
+  // WF: from s < r with equal length, (s, r⊖s) is valid level-uniform with reach = r
   lemma WellFormedFromEndpoints(s: Tumbler, r: Tumbler)
     requires InT(s) && InT(r)
     requires LexicographicOrder.LexicographicOrder(s, r)
@@ -124,35 +122,26 @@ module DifferenceBound {
     ensures Reach(beta) == Reach(alpha) ||
             LexicographicOrder.LexicographicOrder(Reach(beta), Reach(alpha))
   {
-    // beta.start ∈ ⟦β⟧ [T12 postcondition (b)]
     SWD.SpanWellDefinedness(beta.start, beta.width);
     assert beta.start in SpanSet(beta);
     assert beta.start in SpanSet(alpha);
-    // Part 1: SpanSet(alpha) membership gives alpha.start ≤ beta.start
-    // Part 2: use trichotomy to case-split, then derive contradiction in GT case
     var ra := Reach(alpha);
     var rb := Reach(beta);
     IC.IntrinsicComparison(rb, ra);
     if IC.Compare(rb, ra) == IC.GT {
-      // LexicographicOrder(ra, rb) holds
       assert LexicographicOrder.LexicographicOrder(ra, rb);
-      // From beta.start ∈ SpanSet(alpha): beta.start < Reach(alpha)
       assert LexicographicOrder.LexicographicOrder(
                beta.start, TumblerAdd.TumblerAdd(alpha.start, alpha.width));
       assert LexicographicOrder.LexicographicOrder(beta.start, ra);
-      // ra ∈ SpanSet(beta): InT(ra), beta.start < ra < rb
       assert ra in SpanModule.Span(beta.start, beta.width);
       assert ra in SpanSet(beta);
-      // From containment: ra ∈ SpanSet(alpha)
       assert ra in SpanSet(alpha);
       assert ra in SpanModule.Span(alpha.start, alpha.width);
-      // SpanSet(alpha) membership gives ra < Reach(alpha) = ra → contradiction
       assert LexicographicOrder.LexicographicOrder(
                ra, TumblerAdd.TumblerAdd(alpha.start, alpha.width));
       assert LexicographicOrder.LexicographicOrder(ra, ra);
       LexOrderIrreflexive(ra);
     }
-    // IC.LT: LexicographicOrder(rb, ra) ✓; IC.EQ: rb == ra ✓
   }
 
   // S11 DEF: λ = (start(α), start(β) ⊖ start(α))
@@ -187,7 +176,7 @@ module DifferenceBound {
     lp + rp
   }
 
-  // λ is valid, level-uniform, and has reach(λ) = start(β)
+  // λ is valid, level-uniform, with reach(λ) = start(β)
   lemma LambdaWF(alpha: SpanValue, beta: SpanValue)
     requires ValidSpan(alpha) && ValidSpan(beta)
     requires LevelCompat(alpha.start, beta.start)
@@ -199,7 +188,7 @@ module DifferenceBound {
     WellFormedFromEndpoints(alpha.start, beta.start);
   }
 
-  // ρ is valid, level-uniform, and has reach(ρ) = reach(α)
+  // ρ is valid, level-uniform, with reach(ρ) = reach(α)
   lemma RhoWF(alpha: SpanValue, beta: SpanValue)
     requires ValidSpan(alpha) && ValidSpan(beta)
     requires LevelUniform(alpha) && LevelUniform(beta)
@@ -209,33 +198,199 @@ module DifferenceBound {
     ensures LevelUniform(RhoSpan(alpha, beta))
     ensures Reach(RhoSpan(alpha, beta)) == Reach(alpha)
   {
-    // Level chain: Length(Reach(α)) = Length(α.width) = Length(α.start) = Length(β.start)
-    //            = Length(β.width) = Length(Reach(β))
     assert Length(Reach(alpha)) == Length(alpha.start);
     assert Length(Reach(beta)) == Length(beta.start);
     WellFormedFromEndpoints(Reach(beta), Reach(alpha));
   }
 
-  // S11 Theorem: ⟦α⟧ \ ⟦β⟧ equals the union of the left and right difference spans.
-  // Stated element-wise to avoid ValidSpan precondition issues in the ensures.
+  // Left interval predicate — InT(t) embedded to avoid precondition in forall ensures
+  ghost predicate InLeftInterval(alpha: SpanValue, beta: SpanValue, t: Tumbler)
+    requires ValidSpan(alpha) && ValidSpan(beta)
+  {
+    InT(t) &&
+    LexicographicOrder.LexicographicOrder(alpha.start, beta.start) &&
+    (alpha.start == t || LexicographicOrder.LexicographicOrder(alpha.start, t)) &&
+    LexicographicOrder.LexicographicOrder(t, beta.start)
+  }
+
+  // Right interval predicate — InT(t) embedded to avoid precondition in forall ensures
+  ghost predicate InRightInterval(alpha: SpanValue, beta: SpanValue, t: Tumbler)
+    requires ValidSpan(alpha) && ValidSpan(beta)
+  {
+    InT(t) &&
+    LexicographicOrder.LexicographicOrder(Reach(beta), Reach(alpha)) &&
+    (Reach(beta) == t || LexicographicOrder.LexicographicOrder(Reach(beta), t)) &&
+    LexicographicOrder.LexicographicOrder(t, Reach(alpha))
+  }
+
+  // ⟹: t ∈ ⟦α⟧ \ ⟦β⟧ → left interval or right interval
+  lemma DiffToInterval(alpha: SpanValue, beta: SpanValue, t: Tumbler)
+    requires ValidSpan(alpha) && ValidSpan(beta)
+    requires SpanSet(beta) <= SpanSet(alpha)
+    requires InT(t)
+    requires t in SpanSet(alpha)
+    requires t !in SpanSet(beta)
+    ensures InLeftInterval(alpha, beta, t) || InRightInterval(alpha, beta, t)
+  {
+    // Membership gives: alpha.start ≤ t < Reach(alpha)
+    assert alpha.start == t || LexicographicOrder.LexicographicOrder(alpha.start, t);
+    assert LexicographicOrder.LexicographicOrder(t, TumblerAdd.TumblerAdd(alpha.start, alpha.width));
+    // beta non-empty: beta.start < Reach(beta)
+    SWD.SpanWellDefinedness(beta.start, beta.width);
+    assert beta.start in SpanSet(beta);
+    assert LexicographicOrder.LexicographicOrder(beta.start, TumblerAdd.TumblerAdd(beta.start, beta.width));
+    // Trichotomy on t vs beta.start
+    IC.IntrinsicComparison(t, beta.start);
+    if IC.Compare(t, beta.start) == IC.LT {
+      // t < beta.start → LEFT: prove LexOrder(alpha.start, beta.start)
+      if alpha.start == t {
+        assert LexicographicOrder.LexicographicOrder(alpha.start, beta.start);
+      } else {
+        SWD.LexicographicTransitive(alpha.start, t, beta.start);
+      }
+      assert InLeftInterval(alpha, beta, t);
+    } else if IC.Compare(t, beta.start) == IC.EQ {
+      // t == beta.start → t ∈ ⟦β⟧ — contradiction with t !in SpanSet(beta)
+      assert t == beta.start;
+      assert t in SpanSet(beta);
+    } else {
+      // t > beta.start; trichotomy on t vs Reach(beta)
+      assert LexicographicOrder.LexicographicOrder(beta.start, t);
+      IC.IntrinsicComparison(t, TumblerAdd.TumblerAdd(beta.start, beta.width));
+      if IC.Compare(t, TumblerAdd.TumblerAdd(beta.start, beta.width)) == IC.LT {
+        // beta.start < t < Reach(beta) → t ∈ ⟦β⟧ — contradiction
+        assert t in SpanModule.Span(beta.start, beta.width);
+        assert t in SpanSet(beta);
+      } else if IC.Compare(t, TumblerAdd.TumblerAdd(beta.start, beta.width)) == IC.EQ {
+        // t == Reach(beta) < Reach(alpha) → RIGHT
+        assert t == TumblerAdd.TumblerAdd(beta.start, beta.width);
+        assert LexicographicOrder.LexicographicOrder(
+                 TumblerAdd.TumblerAdd(beta.start, beta.width),
+                 TumblerAdd.TumblerAdd(alpha.start, alpha.width));
+        assert InRightInterval(alpha, beta, t);
+      } else {
+        // t > Reach(beta); trans → Reach(beta) < Reach(alpha)
+        assert LexicographicOrder.LexicographicOrder(
+                 TumblerAdd.TumblerAdd(beta.start, beta.width), t);
+        SWD.LexicographicTransitive(
+          TumblerAdd.TumblerAdd(beta.start, beta.width), t,
+          TumblerAdd.TumblerAdd(alpha.start, alpha.width));
+        assert InRightInterval(alpha, beta, t);
+      }
+    }
+  }
+
+  // ⟸ (left): t ∈ left interval → t ∈ ⟦α⟧ \ ⟦β⟧
+  lemma LeftIntervalToDiff(alpha: SpanValue, beta: SpanValue, t: Tumbler)
+    requires ValidSpan(alpha) && ValidSpan(beta)
+    requires SpanSet(beta) <= SpanSet(alpha)
+    requires InLeftInterval(alpha, beta, t)
+    ensures t in SpanSet(alpha)
+    ensures t !in SpanSet(beta)
+  {
+    // beta.start ∈ ⟦β⟧ ⊆ ⟦α⟧ → beta.start < Reach(alpha)
+    SWD.SpanWellDefinedness(beta.start, beta.width);
+    assert beta.start in SpanSet(beta);
+    assert beta.start in SpanSet(alpha);
+    assert LexicographicOrder.LexicographicOrder(
+             beta.start, TumblerAdd.TumblerAdd(alpha.start, alpha.width));
+    // t < beta.start < Reach(alpha) → t < Reach(alpha)
+    SWD.LexicographicTransitive(t, beta.start, TumblerAdd.TumblerAdd(alpha.start, alpha.width));
+    // alpha.start ≤ t and t < Reach(alpha) → t ∈ ⟦α⟧
+    assert t in SpanSet(alpha);
+    // t ∉ ⟦β⟧: beta.start ≤ t contradicts t < beta.start
+    if t in SpanSet(beta) {
+      assert beta.start == t || LexicographicOrder.LexicographicOrder(beta.start, t);
+      if beta.start == t {
+        LexOrderIrreflexive(t);
+      } else {
+        SWD.LexicographicTransitive(beta.start, t, beta.start);
+        LexOrderIrreflexive(beta.start);
+      }
+    }
+  }
+
+  // ⟸ (right): t ∈ right interval → t ∈ ⟦α⟧ \ ⟦β⟧
+  lemma RightIntervalToDiff(alpha: SpanValue, beta: SpanValue, t: Tumbler)
+    requires ValidSpan(alpha) && ValidSpan(beta)
+    requires SpanSet(beta) <= SpanSet(alpha)
+    requires InRightInterval(alpha, beta, t)
+    ensures t in SpanSet(alpha)
+    ensures t !in SpanSet(beta)
+  {
+    // beta non-empty: beta.start < Reach(beta)
+    SWD.SpanWellDefinedness(beta.start, beta.width);
+    assert beta.start in SpanSet(beta);
+    assert LexicographicOrder.LexicographicOrder(
+             beta.start, TumblerAdd.TumblerAdd(beta.start, beta.width));
+    // ContainmentBoundary: alpha.start ≤ beta.start
+    ContainmentBoundary(alpha, beta);
+    // alpha.start ≤ beta.start < Reach(beta) → alpha.start < Reach(beta)
+    if alpha.start == beta.start {
+      assert LexicographicOrder.LexicographicOrder(
+               alpha.start, TumblerAdd.TumblerAdd(beta.start, beta.width));
+    } else {
+      SWD.LexicographicTransitive(
+        alpha.start, beta.start, TumblerAdd.TumblerAdd(beta.start, beta.width));
+    }
+    // alpha.start < Reach(beta) ≤ t → alpha.start < t
+    if TumblerAdd.TumblerAdd(beta.start, beta.width) == t {
+      assert LexicographicOrder.LexicographicOrder(alpha.start, t);
+    } else {
+      assert LexicographicOrder.LexicographicOrder(TumblerAdd.TumblerAdd(beta.start, beta.width), t);
+      SWD.LexicographicTransitive(
+        alpha.start, TumblerAdd.TumblerAdd(beta.start, beta.width), t);
+    }
+    // alpha.start < t and t < Reach(alpha) → t ∈ ⟦α⟧
+    assert LexicographicOrder.LexicographicOrder(alpha.start, t);
+    assert LexicographicOrder.LexicographicOrder(t, TumblerAdd.TumblerAdd(alpha.start, alpha.width));
+    assert t in SpanSet(alpha);
+    // t ∉ ⟦β⟧: Reach(beta) ≤ t but membership requires t < Reach(beta)
+    if t in SpanSet(beta) {
+      assert LexicographicOrder.LexicographicOrder(t, TumblerAdd.TumblerAdd(beta.start, beta.width));
+      if TumblerAdd.TumblerAdd(beta.start, beta.width) == t {
+        LexOrderIrreflexive(t);
+      } else {
+        assert LexicographicOrder.LexicographicOrder(TumblerAdd.TumblerAdd(beta.start, beta.width), t);
+        SWD.LexicographicTransitive(
+          TumblerAdd.TumblerAdd(beta.start, beta.width), t,
+          TumblerAdd.TumblerAdd(beta.start, beta.width));
+        LexOrderIrreflexive(TumblerAdd.TumblerAdd(beta.start, beta.width));
+      }
+    }
+  }
+
+  // S11 Theorem: ⟦α⟧ \ ⟦β⟧ = left interval ∪ right interval
   lemma DifferenceBoundTheorem(alpha: SpanValue, beta: SpanValue)
     requires ValidSpan(alpha) && ValidSpan(beta)
     requires LevelUniform(alpha) && LevelUniform(beta)
     requires LevelCompat(alpha.start, beta.start)
     requires SpanSet(beta) <= SpanSet(alpha)
     ensures
-      forall t :: InT(t) ==>
+      forall t ::
         (t in SpanSet(alpha) && t !in SpanSet(beta)) <==>
-        // In left interval [start(α), start(β)) when start(α) < start(β)
-        ((LexicographicOrder.LexicographicOrder(alpha.start, beta.start) &&
-          (alpha.start == t ||
-           LexicographicOrder.LexicographicOrder(alpha.start, t)) &&
-          LexicographicOrder.LexicographicOrder(t, beta.start)) ||
-         // In right interval [reach(β), reach(α)) when reach(β) < reach(α)
-         (LexicographicOrder.LexicographicOrder(Reach(beta), Reach(alpha)) &&
-          (Reach(beta) == t ||
-           LexicographicOrder.LexicographicOrder(Reach(beta), t)) &&
-          LexicographicOrder.LexicographicOrder(t, Reach(alpha))))
+        (InLeftInterval(alpha, beta, t) || InRightInterval(alpha, beta, t))
   {
+    forall t
+      ensures (t in SpanSet(alpha) && t !in SpanSet(beta)) <==>
+              (InLeftInterval(alpha, beta, t) || InRightInterval(alpha, beta, t))
+    {
+      if InT(t) {
+        if t in SpanSet(alpha) && t !in SpanSet(beta) {
+          DiffToInterval(alpha, beta, t);
+        }
+        if InLeftInterval(alpha, beta, t) {
+          LeftIntervalToDiff(alpha, beta, t);
+        }
+        if InRightInterval(alpha, beta, t) {
+          RightIntervalToDiff(alpha, beta, t);
+        }
+      } else {
+        // !InT(t): iset Span requires InT so t ∉ SpanSet(anything)
+        assert t !in SpanSet(alpha);
+        assert !InLeftInterval(alpha, beta, t);
+        assert !InRightInterval(alpha, beta, t);
+      }
+    }
   }
 }
