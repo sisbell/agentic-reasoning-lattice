@@ -20,6 +20,7 @@ module DifferenceBound {
   import DRT = DisplacementRoundTrip
   import DivModule = Divergence
   import SpanModule = Span
+  import IC = IntrinsicComparison
 
   datatype SpanValue = SpanValue(start: Tumbler, width: Tumbler)
 
@@ -69,7 +70,7 @@ module DifferenceBound {
       if k <= Length(a) && Less(Component(a, k), Component(a, k)) {
         Irreflexive(Component(a, k));
       }
-      // else: k = Length(a)+1 ≤ Length(a) → arithmetic contradiction
+      // else: k = Length(a)+1 ≤ Length(a) — arithmetic contradiction
     }
   }
 
@@ -82,22 +83,16 @@ module DifferenceBound {
   {
     DRT.LexImpliesNotEqual(a, b);
     var m := Length(a);
-    // Extract LexicographicOrder witness; case (ii) is impossible when Length(a) = Length(b)
     var k: nat :| 1 <= k &&
       (forall i :: 1 <= i < k ==>
          i <= Length(a) && i <= Length(b) &&
          Component(a, i) == Component(b, i)) &&
       ((k <= Length(a) && k <= Length(b) && Less(Component(a, k), Component(b, k))) ||
        (k == Length(a) + 1 && k <= Length(b)));
-    // Case (ii) would give m+1 ≤ m, which is false
+    // Case (ii): k = m+1 ≤ m is false by arithmetic
     assert k <= m;
-    // Call FirstMismatch to expose its postconditions
     var fm := DivModule.FirstMismatch(a, b, 1, m);
-    // By function transparency: Divergence(a,b) = FirstMismatch(a,b,1,m)
     assert DivModule.Divergence(a, b) == fm;
-    // If fm > m: forall i :: 1 ≤ i < fm → Component(a,i) = Component(b,i)
-    // In particular at i=k (k ≤ m < fm): Component(a,k) = Component(b,k)
-    // But from witness: Less(Component(a,k), Component(b,k)) → contradiction
     if fm > m {
       assert 1 <= k && k < fm;
       assert Component(a, k) == Component(b, k);
@@ -132,29 +127,32 @@ module DifferenceBound {
     // beta.start ∈ ⟦β⟧ [T12 postcondition (b)]
     SWD.SpanWellDefinedness(beta.start, beta.width);
     assert beta.start in SpanSet(beta);
-    // beta.start ∈ ⟦α⟧ [containment]
     assert beta.start in SpanSet(alpha);
-    // Part 1: SpanSet membership unfolds to give alpha.start ≤ beta.start
-    // Part 2: Reach(beta) ≤ Reach(alpha) — by contradiction
-    if LexicographicOrder.LexicographicOrder(Reach(alpha), Reach(beta)) {
-      var ra := Reach(alpha);
-      var rb := Reach(beta);
+    // Part 1: SpanSet(alpha) membership gives alpha.start ≤ beta.start
+    // Part 2: use trichotomy to case-split, then derive contradiction in GT case
+    var ra := Reach(alpha);
+    var rb := Reach(beta);
+    IC.IntrinsicComparison(rb, ra);
+    if IC.Compare(rb, ra) == IC.GT {
+      // LexicographicOrder(ra, rb) holds
+      assert LexicographicOrder.LexicographicOrder(ra, rb);
       // From beta.start ∈ SpanSet(alpha): beta.start < Reach(alpha)
       assert LexicographicOrder.LexicographicOrder(
                beta.start, TumblerAdd.TumblerAdd(alpha.start, alpha.width));
       assert LexicographicOrder.LexicographicOrder(beta.start, ra);
-      // Reach(alpha) ∈ SpanSet(beta): InT(ra), beta.start < ra < rb
+      // ra ∈ SpanSet(beta): InT(ra), beta.start < ra < rb
       assert ra in SpanModule.Span(beta.start, beta.width);
       assert ra in SpanSet(beta);
-      // From containment: Reach(alpha) ∈ SpanSet(alpha)
+      // From containment: ra ∈ SpanSet(alpha)
       assert ra in SpanSet(alpha);
       assert ra in SpanModule.Span(alpha.start, alpha.width);
-      // SpanSet membership gives reach(alpha) < reach(alpha) — contradiction
+      // SpanSet(alpha) membership gives ra < Reach(alpha) = ra → contradiction
       assert LexicographicOrder.LexicographicOrder(
                ra, TumblerAdd.TumblerAdd(alpha.start, alpha.width));
       assert LexicographicOrder.LexicographicOrder(ra, ra);
       LexOrderIrreflexive(ra);
     }
+    // IC.LT: LexicographicOrder(rb, ra) ✓; IC.EQ: rb == ra ✓
   }
 
   // S11 DEF: λ = (start(α), start(β) ⊖ start(α))
@@ -218,20 +216,26 @@ module DifferenceBound {
     WellFormedFromEndpoints(Reach(beta), Reach(alpha));
   }
 
-  // S11 Theorem: ⟦α⟧ \ ⟦β⟧ = ⟦λ⟧ ∪ ⟦ρ⟧
+  // S11 Theorem: ⟦α⟧ \ ⟦β⟧ equals the union of the left and right difference spans.
+  // Stated element-wise to avoid ValidSpan precondition issues in the ensures.
   lemma DifferenceBoundTheorem(alpha: SpanValue, beta: SpanValue)
     requires ValidSpan(alpha) && ValidSpan(beta)
     requires LevelUniform(alpha) && LevelUniform(beta)
     requires LevelCompat(alpha.start, beta.start)
     requires SpanSet(beta) <= SpanSet(alpha)
     ensures
-      var lambdaSet :=
-        if LexicographicOrder.LexicographicOrder(alpha.start, beta.start)
-        then SpanSet(LambdaSpan(alpha, beta)) else iset{};
-      var rhoSet :=
-        if LexicographicOrder.LexicographicOrder(Reach(beta), Reach(alpha))
-        then SpanSet(RhoSpan(alpha, beta)) else iset{};
-      SpanSet(alpha) - SpanSet(beta) == lambdaSet + rhoSet
+      forall t :: InT(t) ==>
+        (t in SpanSet(alpha) && t !in SpanSet(beta)) <==>
+        // In left interval [start(α), start(β)) when start(α) < start(β)
+        ((LexicographicOrder.LexicographicOrder(alpha.start, beta.start) &&
+          (alpha.start == t ||
+           LexicographicOrder.LexicographicOrder(alpha.start, t)) &&
+          LexicographicOrder.LexicographicOrder(t, beta.start)) ||
+         // In right interval [reach(β), reach(α)) when reach(β) < reach(α)
+         (LexicographicOrder.LexicographicOrder(Reach(beta), Reach(alpha)) &&
+          (Reach(beta) == t ||
+           LexicographicOrder.LexicographicOrder(Reach(beta), t)) &&
+          LexicographicOrder.LexicographicOrder(t, Reach(alpha))))
   {
   }
 }
