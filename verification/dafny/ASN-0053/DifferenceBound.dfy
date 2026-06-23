@@ -176,6 +176,27 @@ module DifferenceBound {
     lp + rp
   }
 
+  // S11 cardinality: |result| = 0 when α=β, 1 when one boundary coincides, 2 when neither
+  lemma DifferenceBoundCardinality(alpha: SpanValue, beta: SpanValue)
+    requires ValidSpan(alpha) && ValidSpan(beta)
+    requires LevelUniform(alpha) && LevelUniform(beta)
+    requires LevelCompat(alpha.start, beta.start)
+    requires SpanSet(beta) <= SpanSet(alpha)
+    ensures |DifferenceBound(alpha, beta)| == 0 <==>
+            (alpha.start == beta.start && Reach(beta) == Reach(alpha))
+    ensures |DifferenceBound(alpha, beta)| == 2 <==>
+            (LexicographicOrder.LexicographicOrder(alpha.start, beta.start) &&
+             LexicographicOrder.LexicographicOrder(Reach(beta), Reach(alpha)))
+  {
+    ContainmentBoundary(alpha, beta);
+    if alpha.start == beta.start {
+      LexOrderIrreflexive(alpha.start);
+    }
+    if Reach(beta) == Reach(alpha) {
+      LexOrderIrreflexive(Reach(alpha));
+    }
+  }
+
   // λ is valid, level-uniform, with reach(λ) = start(β)
   lemma LambdaWF(alpha: SpanValue, beta: SpanValue)
     requires ValidSpan(alpha) && ValidSpan(beta)
