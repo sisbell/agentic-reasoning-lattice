@@ -26,6 +26,7 @@ Helpers inlined:
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 from typing import ClassVar, Dict, List, Optional, Set
@@ -48,7 +49,12 @@ from lib.shared.paths import next_review_number
 from lib.shared.validate_gate import run_validate_gate
 
 
-CONE_MODEL = "sonnet"
+# Cone (regional) review model + effort, operator-tunable. Defaults:
+# sonnet / high — the focused regional pass is cheaper than the whole-ASN
+# global review (full_review, opus/max). Override via CONE_REVIEW_MODEL
+# (e.g. "opus" → claude-opus-4-8[1m]) and CONE_REVIEW_EFFORT
+# (low/medium/high/xhigh/max) to run the cone phase at a higher tier.
+CONE_MODEL = os.environ.get("CONE_REVIEW_MODEL", "sonnet")
 _DEPENDS_HEADER = "- *Depends:*"
 _FORWARD_HEADER = "- *Forward References:*"
 
@@ -424,9 +430,11 @@ class ConeReviewAgent(Agent):
         cone_content = assemble_cone(
             ctx.asn_label, ctx.label, dep_labels, self.claim_dir,
         )
+        cone_effort = os.environ.get("CONE_REVIEW_EFFORT", "high")
         verdict, findings_text, elapsed = run_review(
             ctx.asn_num, cone_content, ctx.asn_label, previous_findings,
             model=CONE_MODEL, foundation_labels=cross_asn_deps,
+            effort=cone_effort,
         )
         if verdict == "ERROR":
             return AgentResult(success=False, detail="review-error")
