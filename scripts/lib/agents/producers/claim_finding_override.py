@@ -37,7 +37,7 @@ _VALID_CLASSES = {"REVISE", "OBSERVE"}
 
 
 def classify_finding(
-    finding_body: str, model: str = "claude-sonnet-4-6",
+    finding_body: str, model: str = "claude-opus-4-8[1m]",
 ) -> Tuple[str, str, float]:
     """Run the classifier on one finding body.
 
@@ -87,7 +87,7 @@ def classify_finding(
 
 def apply_classifier_verdict(
     findings: List[Tuple[str, str, str]],
-    model: str = "claude-sonnet-4-6",
+    model: str = "claude-opus-4-8[1m]",
 ) -> None:
     """Run the classifier on each finding; override on disagreement.
 

@@ -66,7 +66,7 @@ Default to REVISE. A finding is REVISE if it surfaces an ungrounded symbol, unju
 **Foundation**: [which foundation claim, with its Follows-from list if relevant]
 **ASN**: [which ASN section/claim, with quoted text]
 **Issue**: [what is wrong — be specific about the gap]
-**What needs resolving**: [REVISE only — what the ASN must establish or change, without prescribing how]
+**What needs resolving**: [what the ASN must establish or change, without prescribing how. REQUIRED whenever the finding names a concrete, fixable defect in an editable claim — **fill it in even when you lean OBSERVE**, because a downstream classifier may upgrade a borderline finding to REVISE, and a REVISE whose "What needs resolving" is blank, absent, or `N/A` is silently dropped (never acted on). Write `N/A` *only* for pure style/framing/phrasing observations that genuinely require no change.]
 ```
 
 `### ` is reserved for findings only. Each `### `-prefixed section must include the structured fields above (**Class**, **Foundation**, **ASN**, **Issue**, **What needs resolving**); the parser ignores any `### `-prefixed section that lacks them. Audit narrative — per-claim summaries, dependency-graph traces, "this proof is sound" notes — uses plain prose paragraphs, not `### ` headers. If you have nothing to flag, output `VERDICT: CONVERGED` directly with no preceding sections.
