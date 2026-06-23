@@ -1,0 +1,21 @@
+I read the foundation contracts, then walked ASN-0053 as a system: the dependency order is clean (S0, WF, S6, S2 rest on ASN-0034 only; S11 consumes all four plus T1/TumblerAdd), and the central term `reach(σ) = start(σ) ⊕ width(σ)` holds one meaning across S0/S6/S2/WF/S11.
+
+I verified the load-bearing chains. WF's discharge of D1's `divergence(s,r) ≤ #s` precondition (T1 case-(ii) elimination via equal length → `#s < #s` against irreflexivity; case-(i) witness identified with `divergence` by uniqueness) is correct, as is the carry of that case-(i) witness to `(r,s)` via Divergence symmetry to license TumblerSub's positive branch and the `actionPoint(r⊖s) = k ≤ #s` bound. S6's "only TumblerAdd supplies the addition result-length" is the right gate. S11's boundary characterization correctly recognizes that the reach-half membership test `reach(α) ∈ ⟦β⟧` requires `reach(α) ∈ T` over and above the order conditions, and places it from TumblerAdd at the outset; the (L)/(M)/(R) partition is exhaustive and disjoint under `start(α) ≤ start(β) < reach(β) ≤ reach(α)`; (M) = ⟦β⟧ because ⟦β⟧ ⊆ ⟦α⟧. The tightness argument discharges S0's bracketing precondition `start(α) ≤ t ≤ reach(β)` honestly (mixed strict/non-strict step done by case-split, not by a non-existent T1 export) and the worked example checks numerically. WF's length precondition for ρ is correctly routed through S6 + level_compat. I found no correctness defect.
+
+Two phrasing/drift observations:
+
+### S6 dependency annotation carries a use-site inventory rather than stating what TumblerAdd provides
+**Class**: OBSERVE
+**Foundation**: TumblerAdd (ASN-0034) — `#(a ⊕ w) = #w`
+**ASN**: S6, *Depends* → TumblerAdd: "This is the sole source of the addition result-length: the in-scope foundations supply only the subtraction length (TumblerSub: #(a ⊖ w) = L) and the round-trip identity (D1: a ⊕ (b ⊖ a) = b), neither of which yields #(s ⊕ ℓ) = #ℓ for a general width ℓ."
+**Issue**: The dependency slot should record what TumblerAdd supplies and at which site. Instead the trailing sentence inventories what two *other* foundations (TumblerSub, D1) do *not* supply, to argue TumblerAdd is uniquely needed. This is the reviser-drift pattern "new prose around an axiom explains why the axiom is needed rather than what it says" — a use-site inventory the precise reader must read past. The substantive content (TumblerAdd's identity, earned under its preconditions, instantiated at `(s, ℓ)`) is already stated in the preceding sentences; the elimination of D1/TumblerSub adds no reasoning the claim consumes.
+**What needs resolving**: Remove the "sole source / neither of which yields" inventory; let the annotation state what TumblerAdd provides (the result-length identity and the preconditions it is earned under) and where S6 uses it.
+
+### Defensive "why the precondition is needed" prose in S6 and S0
+**Class**: OBSERVE
+**Foundation**: TumblerAdd (ASN-0034) preconditions; T1 (ASN-0034) postcondition (c)
+**ASN**: S6 body: "Drop a precondition — say Pos(ℓ) — and s ⊕ ℓ need not be defined, so the length identity has nothing to stand on." And S0 closing: "the ≤-transitivity and the mixed ≤-< transitivity invoked above are not posited but derived from postcondition (c) and the abbreviation — the same four-case unfolding by which NAT-order records ≤-transitivity on ℕ as a named consequence."
+**Issue**: Both passages defend a step rather than advance it. S6's "drop a precondition" imagines a case the claim's preconditions already exclude (a non-well-formed span is outside S6's scope), restating necessity already evident from the conditional structure. S0's closing re-asserts that the `≤`-compositions are derived not posited — a point the proof body already executed inline by the four-case unfolding. These are the kind of justification-of-the-method remarks that compound across cycles. (The concrete sub-address example `[1,3,0,5]` in S0 and the worked `α/β` instance in S11 are legitimate and should stay.)
+**What needs resolving**: Trim the necessity/derivation-defending sentences; the conditional postconditions and the inline case-analysis already carry the argument.
+
+VERDICT: OBSERVE
