@@ -80,6 +80,7 @@ def run_review(
     previous_findings: str = "",
     model: str = "opus",
     foundation_labels: Optional[list] = None,
+    effort: str = "high",
 ) -> Tuple[str, Optional[str], float]:
     """Run Opus deep review. Returns (verdict, text, elapsed).
 
@@ -124,11 +125,11 @@ def run_review(
     )
 
     print(
-        "  [REVIEW] Reading ASN + foundation (Opus)...",
+        f"  [REVIEW] Reading ASN + foundation (model={model}, effort={effort})...",
         end="", file=sys.stderr, flush=True,
     )
 
-    result = invoke_claude(prompt, model=model, effort="high")
+    result = invoke_claude(prompt, model=model, effort=effort)
 
     if not result.text:
         print(f"  FAILED (exit 1, {result.elapsed:.0f}s)", file=sys.stderr)

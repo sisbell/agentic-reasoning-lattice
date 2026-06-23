@@ -25,6 +25,7 @@ Structurally identical to cone-review; differences are scope-level:
 
 from __future__ import annotations
 
+import os
 import sys
 from typing import ClassVar, List
 
@@ -109,9 +110,14 @@ class FullReviewAgent(Agent):
 
         # 3. Assemble + review (full upstream foundation, no narrowing).
         asn_content = assemble_readonly(ctx.asn_label, self.claim_dir)
+        # Effort is operator-tunable for the whole-ASN review via
+        # FULL_REVIEW_EFFORT (ladder: low/medium/high/xhigh/max). Defaults
+        # to "high" — the established global-review level. cone_review is
+        # unaffected (it keeps run_review's "high" default).
+        full_effort = os.environ.get("FULL_REVIEW_EFFORT", "high")
         verdict, findings_text, _elapsed = run_review(
             ctx.asn_num, asn_content, ctx.asn_label, previous_findings,
-            model=FULL_MODEL,
+            model=FULL_MODEL, effort=full_effort,
         )
         if verdict == "ERROR":
             return AgentResult(success=False, detail="review-error")
