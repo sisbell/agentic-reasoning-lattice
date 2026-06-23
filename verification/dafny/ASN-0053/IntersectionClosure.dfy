@@ -92,7 +92,7 @@ module IntersectionClosure {
 
   // S1 (theorem): the intersection of two level-uniform level-compatible spans
   // is either empty or a single span
-  lemma IntersectionClosure(alpha: SpanValue, beta: SpanValue)
+  lemma {:timeLimit 120} IntersectionClosure(alpha: SpanValue, beta: SpanValue)
     requires ValidSpan(alpha) && ValidSpan(beta)
     requires LevelUniform(alpha) && LevelUniform(beta)
     requires Length(alpha.start) == Length(beta.start)
