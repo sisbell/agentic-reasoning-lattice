@@ -35,6 +35,7 @@ from lib.shared.claim_files import build_label_index
 from lib.shared.common import find_asn
 from lib.shared.invoke_claude import parallel_llm_calls
 from lib.lattice.deps import build_deps_for_asn
+from lib.lattice.labels import format_label
 from lib.shared.topological_sort import topological_sort_labels, topological_levels
 from lib.verification.dafny.translate import (
     build_claim_list_from_asn,
@@ -46,6 +47,37 @@ from lib.verification.dafny.common import read_file, run_commit, log_usage
 from lib.shared.prompts import read_prompt
 
 REVIEW_PROMPT = prompt_path("verification/dafny/review-failure.md")
+
+
+def _cross_asn_dep_includes(deps_data, asn_label):
+    """Map each cross-ASN foundation dep label → a relative Dafny include
+    of that dep's already-generated .dfy in its own ASN dir.
+
+    The same-ASN include wiring keys off `level_verified` (this build's
+    out_dir only), so cross-ASN foundation deps — e.g. ASN-0053's claims
+    citing ASN-0034's T1 / Span / TumblerAdd — were silently dropped, and
+    a dependent ASN's .dfy referenced undefined foundation symbols. This
+    resolves each foundation dep label to `../<dep-asn>/<proof_label>.dfy`
+    when that file exists (the foundation ASN must be generated first;
+    deps absent on disk are skipped — the verify/align cycle surfaces any
+    still-missing symbol). Dafny relative includes resolve from out_dir,
+    and the foundation .dfy's own `./sibling.dfy` includes resolve within
+    its dir, so transitive foundation lemmas come along.
+    """
+    out = {}
+    for dep_asn in deps_data.get("depends", []):
+        dep_asn_label = format_label(dep_asn)
+        if dep_asn_label == asn_label:
+            continue
+        try:
+            rows = build_claim_list_from_asn(dep_asn)
+        except Exception:
+            continue
+        for r in rows:
+            dfy = DAFNY_DIR / dep_asn_label / f"{r['proof_label']}.dfy"
+            if dfy.exists():
+                out[r["label"]] = f"../{dep_asn_label}/{r['proof_label']}.dfy"
+    return out
 
 
 def _review_failure(claim_text, dfy_path, verification_errors):
@@ -238,6 +270,14 @@ def main():
 
     deps_data = build_deps_for_asn(asn_number)
 
+    # Cross-ASN foundation includes: dep label -> "../<dep-asn>/<proof>.dfy"
+    # for foundation deps whose .dfy is already generated. Same-ASN deps
+    # are wired separately via level_verified below.
+    cross_inc = _cross_asn_dep_includes(deps_data, asn_label)
+    if cross_inc:
+        print(f"  [DAFNY] {asn_label} — {len(cross_inc)} cross-ASN "
+              f"foundation include(s) available", file=sys.stderr)
+
     # --- Hash cache — skip unchanged ---
 
     cache_path = out_dir / "_dafny-cache.json"
@@ -317,17 +357,28 @@ def main():
             proof_label = row["proof_label"]
             out_path = out_dir / f"{proof_label}.dfy"
 
-            # Build dependency context from earlier levels
+            # Build dependency context from earlier levels (same-ASN) plus
+            # already-generated cross-ASN foundation deps.
             dep_context = ""
             if deps_data and label in deps_data.get("claims", {}):
                 follows = deps_data["claims"][label].get("follows_from", [])
-                available = [(dep, level_verified[dep]) for dep in follows
-                             if dep in level_verified]
-                if available:
-                    lines = ["## Available verified lemmas (from this build)\n"]
-                    for dep_label, dep_proof in available:
-                        lines.append(f"- {dep_label}: `include \"./{dep_proof}.dfy\"`")
-                    dep_context = "\n".join(lines) + "\n"
+                inc_lines = []
+                for dep in follows:
+                    if dep in level_verified:
+                        # Same-ASN dep verified earlier in this build.
+                        inc_lines.append(
+                            f"- {dep}: `include \"./{level_verified[dep]}.dfy\"`")
+                    elif dep in cross_inc:
+                        # Cross-ASN foundation dep (its .dfy already exists).
+                        inc_lines.append(
+                            f"- {dep}: `include \"{cross_inc[dep]}\"`")
+                if inc_lines:
+                    dep_context = (
+                        "## Available verified lemmas — `include` these\n"
+                        "(same-ASN from this build, plus cross-ASN "
+                        "foundations already generated)\n\n"
+                        + "\n".join(inc_lines) + "\n"
+                    )
 
             # Build prompt
             prompt = build_claim_prompt(
