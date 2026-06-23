@@ -1,6 +1,8 @@
-- `start` — function symbol extracting the start boundary of a span; appears in all five case conditions and the non-degeneracy precondition
-- `reach` — function symbol extracting the reach (exclusive upper boundary) of a span; appears in all five case conditions and the non-degeneracy precondition
-- `⟦·⟧` — denotation bracket: maps a span γ to the half-open position set { p : start(γ) ≤ p < reach(γ) }; explicitly defined in this claim's Definition field
+- `start` — start projection of a span, start(σ) = s of the Span pair (Span, ASN-0034); appears in all five case conditions and the non-degeneracy precondition
+- `width` — length projection of a span, width(σ) = ℓ of the Span pair (Span, ASN-0034); fixes the displaced endpoint reach(σ) = start(σ) ⊕ width(σ) and the denotation ⟦σ⟧ = span(start(σ), width(σ))
+- `reach` — displaced endpoint of a span, reach(σ) = start(σ) ⊕ width(σ) = s ⊕ ℓ (exclusive upper boundary); its membership reach(σ) ∈ T is discharged by T12 postcondition (a) (SpanWellDefinedness, ASN-0034); appears in all five case conditions and the non-degeneracy precondition
+- `⊕` — tumbler addition (position-advance), from TumblerAdd (ASN-0034) via the Span definition; used only to name reach(σ) = start(σ) ⊕ width(σ), never manipulated internally here
+- `⟦·⟧` — denotation bracket: abbreviates the Span set (ASN-0034), ⟦γ⟧ = span(start(γ), width(γ)) = { p : start(γ) ≤ p < reach(γ) }; grounded via Span and T12 rather than freshly posited
 - `<` — strict total order relation on positions; its totality (axiom T1) makes the five-case split exhaustive and the cases mutually exclusive
 - `≤` — non-strict companion order on positions; used in containment-case boundary conditions and the non-degeneracy precondition
 - `≥` — reverse non-strict order on positions; appears in the exhaustiveness argument (reach(α) ≥ reach(β) gives case (iv))
