@@ -45,9 +45,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib import triggers as triggers_module
+from dataclasses import replace as _dc_replace
+
 from lib.runner import (
     RunResult, Scope, Trigger,
-    compute_active_ready_partition, run_until_quiescent,
+    compute_active_ready_partition, run_force_pass, run_until_quiescent,
 )
 
 
@@ -107,8 +109,59 @@ _CONE_PHASE_NAMES = tuple(
 )
 
 
+def _force_cone_scope(session, scope):
+    """Force-mode cone scope: yield EVERY apex of the ASN.
+
+    Unlike `cone_review._scope_query` — which is predicate-gated and
+    yields only the first non-converged apex, one per pass — this yields
+    all apexes regardless of streak/cascade/quiescence so `--force` can
+    re-review every apex. Paired with `run_force_pass`, which ignores the
+    predicate entirely.
+    """
+    if scope.asn_label is None:
+        return
+    import importlib
+    from lib.lattice.labels import build_cross_asn_label_index
+    cone_mod = importlib.import_module("lib.triggers.cone_review")
+    label_index = build_cross_asn_label_index(session.store)
+    for label in cone_mod.apex_labels_in_topological_order(
+        session, scope.asn_label,
+    ):
+        addr = label_index.get(label)
+        if addr is not None:
+            yield addr
+
+
+def _named_trigger(trigs, name):
+    """First trigger in `trigs` with the given `.name`, or None."""
+    return next((t for t in trigs if t.name == name), None)
+
+
+def _force_reviews(phase_name, phase_triggers, scope, *, auto_commit):
+    """Force-fire the phase's review trigger, ignoring its predicate.
+
+    Global phase → force one whole-ASN `full-review`. Cone phase → force
+    `cone-review` on every apex (via `_force_cone_scope`). Only the
+    *review* trigger is forced; the downstream findings/revise triggers
+    stay predicate-driven (run in the normal `run_until_quiescent` that
+    follows), so already-decomposed reviews and resolved comments aren't
+    re-processed. Returns the force-pass RunResult (or None if the phase
+    has no review trigger)."""
+    if phase_name == "global":
+        ft = _named_trigger(phase_triggers, "full-review")
+        if ft is None:
+            return None
+        return run_force_pass([ft], scope, auto_commit=auto_commit)
+    cone = _named_trigger(phase_triggers, "cone-review")
+    if cone is None:
+        return None
+    forced = _dc_replace(cone, scope_query=_force_cone_scope)
+    return run_force_pass([forced], scope, auto_commit=auto_commit)
+
+
 def _run_asn_phased(
     global_triggers, cone_triggers, scope, *, max_iterations, auto_commit,
+    force=False,
 ) -> RunResult:
     """Run an ASN to convergence in two phases — global then cone — and
     return a combined RunResult. Phase 1 (global) runs full_review to
@@ -122,6 +175,19 @@ def _run_asn_phased(
     for phase_name, phase_triggers in (
         ("global", global_triggers), ("cone", cone_triggers),
     ):
+        if force:
+            fr = _force_reviews(
+                phase_name, phase_triggers, scope, auto_commit=auto_commit,
+            )
+            if fr is not None:
+                print(
+                    f"  [CLAIM-SCHED] {asn} [{phase_name} force]: "
+                    f"forced {len(fr.fires)} review(s), "
+                    f"errors={len(fr.errors)}",
+                    file=sys.stderr,
+                )
+                fires.extend(fr.fires)
+                errors.extend(fr.errors)
         r = run_until_quiescent(
             triggers=phase_triggers, scope=scope,
             max_iterations=max_iterations, auto_commit=auto_commit,
@@ -416,6 +482,16 @@ def main() -> int:
         "--push-interval", type=int, default=120, metavar="SECONDS",
         help="Seconds between background pushes when --push is set (default 120).",
     )
+    parser.add_argument(
+        "--force", action="store_true",
+        help=(
+            "Re-open a converged ASN: on the first pass over each ASN, "
+            "force-fire full-review (whole ASN) and cone-review (every "
+            "apex) ignoring the convergence predicate, then drive the "
+            "normal findings/revise/re-review loop to re-convergence. Use "
+            "to re-review at changed model/effort settings."
+        ),
+    )
     args = parser.parse_args()
 
     # Apply the cone-apex threshold override before any apex query runs.
@@ -533,6 +609,9 @@ def main() -> int:
     total_fires = 0
     total_errors: list[tuple[str, str, str, str]] = []
     inner_capped: set[str] = set()
+    # --force re-opens each ASN once: force-fire reviews the first time we
+    # process it, then let the normal predicate-driven loop converge.
+    forced_asns: set[str] = set()
     overall_start = time.time()
 
     all_asn_labels = list(asn_labels)
@@ -591,10 +670,19 @@ def main() -> int:
         for asn_label in asn_labels:
             scope = Scope(asn_label=asn_label)
             inner_start = time.time()
+            force_this = args.force and asn_label not in forced_asns
+            if force_this:
+                forced_asns.add(asn_label)
+                print(
+                    f"  [CLAIM-SCHED] {asn_label}: --force — re-opening "
+                    f"(force-fire full-review + all cone apexes)",
+                    file=sys.stderr,
+                )
             result = _run_asn_phased(
                 global_triggers, cone_triggers, scope,
                 max_iterations=args.max_inner,
                 auto_commit=not args.no_commit,
+                force=force_this,
             )
             elapsed = time.time() - inner_start
             print(
