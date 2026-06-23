@@ -18,7 +18,7 @@ from lib.backend.store import _parse_node_user_from_path
 from lib.lattice.labels import label_pattern
 from lib.protocols.febe.protocol import Session
 from lib.shared.paths import (
-    CLAIM_DIR, CLAIM_FINDINGS_DIR, CLAIM_REVIEWS_DIR,
+    CLAIM_CONE_REVIEWS_DIR, CLAIM_DIR, CLAIM_FINDINGS_DIR, CLAIM_REVIEWS_DIR,
     NOTE_FINDINGS_DIR, NOTE_REVIEWS_DIR, RATIONALE_DIR, WORKSPACE,
 )
 
@@ -35,10 +35,10 @@ def _claim_subdir_rel(path: str, kind: str, asn_label: str) -> str:
     """Build the WORKSPACE-relative claim/review/finding subdir for `path`'s
     (node, user) region.
 
-    `kind` ∈ {"claim", "review/claims", "finding/claims"}. The (node, user)
-    prefix is parsed from the substrate path so commit paths track the
-    actual region the addr lives in (e.g., 1.3/1 for claim-derivation
-    work), not the lattice default.
+    `kind` ∈ {"claim", "review/claims", "review/cone-claims",
+    "finding/claims"}. The (node, user) prefix is parsed from the
+    substrate path so commit paths track the actual region the addr lives
+    in (e.g., 1.3/1 for claim-derivation work), not the lattice default.
     """
     nu = _parse_node_user_from_path(path) if path else None
     if nu is None:
@@ -46,6 +46,7 @@ def _claim_subdir_rel(path: str, kind: str, asn_label: str) -> str:
         defaults = {
             "claim": CLAIM_DIR,
             "review/claims": CLAIM_REVIEWS_DIR,
+            "review/cone-claims": CLAIM_CONE_REVIEWS_DIR,
             "finding/claims": CLAIM_FINDINGS_DIR,
             "finding/notes": NOTE_FINDINGS_DIR,
         }
@@ -105,7 +106,9 @@ def per_asn_claim_review_paths(
     Triggers like cone_review / full_review / claim_structural_audit
     emit review docs about an ASN's claims, plus per-issue finding
     decompositions. Both live under the ASN's review and finding
-    subtrees.
+    subtrees. Full reviews land under review/claims/, cone reviews under
+    the sibling review/cone-claims/ — stage both so whichever stream this
+    fire wrote gets committed.
     """
     path = session.get_path_for_addr(addr)
     asn_label = _asn_label_from_path(path) if path else None
@@ -113,6 +116,7 @@ def per_asn_claim_review_paths(
         return []
     return [
         _claim_subdir_rel(path, "review/claims", asn_label),
+        _claim_subdir_rel(path, "review/cone-claims", asn_label),
         _claim_subdir_rel(path, "finding/claims", asn_label),
     ]
 

@@ -195,6 +195,15 @@ def worker_pending_jsonl(worker_idx):
 # Aggregate review docs (classified by `review`). Split by inquiry-target
 # kind so review numbering and substrate queries are scoped per kind.
 CLAIM_REVIEWS_DIR = DOCUVERSE_AUTHOR_DIR / "review" / "claims"
+# Cone (focused regional) claim reviews live in a SIBLING dir to the
+# whole-ASN full reviews, mirroring the claims/notes split. Sibling (not
+# a subdir under <asn>/) because the doc-path parser requires the ASN dir
+# to be the file's immediate parent. Cone docs are named `cone-N.md`; the
+# `/review/cone-claims/` path segment is what the convergence gates use to
+# tell cone reviews from full reviews (see is_cone_review_path) — an
+# explicit structural fact, not ambient `manages` attribution (which the
+# in-process claim runner never emits). See cone-n2-livelock fix.
+CLAIM_CONE_REVIEWS_DIR = DOCUVERSE_AUTHOR_DIR / "review" / "cone-claims"
 NOTE_REVIEWS_DIR = DOCUVERSE_AUTHOR_DIR / "review" / "notes"
 REVIEWS_DIR = NOTE_REVIEWS_DIR  # legacy alias, prefer NOTE_REVIEWS_DIR
 
@@ -265,6 +274,10 @@ FORMAL_CONTRACT_DIR = DOCUVERSE_AUTHOR_DIR / "claim-formal-contract" / "claims"
 def _findings_dir_for_kind(kind):
     if kind == "claim":
         return CLAIM_FINDINGS_DIR
+    # Cone reviews decompose into the shared claim findings tree; their
+    # `cone-N/` subdirs keep them distinct from full reviews' `review-N/`.
+    if kind == "cone":
+        return CLAIM_FINDINGS_DIR
     if kind == "note":
         return NOTE_FINDINGS_DIR
     raise ValueError(f"unknown findings kind: {kind!r}")
@@ -273,9 +286,32 @@ def _findings_dir_for_kind(kind):
 def _reviews_dir_for_kind(kind):
     if kind == "claim":
         return CLAIM_REVIEWS_DIR
+    if kind == "cone":
+        return CLAIM_CONE_REVIEWS_DIR
     if kind == "note":
         return NOTE_REVIEWS_DIR
     raise ValueError(f"unknown review kind: {kind!r}")
+
+
+def _review_basename_stem(kind):
+    """The per-review filename stem for a kind: `cone` for cone reviews,
+    `review` for everything else. Cone docs are `cone-N.md`; full/note
+    reviews are `review-N.md`."""
+    return "cone" if kind == "cone" else "review"
+
+
+def is_cone_review_path(path) -> bool:
+    """True iff `path` is a cone (focused regional) claim review doc.
+
+    The convergence gates use this to separate the cone review stream
+    from the whole-ASN full review stream — both land `review.coverage`
+    on the same apex claim, so the gate can't tell them apart by coverage
+    alone. Keyed off the `/review/cone-claims/` path segment set by
+    `review_aggregate_path(kind="cone")`. Replaces the `manages`-edge
+    distinguisher, which depended on attribution the in-process claim
+    runner never emits. Accepts str or Path; None → False.
+    """
+    return path is not None and "/review/cone-claims/" in str(path)
 
 
 def agent_doc_path(role):
@@ -318,10 +354,12 @@ def next_audit_number(asn_label, claim_label):
 def review_aggregate_path(asn_label, review_num, *, kind):
     """Path to a review event's aggregate doc under the docuverse review dir.
 
-    `kind` selects the namespace: "claim" or "note". Returns the path
-    `<reviews_dir>/<asn_label>/review-<n>.md`.
+    `kind` selects the namespace: "claim", "cone", or "note". Returns
+    `<reviews_dir>/<asn_label>/<stem>-<n>.md`, where <stem> is `cone` for
+    cone reviews and `review` otherwise.
     """
-    return _reviews_dir_for_kind(kind) / asn_label / f"review-{review_num}.md"
+    stem = _review_basename_stem(kind)
+    return _reviews_dir_for_kind(kind) / asn_label / f"{stem}-{review_num}.md"
 
 
 def claim_doc_path(asn_label, label):
@@ -464,42 +502,45 @@ def next_review_number(asn_label, *, kind, reviews_dir=None):
     """Find the next review number for this ASN.
 
     `kind` selects both the reviews dir and the findings namespace
-    ("claim" or "note"); numbering is independent per kind. Sources
-    from three places, taking max+1 across all:
-      1. Current review files (review-N.md) under the kind's reviews
+    ("claim", "cone", or "note"); numbering is independent per kind.
+    Cone reviews are named `cone-N.md`; all others `review-N.md` — the
+    glob token follows `kind`. Sources from three places, taking max+1
+    across all:
+      1. Current review files (<stem>-N.md) under the kind's reviews
          dir. CONVERGED reviews leave a file here but no findings
          directory, so this scan is required to avoid overwriting them.
-      2. Legacy review files (review-N.md) under `reviews_dir` if
+      2. Legacy review files (<stem>-N.md) under `reviews_dir` if
          provided — caller-supplied path. Retained for callers that
          track auxiliary review locations alongside the kind's primary
          dir.
-      3. Current review directories (review-N/) under the kind's
+      3. Current review directories (<stem>-N/) under the kind's
          findings dir.
     """
     nums = []
+    stem = _review_basename_stem(kind)
 
     # Current review files under the kind's reviews dir.
     primary_reviews = _reviews_dir_for_kind(kind) / asn_label
     if primary_reviews.exists():
-        for p in primary_reviews.glob("review-*.md"):
-            m = re.search(r"review-(\d+)\.md$", p.name)
+        for p in primary_reviews.glob(f"{stem}-*.md"):
+            m = re.search(rf"{stem}-(\d+)\.md$", p.name)
             if m:
                 nums.append(int(m.group(1)))
 
-    # Auxiliary review files (numbered review-N.md). Caller passes the dir.
+    # Auxiliary review files (numbered <stem>-N.md). Caller passes the dir.
     if reviews_dir is not None and Path(reviews_dir).exists():
-        for p in Path(reviews_dir).glob("review-*.md"):
-            m = re.search(r"review-(\d+)\.md$", p.name)
+        for p in Path(reviews_dir).glob(f"{stem}-*.md"):
+            m = re.search(rf"{stem}-(\d+)\.md$", p.name)
             if m:
                 nums.append(int(m.group(1)))
 
-    # Current review directories (review-N/ under <kind findings>/asn).
+    # Current review directories (<stem>-N/ under <kind findings>/asn).
     findings_subdir = _findings_dir_for_kind(kind) / asn_label
     if findings_subdir.exists():
-        for p in findings_subdir.glob("review-*"):
+        for p in findings_subdir.glob(f"{stem}-*"):
             if not p.is_dir():
                 continue
-            m = re.search(r"review-(\d+)$", p.name)
+            m = re.search(rf"{stem}-(\d+)$", p.name)
             if m:
                 nums.append(int(m.group(1)))
 

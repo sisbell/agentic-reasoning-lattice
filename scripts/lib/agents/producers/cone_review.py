@@ -44,7 +44,7 @@ from lib.lattice.labels import build_cross_asn_label_index
 from lib.predicates.versions import version_head
 from lib.protocols.febe.protocol import Session
 from lib.shared.claim_files import build_label_index
-from lib.shared.paths import CLAIM_REVIEWS_DIR, next_review_number
+from lib.shared.paths import next_review_number
 from lib.shared.validate_gate import run_validate_gate
 
 
@@ -164,6 +164,40 @@ def cross_asn_deps_in_cone(
                 ):
                     cross.append(dep_label)
     return cross
+
+
+def cone_cascade_anchor_addrs(
+    cone_addrs: List[Address],
+    cross_asn_deps: List[str],
+    label_index: Dict[str, Address],
+) -> List[Address]:
+    """Base addresses a cone review anchors its cascade signal on.
+
+    The cone review's full read-scope: the apex + its transitive same-ASN
+    cone deps (`cone_addrs`, apex first) plus the cross-ASN foundation
+    claims it loaded (`cross_asn_deps`, resolved through `label_index`).
+    Order-preserving dedup.
+
+    The cone review snapshots `version_head` of each of these on its
+    review-N doc (a bundled `citation.depends`); `is_claim_cascade_fresh`
+    re-fires the cone when ANY of them later advances. Anchoring on the
+    whole cone — the note model's "anchor on what you read" principle —
+    rather than only the apex's one-hop citations means a modification
+    anywhere in the cone (including the apex itself being edited by
+    ANOTHER apex's revise) invalidates this apex in a single pass, rather
+    than relying on layered one-hop propagation that halts at any
+    unchanged intermediate layer. Labels in `cross_asn_deps` absent from
+    `label_index` are skipped (unresolvable → nothing to anchor).
+    """
+    out: List[Address] = []
+    seen: Set[Address] = set()
+    for addr in list(cone_addrs) + [
+        label_index[d] for d in cross_asn_deps if d in label_index
+    ]:
+        if addr not in seen:
+            seen.add(addr)
+            out.append(addr)
+    return out
 
 
 # ─── Citation sync (md ↔ substrate) ─────────────────────────────────
@@ -401,23 +435,19 @@ class ConeReviewAgent(Agent):
         # decomposition (extract → override → record_findings) is the
         # claim-findings producer's job; the runner fires it on the
         # review_addr emitted here.
-        review_num = next_review_number(
-            ctx.asn_label, kind="claim",
-            reviews_dir=CLAIM_REVIEWS_DIR / ctx.asn_label,
-        )
+        # Cone reviews number independently of full reviews and land in
+        # the sibling cone-claims tree (kind="cone") so the convergence
+        # gates can distinguish the two streams by path.
+        review_num = next_review_number(ctx.asn_label, kind="cone")
 
-        # Cascade anchor: snapshot the version_head of each dep the apex
-        # cites at review time. is_claim_cascade_fresh walks this bundled
-        # link on the review-N doc and re-fires the cone if any upstream
-        # advanced — the claim-side port of the note's review-anchored
-        # cascade. Citations are emitted from the apex's version_head.
-        apex_head = version_head(session, ctx.addr)
+        # Cascade anchor over the whole cone read-scope (see
+        # cone_cascade_anchor_addrs). is_claim_cascade_fresh re-fires the
+        # cone if ANY anchored claim advances.
+        anchor_addrs = cone_cascade_anchor_addrs(
+            cone_addrs, cross_asn_deps, label_index,
+        )
         cascade_anchor_heads = [
-            version_head(session, t)
-            for link in session.active_links(
-                "citation.depends", from_set=[apex_head],
-            )
-            for t in link.to_set
+            version_head(session, a) for a in anchor_addrs
         ]
 
         review_addr, _ = emit_review_doc(
@@ -425,6 +455,7 @@ class ConeReviewAgent(Agent):
             body=findings_text,
             covered_addrs=cone_addrs,
             cascade_anchor_heads=cascade_anchor_heads,
+            kind="cone",
         )
 
         # 5. Sync substrate citations against md as source of truth.

@@ -45,6 +45,7 @@ def emit_review_doc(
     body: str,
     covered_addrs: list[Address] | None = None,
     cascade_anchor_heads: list[Address] | None = None,
+    kind: str = "claim",
 ) -> tuple[Address, Path]:
     """Persist the LLM's review output as a substrate-citizen document.
 
@@ -64,9 +65,14 @@ def emit_review_doc(
     re-fires review if any upstream has advanced — the claim-side port
     of the note's review-anchored cascade.
 
+    `kind` ("claim" | "cone" | "note") routes the doc to the right
+    review namespace; cone reviews land under `review/cone-claims/` as
+    `cone-N.md` so the convergence gates can tell them apart (see
+    `is_cone_review_path`).
+
     Returns `(review_addr, review_path)`.
     """
-    review_path = review_aggregate_path(asn_label, review_num, kind="claim")
+    review_path = review_aggregate_path(asn_label, review_num, kind=kind)
     lattice_root = session.store.lattice_dir.resolve()
     review_rel = str(review_path.resolve().relative_to(lattice_root))
 

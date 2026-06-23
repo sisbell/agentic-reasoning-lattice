@@ -48,10 +48,14 @@ def _scope_query(session: Session, scope: Scope) -> Iterator[Address]:
             continue
         if asn_filter is not None and asn_filter not in review_path:
             continue
-        # Only the per-ASN claim review docs (not note reviews) — they
-        # live under review/claims/<asn>/. Note reviews use a different
-        # decomposition path.
-        if "/review/claims/" not in review_path:
+        # Only the per-ASN claim review docs (not note reviews) — full
+        # reviews live under review/claims/<asn>/, cone reviews under the
+        # sibling review/cone-claims/<asn>/. Both decompose the same way;
+        # note reviews use a different decomposition path.
+        if (
+            "/review/claims/" not in review_path
+            and "/review/cone-claims/" not in review_path
+        ):
             continue
         yield review_addr
 

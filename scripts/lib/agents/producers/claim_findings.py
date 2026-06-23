@@ -63,10 +63,14 @@ class ClaimFindingsAgent(Agent):
         if parsed is None:
             return AgentResult(success=False, detail="unparseable-review-path")
         asn_label, basename, asn_num = parsed
-        rev_match = re.match(r"review-(\d+)$", basename)
+        # Full reviews are `review-N`, cone reviews `cone-N`; both
+        # decompose identically. review_stem keys the per-finding subdir,
+        # so keep the matched basename verbatim (cone-N stays distinct
+        # from review-N under the shared finding tree).
+        rev_match = re.match(r"(?:review|cone)-(\d+)$", basename)
         if rev_match is None:
             return AgentResult(success=False, detail="unparseable-review-path")
-        review_stem = f"review-{rev_match.group(1)}"
+        review_stem = basename
 
         body = full_review.read_text()
         findings = extract_findings(body)

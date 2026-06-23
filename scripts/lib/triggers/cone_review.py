@@ -33,7 +33,7 @@ from lib.predicates.versions import version_head
 from lib.protocols.febe.protocol import Session
 from lib.runner import Scope, Trigger
 from lib.shared.claim_files import build_label_index
-from lib.shared.paths import agent_doc_path
+from lib.shared.paths import is_cone_review_path
 from lib.shared.topological_sort import topological_levels
 
 _AGENT = ConeReviewAgent()
@@ -141,34 +141,29 @@ CONE_CONFIRMATION_N = 2
 def _clean_cone_review_streak(
     session: Session, claim_addr: Address,
 ) -> int:
-    """Number of trailing consecutive CLEAN cone-attributed reviews of
-    `claim_addr`. The apex is cone-converged once this reaches
-    CONE_CONFIRMATION_N.
+    """Number of trailing consecutive CLEAN cone reviews of `claim_addr`.
+    The apex is cone-converged once this reaches CONE_CONFIRMATION_N.
 
-    Cone reviews are distinguished from whole-ASN full reviews via the
-    `manages` graph: every substrate write the cone-review agent emits is
-    auto-tagged `manages(cone-review-agent → link)` by AttributingStore,
-    so a `review.coverage` with such an edge is a cone review. Ordered by
-    emission (link address); a REVISE-filing cone review resets the
-    streak (same emit-time-verdict rule as global, see
-    quiescence._review_filed_revise).
+    Cone reviews are distinguished from whole-ASN full reviews by PATH:
+    cone reviews live under `review/cone-claims/` (`is_cone_review_path`),
+    full reviews under `review/claims/`. Both land `review.coverage` on
+    the apex, so the coverage alone can't separate them — the path can.
+    This replaces the prior `manages`-edge distinguisher, which relied on
+    AttributingStore tagging that the in-process claim runner never emits
+    (the session is built before the agent's attribution context opens),
+    so NO cone review was ever counted and the streak stuck at 0 → the
+    cone phase livelocked (re-reviewing the apex forever).
 
-    This replaces the old boolean `_has_been_cone_reviewed` (≥1 ever),
-    which let the skip predicate mark an apex done after a SINGLE cone
-    review — the "two" in the old skip came from is_claim_confirmed, the
-    GLOBAL n=2, so the cone phase never actually converged on its own.
+    Ordered by emission (link address); a REVISE-filing or not-yet-
+    decomposed cone review resets the streak (same emit-time-verdict rule
+    as global, see quiescence._review_filed_revise).
     """
-    cone_agent = session.get_addr_for_path(agent_doc_path("cone-review"))
-    if cone_agent is None:
-        return 0
     covs = [
         cov for cov in session.active_links(
             "review.coverage", to_set=[claim_addr],
         )
         if cov.from_set
-        and session.active_links(
-            "manages", from_set=[cone_agent], to_set=[cov.addr],
-        )
+        and is_cone_review_path(session.get_path_for_addr(cov.from_set[0]))
     ]
     covs.sort(key=lambda cov: cov.addr.digits)
     streak = 0

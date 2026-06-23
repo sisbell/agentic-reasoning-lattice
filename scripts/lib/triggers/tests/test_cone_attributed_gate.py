@@ -1,16 +1,21 @@
 """Predicate-audit tests: cone_review converges on its OWN n=2 stream —
-two consecutive clean, DECOMPOSED, cone-attributed reviews — independent
-of the whole-ASN full-review gate.
+two consecutive clean, DECOMPOSED cone reviews — independent of the
+whole-ASN full-review gate.
 
-Cone reviews are distinguished from full-review coverage via the
-`manages` link auto-emitted by `AttributingStore` (walk the graph from
-the cone-review agent doc). The streak (`_clean_cone_review_streak`)
-counts only cone-attributed coverage, and only once the review has been
-decomposed into findings — an undecomposed review's verdict is unknown
-(no comment.revise yet), so it must not be counted as clean. The
+Cone reviews are distinguished from full-review coverage by PATH: cone
+reviews live under `review/cone-claims/` (`is_cone_review_path`), full
+reviews under `review/claims/`. Both land `review.coverage` on the apex,
+so the coverage alone can't tell them apart — the path can. (This
+replaces the earlier `manages`-attribution distinguisher, which the
+in-process claim runner never emitted, so no cone review was ever counted
+and the cone phase livelocked.)
+
+The streak (`_clean_cone_review_streak`) counts only cone reviews, and
+only once decomposed into findings — an undecomposed review's verdict is
+unknown (no comment.revise yet), so it must not count as clean. The
 predicate skips an apex only at streak >= CONE_CONFIRMATION_N (and
-cascade-fresh) — so a single clean full_review can't make cone_review
-skip, and a single cone review isn't enough either.
+cascade-fresh) — so neither a clean full_review nor a single cone review
+makes cone_review skip.
 """
 
 from __future__ import annotations
@@ -52,9 +57,15 @@ def _setup_lattice(tmp: Path) -> Path:
     return tmp
 
 
+# Path stems for the two review streams. Cone reviews MUST carry the
+# `/review/cone-claims/` segment so is_cone_review_path recognizes them.
+_CONE_DIR = "_docuverse/documents/1.1/1/review/cone-claims/ASN-0099"
+_FULL_DIR = "_docuverse/documents/1.1/1/review/claims/ASN-0099"
+
+
 class CleanConeReviewStreak(unittest.TestCase):
-    """The streak helper: counts trailing clean, decomposed,
-    cone-attributed reviews."""
+    """The streak helper: counts trailing clean, decomposed cone reviews;
+    full reviews (claims path) never count."""
 
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -63,12 +74,6 @@ class CleanConeReviewStreak(unittest.TestCase):
         self.store = Store(self.lattice)
         self.session = Session(self.store)
 
-        agent_dir = self.lattice / "_docuverse" / "documents" / "agent"
-        agent_dir.mkdir(parents=True)
-        (agent_dir / "cone-review.md").write_text("# cone-review agent\n")
-        self.cone_agent = self.session.register_path(
-            "_docuverse/documents/1.1/1/agent/cone-review.md",
-        )
         claim_dir = (
             self.lattice / "_docuverse" / "documents" / "claim" / "ASN-0099"
         )
@@ -83,21 +88,18 @@ class CleanConeReviewStreak(unittest.TestCase):
         emit_claim(self.store, self.claim)
         self._n = 0
 
-    def _emit_cone_review(self, claim_addr, *, decomposed=True, agent=None):
-        """Emit a cone-attributed (default) review covering claim_addr.
+    def _emit_review(self, claim_addr, *, cone, decomposed=True):
+        """Emit a review covering claim_addr in the cone or full stream.
         decomposed=True marks it clean+processed via an empty derivation;
         decomposed=False leaves it pending (no provenance.derivation)."""
         self._n += 1
-        agent = agent if agent is not None else self.cone_agent
-        review = self.session.register_path(
-            f"_docuverse/documents/review/claims/ASN-0099/r-{self._n}.md",
-        )
+        if cone:
+            rel = f"{_CONE_DIR}/cone-{self._n}.md"
+        else:
+            rel = f"{_FULL_DIR}/review-{self._n}.md"
+        review = self.session.register_path(rel)
         emit_review_content(self.store, review)
-        cov, _ = emit_review_coverage(self.store, review, claim_addr)
-        self.store.make_link(
-            homedoc=agent, from_set=[agent], to_set=[cov.addr],
-            type_="manages",
-        )
+        emit_review_coverage(self.store, review, claim_addr)
         if decomposed:
             emit_empty_derivation(self.store, review)  # 0 findings = clean
         return review
@@ -105,49 +107,44 @@ class CleanConeReviewStreak(unittest.TestCase):
     def test_streak_zero_when_no_cone_reviews(self):
         self.assertEqual(_clean_cone_review_streak(self.session, self.claim), 0)
 
-    def test_streak_counts_clean_decomposed_reviews(self):
-        self._emit_cone_review(self.claim)
+    def test_streak_counts_clean_decomposed_cone_reviews(self):
+        self._emit_review(self.claim, cone=True)
         self.assertEqual(_clean_cone_review_streak(self.session, self.claim), 1)
-        self._emit_cone_review(self.claim)
+        self._emit_review(self.claim, cone=True)
         self.assertEqual(_clean_cone_review_streak(self.session, self.claim), 2)
 
-    def test_undecomposed_review_not_counted(self):
+    def test_undecomposed_cone_review_not_counted(self):
         """A cone review not yet decomposed into findings has no
         comment.revise — verdict unknown — so it must not count clean."""
-        self._emit_cone_review(self.claim, decomposed=False)
+        self._emit_review(self.claim, cone=True, decomposed=False)
         self.assertEqual(_clean_cone_review_streak(self.session, self.claim), 0)
 
     def test_undecomposed_caps_streak_at_top(self):
-        """One clean, then a pending review on top: the pending one caps
-        the streak (it's the most recent), so streak is 0 until it's
-        decomposed — an apex can't converge with a pending review."""
-        self._emit_cone_review(self.claim)               # clean, decomposed
-        self._emit_cone_review(self.claim, decomposed=False)  # pending
+        """One clean, then a pending cone review on top: the pending one
+        caps the streak (most recent), so streak is 0 until decomposed."""
+        self._emit_review(self.claim, cone=True)               # clean
+        self._emit_review(self.claim, cone=True, decomposed=False)  # pending
         self.assertEqual(_clean_cone_review_streak(self.session, self.claim), 0)
 
-    def test_full_review_coverage_not_counted(self):
-        agent_dir = self.lattice / "_docuverse" / "documents" / "agent"
-        (agent_dir / "full-review.md").write_text("# full-review agent\n")
-        full_agent = self.session.register_path(
-            "_docuverse/documents/1.1/1/agent/full-review.md",
-        )
-        self._emit_cone_review(self.claim, agent=full_agent)
+    def test_full_review_not_counted_toward_cone_streak(self):
+        """REGRESSION (the livelock): clean, decomposed FULL reviews on
+        the claims path must NOT advance the cone streak. Before the fix,
+        the manages-attribution distinguisher never matched real cone
+        reviews, so the streak stuck at 0 and the cone phase re-reviewed
+        the apex forever. Now full reviews are excluded by path and cone
+        reviews counted by path — so many clean full reviews still leave
+        the cone streak at 0."""
+        for _ in range(5):
+            self._emit_review(self.claim, cone=False)
         self.assertEqual(_clean_cone_review_streak(self.session, self.claim), 0)
 
-    def test_streak_zero_when_agent_doc_unregistered(self):
-        with tempfile.TemporaryDirectory() as tmp2:
-            lattice2 = _setup_lattice(Path(tmp2)).resolve()
-            store2 = Store(lattice2)
-            session2 = Session(store2)
-            claim_dir = (
-                lattice2 / "_docuverse" / "documents" / "claim" / "ASN-0099"
-            )
-            claim_dir.mkdir(parents=True)
-            cp = claim_dir / "T0.md"
-            cp.write_text("# T0\n*Formal Contract:*\n- *Postconditions:* x\n")
-            claim = session2.register_path(str(cp.relative_to(lattice2)))
-            emit_claim(store2, claim)
-            self.assertEqual(_clean_cone_review_streak(session2, claim), 0)
+    def test_full_reviews_dont_break_cone_streak(self):
+        """Full reviews interleaved with cone reviews are simply ignored
+        by the cone streak — they neither add to nor reset it."""
+        self._emit_review(self.claim, cone=True)    # cone, clean
+        self._emit_review(self.claim, cone=False)   # full (ignored)
+        self._emit_review(self.claim, cone=True)    # cone, clean
+        self.assertEqual(_clean_cone_review_streak(self.session, self.claim), 2)
 
 
 class ConeReviewPredicateGate(unittest.TestCase):
@@ -161,12 +158,6 @@ class ConeReviewPredicateGate(unittest.TestCase):
         self.lattice = _setup_lattice(Path(self.tmp.name)).resolve()
         self.store = Store(self.lattice)
         self.session = Session(self.store)
-        agent_dir = self.lattice / "_docuverse" / "documents" / "agent"
-        agent_dir.mkdir(parents=True)
-        (agent_dir / "cone-review.md").write_text("# cone-review agent\n")
-        self.cone_agent = self.session.register_path(
-            "_docuverse/documents/1.1/1/agent/cone-review.md",
-        )
         claim_dir = (
             self.lattice / "_docuverse" / "documents" / "claim" / "ASN-0099"
         )
@@ -182,14 +173,10 @@ class ConeReviewPredicateGate(unittest.TestCase):
     def _clean_cone_review(self):
         self._n += 1
         review = self.session.register_path(
-            f"_docuverse/documents/review/claims/ASN-0099/c-{self._n}.md",
+            f"{_CONE_DIR}/cone-{self._n}.md",
         )
         emit_review_content(self.store, review)
-        cov, _ = emit_review_coverage(self.store, review, self.apex)
-        self.store.make_link(
-            homedoc=self.cone_agent, from_set=[self.cone_agent],
-            to_set=[cov.addr], type_="manages",
-        )
+        emit_review_coverage(self.store, review, self.apex)
         emit_empty_derivation(self.store, review)
         return review
 

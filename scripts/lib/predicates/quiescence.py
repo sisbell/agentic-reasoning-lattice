@@ -34,6 +34,22 @@ from .factory import (
 )
 
 
+def _safe_path_for_addr(session: Session, addr: Address) -> Optional[str]:
+    """Best-effort lattice-relative path for `addr`, or None.
+
+    In-memory (State-only) sessions raise NotImplementedError because they
+    have no filesystem path map; an unregistered addr raises KeyError.
+    Either way, there's no cone-claims path to recognize, so the cone
+    distinguisher falls back to "not a cone review." Used by the
+    exclude_cone path check; mirrors the defensive resolution the old
+    `manages`-based gate used for get_addr_for_path.
+    """
+    try:
+        return session.get_path_for_addr(addr)
+    except (NotImplementedError, KeyError, AttributeError):
+        return None
+
+
 def has_resolution(session: Session, comment_addr: Address) -> bool:
     """True iff at least one active `resolution` link targets this comment.
 
@@ -175,34 +191,25 @@ def last_n_reviews_were_clean(
     CONVERGED is statistically unstable, two-consecutive is the empirical
     note-scope gate. See `docs/design-notes/stochastic-quiescence.md`.
 
-    `exclude_cone`: skip cone-attributed `review.coverage` (a coverage
-    link carrying a `manages` edge from the cone-review agent). The
+    `exclude_cone`: skip cone reviews — `review.coverage` whose review doc
+    lives under `review/cone-claims/` (`is_cone_review_path`). The
     claim/global confirmation gate (`is_claim_confirmed`) sets this so it
     counts WHOLE-ASN full reviews only — the cone phase has its own n=2
     stream (`_clean_cone_review_streak`). Counting cone reviews here too
     couples the phases: a cone-phase REVISE would linger in this gate and
     re-open `is_asn_confirmed`, re-firing the global phase next outer
-    pass. Notes have no cone attribution, so the default (False) leaves
-    the note path — and the generic attribute gates in factory.py —
-    unchanged.
+    pass. The distinguisher is the review-doc PATH (set at emit time), not
+    `manages` attribution — the in-process claim runner never emits that
+    tag, so the old exclusion was a silent no-op. Notes never live under
+    cone-claims, so the default (False) leaves the note path — and the
+    generic attribute gates in factory.py — unchanged.
 
     Returns False when fewer than N reviews have covered `addr`.
     n <= 0 is vacuously True.
     """
     if n <= 0:
         return True
-    cone_agent = None
-    if exclude_cone:
-        from lib.shared.paths import agent_doc_path
-        # Resolve defensively: in-memory (State-only) sessions raise, and
-        # a lattice with no cone-review agent returns None. Either way,
-        # fall back to counting all reviews — there's nothing to exclude.
-        try:
-            cone_agent = session.get_addr_for_path(
-                agent_doc_path("cone-review")
-            )
-        except (NotImplementedError, KeyError, AttributeError):
-            cone_agent = None
+    from lib.shared.paths import is_cone_review_path
     coverage_links = []
     for link in session.active_links("review.coverage", to_set=[addr]):
         if not link.from_set:
@@ -211,13 +218,10 @@ def last_n_reviews_were_clean(
             "review.content", to_set=[link.from_set[0]],
         ):
             continue
-        if (
-            cone_agent is not None
-            and session.active_links(
-                "manages", from_set=[cone_agent], to_set=[link.addr],
-            )
+        if exclude_cone and is_cone_review_path(
+            _safe_path_for_addr(session, link.from_set[0]),
         ):
-            continue  # cone-attributed → counted by the cone gate, not here
+            continue  # cone review → counted by the cone gate, not here
         coverage_links.append(link)
     if len(coverage_links) < n:
         return False
