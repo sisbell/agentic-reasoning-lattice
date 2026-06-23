@@ -1,0 +1,21 @@
+The foundation statements supply a well-grounded basis: T1 gives strict total order on T; TumblerAdd and TumblerSub provide the arithmetic with their precise postconditions; ZPD, Divergence, and D1 ground displacement; T12 and Span fix the span type. SC, S6, WF, and S11c all work within these.
+
+**SC (SpanClassification).** Non-degeneracy is correctly derived from T12(b): `s ∈ span(s, ℓ)` expands via Span's definition to `s < s ⊕ ℓ = reach(σ)`, not assumed. The WLOG argument (assume `start(α) ≤ start(β)`) is valid: each case definition is either symmetric by statement or carries an explicit "or symmetrically" rider. Exhaustiveness proceeds by two-step comparison (reach(α) vs start(β), then reach(α) vs reach(β)), covers all T1-trichotomy outcomes, and the tree accounts for reach(α) = reach(β) under start(α) < start(β) landing in case (iv). Mutual exclusivity follows directly from T1's exactly-one trichotomy: cases (iii) and (iv) are separated by reach(α) < reach(β) vs reach(β) ≤ reach(α); case (v) is excluded from (iv) by the "at least one strict" clause. The disjointness and overlap proofs walk their cases correctly, using T1's transitivity (mixed strict/non-strict, derivable from T1(c) and the ≤-definition) and T12(b) for non-degeneracy in cases (iv) and (v).
+
+**S6 (LevelConstraint).** TumblerAdd's preconditions are exactly the well-formed span preconditions; S6 lists them all and immediately applies TumblerAdd's result-length postcondition `#(s ⊕ ℓ) = #ℓ` to give `#reach(σ) = #ℓ`. Level-uniformity `#ℓ = #s` closes the chain. The proof is one step; the dependency is exactly TumblerAdd. Sound.
+
+**WF (WellFormedSpanFromEndpoints).** The proof eliminates T1 case (ii) correctly: `k = #s + 1 ≤ #r = #s` unfolds by NAT-order's `≤`-definition to `#s + 1 < #s ∨ #s + 1 = #s`; NAT-addcompat's `#s < #s + 1` chains or substitutes to `#s < #s`, which NAT-order's irreflexivity refutes. T1 case (i) then places (s, r) in Divergence case (i) at the same k (the T1 witness already satisfies Divergence's minimality condition, so k = divergence(s, r) directly). Divergence symmetry carries the case-(i) witness to (r, s); ZPD Relationship-to-Divergence yields zpd(r, s) = k, grounding TumblerSub's positive branch. TumblerSub's postconditions discharge Pos(r ⊖ s), actionPoint(r ⊖ s) = k ≤ #s, and #(r ⊖ s) = #s. All five of D1's preconditions are accounted for. Level-uniformity closes from #(r ⊖ s) = #s = #start(γ). Sound.
+
+**S11c (DifferenceOverlap).** Case 1's element-chase is tight: the ⊆ direction derives t < start(β) by showing t ≥ start(β) leads to t ∈ ⟦β⟧ via T1 transitivity from t < reach(α) < reach(β); the ⊇ direction uses start(β) < reach(α) (case hypothesis) to close membership in ⟦α⟧. WF is invoked with start(α) ∈ T, start(β) ∈ T, start(α) < start(β), #start(α) = #start(β) from level_compat — all immediate. Case 2's element-chase correctly partitions ⟦α⟧ at reach(β) and the ⊇ direction recovers the discarded guard start(α) ≤ t via start(α) < reach(β) ≤ t. For the Case 2 witness γ', reach(β) ∈ T and reach(α) ∈ T are established via TumblerAdd's carrier postcondition on each well-formed span; #reach(β) = #reach(α) is chained through S6 and level_compat. WF's preconditions are fully discharged before it is applied.
+
+---
+
+### S11c Axiom slot contains proof steps, not axioms
+
+**Class**: OBSERVE
+**Foundation**: n/a
+**ASN**: S11c, Formal Contract → Axiom field
+**Issue**: The Axiom field opens with a genuine structural fact ("For any span σ, ⟦σ⟧ = {t : start(σ) ≤ t < reach(σ)}") but then continues with proof steps: how TumblerAdd's carrier postcondition discharges WF's `reach(β), reach(α) ∈ T` preconditions, and how S6 chains level_compat through #reach to discharge WF's length precondition. These precondition-discharge arguments already appear in the proof body (Case 2, third paragraph). The Axiom slot is doing double duty as both structural postulate and proof-step inventory, matching the pattern of prose-around-an-axiom that explains *why* it is needed rather than *what* it says.
+**What needs resolving**: (OBSERVE — no revision required)
+
+VERDICT: OBSERVE
