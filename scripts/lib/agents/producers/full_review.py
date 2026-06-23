@@ -110,11 +110,13 @@ class FullReviewAgent(Agent):
 
         # 3. Assemble + review (full upstream foundation, no narrowing).
         asn_content = assemble_readonly(ctx.asn_label, self.claim_dir)
-        # Effort is operator-tunable for the whole-ASN review via
-        # FULL_REVIEW_EFFORT (ladder: low/medium/high/xhigh/max). Defaults
-        # to "high" — the established global-review level. cone_review is
-        # unaffected (it keeps run_review's "high" default).
-        full_effort = os.environ.get("FULL_REVIEW_EFFORT", "high")
+        # Effort for the whole-ASN review. Defaults to "max" — the global
+        # review is the ASN-wide quality gate (a non-clean draw re-opens
+        # every claim's confirmation), so it runs at the top tier, matching
+        # claim_revise. Operator-tunable down via FULL_REVIEW_EFFORT
+        # (ladder: low/medium/high/xhigh/max) for cheaper test passes.
+        # cone_review is unaffected (it keeps run_review's "high" default).
+        full_effort = os.environ.get("FULL_REVIEW_EFFORT", "max")
         verdict, findings_text, _elapsed = run_review(
             ctx.asn_num, asn_content, ctx.asn_label, previous_findings,
             model=FULL_MODEL, effort=full_effort,
