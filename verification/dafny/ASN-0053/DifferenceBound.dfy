@@ -197,6 +197,60 @@ module DifferenceBound {
     }
   }
 
+  // S11 tightness: in the 2-span case no single span γ covers ⟦λ⟧ ∪ ⟦ρ⟧ (uses S0, S2)
+  lemma TightnessBound(alpha: SpanValue, beta: SpanValue)
+    requires ValidSpan(alpha) && ValidSpan(beta)
+    requires LevelUniform(alpha) && LevelUniform(beta)
+    requires LevelCompat(alpha.start, beta.start)
+    requires SpanSet(beta) <= SpanSet(alpha)
+    requires LexicographicOrder.LexicographicOrder(alpha.start, beta.start)
+    requires LexicographicOrder.LexicographicOrder(Reach(beta), Reach(alpha))
+    ensures forall gamma: SpanValue :: ValidSpan(gamma) ==>
+      SpanSet(gamma) != (iset t | InLeftInterval(alpha, beta, t)) +
+                        (iset t | InRightInterval(alpha, beta, t))
+  {
+    // S2: beta.start < Reach(beta) — witness for the tightness contradiction
+    SWD.SpanWellDefinedness(beta.start, beta.width);
+    var wit := beta.start;
+    assert LexicographicOrder.LexicographicOrder(wit, Reach(beta));
+    // IC: wit < Reach(beta) implies NOT (Reach(beta) == wit) and NOT LexOrder(Reach(beta), wit)
+    IC.IntrinsicComparison(wit, Reach(beta));
+    // wit ∉ left interval: last condition requires LexOrder(wit, beta.start) = LexOrder(wit, wit) — impossible
+    LexOrderIrreflexive(wit);
+    assert !InLeftInterval(alpha, beta, wit);
+    // wit ∉ right interval: lower bound requires Reach(beta) ≤ wit, but wit < Reach(beta)
+    assert !InRightInterval(alpha, beta, wit);
+    forall gamma: SpanValue | ValidSpan(gamma)
+      ensures SpanSet(gamma) != (iset t | InLeftInterval(alpha, beta, t)) +
+                                 (iset t | InRightInterval(alpha, beta, t))
+    {
+      if SpanSet(gamma) == (iset t | InLeftInterval(alpha, beta, t)) +
+                            (iset t | InRightInterval(alpha, beta, t)) {
+        // anchor alpha.start ∈ left interval ⊆ SpanSet(gamma)
+        assert InLeftInterval(alpha, beta, alpha.start);
+        assert alpha.start in SpanSet(gamma);
+        // anchor Reach(beta) ∈ right interval ⊆ SpanSet(gamma)
+        assert InRightInterval(alpha, beta, Reach(beta));
+        assert Reach(beta) in SpanSet(gamma);
+        // wit is not in SpanSet(gamma) — it is in neither sub-interval
+        assert wit !in SpanSet(gamma);
+        // Lower: gamma.start ≤ alpha.start < wit
+        assert gamma.start == alpha.start ||
+               LexicographicOrder.LexicographicOrder(gamma.start, alpha.start);
+        if gamma.start == alpha.start {
+          assert LexicographicOrder.LexicographicOrder(gamma.start, wit);
+        } else {
+          SWD.LexicographicTransitive(gamma.start, alpha.start, wit);
+        }
+        // Upper: wit < Reach(beta) < Reach(gamma) — by transitivity
+        SWD.LexicographicTransitive(wit, Reach(beta),
+          TumblerAdd.TumblerAdd(gamma.start, gamma.width));
+        // S0 convexity: gamma.start ≤ wit < Reach(gamma) → wit ∈ SpanSet(gamma) — contradiction
+        assert wit in SpanSet(gamma);
+      }
+    }
+  }
+
   // λ is valid, level-uniform, with reach(λ) = start(β)
   lemma LambdaWF(alpha: SpanValue, beta: SpanValue)
     requires ValidSpan(alpha) && ValidSpan(beta)
