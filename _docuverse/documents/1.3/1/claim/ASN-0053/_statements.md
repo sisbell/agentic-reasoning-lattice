@@ -70,13 +70,13 @@ Proves that for any level-uniform span, subtracting its start from its reach exa
 
 *Formal Contract:*
 
-- *Preconditions:* σ = (s, ℓ) is a well-formed level-uniform span — by T12, ℓ > 0 with action point ≤ #s, and #ℓ = #s by level-uniformity. This is the caller's only obligation; D2's preconditions for (a, b, w) = (s, reach(σ), ℓ) — s < reach(σ), s ⊕ ℓ = reach(σ), #s ≤ #reach(σ), and divergence(s, reach(σ)) ≤ #s — are intermediate results the proof discharges from well-formedness, not caller obligations.
+- *Preconditions:* σ = (s, ℓ) is a well-formed level-uniform span — by Span validity, ℓ > 0 with action point ≤ #s, and #ℓ = #s by level-uniformity. This is the caller's only obligation; D2's preconditions for (a, b, w) = (s, reach(σ), ℓ) — s < reach(σ), s ⊕ ℓ = reach(σ), #s ≤ #reach(σ), and divergence(s, reach(σ)) ≤ #s — are intermediate results the proof discharges from well-formedness, not caller obligations.
 - *Postconditions:* reach(σ) ⊖ start(σ) = width(σ).
 - *Definition:* start(σ) = s; width(σ) = ℓ; reach(σ) = s ⊕ ℓ.
 
 - *Depends:*
   - D2 (DisplacementUnique, ASN-0034) — supplies the displacement uniqueness result `reach(σ) ⊖ start(σ) = ℓ` that is the claim's conclusion, once its preconditions are discharged for (a, b, w) = (s, reach(σ), ℓ)
-  - T12 (SpanWellDefinedness, ASN-0034) — supplies the well-formedness predicate (Pos(ℓ) and actionPoint(ℓ) ≤ #s) that qualifies the level-uniform span; the proof cites T12 to discharge D2's preconditions on ℓ
+  - Span (Span, ASN-0034) — defines span validity as Pos(ℓ) ∧ actionPoint(ℓ) ≤ #s; σ being a well-formed span by hypothesis, this validity (not a T12 postcondition — T12 *consumes* it as a precondition) supplies the Pos(ℓ) and action-point bound that qualify σ and discharge TA-strict and D2's preconditions on ℓ
   - TA-strict (StrictIncrease, ASN-0034) — supplies `a ⊕ w > a` instantiated as s < reach(σ), discharging D2's precondition a < b
   - TA0 (WellDefinedAddition, ASN-0034) — supplies the result-length identity `#(s ⊕ ℓ) = #ℓ = #s` used to pin #reach(σ) = #s and to confirm TA0's own preconditions for the s ⊕ ℓ = reach(σ) step
   - T1 (LexicographicOrder, ASN-0034) — its definition of s < reach(σ) supplies the witness k (with sᵢ = reach(σ)ᵢ for 1 ≤ i < k) in case (i) `k ≤ #s ∧ k ≤ #reach(σ) ∧ sₖ < reach(σ)ₖ` or case (ii) `k = #s + 1 ≤ #reach(σ)`; the equal length #s = #reach(σ) excludes case (ii) (which would force #s + 1 ≤ #s), leaving case (i) with k ≤ #s and sₖ ≠ reach(σ)ₖ; and its trichotomy disjointness `¬(s < reach(σ) ∧ s = reach(σ))` yields s ≠ reach(σ), well-defining divergence(s, reach(σ))
@@ -409,18 +409,18 @@ Proves that when a span σ is split at an interior point, the two part-widths co
   - The conditions of S4 hold, with p the split point satisfying s < p < reach(σ).
   - Equal lengths: #s = #d = #p and #p = #d' = #reach, with equal length excluding the prefix case so that divergence(s, p) ≤ #s and divergence(p, reach(σ)) ≤ #p (D1 applicable to both s ⊕ d = p and p ⊕ d' = reach(σ)).
   - reach(σ) = s ⊕ ℓ (ℓ is the width of σ measured from s).
-  - Pos(d), Pos(d'), Pos(ℓ) (T12 on λ, ρ, σ respectively).
-  - k_d ≤ #s and k_{d'} ≤ #p = #s (T12 on λ, ρ), with level-uniformity of λ giving #d = #s so that k_{d'} ≤ #d.
-  - actionPoint(ℓ) ≤ #s (T12 on σ).
+  - Pos(d), Pos(d'), Pos(ℓ) (Span validity of λ, ρ from S4's construction; of σ by hypothesis).
+  - k_d ≤ #s and k_{d'} ≤ #p = #s (Span validity of λ, ρ from S4), with level-uniformity of λ giving #d = #s so that k_{d'} ≤ #d.
+  - actionPoint(ℓ) ≤ #s (Span validity of σ, by hypothesis).
 - *Postconditions:*
   - d ⊕ d' = ℓ.
   - As established by TA-assoc en route: Pos(d ⊕ d') and actionPoint(d ⊕ d') = min(k_d, k_{d'}).
 
 - *Depends:*
-  - S4 (SplitPartition) — supplies the split setup (interior point p, spans λ and ρ, displacements d = p ⊖ s and d' = reach(σ) ⊖ p) that S5's conditions and proof chain inherit
+  - S4 (SplitPartition) — supplies the split setup (interior point p, spans λ and ρ, displacements d = p ⊖ s and d' = reach(σ) ⊖ p) that S5's conditions and proof chain inherit, and constructs λ, ρ as well-formed spans, so their Span validity (Pos(d), Pos(d'), action-point bounds k_d, k_{d'}) discharges the TA-assoc/TA-LC preconditions
   - D1 (DisplacementRoundTrip, ASN-0034) — supplies the round-trip identity used in the two proof steps 'By D1, s ⊕ d = p' and 'By D1 again, p ⊕ d' = reach(σ)' that anchor the displacement chain
   - TA-assoc (ASN-0034) — supplies associativity of ⊕ together with the side conclusions Pos(d ⊕ d') and actionPoint(d ⊕ d') = min(k_d, k_{d'}) that the proof discharges into TA-LC
-  - T12 (SpanWellDefinedness, ASN-0034) — supplies the Pos and actionPoint-bound results for λ, ρ, and σ that discharge the preconditions of TA-assoc and TA-LC throughout the proof
+  - Span (Span, ASN-0034) — defines span validity as Pos(ℓ) ∧ actionPoint(ℓ) ≤ #s; this predicate (not a T12 postcondition — T12 *consumes* it as a precondition) supplies Pos and the action-point bounds for σ (well-formed by hypothesis) and for λ, ρ (well-formed by S4's construction) that discharge TA-assoc and TA-LC
   - TA-LC (ASN-0034) — supplies the left-cancellation principle applied with a := s, x := d ⊕ d', y := ℓ to yield the claim's conclusion d ⊕ d' = ℓ
   - T1 (LexicographicOrder, ASN-0034) — supplies the case structure of s < p (case (i) `k ≤ #s` vs case (ii) `k = #s + 1 ≤ #p`) used to discharge D1's precondition divergence(s, p) ≤ #s; the equal-length hypothesis excludes case (ii), leaving the case-(i) witness k ≤ #s. Applied identically to the pair (p, reach(σ)) for the second D1 invocation
   - Divergence (Divergence, ASN-0034) — its case-(i) uniqueness clause identifies the T1 case-(i) witness k with divergence(s, p) (resp. divergence(p, reach(σ))), so k ≤ #s (resp. ≤ #p) discharges D1's remaining precondition
