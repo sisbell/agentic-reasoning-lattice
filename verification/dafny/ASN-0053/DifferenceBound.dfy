@@ -27,6 +27,7 @@ module DifferenceBound {
   import SWD = SpanWellDefinedness
   import TS = TumblerSub
   import IC = IntrinsicComparison
+  import CV = Convexity
 
   ghost predicate Leq(a: Tumbler, b: Tumbler)
     requires InT(a) && InT(b)
@@ -222,6 +223,29 @@ module DifferenceBound {
   {
     BothActiveForward(alpha, beta);
     BothActiveBackward(alpha, beta);
+  }
+
+  // Tightness (S11 case c): no single span γ covers ⟦α⟧ \ ⟦β⟧ when neither boundary coincides.
+  lemma BothActiveTight(alpha: SpanEntry, beta: SpanEntry, gamma: SpanEntry)
+    requires ValidSpan(alpha) && ValidSpan(beta) && ValidSpan(gamma)
+    requires LC.LevelUniform(alpha) && LC.LevelUniform(beta)
+    requires LC.LevelCompat(alpha.start, beta.start)
+    requires LexicographicOrder.LexicographicOrder(alpha.start, beta.start)
+    requires LexicographicOrder.LexicographicOrder(Reach(beta), Reach(alpha))
+    ensures S.Span(gamma.start, gamma.width) !=
+            S.Span(alpha.start, alpha.width) - S.Span(beta.start, beta.width)
+  {
+    SWD.SpanWellDefinedness(beta.start, beta.width);
+    if S.Span(gamma.start, gamma.width) == S.Span(alpha.start, alpha.width) - S.Span(beta.start, beta.width) {
+      SWD.SpanWellDefinedness(alpha.start, alpha.width);
+      IC.IntrinsicComparison(alpha.start, beta.start);
+      assert alpha.start in S.Span(alpha.start, alpha.width) - S.Span(beta.start, beta.width);
+      AlphaStartLtReachBeta(alpha, beta);
+      IC.IntrinsicComparison(Reach(beta), Reach(beta));
+      assert Reach(beta) in S.Span(alpha.start, alpha.width) - S.Span(beta.start, beta.width);
+      CV.Convexity(gamma.start, gamma.width, alpha.start, beta.start, Reach(beta));
+      assert false;
+    }
   }
 
   // Case: only λ active (reach(β) == reach(α)).
