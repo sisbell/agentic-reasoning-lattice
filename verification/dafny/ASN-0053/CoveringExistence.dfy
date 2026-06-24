@@ -173,6 +173,17 @@ module CoveringExistence {
     }
   }
 
+  // When sigma has no valid spans, CollectiveDenotation is the empty set.
+  lemma NoValidSpansEmpty(sigma: seq<SpanEntry>)
+    requires forall j :: 0 <= j < |sigma| ==> !ValidSpan(sigma[j])
+    ensures CollectiveDenotation(sigma) == iset{}
+    decreases |sigma|
+  {
+    if |sigma| > 0 {
+      NoValidSpansEmpty(sigma[1..]);
+    }
+  }
+
   // Covering construction: sigma_i = SpanEntry(t_i, UnitWidth(t_i)).
   function CoveringSpanSet(P: seq<Tumbler>): seq<SpanEntry>
     requires forall i :: 0 <= i < |P| ==> InT(P[i])
