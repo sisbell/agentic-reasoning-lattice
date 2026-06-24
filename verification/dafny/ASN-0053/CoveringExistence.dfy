@@ -150,6 +150,29 @@ module CoveringExistence {
     }
   }
 
+  // Max component-depth over all elements of P; used to build strictly-deeper witnesses.
+  ghost function MaxLength(P: seq<Tumbler>): nat
+    requires forall i :: 0 <= i < |P| ==> InT(P[i])
+    ensures |P| > 0 ==> MaxLength(P) >= Length(P[0])
+    ensures |P| > 0 ==> MaxLength(P) >= MaxLength(P[1..])
+    decreases |P|
+  {
+    if |P| == 0 then 0
+    else
+      var rest := MaxLength(P[1..]);
+      if Length(P[0]) > rest then Length(P[0]) else rest
+  }
+
+  lemma MaxLengthBound(P: seq<Tumbler>)
+    requires forall i :: 0 <= i < |P| ==> InT(P[i])
+    ensures forall i :: 0 <= i < |P| ==> Length(P[i]) <= MaxLength(P)
+    decreases |P|
+  {
+    if |P| > 0 {
+      MaxLengthBound(P[1..]);
+    }
+  }
+
   // Covering construction: sigma_i = SpanEntry(t_i, UnitWidth(t_i)).
   function CoveringSpanSet(P: seq<Tumbler>): seq<SpanEntry>
     requires forall i :: 0 <= i < |P| ==> InT(P[i])
