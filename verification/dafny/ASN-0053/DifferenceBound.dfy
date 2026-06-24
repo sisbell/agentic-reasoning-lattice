@@ -11,6 +11,7 @@ include "./Convexity.dfy"
 include "../ASN-0034/Span.dfy"
 include "../ASN-0034/SpanWellDefinedness.dfy"
 include "../ASN-0034/TumblerSub.dfy"
+include "../ASN-0034/IntrinsicComparison.dfy"
 
 module DifferenceBound {
   import opened SpanDefs
@@ -25,7 +26,7 @@ module DifferenceBound {
   import S = Span
   import SWD = SpanWellDefinedness
   import TS = TumblerSub
-  import C0 = Convexity
+  import IC = IntrinsicComparison
 
   // ≤ on tumblers: equals or strictly less.
   ghost predicate Leq(a: Tumbler, b: Tumbler)
@@ -35,8 +36,6 @@ module DifferenceBound {
   }
 
   // S11: DifferenceBound — constructs the span-set for ⟦α⟧ \ ⟦β⟧.
-  // Preconditions express ⟦β⟧ ⊆ ⟦α⟧ via boundary characterization:
-  //   start(α) ≤ start(β)  and  reach(β) ≤ reach(α)
   ghost function DifferenceBound(alpha: SpanEntry, beta: SpanEntry): (result: seq<SpanEntry>)
     requires ValidSpan(alpha) && ValidSpan(beta)
     requires LC.LevelUniform(alpha) && LC.LevelUniform(beta)
@@ -68,8 +67,6 @@ module DifferenceBound {
   }
 
   // Right span ρ is well-formed when reach(β) < reach(α).
-  // WF's carrier preconditions reach(β), reach(α) ∈ T come from ValidSpan + Reach's ensures.
-  // WF's length precondition #reach(β) = #reach(α) is derived from S6 + LevelCompat.
   lemma RightSpanValid(alpha: SpanEntry, beta: SpanEntry)
     requires ValidSpan(alpha) && ValidSpan(beta)
     requires LC.LevelUniform(alpha) && LC.LevelUniform(beta)
@@ -82,4 +79,36 @@ module DifferenceBound {
     LC.LevelConstraint(beta);
     WF.WellFormedSpanFromEndpoints(Reach(beta), Reach(alpha));
   }
+
+  // ── Correctness ────────────────────────────────────────────────────────────
+
+  // Collective denotation: union of span denotations (skips invalid entries).
+  ghost function CollectiveDenotation(spans: seq<SpanEntry>): iset<Tumbler>
+    decreases |spans|
+  {
+    if |spans| == 0 then iset{}
+    else if ValidSpan(spans[0]) then
+      S.Span(spans[0].start, spans[0].width) + CollectiveDenotation(spans[1..])
+    else CollectiveDenotation(spans[1..])
+  }
+
+  lemma LexTrans(a: Tumbler, b: Tumbler, c: Tumbler)
+    requires InT(a) && InT(b) && InT(c)
+    requires LexicographicOrder.LexicographicOrder(a, b)
+    requires LexicographicOrder.LexicographicOrder(b, c)
+    ensures LexicographicOrder.LexicographicOrder(a, c)
+  {
+    SWD.LexicographicTransitive(a, b, c);
+  }
+
+  // S11 correctness: CollectiveDenotation(DifferenceBound(α,β)) = ⟦α⟧ \ ⟦β⟧.
+  lemma DifferenceBoundCorrect(alpha: SpanEntry, beta: SpanEntry)
+    requires ValidSpan(alpha) && ValidSpan(beta)
+    requires LC.LevelUniform(alpha) && LC.LevelUniform(beta)
+    requires LC.LevelCompat(alpha.start, beta.start)
+    requires Leq(alpha.start, beta.start)
+    requires Leq(Reach(beta), Reach(alpha))
+    ensures CollectiveDenotation(DifferenceBound(alpha, beta)) ==
+            S.Span(alpha.start, alpha.width) - S.Span(beta.start, beta.width)
+  { }
 }
