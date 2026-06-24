@@ -34,7 +34,7 @@ from lib.shared.common import find_asn
 from lib.shared.foundation import _extract_formal_contract
 from lib.shared.invoke_claude import invoke_claude
 from lib.shared.paths import (
-    FORMAL_CONTRACT_DIR, claim_statements_aggregate_path, prompt_path,
+    CLAIM_DIR, DERIVED_CLAIM_DIR, FORMAL_CONTRACT_DIR, prompt_path,
 )
 from lib.shared.prompts import read_prompt
 
@@ -146,12 +146,26 @@ def validate_contract(
     return True, ""
 
 
+class DependencyResolutionError(RuntimeError):
+    """A declared dependency's claim/statement could not be resolved.
+
+    Raised rather than silently clipping the dep — synthesizing a contract
+    against an incomplete dependency set produces ungrounded contracts that
+    only surface much later (or never). Fail the build here instead.
+    """
+
+
 def build_dep_context(asn_num: int, label: str, claim_base_dir: Path) -> str:
     """Assemble dependency context for the synthesis prompt.
 
-    Returns markdown text with same-ASN dependency bodies + cross-ASN
-    foundation excerpts (from claim-statements transclusion files).
-    Returns "(none)" when no deps resolve.
+    Same-ASN deps → the dep's claim-file body. Cross-ASN deps → the dep's
+    section from its ASN's claims.statements aggregate
+    (`claim/<asn>/_statements.md`), looked up region 1.3 first then 1.1.
+
+    EVERY declared dependency must resolve: a missing same-ASN claim file
+    or an unfindable cross-ASN statement raises DependencyResolutionError
+    (no silent clipping). Returns "(none)" only when the claim has no
+    declared deps at all.
     """
     deps_data = build_deps_for_asn(asn_num, claim_base_dir)
     if not deps_data:
@@ -164,45 +178,56 @@ def build_dep_context(asn_num: int, label: str, claim_base_dir: Path) -> str:
     _, asn_label = find_asn(str(asn_num))
     claim_dir = claim_base_dir / asn_label
     label_index = build_label_index(claim_dir)
+    depends = deps_data.get("depends", [])
 
     dep_parts = []
     for dep_label in follows_from:
         if dep_label in all_labels:
+            # Same-ASN dep: read its claim-file body.
             dep_stem = label_index.get(
                 dep_label,
                 dep_label.replace("(", "").replace(")", ""),
             )
             dep_file = claim_dir / f"{dep_stem}.md"
-            if dep_file.exists():
-                dep_parts.append(
-                    f"### {dep_label}\n\n{dep_file.read_text().strip()}"
+            if not dep_file.exists():
+                raise DependencyResolutionError(
+                    f"{asn_label} {label!r}: same-ASN dependency "
+                    f"{dep_label!r} claim file not found at {dep_file}"
                 )
-
-    depends = deps_data.get("depends", [])
-    for dep_label in follows_from:
-        if dep_label not in all_labels:
+            dep_parts.append(
+                f"### {dep_label}\n\n{dep_file.read_text().strip()}"
+            )
+        else:
+            # Cross-ASN dep: find its statement in a foundation ASN's
+            # claims.statements aggregate (claim/<asn>/_statements.md),
+            # region 1.3 first then 1.1.
+            pattern = re.compile(
+                r'^## ' + re.escape(dep_label) + r'\s*—.*?\n'
+                r'(.*?)(?=^## |\Z)',
+                re.MULTILINE | re.DOTALL,
+            )
+            section = None
             for dep_asn in depends:
-                # Cross-ASN deps: read the per-claim claims.statements
-                # aggregate (claim/<asn>/_statements.md) — the registered,
-                # post-derivation authoritative statements — NOT the note
-                # statements sidecar (which can lag behind / be superseded).
-                stmt_path = claim_statements_aggregate_path(
-                    format_label(dep_asn)
+                for region_dir in (DERIVED_CLAIM_DIR, CLAIM_DIR):  # 1.3, 1.1
+                    agg = region_dir / format_label(dep_asn) / "_statements.md"
+                    if agg.exists():
+                        m = pattern.search(agg.read_text())
+                        if m:
+                            section = (m.group(0).strip(), dep_asn)
+                            break
+                if section:
+                    break
+            if section is None:
+                raise DependencyResolutionError(
+                    f"{asn_label} {label!r}: cross-ASN dependency "
+                    f"{dep_label!r} not found in any foundation "
+                    f"claims.statements aggregate (searched "
+                    f"{[format_label(d) for d in depends]} in regions 1.3, 1.1)"
                 )
-                if stmt_path.exists():
-                    ftext = stmt_path.read_text()
-                    pattern = re.compile(
-                        r'^## ' + re.escape(dep_label) + r'\s*—.*?\n'
-                        r'(.*?)(?=^## |\Z)',
-                        re.MULTILINE | re.DOTALL,
-                    )
-                    m = pattern.search(ftext)
-                    if m:
-                        dep_parts.append(
-                            f"### {dep_label} ({format_label(dep_asn)})\n\n"
-                            f"{m.group(0).strip()}"
-                        )
-                        break
+            text, dep_asn = section
+            dep_parts.append(
+                f"### {dep_label} ({format_label(dep_asn)})\n\n{text}"
+            )
 
     return "\n\n".join(dep_parts) if dep_parts else "(none)"
 
