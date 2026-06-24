@@ -54,6 +54,7 @@ from .quiescence import (
 )
 from .versions import (
     _walk_supersession, is_head_version, supersession_head, version_head,
+    version_root,
 )
 
 
@@ -73,10 +74,18 @@ def is_upstream_settled_one_hop(
     open; layer-1's gate clears when foundation settles; layer-2's
     gate clears when layer-1 settles.
     """
-    for upstream in depends(session, claim_addr):
-        if not is_claim_quiescent(session, upstream):
+    # Citations are emitted from the claim's version_head; reading from a
+    # bare (base) claim_addr misses every dep of a revised claim (its
+    # citations moved to the new head), making this gate vacuously True —
+    # the layered-convergence wait was silently bypassed for revised
+    # claims. Read deps from the head; resolve each cited upstream (a
+    # head) back to its base identity, where its comment.revise /
+    # comment.violation live, before checking settledness.
+    for upstream in depends(session, version_head(session, claim_addr)):
+        up = version_root(session, upstream)
+        if not is_claim_quiescent(session, up):
             return False
-        if not is_claim_structurally_clean(session, upstream):
+        if not is_claim_structurally_clean(session, up):
             return False
     return True
 

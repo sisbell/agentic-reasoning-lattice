@@ -23,6 +23,7 @@ from lib.protocols.febe.session import open_session
 from lib.lattice.labels import build_cross_asn_label_index, format_label
 from lib.backend.predicates import active_links
 from lib.predicates import current_contract_kind
+from lib.predicates.versions import version_head, version_root
 
 
 def build_deps_for_asn(asn_num, claim_base_dir=None):
@@ -68,11 +69,20 @@ def build_deps_for_asn(asn_num, claim_base_dir=None):
 
         if from_addr is not None:
             follows = []
+            # Citations are emitted from the claim's version_head and target
+            # each upstream's version_head. Reading from the base address
+            # misses every dep of a claim that was revised (its citations
+            # moved to the new head) — which collapsed the dafny dependency
+            # graph. Read from head; resolve each cited head back to its
+            # base identity for the rev_index (label) lookup.
+            head = version_head(session, from_addr)
             for link in active_links(
-                store.state, "citation.depends", from_set=[from_addr],
+                store.state, "citation.depends", from_set=[head],
             ):
                 for cited_addr in link.to_set:
-                    label_match = rev_index.get(cited_addr)
+                    label_match = rev_index.get(
+                        version_root(session, cited_addr)
+                    )
                     if label_match:
                         follows.append(label_match)
             if follows:
