@@ -61,6 +61,8 @@ module SplitPartition {
     requires Length(p) == Length(sigma.start)
     ensures ValidSpan(LeftSpan(sigma, p))
     ensures ValidSpan(RightSpan(sigma, p))
+    ensures S6.LevelUniform(LeftSpan(sigma, p))
+    ensures S6.LevelUniform(RightSpan(sigma, p))
     ensures Reach(LeftSpan(sigma, p)) == p
     ensures Reach(RightSpan(sigma, p)) == Reach(sigma)
   {
