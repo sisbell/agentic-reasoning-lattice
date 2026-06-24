@@ -14,6 +14,7 @@ module CoveringExistence {
   import opened NatCarrierSet
   import SpanModule = Span
   import SWD = SpanWellDefinedness
+  import IC = IntrinsicComparison
 
   datatype SpanEntry = SpanEntry(start: Tumbler, width: Tumbler)
 
@@ -94,7 +95,8 @@ module CoveringExistence {
 
   // Every trailing-zero extension s.0ⁿ lies in Span(s, l).
   // For n = 0: ext = s; s ∈ Span(s, l) by T12(b).
-  // For n ≥ 1: s < ext by T1 case (ii) (prefix); ext < s⊕l by T1 case (i) at ActionPoint(l).
+  // For n ≥ 1: s < ext via IC.LexOrderShorterWitness (T1 case ii, prefix);
+  //            ext < s⊕l via IC.LexOrderDivergenceWitness (T1 case i, diverge at ActionPoint(l)).
   lemma TrailingZeroExtInSpan(s: Tumbler, l: Tumbler, n: nat)
     requires InT(s) && InT(l)
     requires PositiveTumbler.PositiveTumbler(l)
@@ -109,27 +111,22 @@ module CoveringExistence {
       SWD.SpanWellDefinedness(s, l);
       assert ext == s;
     } else {
-      // s < ext: T1 case (ii) with witness k1 = Length(s) + 1.
-      assert LexicographicOrder.LexicographicOrder(s, ext) by {
-        var k1 := Length(s) + 1;
-        assert 1 <= k1;
-        assert k1 == Length(s) + 1 && k1 <= Length(ext);
-        assert forall i :: 1 <= i < k1 ==>
-          i <= Length(s) && i <= Length(ext) &&
-          Component(s, i) == Component(ext, i);
+      // s < ext: T1 case (ii). s is a strict prefix of ext (n ≥ 1 so Length(s) < Length(ext)).
+      assert forall j :: 1 <= j <= Length(s) ==> Component(s, j) == Component(ext, j);
+      IC.LexOrderShorterWitness(s, ext);
+
+      // ext < reach: T1 case (i). Components agree on [1, k-1]; diverge at k with
+      // Component(ext, k) = Component(s, k) < Component(s, k) + Component(l, k) = Component(reach, k).
+      assert forall j :: 1 <= j <= k - 1 ==> Component(ext, j) == Component(reach, j) by {
+        forall j | 1 <= j <= k - 1 ensures Component(ext, j) == Component(reach, j) {
+          assert Component(ext, j) == Component(s, j);   // j < k ≤ Length(s)
+          assert Component(reach, j) == Component(s, j); // j < k = ActionPoint(l)
+        }
       }
-      // ext < reach: T1 case (i) with witness k = ActionPoint(l).
-      assert LexicographicOrder.LexicographicOrder(ext, reach) by {
-        assert 1 <= k;
-        assert k <= Length(ext) && k <= Length(reach);
-        assert forall i :: 1 <= i < k ==>
-          i <= Length(ext) && i <= Length(reach) &&
-          Component(ext, i) == Component(reach, i);
-        assert Component(ext, k) == Component(s, k);
-        assert Component(reach, k) == Component(s, k) + Component(l, k);
-        assert Component(l, k) != 0;
-        assert Component(ext, k) < Component(reach, k);
-      }
+      assert Component(ext, k) == Component(s, k);
+      assert Component(reach, k) == Component(s, k) + Component(l, k);
+      assert Component(l, k) != 0;
+      IC.LexOrderDivergenceWitness(ext, reach, k - 1);
     }
   }
 
