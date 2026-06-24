@@ -19,6 +19,13 @@ module NormalizationUniqueness {
   import SWD = SpanWellDefinedness
   import IC = IntrinsicComparison
 
+  // Abbreviation: strict lexicographic order predicate (module and predicate share a name)
+  ghost predicate LO(a: Tumbler, b: Tumbler)
+    requires InT(a) && InT(b)
+  {
+    LexicographicOrder.LexicographicOrder(a, b)
+  }
+
   // Every span in the sequence is well-formed
   ghost predicate AllValid(spans: seq<SpanEntry>) {
     forall i :: 0 <= i < |spans| ==> ValidSpan(spans[i])
@@ -33,13 +40,13 @@ module NormalizationUniqueness {
     else S.Span(spans[0].start, spans[0].width) + Denote(spans[1..])
   }
 
-  // N1 (strictly increasing starts) and N2 (strict separation) hold for all consecutive pairs
+  // N1 (strictly increasing starts) and N2 (strict separation) for all consecutive pairs
   ghost predicate StrictlyNormalized(spans: seq<SpanEntry>)
     requires AllValid(spans)
   {
     forall i :: 0 <= i < |spans| - 1 ==>
-      LexicographicOrder(spans[i].start, spans[i+1].start) &&
-      LexicographicOrder(Reach(spans[i]), spans[i+1].start)
+      LexicographicOrder.LexicographicOrder(spans[i].start, spans[i+1].start) &&
+      LexicographicOrder.LexicographicOrder(Reach(spans[i]), spans[i+1].start)
   }
 
   // ─── Structural helpers ────────────────────────────────────────────────────
@@ -65,8 +72,8 @@ module NormalizationUniqueness {
   {
     AllValidTail(spans);
     forall i | 0 <= i < |spans[1..]| - 1
-      ensures LexicographicOrder(spans[1..][i].start, spans[1..][i+1].start)
-      ensures LexicographicOrder(Reach(spans[1..][i]), spans[1..][i+1].start)
+      ensures LexicographicOrder.LexicographicOrder(spans[1..][i].start, spans[1..][i+1].start)
+      ensures LexicographicOrder.LexicographicOrder(Reach(spans[1..][i]), spans[1..][i+1].start)
     {
       assert spans[1..][i] == spans[i + 1];
       assert spans[1..][i + 1] == spans[i + 2];
@@ -75,26 +82,26 @@ module NormalizationUniqueness {
 
   // ─── Order helpers ─────────────────────────────────────────────────────────
 
-  lemma LexTransitive(a: Tumbler, b: Tumbler, c: Tumbler)
+  lemma LexTrans(a: Tumbler, b: Tumbler, c: Tumbler)
     requires InT(a) && InT(b) && InT(c)
-    requires LexicographicOrder(a, b)
-    requires LexicographicOrder(b, c)
-    ensures LexicographicOrder(a, c)
+    requires LexicographicOrder.LexicographicOrder(a, b)
+    requires LexicographicOrder.LexicographicOrder(b, c)
+    ensures LexicographicOrder.LexicographicOrder(a, c)
   {
     SWD.LexicographicTransitive(a, b, c);
   }
 
   lemma LexIrreflexive(a: Tumbler)
     requires InT(a)
-    ensures !LexicographicOrder(a, a)
+    ensures !LexicographicOrder.LexicographicOrder(a, a)
   {
     IC.IntrinsicComparison(a, a);
   }
 
-  lemma LexAsymmetric(a: Tumbler, b: Tumbler)
+  lemma LexAsymm(a: Tumbler, b: Tumbler)
     requires InT(a) && InT(b)
-    requires LexicographicOrder(a, b)
-    ensures !LexicographicOrder(b, a)
+    requires LexicographicOrder.LexicographicOrder(a, b)
+    ensures !LexicographicOrder.LexicographicOrder(b, a)
     ensures a != b
   {
     IC.IntrinsicComparison(a, b);
@@ -102,7 +109,6 @@ module NormalizationUniqueness {
 
   // ─── Denotation membership lemmas ──────────────────────────────────────────
 
-  // Every member of Denote(spans) belongs to some constituent Span
   lemma DenoteMemberInSpan(spans: seq<SpanEntry>, p: Tumbler)
     requires AllValid(spans)
     requires InT(p)
@@ -121,7 +127,6 @@ module NormalizationUniqueness {
     }
   }
 
-  // Membership in any constituent Span implies membership in Denote
   lemma SpanMemberInDenote(spans: seq<SpanEntry>, p: Tumbler, k: nat)
     requires AllValid(spans)
     requires 0 <= k < |spans|
@@ -149,7 +154,6 @@ module NormalizationUniqueness {
 
   // ─── Reach non-membership ──────────────────────────────────────────────────
 
-  // Reach is the exclusive upper bound, so it is not in its own span
   lemma ReachNotInOwnSpan(sigma: SpanEntry)
     requires ValidSpan(sigma)
     ensures Reach(sigma) !in S.Span(sigma.start, sigma.width)
@@ -157,63 +161,54 @@ module NormalizationUniqueness {
     LexIrreflexive(Reach(sigma));
   }
 
-  // Reach(spans[0]) < spans[k].start for all k >= 1 (by N2 + N1 chain)
   lemma ReachLtStart(spans: seq<SpanEntry>, k: nat)
     requires AllValid(spans)
     requires StrictlyNormalized(spans)
     requires 1 <= k < |spans|
-    ensures LexicographicOrder(Reach(spans[0]), spans[k].start)
+    ensures LexicographicOrder.LexicographicOrder(Reach(spans[0]), spans[k].start)
     decreases k
   {
     if k >= 2 {
       ReachLtStart(spans, k - 1);
-      LexTransitive(Reach(spans[0]), spans[k-1].start, spans[k].start);
+      LexTrans(Reach(spans[0]), spans[k-1].start, spans[k].start);
     }
-    // Base k == 1: N2 at i=0 gives LexOrder(Reach(spans[0]), spans[1].start) directly
   }
 
-  // spans[0].start < spans[k].start for all k >= 1 (by N1 chain)
   lemma StartLtLaterStart(spans: seq<SpanEntry>, k: nat)
     requires AllValid(spans)
     requires StrictlyNormalized(spans)
     requires 1 <= k < |spans|
-    ensures LexicographicOrder(spans[0].start, spans[k].start)
+    ensures LexicographicOrder.LexicographicOrder(spans[0].start, spans[k].start)
     decreases k
   {
     if k >= 2 {
       StartLtLaterStart(spans, k - 1);
-      LexTransitive(spans[0].start, spans[k-1].start, spans[k].start);
+      LexTrans(spans[0].start, spans[k-1].start, spans[k].start);
     }
-    // Base k == 1: N1 at i=0 gives LexOrder(spans[0].start, spans[1].start) directly
   }
 
-  // spans[0].start is a lower bound for all members of Denote(spans)
   lemma MinimalStart(spans: seq<SpanEntry>, p: Tumbler)
     requires |spans| > 0
     requires AllValid(spans)
     requires StrictlyNormalized(spans)
     requires InT(p)
     requires p in Denote(spans)
-    ensures spans[0].start == p || LexicographicOrder(spans[0].start, p)
+    ensures spans[0].start == p || LexicographicOrder.LexicographicOrder(spans[0].start, p)
   {
     DenoteMemberInSpan(spans, p);
     var k :| 0 <= k < |spans| && p in S.Span(spans[k].start, spans[k].width);
     if k == 0 {
-      // Span membership directly gives spans[0].start <= p
-      assert spans[0].start == p || LexicographicOrder(spans[0].start, p);
+      assert spans[0].start == p || LexicographicOrder.LexicographicOrder(spans[0].start, p);
     } else {
       StartLtLaterStart(spans, k);
-      // spans[0].start < spans[k].start
-      assert spans[k].start == p || LexicographicOrder(spans[k].start, p);
+      assert spans[k].start == p || LexicographicOrder.LexicographicOrder(spans[k].start, p);
       if spans[k].start == p {
-        // spans[0].start < spans[k].start = p
       } else {
-        LexTransitive(spans[0].start, spans[k].start, p);
+        LexTrans(spans[0].start, spans[k].start, p);
       }
     }
   }
 
-  // Reach(spans[0]) is not in any later span (since it is strictly less than their starts)
   lemma ReachNotInLaterSpan(spans: seq<SpanEntry>, k: nat)
     requires AllValid(spans)
     requires StrictlyNormalized(spans)
@@ -221,9 +216,7 @@ module NormalizationUniqueness {
     ensures Reach(spans[0]) !in S.Span(spans[k].start, spans[k].width)
   {
     ReachLtStart(spans, k);
-    LexAsymmetric(Reach(spans[0]), spans[k].start);
-    // !LexOrder(spans[k].start, Reach(spans[0])) and spans[k].start != Reach(spans[0])
-    // So the first Span membership condition fails
+    LexAsymm(Reach(spans[0]), spans[k].start);
   }
 
   lemma ReachNotInDenoteTail(spans: seq<SpanEntry>)
@@ -263,7 +256,6 @@ module NormalizationUniqueness {
   {
   }
 
-  // The first span is disjoint from the denotation of the tail (by N2 + N1 separation)
   lemma FirstSpanDisjointFromTail(spans: seq<SpanEntry>)
     requires |spans| > 0
     requires AllValid(spans)
@@ -278,18 +270,14 @@ module NormalizationUniqueness {
       DenoteMemberInSpan(spans[1..], p);
       var k' :| 0 <= k' < |spans[1..]| && p in S.Span(spans[1..][k'].start, spans[1..][k'].width);
       assert spans[1..][k'] == spans[k' + 1];
-      // p in Span(spans[0]): p < Reach(spans[0])
-      assert LexicographicOrder(p, Reach(spans[0]));
-      // Reach(spans[0]) < spans[k'+1].start (N2 + N1 chain)
+      assert LexicographicOrder.LexicographicOrder(p, Reach(spans[0]));
       ReachLtStart(spans, k' + 1);
-      // Chain: p < Reach(spans[0]) < spans[k'+1].start
-      LexTransitive(p, Reach(spans[0]), spans[k' + 1].start);
-      // But p in Span(spans[k'+1]): spans[k'+1].start <= p — contradiction
-      assert spans[k' + 1].start == p || LexicographicOrder(spans[k' + 1].start, p);
+      LexTrans(p, Reach(spans[0]), spans[k' + 1].start);
+      assert spans[k' + 1].start == p || LexicographicOrder.LexicographicOrder(spans[k' + 1].start, p);
       if spans[k' + 1].start == p {
         LexIrreflexive(p);
       } else {
-        LexAsymmetric(p, spans[k' + 1].start);
+        LexAsymm(p, spans[k' + 1].start);
       }
     }
   }
@@ -305,58 +293,48 @@ module NormalizationUniqueness {
   {
     if |spans1| == 0 && |spans2| == 0 {
     } else if |spans1| == 0 {
-      // spans2 non-empty but Denote(spans2) = Denote(spans1) = iset{}: contradiction
       StartInDenote(spans2);
       assert false;
     } else if |spans2| == 0 {
       StartInDenote(spans1);
       assert false;
     } else {
-      // Step 1: equal starts — each start is a lower bound of the shared denotation
+      // Step 1: equal starts
       StartInDenote(spans1);
       StartInDenote(spans2);
       assert spans1[0].start in Denote(spans2);
       assert spans2[0].start in Denote(spans1);
       MinimalStart(spans2, spans1[0].start);
-      // spans2[0].start <= spans1[0].start
       MinimalStart(spans1, spans2[0].start);
-      // spans1[0].start <= spans2[0].start
       if spans1[0].start != spans2[0].start {
-        // Both strict inequalities hold — impossible by asymmetry
-        assert LexicographicOrder(spans2[0].start, spans1[0].start);
-        assert LexicographicOrder(spans1[0].start, spans2[0].start);
-        LexAsymmetric(spans1[0].start, spans2[0].start);
+        assert LexicographicOrder.LexicographicOrder(spans2[0].start, spans1[0].start);
+        assert LexicographicOrder.LexicographicOrder(spans1[0].start, spans2[0].start);
+        LexAsymm(spans1[0].start, spans2[0].start);
         assert false;
       }
       assert spans1[0].start == spans2[0].start;
 
-      // Step 2: equal reaches — if they differed, the smaller reach would be in the
-      // opposite denotation but not its own (by ReachNotInDenote), contradicting equality
+      // Step 2: equal reaches → equal widths via left cancellation
       ReachNotInDenote(spans1);
       ReachNotInDenote(spans2);
       SI.StrictIncrease(spans1[0].start, spans1[0].width);
       SI.StrictIncrease(spans2[0].start, spans2[0].width);
       IC.IntrinsicComparison(Reach(spans1[0]), Reach(spans2[0]));
-      if LexicographicOrder(Reach(spans1[0]), Reach(spans2[0])) {
-        // Reach(spans1[0]) in Span(spans2[0]): start2 < reach1 < reach2
+      if LexicographicOrder.LexicographicOrder(Reach(spans1[0]), Reach(spans2[0])) {
         assert Reach(spans1[0]) in S.Span(spans2[0].start, spans2[0].width);
         SpanMemberInDenote(spans2, Reach(spans1[0]), 0);
         assert false;
-      } else if LexicographicOrder(Reach(spans2[0]), Reach(spans1[0])) {
-        // Reach(spans2[0]) in Span(spans1[0]): start1 < reach2 < reach1
+      } else if LexicographicOrder.LexicographicOrder(Reach(spans2[0]), Reach(spans1[0])) {
         assert Reach(spans2[0]) in S.Span(spans1[0].start, spans1[0].width);
         SpanMemberInDenote(spans1, Reach(spans2[0]), 0);
         assert false;
       }
-      // IntrinsicComparison trichotomy: neither LT nor GT means EQ
       assert Reach(spans1[0]) == Reach(spans2[0]);
-
-      // Step 2b: left cancellation gives equal widths, hence equal first spans
       LC.LeftCancellation(spans1[0].start, spans1[0].width, spans2[0].width);
       assert spans1[0].width == spans2[0].width;
       assert spans1[0] == spans2[0];
 
-      // Step 3: tails share denotation (set cancellation on the equal first span)
+      // Step 3: tails share denotation; recurse
       StrictlyNormalizedTail(spans1);
       StrictlyNormalizedTail(spans2);
       FirstSpanDisjointFromTail(spans1);
@@ -368,7 +346,6 @@ module NormalizationUniqueness {
         S.Span(spans1[0].start, spans1[0].width),
         Denote(spans1[1..]),
         Denote(spans2[1..]));
-      // Step 4: induction on strictly shorter tails
       NormalizationUniqueness(spans1[1..], spans2[1..]);
       assert spans1[1..] == spans2[1..];
     }
