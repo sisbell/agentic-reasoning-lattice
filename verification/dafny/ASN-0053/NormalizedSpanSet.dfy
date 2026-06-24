@@ -9,6 +9,7 @@ module NormalizedSpanSet {
   import SWD = SpanWellDefinedness
 
   ghost predicate Normalized(spans: seq<SpanEntry>)
+    requires forall i :: 0 <= i < |spans| ==> ValidSpan(spans[i])
   {
     IsNormalizedSpanSet(spans)
   }
