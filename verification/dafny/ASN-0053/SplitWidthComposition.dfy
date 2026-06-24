@@ -30,7 +30,13 @@ module SplitWidthComposition {
       var lam := SP.SplitPartition(sigma, p).left;
       var rho := SP.SplitPartition(sigma, p).right;
       SP.ValidSpan(lam) && SP.ValidSpan(rho) && SP.LevelUniform(lam) &&
-      TumblerAdd.TumblerAdd(lam.width, rho.width) == sigma.width
+      (var ddd := TumblerAdd.TumblerAdd(lam.width, rho.width);
+       ddd == sigma.width &&
+       PositiveTumbler.PositiveTumbler(ddd) &&
+       ActionPoint.ActionPoint(ddd) ==
+         (if ActionPoint.ActionPoint(lam.width) <= ActionPoint.ActionPoint(rho.width)
+          then ActionPoint.ActionPoint(lam.width)
+          else ActionPoint.ActionPoint(rho.width)))
   {
     SP.SplitPartitionTheorem(sigma, p);
     var lam := SP.SplitPartition(sigma, p).left;
