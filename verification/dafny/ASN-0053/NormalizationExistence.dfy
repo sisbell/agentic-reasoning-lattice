@@ -441,8 +441,68 @@ module NormalizationExistence {
 
   // ─── Sweep correctness: StrictlyNormalized (axiom) ────────────────────────
 
+  // First element of Sweep always has start == s (needed to prove join at gap-emit concat).
+  lemma SweepFirstStart(s: Tumbler, r: Tumbler, remaining: seq<SpanEntry>)
+    requires InT(s) && InT(r) && LO.LexicographicOrder(s, r)
+    requires Length(s) == Length(r)
+    requires AllValid(remaining) && AllLevelUniform(remaining)
+    requires forall i :: 0 <= i < |remaining| ==> Length(remaining[i].start) == Length(s)
+    requires forall i :: 0 <= i < |remaining| ==> Length(Reach(remaining[i])) == Length(s)
+    requires NonDecreasing(remaining)
+    requires StartsAfterS(s, remaining)
+    requires ReachesAfterS(s, remaining)
+    requires PairwiseReach(remaining)
+    ensures |Sweep(s, r, remaining)| > 0
+    ensures Sweep(s, r, remaining)[0].start == s
+    decreases |remaining|
+  {
+    if |remaining| == 0 {
+    } else {
+      var sigma := remaining[0];
+      var r_sigma := Reach(sigma);
+      var rest := remaining[1..];
+      if sigma.start == r || LO.LexicographicOrder(sigma.start, r) {
+        RestPrecond(s, r, remaining);
+        if LO.LexicographicOrder(r, r_sigma) {
+          assert LO.LexicographicOrder(s, r_sigma) by { LexTrans(s, r, r_sigma); }
+          SweepFirstStart(s, r_sigma, rest);
+        } else {
+          SweepFirstStart(s, r, rest);
+        }
+      }
+    }
+  }
+
+  // Prepend one span to a strictly-normalized tail when the join satisfies the gap condition.
+  lemma StrictlyNormalizedConcat(first: SpanEntry, tail: seq<SpanEntry>)
+    requires ValidSpan(first)
+    requires AllValid(tail) && StrictlyNormalized(tail)
+    requires |tail| == 0 ||
+      (LO.LexicographicOrder(first.start, tail[0].start) &&
+       LO.LexicographicOrder(Reach(first), tail[0].start))
+    ensures AllValid([first] + tail)
+    ensures StrictlyNormalized([first] + tail)
+  {
+    assert AllValid([first]) by {
+      forall i | 0 <= i < |[first]| ensures ValidSpan([first][i]) { assert [first][i] == first; }
+    }
+    AllValidConcat([first], tail);
+    forall i | 0 <= i < |[first] + tail| - 1
+      ensures LO.LexicographicOrder(([first] + tail)[i].start, ([first] + tail)[i+1].start) &&
+              LO.LexicographicOrder(Reach(([first] + tail)[i]), ([first] + tail)[i+1].start)
+    {
+      if i == 0 {
+        assert ([first] + tail)[0] == first;
+        assert ([first] + tail)[1] == tail[0];
+      } else {
+        assert ([first] + tail)[i] == tail[i-1];
+        assert ([first] + tail)[i+1] == tail[i];
+      }
+    }
+  }
+
   // Combined ensures so AllValid precedes StrictlyNormalized.
-  lemma {:axiom} SweepNormalized(s: Tumbler, r: Tumbler, remaining: seq<SpanEntry>)
+  lemma SweepNormalized(s: Tumbler, r: Tumbler, remaining: seq<SpanEntry>)
     requires InT(s) && InT(r) && LO.LexicographicOrder(s, r)
     requires Length(s) == Length(r)
     requires AllValid(remaining) && AllLevelUniform(remaining)
@@ -453,6 +513,46 @@ module NormalizationExistence {
     requires ReachesAfterS(s, remaining)
     requires PairwiseReach(remaining)
     ensures AllValid(Sweep(s, r, remaining)) && StrictlyNormalized(Sweep(s, r, remaining))
+    decreases |remaining|
+  {
+    SweepValid(s, r, remaining);
+    WF.WellFormedSpanFromEndpoints(s, r);
+    var w := TS.TumblerSub(r, s);
+    if |remaining| == 0 {
+    } else {
+      var sigma := remaining[0];
+      var r_sigma := Reach(sigma);
+      var rest := remaining[1..];
+      if sigma.start == r || LO.LexicographicOrder(sigma.start, r) {
+        RestPrecond(s, r, remaining);
+        if LO.LexicographicOrder(r, r_sigma) {
+          // A1: Sweep(s, r, remaining) == Sweep(s, r_sigma, rest).
+          assert LO.LexicographicOrder(s, r_sigma) by { LexTrans(s, r, r_sigma); }
+          SweepNormalized(s, r_sigma, rest);
+        } else {
+          // A2: Sweep(s, r, remaining) == Sweep(s, r, rest).
+          SweepNormalized(s, r, rest);
+        }
+      } else {
+        // B: Sweep(s, r, remaining) == [SpanEntry(s, w)] + Sweep(sigma.start, r_sigma, rest).
+        assert LO.LexicographicOrder(r, sigma.start) by {
+          IC.IntrinsicComparison(sigma.start, r);
+          assert IC.Compare(sigma.start, r) != IC.LT;
+          assert IC.Compare(sigma.start, r) != IC.EQ;
+        }
+        EmitRestPrecond(s, r, remaining);
+        SweepNormalized(sigma.start, r_sigma, rest);
+        var tail := Sweep(sigma.start, r_sigma, rest);
+        SweepFirstStart(sigma.start, r_sigma, rest);
+        var first := SpanEntry(s, w);
+        assert Reach(first) == r;
+        assert LO.LexicographicOrder(s, sigma.start) by { LexTrans(s, r, sigma.start); }
+        assert LO.LexicographicOrder(Reach(first), tail[0].start);
+        StrictlyNormalizedConcat(first, tail);
+        assert Sweep(s, r, remaining) == [first] + tail;
+      }
+    }
+  }
 
   // ─── Sweep correctness: denotation (axiom) ────────────────────────────────
 
