@@ -21,6 +21,9 @@ module SplitWidthComposition {
   import LCan = LeftCancellation
 
   // S5: width(λ) ⊕ width(ρ) = width(σ), where λ and ρ are the two split parts.
+  // ValidSpan ensures #1/#2 serve as well-formedness dischargers for the TumblerAdd
+  // call in subsequent ensures (Dafny checks ensures preconditions from requires +
+  // preceding ensures, not the body).  The contract postconditions are #3/#4/#5.
   lemma SplitWidthComposition(sigma: SpanEntry, p: Tumbler)
     requires ValidSpan(sigma)
     requires LC.LevelUniform(sigma)
@@ -28,6 +31,8 @@ module SplitWidthComposition {
     requires LO.LexicographicOrder(sigma.start, p)
     requires LO.LexicographicOrder(p, Reach(sigma))
     requires Length(p) == Length(sigma.start)
+    ensures ValidSpan(SpanEntry(sigma.start, TS.TumblerSub(p, sigma.start)))
+    ensures ValidSpan(SpanEntry(p, TS.TumblerSub(Reach(sigma), p)))
     ensures TA.TumblerAdd(TS.TumblerSub(p, sigma.start), TS.TumblerSub(Reach(sigma), p)) == sigma.width
     ensures PositiveTumbler.PositiveTumbler(TA.TumblerAdd(TS.TumblerSub(p, sigma.start), TS.TumblerSub(Reach(sigma), p)))
     ensures
@@ -44,7 +49,6 @@ module SplitWidthComposition {
 
     // w1 is valid: TumblerAdd(s, w1) = p, Pos(w1), AP(w1) <= Length(s)
     WF.WellFormedSpanFromEndpoints(s, p);
-    assert ValidSpan(SpanEntry(s, w1));
     assert TA.TumblerAdd(s, w1) == p;
 
     // Length(r) = Length(s) from LevelConstraint
@@ -53,7 +57,6 @@ module SplitWidthComposition {
 
     // w2 is valid: TumblerAdd(p, w2) = r, Pos(w2), AP(w2) <= Length(p)
     WF.WellFormedSpanFromEndpoints(p, r);
-    assert ValidSpan(SpanEntry(p, w2));
     assert TA.TumblerAdd(p, w2) == r;
 
     // AP(w2) <= Length(p) = Length(s) = Length(w1), so TumblerAdd(w1, w2) is well-formed
