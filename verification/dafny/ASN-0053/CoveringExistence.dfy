@@ -222,11 +222,16 @@ module CoveringExistence {
   }
 
   // S7 (CoveringExistence): CoveringSpanSet(P) has length |P| and covers P.
+  // Second conjunct: no span-set exactly represents a non-empty finite P
+  // (every non-empty span denotation is infinite; the empty denotation misses P[0]).
   lemma CoveringExistence(P: seq<Tumbler>)
     requires forall i :: 0 <= i < |P| ==> InT(P[i])
     ensures |CoveringSpanSet(P)| == |P|
     ensures forall i :: 0 <= i < |P| ==>
               P[i] in CollectiveDenotation(CoveringSpanSet(P))
+    ensures |P| > 0 ==>
+              forall sigma: seq<SpanEntry> ::
+                CollectiveDenotation(sigma) != (iset i | 0 <= i < |P| :: P[i])
   {
     var sigma := CoveringSpanSet(P);
     forall i | 0 <= i < |P|
@@ -239,6 +244,24 @@ module CoveringExistence {
       assert P[i] in S.Span(P[i], UnitWidth(P[i]));
       assert P[i] in S.Span(sigma[i].start, sigma[i].width);
       EntryCoversCollective(sigma, i, P[i]);
+    }
+    if |P| > 0 {
+      forall tau: seq<SpanEntry>
+        ensures CollectiveDenotation(tau) != (iset i | 0 <= i < |P| :: P[i])
+      {
+        if exists j :: 0 <= j < |tau| && ValidSpan(tau[j]) {
+          NoExactRepresentation(P, tau);
+        } else {
+          // No valid spans → denotation is empty; P-as-iset is non-empty.
+          assert forall j :: 0 <= j < |tau| ==> !ValidSpan(tau[j]);
+          NoValidSpansEmpty(tau);
+          assert CollectiveDenotation(tau) == iset{};
+          assert P[0] in (iset i | 0 <= i < |P| :: P[i]) by {
+            assert exists i :: 0 <= i < |P| && P[i] == P[0] by { var i := 0; }
+          }
+          assert P[0] !in CollectiveDenotation(tau);
+        }
+      }
     }
   }
 }
