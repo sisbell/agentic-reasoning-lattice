@@ -45,5 +45,11 @@ module MergeSplitInverse {
                          TS.TumblerSub(alpha.start, ME.MergeStart(alpha, beta))) == beta &&
                SpanEntry(alpha.start,
                          TS.TumblerSub(ME.MergeReach(alpha, beta), alpha.start)) == alpha)
-  { }
+  {
+    ME.StartLtReach(alpha, beta);
+    WR.WidthRecovery(alpha);
+    WR.WidthRecovery(beta);
+    IC.IntrinsicComparison(alpha.start, beta.start);
+    IC.IntrinsicComparison(Reach(alpha), Reach(beta));
+  }
 }
