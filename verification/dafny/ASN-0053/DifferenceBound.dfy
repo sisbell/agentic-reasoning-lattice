@@ -371,6 +371,26 @@ module DifferenceBound {
     }
   }
 
+  // Axiom derivation: ⟦β⟧ ⊆ ⟦α⟧ implies the boundary conditions start(α) ≤ start(β) and reach(β) ≤ reach(α).
+  lemma ContainmentToBoundary(alpha: SpanEntry, beta: SpanEntry)
+    requires ValidSpan(alpha) && ValidSpan(beta)
+    requires S.Span(beta.start, beta.width) <= S.Span(alpha.start, alpha.width)
+    ensures Leq(alpha.start, beta.start)
+    ensures Leq(Reach(beta), Reach(alpha))
+  {
+    // start bound: beta.start ∈ ⟦β⟧ ⊆ ⟦α⟧; membership in ⟦α⟧ yields alpha.start ≤ beta.start
+    SWD.SpanWellDefinedness(beta.start, beta.width);
+    assert beta.start in S.Span(alpha.start, alpha.width);
+    // reach bound: suppose Reach(alpha) < Reach(beta); then Reach(alpha) ∈ ⟦β⟧ ⊆ ⟦α⟧,
+    // but Reach(alpha) is ⟦α⟧'s exclusive upper bound — contradiction via IC
+    if !Leq(Reach(beta), Reach(alpha)) {
+      IC.IntrinsicComparison(Reach(beta), Reach(alpha));
+      IC.IntrinsicComparison(Reach(alpha), Reach(alpha));
+      assert Reach(alpha) in S.Span(beta.start, beta.width);
+      assert false;
+    }
+  }
+
   // S11 correctness: assembles the four cases.
   lemma DifferenceBoundCorrect(alpha: SpanEntry, beta: SpanEntry)
     requires ValidSpan(alpha) && ValidSpan(beta)
