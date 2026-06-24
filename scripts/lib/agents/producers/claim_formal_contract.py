@@ -76,7 +76,7 @@ def synthesize_contract(
         .replace("{{section}}", section)
         .replace("{{dependency_sections}}", dep_text)
     )
-    response = invoke_claude(prompt, model=model, effort="high")
+    response = invoke_claude(prompt, model=model, effort="xhigh")
     if not response.text:
         return None, response.elapsed
     return response.text.strip(), response.elapsed
@@ -96,7 +96,7 @@ def review_rewrite(
         .replace("{{before}}", before)
         .replace("{{after}}", after)
     )
-    response = invoke_claude(prompt, model=model, effort="high")
+    response = invoke_claude(prompt, model=model, effort="xhigh")
     text = response.text or ""
     if "RESULT: PASS" in text:
         return True, ""
@@ -136,7 +136,7 @@ def validate_contract(
         .replace("{{signature}}", signature or "(none)")
         .replace("{{dependencies}}", dependencies or "(none)")
     )
-    response = invoke_claude(prompt, model=model, effort="high")
+    response = invoke_claude(prompt, model=model, effort="xhigh")
     text = response.text or ""
     if "RESULT: MATCH" in text:
         return True, ""
