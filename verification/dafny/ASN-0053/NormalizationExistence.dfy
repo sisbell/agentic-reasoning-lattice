@@ -369,6 +369,76 @@ module NormalizationExistence {
     }
   }
 
+  // Containment: S.Span(sigma) ⊆ S.Span(s, r-s) when s ≤ start and reach ≤ r.
+  // Used in Sweep case A2 where sigma is absorbed into the current window [s, r).
+  lemma SpanContainedIn(s: Tumbler, r: Tumbler, sigma: SpanEntry)
+    requires InT(s) && InT(r) && LO.LexicographicOrder(s, r)
+    requires Length(s) == Length(r)
+    requires ValidSpan(SpanEntry(s, TS.TumblerSub(r, s)))
+    requires ValidSpan(sigma)
+    requires s == sigma.start || LO.LexicographicOrder(s, sigma.start)
+    requires sigma.start == r || LO.LexicographicOrder(sigma.start, r)
+    requires Reach(sigma) == r || LO.LexicographicOrder(Reach(sigma), r)
+    ensures S.Span(s, TS.TumblerSub(r, s)) + S.Span(sigma.start, sigma.width) ==
+            S.Span(s, TS.TumblerSub(r, s))
+  {
+    WF.WellFormedSpanFromEndpoints(s, r);
+    var w := TS.TumblerSub(r, s);
+    var r_sigma := Reach(sigma);
+    forall t: Tumbler | t in S.Span(sigma.start, sigma.width)
+      ensures t in S.Span(s, w)
+    {
+      if s != sigma.start && sigma.start != t { LexTrans(s, sigma.start, t); }
+      if r_sigma != r { LexTrans(t, r_sigma, r); }
+    }
+  }
+
+  // Overlap union: S.Span(s, r_sigma-s) = S.Span(s, r-s) ∪ S.Span(sigma)
+  // when s ≤ start ≤ r < r_sigma. Used in Sweep case A1.
+  lemma {:timeLimitMultiplier 4} SpanUnionOverlap(s: Tumbler, r: Tumbler, r_sigma: Tumbler, sigma: SpanEntry)
+    requires InT(s) && InT(r) && InT(r_sigma)
+    requires LO.LexicographicOrder(s, r) && LO.LexicographicOrder(r, r_sigma)
+    requires LO.LexicographicOrder(s, r_sigma)
+    requires Length(s) == Length(r) && Length(s) == Length(r_sigma)
+    requires ValidSpan(SpanEntry(s, TS.TumblerSub(r, s)))
+    requires ValidSpan(SpanEntry(s, TS.TumblerSub(r_sigma, s)))
+    requires ValidSpan(sigma) && Reach(sigma) == r_sigma
+    requires s == sigma.start || LO.LexicographicOrder(s, sigma.start)
+    requires sigma.start == r || LO.LexicographicOrder(sigma.start, r)
+    ensures S.Span(s, TS.TumblerSub(r_sigma, s)) ==
+            S.Span(s, TS.TumblerSub(r, s)) + S.Span(sigma.start, sigma.width)
+  {
+    WF.WellFormedSpanFromEndpoints(s, r);
+    WF.WellFormedSpanFromEndpoints(s, r_sigma);
+    var w := TS.TumblerSub(r, s);
+    var w2 := TS.TumblerSub(r_sigma, s);
+    // Forward: every element of S.Span(s, w2) is in the union
+    forall t: Tumbler | t in S.Span(s, w2)
+      ensures t in S.Span(s, w) || t in S.Span(sigma.start, sigma.width)
+    {
+      IC.IntrinsicComparison(t, r);
+      if IC.Compare(t, r) == IC.GT {
+        // LO(r, t): sigma.start <= r < t
+        if sigma.start != r { LexTrans(sigma.start, r, t); }
+        // t in S.Span(sigma.start, sigma.width): sigma.start <= t ✓, LO(t, r_sigma) ✓
+      }
+      // LT case: t in S.Span(s, w) automatically (s<=t ✓, LO(t,r) ✓)
+      // EQ case (t == r): sigma.start <= r = t and LO(r, r_sigma) — auto
+    }
+    // Backward: every element of the union is in S.Span(s, w2)
+    forall t: Tumbler | t in S.Span(s, w) || t in S.Span(sigma.start, sigma.width)
+      ensures t in S.Span(s, w2)
+    {
+      if t in S.Span(s, w) {
+        LexTrans(t, r, r_sigma);
+      } else {
+        // t in S.Span(sigma.start, sigma.width): sigma.start <= t < r_sigma
+        if s != sigma.start && sigma.start != t { LexTrans(s, sigma.start, t); }
+        // LO(t, r_sigma) ✓ from span; s <= t ✓ derived above
+      }
+    }
+  }
+
   // ─── Sweep correctness: StrictlyNormalized (axiom) ────────────────────────
 
   // Combined ensures so AllValid precedes StrictlyNormalized.
@@ -388,7 +458,7 @@ module NormalizationExistence {
 
   // Fix: ValidSpan ensures S.Span(s, TS.TumblerSub(r, s)) is well-formed in ensures.
   // Combined ensures so AllValid precedes Denote call.
-  lemma {:axiom} SweepDenote(s: Tumbler, r: Tumbler, remaining: seq<SpanEntry>)
+  lemma {:timeLimitMultiplier 4} SweepDenote(s: Tumbler, r: Tumbler, remaining: seq<SpanEntry>)
     requires InT(s) && InT(r) && LO.LexicographicOrder(s, r)
     requires Length(s) == Length(r)
     requires ValidSpan(SpanEntry(s, TS.TumblerSub(r, s)))
@@ -401,6 +471,51 @@ module NormalizationExistence {
     requires PairwiseReach(remaining)
     ensures AllValid(Sweep(s, r, remaining)) &&
             Denote(Sweep(s, r, remaining)) == S.Span(s, TS.TumblerSub(r, s)) + Denote(remaining)
+    decreases |remaining|
+  {
+    SweepValid(s, r, remaining);
+    WF.WellFormedSpanFromEndpoints(s, r);
+    var w := TS.TumblerSub(r, s);
+    if |remaining| == 0 {
+      DenoteConsElim(s, w, []);
+    } else {
+      var sigma := remaining[0];
+      var r_sigma := Reach(sigma);
+      var rest := remaining[1..];
+      if sigma.start == r || LO.LexicographicOrder(sigma.start, r) {
+        RestPrecond(s, r, remaining);
+        if LO.LexicographicOrder(r, r_sigma) {
+          // A1: overlap-extend. Sweep recurses with r_sigma as new reach.
+          assert LO.LexicographicOrder(s, r_sigma) by { LexTrans(s, r, r_sigma); }
+          WF.WellFormedSpanFromEndpoints(s, r_sigma);
+          SweepDenote(s, r_sigma, rest);
+          SpanUnionOverlap(s, r, r_sigma, sigma);
+          DenoteHead(remaining);
+        } else {
+          // A2: absorbed. Sweep recurses with same reach r.
+          IC.IntrinsicComparison(r, r_sigma);
+          assert r == r_sigma || LO.LexicographicOrder(r_sigma, r);
+          SweepDenote(s, r, rest);
+          SpanContainedIn(s, r, sigma);
+          DenoteHead(remaining);
+        }
+      } else {
+        // B: gap-emit. Sweep emits [SpanEntry(s,w)] then recurses on sigma.
+        assert LO.LexicographicOrder(r, sigma.start) by {
+          IC.IntrinsicComparison(sigma.start, r);
+          assert IC.Compare(sigma.start, r) != IC.LT;
+          assert IC.Compare(sigma.start, r) != IC.EQ;
+        }
+        EmitRestPrecond(s, r, remaining);
+        var ws := TS.TumblerSub(r_sigma, sigma.start);
+        WF.WellFormedSpanFromEndpoints(sigma.start, r_sigma);
+        SweepDenote(sigma.start, r_sigma, rest);
+        SpansSameReach(sigma.start, ws, sigma.width, r_sigma);
+        DenoteHead(remaining);
+        DenoteConsElim(s, w, Sweep(sigma.start, r_sigma, rest));
+      }
+    }
+  }
 
   // ─── Establishing Sweep preconditions for the first call ──────────────────
 
