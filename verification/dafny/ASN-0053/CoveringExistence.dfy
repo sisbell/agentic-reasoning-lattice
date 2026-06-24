@@ -184,6 +184,34 @@ module CoveringExistence {
     }
   }
 
+  // For any non-empty P and any sigma with at least one valid span,
+  // CollectiveDenotation(sigma) cannot equal the finite iset {P[0],...,P[|P|-1]}.
+  // Witness: e = TrailingZeroExt(sigma[j].start, MaxLength(P)+1).
+  //   e ∈ CollectiveDenotation(sigma) (via TrailingZeroInGeneralSpan).
+  //   For every P[i]: Length(e) >= 1 + MaxLength(P) + 1 > MaxLength(P) >= Length(P[i]),
+  //   so e ≠ P[i], hence e ∉ P-as-iset.
+  lemma NoExactRepresentation(P: seq<Tumbler>, sigma: seq<SpanEntry>)
+    requires |P| > 0
+    requires forall i :: 0 <= i < |P| ==> InT(P[i])
+    requires exists j :: 0 <= j < |sigma| && ValidSpan(sigma[j])
+    ensures CollectiveDenotation(sigma) != (iset i | 0 <= i < |P| :: P[i])
+  {
+    var j :| 0 <= j < |sigma| && ValidSpan(sigma[j]);
+    MaxLengthBound(P);
+    var ml := MaxLength(P);
+    var e := TrailingZeroExt(sigma[j].start, ml + 1);
+    TrailingZeroInGeneralSpan(sigma[j].start, sigma[j].width, ml + 1);
+    EntryCoversCollective(sigma, j, e);
+    assert e in CollectiveDenotation(sigma);
+    assert e !in (iset i | 0 <= i < |P| :: P[i]) by {
+      forall i | 0 <= i < |P| ensures e != P[i] {
+        assert Length(P[i]) <= ml;
+        assert Length(sigma[j].start) >= 1;
+        assert Length(e) >= ml + 2;
+      }
+    }
+  }
+
   // Covering construction: sigma_i = SpanEntry(t_i, UnitWidth(t_i)).
   function CoveringSpanSet(P: seq<Tumbler>): seq<SpanEntry>
     requires forall i :: 0 <= i < |P| ==> InT(P[i])
