@@ -300,8 +300,7 @@ module NormalizationExistence {
     }
   }
 
-  // Fix: axiomatized — same inductive structure as Sweep body, deferred proof.
-  lemma {:axiom} SweepValid(s: Tumbler, r: Tumbler, remaining: seq<SpanEntry>)
+  lemma SweepValid(s: Tumbler, r: Tumbler, remaining: seq<SpanEntry>)
     requires InT(s) && InT(r) && LO.LexicographicOrder(s, r)
     requires Length(s) == Length(r)
     requires AllValid(remaining) && AllLevelUniform(remaining)
@@ -312,6 +311,41 @@ module NormalizationExistence {
     requires ReachesAfterS(s, remaining)
     requires PairwiseReach(remaining)
     ensures AllValid(Sweep(s, r, remaining))
+    decreases |remaining|
+  {
+    if |remaining| == 0 {
+      // Sweep returns [SpanEntry(s, TS.TumblerSub(r, s))]; WF certifies it valid.
+      WF.WellFormedSpanFromEndpoints(s, r);
+    } else {
+      var sigma := remaining[0];
+      var r_sigma := Reach(sigma);   // postcond: InT(r_sigma), LO(sigma.start, r_sigma)
+      if sigma.start == r || LO.LexicographicOrder(sigma.start, r) {
+        // Merge branch: Sweep recurses on remaining[1..] with s unchanged.
+        RestPrecond(s, r, remaining);
+        if LO.LexicographicOrder(r, r_sigma) {
+          // Extend: Sweep(s, r_sigma, remaining[1..])
+          assert LO.LexicographicOrder(s, r_sigma) by { LexTrans(s, r, r_sigma); }
+          assert Length(s) == Length(r_sigma);
+          SweepValid(s, r_sigma, remaining[1..]);
+        } else {
+          // Keep r: Sweep(s, r, remaining[1..])
+          SweepValid(s, r, remaining[1..]);
+        }
+      } else {
+        // Emit branch: [SpanEntry(s, TS.TumblerSub(r, s))] + Sweep(sigma.start, r_sigma, remaining[1..])
+        WF.WellFormedSpanFromEndpoints(s, r);
+        assert LO.LexicographicOrder(r, sigma.start) by {
+          IC.IntrinsicComparison(sigma.start, r);
+          assert IC.Compare(sigma.start, r) != IC.LT;
+          assert IC.Compare(sigma.start, r) != IC.EQ;
+          assert IC.Compare(sigma.start, r) == IC.GT;
+        }
+        EmitRestPrecond(s, r, remaining);
+        SweepValid(sigma.start, r_sigma, remaining[1..]);
+        AllValidConcat([SpanEntry(s, TS.TumblerSub(r, s))], Sweep(sigma.start, r_sigma, remaining[1..]));
+      }
+    }
+  }
 
   // ─── Sweep correctness: StrictlyNormalized (axiom) ────────────────────────
 
