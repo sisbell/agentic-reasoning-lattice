@@ -87,6 +87,20 @@ module NormalizationExistence {
     }
   }
 
+  lemma AllValidRemove(spans: seq<SpanEntry>, k: nat)
+    requires AllValid(spans) && 0 <= k < |spans|
+    ensures AllValid(spans[..k] + spans[k+1..])
+  {
+    var removed := spans[..k] + spans[k+1..];
+    forall i | 0 <= i < |removed| ensures ValidSpan(removed[i]) {
+      if i < k {
+        assert removed[i] == spans[i];
+      } else {
+        assert removed[i] == spans[i + 1];
+      }
+    }
+  }
+
   lemma LexTrans(a: Tumbler, b: Tumbler, c: Tumbler)
     requires InT(a) && InT(b) && InT(c)
     requires LO.LexicographicOrder(a, b) && LO.LexicographicOrder(b, c)
@@ -129,9 +143,17 @@ module NormalizationExistence {
     ensures AllValid(sorted) && AllLevelUniform(sorted) && MutuallyLevelCompatible(sorted) && NonDecreasing(sorted)
     ensures multiset(sorted) == multiset(spans)
 
-  lemma {:axiom} SortDenotePreserved(spans: seq<SpanEntry>)
+  // Proved from Sort's multiset guarantee: any permutation of a sequence
+  // has the same Denote because iset union is order-independent.
+  lemma SortDenotePreserved(spans: seq<SpanEntry>)
     requires AllValid(spans) && AllLevelUniform(spans) && MutuallyLevelCompatible(spans)
     ensures Denote(Sort(spans)) == Denote(spans)
+  {
+    var sorted := Sort(spans);
+    assert AllValid(sorted);
+    assert multiset(sorted) == multiset(spans);
+    DenoteSameMultiset(sorted, spans);
+  }
 
   // ─── Sweep precondition packaging ─────────────────────────────────────────
 
@@ -502,6 +524,109 @@ module NormalizationExistence {
     ensures Denote(spans) == S.Span(spans[0].start, spans[0].width) + Denote(spans[1..])
   {
     AllValidTail(spans);
+  }
+
+  // Removing element at index k and unfolding the head shows Denote is
+  // order-independent: Denote(spans) = S.Span(spans[k]) + Denote(spans without k).
+  lemma DenoteRemoveAdd(spans: seq<SpanEntry>, k: nat)
+    requires AllValid(spans) && 0 <= k < |spans|
+    ensures AllValid(spans[..k] + spans[k+1..])
+    ensures Denote(spans) == S.Span(spans[k].start, spans[k].width) + Denote(spans[..k] + spans[k+1..])
+    decreases k
+  {
+    AllValidRemove(spans, k);
+    if k == 0 {
+      AllValidTail(spans);
+      assert spans[..0] + spans[1..] == spans[1..];
+    } else {
+      AllValidTail(spans);
+      DenoteRemoveAdd(spans[1..], k - 1);
+      assert spans[1..][k - 1] == spans[k];
+      assert spans[1..][..k - 1] + spans[1..][k..] == spans[1..k] + spans[k+1..];
+      assert AllValid(spans[1..k] + spans[k+1..]) by {
+        forall i | 0 <= i < |spans[1..k] + spans[k+1..]|
+          ensures ValidSpan((spans[1..k] + spans[k+1..])[i])
+        {
+          if i < k - 1 {
+            assert (spans[1..k] + spans[k+1..])[i] == spans[i + 1];
+          } else {
+            assert (spans[1..k] + spans[k+1..])[i] == spans[i + 2];
+          }
+        }
+      }
+      assert ValidSpan(spans[0]);
+      DenoteConsElim(spans[0].start, spans[0].width, spans[1..k] + spans[k+1..]);
+      assert [spans[0]] + (spans[1..k] + spans[k+1..]) == spans[..k] + spans[k+1..];
+      ISetUnionAssocComm(
+        S.Span(spans[0].start, spans[0].width),
+        S.Span(spans[k].start, spans[k].width),
+        Denote(spans[1..k] + spans[k+1..])
+      );
+    }
+  }
+
+  // FindFirst uses multiset membership (not sequence membership) to avoid
+  // a slow exists-witness conversion that causes solver timeouts.
+  ghost function FindFirst(b: seq<SpanEntry>, e: SpanEntry): nat
+    requires e in multiset(b)
+    ensures FindFirst(b, e) < |b|
+    ensures b[FindFirst(b, e)] == e
+    decreases |b|
+  {
+    if b[0] == e then 0 else FindFirst(b[1..], e) + 1
+  }
+
+  // Pure multiset arithmetic (no AllValid quantifiers): if multiset(a)==multiset(b)
+  // and b[k]==a[0], then multiset(a[1..])==multiset(b[..k]+b[k+1..]).
+  // Isolated from AllValid context to prevent Z3 quantifier thrashing.
+  lemma MultisetTailAfterRemove(a: seq<SpanEntry>, b: seq<SpanEntry>, k: nat)
+    requires 0 < |a| && 0 <= k < |b|
+    requires multiset(a) == multiset(b)
+    requires b[k] == a[0]
+    ensures multiset(a[1..]) == multiset(b[..k] + b[k+1..])
+  {
+    assert a == [a[0]] + a[1..];
+    assert b == b[..k] + [b[k]] + b[k+1..];
+    forall e: SpanEntry ensures multiset(a[1..])[e] == multiset(b[..k] + b[k+1..])[e]
+    {
+      assert multiset(a)[e] == multiset{a[0]}[e] + multiset(a[1..])[e];
+      assert multiset(b)[e] == multiset{a[0]}[e] + multiset(b[..k] + b[k+1..])[e];
+      assert multiset(a)[e] == multiset(b)[e];
+    }
+  }
+
+  // Two sequences with the same multiset have the same Denote
+  // (iset union is order-independent). Proof by induction on |a|.
+  lemma DenoteSameMultiset(a: seq<SpanEntry>, b: seq<SpanEntry>)
+    requires AllValid(a) && AllValid(b)
+    requires multiset(a) == multiset(b)
+    ensures Denote(a) == Denote(b)
+    decreases |a|
+  {
+    if |a| == 0 {
+      assert |b| == 0;
+    } else {
+      var e := a[0];
+      var a' := a[1..];
+      AllValidTail(a);
+      assert e in multiset(a);
+      assert e in multiset(b);
+      var k := FindFirst(b, e);
+      var b' := b[..k] + b[k+1..];
+      AllValidRemove(b, k);
+      MultisetTailAfterRemove(a, b, k);
+      DenoteSameMultiset(a', b');
+      calc {
+        Denote(a);
+        == { DenoteHead(a); }
+           S.Span(e.start, e.width) + Denote(a');
+        == S.Span(e.start, e.width) + Denote(b');
+        == { DenoteRemoveAdd(b, k);
+             assert b[k] == e;
+             assert b' == b[..k] + b[k+1..]; }
+           Denote(b);
+      }
+    }
   }
 
   // ─── Main theorem: NormalizationExistence ─────────────────────────────────
