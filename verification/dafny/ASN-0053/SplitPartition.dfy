@@ -84,6 +84,11 @@ module SplitPartition {
           LO.LexicographicOrder(t, p)) ||
         ((t == p || LO.LexicographicOrder(p, t)) &&
           LO.LexicographicOrder(t, Reach(sigma)))))
+    ensures forall t :: InT(t) ==>
+      !(((t == sigma.start || LO.LexicographicOrder(sigma.start, t)) &&
+          LO.LexicographicOrder(t, p)) &&
+        ((t == p || LO.LexicographicOrder(p, t)) &&
+          LO.LexicographicOrder(t, Reach(sigma))))
   {
     forall t | InT(t)
       ensures ((t in S.Span(sigma.start, sigma.width)) <==>
@@ -117,6 +122,15 @@ module SplitPartition {
           SWD.LexicographicTransitive(sigma.start, p, t);
         }
       }
+    }
+    // (b) disjointness: t < p and t ≥ p cannot both hold by trichotomy
+    forall t | InT(t)
+      ensures !(((t == sigma.start || LO.LexicographicOrder(sigma.start, t)) &&
+                  LO.LexicographicOrder(t, p)) &&
+                ((t == p || LO.LexicographicOrder(p, t)) &&
+                  LO.LexicographicOrder(t, Reach(sigma))))
+    {
+      IC.IntrinsicComparison(t, p);
     }
   }
 }
