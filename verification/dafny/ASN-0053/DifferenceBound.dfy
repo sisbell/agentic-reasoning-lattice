@@ -28,7 +28,6 @@ module DifferenceBound {
   import TS = TumblerSub
   import IC = IntrinsicComparison
 
-  // ≤ on tumblers: equals or strictly less.
   ghost predicate Leq(a: Tumbler, b: Tumbler)
     requires InT(a) && InT(b)
   {
@@ -55,7 +54,6 @@ module DifferenceBound {
     left + right
   }
 
-  // Left span λ is well-formed when start(α) < start(β).
   lemma LeftSpanValid(alpha: SpanEntry, beta: SpanEntry)
     requires ValidSpan(alpha) && ValidSpan(beta)
     requires LC.LevelCompat(alpha.start, beta.start)
@@ -66,7 +64,6 @@ module DifferenceBound {
     WF.WellFormedSpanFromEndpoints(alpha.start, beta.start);
   }
 
-  // Right span ρ is well-formed when reach(β) < reach(α).
   lemma RightSpanValid(alpha: SpanEntry, beta: SpanEntry)
     requires ValidSpan(alpha) && ValidSpan(beta)
     requires LC.LevelUniform(alpha) && LC.LevelUniform(beta)
@@ -80,9 +77,6 @@ module DifferenceBound {
     WF.WellFormedSpanFromEndpoints(Reach(beta), Reach(alpha));
   }
 
-  // ── Correctness ────────────────────────────────────────────────────────────
-
-  // Collective denotation: union of span denotations (skips invalid entries).
   ghost function CollectiveDenotation(spans: seq<SpanEntry>): iset<Tumbler>
     decreases |spans|
   {
@@ -101,7 +95,259 @@ module DifferenceBound {
     SWD.LexicographicTransitive(a, b, c);
   }
 
-  // S11 correctness: CollectiveDenotation(DifferenceBound(α,β)) = ⟦α⟧ \ ⟦β⟧.
+  lemma BetaStartLtReachAlpha(alpha: SpanEntry, beta: SpanEntry)
+    requires ValidSpan(alpha) && ValidSpan(beta)
+    requires Leq(Reach(beta), Reach(alpha))
+    ensures LexicographicOrder.LexicographicOrder(beta.start, Reach(alpha))
+  {
+    SWD.SpanWellDefinedness(beta.start, beta.width);
+    if Reach(beta) == Reach(alpha) { }
+    else { LexTrans(beta.start, Reach(beta), Reach(alpha)); }
+  }
+
+  lemma AlphaStartLtReachBeta(alpha: SpanEntry, beta: SpanEntry)
+    requires ValidSpan(alpha) && ValidSpan(beta)
+    requires Leq(alpha.start, beta.start)
+    ensures LexicographicOrder.LexicographicOrder(alpha.start, Reach(beta))
+  {
+    SWD.SpanWellDefinedness(beta.start, beta.width);
+    if alpha.start == beta.start { }
+    else { LexTrans(alpha.start, beta.start, Reach(beta)); }
+  }
+
+  // ── Per-case correctness lemmas ────────────────────────────────────────────
+
+  // BothActive forward: every element of collective is in the difference.
+  lemma {:vcs_split_on_every_assert} BothActiveForward(alpha: SpanEntry, beta: SpanEntry)
+    requires ValidSpan(alpha) && ValidSpan(beta)
+    requires LC.LevelUniform(alpha) && LC.LevelUniform(beta)
+    requires LC.LevelCompat(alpha.start, beta.start)
+    requires LexicographicOrder.LexicographicOrder(alpha.start, beta.start)
+    requires LexicographicOrder.LexicographicOrder(Reach(beta), Reach(alpha))
+    ensures forall t: Tumbler | t in CollectiveDenotation(DifferenceBound(alpha, beta)) ::
+            t in S.Span(alpha.start, alpha.width) - S.Span(beta.start, beta.width)
+  {
+    LeftSpanValid(alpha, beta);
+    RightSpanValid(alpha, beta);
+    var lambda := SpanEntry(alpha.start, TS.TumblerSub(beta.start, alpha.start));
+    var rho := SpanEntry(Reach(beta), TS.TumblerSub(Reach(alpha), Reach(beta)));
+    assert DifferenceBound(alpha, beta) == [lambda, rho];
+    assert Reach(lambda) == beta.start;
+    assert Reach(rho) == Reach(alpha);
+    SWD.SpanWellDefinedness(beta.start, beta.width);
+    // Prove CollectiveDenotation equality via one-step unfoldings
+    assert CollectiveDenotation([lambda, rho]) ==
+           S.Span(lambda.start, lambda.width) + CollectiveDenotation([rho]);
+    assert CollectiveDenotation([rho]) ==
+           S.Span(rho.start, rho.width) + CollectiveDenotation([]);
+    assert CollectiveDenotation([]) == iset{};
+    assert CollectiveDenotation(DifferenceBound(alpha, beta)) ==
+           S.Span(lambda.start, lambda.width) + S.Span(rho.start, rho.width);
+
+    forall t: Tumbler | t in CollectiveDenotation(DifferenceBound(alpha, beta))
+      ensures t in S.Span(alpha.start, alpha.width) - S.Span(beta.start, beta.width)
+    {
+      if t in S.Span(lambda.start, lambda.width) {
+        // t < beta.start < Reach(beta) ≤ Reach(alpha) → t ∈ S.Span(alpha); t < beta.start → t ∉ S.Span(beta)
+        LexTrans(t, beta.start, Reach(beta));
+        if Reach(beta) != Reach(alpha) { LexTrans(t, Reach(beta), Reach(alpha)); }
+        IC.IntrinsicComparison(t, beta.start);
+      } else {
+        // t ∈ S.Span(rho): Reach(beta) ≤ t < Reach(alpha); alpha.start < Reach(beta) ≤ t → t ∈ S.Span(alpha)
+        AlphaStartLtReachBeta(alpha, beta);
+        if Reach(beta) == t { } else { LexTrans(alpha.start, Reach(beta), t); }
+        IC.IntrinsicComparison(t, Reach(beta));
+      }
+    }
+  }
+
+  // BothActive backward: every element of the difference is in collective.
+  lemma {:vcs_split_on_every_assert} BothActiveBackward(alpha: SpanEntry, beta: SpanEntry)
+    requires ValidSpan(alpha) && ValidSpan(beta)
+    requires LC.LevelUniform(alpha) && LC.LevelUniform(beta)
+    requires LC.LevelCompat(alpha.start, beta.start)
+    requires LexicographicOrder.LexicographicOrder(alpha.start, beta.start)
+    requires LexicographicOrder.LexicographicOrder(Reach(beta), Reach(alpha))
+    ensures forall t: Tumbler | t in S.Span(alpha.start, alpha.width) - S.Span(beta.start, beta.width) ::
+            t in CollectiveDenotation(DifferenceBound(alpha, beta))
+  {
+    LeftSpanValid(alpha, beta);
+    RightSpanValid(alpha, beta);
+    var lambda := SpanEntry(alpha.start, TS.TumblerSub(beta.start, alpha.start));
+    var rho := SpanEntry(Reach(beta), TS.TumblerSub(Reach(alpha), Reach(beta)));
+    assert DifferenceBound(alpha, beta) == [lambda, rho];
+    assert Reach(lambda) == beta.start;
+    assert Reach(rho) == Reach(alpha);
+    SWD.SpanWellDefinedness(beta.start, beta.width);
+    // Prove CollectiveDenotation equality via one-step unfoldings
+    assert CollectiveDenotation([lambda, rho]) ==
+           S.Span(lambda.start, lambda.width) + CollectiveDenotation([rho]);
+    assert CollectiveDenotation([rho]) ==
+           S.Span(rho.start, rho.width) + CollectiveDenotation([]);
+    assert CollectiveDenotation([]) == iset{};
+    assert CollectiveDenotation(DifferenceBound(alpha, beta)) ==
+           S.Span(lambda.start, lambda.width) + S.Span(rho.start, rho.width);
+
+    forall t: Tumbler | t in S.Span(alpha.start, alpha.width) - S.Span(beta.start, beta.width)
+      ensures t in CollectiveDenotation(DifferenceBound(alpha, beta))
+    {
+      IC.IntrinsicComparison(t, beta.start);
+      if LexicographicOrder.LexicographicOrder(t, beta.start) {
+        // t < beta.start = Reach(lambda); alpha.start = lambda.start ≤ t → t ∈ S.Span(lambda)
+        assert t in S.Span(lambda.start, lambda.width);
+      } else if t == beta.start {
+        assert false; // beta.start ∈ S.Span(beta), contradicts t ∉ S.Span(beta)
+      } else {
+        // beta.start < t; t ∉ S.Span(beta) → t ≥ Reach(beta)
+        IC.IntrinsicComparison(t, Reach(beta));
+        if LexicographicOrder.LexicographicOrder(t, Reach(beta)) {
+          assert false; // t ∈ S.Span(beta), contradiction
+        } else {
+          // t ≥ Reach(beta) = rho.start and t < Reach(alpha) = Reach(rho) → t ∈ S.Span(rho)
+          assert t in S.Span(rho.start, rho.width);
+        }
+      }
+    }
+  }
+
+  // Case: both λ and ρ active.
+  lemma BothActiveCorrect(alpha: SpanEntry, beta: SpanEntry)
+    requires ValidSpan(alpha) && ValidSpan(beta)
+    requires LC.LevelUniform(alpha) && LC.LevelUniform(beta)
+    requires LC.LevelCompat(alpha.start, beta.start)
+    requires LexicographicOrder.LexicographicOrder(alpha.start, beta.start)
+    requires LexicographicOrder.LexicographicOrder(Reach(beta), Reach(alpha))
+    ensures CollectiveDenotation(DifferenceBound(alpha, beta)) ==
+            S.Span(alpha.start, alpha.width) - S.Span(beta.start, beta.width)
+  {
+    BothActiveForward(alpha, beta);
+    BothActiveBackward(alpha, beta);
+  }
+
+  // Case: only λ active (reach(β) == reach(α)).
+  lemma LeftOnlyCorrect(alpha: SpanEntry, beta: SpanEntry)
+    requires ValidSpan(alpha) && ValidSpan(beta)
+    requires LC.LevelUniform(alpha) && LC.LevelUniform(beta)
+    requires LC.LevelCompat(alpha.start, beta.start)
+    requires LexicographicOrder.LexicographicOrder(alpha.start, beta.start)
+    requires Leq(Reach(beta), Reach(alpha))
+    requires !LexicographicOrder.LexicographicOrder(Reach(beta), Reach(alpha))
+    ensures CollectiveDenotation(DifferenceBound(alpha, beta)) ==
+            S.Span(alpha.start, alpha.width) - S.Span(beta.start, beta.width)
+  {
+    LeftSpanValid(alpha, beta);
+    var lambda := SpanEntry(alpha.start, TS.TumblerSub(beta.start, alpha.start));
+    assert DifferenceBound(alpha, beta) == [lambda];
+    assert Reach(lambda) == beta.start;
+    assert Reach(beta) == Reach(alpha);
+    SWD.SpanWellDefinedness(beta.start, beta.width);
+    assert CollectiveDenotation(DifferenceBound(alpha, beta)) ==
+           S.Span(lambda.start, lambda.width);
+
+    // Forward: collective → diff
+    forall t: Tumbler | t in CollectiveDenotation(DifferenceBound(alpha, beta))
+      ensures t in S.Span(alpha.start, alpha.width) - S.Span(beta.start, beta.width)
+    {
+      // t ∈ S.Span(lambda): alpha.start ≤ t < beta.start < Reach(beta) = Reach(alpha)
+      LexTrans(t, beta.start, Reach(beta));
+      IC.IntrinsicComparison(t, beta.start);
+    }
+
+    // Backward: diff → collective
+    forall t: Tumbler | t in S.Span(alpha.start, alpha.width) - S.Span(beta.start, beta.width)
+      ensures t in CollectiveDenotation(DifferenceBound(alpha, beta))
+    {
+      IC.IntrinsicComparison(t, beta.start);
+      if LexicographicOrder.LexicographicOrder(t, beta.start) {
+        // t < beta.start = Reach(lambda) and alpha.start ≤ t → t ∈ S.Span(lambda)
+        assert t in S.Span(lambda.start, lambda.width);
+      } else if t == beta.start {
+        assert false;
+      } else {
+        // beta.start < t; t ∉ S.Span(beta) → t ≥ Reach(beta) = Reach(alpha)
+        IC.IntrinsicComparison(t, Reach(beta));
+        if LexicographicOrder.LexicographicOrder(t, Reach(beta)) {
+          assert false; // t < Reach(beta) → t ∈ S.Span(beta); contradiction
+        } else {
+          // t ≥ Reach(beta) = Reach(alpha); but t ∈ S.Span(alpha) needs t < Reach(alpha)
+          IC.IntrinsicComparison(t, Reach(alpha));
+          assert false;
+        }
+      }
+    }
+  }
+
+  // Case: only ρ active (alpha.start == beta.start).
+  lemma RightOnlyCorrect(alpha: SpanEntry, beta: SpanEntry)
+    requires ValidSpan(alpha) && ValidSpan(beta)
+    requires LC.LevelUniform(alpha) && LC.LevelUniform(beta)
+    requires LC.LevelCompat(alpha.start, beta.start)
+    requires Leq(alpha.start, beta.start)
+    requires !LexicographicOrder.LexicographicOrder(alpha.start, beta.start)
+    requires LexicographicOrder.LexicographicOrder(Reach(beta), Reach(alpha))
+    ensures CollectiveDenotation(DifferenceBound(alpha, beta)) ==
+            S.Span(alpha.start, alpha.width) - S.Span(beta.start, beta.width)
+  {
+    RightSpanValid(alpha, beta);
+    var rho := SpanEntry(Reach(beta), TS.TumblerSub(Reach(alpha), Reach(beta)));
+    assert DifferenceBound(alpha, beta) == [rho];
+    assert Reach(rho) == Reach(alpha);
+    assert alpha.start == beta.start;
+    SWD.SpanWellDefinedness(beta.start, beta.width);
+    assert CollectiveDenotation(DifferenceBound(alpha, beta)) ==
+           S.Span(rho.start, rho.width);
+
+    // Forward: collective → diff
+    forall t: Tumbler | t in CollectiveDenotation(DifferenceBound(alpha, beta))
+      ensures t in S.Span(alpha.start, alpha.width) - S.Span(beta.start, beta.width)
+    {
+      // t ∈ S.Span(rho): Reach(beta) ≤ t < Reach(alpha)
+      // alpha.start = beta.start < Reach(beta) ≤ t → t ∈ S.Span(alpha)
+      if Reach(beta) == t { } else { LexTrans(alpha.start, Reach(beta), t); }
+      // t ≥ Reach(beta) → t ∉ S.Span(beta)
+      IC.IntrinsicComparison(t, Reach(beta));
+    }
+
+    // Backward: diff → collective
+    forall t: Tumbler | t in S.Span(alpha.start, alpha.width) - S.Span(beta.start, beta.width)
+      ensures t in CollectiveDenotation(DifferenceBound(alpha, beta))
+    {
+      // alpha.start = beta.start ≤ t; t ∉ S.Span(beta) → t ≥ Reach(beta)
+      IC.IntrinsicComparison(t, Reach(beta));
+      if LexicographicOrder.LexicographicOrder(t, Reach(beta)) {
+        // beta.start ≤ t < Reach(beta) → t ∈ S.Span(beta); contradiction
+        assert false;
+      } else {
+        // t ≥ Reach(beta) = rho.start and t < Reach(alpha) = Reach(rho) → t ∈ S.Span(rho)
+        assert t in S.Span(rho.start, rho.width);
+      }
+    }
+  }
+
+  // Case: neither active (alpha = beta denotation-wise).
+  lemma NeitherActiveCorrect(alpha: SpanEntry, beta: SpanEntry)
+    requires ValidSpan(alpha) && ValidSpan(beta)
+    requires LC.LevelUniform(alpha) && LC.LevelUniform(beta)
+    requires LC.LevelCompat(alpha.start, beta.start)
+    requires Leq(alpha.start, beta.start)
+    requires !LexicographicOrder.LexicographicOrder(alpha.start, beta.start)
+    requires Leq(Reach(beta), Reach(alpha))
+    requires !LexicographicOrder.LexicographicOrder(Reach(beta), Reach(alpha))
+    ensures CollectiveDenotation(DifferenceBound(alpha, beta)) ==
+            S.Span(alpha.start, alpha.width) - S.Span(beta.start, beta.width)
+  {
+    assert DifferenceBound(alpha, beta) == [];
+    assert alpha.start == beta.start;
+    assert Reach(beta) == Reach(alpha);
+    assert CollectiveDenotation(DifferenceBound(alpha, beta)) == iset{};
+    assert S.Span(alpha.start, alpha.width) == S.Span(beta.start, beta.width) by {
+      forall t: Tumbler
+        ensures t in S.Span(alpha.start, alpha.width) <==> t in S.Span(beta.start, beta.width)
+      { }
+    }
+  }
+
+  // S11 correctness: assembles the four cases.
   lemma DifferenceBoundCorrect(alpha: SpanEntry, beta: SpanEntry)
     requires ValidSpan(alpha) && ValidSpan(beta)
     requires LC.LevelUniform(alpha) && LC.LevelUniform(beta)
@@ -110,5 +356,12 @@ module DifferenceBound {
     requires Leq(Reach(beta), Reach(alpha))
     ensures CollectiveDenotation(DifferenceBound(alpha, beta)) ==
             S.Span(alpha.start, alpha.width) - S.Span(beta.start, beta.width)
-  { }
+  {
+    var leftActive := LexicographicOrder.LexicographicOrder(alpha.start, beta.start);
+    var rightActive := LexicographicOrder.LexicographicOrder(Reach(beta), Reach(alpha));
+    if      leftActive && rightActive  { BothActiveCorrect(alpha, beta); }
+    else if leftActive                 { LeftOnlyCorrect(alpha, beta); }
+    else if rightActive                { RightOnlyCorrect(alpha, beta); }
+    else                               { NeitherActiveCorrect(alpha, beta); }
+  }
 }
