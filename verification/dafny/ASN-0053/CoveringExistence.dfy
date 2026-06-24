@@ -13,6 +13,9 @@ module CoveringExistence {
   import opened NatCarrierSet
   import SWD = SpanWellDefinedness
   import S = Span
+  import TA = TumblerAdd
+  import LO = LexicographicOrder
+  import IC = IntrinsicComparison
 
   // Unit width for t: l = [0,...,0,1] with #l = #t.
   function UnitWidth(t: Tumbler): (l: Tumbler)
@@ -58,6 +61,70 @@ module CoveringExistence {
     UnitWidthAPFromIndex(t, 1);
   }
 
+  // Trailing-zero extension: t.0ⁿ appends n zeros to t.
+  function TrailingZeroExt(t: Tumbler, n: nat): Tumbler
+    requires InT(t)
+    ensures InT(TrailingZeroExt(t, n))
+    ensures Length(TrailingZeroExt(t, n)) == Length(t) + n
+    ensures forall i :: 1 <= i <= Length(t) ==> Component(TrailingZeroExt(t, n), i) == Component(t, i)
+  {
+    Tumbler(t.components + seq(n, _ => 0))
+  }
+
+  // For any valid span (s, l) and n, TrailingZeroExt(s, n) lies in S.Span(s, l).
+  // T1 case (ii): s < e when n > 0 (s is a proper prefix of e), proved via IC.LexOrderShorterWitness.
+  // T1 case (i): e < TumblerAdd(s, l) at position k = ActionPoint(l).
+  lemma TrailingZeroInGeneralSpan(s: Tumbler, l: Tumbler, n: nat)
+    requires InT(s) && InT(l)
+    requires PositiveTumbler.PositiveTumbler(l)
+    requires ActionPoint.ActionPoint(l) <= Length(s)
+    ensures TrailingZeroExt(s, n) in S.Span(s, l)
+  {
+    var e := TrailingZeroExt(s, n);
+    var k := ActionPoint.ActionPoint(l);
+    var r := TA.TumblerAdd(s, l);
+    assert InT(e);
+    assert Length(e) == Length(s) + n;
+    assert forall i :: 1 <= i <= Length(s) ==> Component(e, i) == Component(s, i);
+    assert Length(r) == Length(l);
+    assert forall i :: 1 <= i < k ==> Component(r, i) == Component(s, i);
+    assert Component(r, k) == Component(s, k) + Component(l, k);
+    assert k >= 1;
+    assert k <= Length(s);
+    assert Component(l, k) != 0;
+    // e and r agree on positions 1..k-1:
+    assert forall i :: 1 <= i < k ==> Component(e, i) == Component(r, i) by {
+      forall i | 1 <= i < k ensures Component(e, i) == Component(r, i) {
+        assert Component(e, i) == Component(s, i);
+        assert Component(r, i) == Component(s, i);
+      }
+    }
+    assert k <= Length(e);
+    assert k <= Length(r);
+    assert Component(e, k) == Component(s, k);
+    assert Component(e, k) < Component(r, k);
+    // LexicographicOrder(e, r) by T1 case (i) with witness k:
+    assert LO.LexicographicOrder(e, r) by {
+      assert exists kw: nat ::
+        && 1 <= kw
+        && (forall i :: 1 <= i < kw ==>
+              i <= Length(e) && i <= Length(r) && Component(e, i) == Component(r, i))
+        && ((kw <= Length(e) && kw <= Length(r) && Component(e, kw) < Component(r, kw))
+            || (kw == Length(e) + 1 && kw <= Length(r))) by {
+        var kw := k;
+      }
+    }
+    // LexicographicOrder(s, e) by T1 case (ii): s is a prefix of e when n > 0.
+    if n == 0 {
+      assert e == s;
+    } else {
+      assert Length(s) < Length(e); // n >= 1
+      // IC.LexOrderShorterWitness registers Component(e, Length(s)+1) as trigger
+      // so Z3 can instantiate the existential with k = Length(s)+1.
+      IC.LexOrderShorterWitness(s, e);
+    }
+  }
+
   // Collective denotation: union of individual span denotations.
   ghost function CollectiveDenotation(spans: seq<SpanEntry>): iset<Tumbler>
     decreases |spans|
@@ -77,7 +144,6 @@ module CoveringExistence {
     decreases i
   {
     if i == 0 {
-      // ValidSpan(spans[0]); CollectiveDenotation = S.Span(spans[0]) + ...; x in it.
     } else {
       assert spans[1..][i - 1] == spans[i];
       EntryCoversCollective(spans[1..], i - 1, x);
