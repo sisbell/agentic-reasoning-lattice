@@ -34,7 +34,7 @@ from lib.shared.common import find_asn
 from lib.shared.foundation import _extract_formal_contract
 from lib.shared.invoke_claude import invoke_claude
 from lib.shared.paths import (
-    FORMAL_CONTRACT_DIR, claim_statements, prompt_path,
+    FORMAL_CONTRACT_DIR, claim_statements_aggregate_path, prompt_path,
 )
 from lib.shared.prompts import read_prompt
 
@@ -182,7 +182,13 @@ def build_dep_context(asn_num: int, label: str, claim_base_dir: Path) -> str:
     for dep_label in follows_from:
         if dep_label not in all_labels:
             for dep_asn in depends:
-                stmt_path = claim_statements(dep_asn)
+                # Cross-ASN deps: read the per-claim claims.statements
+                # aggregate (claim/<asn>/_statements.md) — the registered,
+                # post-derivation authoritative statements — NOT the note
+                # statements sidecar (which can lag behind / be superseded).
+                stmt_path = claim_statements_aggregate_path(
+                    format_label(dep_asn)
+                )
                 if stmt_path.exists():
                     ftext = stmt_path.read_text()
                     pattern = re.compile(
