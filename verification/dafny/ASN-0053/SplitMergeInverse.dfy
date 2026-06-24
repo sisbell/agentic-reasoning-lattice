@@ -27,8 +27,18 @@ module SplitMergeInverse {
     requires LO.LexicographicOrder(sigma.start, p)
     requires LO.LexicographicOrder(p, Reach(sigma))
     requires Length(p) == Length(sigma.start)
-    ensures SpanEntry(sigma.start, TS.TumblerSub(Reach(sigma), sigma.start)) == sigma
+    // Left-to-right conjunction: each term guards the preconditions of the next.
+    ensures ValidSpan(SP.LeftSpan(sigma, p)) &&
+            ValidSpan(SP.RightSpan(sigma, p)) &&
+            LO.LexicographicOrder(
+              ME.MergeStart(SP.LeftSpan(sigma, p), SP.RightSpan(sigma, p)),
+              ME.MergeReach(SP.LeftSpan(sigma, p), SP.RightSpan(sigma, p))) &&
+            ME.MergeSpan(SP.LeftSpan(sigma, p), SP.RightSpan(sigma, p)) == sigma
   {
+    var lam := SP.LeftSpan(sigma, p);
+    var rho := SP.RightSpan(sigma, p);
+    SP.SplitValid(sigma, p);
+    ME.StartLtReach(lam, rho);
     WR.WidthRecovery(sigma);
   }
 }
