@@ -348,8 +348,24 @@ module NormalizationExistence {
 
   // ─── Establishing Sweep preconditions for the first call ──────────────────
 
-  // Fix: axiomatized — complex PairwiseNonDecreasingStarts proofs exceed time limit.
-  lemma {:axiom} SweepInitPrecond(sorted: seq<SpanEntry>)
+  // Derives PairwiseReach from NonDecreasing alone; used to seed SweepInitPrecond
+  // without calling PairwiseNonDecreasingStarts inside a 2-variable forall.
+  lemma NonDecreasingImpliesPairwiseReach(spans: seq<SpanEntry>)
+    requires AllValid(spans) && NonDecreasing(spans)
+    ensures PairwiseReach(spans)
+  {
+    forall i, j | 0 <= i <= j < |spans|
+      ensures LO.LexicographicOrder(spans[i].start, Reach(spans[j]))
+    {
+      PairwiseNonDecreasingStarts(spans, i, j);
+      if spans[i].start == spans[j].start {
+      } else {
+        LexTrans(spans[i].start, spans[j].start, Reach(spans[j]));
+      }
+    }
+  }
+
+  lemma SweepInitPrecond(sorted: seq<SpanEntry>)
     requires |sorted| > 0
     requires AllValid(sorted) && AllLevelUniform(sorted) && MutuallyLevelCompatible(sorted)
     requires NonDecreasing(sorted)
@@ -366,6 +382,48 @@ module NormalizationExistence {
       PairwiseReach(rest) &&
       LO.LexicographicOrder(s0, r0) &&
       Length(s0) == Length(r0)
+  {
+    var s0 := sorted[0].start;
+    var r0 := Reach(sorted[0]);
+    var rest := sorted[1..];
+    AllValidTail(sorted);
+    forall i | 0 <= i < |rest| ensures S6.LevelUniform(rest[i]) {
+      assert rest[i] == sorted[i+1];
+    }
+    AllSameLength(sorted);
+    forall i | 0 <= i < |rest| ensures Length(rest[i].start) == Length(s0) {
+      assert rest[i] == sorted[i+1];
+    }
+    forall i | 0 <= i < |rest| ensures Length(Reach(rest[i])) == Length(s0) {
+      assert rest[i] == sorted[i+1];
+    }
+    forall i | 0 <= i < |rest| - 1
+      ensures rest[i].start == rest[i+1].start || LO.LexicographicOrder(rest[i].start, rest[i+1].start)
+    {
+      assert rest[i] == sorted[i+1] && rest[i+1] == sorted[i+2];
+    }
+    // Establish PairwiseReach(sorted) once; derive rest conditions from it in O(1) per element.
+    NonDecreasingImpliesPairwiseReach(sorted);
+    forall i | 0 <= i < |rest|
+      ensures rest[i].start == s0 || LO.LexicographicOrder(s0, rest[i].start)
+    {
+      assert rest[i] == sorted[i+1];
+      PairwiseNonDecreasingStarts(sorted, 0, i+1);
+    }
+    forall i | 0 <= i < |rest|
+      ensures LO.LexicographicOrder(s0, Reach(rest[i]))
+    {
+      assert rest[i] == sorted[i+1];
+      assert LO.LexicographicOrder(sorted[0].start, Reach(sorted[i+1]));
+    }
+    forall i, j | 0 <= i <= j < |rest|
+      ensures LO.LexicographicOrder(rest[i].start, Reach(rest[j]))
+    {
+      assert rest[i] == sorted[i+1] && rest[j] == sorted[j+1];
+      assert LO.LexicographicOrder(sorted[i+1].start, Reach(sorted[j+1]));
+    }
+    S6.LevelConstraint(sorted[0]);
+  }
 
   // Fix 9: AllValid required before NonDecreasing so LexTrans calls have InT witnesses.
   lemma PairwiseNonDecreasingStarts(spans: seq<SpanEntry>, i: nat, j: nat)
