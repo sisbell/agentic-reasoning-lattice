@@ -1,0 +1,1 @@
+Proves that ordinal shift preserves two structural invariants of a V-position: the text subspace coordinate (first component) is unchanged because shift acts only on the deepest component, and the S8a well-formedness condition (all components positive, depth at least two) is inherited because adding a positive integer to a positive component keeps it positive.
