@@ -1,0 +1,1 @@
+| Σ.M(d) domain restriction (S8a) | `dom(Σ.M(d)) ⊆ {t ∈ T : zeros(t) = 0 ∧ #t ≥ 2}` — arrangements map only V-positions; per-component form stated at the S8a definition site | axiom (definitional); T0 (ASN-0034) |
