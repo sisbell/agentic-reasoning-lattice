@@ -1,0 +1,11 @@
+*Depends:*
+  - D-CTG
+  - D-CTG-depth
+  - D-MIN
+  - D-SEQ
+  - OrdShiftHom
+  - OrdinalShift
+  - S8-depth
+  - S8-fin
+  - S8a
+  - T3
