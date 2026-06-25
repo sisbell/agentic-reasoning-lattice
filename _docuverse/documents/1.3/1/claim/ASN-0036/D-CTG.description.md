@@ -1,0 +1,1 @@
+Proves that the text subspace of any document is gap-free: if two V-positions at depth 1 both belong to a document, every V-position between them at that depth must also belong to it. Combined with the finiteness of the domain, this collapses to a single unbroken block of ordinals — the text subspace cannot have holes.
