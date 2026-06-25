@@ -1,4 +1,4 @@
-**subspace (V-position subspace identifier).** For any tumbler `v` of depth `#v ≥ 1`, define:
+**subspace (VPositionSubspaceIdentifier).** For any tumbler `v` of depth `#v ≥ 1`, define:
 
 `subspace(v) = v₁`
 
