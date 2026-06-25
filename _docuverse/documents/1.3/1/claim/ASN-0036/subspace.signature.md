@@ -1,0 +1,1 @@
+- `subspace` — function `subspace : T → ℕ` that projects the first component of a tumbler, yielding its subspace identifier
