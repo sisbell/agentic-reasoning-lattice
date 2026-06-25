@@ -16,3 +16,10 @@
 - *Preconditions:* `v ∈ T`, `#v = m ≥ 2`, `n ≥ 1`.
 - *Postconditions:* (a) `subspace(shift(v, n)) = subspace(v)`. (b) When `v` satisfies S8a, `shift(v, n)` satisfies S8a.
 - *Depends:* OrdinalShift (ASN-0034) — `shift(v, n) = v ⊕ δ(n, m)`; OrdinalDisplacement (ASN-0034) — `δ(n, m) = [0, ..., 0, n]` with action point `m`; TumblerAdd (ASN-0034) — the component formula copying positions before the action point; TA0 (length preservation, ASN-0034) — `#shift(v, n) = m`; S8a (V-position well-formedness) — supplies `vᵢ ≥ 1` for part (b).
+
+- *Depends:*
+  - OrdinalShift (ASN-0034) — supplies the definition `shift(v, n) = v ⊕ δ(n, m)` that the proof writes out in its opening step
+  - OrdinalDisplacement (ASN-0034) — supplies `δ(n, m) = [0, ..., 0, n]` with `actionPoint(δ(n, m)) = m`, used to establish well-definedness of the addition
+  - TumblerAdd (ASN-0034) — supplies the component-wise addition formula that justifies the copy/increment split at the action point
+  - TA0 (ASN-0034) — supplies length preservation `#shift(v, n) = m`, used in both parts of the proof
+  - S8a (V-position well-formedness) — supplies `vᵢ ≥ 1` for every `i`, the premise that part (b) directly consumes
