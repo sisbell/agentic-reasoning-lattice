@@ -1,0 +1,1 @@
+Establishes that document addresses are not arbitrary tumbler values but must originate from a real allocation event governed by T10a's discipline, ensuring every document-level tumbler (zeros = 2) has a unique, traceable birthplace. Distinct documents are structurally separated by construction: no two documents share an allocation event, so their addresses cannot collide.
