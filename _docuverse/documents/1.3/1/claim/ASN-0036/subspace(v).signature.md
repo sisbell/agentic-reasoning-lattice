@@ -1,0 +1,1 @@
+- `subspace` — function mapping a V-position `v` to its subspace identifier `v₁`; defined when `#v ≥ 1`
