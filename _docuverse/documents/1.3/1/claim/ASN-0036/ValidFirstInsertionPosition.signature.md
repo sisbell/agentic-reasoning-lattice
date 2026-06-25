@@ -1,0 +1,1 @@
+- `ValidFirstInsertionPosition` — ternary predicate `ValidFirstInsertionPosition(d, v, m)` governing the empty-document base case: holds when the depth-1 position set is empty, depth m ≥ 2, and v is the all-ones tuple of depth m
