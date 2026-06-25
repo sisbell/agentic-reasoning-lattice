@@ -27,3 +27,12 @@ D-CTG is a design constraint on well-formed document states. We verify the base 
 - *Preconditions:* V_1(d) is non-empty. The document state is well-formed, so the contiguity constraint D-CTG (VContiguity) and the minimality property D-MIN (VMinimumPosition) hold. All V-positions in the text subspace share a common depth m (S8-depth), with `m ≥ 2` (S8a), and dom(M(d)) is finite (S8-fin).
 - *Postconditions:* There exists n ≥ 1 such that V_1(d) = {[1, 1, …, 1, k] : 1 ≤ k ≤ n}, where each tuple has length m. Equivalently, the m-th-component values attained by the positions of V_1(d) are exactly the contiguous set {1, 2, …, n}.
 - *Invariant:* In every well-formed state reachable from the empty base state (dom(M(d)) = ∅), D-CTG and D-MIN hold, and consequently V_1(d) is either empty or of the sequential form {[1, 1, …, 1, k] : 1 ≤ k ≤ n}. Across each transition s → s' that preserves well-formedness, this characterization is preserved; the base state satisfies it vacuously since V_1(d) = ∅.
+
+- *Depends:*
+  - S8-depth (FixedDepthVPositions) — supplies the common-depth guarantee for V_1(d); the proof opens by fixing m as that common depth and invokes S8-depth to assert it exists
+  - S8a (ArrangementDomainRestriction) — supplies the depth ≥ 2 lower bound (m ≥ 2); the claim states "the derivation below relies on this lower bound" and Step 3 re-invokes it to qualify the intermediate witness w
+  - D-CTG-depth (SharedPrefixReduction) — supplies the shared-prefix result (components 2 through m − 1 identical) used in Step 1 Case m ≥ 3 to pin all but the last component to 1
+  - D-MIN (VMinimumPosition) — supplies min(V_1(d)) = [1, 1, …, 1]; Step 1 (Case m ≥ 3) uses it to fix the shared-prefix value to 1, and Step 2 uses it to establish k = 1 as an attained value
+  - T1 (LexicographicOrder, ASN-0034) — supplies the lexicographic comparison rule; Step 3 invokes it twice to establish v₁ < v₂ and v₁ < w < v₂ from component-wise comparisons
+  - D-CTG (VContiguity) — supplies the contiguity constraint; Step 3 applies it to conclude the intermediate witness w ∈ V_1(d), making the k-values a contiguous range
+  - S8-fin (FiniteArrangement) — supplies the finiteness of dom(M(d)); Step 4 uses it to conclude V_1(d) is finite, bounding the k-value range
