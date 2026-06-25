@@ -14,3 +14,7 @@ S8-depth allows us to define "consecutive V-positions" precisely. Within a subsp
 ### Shift preservation for V-positions
 
 Ordinal shift `shift(v, n)` (OrdinalShift, ASN-0034) preserves a V-position's subspace identifier and its S8a well-formedness, as the following lemma establishes.
+
+- *Depends:*
+  - S8a (Σ.M(d) domain restriction) — supplies the well-formedness constraint and lower bound m_s ≥ 2 used in the postconditions and the shift-preservation lemma
+  - OrdinalShift (ASN-0034) — supplies the shift(v, n) operator and v ⊕ δ(1, #v) notation used to characterize consecutive V-positions and state the shift-preservation lemma
