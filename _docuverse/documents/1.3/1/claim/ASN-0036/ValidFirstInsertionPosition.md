@@ -12,3 +12,11 @@
 That gives N + 1 = 4 positions. Any successor state whose `V₁(d)` gains a position at, say, [1, 2] must still satisfy D-CTG and D-MIN.
 
 **Empty case (ternary predicate).** V₁(d) = ∅. Choosing depth m = 2, the unique `v` satisfying `ValidFirstInsertionPosition(d, v, 2)` is `[1, 1]`. D-MIN requires min(V₁(d)) = [1, 1] once the subspace becomes non-empty, so the position is exactly the one D-MIN demands. Choosing m = 3 instead, `ValidFirstInsertionPosition(d, v, 3)` is satisfied uniquely by `v = [1, 1, 1]`; by T3, this is a different tumbler.
+
+- *Depends:*
+  - D-MIN (VMinimumPosition) — supplies the axiom that min(V₁(d)) = [1,…,1] once non-empty, establishing that the ternary predicate's choice of v is exactly the position D-MIN demands
+  - T3 (CanonicalRepresentation) — supplies tumbler equality (component-wise identity) used to confirm that depth-m [1,…,1] and depth-m' [1,…,1] are distinct tumblers when m ≠ m'
+- *Forward References:*
+  - ValidInsertionPosition (ValidInsertionPosition) — the non-empty companion binary predicate; illustrated in the examples as the parallel case this claim contrasts against
+  - S8-depth (FixedDepthVPositions) — supplies the mechanism by which depth m is read from state in the non-empty companion predicate; referenced as explanatory context for how m is obtained in practice
+  - D-CTG (VContiguity) — named as a successor-state constraint any post-insertion V₁(d) must satisfy; downstream obligation, not consumed by this claim's definition
