@@ -1,0 +1,1 @@
+- `ValidFirstInsertionPosition` — ternary predicate `ValidFirstInsertionPosition(d, v, m)` positing the unique valid insertion position for a document whose V-position set is empty, parameterized by depth `m`
