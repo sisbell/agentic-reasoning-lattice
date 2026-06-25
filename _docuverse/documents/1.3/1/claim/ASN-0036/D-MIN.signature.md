@@ -1,0 +1,1 @@
+- `min` — least-element operator: `min(S)` returns the unique minimum of finite non-empty set S under the lexicographic total order on integer m-tuples; defined explicitly in the Formal Contract
