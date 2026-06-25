@@ -1,0 +1,3 @@
+- `dom` — domain-extraction function; `dom(Σ.C)` yields the set of addresses on which the content store is defined
+- `Σ.C` — the content store component of the system state; a mapping whose domain this claim constrains to element-level tumblers
+- `zeros` — function on addresses returning the count of zero-valued identifying fields; used here to characterise element-level tumblers as those satisfying `zeros(a) = 3`
