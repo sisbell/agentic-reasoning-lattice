@@ -1,0 +1,1 @@
+- `subspace` — function mapping a depth-≥1 tumbler to its first component, serving as the V-position subspace identifier extractor
