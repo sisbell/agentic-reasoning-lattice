@@ -1,0 +1,1 @@
+Defines the base case of the valid-first-insertion-position predicate: when a document has no existing V-positions, the only admissible first insertion point is the all-ones vector of any depth m ≥ 2. This anchors the recursive predicate by specifying exactly what "first position in an empty document" means, preventing any other coordinate from serving as a valid starting point.
