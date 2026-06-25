@@ -20,3 +20,20 @@ Since u < w < x, subspace(w) = 1, #w = m = #u, and w satisfies S8a, D-CTG requir
 Therefore no two positions in V_1(d) can disagree at any component j with 2 ≤ j ≤ m − 1. All positions share components 2 through m − 1, and contiguity reduces to contiguity of the last component (component m) alone. ∎
 
 Nelson's statement specifies not just contiguity but also the starting ordinal: "addresses 1 through 100," not "42 through 141." All ordinal numbering in the tumbler system starts at 1: the first child is always .1 (LM 4/20), link positions within a document begin at 1 (LM 4/31), and position 0 is structurally unavailable since zero serves as a field separator (T4, ASN-0034). V-positions follow the same convention.
+
+*Formal Contract:*
+
+- *Preconditions:*
+  - V_1(d) ≠ ∅ (non-empty).
+  - All positions in V_1(d) share a common depth m (S8-depth), with m ≥ 3 (non-triviality bound, per the Preconditions).
+  - Every position p ∈ V_1(d) has subspace(p) = p₁ = 1.
+  - V_1(d) ⊆ dom(M(d)), and every position in dom(M(d)) satisfies S8a: `#p ≥ 2 ∧ (A i : 1 ≤ i ≤ #p : pᵢ > 0)`.
+  - V_1(d) is contiguous in the position order (D-CTG): if u, x ∈ V_1(d), u < w < x, subspace(w) = 1, #w = #u, and w satisfies S8a, then w ∈ V_1(d).
+  - dom(M(d)) is finite (S8-fin).
+  - Component values are unbounded: for any bound M ∈ ℕ there exists n ∈ ℕ with n > M (T0(a), ASN-0034).
+
+- *Postconditions:*
+  - `(A u, x : u ∈ V_1(d) ∧ x ∈ V_1(d) : (A i : 2 ≤ i ≤ m − 1 : uᵢ = xᵢ))` — every pair of positions in V_1(d) agrees on components 2 through m − 1.
+  - Contiguity of V_1(d) is determined by component m alone, structurally identical to the depth-2 case.
+
+- *Definition:* For positions u, x ∈ V_1(d) (u < x, both depth m) whose first disagreement is at component j with 2 ≤ j ≤ m − 1, and for any n > uⱼ₊₁, the intermediate witness w of depth m is constructed by: wᵢ = uᵢ for 1 ≤ i ≤ j; wⱼ₊₁ = n; wᵢ = 1 for j + 2 ≤ i ≤ m (an empty clause when j = m − 1).
