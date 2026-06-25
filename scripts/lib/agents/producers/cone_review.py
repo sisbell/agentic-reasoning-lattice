@@ -50,12 +50,11 @@ from lib.shared.validate_gate import run_validate_gate
 
 
 # Cone (regional) review model + effort, operator-tunable. Defaults:
-# opus (claude-opus-4-8[1m]) / xhigh — the regional pass runs on the same
-# model as the global review, one effort tier below full_review's max.
-# Override via CONE_REVIEW_MODEL (e.g. "sonnet") and CONE_REVIEW_EFFORT
-# (low/medium/high/xhigh/max), e.g. to fall back to the cheaper
-# sonnet/high pass.
-CONE_MODEL = os.environ.get("CONE_REVIEW_MODEL", "opus")
+# sonnet / high — the per-claim regional pass runs on the cheaper tier;
+# full_review (the whole-ASN pass) stays on opus/max. Override via
+# CONE_REVIEW_MODEL (e.g. "opus") and CONE_REVIEW_EFFORT
+# (low/medium/high/xhigh/max) to raise the regional pass.
+CONE_MODEL = os.environ.get("CONE_REVIEW_MODEL", "sonnet")
 _DEPENDS_HEADER = "- *Depends:*"
 _FORWARD_HEADER = "- *Forward References:*"
 
@@ -431,7 +430,7 @@ class ConeReviewAgent(Agent):
         cone_content = assemble_cone(
             ctx.asn_label, ctx.label, dep_labels, self.claim_dir,
         )
-        cone_effort = os.environ.get("CONE_REVIEW_EFFORT", "xhigh")
+        cone_effort = os.environ.get("CONE_REVIEW_EFFORT", "high")
         verdict, findings_text, elapsed = run_review(
             ctx.asn_num, cone_content, ctx.asn_label, previous_findings,
             model=CONE_MODEL, foundation_labels=cross_asn_deps,
