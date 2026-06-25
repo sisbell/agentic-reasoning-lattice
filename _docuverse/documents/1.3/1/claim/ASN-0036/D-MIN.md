@@ -13,3 +13,8 @@ At depth 2 this gives min(V_1(d)) = [1, 1].
 - *Depends:* S8a, S8-depth, T1 (LexicographicOrder, ASN-0034) — defines `min`.
 
 We now derive the general form: the contiguity, minimum, and finiteness constraints together force V_1(d) into a single block of last-component values. The proof below establishes this in four steps.
+
+- *Depends:*
+  - S8a (Σ.M(d) domain restriction) — supplies the lower bound m_1 ≥ 2 used as a precondition on the common depth
+  - S8-depth (Fixed-depth V-positions) — supplies the common depth m_1 that sets the tuple length in the axiom min(V_1(d)) = [1, 1, ..., 1]
+  - T1 (LexicographicOrder, ASN-0034) — defines the min operator applied to V_1(d) in the axiom
