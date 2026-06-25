@@ -1,0 +1,5 @@
+- `V_1` — set-valued function mapping a document to the set of V-positions in its text subspace (subspace index 1)
+- `<` — strict ordering relation on V-positions; used to express gap-freeness between extremes
+- `subspace` — function extracting the subspace index from a V-position; guards the inner quantifier to depth-1 positions
+- `#` — operator extracting the ordinal component from a V-position; equality `#v = #u` selects same-depth peers
+- `zeros` — function mapping a V-position to its count of leading zeros; `zeros(v) = 0` pins v to depth 1
