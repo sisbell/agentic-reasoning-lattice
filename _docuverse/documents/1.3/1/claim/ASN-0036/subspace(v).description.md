@@ -1,0 +1,1 @@
+Defines the subspace selector function, which extracts the first component of a V-position tuple to identify which subspace that position belongs to. The function is well-defined whenever the V-position has at least one component, a condition guaranteed by T0.
