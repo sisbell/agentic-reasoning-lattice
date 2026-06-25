@@ -1,0 +1,1 @@
+Defines the subspace projection function, which extracts the first component of a V-position tumbler to identify which subspace that position belongs to. This makes subspace membership a direct read of an address component rather than a lookup against any external structure.
