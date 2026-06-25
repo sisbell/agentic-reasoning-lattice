@@ -1,0 +1,1 @@
+Defines the set of valid V-positions at which text may be inserted into a non-empty document: exactly the N+1 positions of the form [1, …, 1, 1+j] for j ∈ {0, …, N}, where N is the current document length. Each valid position lies in the text subspace (first component equals 1), has no zero components, and the N+1 positions are pairwise distinct.
