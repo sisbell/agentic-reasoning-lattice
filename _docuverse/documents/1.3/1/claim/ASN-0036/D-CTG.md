@@ -5,3 +5,6 @@
 In words: within the text subspace, V-positions form a contiguous ordinal range with no gaps. If positions [1, 3] and [1, 7] are occupied, then every position [1, k] with 3 < k < 7 must also be occupied.
 
 For the text subspace at depth m = 2, this is a finite condition: the intermediates between [1, a] and [1, b] are the finitely many [1, i] with a < i < b. Combined with S8-fin (dom(M(d)) is finite), contiguity at depth 2 says V_1(d) occupies a single unbroken block of ordinals.
+
+- *Depends:*
+  - S8-fin (FiniteArrangement) — supplies the finiteness of dom(M(d)), used to strengthen contiguity at depth 2 to a single unbroken block of ordinals
