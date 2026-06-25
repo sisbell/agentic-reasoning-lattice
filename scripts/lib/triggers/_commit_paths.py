@@ -23,6 +23,15 @@ from lib.shared.paths import (
 )
 
 
+# Known per-claim sidecar attributes. The claim file family is
+# `<label>.md` plus `<label>.<attr>.md` for each attr below. Used both
+# to recover the label from a sidecar filename and to enumerate the
+# commit family.
+_SIDECAR_ATTRS = (
+    "description", "signature", "references", "label", "name", "contract",
+)
+
+
 def _asn_label_from_path(path: str) -> str | None:
     """Extract the ASN-NNNN label from a substrate path. None if absent."""
     if not path:
@@ -77,24 +86,26 @@ def per_claim_commit_paths(
     if asn_label is None:
         return []
     # Derive claim label from the filename stem. Main claim path is
-    # `<asn>/<label>.md`; sidecars are `<asn>/<label>.<attr>.md`.
+    # `<asn>/<label>.md`; sidecars are `<asn>/<label>.<attr>.md`. The
+    # label itself may contain dots (e.g. `Σ.C`, `Σ.M(d)`), so strip a
+    # trailing KNOWN sidecar suffix rather than splitting on the first
+    # dot — `split(".", 1)[0]` mangles `Σ.C` to `Σ`, yielding commit
+    # paths that match no file, so the claim never gets staged.
     from pathlib import Path
     p = Path(claim_path)
     stem = p.name
     # Strip trailing .md
     if stem.endswith(".md"):
         stem = stem[:-3]
-    # If this is a sidecar (label.attr), take just the label part
-    label = stem.split(".", 1)[0]
+    # If this is a sidecar (`<label>.<attr>`), strip the known attr.
+    label = stem
+    for _attr in _SIDECAR_ATTRS:
+        if stem.endswith("." + _attr):
+            label = stem[: -(len(_attr) + 1)]
+            break
     asn_dir_rel = _claim_subdir_rel(claim_path, "claim", asn_label)
-    return [
-        f"{asn_dir_rel}/{label}.md",
-        f"{asn_dir_rel}/{label}.description.md",
-        f"{asn_dir_rel}/{label}.signature.md",
-        f"{asn_dir_rel}/{label}.references.md",
-        f"{asn_dir_rel}/{label}.label.md",
-        f"{asn_dir_rel}/{label}.name.md",
-        f"{asn_dir_rel}/{label}.contract.md",
+    return [f"{asn_dir_rel}/{label}.md"] + [
+        f"{asn_dir_rel}/{label}.{attr}.md" for attr in _SIDECAR_ATTRS
     ]
 
 
