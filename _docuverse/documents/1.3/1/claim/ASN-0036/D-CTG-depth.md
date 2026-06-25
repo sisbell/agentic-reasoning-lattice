@@ -25,3 +25,14 @@ Therefore no two positions in V_1(d) can disagree at any component j with 2 ≤ 
 - *Depends:* (*Local properties*) D-CTG (VContiguity) — any tumbler strictly between two positions in subspace 1 at depth `m` lies in `V_1(d)`; S8a — `m ≥ 2` and componentwise positivity of V-positions; S8-depth — common depth `#w = m`; S8-fin — finiteness of `V_1(d)`. (*Foundation claims, ASN-0034*) T0(a) (UnboundedComponentValues) — for any bound `M`, a natural-number witness `n > M`; T1 case (i) (LexicographicOrder) — first-divergence comparison; T3 (CanonicalRepresentation) — distinct component sequences yield distinct tumblers.
 
 Nelson's statement specifies not just contiguity but also the starting ordinal: "addresses 1 through 100," not "42 through 141." All ordinal numbering in the tumbler system starts at 1: the first child is always .1 (LM 4/20), link positions within a document begin at 1 (LM 4/31), and position 0 is structurally unavailable since zero serves as a field separator (T4, ASN-0034). V-positions follow the same convention.
+
+- *Depends:*
+  - D-CTG (VContiguity) — supplies the contiguity axiom that any tumbler strictly between two V_1(d) positions at depth m lies in V_1(d); proof invokes it to place each witness w in V_1(d)
+  - S8-depth (Fixed-depth V-positions) — supplies the common depth m shared by all positions in V_1(d); consumed as a precondition and throughout the proof
+  - S8a (Σ.M(d) domain restriction) — supplies componentwise positivity of V-positions; proof applies it to u to verify every component of the constructed w is ≥ 1, qualifying w for D-CTG's consequent
+  - S8-fin (Finite arrangement) — supplies finiteness of dom(M(d)); the infinite sequence of distinct witnesses contradicts this, closing the proof
+  - T0(a) (UnboundedComponentValues, ASN-0034) — supplies, for any bound M, a natural-number witness n > M; iterated to produce the strictly-increasing infinite sequence n₁ < n₂ < n₃ < … of distinct tumblers
+  - T1 case (i) (LexicographicOrder, ASN-0034) — supplies first-divergence comparison; used at two steps to establish u < w and w < x from the component-level inequalities
+  - T3 (CanonicalRepresentation, ASN-0034) — supplies that distinct component sequences yield distinct tumblers; used to establish that distinct values of n at component j+1 produce pairwise-distinct positions w
+- *Forward References:*
+  - T4 (HierarchicalParsing, ASN-0034) — cited as background for why position 0 is structurally unavailable (zero is a field separator); V-positions follow 1-based ordinals as a consequence
