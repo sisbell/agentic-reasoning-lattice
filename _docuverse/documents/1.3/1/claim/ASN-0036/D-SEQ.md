@@ -26,3 +26,12 @@ where the tuple has length m, the common V-position depth in the text subspace (
 - *Depends:* (*Local properties*) D-CTG (VContiguity) — any tumbler strictly between attained positions in subspace 1 at depth `m` lies in `V_1(d)`; D-CTG-depth (SharedPrefixReduction) — at `m ≥ 3`, all positions in `V_1(d)` share components 2 through `m − 1`; D-MIN (VMinimumPosition) — `min(V_1(d)) = [1, …, 1]`; S8a — `m ≥ 2`; S8-depth — the common depth `m`; S8-fin — finiteness of `V_1(d)`. (*Foundation claims, ASN-0034*) T1 case (i) (LexicographicOrder) — first-divergence comparison.
 
 D-CTG is a design constraint on well-formed document states. We verify the base case: before any operations, dom(M(d)) = ∅ for all d (the arrangement is a partial function; no content has been allocated, so no V-mapping exists), so V_1(d) = ∅. D-CTG holds vacuously (no u, q exist to trigger its antecedent), and D-MIN holds vacuously (its antecedent requires V_1(d) non-empty).
+
+- *Depends:*
+  - S8-depth (Fixed-depth V-positions) — supplies the common depth `m` of all V-positions in the text subspace; used throughout to treat V_1(d) as a set of fixed-length tuples
+  - S8a (Σ.M(d) domain restriction) — supplies the lower bound `m ≥ 2` and componentwise positivity; used to verify that the intermediate witness `w` constructed in Step 3 lies in `dom(Σ.M(d))`
+  - D-CTG (VContiguity) — supplies the gap-filling axiom invoked in Step 3 to conclude that every intermediate `w = [1, 1, …, 1, k]` between two attained positions lies in V_1(d)
+  - D-CTG-depth (SharedPrefixReduction) — supplies the shared-prefix result used in Step 1 Case `m ≥ 3` to show all positions in V_1(d) agree on components 2 through `m − 1`
+  - D-MIN (VMinimumPosition) — supplies `min(V_1(d)) = [1, 1, …, 1]`; used in Step 2 to establish that k = 1 is attained, and in Step 1 Case `m ≥ 3` to pin the shared components to the value 1
+  - S8-fin (Finite arrangement) — supplies finiteness of `dom(Σ.M(d))`; used in Step 4 to conclude the k-values form a finite range
+  - T1 case (i) (LexicographicOrder, ASN-0034) — supplies first-divergence comparison; used in Step 3 to order positions agreeing on components 1 through `m − 1` and differing at component `m`
