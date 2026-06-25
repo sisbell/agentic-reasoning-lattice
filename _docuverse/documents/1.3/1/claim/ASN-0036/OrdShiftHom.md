@@ -18,3 +18,10 @@
 - *Postconditions:* (a) `subspace(shift(v, n)) = subspace(v)`. (b) If `v` satisfies S8a, then `shift(v, n)` satisfies S8a.
 - *Frame:* `#shift(v, n) = #v = m` (depth preserved); for every `1 ≤ i < m` the component is copied unchanged (`rᵢ = vᵢ`), in particular the text subspace `r₁ = v₁` is preserved; only the action-point component changes (`rₘ = vₘ + n`).
 - *Definition:* `shift(v, n) = v ⊕ δ(n, m)`, where `δ(n, m) = [0, ..., 0, n]` is the ordinal displacement of length `m` with `actionPoint(δ(n, m)) = m` (OrdinalShift, OrdinalDisplacement).
+
+- *Depends:*
+  - OrdinalShift (OrdinalShift) — supplies the `shift(v, n) = v ⊕ δ(n, m)` definition that the proof expands throughout.
+  - OrdinalDisplacement (OrdinalDisplacement) — supplies `δ(n, m) = [0,...,0,n]` and the postcondition `actionPoint(δ(n, m)) = m` invoked to confirm well-definedness and to identify the action point in the component-wise expansion.
+  - TumblerAdd (TumblerAdd) — supplies the component-wise rule `rᵢ = vᵢ` for `i < m` and `rₘ = vₘ + n`; part (a) and part (b) are both built entirely on this expansion.
+  - TA0 (WellDefinedAddition) — supplies `#(a ⊕ w) = #w`, instantiated as `#r = #δ(n,m) = m` (depth preserved), used in the frame condition and the S8a verification.
+  - S8a (ArrangementDomainRestriction) — supplies the predicate definition (`zeros(t) = 0`, `#t ≥ 2`, all components ≥ 1`) consumed as the part (b) hypothesis and proved to hold on `shift(v, n)`.
