@@ -1,0 +1,5 @@
+- `Σ` — the strand model structure; accessed as `Σ.M(d)` to retrieve the V-position mapping for document `d`
+- `M` — the V-position mapping component of `Σ`; `dom(Σ.M(d))` yields the set of all V-positions in document `d`
+- `dom` — domain function on mappings; returns the key set of a mapping, here used to range over all V-positions of a document
+- `subspace` — function from a V-position to its subspace identifier; the axiom's grouping criterion: positions with equal `subspace` values must share a common depth
+- `#` — depth function on tumbler addresses; returns the number of components in an address; the axiom asserts `#u = #w` for all same-subspace positions
