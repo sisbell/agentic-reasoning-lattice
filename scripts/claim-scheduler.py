@@ -123,7 +123,11 @@ def _force_cone_scope(session, scope):
     import importlib
     from lib.lattice.labels import build_cross_asn_label_index
     cone_mod = importlib.import_module("lib.triggers.cone_review")
-    label_index = build_cross_asn_label_index(session.store)
+    # Apex labels are this ASN's own claims; scope resolution to it so a
+    # colliding label can't bind to another ASN's same-named claim.
+    label_index = build_cross_asn_label_index(
+        session.store, allowed_asns={scope.asn_label},
+    )
     for label in cone_mod.apex_labels_in_topological_order(
         session, scope.asn_label,
     ):

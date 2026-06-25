@@ -309,7 +309,11 @@ def _build_metadata_bundle(rule, filename, claim_dir):
     lattice_root = Path(WORKSPACE).resolve()
 
     with open_session(LATTICE) as session:
-        label_index = build_cross_asn_label_index(session.store)
+        # ASNs whose claim labels this bundle may name: this claim's own
+        # ASN, plus the ASNs of any cited deps collected below. Labels
+        # aren't globally unique (e.g. S0 in ASN-0036 and ASN-0053), so the
+        # name index is scoped to these rather than the flat all-ASN index.
+        dep_asns = {Path(claim_dir).name}
 
         if rule in ("depends-agreement", "references-resolve"):
             from lib.predicates.versions import version_head
@@ -332,6 +336,9 @@ def _build_metadata_bundle(rule, filename, claim_dir):
                             base = state.parent[base]
                         cited_path = session.get_path_for_addr(base)
                         if cited_path:
+                            m = re.search(r"/(ASN-\d{4})/", cited_path)
+                            if m:
+                                dep_asns.add(m.group(1))
                             dep_stem = Path(cited_path).stem
                             if dep_stem not in labels_to_include:
                                 labels_to_include.append(dep_stem)
@@ -341,6 +348,12 @@ def _build_metadata_bundle(rule, filename, claim_dir):
         ):
             return ""
 
+        # Resolve names through an index scoped to this claim's ASN plus the
+        # ASNs of its cited deps — the flat index could otherwise fetch a
+        # same-named claim's name from an unrelated ASN.
+        label_index = build_cross_asn_label_index(
+            session.store, allowed_asns=dep_asns,
+        )
         rows = []
         seen = set()
         for label in labels_to_include:

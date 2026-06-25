@@ -61,7 +61,13 @@ def _claim_set_for_scope(session: Session, scope: Scope) -> Set[Address]:
         return in_asn
 
     from lib.lattice.labels import build_cross_asn_label_index
-    label_index = build_cross_asn_label_index(session.store)
+    # Scope to THIS ASN — labels aren't globally unique, so a bare label in
+    # scope.labels could otherwise pull a same-named claim from another ASN
+    # (which then drops out under the in_asn intersection, silently losing
+    # the wanted claim).
+    label_index = build_cross_asn_label_index(
+        session.store, allowed_asns={scope.asn_label},
+    )
     wanted = {
         addr for label, addr in label_index.items()
         if label in scope.labels

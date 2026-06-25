@@ -70,6 +70,12 @@ def apex_labels_in_topological_order(
 
     label_index = build_cross_asn_label_index(session.store)
     rev_index = {addr: label for label, addr in label_index.items()}
+    # Own-label (apex) lookups scope to THIS ASN — labels aren't globally
+    # unique (e.g. S0 in ASN-0036 and ASN-0053). rev_index keeps the full
+    # index for resolving cited cross-ASN targets back to labels.
+    own_index = build_cross_asn_label_index(
+        session.store, allowed_asns={asn_label},
+    )
     state = session.state
 
     def _base(addr: Address) -> Address:
@@ -81,7 +87,7 @@ def apex_labels_in_topological_order(
     apexes: list[str] = []
     for level_labels in topological_levels(deps_data):
         for label in level_labels:
-            apex_addr = label_index.get(label)
+            apex_addr = own_index.get(label)
             if apex_addr is None:
                 continue
             # Citations are emitted from version_head; walk to head
@@ -120,7 +126,9 @@ def _scope_query(session: Session, scope: Scope) -> Iterator[Address]:
     """
     if scope.asn_label is None:
         return
-    label_index = build_cross_asn_label_index(session.store)
+    label_index = build_cross_asn_label_index(
+        session.store, allowed_asns={scope.asn_label},
+    )
     for label in apex_labels_in_topological_order(session, scope.asn_label):
         if scope.labels is not None and label not in scope.labels:
             continue
