@@ -40,7 +40,7 @@ from lib.backend.addressing import Address
 from lib.lattice.labels import format_label
 from lib.protocols.febe.session import open_session
 from lib.shared.paths import (
-    DOCUVERSE_DIR, LATTICE, LATTICE_NODE, LATTICE_USER,
+    DERIVED_CLAIM_DIR, DOCUVERSE_DIR, LATTICE, LATTICE_NODE, LATTICE_USER,
 )
 
 
@@ -97,6 +97,11 @@ def _collect_revert_set(session, asn_label: str) -> tuple[set, list[Path]]:
         author_root / sub / asn_label
         for sub in _DERIVATION_SUBDIRS
     ]
+    # Derived claims live in the 1.3 region (DERIVED_CLAIM_DIR), a
+    # different node than author_root (1.1). The author-tree subdirs
+    # above miss them; add the derived-claim dir explicitly so a revert
+    # also clears the actual claim files + their substrate addresses.
+    dirs.append(DERIVED_CLAIM_DIR / asn_label)
     dirs = [d for d in dirs if d.exists()]
 
     # Paths in paths.json registered under any of the target dirs.
