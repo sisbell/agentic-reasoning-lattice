@@ -1,0 +1,1 @@
+Defines the domain restriction for the mapping component of a strand's master table: Σ.M(d) is defined only on V-positions, meaning only on tumbler addresses that carry no zero components and have at least two components. This excludes I-addresses and any degenerate tumblers from the mapping's domain, keeping Σ.M(d) strictly within the space of valid version positions.
