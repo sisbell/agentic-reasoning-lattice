@@ -37,3 +37,14 @@ Nelson's statement specifies not just contiguity but also the starting ordinal: 
   - Contiguity of V_1(d) is determined by component m alone, structurally identical to the depth-2 case.
 
 - *Definition:* For positions u, x ∈ V_1(d) (u < x, both depth m) whose first disagreement is at component j with 2 ≤ j ≤ m − 1, and for any n > uⱼ₊₁, the intermediate witness w of depth m is constructed by: wᵢ = uᵢ for 1 ≤ i ≤ j; wⱼ₊₁ = n; wᵢ = 1 for j + 2 ≤ i ≤ m (an empty clause when j = m − 1).
+
+- *Depends:*
+  - S8-depth (FixedDepthVPositions) — supplies the shared depth `m` for all positions in V_1(d), consumed as the proof's starting invariant that all elements have a common depth before the contradiction is constructed
+  - T1 (LexicographicOrder, ASN-0034) — supplies the component-comparison clause of the lexicographic order; invoked at three points in the proof to derive u < w and w < x from the first differing component
+  - S8a (ArrangementDomainRestriction) — supplies the well-formedness predicate (`#p ≥ 2 ∧ (A i : 1 ≤ i ≤ #p : pᵢ > 0)`) that the constructed intermediate w must satisfy before D-CTG can require w ∈ V_1(d)
+  - D-CTG (VContiguity) — supplies the contiguity axiom applied to force w ∈ V_1(d) from u < w < x with matching subspace, depth, and S8a well-formedness; the claim's contradiction rests on producing infinitely many such w
+  - T0(a) (UnboundedComponentValues, ASN-0034) — supplies, for any bound M, a witness n > M; consumed to construct the strictly increasing sequence n₁ < n₂ < … of admissible intermediates that contradicts S8-fin
+  - T3 (CanonicalRepresentation, ASN-0034) — supplies tumbler equality as component-wise identity; used to conclude that distinct values of n yield distinct depth-m positions w (differing at component j + 1)
+  - S8-fin (FiniteArrangement) — supplies finiteness of dom(M(d)); the proof is by contradiction, and the infinite sequence of distinct positions in V_1(d) contradicts this finiteness
+- *Forward References:*
+  - T4 (HierarchicalParsing, ASN-0034) — cited as the structural reason zero is unavailable as a V-position component (zero is a field separator), grounding the 1-based ordinal convention for V-positions stated after the main proof
