@@ -233,6 +233,44 @@ def _existing_classifications(
     return sorted(depends), sorted(forwards)
 
 
+_PAREN_ARG_RE = re.compile(r"\([^()]*\)\s*$")
+
+
+def _canonicalize_labels(classifications, retractions, label_index):
+    """Rewrite parametrized citation labels (e.g. 'T1(i)') to their
+    canonical claim label ('T1') in place.
+
+    A claim cited in prose with an argument — 'T1(i)' — carries that
+    argument into the extracted citation label. That label then fails
+    the index lookup in `_validate_labels` and aborts the whole fire (a
+    transient, nondeterministic failure depending on whether the model
+    copied the argument form). If a label isn't in the index but
+    stripping a single trailing parenthetical argument yields one that
+    is, rewrite to the canonical form — both the `label` and the
+    bullet's leading token, so dedup/retraction stay consistent. Labels
+    that legitimately contain parens ('Σ.M(d)', 'subspace(v)') resolve
+    directly and are never stripped.
+    """
+    for entry in (*classifications, *retractions):
+        label = entry.get("label", "")
+        if not label or label in label_index:
+            continue
+        stripped = _PAREN_ARG_RE.sub("", label).strip()
+        if stripped == label or stripped not in label_index:
+            continue
+        entry["label"] = stripped
+        bullet = entry.get("bullet")
+        if bullet:
+            m = re.match(r"(\s*-\s+)(\S+)(.*)", bullet, re.S)
+            if m and m.group(2) == label:
+                entry["bullet"] = m.group(1) + stripped + m.group(3)
+        print(
+            f"  [CITATION-RESOLVE] canonicalized label {label!r} -> "
+            f"{stripped!r}",
+            file=sys.stderr,
+        )
+
+
 def _validate_labels(classifications, retractions, label_index):
     """Every emitted label must resolve in the cross-ASN label index."""
     for c in classifications:
@@ -596,6 +634,9 @@ class ClaimCitationResolveAgent(Agent):
         # delta these are skipped, but the attestation and audit trail
         # below still fire.
         if result.classifications or result.retractions:
+            _canonicalize_labels(
+                result.classifications, result.retractions, label_index,
+            )
             _validate_labels(
                 result.classifications, result.retractions, label_index,
             )
