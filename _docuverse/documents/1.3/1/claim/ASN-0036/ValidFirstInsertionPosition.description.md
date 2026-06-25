@@ -1,0 +1,1 @@
+Defines the valid first insertion position for an empty subspace: when no v-positions exist yet, the only legal insertion point is an all-ones tumbler of some chosen depth m, which is exactly the position D-MIN will require once the subspace becomes non-empty. The ternary form (d, v, m) makes the depth choice explicit because there is no existing state from which to read it.
