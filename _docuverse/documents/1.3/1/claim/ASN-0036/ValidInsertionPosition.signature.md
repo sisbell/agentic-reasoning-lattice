@@ -1,1 +1,0 @@
-- `ValidInsertionPosition` — binary predicate asserting that V-position `v` is a valid insertion position within document `d` under the non-empty branch of the strand model

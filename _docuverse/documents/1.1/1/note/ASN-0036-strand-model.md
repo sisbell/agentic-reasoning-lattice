@@ -8,7 +8,6 @@ The approach is: model the system as two state components, derive what each must
 
 Nelson conceived the two streams as inseparable aspects of a single architecture. Gregory implemented them as distinct enfilade types with different stability characteristics. Between these two accounts we find the abstract structure: a content store that grows but never changes, and a family of arrangement functions that change freely but may reference only what the store contains.
 
-
 ## Two components of state
 
 The observation that motivates the entire design is that content EXISTS independently of how it is ARRANGED. A paragraph does not cease to exist when removed from a document — it merely ceases to appear there. Nelson states this plainly:
@@ -19,20 +18,9 @@ This observation forces the state into two components:
 
 **Σ.C (ContentStore).** The *content store*: a partial function mapping Istream addresses to content values. `T` is the set of tumblers (ASN-0034); `Val` is an unspecified set of content values, opaque at this level of abstraction. The domain `dom(Σ.C)` is the set of I-addresses at which content has been stored.
 
-*Formal Contract:*
-- *Axiom:* `Σ.C : T ⇀ Val` — the content store is a partial function from tumblers to content values.
-- *Definition:* `dom(Σ.C) = {a ∈ T : Σ.C(a) is defined}` — the set of I-addresses at which content has been stored.
-
 **Σ.M(d) (Arrangement).** The *arrangement* of document `d`: a partial function mapping Vstream positions to Istream addresses. The domain `dom(Σ.M(d))` is the set of V-positions currently active in `d`; the range `ran(Σ.M(d))` is the set of I-addresses that `d` currently references.
 
 A conventional system merges these — "the file" IS the content IS the arrangement. Editing overwrites. Saving destroys the prior state. Nelson rejected this explicitly: "Virtually all of computerdom is built around the destructive replacement of successive whole copies of each current version." The two-component model is his alternative: editing modifies `M(d)` while `C` remains invariant. The separation is the premise; what follows are the invariants it must satisfy.
-
-*Formal Contract:*
-- *Axiom:* `Σ.M(d) : T ⇀ T` — the arrangement of document `d` is a partial function from V-position tumblers to I-address tumblers.
-- *Axiom (domain restriction):* `dom(Σ.M(d)) ⊆ {t ∈ T : zeros(t) = 0 ∧ #t ≥ 2}` — arrangements map only V-positions; every active key is a zero-free tumbler of depth at least 2 (a subspace identifier followed by a within-subspace ordinal).
-- *Definition (S8a — V-position well-formedness):* We name the domain restriction above `S8a`. By T0 (ASN-0034), `zeros(t) = 0` holds exactly when every component is positive, so `S8a` reads equivalently in per-component form: every active V-position is a zero-free tumbler of depth at least 2 with all components positive.
-- *Definition:* `dom(Σ.M(d)) = {v ∈ T : Σ.M(d)(v) is defined}` — the set of V-positions currently active in `d`.
-- *Definition:* `ran(Σ.M(d)) = {Σ.M(d)(v) : v ∈ dom(Σ.M(d))}` — the set of I-addresses that `d` currently references.
 
 We call this paired state the *strand*: the two-component object `(Σ.C, Σ.M)` — an immutable content store woven together with the family of mutable arrangements that reference it. The remainder of this ASN derives the invariants that govern a strand.
 
@@ -44,18 +32,13 @@ Suppose `C(a)` could change from value `w` to `w'` in some state transition. The
 
 We therefore require:
 
-**S0 (Content immutability).** For every state transition `Σ → Σ'`:
+**S0 (ContentImmutability).** For every state transition `Σ → Σ'`:
 
 `[a ∈ dom(Σ.C) ⟹ a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)]`
 
 Once content is stored at address `a`, both the address and its value are fixed for all future states. This is the central invariant of the two-stream architecture.
 
-*Formal Contract:*
-- *Axiom (design requirement):* For every state transition `Σ → Σ'`, `(A a : a ∈ dom(Σ.C) : a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a))`.
-- *Postconditions:* (a) Domain persistence — `a ∈ dom(Σ.C) ⟹ a ∈ dom(Σ'.C)`. (b) Value preservation — `a ∈ dom(Σ.C) ⟹ Σ'.C(a) = Σ.C(a)`.
-- *Frame:* No condition on arrangements — the postcondition holds for arbitrary `Σ'.M(d)` and arbitrary changes to any document's arrangement.
-
-**S1 (Store monotonicity).** `[dom(Σ.C) ⊆ dom(Σ'.C)]`
+**S1 (StoreMonotonicity).** `[dom(Σ.C) ⊆ dom(Σ'.C)]`
 
 S0 and S1 together establish `C` as an *append-only log*. New entries may be added — each at a fresh address guaranteed unique by T9 and T10 (ASN-0034) — but no existing entry may be modified or removed.
 
@@ -65,27 +48,19 @@ Nelson states this as an explicit design commitment: "The true storage of text s
 
 Let `a ∈ dom(Σ.C)` be arbitrary. By S0 (content immutability), `a ∈ dom(Σ.C)` implies the conjunction `a ∈ dom(Σ'.C) ∧ Σ'.C(a) = Σ.C(a)`. The first conjunct yields `a ∈ dom(Σ'.C)` directly. Since `a` was chosen arbitrarily from `dom(Σ.C)`, we have established `(A a : a ∈ dom(Σ.C) : a ∈ dom(Σ'.C))`, which is `dom(Σ.C) ⊆ dom(Σ'.C)` by definition of subset inclusion. ∎
 
-*Formal Contract:*
-- *Preconditions:* State transition `Σ → Σ'` in a system satisfying S0 (content immutability).
-- *Postconditions:* `dom(Σ.C) ⊆ dom(Σ'.C)`.
-
-
 ## The arrangement and referential integrity
 
 Vstream is where mutability lives. Each document's arrangement `M(d)` maps V-positions to I-addresses, presenting stored content as a readable sequence. Unlike `C`, arrangements change freely — content can be added, removed, and reordered.
 
-**S2 (Arrangement functionality).** Each V-position maps to exactly one I-address, by the `Σ.M(d) : T ⇀ T` partial-function declaration:
+**S2 (ArrangementFunctionality).** Each V-position maps to exactly one I-address, by the `Σ.M(d) : T ⇀ T` partial-function declaration:
 
 `(A d, v, a₁, a₂ : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a₁ ∧ Σ.M(d)(v) = a₂ : a₁ = a₂)`
 
-*Formal Contract:*
-- *Derivation:* The `Σ.M(d) : T ⇀ T` partial-function declaration yields the single-image property by unfolding the meaning of "partial function": a function relates each domain element to at most one image, so two images of a common argument coincide.
-- *Postconditions:* (single image) `(A d, v, a₁, a₂ : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a₁ ∧ Σ.M(d)(v) = a₂ : a₁ = a₂)` — each V-position has at most one I-address image.
-- *Depends:* the `Σ.M(d) : T ⇀ T` axiom (this ASN) — the partial-function declaration from which the single-image property is unfolded.
+*Proof.* The `Σ.M(d) : T ⇀ T` partial-function declaration yields the single-image property by unfolding the meaning of "partial function": a function relates each domain element to at most one image, so two images of a common argument coincide. ∎
 
 The bridge between the two state components is a well-formedness condition:
 
-**S3 (Referential integrity).** `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ dom(Σ.C))`
+**S3 (ReferentialIntegrity).** `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ dom(Σ.C))`
 
 Every V-reference resolves. If a document's arrangement says "at position `v`, display the content at I-address `a`," then `a` must be in `dom(C)`. There are no dangling references.
 
@@ -93,18 +68,11 @@ Any transition that establishes a V-mapping `M(d)(v) = a` must therefore have `a
 
 Content unreferenced by any current arrangement still persists. Since S0's antecedent is `a ∈ dom(Σ.C)` alone, not conditioned on whether `a` appears in any `ran(M(d))`, such content is never reclaimed. Nelson requires this for history — he calls such content "deleted bytes — not currently addressable, awaiting historical backtrack functions, may remain included in other versions," and version reconstruction depends on the availability of Istream fragments from prior arrangements.
 
-*Formal Contract (S3):*
-- *Axiom (well-formedness invariant):* In every state `Σ`, `(A d, v : v ∈ dom(Σ.M(d)) : Σ.M(d)(v) ∈ dom(Σ.C))` — equivalently, `ran(Σ.M(d)) ⊆ dom(Σ.C)`.
-- *Preservation across transitions:* For an operation that adds a V-mapping `M(d)(v) = a`, the post-state must satisfy `a ∈ dom(Σ'.C)` — the I-address must exist in the post-state.
-- *Frame:* S3 asserts `ran(M(d)) ⊆ dom(C)` only; the converse `dom(C) ⊆ ⋃_d ran(M(d))` is not asserted.
-- *Depends:* S1 (store monotonicity) — once a reference is valid, S1 prevents the target from being removed.
-
-
 ## Content identity
 
 What distinguishes transclusion from coincidence? In conventional systems, identity is by value — two files with identical bytes are "the same." In Xanadu, identity is by address.
 
-**S4 (Origin-based identity).** For I-addresses `a₁`, `a₂` produced by distinct allocation events:
+**S4 (OriginBasedIdentity).** For I-addresses `a₁`, `a₂` produced by distinct allocation events:
 
 `a₁ ≠ a₂`
 
@@ -122,17 +90,11 @@ Live content shares I-addresses. Dead copies create new ones. The difference is 
 
 GlobalUniqueness (ASN-0034) establishes the following invariant: for every pair of addresses `a, b` produced by distinct allocation events in any reachable system state, `a ≠ b`. The invariant's precondition requires only that `a₁` and `a₂` arise from distinct allocation events under T10a — it places no condition on the values `Σ.C(a₁)` and `Σ.C(a₂)`. Since `a₁` and `a₂` are produced by distinct allocation events by hypothesis, GlobalUniqueness yields `a₁ ≠ a₂` directly. ∎
 
-*Formal Contract:*
-- *Preconditions:* `a₁, a₂ ∈ dom(Σ.C)` produced by distinct allocation events within a system conforming to T10a (allocator discipline, ASN-0034).
-- *Postconditions:* `a₁ ≠ a₂`, regardless of whether `Σ.C(a₁) = Σ.C(a₂)`.
-- *Frame:* The content store `C` and value domain `Val` play no role in the proof — distinctness is a property of the addressing scheme alone.
-
-
 ## Sharing
 
 The arrangement function `M(d)` need not be injective. This is not a deficiency but a design requirement — it is what makes transclusion work.
 
-**S5 (Unrestricted sharing).** The same I-address may appear in the ranges of multiple arrangements, and at multiple V-positions within a single arrangement. S0–S3 are consistent with any finite sharing multiplicity — they place no constraint on `|{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}|`:
+**S5 (UnrestrictedSharing).** The same I-address may appear in the ranges of multiple arrangements, and at multiple V-positions within a single arrangement. S0–S3 are consistent with any finite sharing multiplicity — they place no constraint on `|{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}|`:
 
 `(A N ∈ ℕ :: (E Σ :: Σ is the initial state of a model of S0–S3 ∧ (E a ∈ dom(Σ.C) :: |{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| > N)))`
 
@@ -166,43 +128,23 @@ The within-document sharing multiplicity is `|{v : v ∈ dom(M'_N(d)) ∧ M'_N(d
 
 **Conclusion.** Each construction yields, for arbitrary `N ∈ ℕ`, the initial state of a model of S0–S3 in which the sharing multiplicity exceeds `N`. Since each witness is a genuine model of the full invariant set S0–S3, sharing multiplicity exceeding any given finite bound is consistent with S0–S3 alone. No finite cap on `|{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}|` is entailed by S0–S3 — neither across documents nor within a single document. ∎
 
-*Formal Contract:*
-- *Preconditions:* `N ∈ ℕ` arbitrary.
-- *Postconditions:* There exists a state `Σ` — the initial state of a model of S0–S3 — such that for some `a ∈ dom(Σ.C)`, `|{(d, v) : v ∈ dom(Σ.M(d)) ∧ Σ.M(d)(v) = a}| > N`. The construction works both across documents (multiplicity `N + 1` over `N + 1` documents) and within a single document (multiplicity `N + 1` at `N + 1` distinct V-positions).
-- *Depends:* S0, S1, S2, S3, T3 (ASN-0034).
-
-
 ## Structural attribution
 
 Every V-position can be traced to the document that originally created its content.
 
 The projection `D(a)` is well-defined only when `zeros(a) ≥ 2` (per T4's field correspondence: `zeros = 0` is node-only, `zeros = 1` is node+user, `zeros ≥ 2` has a document field). Since Istream addresses designate content elements within documents, we require:
 
-**S7b (Element-level I-addresses).** We require that every address in `dom(Σ.C)` is an element-level tumbler: `(A a ∈ dom(Σ.C) :: zeros(a) = 3)`.
+**S7b (ElementLevelIAddresses).** We require that every address in `dom(Σ.C)` is an element-level tumbler: `(A a ∈ dom(Σ.C) :: zeros(a) = 3)`.
 
 By T4's field correspondence, `zeros(a) = 3` means all four identifying fields — node, user, document, element — are present, and the element field contains the content-level address.
 
-*Formal Contract (S7b):*
-- *Axiom (design requirement):* `(A a ∈ dom(Σ.C) :: zeros(a) = 3)`.
-- *Postconditions:* By T4's field correspondence, all four identifying fields — node, user, document, element — are present and the element field exists. The projections `N(a)`, `U(a)`, `D(a)`, `E(a)` supplied by T4b are all well-defined.
-- *Depends:* T4 (HierarchicalParsing, ASN-0034) — field correspondence; T4b (UniqueParse, ASN-0034) — projection definitions; T10a.4 (T4PreservationUnderDiscipline, ASN-0034) — T4-validity (no adjacent zeros, `a₁ ≠ 0 ∧ a_{#a} ≠ 0`) and the bound `zeros(a) ≤ 3`.
-
-**S7a (Document-scoped allocation).** Every Istream address is allocated under the tumbler prefix of the document that created it. That is, for every `a ∈ dom(Σ.C)`, the document-level prefix of `a` — the tumbler `N(a).0.U(a).0.D(a)` obtained by truncating the element field, where `N(a)`, `U(a)`, `D(a)` are the partial projections supplied by T4b (UniqueParse, ASN-0034) — identifies the document whose owner performed the allocation that placed `a` into `dom(C)`.
+**S7a (DocumentScopedAllocation).** Every Istream address is allocated under the tumbler prefix of the document that created it. That is, for every `a ∈ dom(Σ.C)`, the document-level prefix of `a` — the tumbler `N(a).0.U(a).0.D(a)` obtained by truncating the element field, where `N(a)`, `U(a)`, `D(a)` are the partial projections supplied by T4b (UniqueParse, ASN-0034) — identifies the document whose owner performed the allocation that placed `a` into `dom(C)`.
 
 Nelson's baptism principle establishes it: "The owner of a given item controls the allocation of the numbers under it." A document owner baptises element addresses under that document's prefix, so the home document is ascertainable from the address alone.
 
-*Formal Contract (S7a):*
-- *Axiom (design requirement):* `(A a : a ∈ dom(Σ.C) :: the document-level prefix N(a).0.U(a).0.D(a) is the tumbler of the document whose owner performed the allocation that placed a into dom(C))`.
-- *Depends:* T4 (HierarchicalParsing, ASN-0034) — defines the prefix structure; T4b (UniqueParse, ASN-0034) — defines projections `N`, `U`, `D`; S7b (Element-level I-addresses) — supplies `zeros(a) = 3` for every `a ∈ dom(Σ.C)`; T10a (AllocatorDiscipline, ASN-0034) — establishes the baptism principle; T10a.4 (T4PreservationUnderDiscipline, ASN-0034) — T4 preservation.
+**S7d (DocumentAllocationDiscipline).** Every document is addressed by a document-level tumbler (`zeros = 2`) arising from an allocation event under T10a's allocator discipline (ASN-0034). Distinct documents arise from distinct allocation events.
 
-**S7d (Document allocation discipline).** Every document is addressed by a document-level tumbler (`zeros = 2`) arising from an allocation event under T10a's allocator discipline (ASN-0034). Distinct documents arise from distinct allocation events.
-
-*Formal Contract (S7d):*
-- *Axiom (design requirement):* Every document tumbler `d` satisfies `zeros(d) = 2` and is the result of an allocation event under T10a; distinct documents arise from distinct allocation events.
-- *Postconditions:* By GlobalUniqueness (ASN-0034), distinct documents have distinct document-level tumblers.
-- *Depends:* T10a (AllocatorDiscipline, ASN-0034) — allocation events; T10a.4 (T4PreservationUnderDiscipline, ASN-0034) — T4 preservation, here at `zeros = 2`; T4 (HierarchicalParsing, ASN-0034) — field correspondence at `zeros = 2`; GlobalUniqueness (ASN-0034) — uniqueness across allocation events.
-
-**S7 (Structural attribution).** For every `a ∈ dom(Σ.C)`, define the *origin* as the document-level prefix obtained by truncating the element field:
+**S7 (StructuralAttribution).** For every `a ∈ dom(Σ.C)`, define the *origin* as the document-level prefix obtained by truncating the element field:
 
 `origin(a) = N(a).0.U(a).0.D(a)`
 
@@ -222,42 +164,23 @@ We note a subtlety. S7 identifies the document that ALLOCATED the I-address — 
 
 **Permanence.** By S0 (content immutability), once `a ∈ dom(Σ.C)`, then `a ∈ dom(Σ'.C)` for all successor states `Σ'` — the address persists. Since `a` is a tumbler — a fixed sequence of components, not a mutable reference — and `origin(a)` is computed from the components of `a` alone via T4's deterministic field decomposition, `origin(a)` yields the same result in every state in which `a` exists. ∎
 
-*Formal Contract:*
-- *Preconditions:* `a ∈ dom(Σ.C)` in a system conforming to S7a (document-scoped allocation), S7b (element-level I-addresses), S7d (document allocation discipline), T4 (HierarchicalParsing, ASN-0034) — separator/zero-count structure, T4a (SyntacticEquivalence, ASN-0034) — the non-empty-field reading of each present field, T0 (CarrierSetDefinition, ASN-0034) — strict positivity of non-separator components via the carrier ℕ, T4b (UniqueParse, ASN-0034) — supplies the projections `N(a)`, `U(a)`, `D(a)`, `E(a)` from which `origin(a)` is computed, T10a (allocator discipline, ASN-0034), and T10a.4 (T4PreservationUnderDiscipline, ASN-0034) — T4 preservation. The strict equality `zeros(a) = 3` itself comes from S7b axiomatically.
-- *Postconditions:* (a) `origin(a)` is well-defined and is a document-level tumbler with `zeros(origin(a)) = 2`. (b) `origin(a)` is the tumbler of the document that allocated `a`. (c) For `a₁, a₂` allocated under distinct documents, `origin(a₁) ≠ origin(a₂)`. (d) `origin(a)` is invariant across all states in which `a ∈ dom(Σ.C)`.
-- *Frame:* The content values `Σ.C(a)` and arrangement functions `Σ.M(d)` play no role — attribution is a property of the addressing scheme alone.
-
 ## Correspondence-run partition
 
 The arrangement `M(d)` maps individual V-positions to I-addresses. Because `dom(M(d))` is finite (S8-fin), the mapping decomposes into finitely many *correspondence runs* — maximal contiguous blocks of V-positions whose images advance in lockstep with them under ordinal displacement. S8 establishes that this run decomposition exists, partitions `dom(M(d))`, and is unique.
 
-**S8-fin (Finite arrangement).** For each document `d`, `dom(Σ.M(d))` is finite. This is a design requirement on every reachable state: no document arrangement is permitted to hold infinitely many V-positions.
+**S8-fin (FiniteArrangement).** For each document `d`, `dom(Σ.M(d))` is finite. This is a design requirement on every reachable state: no document arrangement is permitted to hold infinitely many V-positions.
 
-*Formal Contract:*
-- *Axiom (design requirement):* For every state `Σ` and document `d`, `dom(Σ.M(d))` is a finite set.
-- *Postconditions:* `|dom(Σ.M(d))| < ∞` — the arrangement has finite cardinality. Consequently `ran(Σ.M(d))` is finite (image of a finite set under a function).
-- *Frame:* No constraint on the unbounded growth of `dom(C)`; only individual arrangements are required to be finite at any given state.
-**subspace (V-position subspace identifier).** For any tumbler `v` of depth `#v ≥ 1`, define:
+**subspace (VPositionSubspaceIdentifier).** For any tumbler `v` of depth `#v ≥ 1`, define:
 
 `subspace(v) = v₁`
 
 extracting the subspace identifier as the first component of a V-position.
 
-*Formal Contract:*
-- *Signature:* `subspace : T → ℕ` — projects the first component of a tumbler.
-- *Preconditions:* `v ∈ T`, `#v ≥ 1` (so that `v₁` is well-defined as the first component of a non-empty tumbler).
-- *Definition:* `subspace(v) = v₁`.
-
-**S8-depth (Fixed-depth V-positions).** Within a given subspace `s` of document `d`, all V-positions share the same tumbler depth:
+**S8-depth (FixedDepthVPositions).** Within a given subspace `s` of document `d`, all V-positions share the same tumbler depth:
 
 `(A d, u, w : u ∈ dom(Σ.M(d)) ∧ w ∈ dom(Σ.M(d)) ∧ subspace(u) = subspace(w) : #u = #w)`
 
 Gregory's evidence supports it: V-addresses in the text subspace consistently use the form `s.x` — two tumbler digits, where `s` is the subspace identifier and `x` is the ordinal. Any correct implementation must satisfy this constraint.
-
-*Formal Contract:*
-- *Axiom (design requirement):* `(A d, u, w : u ∈ dom(Σ.M(d)) ∧ w ∈ dom(Σ.M(d)) ∧ subspace(u) = subspace(w) : #u = #w)`.
-- *Postconditions:* Within a subspace `s` of document `d`, if `V_s(d) ≠ ∅` then there exists a common depth `m_s ≥ 2` (by S8a) such that every V-position with `v₁ = s` has length `m_s`. For empty `V_s(d)` no witness depth is asserted. Distinct subspaces may have distinct depths.
-- *Depends:* S8a — for the lower bound `m_s ≥ 2`.
 
 S8-depth allows us to define "consecutive V-positions" precisely. Within a subspace, consecutive positions differ only at the ordinal (last) component: a position `v` is followed by `shift(v, 1)` (equivalently `v ⊕ δ(1, #v)` per OrdinalShift, ASN-0034), the next ordinal at the same depth.
 
@@ -265,7 +188,7 @@ S8-depth allows us to define "consecutive V-positions" precisely. Within a subsp
 
 Ordinal shift `shift(v, n)` (OrdinalShift, ASN-0034) preserves a V-position's subspace identifier and its S8a well-formedness, as the following lemma establishes.
 
-**OrdShiftHom** — *OrdinalShiftPreservation* (LEMMA). For a V-position `v` with `#v = m ≥ 2` and `n ≥ 1`:
+**OrdShiftHom (OrdinalShiftPreservation).** For a V-position `v` with `#v = m ≥ 2` and `n ≥ 1`:
 
 (a) `subspace(shift(v, n)) = subspace(v)`.
 
@@ -279,12 +202,7 @@ Ordinal shift `shift(v, n)` (OrdinalShift, ASN-0034) preserves a V-position's su
 
 *Instance.* Let `v = [1, 3, 5]` (text subspace `v₁ = 1`, depth `m = 3`, satisfying S8a) and `n = 2`. Then `shift(v, 2) = v ⊕ δ(2, 3) = [1, 3, 5] ⊕ [0, 0, 2] = [1, 3, 7]` (action point 3; components 1 and 2 copied from `v`, component 3 receives `5 + 2 = 7`). (a) `subspace(shift(v, 2)) = [1, 3, 7]₁ = 1 = v₁ = subspace(v)`. (b) `[1, 3, 7]` has `zeros = 0`, every component positive (`1, 3, 7 ≥ 1`), and depth `3 ≥ 2`, so S8a holds on `shift(v, 2)`.
 
-*Formal Contract:*
-- *Preconditions:* `v ∈ T`, `#v = m ≥ 2`, `n ≥ 1`.
-- *Postconditions:* (a) `subspace(shift(v, n)) = subspace(v)`. (b) When `v` satisfies S8a, `shift(v, n)` satisfies S8a.
-- *Depends:* OrdinalShift (ASN-0034) — `shift(v, n) = v ⊕ δ(n, m)`; OrdinalDisplacement (ASN-0034) — `δ(n, m) = [0, ..., 0, n]` with action point `m`; TumblerAdd (ASN-0034) — the component formula copying positions before the action point; TA0 (length preservation, ASN-0034) — `#shift(v, n) = m`; S8a (V-position well-formedness) — supplies `vᵢ ≥ 1` for part (b).
-
-**S8 (Correspondence-run partition).** For each document `d`, the active V-positions `dom(Σ.M(d))` decompose into finitely many *correspondence runs*. Under the convention `shift(t, 0) := t`, a correspondence run is a triple `(v, a, n)` with `v ∈ dom(M(d))`, `a = M(d)(v)`, and `n ≥ 1`, such that for every `k` with `0 ≤ k < n`:
+**S8 (CorrespondenceRunPartition).** For each document `d`, the active V-positions `dom(Σ.M(d))` decompose into finitely many *correspondence runs*. Under the convention `shift(t, 0) := t`, a correspondence run is a triple `(v, a, n)` with `v ∈ dom(M(d))`, `a = M(d)(v)`, and `n ≥ 1`, such that for every `k` with `0 ≤ k < n`:
 
 (a) **Lockstep displacement** — `shift(v, k) ∈ dom(M(d))` and `M(d)(shift(v, k)) = shift(a, k)`: the V-positions and their images advance in lockstep under ordinal displacement.
 
@@ -308,11 +226,6 @@ A run is *maximal* when it admits neither forward extension (no run `(v, a, n+1)
 
 **Partition.** *Empty case.* When `dom(M(d)) = ∅` there are zero orbits and hence zero maximal runs, and the empty union of runs partitions the empty set; the remaining clauses treat `dom(M(d)) ≠ ∅`. *Coverage.* Every `v ∈ dom(M(d))` lies in its own orbit, hence in exactly one maximal run; at minimum `(v, M(d)(v), 1)` is a run (conjunct (a) holds trivially at `k = 0` by the convention `shift(t, 0) := t`) that extends to the unique maximal run through `v`. *Disjointness.* Two distinct maximal runs are vertex-disjoint: if they shared a V-position `w`, both would equal the orbit of `w` and so coincide. *Finiteness.* By S8-fin, `dom(M(d))` is finite, so there are finitely many orbits, each finite, hence finitely many maximal runs. Taking the union over subspaces — each chain lying in a single subspace by OrdShiftHom (a) — the maximal runs partition `dom(M(d))`, establishing conjuncts (a) and (b). ∎
 
-*Formal Contract:*
-- *Preconditions:* `dom(M(d))` finite (S8-fin); `M(d)` a function (S2); referential integrity (S3); `(A v ∈ dom(M(d)) :: zeros(v) = 0 ∧ #v ≥ 2 ∧ (A i : 1 ≤ i ≤ #v : vᵢ > 0))` (S8a); within each subspace, all V-positions share a common depth (S8-depth). Convention: `shift(t, 0) := t`.
-- *Postconditions:* `dom(M(d))` is the disjoint union of finitely many maximal correspondence runs `(vⱼ, aⱼ, nⱼ)`: (a) within each run, `shift(vⱼ, k) ∈ dom(M(d))` and `M(d)(shift(vⱼ, k)) = shift(aⱼ, k)` for `0 ≤ k < nⱼ`, with `shift(vⱼ, k)` a well-formed V-position (OrdShiftHom) and `shift(aⱼ, k) ∈ dom(Σ.C)` (S3); (b) the label `aⱼ = M(d)(vⱼ)` is well-defined by S2 and lies in `dom(Σ.C)` by S3; (c) the maximal-run decomposition is unique.
-- *Depends:* (*Local properties*) S2 (ArrangementFunctionality) — uniquely determined image `a = M(d)(v)` and the labels; S3 (referential integrity) — `M(d)(v) ∈ dom(Σ.C)`, placing every lockstep image in the content domain; S8a — well-formed V-positions; S8-depth — common depth within a subspace, used for the equal-depth TS2 application; S8-fin — finite `dom(M(d))`, bounding chains; OrdShiftHom (OrdinalShiftPreservation) — subspace and S8a preservation under shift, confining each chain to one subspace. (*Foundation claims, ASN-0034*) T1 (LexicographicOrder) — irreflexivity, ruling out lockstep cycles; TS2 (ShiftInjectivity) — injectivity of `succ` at common depth; TS3 (ShiftComposition) — `shift(shift(·, i), 1) = shift(·, i+1)`, lifting lockstep edges to the displacement identity at general `k`; TS4 (ShiftStrictIncrease) — `shift(v, 1) > v`, supplying acyclicity; OrdinalShift, OrdinalDisplacement — the shift operation and its action-point semantics.
-
 ## Arrangement contiguity
 
 Nelson states that the Vstream is always a "dense, contiguous sequence" — after removal, "the v-stream addresses of any following characters in the document are [decreased] by the length of the [deleted] text" [LM 4/66]. The Vstream has no concept of empty positions: "if you have 100 bytes, you have addresses 1 through 100." Nelson's "addresses 1 through 100" describes character positions, so the contiguity properties below are stated for the text subspace (S = 1).
@@ -324,13 +237,6 @@ Abbreviate `S = subspace(v) = v₁` (per S8a), and write `V_S(d) = {v ∈ dom(M(
 `(A d, u, q : u ∈ V_1(d) ∧ q ∈ V_1(d) ∧ u < q : (A v : subspace(v) = 1 ∧ #v = #u ∧ zeros(v) = 0 ∧ u < v < q : v ∈ V_1(d)))`
 
 In words: within the text subspace, V-positions form a contiguous ordinal range with no gaps. If positions [1, 3] and [1, 7] are occupied, then every position [1, k] with 3 < k < 7 must also be occupied.
-
-*Formal Contract:*
-- *Axiom (design requirement):* `(A d, u, q : u ∈ V_1(d) ∧ q ∈ V_1(d) ∧ u < q : (A v : subspace(v) = 1 ∧ #v = #u ∧ zeros(v) = 0 ∧ u < v < q : v ∈ V_1(d)))`.
-- *Preconditions:* `subspace(v) = 1`; `zeros(v) = 0` ⟺ S8a positivity, by T0; V-positions share a common depth (S8-depth).
-- *Postconditions:* V_1(d) is either empty or occupies every position strictly between its extremes (at the fixed depth).
-- *Frame:* D-CTG is a constraint on well-formed text-subspace arrangements.
-- *Depends:* S8a (V-position well-formedness); S8-depth (common depth within subspace); T1 (LexicographicOrder, ASN-0034) — defines the order.
 
 For the text subspace at depth m = 2, this is a finite condition: the intermediates between [1, a] and [1, b] are the finitely many [1, i] with a < i < b. Combined with S8-fin (dom(M(d)) is finite), contiguity at depth 2 says V_1(d) occupies a single unbroken block of ordinals.
 
@@ -355,11 +261,6 @@ Since u < w < x, subspace(w) = 1, #w = m = #u, and w satisfies S8a, D-CTG requir
 
 Therefore no two positions in V_1(d) can disagree at any component j with 2 ≤ j ≤ m − 1. All positions share components 2 through m − 1, and contiguity reduces to contiguity of the last component (component m) alone. ∎
 
-*Formal Contract:*
-- *Preconditions:* V_1(d) non-empty; common depth `m` (S8-depth); `m ≥ 3`.
-- *Postconditions:* `(A u, x ∈ V_1(d), j : 2 ≤ j ≤ m − 1 : uⱼ = xⱼ)`. Contiguity of V_1(d) reduces to contiguity of the m-th (last) component.
-- *Depends:* (*Local properties*) D-CTG (VContiguity) — any tumbler strictly between two positions in subspace 1 at depth `m` lies in `V_1(d)`; S8a — `m ≥ 2` and componentwise positivity of V-positions; S8-depth — common depth `#w = m`; S8-fin — finiteness of `V_1(d)`. (*Foundation claims, ASN-0034*) T0(a) (UnboundedComponentValues) — for any bound `M`, a natural-number witness `n > M`; T1 case (i) (LexicographicOrder) — first-divergence comparison; T3 (CanonicalRepresentation) — distinct component sequences yield distinct tumblers.
-
 Nelson's statement specifies not just contiguity but also the starting ordinal: "addresses 1 through 100," not "42 through 141." All ordinal numbering in the tumbler system starts at 1: the first child is always .1 (LM 4/20), link positions within a document begin at 1 (LM 4/31), and position 0 is structurally unavailable since zero serves as a field separator (T4, ASN-0034). V-positions follow the same convention.
 
 **D-MIN (VMinimumPosition).** For each document d with V_1(d) non-empty:
@@ -369,12 +270,6 @@ Nelson's statement specifies not just contiguity but also the starting ordinal: 
 where the tuple has length m (the common depth of V-positions in the text subspace per S8-depth), and every component is 1.
 
 At depth 2 this gives min(V_1(d)) = [1, 1].
-
-*Formal Contract:*
-- *Axiom (design requirement):* `V_1(d) ≠ ∅ ⟹ min(V_1(d)) = [1, 1, ..., 1]` of length `m_1` (the common depth per S8-depth).
-- *Preconditions:* V_1(d) non-empty; common depth `m_1` (S8-depth) with `m_1 ≥ 2` (S8a).
-- *Postconditions:* Every component of `min(V_1(d))` equals 1; in particular the text subspace identifier `min(V_1(d))₁ = 1` and the within-subspace ordinal starts at the minimum positive value.
-- *Depends:* S8a, S8-depth, T1 (LexicographicOrder, ASN-0034) — defines `min`.
 
 We now derive the general form: the contiguity, minimum, and finiteness constraints together force V_1(d) into a single block of last-component values. The proof below establishes this in four steps.
 
@@ -400,38 +295,20 @@ where the tuple has length m, the common V-position depth in the text subspace (
 
 **Assembly.** The k-values form a finite contiguous set of positive integers (Step 3, Step 4) that contains 1 (Step 2). Let n = max(k-values); this maximum is well-defined since the set is finite and non-empty (1 ∈ k-values). Then n ≥ 1. By Step 3 applied between 1 and n, every integer with 1 ≤ k ≤ n is attained, so {1, …, n} ⊆ k-values. By definition of n as the maximum, k-values ⊆ {1, …, n}. Hence the k-values are exactly {1, 2, …, n}. By Step 1, V_1(d) = {[1, 1, …, 1, k] : 1 ≤ k ≤ n}. ∎
 
-*Formal Contract:*
-- *Preconditions:* V_1(d) non-empty; common V-position depth m (S8-depth), with `m ≥ 2` inherited from S8a.
-- *Postconditions:* `(E n : n ≥ 1 : V_1(d) = {[1, 1, ..., 1, k] : 1 ≤ k ≤ n})` where each tuple has length m.
-- *Depends:* (*Local properties*) D-CTG (VContiguity) — any tumbler strictly between attained positions in subspace 1 at depth `m` lies in `V_1(d)`; D-CTG-depth (SharedPrefixReduction) — at `m ≥ 3`, all positions in `V_1(d)` share components 2 through `m − 1`; D-MIN (VMinimumPosition) — `min(V_1(d)) = [1, …, 1]`; S8a — `m ≥ 2`; S8-depth — the common depth `m`; S8-fin — finiteness of `V_1(d)`. (*Foundation claims, ASN-0034*) T1 case (i) (LexicographicOrder) — first-divergence comparison.
-
 D-CTG is a design constraint on well-formed document states. We verify the base case: before any operations, dom(M(d)) = ∅ for all d (the arrangement is a partial function; no content has been allocated, so no V-mapping exists), so V_1(d) = ∅. D-CTG holds vacuously (no u, q exist to trigger its antecedent), and D-MIN holds vacuously (its antecedent requires V_1(d) non-empty).
 
 ## Valid insertion position
 
 When V_1(d) is contiguous with |V_1(d)| = N positions, we write its elements as v₀, v₁, ..., v_{N−1} where v₀ is the minimum (D-MIN) and v_{j+1} = shift(v_j, 1) for 0 ≤ j < N − 1 (D-SEQ).
 
-**Definition (ValidInsertionPosition, non-empty case).** For a document `d` with `V_1(d) ≠ ∅`, the *binary* predicate `ValidInsertionPosition(d, v)` is satisfied when:
+**ValidInsertionPosition (ValidInsertionPosition).** For a document `d` with `V_1(d) ≠ ∅`, the *binary* predicate `ValidInsertionPosition(d, v)` is satisfied when:
 
 - The common V-position depth `m` of V_1(d) is fixed by S8-depth. By S8a, `m ≥ 2`.
 - Setting `N = |V_1(d)|`, the predicate holds iff `v = min(V_1(d))` or `v = shift(min(V_1(d)), j)` for some `j ∈ {1, ..., N}`.
 
-**Definition (ValidFirstInsertionPosition, empty case).** For a document `d` with `V_1(d) = ∅`, the *ternary* predicate `ValidFirstInsertionPosition(d, v, m)` is satisfied when `m ∈ ℕ` with `m ≥ 2` and `v = [1, 1, ..., 1]` of depth `m`.
+*Proof.* By D-MIN, `min(V_1(d)) = [1, 1, ..., 1]` of depth `m`. By OrdinalShift (ASN-0034), `shift([1, ..., 1], j)` leaves the leading `m − 1` components unchanged and advances the last component to `1 + j`, so `shift([1, ..., 1], j) = [1, ..., 1, 1 + j]` for `j ≥ 1`; at `j = 0` the position is `v = min(V_1(d)) = [1, ..., 1]` by D-MIN. This is (d). Every component is then `≥ 1` — the leading `m − 1` equal 1, the last `1 + j ≥ 1` — so `zeros(v) = 0` with componentwise positivity (b), and OrdShiftHom (a) fixes `v₁ = 1` as the text subspace identifier. For `j ≠ j'` in `{0, ..., N}` the last components `1 + j ≠ 1 + j'` (NAT-order, ASN-0034), so the length-`m` tumblers diverge at position `m` and are distinct by T3 (ASN-0034), giving exactly `N + 1` positions (c). ∎
 
-*Formal Contract (ValidInsertionPosition, non-empty case).*
-- *Signature:* `ValidInsertionPosition(d, v)` — a *binary* predicate on document `d` and V-position `v`. The common V-position depth `m` is determined by `d` via S8-depth and read from state.
-- *Preconditions:* Document `d` with `V_1(d) ⊆ dom(M(d))` non-empty; D-CTG holds on V_1(d); D-MIN gives `min(V_1(d)) = [1, ..., 1]` and D-SEQ gives `V_1(d) = {[1, ..., 1, k] : 1 ≤ k ≤ N}` (both needed to discharge the explicit form (d)); `m ≥ 2` is the common depth of V_1(d) by S8-depth and S8a.
-- *Definition:* `ValidInsertionPosition(d, v)` holds iff, writing `N = |V_1(d)|`, `v = min(V_1(d))` or `v = shift(min(V_1(d)), j)` for some `j ∈ {1, ..., N}`.
-- *Postconditions:* (a) `subspace(v) = 1` and `#v = m` (the state-fixed common depth). (b) `v` satisfies S8a: `zeros(v) = 0` and all components positive. (c) For fixed `d`, exactly `N + 1` values of `v` satisfy the predicate. (d) The explicit form is `v = [1, 1, ..., 1, 1 + j]` of depth `m`, with last component `1 + j` and all `m − 1` preceding components equal to 1 (matching the D-SEQ notation).
-- *Derivation:* By D-MIN, `min(V_1(d)) = [1, 1, ..., 1]` of depth `m`. By OrdinalShift (ASN-0034), `shift([1, ..., 1], j)` leaves the leading `m − 1` components unchanged and advances the last component to `1 + j`, so `shift([1, ..., 1], j) = [1, ..., 1, 1 + j]` for `j ≥ 1`; at `j = 0` the position is `v = min(V_1(d)) = [1, ..., 1]` by D-MIN. This is (d). Every component is then `≥ 1` — the leading `m − 1` equal 1, the last `1 + j ≥ 1` — so `zeros(v) = 0` with componentwise positivity (b), and OrdShiftHom (a) fixes `v₁ = 1` as the text subspace identifier. For `j ≠ j'` in `{0, ..., N}` the last components `1 + j ≠ 1 + j'` (NAT-order, ASN-0034), so the length-`m` tumblers diverge at position `m` and are distinct by T3 (ASN-0034), giving exactly `N + 1` positions (c).
-- *Depends:* D-MIN, D-CTG, D-CTG-depth, D-SEQ; S8a, S8-fin, S8-depth; OrdShiftHom (subspace and S8a preservation), OrdinalShift (last-component value, ASN-0034); T3 (ASN-0034).
-
-*Formal Contract (ValidFirstInsertionPosition, empty case).*
-- *Signature:* `ValidFirstInsertionPosition(d, v, m)` — a *ternary* predicate on document `d`, V-position `v`, and depth `m`.
-- *Preconditions:* Document `d` with `V_1(d) = ∅`; `m ∈ ℕ` with `m ≥ 2`.
-- *Definition:* `ValidFirstInsertionPosition(d, v, m)` holds iff `v = [1, 1, ..., 1]` of depth `m`.
-- *Postconditions:* (a) `subspace(v) = 1` and `#v = m`. (b) `v` satisfies S8a: `zeros(v) = 0` and all components positive. (c) For fixed `d` and `m`, exactly one value of `v` satisfies the predicate.
-- *Depends:* S8a — for the lower bound `m ≥ 2`; T0 (ASN-0034) — for componentwise positivity of the constant tuple.
+**ValidFirstInsertionPosition (ValidFirstInsertionPosition).** For a document `d` with `V_1(d) = ∅`, the *ternary* predicate `ValidFirstInsertionPosition(d, v, m)` is satisfied when `m ∈ ℕ` with `m ≥ 2` and `v = [1, 1, ..., 1]` of depth `m`.
 
 ### Valid insertion position examples
 
@@ -445,7 +322,6 @@ When V_1(d) is contiguous with |V_1(d)| = N positions, we write its elements as 
 That gives N + 1 = 4 positions. Any successor state whose `V₁(d)` gains a position at, say, [1, 2] must still satisfy D-CTG and D-MIN.
 
 **Empty case (ternary predicate).** V₁(d) = ∅. Choosing depth m = 2, the unique `v` satisfying `ValidFirstInsertionPosition(d, v, 2)` is `[1, 1]`. D-MIN requires min(V₁(d)) = [1, 1] once the subspace becomes non-empty, so the position is exactly the one D-MIN demands. Choosing m = 3 instead, `ValidFirstInsertionPosition(d, v, 3)` is satisfied uniquely by `v = [1, 1, 1]`; by T3, this is a different tumbler.
-
 
 ## Worked example
 
@@ -543,7 +419,6 @@ The lifecycle above exercises the contiguity constraints at depth 2 on every wel
 | D-SEQ | Sequential positions: non-empty V_1(d) = {[1, 1, ..., 1, k] : 1 ≤ k ≤ n} for some n ≥ 1 | from D-CTG, D-CTG-depth, D-MIN, S8a, S8-fin, S8-depth, T1 (ASN-0034) |
 | ValidInsertionPosition | Binary predicate `ValidInsertionPosition(d, v)` (non-empty case): when V_1(d) ≠ ∅, m is the common depth of V_1(d) (state-determined via S8-depth), and v = min(V_1(d)) or v = shift(min(V_1(d)), j) for j ∈ {1, ..., N} where N = |V_1(d)| | introduced |
 | ValidFirstInsertionPosition | Ternary predicate `ValidFirstInsertionPosition(d, v, m)` (empty case): when V_1(d) = ∅, m ≥ 2, and v = [1, 1, ..., 1] of depth m | introduced |
-
 
 ## Open Questions
 

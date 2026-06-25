@@ -1,1 +1,0 @@
-Proves that when all positions in a non-empty link subspace share a common depth of three or more, they must also share every interior component — leaving only the final component free to vary. Contiguity of the subspace therefore reduces to contiguity of that last component alone, collapsing the higher-depth case to the same structural form as depth two.

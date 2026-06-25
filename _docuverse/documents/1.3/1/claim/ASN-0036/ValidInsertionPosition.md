@@ -1,4 +1,0 @@
-| ValidInsertionPosition | Binary predicate `ValidInsertionPosition(d, v)` (non-empty case): when V_1(d) ≠ ∅, m is the common depth of V_1(d) (state-determined via S8-depth), and v = min(V_1(d)) or v = shift(min(V_1(d)), j) for j ∈ {1, ..., N} where N = |V_1(d)| | introduced |
-
-- *Depends:*
-  - S8-depth (Fixed-depth V-positions) — supplies the common depth `m` of V_1(d) whose existence this predicate assumes when constructing valid insertion positions

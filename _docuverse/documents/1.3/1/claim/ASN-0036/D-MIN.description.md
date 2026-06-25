@@ -1,1 +1,0 @@
-Posits that the lexicographic minimum of the V-position set of any non-empty document text subspace is the all-ones tuple of length m, establishing that V-position indexing starts at [1, 1, …, 1] rather than at any arbitrary lower bound. This is a design axiom, not a derived result: it fixes the origin of the coordinate system for text subspace positions.

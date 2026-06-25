@@ -1,1 +1,0 @@
-Posits that the text subspace of any document is gap-free: if two V-positions at the same depth belong to a document's text subspace, every intermediate V-position at that depth must also belong to it. At the practical depth of two used by the strand model, this means V_1(d) occupies a single unbroken block of ordinals — no holes can appear between occupied text positions.

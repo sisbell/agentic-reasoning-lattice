@@ -1,1 +1,0 @@
-Posits that every document's arrangement map has a finite domain at every reachable state, bounding the number of V-positions any single document may hold. This is a design axiom, not a derived result: infinite arrangements are ruled out by fiat, and the finiteness of the image set follows immediately. The frame explicitly leaves the content store dom(C) unconstrained.

@@ -1,1 +1,0 @@
-Defines a projection function that extracts the first component of a V-position tumbler, identifying which subspace that position belongs to. For any tumbler of depth at least one, subspace(v) returns its leading component as a natural number, giving callers a way to group or compare positions by subspace membership without inspecting deeper structure.
