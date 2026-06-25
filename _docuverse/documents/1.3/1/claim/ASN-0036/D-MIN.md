@@ -34,3 +34,6 @@ a tuple of length m with every component equal to 1. Specializing to depth m = 2
 - *Postconditions:* min(V_1(d)) = [1, 1, ..., 1], the length-m tuple with every component equal to 1; at depth 2, min(V_1(d)) = [1, 1].
 - *Axiom:* V-position components are positive integers — positions are 1-indexed from the document origin by design — so [1, 1, ..., 1] is the least tuple of the depth-m position space.
 - *Definition:* min(S) denotes the least element of S under the lexicographic total order on integer m-tuples.
+
+- *Depends:*
+  - S8-depth (FixedDepthVPositions) — supplies the common depth m shared by all V-positions in a subspace, used in the statement (tuple of length m) and Step 1 (lexicographic order on integer m-tuples)
