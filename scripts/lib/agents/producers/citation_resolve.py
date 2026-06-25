@@ -35,7 +35,7 @@ from lib.lattice.labels import (
     parse_claim_doc_path,
 )
 from lib.protocols.febe.protocol import Session
-from lib.shared.common import read_file
+from lib.shared.common import find_asn, read_file
 from lib.shared.llm_response import invoke_text, parse_two_sections
 from lib.shared.paths import CITATION_RESOLVE_DIR, WORKSPACE, prompt_path
 from lib.shared.prompts import read_prompt
@@ -163,6 +163,35 @@ def _drop_quote_citations(classifications: list, retractions: list) -> None:
         retractions[:] = [r for r in retractions if not _is_quote(r)]
         print(
             f"  [CITATION-RESOLVE] dropped quote-citation ref(s): "
+            f"{', '.join(sorted(set(dropped)))}",
+            file=sys.stderr,
+        )
+
+
+def _drop_out_of_scope(
+    classifications: list, retractions: list, label_index: dict,
+) -> None:
+    """Drop classifications/retractions whose label isn't in the
+    (ASN-filtered) label index — in place.
+
+    With an ASN-filtered index (citing ASN + its declared deps), a label
+    that doesn't resolve names a claim in an ASN this one doesn't depend
+    on (e.g. ASN-0036 binding 'S0' to ASN-0053) or is a model
+    hallucination. Dropping prevents a wrong citation without aborting
+    the fire; the warning surfaces the over-reach. Runs AFTER
+    `_canonicalize_labels` so parametrized labels (T1(i)->T1) are
+    normalized first.
+    """
+    def _oos(entry) -> bool:
+        return entry.get("label") not in label_index
+
+    dropped = [e["label"] for e in (*classifications, *retractions)
+               if _oos(e)]
+    if dropped:
+        classifications[:] = [c for c in classifications if not _oos(c)]
+        retractions[:] = [r for r in retractions if not _oos(r)]
+        print(
+            f"  [CITATION-RESOLVE] dropped out-of-scope label(s): "
             f"{', '.join(sorted(set(dropped)))}",
             file=sys.stderr,
         )
@@ -612,7 +641,20 @@ class ClaimCitationResolveAgent(Agent):
 
         claim_md_content = claim_md_full.read_text()
 
-        label_index = build_cross_asn_label_index(session.store)
+        # Restrict label resolution to this ASN plus the ASNs it actually
+        # depends on (the note's explicit `(ASN-NNNN)` citations). Labels
+        # are not globally unique (e.g. S0 exists in both ASN-0036 and
+        # ASN-0053); without this filter a bare sibling reference can bind
+        # to a same-named claim in an unrelated ASN.
+        allowed_asns = {asn_label}
+        note_path, _ = find_asn(str(asn_num))
+        if note_path is not None and Path(note_path).exists():
+            allowed_asns |= set(
+                re.findall(r"ASN-\d{4}", Path(note_path).read_text())
+            )
+        label_index = build_cross_asn_label_index(
+            session.store, allowed_asns=allowed_asns,
+        )
         depends, forwards = _existing_classifications(
             session, claim_rel, label_index,
         )
@@ -635,6 +677,9 @@ class ClaimCitationResolveAgent(Agent):
         # below still fire.
         if result.classifications or result.retractions:
             _canonicalize_labels(
+                result.classifications, result.retractions, label_index,
+            )
+            _drop_out_of_scope(
                 result.classifications, result.retractions, label_index,
             )
             _validate_labels(

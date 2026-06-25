@@ -102,7 +102,7 @@ def _read_first_line(path: Path) -> Optional[str]:
     return None
 
 
-def build_cross_asn_label_index(store: Store) -> Dict[str, Address]:
+def build_cross_asn_label_index(store: Store, allowed_asns=None) -> Dict[str, Address]:
     """Return {label_string: claim_doc_addr} across the substrate.
 
     Walks every `label` attribute link, reads the sidecar's first line
@@ -110,7 +110,13 @@ def build_cross_asn_label_index(store: Store) -> Dict[str, Address]:
     annotates (the link's from_set entry).
 
     Cross-ASN dependencies use bare labels — no ASN prefix — so a flat
-    index works.
+    index normally works. But labels are NOT globally unique (e.g. both
+    ASN-0036 and ASN-0053 define `S0`), so a bare label can bind to a
+    same-named claim in an unrelated ASN. When `allowed_asns` is given (a
+    set of ASN label strings, e.g. {"ASN-0036", "ASN-0034"}), only claims
+    living in one of those ASNs are indexed — restricting resolution to
+    the citing ASN plus the ASNs it actually depends on. `None` keeps the
+    flat all-ASN behavior (so existing callers are unaffected).
     """
     lattice_root = store.lattice_dir.resolve()
     out: Dict[str, Address] = {}
@@ -122,6 +128,10 @@ def build_cross_asn_label_index(store: Store) -> Dict[str, Address]:
         sidecar_path = store.path_for_addr(sidecar_doc)
         if sidecar_path is None:
             continue
+        if allowed_asns is not None:
+            m = re.search(r"/(ASN-\d{4})/", sidecar_path)
+            if m is None or m.group(1) not in allowed_asns:
+                continue
         full = lattice_root / sidecar_path
         label_str = _read_first_line(full)
         if label_str:
