@@ -52,10 +52,17 @@ def build_deps_for_asn(asn_num, claim_base_dir=None):
     store = session.store
     cross_index = build_cross_asn_label_index(store)
     rev_index = {addr: label for label, addr in cross_index.items()}
+    # Own-label lookups (the claim being processed) must resolve to THIS
+    # ASN's claim. Labels aren't globally unique (e.g. S0 exists in both
+    # ASN-0036 and ASN-0053), so the flat index can bind a sibling label
+    # to another ASN's claim — reading its citations and corrupting both
+    # follows_from and the dafny dep graph. Scope own-label resolution to
+    # this ASN; keep the full index for resolving cited cross-ASN targets.
+    own_index = build_cross_asn_label_index(store, allowed_asns={asn_label})
 
     claims = {}
     for label, data in metadata.items():
-        from_addr = cross_index.get(label)
+        from_addr = own_index.get(label)
         contract_kind = (
             current_contract_kind(session, from_addr)
             if from_addr is not None else None

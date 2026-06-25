@@ -233,7 +233,7 @@ def parse_md_depends(md_text):
     return labels
 
 
-def _build_citation_graph(pairs, store, label_index):
+def _build_citation_graph(pairs, store, label_index, own_index=None):
     """Build {label: [dep_labels]} from the substrate's citation links.
 
     For each claim with a known label and md path, follow citation links
@@ -247,6 +247,11 @@ def _build_citation_graph(pairs, store, label_index):
     from lib.protocols.febe.session import Session
 
     rev_index = {addr: label for label, addr in label_index.items()}
+    # Own-stem lookups resolve to THIS ASN's claim — labels aren't globally
+    # unique (e.g. S0 in both ASN-0036 and ASN-0053). rev_index stays on the
+    # full index for mapping cited cross-ASN targets back to labels.
+    if own_index is None:
+        own_index = label_index
     state = store.state
 
     def _base(addr):
@@ -258,7 +263,7 @@ def _build_citation_graph(pairs, store, label_index):
     session = Session(store)
     graph = {}
     for stem in pairs:
-        from_addr = label_index.get(stem)
+        from_addr = own_index.get(stem)
         if from_addr is None:
             graph[stem] = []
             continue
@@ -671,21 +676,33 @@ def run_all_checks(pairs, store=None, label_index=None, claim_dir=None):
     elif label_index is None:
         label_index = build_cross_asn_label_index(store)
 
-    citation_graph = _build_citation_graph(pairs, store, label_index)
+    # Own-stem lookups (resolving a validated claim's own label to its addr)
+    # must resolve to THIS ASN's claim — labels aren't globally unique (e.g.
+    # S0 in both ASN-0036 and ASN-0053), so the flat index could bind a
+    # sibling label to another ASN's claim and validate against the wrong
+    # one. Scope own-stem resolution to this ASN; keep the full index for
+    # rev_index and cross-ASN reference-existence checks.
+    own_index = label_index
+    if claim_dir is not None:
+        own_index = build_cross_asn_label_index(
+            store, allowed_asns={Path(claim_dir).name}
+        )
+
+    citation_graph = _build_citation_graph(pairs, store, label_index, own_index)
 
     findings = []
-    findings.extend(check_contract_classifier_present(pairs, store, label_index))
+    findings.extend(check_contract_classifier_present(pairs, store, own_index))
     findings.extend(check_depends_agreement(pairs, citation_graph))
     findings.extend(check_references_resolve(pairs, citation_graph, label_index))
     findings.extend(check_declared_symbols_resolve(pairs, citation_graph, store))
     findings.extend(check_acyclic_dependency_graph(pairs, citation_graph))
     findings.extend(check_declaration_and_body_uniqueness(pairs))
     for kind in ATTRIBUTE_KINDS:
-        findings.extend(check_attribute_link_shape(pairs, store, label_index, kind))
+        findings.extend(check_attribute_link_shape(pairs, store, own_index, kind))
         if claim_dir is not None:
             findings.extend(check_attribute_doc_format(claim_dir, kind))
         if kind in COVERED_ATTRIBUTE_KINDS:
-            findings.extend(check_attribute_coverage(pairs, store, label_index, kind))
+            findings.extend(check_attribute_coverage(pairs, store, own_index, kind))
     return findings
 
 
