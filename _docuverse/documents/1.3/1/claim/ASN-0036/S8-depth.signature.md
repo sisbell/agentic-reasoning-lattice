@@ -1,0 +1,2 @@
+- `subspace(·)` — function from V-position to subspace identifier; partitions the V-positions of a document into same-depth groups
+- `#·` — tumbler depth of a V-position; the count of tumbler components in the address, asserted uniform within any subspace
