@@ -1,0 +1,1 @@
+Establishes that every document's arrangement map is finite — no reachable system state may assign infinitely many V-positions to a single document. This is a hard design constraint, not a derived property: it rules out pathological infinite arrangements before any further structural reasoning proceeds.
