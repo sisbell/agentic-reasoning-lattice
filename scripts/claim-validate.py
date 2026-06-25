@@ -35,7 +35,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from lib.shared.common import find_asn
 from lib.shared.paths import CLAIM_DIR, LATTICE, WORKSPACE
 from lib.protocols.febe.session import open_session
-from lib.lattice.labels import build_cross_asn_label_index, format_label
+from lib.lattice.labels import (
+    build_cross_asn_label_index, format_label, note_scoped_asns,
+)
 from lib.backend.predicates import active_links
 from lib.predicates import current_contract_kind
 from lib.backend.schema import VALID_ATTRIBUTE_KINDS as VALID_KINDS
@@ -52,10 +54,16 @@ VALID_TYPES = subtypes_of("contract")
 # internal parens (the `(d)` in Σ.M(d) has no preceding space) from the
 # name's wrapping parens. Name stays ASCII PascalCase (that convention
 # holds across notes). Matches both Σ.M(d) and ASCII S0/S11/WF/T4a.
+# Anchored to line start, and the label group forbids `*` so a match can't
+# span across a `**` boundary. Without these, the regex greedily matched
+# from a proof sub-header (`**...acyclic.**`) across prose to a citation
+# `(ASN-0034).` followed by the next sub-header's `**`, inventing a bogus
+# declaration whose "label" was a paragraph of proof text.
 DECLARATION_RE = re.compile(
-    r"\*\*(.+?)"
+    r"^\*\*([^*]+?)"
     r"\s+\(([A-Za-z][A-Za-z0-9-]*)\)"
-    r"\.\s*\*\*"
+    r"\.\s*\*\*",
+    re.MULTILINE,
 )
 FORMAL_CONTRACT_RE = re.compile(r"^\*Formal Contract:\*\s*$", re.MULTILINE)
 DEPENDS_MARKER_RE = re.compile(r"^-\s*\*Depends:\*")
@@ -246,12 +254,14 @@ def _build_citation_graph(pairs, store, label_index, own_index=None):
     from lib.predicates.versions import version_head
     from lib.protocols.febe.session import Session
 
-    rev_index = {addr: label for label, addr in label_index.items()}
-    # Own-stem lookups resolve to THIS ASN's claim — labels aren't globally
-    # unique (e.g. S0 in both ASN-0036 and ASN-0053). rev_index stays on the
-    # full index for mapping cited cross-ASN targets back to labels.
     if own_index is None:
         own_index = label_index
+    # Build rev_index from the scoped own_index ({this ASN} ∪ its note-cited
+    # deps), NOT the flat index: a cited same-ASN sibling whose label
+    # collides (e.g. S0, shadowed by ASN-0053's S0 in the flat index) would
+    # otherwise be unmappable and silently dropped from the store graph,
+    # producing a false depends-agreement "only_in_md" finding.
+    rev_index = {addr: label for label, addr in own_index.items()}
     state = store.state
 
     def _base(addr):
@@ -685,7 +695,7 @@ def run_all_checks(pairs, store=None, label_index=None, claim_dir=None):
     own_index = label_index
     if claim_dir is not None:
         own_index = build_cross_asn_label_index(
-            store, allowed_asns={Path(claim_dir).name}
+            store, allowed_asns=note_scoped_asns(Path(claim_dir).name),
         )
 
     citation_graph = _build_citation_graph(pairs, store, label_index, own_index)

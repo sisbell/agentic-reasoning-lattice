@@ -139,6 +139,25 @@ def build_cross_asn_label_index(store: Store, allowed_asns=None) -> Dict[str, Ad
     return out
 
 
+def note_scoped_asns(asn) -> set:
+    """ASN-label set for scoping label resolution to an ASN's real scope.
+
+    Returns the ASN's own label plus the ASNs its note explicitly cites
+    (the `(ASN-NNNN)` prose annotations). Pass this as `allowed_asns` to
+    `build_cross_asn_label_index` so a bare label (e.g. `S0`, which exists
+    in both ASN-0036 and ASN-0053) resolves within the citing ASN's
+    dependency scope rather than binding to — or being shadowed by — a
+    same-named claim in an unrelated ASN. Lossless in BOTH directions:
+    forward (label→addr) and reverse (addr→label via rev_index).
+    """
+    from lib.shared.common import find_asn
+    note_path, asn_label = find_asn(str(asn))
+    allowed = {asn_label} if asn_label else set()
+    if note_path is not None and Path(note_path).exists():
+        allowed |= set(re.findall(r"ASN-\d{4}", Path(note_path).read_text()))
+    return allowed
+
+
 def build_note_label_index(store: Store) -> Dict[str, Address]:
     """Return {<prefix>-NNNN: note_doc_addr} for every note-classified doc.
 

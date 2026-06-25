@@ -20,7 +20,9 @@ from lib.shared.claim_files import load_claim_metadata
 from lib.shared.common import find_asn
 from lib.shared.foundation import claim_asn_dep_ids
 from lib.protocols.febe.session import open_session
-from lib.lattice.labels import build_cross_asn_label_index, format_label
+from lib.lattice.labels import (
+    build_cross_asn_label_index, format_label, note_scoped_asns,
+)
 from lib.backend.predicates import active_links
 from lib.predicates import current_contract_kind
 from lib.predicates.versions import version_head, version_root
@@ -50,19 +52,21 @@ def build_deps_for_asn(asn_num, claim_base_dir=None):
 
     session = open_session(LATTICE)
     store = session.store
-    cross_index = build_cross_asn_label_index(store)
-    rev_index = {addr: label for label, addr in cross_index.items()}
-    # Own-label lookups (the claim being processed) must resolve to THIS
-    # ASN's claim. Labels aren't globally unique (e.g. S0 exists in both
-    # ASN-0036 and ASN-0053), so the flat index can bind a sibling label
-    # to another ASN's claim — reading its citations and corrupting both
-    # follows_from and the dafny dep graph. Scope own-label resolution to
-    # this ASN; keep the full index for resolving cited cross-ASN targets.
-    own_index = build_cross_asn_label_index(store, allowed_asns={asn_label})
+    # Scope the index to this ASN + the ASNs its note cites. Labels aren't
+    # globally unique (e.g. S0 in both ASN-0036 and ASN-0053), and the flat
+    # index loses same-ASN colliding claims in BOTH directions: forward
+    # (own-label could bind to another ASN's claim) AND reverse (rev_index
+    # would drop a cited same-ASN sibling whose label was won by another
+    # ASN, silently corrupting follows_from + the dafny graph). A scoped
+    # index is lossless for both.
+    scoped_index = build_cross_asn_label_index(
+        store, allowed_asns=note_scoped_asns(asn_num),
+    )
+    rev_index = {addr: label for label, addr in scoped_index.items()}
 
     claims = {}
     for label, data in metadata.items():
-        from_addr = own_index.get(label)
+        from_addr = scoped_index.get(label)
         contract_kind = (
             current_contract_kind(session, from_addr)
             if from_addr is not None else None

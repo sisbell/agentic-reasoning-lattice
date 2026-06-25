@@ -19,7 +19,7 @@ from typing import Iterator
 from lib.agents.producers.cone_review import ConeReviewAgent
 from lib.backend.addressing import Address
 from lib.lattice.deps import build_deps_for_asn
-from lib.lattice.labels import build_cross_asn_label_index
+from lib.lattice.labels import build_cross_asn_label_index, note_scoped_asns
 from lib.predicates import (
     has_formal_contract,
     is_claim_cascade_fresh,
@@ -68,14 +68,14 @@ def apex_labels_in_topological_order(
     if not deps_data:
         return []
 
-    label_index = build_cross_asn_label_index(session.store)
-    rev_index = {addr: label for label, addr in label_index.items()}
-    # Own-label (apex) lookups scope to THIS ASN — labels aren't globally
-    # unique (e.g. S0 in ASN-0036 and ASN-0053). rev_index keeps the full
-    # index for resolving cited cross-ASN targets back to labels.
+    # Scope to this ASN + its note-cited deps — labels aren't globally
+    # unique (S0 in both ASN-0036 and ASN-0053). Lossless forward (apex
+    # lookup) AND reverse (rev_index for cited siblings); the flat index
+    # would drop a cited same-ASN sibling whose label collides.
     own_index = build_cross_asn_label_index(
-        session.store, allowed_asns={asn_label},
+        session.store, allowed_asns=note_scoped_asns(asn_num),
     )
+    rev_index = {addr: label for label, addr in own_index.items()}
     state = session.state
 
     def _base(addr: Address) -> Address:
