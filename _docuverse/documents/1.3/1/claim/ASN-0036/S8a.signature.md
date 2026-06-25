@@ -1,0 +1,6 @@
+- `Σ.M(d)` — the arrangement mapping function whose domain is axiomatically restricted to V-positions by this claim
+- `dom` — operator returning the domain of a function; used to state the restriction `dom(Σ.M(d)) ⊆ …`
+- `T` — carrier set of tuple elements over which the arrangement mapping and its domain constraint are stated
+- `zeros` — function on elements of `T` returning the count of zero entries; used in the filter predicate `zeros(t) = 0`
+- `#` — size/length function on elements of `T`; used in the cardinality bound `#t ≥ 2`
+- `≥` — order relation on the naturals; used in the cardinality condition `#t ≥ 2`
