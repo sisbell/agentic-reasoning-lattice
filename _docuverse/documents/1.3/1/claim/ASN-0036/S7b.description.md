@@ -1,0 +1,1 @@
+Establishes that every address stored as a content key in the content store Σ.C must be a fully-qualified element-level tumbler — one that specifies all four identifying fields (node, user, document, element). This rules out partial or higher-level addresses as content-store keys, ensuring the content store is indexed exclusively at the finest granularity.
