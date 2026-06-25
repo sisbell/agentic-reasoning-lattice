@@ -1,0 +1,1 @@
+**S8-fin (FiniteArrangement).** For each document `d`, `dom(Σ.M(d))` is finite. This is a design requirement on every reachable state: no document arrangement is permitted to hold infinitely many V-positions.
