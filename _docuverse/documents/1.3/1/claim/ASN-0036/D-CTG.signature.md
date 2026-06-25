@@ -1,0 +1,1 @@
+- `V_1` — set-former mapping document `d` to its text subspace; `V_1(d)` denotes the set of V-positions in `d` whose `subspace` index equals 1
