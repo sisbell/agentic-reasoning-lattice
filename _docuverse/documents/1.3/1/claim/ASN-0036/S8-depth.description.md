@@ -1,0 +1,1 @@
+Proves that within any subspace of a document, every V-position tumbler has the same depth, meaning all V-addresses in a subspace share identical component count. This uniformity makes "consecutive V-positions" well-defined: the successor of any position v is obtained by incrementing only its final (ordinal) component via shift, while the subspace prefix and depth remain fixed.
