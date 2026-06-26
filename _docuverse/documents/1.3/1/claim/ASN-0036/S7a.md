@@ -5,5 +5,6 @@ This allocation is an event of T10a's discipline (ASN-0034), not an informal act
 Nelson's baptism principle establishes it: "The owner of a given item controls the allocation of the numbers under it." A document owner baptises element addresses under that document's prefix, so the home document is ascertainable from the address alone.
 
 - *Depends:*
+  - Σ.C (ContentStore) — supplies `dom(Σ.C)`, the set over which the universal quantifier `(A a ∈ dom(Σ.C) :: ...)` ranges; for each such `a`, S7a asserts the document-level prefix `N(a).0.U(a).0.D(a)` identifies the document whose owner performed the allocation
   - T4b (UniqueParse, ASN-0034) — supplies the partial projections N(a), U(a), D(a) used to form the document-level tumbler prefix N(a).0.U(a).0.D(a)
   - T10a (AllocatorDiscipline, ASN-0034) — supplies the allocator discipline and the global allocator tree `𝒯`; the document owner's element allocator `A_element` is a node of `𝒯` spawned by T10a's child-spawning rule, grounding the two memberships `A_element ∈ 𝒯` and `a ∈ dom(A_element)` for every `a ∈ dom(Σ.C)`
