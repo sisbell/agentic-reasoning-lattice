@@ -182,8 +182,7 @@ Proves that the content store's address domain grows monotonically across state 
 - *Depends:*
   - S0 (ContentImmutability) — supplies the implication `a ∈ dom(Σ.C) ⟹ a ∈ dom(Σ'.C)` used as the single proof step in the body of S1
 - *Forward References:*
-  - T9 (ForwardAllocation) — cited as guaranteeing that fresh addresses allocated in new transitions are strictly increasing within each allocator's stream; not used in S1's proof
-  - T10 (PartitionIndependence) — cited alongside T9 as guaranteeing cross-allocator address uniqueness for fresh entries; not used in S1's proof
+  - GlobalUniqueness (GlobalUniqueness, ASN-0034) — cited as the consolidated guarantee that each fresh address allocated in a new transition is unique across the system, the same uniqueness fact S4 and S7 invoke; not used in S1's proof, whose single step is S0
 
 ---
 
@@ -219,6 +218,7 @@ Proves that in any non-empty V-position set of depth m ≥ 3, all positions must
   - T1 (LexicographicOrder, ASN-0034) — supplies the component-comparison clause of the lexicographic order; invoked at three points in the proof to derive u < w and w < x from the first differing component
   - S8a (ArrangementDomainRestriction) — supplies the well-formedness predicate (`#p ≥ 2 ∧ (A i : 1 ≤ i ≤ #p : pᵢ > 0)`) that the constructed intermediate w must satisfy before D-CTG can require w ∈ V_1(d)
   - D-CTG (VContiguity) — supplies the contiguity axiom applied to force w ∈ V_1(d) from u < w < x with matching subspace, depth, and S8a well-formedness; the claim's contradiction rests on producing infinitely many such w
+  - T0 (CarrierSetDefinition, ASN-0034) — supplies the comprehension clause that grounds the carrier membership w ∈ T of the explicitly-constructed witness w (length m, every component ℕ-valued), the prerequisite for instantiating D-CTG's inner v ∈ T quantifier at w
   - T0(a) (UnboundedComponentValues, ASN-0034) — supplies, for any bound M, a witness n > M; consumed to construct the strictly increasing sequence n₁ < n₂ < … of admissible intermediates that contradicts S8-fin
   - T3 (CanonicalRepresentation, ASN-0034) — supplies tumbler equality as component-wise identity; used to conclude that distinct values of n yield distinct depth-m positions w (differing at component j + 1)
   - S8-fin (FiniteArrangement) — supplies finiteness of dom(M(d)); the proof is by contradiction, and the infinite sequence of distinct positions in V_1(d) contradicts this finiteness
@@ -283,6 +283,7 @@ Proves that the V-positions of a document's text subspace are always a contiguou
   - D-CTG-depth (SharedPrefixReduction) — supplies the shared-prefix result (components 2 through m − 1 identical) used in Step 1 Case m ≥ 3 to pin all but the last component to 1
   - D-MIN (VMinimumPosition) — supplies min(V_1(d)) = [1, 1, …, 1]; Step 1 (Case m ≥ 3) uses it to fix the shared-prefix value to 1, and Step 2 uses it to establish k = 1 as an attained value
   - T1 (LexicographicOrder, ASN-0034) — supplies the lexicographic comparison rule; Step 3 invokes it twice to establish v₁ < v₂ and v₁ < w < v₂ from component-wise comparisons
+  - T0 (CarrierSetDefinition, ASN-0034) — supplies the comprehension clause that grounds the carrier membership w ∈ T of the explicitly-constructed intermediate w = [1, 1, …, 1, k] (length m, every component ℕ-valued) in Step 3, the prerequisite for instantiating D-CTG's inner v ∈ T quantifier at w
   - D-CTG (VContiguity) — supplies the contiguity constraint; Step 3 applies it to conclude the intermediate witness w ∈ V_1(d), making the k-values a contiguous range
   - S8-fin (FiniteArrangement) — supplies the finiteness of dom(M(d)); Step 4 uses it to conclude V_1(d) is finite, bounding the k-value range
 
