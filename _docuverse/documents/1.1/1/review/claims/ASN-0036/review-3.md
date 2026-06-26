@@ -1,0 +1,28 @@
+I read the foundation statements, then walked ASN-0036 as a system — tracing each cross-claim precondition chain (shift algebra TS2/TS3/TS4/OrdShiftHom into S8; D-CTG/D-MIN/D-CTG-depth into D-SEQ; T4/T4b/T10a.4 into S7), checking that `subspace`, `shift`, `zeros`, and `origin` keep one meaning throughout, and re-deriving the worked example against S8's run definition.
+
+Most of the system holds up under scrutiny. Spot checks I confirmed sound:
+
+- **OrdShiftHom** — the `m ≥ 2` precondition is exactly load-bearing: part (a) (`subspace` preservation) would fail at `m = 1` since `rₘ = r₁ = v₁ + n ≠ v₁`. All call sites (S8, ValidInsertionPosition, D-SEQ) carry `m ≥ 2` via S8a. Sound.
+- **S8** — `succ` injectivity correctly derives `#u = #u'` *locally* from `shift(u,1)=shift(u',1)` plus shift's depth-frame (not from S8-depth) before invoking TS2; the `i = 0` induction base correctly uses the `shift(t,0):=t` convention rather than TS3 (whose `n₁ ≥ 1` it would violate); and `shift(a, i)` on the I-address is routed through S3, **not** OrdShiftHom (which `a`, with `zeros=3`, would fail) — a place a careless proof would err. The worked example's two-run boundary for `M(d₂)` matches the `succ` definition (succ([1,3]) genuinely undefined).
+- **D-CTG-depth** — the contradiction setup correctly captures the negation (first disagreement forced into `[2, m−1]` because all positions share `subspace=1`), the witness `w` is verified against all four D-CTG guard conjuncts, and the infinitude argument contradicts S8-fin. The `j = m−1` empty-tail edge is handled.
+- **D-MIN** — the independence witness `{[1,5],[1,6],[1,7]}` (contiguous, positive, finite, fixed-depth, min `≠ [1,1]`) genuinely shows non-entailment; `min` is well-defined because finiteness (S8-fin), not well-ordering, is what is invoked.
+- **S4 / S5** — S4 cites GlobalUniqueness correctly for I-address distinctness; S5's two constructions model S0–S3 with S0/S1 vacuous over the empty transition relation.
+- **S7 well-definedness** — the T4-validity-before-decomposition step (via `a ∈ dom(A_element) ⊆ 𝒯`, then T10a.4) is correctly sequenced.
+
+Two findings follow.
+
+### S7 uniqueness-across-documents rests on an uncited foundation step
+**Class**: REVISE
+**Foundation**: GlobalUniqueness (Follows-from: AllocatedSet, T9, T10, T10a, T3, …) — the "distinct allocation events ⟹ distinct addresses" theorem; S4 already cites it for I-addresses.
+**ASN**: S7, *Uniqueness across documents*: "By S7d's postcondition, distinct documents have distinct document-level tumblers. By T3 … for any `a₁, a₂ ∈ dom(Σ.C)` allocated under distinct documents: `origin(a₁) ≠ origin(a₂)`."
+**Issue**: S7d's stated postcondition (body and Properties-Introduced table) is "**distinct documents arise from distinct allocation events**" — a statement about *events*, not *tumblers*. The inference S7 attributes to it, "distinct documents have distinct document-level *tumblers*," does not follow from "distinct events" alone: the bridge "distinct allocation events ⟹ distinct addresses" is exactly GlobalUniqueness (the theorem S4 invokes for the I-address case). Note S4 cannot substitute here — S4 gives distinctness of *I-addresses*, but two distinct I-addresses routinely share the same `origin` (e.g. two element addresses in one document), so I-address distinctness does not yield document-tumbler distinctness. GlobalUniqueness appears in neither S7's nor S7d's Depends. The conclusion `origin(a₁) ≠ origin(a₂)` is a *stated postcondition* of S7, so the gap is load-bearing. (If the ASN instead means a document to *be* its document-level tumbler, that identification is the missing premise and is nowhere stated; under that reading the cited fact "distinct allocation events" is still the wrong justification for the distinctness.)
+**What needs resolving**: Ground "distinct documents ⟹ distinct document-level tumblers" — either by invoking GlobalUniqueness (ASN-0034) to convert S7d's "distinct allocation events" into "distinct addresses" (and adding it to the S7 or S7d Depends, paralleling S4's usage), or by stating explicitly the document ↔ document-level-tumbler identification that makes the distinctness definitional. Update S7's uniqueness step to cite whichever it relies on, rather than attributing to S7d a postcondition S7d does not state.
+
+### S8 confinement step grounds depth preservation in S8-depth before it applies
+**Class**: OBSERVE
+**Foundation**: S8-depth (per-document, requires both arguments in `dom(M(d))`); OrdShiftHom frame / TA0 (`#shift(v,n) = #v`).
+**ASN**: S8 proof, "*`succ` stays within a subspace*": "Let `v ∈ dom(M(d))` … by OrdShiftHom (b) `shift(v, 1)` again satisfies S8a; **by S8-depth it shares `v`'s depth `m`**."
+**Issue**: At this point in the prose `v` is an arbitrary element of `dom(M(d))` and `shift(v,1)` has not yet been established to lie in `dom(M(d))`; S8-depth's quantifier requires *both* positions in `dom(M(d))`, so it does not strictly license the depth claim for arbitrary `v`. The depth equality `#shift(v,1) = #v = m` is in fact a frame property of `shift` (OrdShiftHom's frame / TA0), true unconditionally. In the operative lockstep-linked case (`shift(v,1) ∈ dom(M(d))`) S8-depth does apply, so the conclusion is sound and the contract's Depends note already scopes S8-depth to "each lockstep image." This is purely a grounding-precision note.
+**What needs resolving**: Optionally attribute the `#shift(v,1) = #v` step to shift's depth-frame (OrdShiftHom frame / TA0) rather than S8-depth, or restrict the sentence to the lockstep-linked `shift(v,1)`. No change to the argument's validity.
+
+VERDICT: REVISE
