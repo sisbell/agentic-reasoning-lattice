@@ -1,0 +1,35 @@
+I read the foundation set (ASN-0034 tumbler arithmetic) and then ASN-0036 end-to-end as a system: the two-component state model (Σ.C / Σ.M, S8a), the content-store invariants (S0–S1), the arrangement/referential-integrity bridge (S2–S3), origin identity and sharing (S4–S5), structural attribution (S7 and its supports S7a/S7b/S7d), the correspondence-run machinery (S8-fin, subspace, S8-depth, OrdShiftHom, S8), the contiguity layer (D-CTG, D-CTG-depth, D-MIN, D-SEQ), and the insertion predicates.
+
+The core machinery is sound. I checked the load-bearing chains: OrdShiftHom correctly expands `shift(v,n)=v⊕δ(n,m)` through TumblerAdd with `actionPoint(δ)=m≤#v`; the S8 lockstep-successor argument (injectivity via TS2 at a frame-derived common depth, acyclicity via TS4+T1 irreflexivity, finite chain decomposition, displacement-identity induction with the `shift(t,0):=t` convention correctly excluded from TS3's `n₁≥1` domain) walks its cases; D-CTG-depth's infinite-intermediate construction genuinely forces the contradiction with S8-fin; D-SEQ's four steps assemble correctly; the worked example's I-address zero-counts (`zeros=3`), origins, and run boundaries all check out. The per-claim Formal Contracts for S7 and S8 are the corrected versions — they ground document-tumbler uniqueness in GlobalUniqueness and depth-preservation in shift's frame.
+
+The findings below are about the **main-body narrative note diverging from the (more recently revised) per-claim contracts** — the narrative proofs of S7 still carry the pre-revision reasoning that the claim revisions specifically removed.
+
+### S7 narrative uniqueness misattributes document-tumbler distinctness to S7d
+**Class**: REVISE
+**Foundation**: GlobalUniqueness; S7d (DocumentAllocationDiscipline)
+**ASN**: Main-body S7 proof, "Uniqueness across documents": *"By S7d's postcondition, distinct documents have distinct document-level tumblers. By T3 …, this distinctness is decidable … Therefore, for any `a₁, a₂ ∈ dom(Σ.C)` allocated under distinct documents: `origin(a₁) ≠ origin(a₂)`."*
+**Issue**: S7d's postcondition is *"Distinct documents arise from distinct allocation **events**."* — event-distinctness, not tumbler/address distinctness. Two distinct allocation events could a priori emit the same tumbler value; the passage from distinct events to distinct addresses is exactly GlobalUniqueness. The narrative skips that step and asserts distinct tumblers as if it were S7d's postcondition. The per-claim S7 contract handles this correctly (*"lifts S7d's event-distinctness to tumbler-distinctness"* via GlobalUniqueness), so the narrative proof is the stale one. This is the un-synced half of commit `ada505647` (ground document-tumbler uniqueness in GlobalUniqueness).
+**What needs resolving**: The narrative uniqueness step must derive document-level-tumbler distinctness by instantiating GlobalUniqueness at the two documents' allocation events (separated by S7d), rather than reading distinct tumblers off S7d directly — bringing the narrative note into agreement with the S7 claim contract.
+
+### S7 narrative well-definedness instantiates T10a.4 without establishing domain membership
+**Class**: REVISE
+**Foundation**: T10a.4 (T4PreservationUnderDiscipline); S7a (DocumentScopedAllocation)
+**ASN**: Main-body S7 proof, "Well-definedness": *"By S7b (element-level I-addresses), `zeros(a) = 3`, and by T10a.4 (T4PreservationUnderDiscipline, ASN-0034), `a` is T4-valid; hence T4's field-decomposition machinery applies to `a`."*
+**Issue**: T10a.4's postcondition is universally quantified — *"For every allocator `A` in the tree and every `t ∈ dom(A)`, `t` satisfies T4."* Instantiating it at `a` requires a premise placing `a ∈ dom(A)` for some allocator `A ∈ 𝒯`. The narrative supplies none; `zeros(a) = 3` alone neither places `a` in an allocator's domain nor implies T4-validity (which additionally needs no-adjacent-zeros and nonzero first/last components). The per-claim S7 contract correctly routes through S7a (*"`a ∈ dom(A_element) ⊆ 𝒯` … legitimate precisely because S7a places `a ∈ dom(A_element)`"*), matching the recently-enriched S7a. The narrative predates that enrichment.
+**What needs resolving**: The narrative well-definedness must establish `a ∈ dom(A_element) ⊆ 𝒯` (via S7a) before instantiating T10a.4 at `a`, matching the S7 claim contract and the current S7a statement.
+
+### Narrative note lags the revised per-claim contracts in two further (sound but divergent) spots
+**Class**: OBSERVE
+**Foundation**: S8-depth, OrdShiftHom frame; D-MIN, T0
+**ASN**: (i) Main-body S8 proof: *"by S8-depth it shares `v`'s depth `m`"* — the S8 contract instead grounds this in OrdShiftHom's frame (*"an unconditional property of `shift` that does not presuppose `shift(v, 1) ∈ dom(M(d))`"*), the un-synced content of commit `4d829fffb`. (ii) Main-body D-SEQ Step 1 Case m≥3 jumps from "components 2 through m−1 equal to 1" to "[1, 1, …, 1, k]" without stating component 1; the D-SEQ contract adds *"Together with `v₁ = 1`, every position is therefore …"*.
+**Issue**: Both narrative steps are *sound as written* (S8-depth does apply along an actual lockstep link, where `shift(v,1) ∈ dom(M(d))`; `v₁ = 1` is immediate from `subspace(v)=1`), so neither is independently a correctness defect. But they leave the narrative note carrying pre-revision wording that two distinct claim proofs of the same statements have moved past — the same drift that turned unsound in the two S7 findings above. Flagging at source so the divergence is reconciled rather than compounding.
+**What needs resolving**: Sync the narrative note's S8 and D-SEQ proofs to their per-claim contracts (frame-grounded depth preservation; explicit `v₁=1`), as part of the same narrative-update pass that resolves the S7 findings.
+
+### D-MIN "Why this must be posited" independence essay is defensive justification in the claim body
+**Class**: OBSERVE
+**Foundation**: D-MIN (VMinimumPosition); its non-dependence on D-CTG, S8a, S8-fin
+**ASN**: D-MIN per-claim section, the *"**Why this must be posited rather than proved.**"* block through *"It is therefore logically independent of D-CTG, S8a, and S8-fin, and cannot be a theorem over them."*
+**Issue**: Multiple paragraphs argue that D-MIN is not derivable from the other constraints. The concrete witness `{[1,5],[1,6],[1,7]}` (whose `min = [1,5] ≠ [1,1]`) is a legitimate example and not meta-prose — but the surrounding "where the entailment fails," "cannot be a theorem over them" framing is defensive justification occupying the claim body, the kind of essay content that accretes across cycles. A reader has to work past the independence argument to reach the actual posited requirement.
+**What needs resolving**: Consider reducing the independence argument to the single counterexample (which already demonstrates non-entailment), keeping the design-requirement statement and dropping the surrounding "why this can't be proved" essay; no change to the claim's content is required.
+
+VERDICT: REVISE
