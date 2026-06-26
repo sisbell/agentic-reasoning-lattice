@@ -1,6 +1,6 @@
 **D-CTG-depth (SharedPrefixReduction).** For depth m ≥ 3, all positions in a non-empty V_1(d) share components 2 through m − 1. Contiguity reduces to contiguity of the last component alone — structurally identical to the depth 2 case.
 
-*Proof.* Let V_1(d) be non-empty with common depth `m` (S8-depth) and `m ≥ 3` (non-triviality bound, per the Preconditions). Suppose for contradiction that V_1(d) contains two positions u and x with u < x (both depth m) whose first point of disagreement is at component j with 2 ≤ j ≤ m − 1 — that is, uᵢ = xᵢ for all i < j, and uⱼ < xⱼ (the inequality follows from u < x by T1(i), since j is the first disagreeing component and j ≤ min(m, m)).
+*Proof.* Let V_1(d) be non-empty with common depth `m` (S8-depth) and `m ≥ 3` — a scope restriction ensuring the interior index range `2 ≤ i ≤ m − 1` is non-empty, so the shared-prefix claim has content; the `m = 2` case, where that range is empty and the claim is vacuous, is handled separately in D-SEQ's `m = 2` case. Suppose for contradiction that V_1(d) contains two positions u and x with u < x (both depth m) whose first point of disagreement is at component j with 2 ≤ j ≤ m − 1 — that is, uᵢ = xᵢ for all i < j, and uⱼ < xⱼ (the inequality follows from u < x by T1(i), since j is the first disagreeing component and j ≤ min(m, m)).
 
 We construct infinitely many intermediates. For any natural number n > uⱼ₊₁, define w of length m by:
 
@@ -25,7 +25,7 @@ Nelson's statement specifies not just contiguity but also the starting ordinal: 
 
 - *Preconditions:*
   - V_1(d) ≠ ∅ (non-empty).
-  - All positions in V_1(d) share a common depth m (S8-depth), with m ≥ 3 (non-triviality bound, per the Preconditions).
+  - All positions in V_1(d) share a common depth m (S8-depth), with m ≥ 3 — a scope restriction, not a derived bound: at m ≥ 3 the interior index range 2 ≤ i ≤ m − 1 is non-empty, so the shared-prefix claim has content, whereas the m = 2 case, where that range is empty and the claim is vacuous, is handled separately in D-SEQ's m = 2 case.
   - Every position p ∈ V_1(d) has subspace(p) = p₁ = 1.
   - V_1(d) ⊆ dom(M(d)), and every position in dom(M(d)) satisfies S8a: `#p ≥ 2 ∧ (A i : 1 ≤ i ≤ #p : pᵢ > 0)`.
   - V_1(d) is contiguous in the position order (D-CTG): if u, x ∈ V_1(d), u < w < x, subspace(w) = 1, #w = #u, and w satisfies S8a, then w ∈ V_1(d).
