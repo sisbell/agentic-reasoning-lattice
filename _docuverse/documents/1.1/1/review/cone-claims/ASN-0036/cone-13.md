@@ -1,0 +1,21 @@
+The proof chain for S7 is structurally sound at the architectural level: T10a.4 (via S7a) yields T4-validity; T4b yields the projections; T0 comprehension places `origin(a) ∈ T`; S0 delivers permanence; GlobalUniqueness (via S7d) delivers uniqueness. Identification and Permanence are tight. One arithmetic step in Well-definedness crosses the REVISE line.
+
+### Second separator position assumes commutativity; NAT-addassoc absent from S7 Depends
+
+**Class**: REVISE
+**Foundation**: NAT-sub (NatPartialSubtraction), NAT-addassoc (NatAdditionAssociative — listed in GlobalUniqueness and T4a but absent from S7)
+**ASN**: S7 (StructuralAttribution), Well-definedness step — "position `#N(a) + #U(a) + 2` to the separator `0`" and "NAT-sub's telescoping (ASN-0034) certifies the subtraction returns precisely this gap — the difference T4a's `#U(a) ≥ 1` then bounds below by `2`"
+**Issue**: The component map `r` places the second separator at position `#N(a) + #U(a) + 2`. Read left-to-right (as addition associates), that expression is `((#N(a) + #U(a)) + 2)`. The actual constructive position — counting slots: node field (`#N(a)`) + first separator (1) + user field (`#U(a)`) + second separator (1) — is `((#N(a) + 1) + #U(a)) + 1`. In this formal system commutativity of addition is not posited (NAT-sub's own preamble axiomatizes both `(m + n) − n = m` and `(n + m) − n = m` independently for exactly this reason). Without commutativity, `((#N(a) + #U(a)) + 2) ≠ ((#N(a) + 1) + #U(a)) + 1` in general. NAT-sub's left-telescoping `(n + m) − n = m` is then invoked for `(#N(a) + #U(a) + 2) − (#N(a) + 1)`, but for the pattern to fire the minuend must be in the form `(#N(a) + 1) + (#U(a) + 1)`. Getting there from the constructive form `((#N(a) + 1) + #U(a)) + 1` takes one application of NAT-addassoc: `((#N(a) + 1) + #U(a)) + 1 = (#N(a) + 1) + (#U(a) + 1)`. NAT-addassoc is not in S7's Depends list, and the two notations for the second separator position are never shown to be equal.
+**What needs resolving**: Replace `#N(a) + #U(a) + 2` with the constructive form `((#N(a) + 1) + #U(a)) + 1` throughout the Well-definedness step and Postconditions. Add NAT-addassoc to S7's Depends list. In the separator-difference computation, make the NAT-addassoc rewriting step explicit — `((#N(a)+1)+#U(a))+1 = (#N(a)+1)+(#U(a)+1)` — before applying NAT-sub's left-telescoping at `n = #N(a)+1`, `m = #U(a)+1`. (Alternatively, both goals that invoke the separator difference can be replaced without it: distinctness of separator positions follows from the strict-ordering chain `pos1 < pos1 + 1 ≤ pos1 + #U(a) < pos2` by NAT-addcompat alone; the no-adjacent-zeros contradiction follows by applying NAT-sub's right-telescoping to each side of the equal expressions `(pos2 − 1)` and `((pos1 + 1) − 1)` and invoking Leibniz equality, without computing the exact difference. Either route must be reflected in a corrected Depends list.)
+
+---
+
+### "Document level" terminology points to unformalized T4c
+
+**Class**: OBSERVE
+**Foundation**: T4c (LevelDetermination) — listed as a Forward Reference of T4, not yet formalized in this cone
+**ASN**: S7 (StructuralAttribution), Well-definedness closing sentence — "only now … does its zero count `zeros(origin(a)) = 2` place `origin(a)` at the document level in T4's hierarchy"
+**Issue**: "Document level" is labeled by T4c, which T4 itself names only as a Forward Reference. T4c does not appear in S7's Depends. The substantive content (T4-validity plus zeros = 2) is fully grounded; only the level label points forward.
+**What needs resolving**: N/A
+
+VERDICT: REVISE
