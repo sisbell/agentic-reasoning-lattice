@@ -1,0 +1,28 @@
+I read the foundation statements, then walked ASN-0036 as a system: the two-component state model (Σ.C / Σ.M), the S-invariants, the S7 attribution chain, the S8 correspondence-run partition, and the D-CTG/D-MIN/D-CTG-depth/D-SEQ contiguity tower.
+
+Most of the machinery holds. The S8 run-partition proof is sound — `succ` is genuinely a partial function (out-degree ≤ 1), injective via TS2 at a common depth derived from shift's frame (not S8-depth), acyclic via TS4 + T1 irreflexivity; the finite-graph chain decomposition and the displacement-identity induction (convention at `i=0`, TS3 for `i≥1`) walk every case. D-CTG-depth's "infinitely many intermediates" contradiction against S8-fin is correctly built (w sits strictly between u and x at the right divergence positions, w∈T via T0 comprehension, w satisfies S8a), and D-SEQ assembles cleanly from it plus D-MIN. S4/S5/S7's uniqueness reasoning correctly routes through GlobalUniqueness, and the worked example is arithmetically consistent (zeros-counts, origins, run boundaries all check).
+
+The defects I found are all in the **note narrative**, which has drifted from the already-corrected claim files — three distinct grounding/typing errors that a reader following the note would actually hit.
+
+### Note S7 / S7a carry a type-confused membership `a ∈ dom(A_element) ⊆ 𝒯`
+**Class**: REVISE
+**Foundation**: T10a.4 (T4PreservationUnderDiscipline) — quantified over allocators `A ∈ 𝒯` and domain elements `t ∈ dom(A)`
+**ASN**: Note S7 well-definedness: *"instantiating it at `A := A_element` and `t := a` — legitimate precisely because S7a places `a ∈ dom(A_element) ⊆ 𝒯` — yields that `a` is T4-valid"*. Note S7a: *"every `a ∈ dom(Σ.C)` satisfies `a ∈ dom(A_element) ⊆ 𝒯` … This membership is the premise that … licenses T10a.4's preservation invariant to be instantiated at `a`."*
+**Issue**: `a ∈ dom(A_element) ⊆ 𝒯` is a type error. `dom(A_element)` is a set of tumblers (addresses); `𝒯` is a set of allocators. `dom(A_element) ⊆ 𝒯` would assert that tumblers are allocators. Instantiating T10a.4 at `A := A_element, t := a` needs two memberships of *distinct types* — `A_element ∈ 𝒯` (allocator is a tree node) and `a ∈ dom(A_element)` (address is in its domain) — not a single subset chain, and not "this membership" (singular). The claim files for both S7 and S7a already state this correctly ("the two memberships of distinct types the instantiation requires"); the note still carries the conflated, type-confused form.
+**What needs resolving**: Replace `a ∈ dom(A_element) ⊆ 𝒯` in both note locations with the two separate memberships `A_element ∈ 𝒯` and `a ∈ dom(A_element)`, matching the corrected claim files, so the note's T10a.4 instantiation is well-typed.
+
+### Note S1 cites "T9 and T10" for fresh-address uniqueness while S4 and the S1 claim cite GlobalUniqueness
+**Class**: REVISE
+**Foundation**: GlobalUniqueness (consolidated); T9 (ForwardAllocation, same-allocator order only); T10 (PartitionIndependence, non-nesting prefixes only)
+**ASN**: Note "The content store" (S1 paragraph): *"New entries may be added — each at a fresh address guaranteed unique by T9 and T10 (ASN-0034) — but no existing entry may be modified or removed."* The S1 claim file states the identical sentence with *"GlobalUniqueness (ASN-0034)"*, and S4 (note and claim) grounds the same I-address uniqueness fact in GlobalUniqueness.
+**Issue**: T9 is same-allocator forward ordering and T10 is distinctness only for non-nesting prefix pairs; jointly they do not establish uniqueness across all allocation-event pairs, and T10's non-nesting precondition itself must be discharged (via T10a.5) before it can fire — neither shown. The note thus grounds one and the same fresh-address-uniqueness fact two different ways (S1: T9+T10; S4: GlobalUniqueness), and the S1 form is the weaker, incomplete one. GlobalUniqueness is the consolidated theorem the S1 claim and S4 both invoke.
+**What needs resolving**: Make the note's S1 uniqueness citation agree with S4 and with the S1 claim file — cite the consolidated uniqueness guarantee (GlobalUniqueness) rather than T9 and T10.
+
+### Note S8a (body + Properties-Introduced table) grounds `zeros(t)=0 ⟺ all-positive` in T0; `zeros` is a T4 symbol
+**Class**: REVISE
+**Foundation**: T4 (HierarchicalParsing) supplies `zeros`; NAT-card (`|S|=0 ⟺ S=∅`); NAT-zero (`tᵢ≠0 ⟺ tᵢ>0` on ℕ). T0 supplies only carrier/length/component projection.
+**ASN**: Note "Two components of state" (S8a): *"By T0 (ASN-0034), `zeros(t) = 0` holds exactly when every component is positive…"*. Properties Introduced table: *"Σ.M(d) domain restriction (S8a) | … | axiom (definitional); T0 (ASN-0034)"*.
+**Issue**: `zeros(t) = |{i : 1 ≤ i ≤ #t ∧ tᵢ = 0}|` is defined in T4, not T0. The equivalence `zeros(t)=0 ⟺ (A i : tᵢ>0)` is not derivable from T0 alone — it needs T4's definition of `zeros`, NAT-card's empty-set characterization, and NAT-zero's `≠0 ⟺ >0` on ℕ. The S8a claim file grounds it correctly ("Here `zeros` is T4's zero-count … By NAT-card's empty-set characterization … NAT-zero … rewrites each `tᵢ ≠ 0` as `tᵢ > 0`"); the note body and the table still attribute it to T0, under-citing the actual foundations.
+**What needs resolving**: Correct the note's S8a body and the Properties-Introduced table to ground `zeros` in T4 and the `zeros(t)=0 ⟺ all-positive` reading in NAT-card + NAT-zero (over T0's component projection), as the claim file does; T0 alone does not supply this.
+
+VERDICT: REVISE
