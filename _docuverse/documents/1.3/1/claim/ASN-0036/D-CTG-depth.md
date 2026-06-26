@@ -8,7 +8,7 @@ We construct infinitely many intermediates. For any natural number n > uⱼ₊�
 - wⱼ₊₁ = n,
 - wᵢ = 1 for j + 2 ≤ i ≤ m (an empty range when j = m − 1, in which case wⱼ₊₁ = w_m is already the last component; otherwise this clause fills components j + 2 through m).
 
-Then w has depth m (it has m components by construction), and subspace(w) = w₁ = u₁ = 1 (since j ≥ 2, the first component is copied from u). We verify u < w < x:
+Every component of w lies in ℕ — wᵢ = uᵢ ∈ ℕ for 1 ≤ i ≤ j since u ∈ T, wⱼ₊₁ = n ∈ ℕ, and wᵢ = 1 ∈ ℕ for j + 2 ≤ i ≤ m — and w has length m ≥ 3 ≥ 1, so by T0's comprehension clause (CarrierSetDefinition, ASN-0034), instantiated at length m and this component map, w ∈ T: the construction yields a genuine tumbler, which is what later lets us instantiate D-CTG's inner v ∈ T quantifier at the constructed w. Then w has depth m (it has m components by construction), and subspace(w) = w₁ = u₁ = 1 (since j ≥ 2, the first component is copied from u). We verify u < w < x:
 
 - **w > u**: w agrees with u on components 1 through j. At component j + 1, wⱼ₊₁ = n > uⱼ₊₁. Since j + 1 ≤ m = min(m, m), by T1(i), w > u.
 - **w < x**: w agrees with x on components 1 through j − 1 (since u and x agree on these components by the definition of j). At component j, wⱼ = uⱼ < xⱼ. Since j ≤ m − 1 ≤ min(m, m), by T1(i), w < x.
@@ -43,6 +43,7 @@ Nelson's statement specifies not just contiguity but also the starting ordinal: 
   - T1 (LexicographicOrder, ASN-0034) — supplies the component-comparison clause of the lexicographic order; invoked at three points in the proof to derive u < w and w < x from the first differing component
   - S8a (ArrangementDomainRestriction) — supplies the well-formedness predicate (`#p ≥ 2 ∧ (A i : 1 ≤ i ≤ #p : pᵢ > 0)`) that the constructed intermediate w must satisfy before D-CTG can require w ∈ V_1(d)
   - D-CTG (VContiguity) — supplies the contiguity axiom applied to force w ∈ V_1(d) from u < w < x with matching subspace, depth, and S8a well-formedness; the claim's contradiction rests on producing infinitely many such w
+  - T0 (CarrierSetDefinition, ASN-0034) — supplies the comprehension clause that grounds the carrier membership w ∈ T of the explicitly-constructed witness w (length m, every component ℕ-valued), the prerequisite for instantiating D-CTG's inner v ∈ T quantifier at w
   - T0(a) (UnboundedComponentValues, ASN-0034) — supplies, for any bound M, a witness n > M; consumed to construct the strictly increasing sequence n₁ < n₂ < … of admissible intermediates that contradicts S8-fin
   - T3 (CanonicalRepresentation, ASN-0034) — supplies tumbler equality as component-wise identity; used to conclude that distinct values of n yield distinct depth-m positions w (differing at component j + 1)
   - S8-fin (FiniteArrangement) — supplies finiteness of dom(M(d)); the proof is by contradiction, and the infinite sequence of distinct positions in V_1(d) contradicts this finiteness
