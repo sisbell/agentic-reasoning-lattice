@@ -32,14 +32,21 @@ def current_contract_kind(
     """Most recent `contract.<kind>` classifier targeting the claim.
 
     Returns the bare subtype string ("axiom", "theorem", etc.) or None.
-    Links are permanent; multiple classifiers may accumulate over time;
-    the latest in emission order is the current kind.
+    Links are permanent; multiple classifiers may accumulate over time
+    (a reclassification appends a new classifier rather than replacing
+    the old one), and the latest in emission order is the current kind.
+
+    `find_links` returns matches in inverted-index (set) order, NOT
+    emission order, so positional order here is not reliable: pick the
+    latest explicitly by emission order — timestamp, with
+    address-allocation order as the tie-break. Address digits are
+    allocated sequentially, so a later classifier always has a
+    lexicographically greater address than an earlier one.
     """
     links = session.find_links(to_set=[claim_addr], type_="contract")
     if not links:
         return None
-    # Order in LinkStore preserves emission order; take the last
-    latest = links[-1]
+    latest = max(links, key=lambda link: (link.ts, tuple(link.addr.digits)))
     if not latest.type_set:
         return None
     name = session.type_name_for(latest.type_set[0])
