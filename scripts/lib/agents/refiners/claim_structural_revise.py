@@ -38,6 +38,7 @@ from lib.backend.addressing import Address
 from lib.backend.emit import emit_resolution, emit_retraction
 from lib.lattice.labels import (
     build_cross_asn_label_index,
+    note_scoped_asns,
     parse_claim_doc_path,
 )
 from lib.predicates import has_resolution
@@ -638,7 +639,15 @@ def _run_pass(
         return declined
 
     if rule == "depends-agreement":
-        label_index = build_cross_asn_label_index(session.store)
+        # Scope to {this ASN} ∪ {note-cited ASNs}. _apply_retract_decisions
+        # does label_index.get(dep_label) to find the citation to retract;
+        # a flat index is last-writer-wins, so retracting a colliding
+        # same-ASN dep (S0–S8 are shared by ASN-0036 and ASN-0053) would
+        # resolve to the WRONG ASN's address and fail with "no active
+        # citation.depends".
+        label_index = build_cross_asn_label_index(
+            session.store, allowed_asns=note_scoped_asns(int(asn_label[4:])),
+        )
     else:
         label_index = None
 

@@ -39,6 +39,7 @@ from lib.backend.emit import emit_empty_derivation
 from lib.lattice.findings import record_findings
 from lib.lattice.labels import (
     build_cross_asn_label_index,
+    note_scoped_asns,
     parse_claim_doc_path,
 )
 from lib.protocols.febe.protocol import Session
@@ -76,7 +77,17 @@ class ClaimFindingsAgent(Agent):
         findings = extract_findings(body)
         apply_classifier_verdict(findings)
 
-        label_index = build_cross_asn_label_index(session.store)
+        # Scope to {this ASN} ∪ {note-cited ASNs}. record_findings does a
+        # FORWARD lookup label_index[target_label] to mint the finding's
+        # comment.revise; with a flat index a finding on a colliding label
+        # (e.g. S5, shared by ASN-0036 and ASN-0053) binds to the WRONG
+        # ASN's claim — the revise lands on a foreign claim, the real one
+        # never gets it, and the "fix locus not an editable claim in THIS
+        # ASN" path spuriously downgrades the REVISE to OBSERVE so the next
+        # review re-flags it forever.
+        label_index = build_cross_asn_label_index(
+            session.store, allowed_asns=note_scoped_asns(asn_num),
+        )
         emitted = record_findings(
             session, review_addr, findings,
             asn_label, review_stem, label_index,

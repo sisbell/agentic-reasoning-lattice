@@ -41,7 +41,7 @@ from lib.backend.predicates import active_links
 from lib.backend.store import Store
 from lib.lattice.context import claim_context_from_addr
 from lib.lattice.findings import emit_review_doc
-from lib.lattice.labels import build_cross_asn_label_index
+from lib.lattice.labels import build_cross_asn_label_index, note_scoped_asns
 from lib.predicates.versions import version_head
 from lib.protocols.febe.protocol import Session
 from lib.shared.claim_files import build_label_index
@@ -386,8 +386,14 @@ class ConeReviewAgent(Agent):
     def run(self, session: Session, addr: Address) -> AgentResult:
         ctx = claim_context_from_addr(session, addr)
 
-        # Derive cone shape from substrate (transitive deps).
-        label_index = build_cross_asn_label_index(session.store)
+        # Derive cone shape from substrate (transitive deps). Scope the
+        # index to {this ASN} ∪ {note-cited ASNs} — labels aren't globally
+        # unique (S5 in both ASN-0036 and ASN-0053), and a flat rev_index
+        # is last-writer-wins, so it would silently drop this ASN's
+        # colliding same-ASN claims from the cone shape.
+        label_index = build_cross_asn_label_index(
+            session.store, allowed_asns=note_scoped_asns(ctx.asn_num),
+        )
         rev_index = {a: lbl for lbl, a in label_index.items()}
         asn_labels = set(build_label_index(ctx.claim_dir).keys())
         dep_labels = transitive_same_asn_deps(

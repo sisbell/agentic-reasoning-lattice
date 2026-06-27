@@ -27,6 +27,7 @@ from lib.backend.addressing import Address
 from lib.lattice.attributes import attest_against_doc_head
 from lib.lattice.labels import (
     build_cross_asn_label_index,
+    note_scoped_asns,
     parse_claim_doc_path,
 )
 from lib.shared.prompts import read_prompt
@@ -326,7 +327,13 @@ class ClaimSignatureResolveAgent(Agent):
         claim_md_content = claim_md_full.read_text()
         existing_signature = _claim_signature_text(claim_dir, claim_label)
 
-        label_index = build_cross_asn_label_index(session.store)
+        # Scope to {this ASN} ∪ {note-cited ASNs}. _transitive_dep_signatures
+        # builds a rev_index for same-ASN dep lookup; a flat index drops
+        # this ASN's colliding-label deps (S0–S8 collide with ASN-0053),
+        # silently truncating the upstream signature context.
+        label_index = build_cross_asn_label_index(
+            session.store, allowed_asns=note_scoped_asns(asn_num),
+        )
         upstream_sigs = _transitive_dep_signatures(
             session, claim_rel, label_index, asn_label, self.claim_dir,
         )

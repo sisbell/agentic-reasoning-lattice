@@ -24,6 +24,7 @@ from lib.lattice.labels import (
     extract_label_digits,
     format_label,
     label_pattern,
+    note_scoped_asns,
     parse_claim_doc_path,
 )
 from lib.predicates.quiescence import derived_claims
@@ -77,13 +78,12 @@ def claim_context_from_addr(session: Session, addr: Address) -> ClaimContext:
     responsible for catching when the address might not resolve cleanly
     (e.g., a stale reference).
     """
-    label_index = build_cross_asn_label_index(session.store)
-    rev_index = {a: lbl for lbl, a in label_index.items()}
-
-    label = rev_index.get(addr)
-    if label is None:
-        raise ValueError(f"no label for address {addr}")
-
+    # Derive the ASN from the path FIRST, then build an ASN-scoped label
+    # index. Labels aren't globally unique (S5 lives in both ASN-0036 and
+    # ASN-0053); a FLAT index's rev_index is last-writer-wins, so the
+    # colliding same-ASN claim's address is dropped and rev_index.get(addr)
+    # returns None → "no label for address" (livelocked the cone phase on
+    # ASN-0036/S5). Scoping to {this ASN} ∪ {note-cited ASNs} is lossless.
     path = session.get_path_for_addr(addr)
     if path is None:
         raise ValueError(f"no path for address {addr}")
@@ -93,6 +93,15 @@ def claim_context_from_addr(session: Session, addr: Address) -> ClaimContext:
         raise ValueError(f"unparseable claim doc path {path!r}")
     asn_label, _basename, asn_num = parsed
     claim_dir = _claim_dir_for_path(path, asn_label)
+
+    label_index = build_cross_asn_label_index(
+        session.store, allowed_asns=note_scoped_asns(asn_num),
+    )
+    rev_index = {a: lbl for lbl, a in label_index.items()}
+
+    label = rev_index.get(addr)
+    if label is None:
+        raise ValueError(f"no label for address {addr}")
 
     asn_labels = set(build_label_index(claim_dir).keys())
     same_asn_deps = tuple(
