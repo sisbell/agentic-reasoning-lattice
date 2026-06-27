@@ -127,30 +127,39 @@ class FullReviewFormalContractGate(unittest.TestCase):
         emit_note(self.store, self.note_addr)
 
     def _register_claim(self, name: str, body: str) -> "Address":
-        from lib.backend.emit import emit_claim, emit_derivation
+        from lib.backend.emit import emit_claim, emit_derivation, emit_label
         path = self.claim_dir / f"{name}.md"
         path.write_text(body)
         rel = str(path.relative_to(self.lattice))
         addr = self.session.register_path(rel)
         emit_claim(self.store, addr)
         emit_derivation(self.store, self.note_addr, addr)
+        # Label sidecar so the region-based enumerator (asn_claim_addrs →
+        # build_cross_asn_label_index) finds the claim: it walks `label`
+        # links and reads the sidecar's first line for the canonical label.
+        label_path = self.claim_dir / f"{name}.label.md"
+        label_path.write_text(name + "\n")
+        label_addr = self.session.register_path(
+            str(label_path.relative_to(self.lattice)),
+        )
+        emit_label(self.store, addr, label_addr)
         return addr
 
     def test_skips_when_one_derived_claim_lacks_fc(self):
-        """Two claims derived; one has FC, the other doesn't →
-        predicate True (skip).
+        """Two claims; one has FC, the other doesn't → predicate True
+        (skip). Enumeration is region-based, so both are seen.
         """
-        self._register_claim(
+        t0 = self._register_claim(
             "T0",
             "# T0\n\n*Formal Contract:*\n- *Postconditions:* x\n",
         )
         self._register_claim("T1", "# T1\n\nNo formal contract here.\n")
-        self.assertTrue(full_review_predicate(self.session, self.note_addr))
+        self.assertTrue(full_review_predicate(self.session, t0))
 
     def test_does_not_skip_on_fc_alone_when_all_claims_have_fc(self):
-        """All derived claims have FC; ASN quiescent (no comments);
+        """All region claims have FC; ASN quiescent (no comments);
         not yet confirmed → predicate False (fire)."""
-        self._register_claim(
+        t0 = self._register_claim(
             "T0",
             "# T0\n\n*Formal Contract:*\n- *Postconditions:* x\n",
         )
@@ -158,12 +167,13 @@ class FullReviewFormalContractGate(unittest.TestCase):
             "T1",
             "# T1\n\n*Formal Contract:*\n- *Postconditions:* y\n",
         )
-        self.assertFalse(full_review_predicate(self.session, self.note_addr))
+        self.assertFalse(full_review_predicate(self.session, t0))
 
-    def test_no_derived_claims_skips_via_vacuous_confirmation(self):
-        """Note with no claim-classified derivations → `is_asn_confirmed`
-        returns True vacuously (`all` over empty), predicate skips
-        before reaching the FC gate."""
+    def test_no_claims_skips(self):
+        """ASN with no claims in its region → `is_asn_quiescent` is False
+        (empty region is not vacuously settled), so the predicate skips
+        before reaching the FC gate. (The ASN label is path-derived; the
+        note addr resolves to ASN-0099.)"""
         self.assertTrue(full_review_predicate(self.session, self.note_addr))
 
 

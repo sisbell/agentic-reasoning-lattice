@@ -49,6 +49,7 @@ from .attributes import (
 )
 from .citations import depends
 from .quiescence import (
+    asn_label_for_claim,
     derived_claims, is_asn_confirmed, is_claim_confirmed, is_claim_quiescent,
     is_claim_structurally_clean, latest_review_for_addr,
 )
@@ -265,10 +266,13 @@ def signature_is_fresh_after_asn_confirmation(
 def _sidecar_against_doc_head_fresh(
     session: Session, claim_addr: Address, sidecar_lookup,
 ) -> bool:
-    note_addr = _source_note_for_claim(session, claim_addr)
-    if note_addr is None:
+    # ASN identity is PATH-derived from the claim; the note is not read
+    # post-derivation. Works for refinement-created claims that have no
+    # note provenance to reverse-walk.
+    asn_label = asn_label_for_claim(session, claim_addr)
+    if asn_label is None:
         return True
-    if not is_asn_confirmed(session, note_addr):
+    if not is_asn_confirmed(session, asn_label):
         return True
     sidecar = sidecar_lookup(session, claim_addr)
     if sidecar is None:

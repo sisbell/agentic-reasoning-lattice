@@ -24,7 +24,7 @@ from __future__ import annotations
 from typing import Iterator, Set
 
 from lib.backend.addressing import Address
-from lib.predicates import derived_claims, is_retired
+from lib.predicates import asn_claim_addrs, is_retired
 from lib.protocols.febe.protocol import Session
 from lib.runner import Scope, asn_note_addr
 from lib.shared.paths import WORKSPACE, inquiry_doc_path
@@ -50,13 +50,14 @@ def _claim_set_for_scope(session: Session, scope: Scope) -> Set[Address]:
     if scope.asn_label is None:
         return classified_claims
 
-    note_addr = asn_note_addr(session, scope)
-    if note_addr is None:
-        return set()
-    in_asn = {
-        d for d in derived_claims(session, note_addr)
-        if d in classified_claims
-    }
+    # Region-based: enumerate the ASN's claims from the claim region (1.3),
+    # NOT via note provenance. Claim refinement may mint new claims that
+    # carry no note→claim provenance; a note walk would drop them from
+    # refiner scope, leaving them half-built (e.g. no description/signature
+    # sidecar). The note is a derivation-time source only — never read
+    # post-derivation. The region index is claim docs only, so no extra
+    # classified-claim filter is needed.
+    in_asn = set(asn_claim_addrs(session, scope.asn_label))
     if scope.labels is None:
         return in_asn
 

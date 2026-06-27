@@ -16,8 +16,10 @@ emit are closed by the claim-revise refiner. The producer's job is
 review-and-emit; everything downstream is the runner's.
 
 Structurally identical to cone-review; differences are scope-level:
-  - context: `AsnContext` from a note address (vs claim address)
-  - claims: all derivations of the note (vs apex + same-ASN deps)
+  - context: ASN label PATH-derived from the canonical claim addr; the
+    note is never read post-derivation
+  - claims: every claim in the ASN's claim region (asn_claim_addrs) —
+    including claims refinement created (vs apex + same-ASN deps)
   - foundation: full upstream (vs narrowed to cross-ASN deps)
   - validate-gate scope: whole ASN (vs cone subset)
   - model: opus (vs sonnet)
@@ -36,9 +38,10 @@ from lib.agents.producers.review_helpers import (
 from lib.agents.producers.cone_review import sync_claim_citations
 from lib.backend.addressing import Address
 from lib.lattice.findings import emit_review_doc
-from lib.lattice.context import asn_context_from_note
-from lib.lattice.labels import build_cross_asn_label_index
-from lib.predicates import derived_claims, resolve_to_scope, version_head
+from lib.lattice.labels import build_cross_asn_label_index, note_scoped_asns
+from lib.predicates import (
+    asn_claim_addrs, asn_label_for_claim, version_head,
+)
 from lib.protocols.febe.protocol import Session
 from lib.shared.common import assemble_readonly
 from lib.shared.foundation import FoundationError, foundation_dep_addrs
@@ -53,8 +56,8 @@ class FullReviewAgent(Agent):
     """One cycle of whole-ASN deep review.
 
     The trigger feeds the agent one canonical claim of the ASN; the
-    agent multi-holds every classified claim of the ASN and walks
-    back to the note for its actual work.
+    agent path-derives the ASN label from it and multi-holds every
+    claim in the ASN's claim region. The note is not consulted.
     """
 
     role: ClassVar[str] = "full-review"
@@ -63,38 +66,46 @@ class FullReviewAgent(Agent):
     def resolve_holds(
         self, session: Session, addr: Address, scope_type: str,
     ) -> List[Address]:
-        """Hold every classified claim of the ASN. Mutex against
-        cone-review (which holds its apex) and per-claim refiners."""
-        note = resolve_to_scope(session, addr, "note")
-        if note is None:
+        """Hold every claim of the ASN (region-based — includes claims
+        refinement created). Mutex against cone-review (which holds its
+        apex) and per-claim refiners."""
+        asn_label = asn_label_for_claim(session, addr)
+        if asn_label is None:
             return []
-        classified = {
-            link.to_set[0]
-            for link in session.active_links("claim")
-            if link.to_set
-        }
-        return [c for c in derived_claims(session, note) if c in classified]
+        return list(asn_claim_addrs(session, asn_label))
 
     def run(self, session: Session, addr: Address) -> AgentResult:
-        note_addr = resolve_to_scope(session, addr, "note")
-        if note_addr is None:
+        # ASN identity is PATH-derived; the note is never read post-
+        # derivation. Claims are enumerated from the claim region so
+        # refinement-created claims are reviewed too.
+        asn_label = asn_label_for_claim(session, addr)
+        if asn_label is None:
             return AgentResult(
-                success=False, detail="no-note-for-canonical-claim",
+                success=False, detail="no-asn-for-canonical-claim",
             )
-        ctx = asn_context_from_note(session, note_addr)
-        derived_addrs = list(ctx.derived_claim_addrs)
+        asn_num = int(asn_label[4:])
+        derived_addrs = list(asn_claim_addrs(session, asn_label))
 
-        label_index = build_cross_asn_label_index(session.store)
+        # Scope to {this ASN} ∪ {note-cited ASNs}. sync_claim_citations
+        # (below) does forward AND reverse label lookups to reconcile each
+        # claim's citation graph; a flat index is last-writer-wins, so for
+        # a colliding label (S0–S8 are shared by ASN-0036 and ASN-0053) it
+        # would sync citations against the WRONG ASN's address — corrupting
+        # the depends graph every pass so depends-agreement never converges
+        # (a full-review livelock).
+        label_index = build_cross_asn_label_index(
+            session.store, allowed_asns=note_scoped_asns(asn_num),
+        )
 
         print(
-            f"\n  [FULL-REVIEW] {ctx.asn_label} "
+            f"\n  [FULL-REVIEW] {asn_label} "
             f"({len(derived_addrs)} derived claims)",
             file=sys.stderr,
         )
 
         # 1. Validate-gate (whole ASN).
         gate_result = run_validate_gate(
-            ctx.asn_label, scope_labels=None, claim_base_dir=self.claim_dir,
+            asn_label, scope_labels=None, claim_base_dir=self.claim_dir,
         )
         if gate_result != "clean":
             print(
@@ -109,7 +120,7 @@ class FullReviewAgent(Agent):
         previous_findings = previously_declined_findings(session, derived_addrs)
 
         # 3. Assemble + review (full upstream foundation, no narrowing).
-        asn_content = assemble_readonly(ctx.asn_label, self.claim_dir)
+        asn_content = assemble_readonly(asn_label, self.claim_dir)
         # Effort for the whole-ASN review. Defaults to "max" — the global
         # review is the ASN-wide quality gate (a non-clean draw re-opens
         # every claim's confirmation), so it runs at the top tier, matching
@@ -118,7 +129,7 @@ class FullReviewAgent(Agent):
         # cone_review is unaffected (it keeps run_review's "high" default).
         full_effort = os.environ.get("FULL_REVIEW_EFFORT", "max")
         verdict, findings_text, _elapsed = run_review(
-            ctx.asn_num, asn_content, ctx.asn_label, previous_findings,
+            asn_num, asn_content, asn_label, previous_findings,
             model=FULL_MODEL, effort=full_effort,
         )
         if verdict == "ERROR":
@@ -126,8 +137,8 @@ class FullReviewAgent(Agent):
 
         # 4. Emit review doc + coverage links.
         review_num = next_review_number(
-            ctx.asn_label, kind="claim",
-            reviews_dir=CLAIM_REVIEWS_DIR / ctx.asn_label,
+            asn_label, kind="claim",
+            reviews_dir=CLAIM_REVIEWS_DIR / asn_label,
         )
 
         # Cascade anchor: snapshot the foundation version each upstream
@@ -140,18 +151,18 @@ class FullReviewAgent(Agent):
         try:
             cascade_anchor_heads = [
                 version_head(session, dep)
-                for dep in foundation_dep_addrs(session, ctx.asn_num)
+                for dep in foundation_dep_addrs(session, asn_num)
             ]
         except FoundationError as e:
             print(
-                f"  [FOUNDATION] {ctx.asn_label}: cascade-anchor emission "
+                f"  [FOUNDATION] {asn_label}: cascade-anchor emission "
                 f"skipped — deps unresolvable post-load ({e})",
                 file=sys.stderr,
             )
             cascade_anchor_heads = []
 
         review_addr, _ = emit_review_doc(
-            session, ctx.asn_label, review_num,
+            session, asn_label, review_num,
             body=findings_text,
             covered_addrs=derived_addrs,
             cascade_anchor_heads=cascade_anchor_heads,
@@ -160,7 +171,7 @@ class FullReviewAgent(Agent):
         # 5. Sync substrate citations against md across every derived claim.
         #    sync_claim_citations takes a Session (it does session.store
         #    internally) — pass `session`, not `session.store`.
-        for claim_addr in ctx.derived_claim_addrs:
+        for claim_addr in derived_addrs:
             sync_claim_citations(session, claim_addr, label_index)
 
         # 6. Commit the review-doc emission as a cycle event.

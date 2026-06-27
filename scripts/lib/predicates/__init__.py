@@ -67,6 +67,8 @@ from .classifiers import (
     is_retired,
 )
 from .quiescence import (
+    asn_claim_addrs,
+    asn_label_for_claim,
     derived_claims,
     has_been_reviewed,
     has_resolution,
@@ -109,6 +111,8 @@ __all__ = [
     "has_contract_kind",
     "has_formal_contract",
     "dangling_attribute_links",
+    "asn_claim_addrs",
+    "asn_label_for_claim",
     "dangling_claim_finding_links",
     "dangling_note_finding_links",
     "depends",

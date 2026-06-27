@@ -723,22 +723,58 @@ class SidecarAgainstClaimHeadTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.state = State(account=Address("1.1.0.1"))
-        self.session = Session(self.state)
-        self.lattice = self.state.create_doc()
-        self.note = self.state.create_doc(kind="note", lattice=self.lattice)
-        self.claim = self.state.create_doc(kind="claim", lattice=self.lattice)
-        self.state.make_link(
-            self.note, [self.note], [self.claim], "provenance.derivation",
+        # Filesystem-backed: the freshness gate now path-derives the ASN
+        # label from the claim and checks the region-based is_asn_confirmed,
+        # so the claim needs a real path + a label sidecar (which the region
+        # enumerator reads). The note is not used.
+        import json
+        import tempfile
+        from lib.backend.store import Store
+        from lib.backend.emit import emit_claim, emit_label
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        root = Path(self.tmp.name)
+        docuverse = root / "_docuverse"
+        docuverse.mkdir()
+        (docuverse / "paths.json").write_text(json.dumps({
+            "_meta": {
+                "registry_doc": "1.1.0.1.0.1",
+                "lattice_doc": "1.1.0.1.0.1.1",
+                "lattice_name": "test",
+            },
+            "paths": {},
+        }, indent=2))
+        (docuverse / "links.jsonl").write_text("")
+        self.lattice = root.resolve()
+        self.store = Store(self.lattice)
+        self.session = Session(self.store)
+        self.state = self.store.state
+        self.lattice_addr = self.state.create_doc()
+        claim_dir = (
+            self.lattice / "_docuverse" / "documents" / "claim" / "ASN-0099"
         )
+        claim_dir.mkdir(parents=True)
+        cpath = claim_dir / "T0.md"
+        cpath.write_text("# T0\n")
+        self.claim = self.session.register_path(
+            str(cpath.relative_to(self.lattice)),
+        )
+        emit_claim(self.store, self.claim)
+        # Label sidecar so asn_claim_addrs (region enumerator) finds it.
+        lpath = claim_dir / "T0.label.md"
+        lpath.write_text("T0\n")
+        label_addr = self.session.register_path(
+            str(lpath.relative_to(self.lattice)),
+        )
+        emit_label(self.store, self.claim, label_addr)
 
     def _confirm_claim(self):
-        _emit_clean_review(self.state, self.claim, self.lattice)
+        _emit_clean_review(self.state, self.claim, self.lattice_addr)
 
     def _attach_sidecar(self, kind, cite_target=None):
         """Create a sidecar via attribute link, optionally cite a claim
         version (the freshness anchor)."""
-        sidecar = self.state.create_doc(lattice=self.lattice)
+        sidecar = self.state.create_doc(lattice=self.lattice_addr)
         self.state.make_link(
             self.claim, [self.claim], [sidecar], kind,
         )

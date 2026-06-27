@@ -301,6 +301,14 @@ def derived_claims(session: Session, note_addr: Address):
     Walks `provenance.derivation` forward from the note address.
     Emitted by transclude during claim derivation; the union of these
     targets is the note's claim cluster.
+
+    NOTE: this is a DERIVATION-TIME view. It only sees claims the note
+    transcluded; claims that claim-refinement created later (which carry
+    no note→claim provenance — refinement never writes back to the note)
+    are invisible to it. The refinement/convergence layer must enumerate
+    via `asn_claim_addrs` instead, or it confirms prematurely over an
+    incomplete set. The note is a derivation-time source only; once
+    derived it is never read again.
     """
     for link in session.active_links(
         "provenance.derivation", from_set=[note_addr],
@@ -309,23 +317,75 @@ def derived_claims(session: Session, note_addr: Address):
             yield derived
 
 
-def is_asn_quiescent(session: Session, note_addr: Address) -> bool:
-    """Conjunction of `is_claim_quiescent` over every derived claim."""
-    return all(
-        is_doc_quiescent(session, derived)
-        for derived in derived_claims(session, note_addr)
-    )
+def asn_claim_addrs(session: Session, asn_label: str):
+    """Yield substrate addresses of every claim in an ASN's claim region.
 
+    Region-based enumeration: reads the claim region (1.3) via the
+    ASN-scoped label index — the set of claim docs that physically exist
+    for the ASN — NOT the note's `provenance.derivation` links. This is
+    the post-derivation replacement for `derived_claims`: claim
+    refinement may legitimately mint new claims (a definition or lemma a
+    reviewer found missing), and those carry no note provenance, so a
+    note walk misses them and reports false convergence. Keying off the
+    region also means a refinement-created claim is seen even though only
+    `claim_decompose` emits the `claim` classifier (refinement-minted
+    claims lack it).
 
-def is_asn_confirmed(session: Session, note_addr: Address) -> bool:
-    """Conjunction of `is_claim_confirmed` over every derived claim.
-
-    ASN-level analog of `is_claim_confirmed`: each derived claim has
-    quiescent AND its most recent review was clean. Used as the
-    full-review trigger's quiescence predicate — mirrors how cone-review
-    uses `is_claim_confirmed`.
+    The scoped index returns one address per claim label; it indexes
+    claim main docs only (sidecars and the `_statements` aggregate are
+    not labelled claim docs), so the values are exactly the ASN's claims.
     """
-    return all(
-        is_claim_confirmed(session, derived)
-        for derived in derived_claims(session, note_addr)
+    from lib.lattice.labels import build_cross_asn_label_index
+    index = build_cross_asn_label_index(
+        session.store, allowed_asns={asn_label},
     )
+    yield from index.values()
+
+
+def asn_label_for_claim(
+    session: Session, addr: Address,
+) -> Optional[str]:
+    """Derive the ASN label (e.g. 'ASN-0036') from a claim addr's path.
+
+    Path-derived so it works for refinement-created claims that have no
+    note provenance to reverse-walk. Returns None if the address has no
+    parseable claim-doc path. This is how the refinement layer answers
+    "which ASN does this claim belong to?" without touching the note.
+    """
+    from lib.lattice.labels import parse_claim_doc_path
+    path = _safe_path_for_addr(session, addr)
+    if path is None:
+        return None
+    parsed = parse_claim_doc_path(path)
+    if parsed is None:
+        return None
+    asn_label, _basename, _asn_num = parsed
+    return asn_label
+
+
+def is_asn_quiescent(session: Session, asn_label: str) -> bool:
+    """Conjunction of `is_claim_quiescent` over every claim in the ASN's
+    claim region (region-based; see `asn_claim_addrs`). An ASN with no
+    claims is not quiescent (False), so a mis-resolved label can't read
+    as vacuously settled."""
+    claims = list(asn_claim_addrs(session, asn_label))
+    if not claims:
+        return False
+    return all(is_doc_quiescent(session, c) for c in claims)
+
+
+def is_asn_confirmed(session: Session, asn_label: str) -> bool:
+    """Conjunction of `is_claim_confirmed` over every claim in the ASN's
+    claim region.
+
+    ASN-level analog of `is_claim_confirmed`: each claim quiescent AND
+    its most recent review was clean. Used as the full-review trigger's
+    quiescence predicate — mirrors how cone-review uses
+    `is_claim_confirmed`. Enumerates from the claim region (1.3), NOT the
+    note, so claims created during refinement are included; a
+    note-provenance walk would miss them and confirm prematurely. An ASN
+    with no claims is not confirmed (False)."""
+    claims = list(asn_claim_addrs(session, asn_label))
+    if not claims:
+        return False
+    return all(is_claim_confirmed(session, c) for c in claims)

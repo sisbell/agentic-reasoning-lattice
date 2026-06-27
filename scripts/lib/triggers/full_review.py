@@ -34,8 +34,8 @@ from __future__ import annotations
 from lib.agents.producers.full_review import FullReviewAgent
 from lib.backend.addressing import Address
 from lib.predicates import (
-    derived_claims, has_formal_contract,
-    is_asn_confirmed, is_asn_quiescent, is_held, resolve_to_scope,
+    asn_claim_addrs, asn_label_for_claim, has_formal_contract,
+    is_asn_confirmed, is_asn_quiescent, is_held,
 )
 from lib.protocols.febe.protocol import Session
 from lib.runner import Trigger
@@ -60,21 +60,19 @@ def _predicate(session: Session, addr: Address) -> bool:
     )
     from lib.predicates import current_contract_kind
 
-    note_addr = resolve_to_scope(session, addr, "note")
-    if note_addr is None:
+    # ASN identity is PATH-derived from the claim addr — the note is never
+    # consulted post-derivation. Claims are enumerated from the claim region
+    # (asn_claim_addrs), so claims that refinement created (which carry no
+    # note provenance) are included; a note-anchored walk would miss them
+    # and confirm prematurely.
+    asn_label = asn_label_for_claim(session, addr)
+    if asn_label is None:
         return True
-    if is_asn_confirmed(session, note_addr):
+    if is_asn_confirmed(session, asn_label):
         return True
-    if not is_asn_quiescent(session, note_addr):
+    if not is_asn_quiescent(session, asn_label):
         return True
-    classified_claims = {
-        link.to_set[0]
-        for link in session.active_links("claim")
-        if link.to_set
-    }
-    for claim in derived_claims(session, note_addr):
-        if claim not in classified_claims:
-            continue
+    for claim in asn_claim_addrs(session, asn_label):
         if is_held(session, claim):
             return True
         # FC gate: a claim blocks the whole-ASN review only if it lacks a
