@@ -23,7 +23,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from lib.shared.paths import claim_doc_path, LATTICE
 from lib.protocols.febe.session import open_session
-from lib.backend.emit import emit_contract
+from lib.backend.emit import emit_claim, emit_contract
 from lib.backend.shapes import subtypes_of
 
 
@@ -55,6 +55,14 @@ def main():
     except ValueError as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
+    # A doc with a contract kind IS a claim — mark it so. For note-derived
+    # claims `claim_decompose` emits the `claim` classifier, but a
+    # reviser-CREATED claim reaches the substrate only through this tool;
+    # without this it would carry a contract kind yet no `claim` classifier,
+    # leaving it invisible to every consumer that filters on the `claim`
+    # link (e.g. downstream translation). Idempotent: reclassifying an
+    # existing claim is a no-op.
+    emit_claim(store, claim_addr)
     print(link.addr)
     if not created:
         print("(already exists)", file=sys.stderr)
