@@ -1,0 +1,1 @@
+- `Σ₀` — the designated base state constant; the unique named configuration in which every arrangement `Σ₀.M(d)` has empty domain, serving as the inductive anchor for invariants on `M`
