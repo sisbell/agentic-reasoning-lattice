@@ -98,30 +98,33 @@ def test_plan_for_asn_with_no_inquiry_raises() -> None:
             plan_reconciliation(session, 99999)
 
 
-def test_plan_for_asn_0097_is_actionable() -> None:
-    """ASN-0097 should be in NEW_ONLY state per the audit: 7 one-per-target
-    inquiry-side, 0 note-side. Reconciliation should retract all 7 and
-    emit one fan-out (or, if step-4 has already run, be a no-op)."""
-    with _open_session() as session:
-        plan = plan_reconciliation(session, 97)
-    assert plan.declared_deps == [34, 36, 40, 43, 47, 53, 58]
+def test_plan_for_new_only_state_is_actionable(synth_workspace) -> None:
+    """NEW_ONLY state: the inquiry declares N deps and carries N
+    one-per-target citation.depends links (no fan-out matching the
+    desired set), with 0 note-side links. Reconciliation must retract
+    all N and emit one fan-out. Synthetic fixture so the test never
+    drifts with a live ASN's deps (or its retirement)."""
+    ws = synth_workspace
+    dep_a = ws.add_note(101)
+    dep_b = ws.add_note(102)
+    dep_c = ws.add_note(103)
+    ws.add_note(9001)  # subject note — 0 note-side citation.depends
+    inq = ws.add_inquiry(9001, depends=[101, 102, 103])
+    for dep in (dep_a, dep_b, dep_c):
+        ws.emit_dep(inq, dep)  # one-per-target inquiry links
+
+    plan = plan_reconciliation(ws.session, 9001)
+    assert plan.declared_deps == [101, 102, 103]
     assert plan.inquiry_addr is not None
-    # Either: pre-fix state (7 one-per-target to retract, needs emit),
-    # or: post-fix state (1 fan-out kept, nothing to retract).
-    if plan.is_noop:
-        assert plan.keep_link is not None
-        assert len(plan.keep_link.to_set) == 7
-        assert not plan.retract_inquiry
-        assert not plan.retract_note
-    else:
-        # Pre-fix: 7 one-per-target on inquiry side, all need retract,
-        # fan-out needs emit.
-        assert plan.needs_emit
-        assert len(plan.retract_inquiry) == 7
-        assert all(
-            len(L.to_set) == 1 for L in plan.retract_inquiry
-        )
-        assert len(plan.dep_addrs) == 7
+    # NEW_ONLY: no fan-out matches the desired set, so nothing is kept;
+    # all 3 one-per-target links retract, and a fan-out must be emitted.
+    assert plan.keep_link is None
+    assert plan.needs_emit
+    assert plan.is_noop is False
+    assert len(plan.retract_inquiry) == 3
+    assert all(len(L.to_set) == 1 for L in plan.retract_inquiry)
+    assert plan.retract_note == []
+    assert len(plan.dep_addrs) == 3
 
 
 def test_plan_for_asn_0088_raises_when_dep_unresolvable() -> None:

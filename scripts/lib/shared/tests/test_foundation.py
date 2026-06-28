@@ -177,17 +177,27 @@ def test_foundation_dep_addrs_rejects_invalid_asn_id() -> None:
             foundation_dep_addrs(session, None)  # type: ignore[arg-type]
 
 
-def test_foundation_dep_addrs_returns_addresses_for_healthy_asn() -> None:
-    """For a HEALTHY ASN with declared deps, foundation_dep_addrs
-    returns the dep note base addresses in id-sorted order. Used by
-    note_review for cascade-anchor emission."""
-    from lib.protocols.febe.session import open_session
-    from lib.shared.paths import LATTICE
-    with open_session(LATTICE) as session:
-        addrs = foundation_dep_addrs(session, 97)
-    assert len(addrs) == 7, "ASN-0097 has 7 declared deps"
-    # All resolved to substrate addresses (truthy)
+def test_foundation_dep_addrs_returns_addresses_for_healthy_asn(
+    synth_workspace,
+) -> None:
+    """For a healthy ASN with declared deps, foundation_dep_addrs returns
+    the dep note base addresses in id-sorted order. Used by note_review
+    for cascade-anchor emission. Synthetic fixture: a subject ASN with
+    three note-side declared deps (LEGACY path — no inquiry file), so the
+    test never drifts with the live substrate."""
+    ws = synth_workspace
+    dep_a = ws.add_note(101)
+    dep_b = ws.add_note(102)
+    dep_c = ws.add_note(103)
+    subject = ws.add_note(9001)
+    for dep in (dep_a, dep_b, dep_c):
+        ws.emit_dep(subject, dep)
+
+    addrs = foundation_dep_addrs(ws.session, 9001)
+    assert len(addrs) == 3
     assert all(a for a in addrs)
+    # id-sorted: 101, 102, 103
+    assert [str(a) for a in addrs] == [str(dep_a), str(dep_b), str(dep_c)]
 
 
 def test_foundation_dep_addrs_returns_empty_for_foundation_asn() -> None:
