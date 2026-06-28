@@ -1,0 +1,1 @@
+- `V_S(d)` — the subspace projection operator; maps a document `d` and subspace identifier `S` to the set of active V-positions of `d` whose first component equals `S`
