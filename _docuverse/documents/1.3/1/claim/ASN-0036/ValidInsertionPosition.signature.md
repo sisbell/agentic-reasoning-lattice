@@ -1,1 +1,1 @@
-- `ValidInsertionPosition` — binary predicate on a document `d` and a V-position `v`, defined to hold iff `v` belongs to the set `{[1, ..., 1, 1 + j] : j ∈ {0, ..., N}}` where `N = |V_1(d)|`
+- `ValidInsertionPosition` — binary predicate on a document `d` and a V-position `v`, defined to hold iff `v` belongs to the set `{[1, ..., 1, 1 + j] : j ∈ {0, ..., N}}` where `N = |{k ∈ ℕ : [1, ..., 1, k] ∈ V_1(d)}|` (D-SEQ's `n`)
