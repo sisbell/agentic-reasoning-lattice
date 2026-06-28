@@ -1,0 +1,17 @@
+I read every step of S7's proof, tracing precondition chains from claim to claim, verifying case coverage in the adjacency argument, and checking that each foundational citation is consumed at the right point.
+
+**Foundation compatibility.** All sixteen foundation dependencies S7 declares are used at identifiable steps: NAT-addassoc re-association of X, NAT-discrete licensing the `i+1 ≤ p` step in the adjacency proof, NAT-card at `n := X` to avoid the `X ≤ p` precondition, NAT-sub's single-valuedness closing the adjacency contradiction, T10a.4 instantiated at (A_element, a) via S7a's two membership claims.
+
+**Well-definedness chain.** T4-validity of `a` reaches through S7a → T10a.4 without gap. S7b's `zeros(a) = 3` discharges the `dom(U)` and `dom(D)` thresholds T4b imposes. T0's comprehension at length `p = (((#N(a)+1)+#U(a))+1)+#D(a)` and the explicit component map `r` is well-typed: field components in ℕ⁺ ⊆ ℕ (T4b), separators are 0 ∈ ℕ (NAT-zero), and `p ≥ 1` is established before the comprehension is invoked. The computation `zeros(origin(a)) = 2` is correctly executed: the zero-index set `{#N(a)+1, X}` has exactly two members (the strict ordering `#N(a)+1 < X` via NAT-addcompat's successor and left-order-compatibility chained by NAT-order's transitivity, with the two positions' difference `#U(a)+1 ≥ 2` supplied by T4a's `#U(a) ≥ 1`), and NAT-card is applied at `n := X` with the subset precondition properly discharged member-by-member.
+
+**T4-validity of origin(a).** All four conjuncts are discharged: `zeros ≤ 3` from `zeros = 2`; no-adjacent-zeros by exhaustive four-case analysis; boundary components non-zero from T4b's ℕ⁺ postcondition on N(a)₁ and D(a)_{#D(a)}.
+
+**Adjacency case analysis.** The zero-index set is exactly `{#N(a)+1, X}` (field components are ℕ⁺, only the two separators land at 0). The four cases over (i, i+1) ∈ `{#N(a)+1, X}²` are exhaustive. Cases 1 and 2 (`i = i+1`) are closed by irreflexivity against NAT-addcompat's `i < i+1`; case 3 (`i = X`, `i+1 = #N(a)+1`) is closed by the exactly-one trichotomy clause `¬(i < i+1 ∧ i+1 < i)` against the established `#N(a)+1 < X` substituted as `i+1 < i`; case 4 (`i = #N(a)+1`, `i+1 = X`) reaches `1 = #U(a)+1` via NAT-sub's single-valuedness on `(i+1)−i`, then `1 ≥ 2` from T4a, contradicted by `2 > 1` from NAT-addcompat's successor — the two sub-cases of `2 ≤ 1` (by NAT-order's ≤-definition) each produce `1 < 1` and are closed by irreflexivity. The NAT-addassoc re-association of X is invoked at the right moment before the left-telescoping NAT-sub fires.
+
+**Identification and Uniqueness.** The Identification step is exactly S7a's axiom (no derivation required; it's a posit). The Uniqueness chain is: S7d event-distinctness fed to GlobalUniqueness, whose preconditions (T10a-conforming system, addresses produced by `inc(t, k)` events) are met by S7d's construction, lifting event-distinctness to address-distinctness; the link from origin(a) back to the document's tumbler is Identification.
+
+**Permanence.** S0 preserves `a ∈ dom(Σ.C)`; origin is a pure function of a's fixed component sequence; no state read beyond membership.
+
+No missing cases, no ungrounded symbols, no broken precondition chains, no silent preconditions.
+
+VERDICT: CONVERGED
