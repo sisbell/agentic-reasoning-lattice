@@ -1,0 +1,1 @@
+Posits the designated start state Σ₀ of the protocol, in which every arrangement maps no V-position — its domain is empty across all documents. This is a pure design posit, not derived from any other claim; its role is to serve as the explicit, citable base case that allows invariants on the arrangement map M to be proved by induction on the transition relation.
