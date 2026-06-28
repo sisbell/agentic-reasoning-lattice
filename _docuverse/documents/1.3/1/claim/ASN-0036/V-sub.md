@@ -17,3 +17,8 @@ The case the arrangement-contiguity invariants single out is the *text subspace*
 - *Depends:*
   - Σ.M(d) (Arrangement) — supplies the arrangement `Σ.M(d)` and its domain `dom(Σ.M(d))`, the set of active V-positions the projection restricts; `V_S(d)` is by definition a subset of `dom(Σ.M(d))`
   - subspace (VPositionSubspaceIdentifier) — supplies the selector `subspace(v) = v₁`, the function whose value the membership guard `subspace(v) = S` constrains, sorting each active V-position into the projection of its own subspace
+- *Forward References:*
+  - D-CTG (VContiguity) — consumes V_1(d) as the set over which its contiguity quantifier ranges; this claim is what gives that set meaning
+  - D-CTG-depth (SharedPrefixReduction) — consumes V_1(d) as the text-subspace projection whose elements it proves share a common prefix; defined here
+  - D-MIN (VMinimumPosition) — constrains min(V_1(d)) to the all-ones tuple; V_1(d) is the set defined here
+  - D-SEQ (SequentialPositions) — derives the sequential form of V_1(d) by composing D-CTG, D-CTG-depth, and D-MIN over the set defined here
