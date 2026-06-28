@@ -25,3 +25,4 @@
   - TumblerAdd (TumblerAdd) — supplies the component-wise rule `rᵢ = vᵢ` for `i < m` and `rₘ = vₘ + n`; part (a) and part (b) are both built entirely on this expansion.
   - TA0 (WellDefinedAddition) — supplies `#(a ⊕ w) = #w`, instantiated as `#r = #δ(n,m) = m` (depth preserved), used in the frame condition and the S8a verification.
   - S8a (ArrangementDomainRestriction) — supplies the predicate definition (`zeros(t) = 0`, `#t ≥ 2`, all components ≥ 1`) consumed as the part (b) hypothesis and proved to hold on `shift(v, n)`.
+  - subspace (VPositionSubspaceIdentifier) — supplies the projection `subspace(t) = t₁`, the definition part (a) unfolds in the chain `subspace(r) = r₁ = v₁ = subspace(v)` to reduce subspace preservation to the copied leading component `r₁ = v₁`.

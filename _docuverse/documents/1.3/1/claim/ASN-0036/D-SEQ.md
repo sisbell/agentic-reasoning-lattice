@@ -2,7 +2,7 @@
 
 `V_1(d) = {[1, 1, ..., 1, k] : 1 ≤ k ≤ n}`
 
-where the tuple has length m, the common V-position depth in the text subspace (S8-depth). By S8a, every V-position has depth `≥ 2`, so `m ≥ 2`; the derivation below relies on this lower bound. At depth 2 this gives V_1(d) = {[1, k] : 1 ≤ k ≤ n}, matching Nelson's "addresses 1 through n."
+where the tuple has length m, the common V-position depth in the text subspace (S8-depth). By S8a, every V-position has depth `≥ 2`, so `m ≥ 2`; the derivation below relies on this lower bound. At depth 2 this gives V_1(d) = {[1, k] : 1 ≤ k ≤ n}, a single unbroken block of ordinals — the form contiguity (D-CTG, Step 3) acquires once the arrangement's finiteness (S8-fin, Step 4) bounds it — matching Nelson's "addresses 1 through n."
 
 *Proof.* Let V_1(d) be non-empty and let m be the common depth of all V-positions in the text subspace (S8-depth guarantees a common depth exists). By S8a, every V-position has `#v ≥ 2`, so `m ≥ 2`.
 
@@ -14,7 +14,7 @@ where the tuple has length m, the common V-position depth in the text subspace (
 
 **Step 2: minimum k.** By D-MIN, min(V_1(d)) = [1, 1, …, 1] of length m. In the representation [1, 1, …, 1, k], the minimum has k = 1 at the last component. Since the minimum is in V_1(d), the set of k-values attained by positions in V_1(d) includes 1.
 
-**Step 3: contiguity of k-values.** Let k₁ < k₂ be two values attained by positions v₁ = [1, 1, …, 1, k₁] and v₂ = [1, 1, …, 1, k₂] in V_1(d). Both have subspace 1 and depth m. By T1(i) (LexicographicOrder, ASN-0034), v₁ < v₂ since they agree on components 1 through m − 1 and differ first at component m where k₁ < k₂. For any k ∈ ℕ with k₁ < k < k₂, the tuple w = [1, 1, …, 1, k] satisfies subspace(w) = 1, #w = m, and v₁ < w < v₂ (again by T1(i), since w agrees with both on components 1 through m − 1 and k₁ < k < k₂ at component m). Moreover w satisfies S8a: every component is strictly positive — the leading m − 1 components are all 1, and the last component k satisfies k > k₁ ≥ 1 — so zeros(w) = 0; and #w = m ≥ 2 inherits the depth bound S8a places on v₁. By D-CTG (VContiguity), w ∈ V_1(d). Therefore every k ∈ ℕ between any two attained k-values is itself attained — the k-values form a contiguous range.
+**Step 3: contiguity of k-values.** Let k₁ < k₂ be two values attained by positions v₁ = [1, 1, …, 1, k₁] and v₂ = [1, 1, …, 1, k₂] in V_1(d). Both have subspace 1 and depth m. By T1(i) (LexicographicOrder, ASN-0034), v₁ < v₂ since they agree on components 1 through m − 1 and differ first at component m where k₁ < k₂. For any k ∈ ℕ with k₁ < k < k₂, form the tuple w = [1, 1, …, 1, k] of length m: its leading m − 1 components are all 1 ∈ ℕ and its last component is k ∈ ℕ, so by T0's comprehension clause (CarrierSetDefinition, ASN-0034), instantiated at length m and this component map, w ∈ T. This w satisfies subspace(w) = 1, #w = m, and v₁ < w < v₂ (again by T1(i), since w agrees with both on components 1 through m − 1 and k₁ < k < k₂ at component m). Moreover w satisfies S8a: every component is strictly positive — the leading m − 1 components are all 1, and the last component k satisfies k > k₁ ≥ 1 — so zeros(w) = 0; and #w = m ≥ 2 inherits the depth bound S8a places on v₁. With w ∈ T grounding D-CTG's inner v ∈ T quantifier, D-CTG (VContiguity) gives w ∈ V_1(d). Therefore every k ∈ ℕ between any two attained k-values is itself attained — the k-values form a contiguous range.
 
 **Step 4: finiteness.** By S8-fin (Finite arrangement), dom(M(d)) is finite, so V_1(d) ⊆ dom(M(d)) is finite. The k-values form a finite contiguous range.
 
@@ -34,5 +34,7 @@ D-CTG is a design constraint on well-formed document states. We verify the base 
   - D-CTG-depth (SharedPrefixReduction) — supplies the shared-prefix result (components 2 through m − 1 identical) used in Step 1 Case m ≥ 3 to pin all but the last component to 1
   - D-MIN (VMinimumPosition) — supplies min(V_1(d)) = [1, 1, …, 1]; Step 1 (Case m ≥ 3) uses it to fix the shared-prefix value to 1, and Step 2 uses it to establish k = 1 as an attained value
   - T1 (LexicographicOrder, ASN-0034) — supplies the lexicographic comparison rule; Step 3 invokes it twice to establish v₁ < v₂ and v₁ < w < v₂ from component-wise comparisons
+  - T0 (CarrierSetDefinition, ASN-0034) — supplies the comprehension clause that grounds the carrier membership w ∈ T of the explicitly-constructed intermediate w = [1, 1, …, 1, k] (length m, every component ℕ-valued) in Step 3, the prerequisite for instantiating D-CTG's inner v ∈ T quantifier at w
   - D-CTG (VContiguity) — supplies the contiguity constraint; Step 3 applies it to conclude the intermediate witness w ∈ V_1(d), making the k-values a contiguous range
   - S8-fin (FiniteArrangement) — supplies the finiteness of dom(M(d)); Step 4 uses it to conclude V_1(d) is finite, bounding the k-value range
+  - subspace (VPositionSubspaceIdentifier) — supplies the projection `subspace(v) = v₁`, the definition Step 1 unfolds in both the m = 2 and m ≥ 3 cases to read `subspace(v) = 1` as `v₁ = 1`, pinning the subspace identifier to component 1
