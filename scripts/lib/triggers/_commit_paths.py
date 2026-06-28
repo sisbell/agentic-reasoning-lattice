@@ -18,8 +18,9 @@ from lib.backend.store import _parse_node_user_from_path
 from lib.lattice.labels import label_pattern
 from lib.protocols.febe.protocol import Session
 from lib.shared.paths import (
-    CLAIM_CONE_REVIEWS_DIR, CLAIM_DIR, CLAIM_FINDINGS_DIR, CLAIM_REVIEWS_DIR,
-    NOTE_FINDINGS_DIR, NOTE_REVIEWS_DIR, RATIONALE_DIR, WORKSPACE,
+    CITATION_RESOLVE_DIR, CLAIM_AUDITS_DIR, CLAIM_CONE_REVIEWS_DIR, CLAIM_DIR,
+    CLAIM_FINDINGS_DIR, CLAIM_REVIEWS_DIR, NOTE_FINDINGS_DIR, NOTE_REVIEWS_DIR,
+    RATIONALE_DIR, SIGNATURE_RESOLVE_DIR, WORKSPACE,
 )
 
 
@@ -202,6 +203,67 @@ def rationale_dir_for_asn(
         return str((RATIONALE_DIR / asn_label).relative_to(WORKSPACE))
     node, user = nu
     return f"_docuverse/documents/{node}/{user}/rationale/{asn_label}"
+
+
+def _op_audit_subtree(asn_label: str, dir_const) -> str:
+    """WORKSPACE-relative `<dir_const>/<asn_label>` for an operation's
+    audit-doc tree (structural-audit, citation-resolve, signature-resolve).
+
+    These docs live in the author region (`DOCUVERSE_AUTHOR_DIR`, captured
+    by the dir constants), NOT in the claim's derived (1.3) region — so the
+    constant gives the location directly; don't derive it from the claim
+    path's (node, user).
+    """
+    return str((dir_const / asn_label).relative_to(WORKSPACE))
+
+
+def claim_structural_audit_paths(
+    session: Session, addr: Address,
+) -> list[str]:
+    """claim_structural_audit writes a structural-audit doc to
+    `audit/claims/<asn>/<claim>-N.md` (plus per-issue finding docs on
+    violations). per_asn_claim_review_paths covers the review/finding
+    subtrees but NOT the audit subtree, so the audit doc was left
+    untracked (registered in paths.json but never git-added). Stage both.
+    """
+    path = session.get_path_for_addr(addr)
+    asn_label = _asn_label_from_path(path) if path else None
+    if asn_label is None:
+        return []
+    return per_asn_claim_review_paths(session, addr) + [
+        _op_audit_subtree(asn_label, CLAIM_AUDITS_DIR),
+    ]
+
+
+def claim_citation_resolve_paths(
+    session: Session, claim_addr: Address,
+) -> list[str]:
+    """citation_resolve edits the claim's citation family AND writes a
+    resolve-audit doc to `citation-resolve/claims/<asn>/<claim>-N.md`.
+    per_claim_commit_paths covers only the claim family, leaving the
+    resolve-audit doc untracked. Stage both.
+    """
+    paths = per_claim_commit_paths(session, claim_addr)
+    cp = session.get_path_for_addr(claim_addr)
+    asn = _asn_label_from_path(cp) if cp else None
+    if asn:
+        paths.append(_op_audit_subtree(asn, CITATION_RESOLVE_DIR))
+    return paths
+
+
+def claim_signature_resolve_paths(
+    session: Session, claim_addr: Address,
+) -> list[str]:
+    """claim_signature_resolve edits the claim family AND writes a
+    resolve-audit doc to `signature-resolve/claims/<asn>/<claim>-N.md`.
+    Same gap as citation-resolve — stage both.
+    """
+    paths = per_claim_commit_paths(session, claim_addr)
+    cp = session.get_path_for_addr(claim_addr)
+    asn = _asn_label_from_path(cp) if cp else None
+    if asn:
+        paths.append(_op_audit_subtree(asn, SIGNATURE_RESOLVE_DIR))
+    return paths
 
 
 def single_path(session: Session, addr: Address) -> list[str]:
