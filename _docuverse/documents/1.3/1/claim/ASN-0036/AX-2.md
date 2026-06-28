@@ -1,0 +1,8 @@
+**AX-2 (GroundedExtension).** Every transition that establishes a new V-mapping, or redirects an existing one, points it at content already present in the post-state store. For every transition `Σ → Σ'`:
+
+`(A d, v : v ∈ dom(Σ'.M(d)) ∧ (v ∉ dom(Σ.M(d)) ∨ Σ'.M(d)(v) ≠ Σ.M(d)(v)) : Σ'.M(d)(v) ∈ dom(Σ'.C))`
+
+The range selects exactly those positions whose image in `Σ'` is not inherited unchanged from `Σ`: the freshly created mappings, where `v ∉ dom(Σ.M(d))`, together with the re-pointed ones, where `v` was already mapped but `Σ'.M(d)(v) ≠ Σ.M(d)(v)`. For each such mapping the axiom requires its target to lie in `dom(Σ'.C)` — an arrangement may name an I-address only once that address is stored. This is the write-side discipline of the two-stream architecture: content is committed to `C` before, or within the same transition as, any arrangement that references it. It is a protocol design posit on the transition relation, not a consequence of the content-store invariants, which govern the evolution of `C` alone and place no constraint on which addresses an arrangement may name.
+
+*Formal Contract:*
+- *Axiom:* For every transition `Σ → Σ'`, `(A d, v : v ∈ dom(Σ'.M(d)) ∧ (v ∉ dom(Σ.M(d)) ∨ Σ'.M(d)(v) ≠ Σ.M(d)(v)) : Σ'.M(d)(v) ∈ dom(Σ'.C))` — every newly established or redirected V-mapping targets an address already in the post-state content store. This is a protocol design posit on the transition relation, not derived from any other claim.
