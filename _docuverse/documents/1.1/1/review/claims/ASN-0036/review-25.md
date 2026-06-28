@@ -1,0 +1,23 @@
+I read the foundation statements and then ASN-0036 as a whole, tracing the precondition chains that cross claim boundaries.
+
+The core mathematics holds up under a systemic read. The chains I walked are unbroken:
+
+- **S7 well-definedness** (`a ∈ dom(C)` → S7a's two element-allocator memberships → T10a.4 → `a` T4-valid; S7b → `zeros(a)=3` → `a ∈ dom(E)`) discharges T4b's domain conditions for `N/U/D` before the projections are applied. The `origin(a) ∈ T` construction via T0 comprehension, the `zeros(origin(a))=2` count (two separators at distinct, non-adjacent positions), and the four-conjunct T4-validity check are sound.
+- **S7 uniqueness** correctly stops at *events* in S7d and lifts to *addresses* via GlobalUniqueness — the prose explicitly marks that S7d does not itself supply address-distinctness.
+- **D-CTG-depth** covers its case domain including the `j = m−1` edge case; the witness `w` meets D-CTG's guard (subspace=1, `#w=#u`, `zeros(w)=0`, `u<w<x`) in every branch, and the T0(a) instantiation at `i=j+1` stays in range.
+- **D-SEQ** composes shared-prefix (D-CTG-depth) + left-anchor (D-MIN) + contiguity (D-CTG) + finiteness (S8-fin) correctly across both `m=2` and `m≥3`.
+- **S8 partition** is sound: `succ` injective+acyclic on a finite set → unique orbit decomposition. The depth step is grounded in shift's frame, not S8-depth (the previously-declined circularity is indeed gone from the current body); TS2/TS3/TS4 instantiations meet preconditions; the `k=0` convention is handled separately from OrdShiftHom (`n≥1`).
+- **S0–S5 / AX-1 / AX-2** are sound; S3's base/step induction is exhaustive (inherited vs. new-or-redirected exhaust `v ∈ dom(Σ'.M(d))`); S5's "model of S0–S3" witnesses are legitimate (empty transition relation makes S0/S1 vacuous, S2/S3 hold on the state).
+
+I did not re-raise the two previously-declined findings; both rationales check out against the current substrate.
+
+One cross-claim issue remains.
+
+### Inconsistent grounding of the state-signature symbol `dom(Σ.M(d))` across Depends lists
+**Class**: REVISE
+**Foundation**: Σ.M(d) (Arrangement) and Σ.C (ContentStore) — the within-ASN state-signature claims that define `dom(Σ.M(d))` and `dom(Σ.C)`.
+**ASN**: V-sub (SubspaceProjection) grounds the symbol it ranges over: *"Σ.M(d) (Arrangement) — supplies the arrangement Σ.M(d) and its domain dom(Σ.M(d)), the set of active V-positions the projection restricts."* But S8a, S8-depth, and S8-fin — whose axioms are *about* `dom(Σ.M(d))` — omit it. S8a's Depends is only `{T4, NAT-card, NAT-zero, T0}` for the axiom `dom(Σ.M(d)) ⊆ {t ∈ T : zeros(t)=0 ∧ #t ≥ 2}`; S8-depth's is `{subspace, T0, S8a}` for `(A d,u,w : u,w ∈ dom(Σ.M(d)) ∧ …)`; S8-fin's is `{NAT-carrier, NAT-closure, NAT-order, T0}` for the finiteness of `dom(Σ.M(d))`. In each, every *other* symbol is grounded (zeros via T4, ℕ via NAT-\*, carrier `T` and `#·` via T0) — S8-fin's T0 entry even explicitly types `dom(Σ.M(d)) ⊆ T` via `T` — but the arrangement-domain *object* itself is cited nowhere. The same asymmetry holds for `Σ.C`: S7/S7a/S7b cite `Σ.C (ContentStore)`, while S0/S1/S8 use `dom(Σ.C)` without it.
+**Issue**: By the ASN's own grounding discipline (every contract symbol resolved through Depends), `dom(Σ.M(d))` is an ungrounded symbol in S8a/S8-depth/S8-fin (and `dom(Σ.C)` in S8). A formalization tool walking S8a's Depends transitive closure (`T4, NAT-card, NAT-zero, T0` and their foundations) never pulls in Arrangement, so it would build S8a with `dom(Σ.M(d))` undefined — whereas the same tool building V-sub *would* have it in scope. The S8a → S8-depth chain compounds this: S8-depth defers to S8a for `dom(Σ.M(d))`, but S8a never grounds it, so the symbol is resolved nowhere in that subgraph. The D-family (D-CTG, D-SEQ, …) escapes this only because it ranges over `V_1(d)` and cites V-sub, which does ground it. This is precisely the kind of grounding edge that exists for some claims and not others — an inconsistency a downstream consumer can hit, not merely a phrasing choice.
+**What needs resolving**: Settle the convention and apply it uniformly. Either (a) add `Σ.M(d) (Arrangement)` to the Depends of S8a, S8-depth, S8-fin, and S8 (and `Σ.C (ContentStore)` to S8, S0, S1), grounding `dom(Σ.M(d))`/`dom(Σ.C)` the way V-sub and S7 already do; or (b) if the state signature `(Σ.C, Σ.M)` introduced by Strand/ContentStore/Arrangement is intended to be *ambient* (in scope for the whole ASN without per-claim citation), state that once and drop the now-redundant Arrangement/ContentStore citations from V-sub, S7, S7a, S7b for consistency. Whichever is chosen, the grounding of these two symbols should be the same across every claim that uses them.
+
+VERDICT: REVISE
