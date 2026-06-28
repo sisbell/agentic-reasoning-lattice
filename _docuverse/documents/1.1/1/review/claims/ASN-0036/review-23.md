@@ -1,0 +1,25 @@
+I read the foundation statements and then the ASN as a system, tracing the cross-claim chains. Most of the heavy machinery holds up under walking:
+
+- **S7 well-definedness/uniqueness chain** is sound. The T4-validity of `a` is correctly routed `a ∈ dom(Σ.C)` → S7a (`A_element ∈ 𝒯 ∧ a ∈ dom(A_element)`) → T10a.4 → `a ∈ dom(N)`, then S7b's `zeros(a)=3` places `a` in `dom(U)`, `dom(D)`. The `origin(a) ∈ T` construction, the `zeros(origin(a))=2` count, the four-case no-adjacent-zeros contradiction, and the four T4-valid conjuncts all walk their cases. Uniqueness correctly hands GlobalUniqueness two *distinct events* from S7d and lifts to distinct addresses.
+- **S8 partition** is sound. `succ` injective (TS2 at a locally-derived common depth), acyclic (TS4 + T1 irreflexivity), finite (S8-fin) ⇒ disjoint-path decomposition; the displacement-identity induction handles `i=0` by the `shift(t,0):=t` convention and `i≥1` by TS3. The depth-preservation step is now correctly grounded in OrdShiftHom's frame (ultimately TA0), not S8-depth — the previously declined finding is genuinely addressed; I did not re-raise it.
+- **D-CTG-depth / D-SEQ** correctly consume the posits D-CTG and D-MIN, drive the infinite-witness contradiction against S8-fin via T0(a), and dispatch the `m=2` vs `m≥3` split coherently.
+- **S3 induction** (AX-1 base, S1+AX-2 step) and **S5 witnesses** (vacuous S0/S1 over empty transition relation, S2/S3 on state, T3 distinctness) check out. I also confirmed the declined S5/S0 dangling-reference finding is a false positive (S5 is fully defined).
+- The `shift(t,0):=t` convention is scoped to S8 and used nowhere outside it; `subspace`, `depth`, `document`, `origin`, `I-address`/`V-position` carry one meaning throughout.
+
+Two observations, both about prose quality rather than soundness.
+
+### Non-derivability justification duplicated between body prose and Axiom slot (D-CTG, S8a, S8-depth)
+**Class**: OBSERVE
+**Foundation**: N/A
+**ASN**: S8a body para 2 — *"Nothing in the content-store or transition layer fixes the shape of an arrangement key. S0, S1, S2, and S3 govern the evolution of the content stream C; AX-1 fixes only that the base arrangement is empty; AX-2 constrains the targets of newly established V-mappings, never the V-positions admitted as keys. So the confinement … cannot follow from any of them … We posit it rather than derive it; the point of naming it is methodological."* — restated near-verbatim in the same claim's Axiom slot: *"It is not derived from any other claim — in particular not from the content-store invariants S0, S1, S2, S3 … nor from the transition axioms AX-1 (which fixes only the empty base arrangement) and AX-2 (which constrains the targets of new V-mappings, never the shape of the keys)."* The identical "S0–S3 govern C / AX-1 empty base / AX-2 targets-not-keys / therefore posit" argument recurs in D-CTG (body + Axiom slot) and in S8-depth's grounding-gap paragraph.
+**Issue**: This is the reviser-drift pattern the review names — "new prose around an axiom explains why the axiom is needed rather than what it says." The `*Axiom:*` designation already declares posit-status; a formalization consumer learns "this is not a theorem" from the Axiom slot alone. The multi-sentence enumeration of which existing axioms fail to entail the posit is duplicated within each claim (body ↔ Axiom slot) and across three claims, and the precise reader must skip past it to reach the claim. It compounds across cycles.
+**What needs resolving**: State posit-status plus the implementation-obligation note once per claim (the Axiom slot is the natural locus), trimming the body's restated "cannot follow from S0–S3/AX-1/AX-2" enumeration; or confirm the body framing is deliberate protocol-layer content and consolidate the three near-identical instances to a single shared statement referenced by the others.
+
+### ValidInsertionPosition glosses N as "the document's V-position count"
+**Class**: OBSERVE
+**Foundation**: N/A
+**ASN**: ValidInsertionPosition — *"Setting N = |{k ∈ ℕ : [1, ..., 1, k] ∈ V_1(d)}| — the number of last-component values attained in V_1(d), equivalently the document's V-position count …"*
+**Issue**: `N` counts only the text subspace `V_1(d)`. The ASN elsewhere insists a document may carry several subspaces at different depths (S8-depth's whole non-text-scope discussion; V-sub's `V_S(d)` for general `S`). So "the document's V-position count" (`|dom(Σ.M(d))|`) properly exceeds `N` whenever any non-text subspace is active. The formal definition of `N` is correct and the examples use it consistently; only the descriptive gloss conflates the text count with the document-wide count.
+**What needs resolving**: Replace "the document's V-position count" with "the document's text-subspace V-position count" (or `|V_1(d)|`).
+
+VERDICT: OBSERVE
