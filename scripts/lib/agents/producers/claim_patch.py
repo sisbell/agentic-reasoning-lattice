@@ -154,7 +154,12 @@ def _patch_scoped_review(
 ) -> str | None:
     """One-shot patch-scoped review. Returns review text, or None on
     LLM failure."""
-    asn_content = assemble_readonly(asn_label, claim_base_dir)
+    # Claims ONLY — keep the frozen source note out of the reviewer's
+    # input (same rationale as full_review): review claims against their
+    # own contracts + cited foundation statements, not stale note prose.
+    asn_content = assemble_readonly(
+        asn_label, claim_base_dir, include_note=False,
+    )
     vocabulary = read_file(resolve_campaign(asn_num).vocabulary_path)
     try:
         foundation = load_foundation(asn_num)

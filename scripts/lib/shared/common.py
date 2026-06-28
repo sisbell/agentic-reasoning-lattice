@@ -79,14 +79,23 @@ def log_usage(skill, elapsed, **extra):
         pass
 
 
-def assemble_readonly(asn_label, claim_base_dir=None):
-    """Concatenate source-note prose + per-claim files for read-only
-    whole-ASN consumption.
+def assemble_readonly(asn_label, claim_base_dir=None, include_note=True):
+    """Concatenate (optionally) source-note prose + per-claim files for
+    read-only whole-ASN consumption.
 
-    Returns the source note's md (preamble, claims-introduced section,
-    worked example, and any other prose) followed by each derived
-    claim's body. Used by cross-cutting scripts (full review, Dafny
-    translation) that need the whole-ASN view.
+    With `include_note=True` (default): the source note's md (preamble,
+    claims-introduced section, worked example, and any other prose)
+    followed by each derived claim's body — the full whole-ASN view that
+    Dafny translation wants.
+
+    With `include_note=False`: claim bodies ONLY. The REVIEW path uses
+    this. Once an ASN is derived, the note is a frozen, non-authoritative
+    discovery artifact; feeding it to the reviewer made it judge claims
+    against stale note prose (the "note-drift findings") and contaminated
+    correctness judgments with non-authoritative text. Claims + the cited
+    foundation statements (supplied separately to the reviewer) are the
+    sufficient and authoritative inputs — the note is never read
+    post-derivation.
 
     `claim_base_dir` overrides the default lattice CLAIM_DIR — used by
     claim-region agents that emit into a non-primary (node, user)
@@ -98,17 +107,18 @@ def assemble_readonly(asn_label, claim_base_dir=None):
     canonical source for that prose.
     """
     from lib.lattice.labels import extract_label_digits
-    digits = extract_label_digits(asn_label)
-    asn_num = int(digits) if digits else 0
-    note_path, _ = find_asn(str(asn_num))
     if claim_base_dir is not None:
         docs_dir = Path(claim_base_dir) / asn_label
     else:
         docs_dir = resolve_claim_docs_dir(asn_label)
 
     parts = []
-    if note_path is not None and note_path.exists():
-        parts.append(note_path.read_text().strip())
+    if include_note:
+        digits = extract_label_digits(asn_label)
+        asn_num = int(digits) if digits else 0
+        note_path, _ = find_asn(str(asn_num))
+        if note_path is not None and note_path.exists():
+            parts.append(note_path.read_text().strip())
 
     if docs_dir.exists():
         for f in sorted(docs_dir.glob("*.md")):

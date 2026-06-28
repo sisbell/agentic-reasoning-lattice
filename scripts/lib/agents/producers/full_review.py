@@ -120,7 +120,13 @@ class FullReviewAgent(Agent):
         previous_findings = previously_declined_findings(session, derived_addrs)
 
         # 3. Assemble + review (full upstream foundation, no narrowing).
-        asn_content = assemble_readonly(asn_label, self.claim_dir)
+        # Claims ONLY — the note is a frozen discovery artifact and must
+        # not reach the reviewer (feeding it caused note-drift findings and
+        # contaminated correctness judgments). Claims + cited foundation
+        # statements are the authoritative review inputs.
+        asn_content = assemble_readonly(
+            asn_label, self.claim_dir, include_note=False,
+        )
         # Effort for the whole-ASN review. Defaults to "max" — the global
         # review is the ASN-wide quality gate (a non-clean draw re-opens
         # every claim's confirmation), so it runs at the top tier, matching
