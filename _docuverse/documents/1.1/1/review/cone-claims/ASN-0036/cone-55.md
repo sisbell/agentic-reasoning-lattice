@@ -1,0 +1,13 @@
+The proof of S8 is technically sound. I traced the lockstep-successor construction, chain decomposition, displacement-identity induction, and partition argument. Every step grounds correctly in its cited dependencies: TS2 injectivity from shift frame, acyclicity from TS4 + T1 irreflexivity, finite termination from S8-fin, displacement identity by cases on shift amounts with TS3 handling i≥1 and the convention handling i=0. Auxiliary claims S0, S1, S3, S2, S8a, OrdShiftHom all check out; the induction cases in S3 are exhaustive and disjoint, and OrdShiftHom parts (a) and (b) follow cleanly from TumblerAdd's copy rule and OrdinalShift's component lower bound.
+
+One observation:
+
+### S8 Depends note for S8-depth dominated by defensive meta-commentary rather than a positive contribution statement
+
+**Class**: OBSERVE
+**Foundation**: S8-depth (FixedDepthVPositions); OrdShiftHom frame (ultimately TA0)
+**ASN**: S8 (CorrespondenceRunPartition), Formal Contract *Depends:* entry for S8-depth; proof body, "succ stays within a subspace" paragraph: *"write m = #v, which by S8-depth is the common depth shared by every active position in v's subspace."*
+**Issue**: The Depends note for S8-depth consists primarily of two negative claims ("It does *not* license the succ-confinement step's per-position depth equality … Likewise it does *not* license the injectivity step's appeal to TS2") followed by a characterisation of what S8-depth "supplies" ("what lets the chains and succ's confinement be stated at the single depth m") that does not correspond to any actual proof inference: the chain's depth uniformity is grounded in OrdShiftHom's frame unconditionally, and the injectivity step derives #u = #u' from the shift equation directly. The body sentence invokes S8-depth for a subspace-wide depth fact that no subsequent step consumes. This is reviser drift: the prior declined finding's content (S8-depth cited for two steps it did not support) persists in negative form in the Depends note and body rather than being resolved. A Depends entry should state what a dependency positively contributes; two paragraphs describing what it does not license is meta-commentary the reader must parse past.
+**What needs resolving**: Replace the "It does *not* license…" paragraphs in S8's Depends note for S8-depth with a single-line positive statement of what S8-depth contributes to S8's proof, or remove S8-depth from the Depends list and excise the corresponding body sentence if its contribution is purely expository framing that grounds no proof inference.
+
+VERDICT: OBSERVE
