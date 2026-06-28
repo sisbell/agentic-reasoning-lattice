@@ -1,0 +1,1 @@
+Defines the subspace projection V_S(d) = {v ∈ dom(Σ.M(d)) : subspace(v) = S} — the active V-positions of a document restricted to one subspace — and its text-subspace specialization V_1(d) at S = 1. This is the formal grounding for the V_1(d) symbol that the arrangement-contiguity claims (D-CTG, D-CTG-depth, D-MIN, D-SEQ) constrain.
