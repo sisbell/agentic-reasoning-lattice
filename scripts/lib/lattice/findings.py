@@ -153,10 +153,6 @@ def record_findings(
                 reason = "non-actionable (What-needs-resolving N/A/absent)"
             elif not _target_is_editable_claim(session, claim_addr, asn_label):
                 reason = "fix locus not an editable claim in this ASN"
-            elif _is_missing_fc_finding(title, body) and _target_fc_exempt(
-                session, claim_addr
-            ):
-                reason = "missing-formal-contract on an FC-exempt claim kind"
             if reason is not None:
                 import sys as _sys
                 print(
@@ -226,37 +222,6 @@ def _target_is_editable_claim(
     if not path:
         return False
     return f"/claim/{asn_label}/" in path and "/_statements" not in path
-
-
-_MISSING_FC_RE = re.compile(
-    r"(no|missing|lacks?|absent|without)[^.\n]{0,40}formal contract"
-    r"|formal contract[^.\n]{0,40}(missing|absent|not present|is absent)",
-    re.IGNORECASE,
-)
-
-
-def _is_missing_fc_finding(title: str, body: str) -> bool:
-    """True iff the finding asserts the target claim lacks a Formal
-    Contract section. Matched on title + body."""
-    return bool(
-        _MISSING_FC_RE.search(title or "") or _MISSING_FC_RE.search(body or "")
-    )
-
-
-def _target_fc_exempt(session: Session, claim_addr: Address) -> bool:
-    """True iff the target claim's kind never carries a Formal Contract.
-
-    Only theorem/lemma/corollary require one (KINDS_REQUIRING_CONTRACT);
-    axiom/definition/design-requirement are permanently FC-less, so a
-    "missing formal contract" finding against them is a non-issue — the
-    same exemption full_review's predicate applies before reviewing.
-    """
-    from lib.agents.producers.claim_formal_contract import (
-        KINDS_REQUIRING_CONTRACT,
-    )
-    from lib.predicates import current_contract_kind
-    kind = current_contract_kind(session, claim_addr)
-    return kind is not None and kind not in KINDS_REQUIRING_CONTRACT
 
 
 def _extract_target_label(body: str, label_index: dict) -> Optional[str]:
