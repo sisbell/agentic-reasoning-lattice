@@ -12,6 +12,7 @@ For the successor `shift(v, 1)` to be itself a V-position of the same subspace �
 
 - *Depends:*
   - subspace (VPositionSubspaceIdentifier) — supplies the projection `subspace(·) = (·)₁` whose equality `subspace(u) = subspace(w)` is the range restriction in S8-depth's formal statement, selecting the pairs of V-positions that share a subspace identifier
-  - OrdinalShift (ASN-0034) — supplies the `shift(v, n)` operator and `δ` displacement operator used to define consecutive V-positions: `v` is followed by `shift(v, 1) = v ⊕ δ(1, #v)`
-  - OrdShiftHom (OrdinalShiftPreservation) — supplies the shift-preservation result this section invokes rather than re-deriving: `shift(v, n)` preserves a V-position's subspace identifier (part a) and its S8a well-formedness (part b), so the successor `shift(v, 1)` of a V-position is itself a V-position of the same subspace
-  - S8a (ArrangementDomainRestriction) — supplies the well-formedness predicate (`zeros(t) = 0 ∧ #t ≥ 2`) named as the property OrdShiftHom shows `shift(v, n)` preserves
+  - T0 (CarrierSetDefinition, ASN-0034) — supplies the length operator `#· : T → ℕ` whose values are compared in the formal statement's term `#u = #w`, the per-subspace common tumbler depth this posit asserts; T0 is the defining source of `#` throughout the ASN, cited here exactly as S8a cites it for the `#t` appearing in its axiom
+  - S8a (ArrangementDomainRestriction) — supplies the well-formedness restriction `dom(Σ.M(d)) ⊆ {t ∈ T : zeros(t) = 0 ∧ #t ≥ 2}` on `dom(Σ.M(d))`, the domain over which the formal statement quantifies `u` and `w`, so every key whose depth is compared is a genuine V-position of depth at least 2
+
+OrdinalShift and OrdShiftHom are *not* dependencies of the formal posit: neither `shift` nor `δ` nor the shift-preservation result appears in `#u = #w`. They are cited in the commentary above — OrdinalShift for the `shift(v, 1) = v ⊕ δ(1, #v)` that defines consecutive V-positions, OrdShiftHom for the shift-preservation that keeps the successor in its subspace — and remain commentary citations there, not entries in this Depends list.
