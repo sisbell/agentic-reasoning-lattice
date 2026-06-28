@@ -1,0 +1,4 @@
+- `→` — the transition relation on states; `Σ → Σ'` denotes a single admissible step from pre-state to post-state, over which the axiom universally quantifies
+- `dom` — domain operator on a partial map; `dom(f)` is the set of inputs at which `f` is defined, used here to range over active V-positions and stored I-addresses
+- `M` — arrangement-map component projection; `Σ.M(d)` is the partial function from V-positions to I-addresses for document `d` in state `Σ`
+- `C` — content-store component projection; `Σ.C` is the partial function from I-addresses to stored content in state `Σ`, whose domain is the set of committed addresses
