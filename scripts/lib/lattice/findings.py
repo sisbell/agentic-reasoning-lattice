@@ -153,6 +153,10 @@ def record_findings(
                 reason = "non-actionable (What-needs-resolving N/A/absent)"
             elif not _target_is_editable_claim(session, claim_addr, asn_label):
                 reason = "fix locus not an editable claim in this ASN"
+            elif _is_missing_fc_finding(title, body) and _target_fc_exempt(
+                session, claim_addr
+            ):
+                reason = "missing-formal-contract on an FC-exempt claim kind"
             if reason is not None:
                 import sys as _sys
                 print(
@@ -224,19 +228,60 @@ def _target_is_editable_claim(
     return f"/claim/{asn_label}/" in path and "/_statements" not in path
 
 
+_MISSING_FC_RE = re.compile(
+    r"(no|missing|lacks?|absent|without)[^.\n]{0,40}formal contract"
+    r"|formal contract[^.\n]{0,40}(missing|absent|not present|is absent)",
+    re.IGNORECASE,
+)
+
+
+def _is_missing_fc_finding(title: str, body: str) -> bool:
+    """True iff the finding asserts the target claim lacks a Formal
+    Contract section. Matched on title + body."""
+    return bool(
+        _MISSING_FC_RE.search(title or "") or _MISSING_FC_RE.search(body or "")
+    )
+
+
+def _target_fc_exempt(session: Session, claim_addr: Address) -> bool:
+    """True iff the target claim's kind never carries a Formal Contract.
+
+    Only theorem/lemma/corollary require one (KINDS_REQUIRING_CONTRACT);
+    axiom/definition/design-requirement are permanently FC-less, so a
+    "missing formal contract" finding against them is a non-issue — the
+    same exemption full_review's predicate applies before reviewing.
+    """
+    from lib.agents.producers.claim_formal_contract import (
+        KINDS_REQUIRING_CONTRACT,
+    )
+    from lib.predicates import current_contract_kind
+    kind = current_contract_kind(session, claim_addr)
+    return kind is not None and kind not in KINDS_REQUIRING_CONTRACT
+
+
 def _extract_target_label(body: str, label_index: dict) -> Optional[str]:
     """Parse a finding body for an ASN/Foundation label that resolves
     in label_index. Returns the label string or None.
+
+    Matches against the KNOWN labels in label_index rather than a
+    restrictive character class, so labels containing dots, parentheses,
+    or non-ASCII characters (e.g. `Σ.C`, `Σ.M(d)`) resolve — the old
+    `[A-Za-z0-9_./-]+` capture silently dropped every finding on those.
+    The label must be what the line *starts with* (after stripping
+    leading markdown markup); the longest such label wins, disambiguating
+    prefixes (S8a over S8). We deliberately do NOT match a label appearing
+    anywhere in the line: a whole-ASN observation that lists several
+    claims (e.g. "Document order: AX-2, S1, AX-1") has no single target
+    and must not be mis-routed to an arbitrary one.
     """
     for header in ("ASN", "Foundation"):
-        m = re.search(
-            rf"\*\*{header}\*\*\s*[:\-]\s*([A-Za-z0-9_./\\-]+)",
-            body,
-        )
-        if m:
-            label = m.group(1).strip()
-            if label in label_index:
-                return label
+        m = re.search(rf"\*\*{header}\*\*\s*[:\-]\s*(.+)", body)
+        if not m:
+            continue
+        rest = m.group(1).strip().lstrip("`*\"' ")
+        prefix = [lbl for lbl in label_index if rest.startswith(lbl)]
+        if prefix:
+            return max(prefix, key=len)
     return None
 
 
