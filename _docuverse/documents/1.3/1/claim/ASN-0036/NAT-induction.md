@@ -1,0 +1,18 @@
+**NAT-induction (NatInduction).** The natural numbers are generated from `0` by the successor map `n ↦ n + 1`: the only subset of `ℕ` that contains `0` and is closed under successor is `ℕ` itself.
+
+`(A S : S ⊆ ℕ ∧ 0 ∈ S ∧ (A k ∈ ℕ : k ∈ S : k + 1 ∈ S) : S = ℕ)`.
+
+We posit this of the natural-number foundation ASN-0036 imports — the NAT-* group of ASN-0034. That group fixes `ℕ` as a strictly, totally, discretely well-ordered carrier (NAT-order, NAT-discrete, NAT-wellorder) under a closed, cancellative addition with least element and identity `0` (NAT-closure, NAT-cancel, NAT-zero, NAT-addcompat), but it nowhere pins down how `ℕ` is *generated*. Well-ordering is strictly weaker than generation-from-`0`: the order type `ω · 2` — the standard naturals trailed by a second copy `ω < ω + 1 < ω + 2 < ⋯`, with `+` extended injectively — satisfies every NAT-* axiom, being strictly, totally, discretely well-ordered with `+` closed, cancellative, order-compatible, `0` least and identity, yet it is *not* generated from `0` by successor: its finite naturals form a subset that contains `0`, is closed under successor, and is a proper subset. In such a model the positive element `ω` has no predecessor and "every positive natural is a successor" fails. NAT-induction is precisely the axiom that excludes these tails — the assertion that `ℕ` carries no element unreachable from `0` by finite succession. From it the structural fact "every natural is `0` or a successor" (D-PRED) and the inductive schema both D-PRED and D-INJ run on (a claim holding at the base and propagating across `+ 1` holds throughout `ℕ`) follow; without it well-ordering alone underwrites neither, the minimal counterexample of a putative well-ordering induction being exactly an unreachable element like `ω` that no descent can dislodge.
+
+This is a foundation-level posit: it belongs with the NAT-* group of ASN-0034 and is stated here only because ASN-0036 is where its absence first bites. It carries no dependence on any ASN-0036 construction.
+
+*Formal Contract:*
+- *Axiom:* `(A S : S ⊆ ℕ ∧ 0 ∈ S ∧ (A k ∈ ℕ : k ∈ S : k + 1 ∈ S) : S = ℕ)` — the only subset of `ℕ` containing `0` and closed under the successor `n ↦ n + 1` is `ℕ` itself (Peano induction, set form). Equivalently, in predicate form, `(A P :: (P.0 ∧ (A k ∈ ℕ : P.k : P.(k + 1))) ⟹ (A n ∈ ℕ :: P.n))`. A foundation posit augmenting the NAT-* group of ASN-0034 with the generation-from-`0` principle its other axioms — well-ordering, discreteness, ordered cancellative addition — do not entail; not derived from any other claim.
+
+- *Depends:*
+  - NAT-carrier (NatCarrierSet, ASN-0034) — supplies the carrier `ℕ` over which the quantified `S` ranges (`S ⊆ ℕ`, `S = ℕ`) and which the axiom fixes as the least successor-closed set containing `0`; the symbol `ℕ` the principle constrains is grounded here at its defining claim
+  - NAT-zero (NatZeroMinimum, ASN-0034) — supplies `0 ∈ ℕ`, the base element every generating set must contain; the `0` named in the clause `0 ∈ S` is this one
+  - NAT-closure (NatArithmeticClosureAndIdentity, ASN-0034) — supplies the successor map `n ↦ n + 1` and its closure `n + 1 ∈ ℕ`, under which the generating set is required closed; the `k + 1` of the closure clause is ℕ-valued by this axiom
+- *Forward References:*
+  - D-PRED (PredecessorExistence) — downstream consumer; its proof that every natural is `0` or a successor is the immediate application of this principle to the set of zeros-and-successors
+  - D-INJ (InjectiveImageCardinality) — downstream consumer; the induction on segment length `P` that drives its image count rests on this principle
