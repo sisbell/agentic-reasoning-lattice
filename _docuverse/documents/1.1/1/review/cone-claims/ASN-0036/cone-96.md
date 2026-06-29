@@ -1,0 +1,22 @@
+## Audit Narrative
+
+The foundation claims (NAT-carrier through NAT-cancel, T0/T1/T3/T4) are internally consistent and their dependencies are correctly stated. The posit claims (Σ.M(d), S8a, D-CTG, S8-depth, S8-fin, subspace, V-sub) are correctly marked as design constraints with appropriate Depends lists and no derivation is required of them.
+
+**D-CTG-depth** is structurally sound: the contradiction setup (WLOG u < x, first-disagreement j from NAT-wellorder, prefix agreement, pinning k = j, witness construction, D-CTG membership, counting through D-INJ) is logically coherent, and all guards are checked in order. The zero-freeness chain (S8a positivity → wᵢ > 0 → NAT-card empty-set → zeros(w) = 0) is correct. The finiteness step (S8-fin enumeration → T0(a) N+1 times → NAT-card upper bound vs D-INJ exact count → N+1 ≤ N → N < N → irreflexivity) is sound as a finite iteration with count fixed by S8-fin before T0(a) is invoked.
+
+**D-INJ**'s step construction (μ as minimum, ρ deletion-and-renumber, h′ = h∘ρ, prepend g) is carefully argued. The injectivity of ρ is fully case-split. The "spanning the seam" comparison (μ < g′.1 ≤ g′.r) uses the mixed transitivity form a < b ∧ b ≤ c ⟹ a < c, which is a standard derived consequence of NAT-order (case-split on b = c vs b < c and apply `<`-transitivity in each branch) — the proof invokes it as if it were a named form of NAT-order without making that case split explicit, but this is OBSERVE-level at most.
+
+The single REVISE-level gap is concentrated in **D-PRED**.
+
+---
+
+### D-PRED proof incomplete — Peano predecessor axiom absent from foundation
+**Class**: REVISE
+**Foundation**: NAT-wellorder (NatWellOrdering); NAT-zero (NatZeroMinimum); NAT-closure (NatArithmeticClosureAndIdentity) — D-PRED's listed dependencies
+**ASN**: D-PRED (PredecessorExistence), proof body: *"Step j = k + 1. A positive natural presented in successor form k + 1 with k ∈ ℕ is its own witness's successor: take i = k. … (The step does not lean on the induction hypothesis; it is the induction principle, reaching k + 1 from k, that does the carrying.) … By the induction principle the two cases exhaust {j ∈ ℕ : j ≥ 1}."*
+**Issue**: The proof presents two cases — base j = 1 (predecessor 0) and step j = k+1 with k ∈ ℕ (predecessor k) — and asserts "by the induction principle the two cases exhaust {j ∈ ℕ : j ≥ 1}." The step only handles j's that are already presented in successor form; it does not establish that every j > 1 is in that form. The standard well-ordering refutation would proceed: suppose F = {j ≥ 1 : no predecessor} is nonempty, take j₀ = min F, note j₀ ≠ 1 (base), so j₀ > 1 — then conclude j₀ has a predecessor to derive the contradiction. That final step is exactly what the lemma is proving. The NAT-* axiom set (well-ordering + discrete ordered cancellative addition) does not include Peano induction or the structural axiom "every positive natural is a successor"; these are independent. A model ℕ ∪ {ω} with ω above all finite naturals, addition extended injectively (ω + n ≠ ω + m for n ≠ m, ω + n ≠ k for finite k), and the well-ordering {0 < 1 < 2 < … < ω < ω+1 < …} satisfies every NAT-* axiom (carrier, zero minimum, strict total order, well-ordering, additive closure and identity, successor positivity, order compatibility, strict successor n < n+1, discreteness, left and right cancellation) yet falsifies D-PRED at j = ω, which has no k ∈ ℕ with k+1 = ω. The parenthetical's claim that "the induction principle … does the carrying" from k to k+1 attributes to NAT-wellorder a structural decomposition it does not deliver. The gap propagates: D-INJ's "step P → P+1" induction also relies on D-PRED at the meta level (the well-ordering proof of "P(1) ∧ (∀k ≥ 1: P(k) ⟹ P(k+1)) ⟹ ∀P ≥ 1: P(P)" requires a predecessor of the minimal counterexample P₀ > 1), and D-INJ's above-k₀ surjectivity sub-case for ρ uses D-PRED directly to extract i with i+1 = j from j > k₀.
+**What needs resolving**: Add an axiom to the NAT-* foundation — either Peano induction (the set closed under 0 and the successor function is all of ℕ) or the direct structural clause `(A j ∈ ℕ : j > 0 : (E i ∈ ℕ :: i + 1 = j))` — and cite it in D-PRED's Depends list. Then rewrite D-PRED's proof to identify the minimal failure j₀ > 1 via NAT-wellorder, invoke the new axiom to obtain i ∈ ℕ with i+1 = j₀, and observe i < j₀ (from i < i+1 = j₀ by NAT-addcompat), yielding the contradiction against j₀'s minimality.
+
+---
+
+VERDICT: REVISE
