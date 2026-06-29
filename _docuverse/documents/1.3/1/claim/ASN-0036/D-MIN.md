@@ -10,7 +10,7 @@ This is a *design requirement* on well-formed strand states, not a derived resul
 
 `V_1(d) = {[1, 5], [1, 6], [1, 7]}.`
 
-It is contiguous in the sense D-CTG demands — the only position strictly between its extremes [1, 5] and [1, 7] is [1, 6], which is present, so there is no internal gap — every component is strictly positive at the common depth 2 (S8a, S8-depth), and the set is finite (S8-fin); yet
+It is contiguous in the sense D-CTG demands — that betweenness obligation quantifies only over the same-depth text-subspace positions (those `v` with `#v = #u` and `subspace(v) = 1`, exactly D-CTG's inner-quantifier guards), and the only such position strictly between its extremes [1, 5] and [1, 7] is [1, 6], which is present, so there is no internal gap; a deeper tumbler like [1, 5, 1] does satisfy [1, 5] < [1, 5, 1] < [1, 7] under T1's order on all of T, but D-CTG's depth guard `#v = #u` excludes it from the obligation — every component is strictly positive at the common depth 2 (S8a, S8-depth), and the set is finite (S8-fin); yet
 
 `min({[1, 5], [1, 6], [1, 7]}) = [1, 5] ≠ [1, 1].`
 
