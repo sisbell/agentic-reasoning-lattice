@@ -1,0 +1,18 @@
+The proofs in D-INJ, D-PRED, D-CTG-depth, and D-SEQ are structurally sound. D-CTG-depth's relabeling argument, its witness construction, and its finiteness-contradiction close correctly. D-INJ's deletion-and-renumbering induction is well-grounded; D-PRED's induction on H = {n ∈ ℕ : n = 0 ∨ (E i :: i+1 = n)} is correct; D-SEQ's greatest-element argument in the Assembly is properly driven by NAT-induction. The dependency citations in those claims match the proof steps.
+
+One gap cuts across D-MIN into D-SEQ.
+
+---
+
+### D-MIN minimum-existence argument is ungrounded — NAT-induction absent from Depends
+
+**Class**: REVISE
+**Foundation**: NAT-induction (NatInduction); T1 (LexicographicOrder)
+**ASN**: D-MIN Definition section: "A strict total order has a unique least element on every finite non-empty set — fold the binary minimum (well-defined by T1's totality, order-independence by T1's transitivity) across the finitely many elements — so min(V_1(d)) exists and is unique whenever V_1(d) ≠ ∅."
+**Issue**: The minimum-existence argument is ungrounded at the rigor level this ASN maintains. The claim that folding binary-minimum over a finite non-empty set yields the global minimum is not an immediate consequence of T1's totality and transitivity: totality makes the binary operation well-defined on pairs, and transitivity makes the result correct when the fold order matches the order relation, but neither licenses the conclusion that an arbitrary traversal of the finite set converges to the global minimum. That conclusion requires induction on the cardinality of the set. NAT-wellorder is unavailable here because V_1(d) ⊆ T (tumblers, not naturals), and no order-preserving injection from (T, T1) into (ℕ, <) is established in scope. The required argument is therefore an induction on the length of S8-fin's enumerating bijection — the exact shape D-SEQ's Assembly uses for the analogous greatest-element existence, where NAT-induction is explicitly cited and the inductive step written out. D-MIN performs the parallel task (minimum rather than maximum) but skips the induction entirely and lists NAT-induction nowhere in its Depends. Since min(V_1(d)) must exist for the design requirement "min(V_1(d)) = [1,1,...,1]" to be a well-formed statement, and since D-SEQ Step 1 (Case m ≥ 3) and Step 2 load-bear on that statement, the gap propagates downstream.
+
+**What needs resolving**: Add NAT-induction to D-MIN's Depends. Supply a minimum-existence argument for finite non-empty subsets of T under T1's strict total order — either inline in the Definition section (mirroring D-SEQ Assembly's induction on the enumeration length N from S8-fin) or by citing a minimum-existence lemma analogous to D-INJ. The argument must ground min(V_1(d)) at NAT-induction rather than at T1's totality and transitivity alone.
+
+---
+
+VERDICT: REVISE
