@@ -1,0 +1,27 @@
+I read the foundation statements (ASN-0034) and then the full ASN-0036 as a system, tracing the cross-claim dependency structure and every precondition chain.
+
+The dependency graph is acyclic and the cross-claim chains hold:
+
+- **S7's well-definedness** correctly discharges T4-validity for `a ∈ dom(C)` via S7a → T10a.4, and the element-level zero count via S7b, *before* applying T4b's partial projections — so both domain conditions on `U`/`D` (`a ∈ dom(N)` and `zeros(a) ≥ 2`) are met. The `origin` construction (T0 comprehension), the `zeros = 2` / four-conjunct T4-validity computation, and the uniqueness lift (S7d event-distinctness → GlobalUniqueness address-distinctness) all check out, including the multi-component document-field (version) case where `D(a)` is multi-component and origin still lands at `zeros = 2`.
+- **S7d's `same_allocator` regime split** is exhaustive (T10a.6 collapses it to `A₁ = A₂` vs `A₁ ≠ A₂`); `ev`-injectivity holds in both regimes (T10a.7 for common-allocator, at-most-once + disjointness for disjoint). The k'=2-from-user / k'=1-from-document structure keeps every document at `zeros = 2`, and the recent (node,user)→same_allocator revision is correct (a version and its base document share node/user but sit in disjoint allocators).
+- **S8's correspondence-run partition** is sound: `succ` is a well-defined injective acyclic partial function (frame for depth, TS2 for injectivity, TS4 + T1 for acyclicity); the orbit decomposition is the unique maximal-chain decomposition; the `i = 0` boundary is correctly handled by the `shift(t,0) := t` convention outside TS3's `n ≥ 1` domain. The previously-flagged depth step now routes through the unconditional frame, not S8-depth.
+- **D-CTG-depth's** witness construction and the `m = 2` / `m ≥ 3` dispatch in **D-SEQ** cover the full `m ≥ 2` domain (S8a); contiguity (D-CTG) + finiteness (S8-fin) compose correctly through D-MIN.
+- **OrdShiftHom**, **ValidInsertionPosition/ValidFirstInsertionPosition**, **S3** (the S1-inherited / AX-2-new join over an AX-1 base), **S4**, and **S5**'s S0–S3-fragment witnesses all hold.
+
+No cross-claim soundness defect surfaced. Two noise/drift observations follow.
+
+### S3 closing remark litigates a superseded reading rather than stating the argument
+**Class**: OBSERVE
+**Foundation**: N/A
+**ASN**: S3 (ReferentialIntegrity), closing remark — *"The earlier reading, that S1 alone forces `a ∈ dom(Σ'.C)` for any mapping established by a transition, conflated these: it assumed precisely the new-reference half that AX-2, not S1, supplies."*
+**Issue**: The S1-vs-AX-2 join — S1 preserves already-valid references, AX-2 grounds new/redirected ones, S3 is their join over the AX-1 base — is fully and correctly stated in the three sentences preceding this one. The final sentence advances no part of the argument; it refutes a reading of the claim that no longer exists in the text. This is reviser-drift residue: a resolved finding's content retained as prose rather than removed. A reader following the proof must parse a rebuttal of a version of S3 that isn't on the page.
+**What needs resolving**: Drop the "earlier reading conflated these" sentence; the positive statement (S3 = S1 ⋈ AX-2 over AX-1) already carries the point. Style only; no soundness impact.
+
+### S7's Postconditions and per-foundation Depends entries re-walk the well-definedness proof
+**Class**: OBSERVE
+**Foundation**: N/A
+**ASN**: S7 (StructuralAttribution) — Postconditions slot and the Depends entries for NAT-order, NAT-closure, NAT-addcompat, NAT-card, NAT-sub, NAT-addassoc.
+**Issue**: The `zeros(origin(a)) = 2` / non-adjacency / T4-validity derivation is carried out three times. (1) In the Well-definedness body. (2) Inline inside the Postconditions slot — e.g. *"(distinct because the second strictly exceeds the first: from the additive form … NAT-addcompat's strict successor gives …)"*. (3) Step-by-step across the Depends entries — the NAT-order entry reproduces the full four-case adjacency walk (the two equal-assignment cases closed by irreflexivity, the order-reversed case by the trichotomy clause, the surviving case forcing `1 = #U(a)+1 ≥ 2` to `1 < 1`), and the NAT-addcompat / NAT-sub / NAT-addassoc entries re-derive the separator-difference arithmetic. The Depends entries are use-site inventories and the Postconditions slot is essay content — the patterns the rubric names as degrading extractability. The ASN repeatedly cites "a formalization tool" as a consumer; such a consumer reading Postconditions to enumerate *what S7 establishes*, or Depends to enumerate *what it consumes*, must wade through complete re-derivations to recover one-line statements.
+**What needs resolving**: State the five postconditions (`origin(a) ∈ T`; `zeros = 2`; T4-valid; `origin(a)` = allocating document's tumbler; distinct documents ⟹ distinct origins) without their inline derivations, and reduce each Depends entry to *what the foundation supplies* and *the site(s) that consume it*, leaving the derivation to the body where it already lives. Style/sprawl; no soundness impact, but per "sprawl blinds review" it degrades reviewability of the load-bearing claim of the cone.
+
+VERDICT: OBSERVE
