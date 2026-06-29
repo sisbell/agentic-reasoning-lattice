@@ -3,6 +3,7 @@
   - NAT-cancel
   - NAT-card
   - NAT-closure
+  - NAT-induction
   - NAT-order
   - NAT-wellorder
 
