@@ -8,7 +8,7 @@ The case the arrangement-contiguity invariants single out is the *text subspace*
 
 `V_1(d) = {v ∈ dom(Σ.M(d)) : subspace(v) = 1}`
 
-— the active text V-positions of `d`. This is the symbol D-CTG, D-CTG-depth, D-MIN, and D-SEQ constrain; the present claim is what gives it meaning, fixing `v ∈ V_1(d)` as the conjunction `v ∈ dom(Σ.M(d)) ∧ subspace(v) = 1`. The definition introduces no constraint of its own beyond this restriction of the arrangement domain by a subspace identifier.
+— the active text V-positions of `d`. Here the constant `1` is a first-class natural number: it is the chosen value of the subspace identifier `S`, which `subspace(v) = v₁` reads as a component drawn from `ℕ`, now fixed to the specific text-subspace identifier `1`. Its membership `1 ∈ ℕ` is supplied by NAT-closure (NatArithmeticClosureAndIdentity, ASN-0034). We charge that `1` to NAT-closure directly and not to the transitive route through `subspace` and T0: although `subspace` returns its value through T0's component projection into `ℕ`, neither `subspace` nor T0 exports the literal constant `1`, and the value is written into the present claim's own formal statement as the text-subspace identifier — so it must be grounded here at the site where it is named, exactly as S8-fin grounds the `1` of `{j ∈ ℕ : 1 ≤ j ≤ n}` and T0 the `1` of `1 ≤ #a` from this same axiom. This is the symbol D-CTG, D-CTG-depth, D-MIN, and D-SEQ constrain; the present claim is what gives it meaning, fixing `v ∈ V_1(d)` as the conjunction `v ∈ dom(Σ.M(d)) ∧ subspace(v) = 1`. The definition introduces no constraint of its own beyond this restriction of the arrangement domain by a subspace identifier.
 
 *Formal Contract:*
 
@@ -17,6 +17,7 @@ The case the arrangement-contiguity invariants single out is the *text subspace*
 - *Depends:*
   - Σ.M(d) (Arrangement) — supplies the arrangement `Σ.M(d)` and its domain `dom(Σ.M(d))`, the set of active V-positions the projection restricts; `V_S(d)` is by definition a subset of `dom(Σ.M(d))`
   - subspace (VPositionSubspaceIdentifier) — supplies the selector `subspace(v) = v₁`, the function whose value the membership guard `subspace(v) = S` constrains, sorting each active V-position into the projection of its own subspace
+  - NAT-closure (NatArithmeticClosureAndIdentity, ASN-0034) — supplies `1 ∈ ℕ`, the natural-number constant written directly into the text-subspace specialization `V_1(d) = {v ∈ dom(Σ.M(d)) : subspace(v) = 1}` as the chosen text-subspace identifier `S = 1`. `subspace` returns its value through T0's component projection into `ℕ`, but neither `subspace` nor T0 exports the literal constant `1`; V-sub writes `1` as a first-class value in its own formal statement, so it is grounded here directly — just as S8-fin grounds the `1` of `{j ∈ ℕ : 1 ≤ j ≤ n}` and T0 the `1` of `1 ≤ #a` from this same axiom
 - *Forward References:*
   - D-CTG (VContiguity) — consumes V_1(d) as the set over which its contiguity quantifier ranges; this claim is what gives that set meaning
   - D-CTG-depth (SharedPrefixReduction) — consumes V_1(d) as the text-subspace projection whose elements it proves share a common prefix; defined here
