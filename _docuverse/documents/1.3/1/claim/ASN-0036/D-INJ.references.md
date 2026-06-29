@@ -1,5 +1,6 @@
 *Depends:*
   - NAT-addcompat
+  - NAT-cancel
   - NAT-card
   - NAT-closure
   - NAT-order
