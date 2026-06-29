@@ -1,6 +1,8 @@
 *Depends:*
+  - NAT-addcompat
   - NAT-closure
-  - NAT-wellorder
+  - NAT-induction
+  - NAT-order
   - NAT-zero
 
 *Forward References:*
