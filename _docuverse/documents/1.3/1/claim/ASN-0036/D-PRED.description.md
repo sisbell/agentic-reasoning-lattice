@@ -1,0 +1,1 @@
+Proves that every natural number at or above 1 has a predecessor inside ℕ: for each such j there exists some i ∈ ℕ with i + 1 = j. The result exports existence alone — no uniqueness claim is made — because the downstream use requires only that some predecessor can be named, not that it is the unique one.
