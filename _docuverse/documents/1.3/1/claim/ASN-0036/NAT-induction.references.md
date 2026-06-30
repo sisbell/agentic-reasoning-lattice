@@ -7,3 +7,4 @@
   - D-INJ
   - D-MIN
   - D-PRED
+  - D-SEQ
