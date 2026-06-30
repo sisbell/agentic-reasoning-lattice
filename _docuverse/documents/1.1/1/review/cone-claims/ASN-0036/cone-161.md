@@ -1,0 +1,15 @@
+Reading the foundation statements, then tracing each claim's proof structure and dependency chains carefully.
+
+**D-MIN**: The least-index principle P(N) is well-structured — base N=0 vacuous, step N→N+1 splits Q into Q⁻ and {N+1}, uses T1's totality to compare the new candidate against the running minimum, and the Q⁻=∅ branch (instantiated at N=0) correctly bridges P(0)→P(1). The mixed <-then-≤ chains in the third trichotomy case are correctly resolved by the ≤-definition split. NAT-wellorder is correctly scoped to ℕ (the enumeration indices), not to T, so the independence from NAT-wellorder for the minimum over T is sound. Uniqueness via T1's trichotomy is correctly derived.
+
+**D-CTG-depth**: The witness construction is sound — w has length m, all components in ℕ (u's components by T0, n ∈ ℕ from T0(a), and 1 ∈ ℕ from NAT-closure), and T0's comprehension gives w ∈ T. The zero-freeness check covers all three component ranges (i ≤ j by S8a, i = j+1 by transitivity of <, i ≥ j+2 by NAT-closure's Consequence 0 < 1). The k=j pinning is correct — k < j is refuted by agreement on the prefix (component 1 by subspace definition, interior i by NAT-discrete placing i in the minimality range), and k > j is refuted by T1's agreement clause covering index j. The N+1 witnesses produce N+1 distinct preimage indices in {1,...,N} via f's surjectivity and single-valuedness; NAT-card's upper bound against D-INJ's exact count yields the impossible N+1 ≤ N, closed by NAT-addcompat + NAT-order's irreflexivity.
+
+**D-INJ**: The renumbering ρ's injectivity covers all three placement cases — below k₀ (identity, strictly ordered), straddling k₀ (mixed chain resolved by ≤-definition split and NAT-addcompat), above k₀ (same-branch, NAT-cancel settles a+1=b+1 → a=b). Surjectivity onto the punctured segment uses NAT-discrete to descend strict bounds to ≤ bounds (enabling "successor reflection"), and D-PRED for the predecessor in the above-k₀ case. The seam inequality μ < g′.1 follows from μ ≤ g′.1 (least in S, and g′.1 ∈ S) combined with μ ≠ g′.1 (g′.1 ∈ S \ {μ}) under T1's trichotomy. The spanning-seam step correctly splits on g′'s monotonicity.
+
+**D-PRED**: Straightforward application of NAT-induction to H = {n : n=0 ∨ (∃i :: i+1=n)}; the successor-closure step never consults k ∈ H (witness is k+1 itself), which is precisely what NAT-induction contributes beyond descent.
+
+**D-SEQ**: Step 1's case split on {m=2, m≥3} is exhaustive by S8a's m≥2 bound. Case m=2 is vacuously shared-prefix. Case m≥3 correctly uses D-CTG-depth (shared interior) and D-MIN (value at interior = 1) together. The greatest-element Assembly's induction mirrors D-MIN's least-element induction exactly, with h→e and "maximizes" throughout. The e function's image-equals-k-values argument uses f's surjectivity cleanly. n≥1 follows from 1 being an attained k-value (Step 2 via D-MIN).
+
+All dependency chains are unbroken. The posited axioms (D-CTG, S8-depth, S8a, S8-fin, D-MIN) are clearly labeled. The non-derivability witness for D-MIN ({[1,5],[1,6],[1,7]}) correctly satisfies D-CTG, S8a, and S8-fin while violating D-MIN.
+
+VERDICT: CONVERGED
