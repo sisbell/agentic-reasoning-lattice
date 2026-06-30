@@ -32,12 +32,12 @@ MODEL_FLAGS = {
     # roles
     "default": "claude-opus-4-8[1m]",  # note/inquiry review-revise-consult-draft loop (fable-5 disabled by Anthropic 2026-06-12)
     "consult": "claude-opus-4-8[1m]",  # theory-channel consultations (inquiry phase)
-    "evidence": "claude-sonnet-4-6",   # evidence-channel consultations
-    "commit": "claude-sonnet-4-6",     # runner commit messages
+    "evidence": "claude-sonnet-5",     # evidence-channel consultations
+    "commit": "claude-sonnet-5",       # runner commit messages
     # tier aliases
     "fable": "claude-fable-5[1m]",
     "opus": "claude-opus-4-8[1m]",
-    "sonnet": "claude-sonnet-4-6",
+    "sonnet": "claude-sonnet-5",
 }
 
 # Role-keyed effort table — same pattern as MODEL_FLAGS. The ladder is

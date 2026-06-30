@@ -170,7 +170,7 @@ def analyze_section(section_content: str) -> str | None:
     prompt_template = prompt_path("agents/producers/claim_decompose.md").read_text()
     prompt = prompt_template.replace("{{section_content}}", section_content)
 
-    response = invoke_claude(prompt, model="sonnet", effort="high")
+    response = invoke_claude(prompt, model="sonnet", effort="xhigh")
     if not response.text:
         return None
 

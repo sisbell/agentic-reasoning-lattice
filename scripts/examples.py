@@ -26,8 +26,8 @@ from lib.lattice.labels import format_label
 from lib.renderers.claim_statements import read_claim_statements_view
 from lib.shared.prompts import read_prompt
 
-GENERATE_MODEL = "claude-sonnet-4-6"
-REVIEW_MODELS = ["claude-sonnet-4-6"]
+GENERATE_MODEL = "claude-sonnet-5"
+REVIEW_MODELS = ["claude-sonnet-5"]
 GENERATE_PROMPT = prompt_path("examples/derive-examples.md")
 REVIEW_PROMPT = prompt_path("examples/review.md")
 

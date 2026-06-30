@@ -116,7 +116,7 @@ class NoteStatementsAgent(Agent):
             file=sys.stderr,
         )
         result = invoke_claude(
-            prompt, model=STATEMENTS_MODEL, effort="high",
+            prompt, model=STATEMENTS_MODEL, effort="xhigh",
         )
         if not result.text:
             return AgentResult(success=False, detail="llm-failed")

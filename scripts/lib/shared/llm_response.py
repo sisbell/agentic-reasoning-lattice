@@ -34,7 +34,7 @@ def invoke_text(
     prompt: str,
     *,
     model: str = "sonnet",
-    effort: str = "high",
+    effort: str = "xhigh",
     tools: Optional[str] = None,
 ) -> Tuple[str, float]:
     """Run LLM; return (raw_text, elapsed). Raise on empty response."""

@@ -29,7 +29,7 @@ from lib.shared.common import read_file
 COMMIT_PROMPT = prompt_path("helpers/commit.md")
 PROOFS_COMMIT_PROMPT = prompt_path("helpers/commit-proofs.md")
 
-MODEL = "claude-sonnet-4-6"
+MODEL = "claude-sonnet-5"
 
 
 def main():

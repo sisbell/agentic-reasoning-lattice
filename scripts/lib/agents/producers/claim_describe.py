@@ -65,7 +65,7 @@ class ClaimDescribeAgent(Agent):
             .replace("{{existing}}", existing_desc or "(none)")
         )
         result = invoke_claude(
-            prompt, model=DESCRIBE_MODEL, effort="high",
+            prompt, model=DESCRIBE_MODEL, effort="xhigh",
         )
         if not result.text:
             return AgentResult(success=False, detail="llm-failed")
