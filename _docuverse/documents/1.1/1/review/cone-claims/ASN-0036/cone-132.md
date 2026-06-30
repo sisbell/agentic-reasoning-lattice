@@ -1,0 +1,24 @@
+Reading the ASN as a whole, tracking definition scopes and precondition chains across claim boundaries.
+
+**Foundation chain audit.** NAT-carrier → NAT-zero/order/closure/addcompat/discrete/cancel/wellorder → NAT-card → T0 → T0(a)/T1/T3/T4 → Σ.M(d)/subspace/V-sub/S8a/S8-depth/S8-fin → D-CTG → D-PRED/NAT-induction → D-INJ → D-CTG-depth. Each claim's Depends were traced against its formal contract.
+
+**S8a → D-CTG-depth chain.** S8a's positivity Consequence is consumed by D-CTG-depth to discharge the `zeros(w) = 0` guard on the constructed witness. The chain `zeros(t) = 0 ⟺ (A i : 1 ≤ i ≤ #t : tᵢ > 0)` runs through NAT-card (empty-set characterization) and NAT-zero (positivity rewrite), both cited. Component-positivity of the witness `w` is grounded in three cases: components copied from `u` via S8a's Consequence, the new `j+1` component via NAT-order transitivity on `0 < uⱼ₊₁ < n`, and the trailing `1` components via NAT-closure's `0 < 1`. All grounded. ✓
+
+**D-CTG application in D-CTG-depth.** The constructed `w` must satisfy: `w ∈ T` (T0 comprehension, every component ℕ-valued), `subspace(w) = 1` (copied from `u` at component 1, since `j ≥ 2`), `#w = m = #u` (construction), `zeros(w) = 0` (all components positive as above), `u < w < x` (T1(i) with witnesses `k = j+1` for `u < w` and `k = j` for `w < x`, both bounds checked against `#u = #w = m`). All D-CTG guards satisfied. ✓
+
+**D-INJ cardinality argument in D-CTG-depth.** N witnesses are indexed through S8-fin's bijection. The map `k ↦ rₖ` is injective (single-valuedness of `f` prevents two images colliding). D-INJ at `P := N+1, n := N` gives `|{rₖ}| = N+1`; NAT-card's upper bound gives `|{rₖ}| ≤ N`; NAT-addcompat's `N < N+1` against `N+1 ≤ N` closes via NAT-order's irreflexivity. Contradiction. ✓
+
+**Dependency tracking — NAT-closure grounding pattern.** The document's established rule: when a claim writes `1` first-class in its formal contract, it cites NAT-closure directly; when it inherits `1` as part of a cited claim's exported notation, it does not. V-sub writes `subspace(v) = 1` first-class (new introduction of the text-subspace identifier) → cites NAT-closure. D-CTG's inner guard also writes `subspace(v) = 1`, but this is V-sub's exported notation, and D-CTG's Depends entry for V-sub explicitly names it as "unfolding to `· ∈ dom(Σ.M(d)) ∧ subspace(·) = 1`" → grounded through V-sub. S8a's Consequence writes `(A i : 1 ≤ i ≤ #t : tᵢ > 0)`, inheriting `1 ≤ i ≤ #t` from T4's exported zeros definition → grounded through T4. Pattern is consistent. ✓
+
+**D-INJ ρ-construction.** Injectivity of ρ in all three cases (both identity, straddle, both successor) is grounded: NAT-cancel for the same-branch upper case, NAT-order trichotomy for the straddle case. Surjectivity onto the punctured segment uses D-PRED (predecessor existence) for the above-`k₀` sub-case, NAT-discrete for descending strict bounds to `≤`, and successor reflection (derived inline from NAT-cancel + NAT-addcompat + NAT-order trichotomy/irreflexivity). All dependencies cited. ✓
+
+---
+
+### D-INJ from-1 induction not derived from NAT-induction's exported form
+**Class**: OBSERVE
+**Foundation**: NAT-induction (NatInduction)
+**ASN**: D-INJ *Formal Contract* — Depends entry for NAT-induction: "supplies the induction principle on P ≥ 1 (base P = 1, step P → P + 1) that structures the whole proof, the from-1 specialization of its generation-from-0 principle."
+**Issue**: NAT-induction's formal contract exports exactly one form: `(A S : S ⊆ ℕ ∧ 0 ∈ S ∧ (A k ∈ ℕ : k ∈ S : k + 1 ∈ S) : S = ℕ)` — base at 0, not 1. No from-1 consequence is listed. D-INJ uses the from-1 form (base P = 1, step P → P + 1) without deriving it from NAT-induction's from-0 form. D-PRED, by contrast, explicitly constructs `H = {n ∈ ℕ : n = 0 ∨ (E i ∈ ℕ :: i + 1 = n)}`, verifies `0 ∈ H` and closure under successor, and invokes NAT-induction directly. D-INJ's application is sound (the derivation exists: let `S = {0} ∪ {P : Q(P)}`, discharge `0 ∈ S` trivially, discharge closure at `k = 0` by the base case `Q(1)` and at `k ≥ 1` by the inductive step, apply NAT-induction) but is left implicit while the document elsewhere spells out every mixed-transitivity step.
+**What needs resolving**: Either add a from-1 *Consequence* to NAT-induction's formal contract (`(A S : S ⊆ ℕ ∧ 1 ∈ S ∧ (A k ∈ ℕ : k ∈ S : k + 1 ∈ S) : {n ∈ ℕ : n ≥ 1} ⊆ S)`, derivable from the axiom via `S' = {0} ∪ S`) that D-INJ can cite directly, or expand D-INJ's NAT-induction Depends entry to show the standard `S = {0} ∪ {P : Q(P)}` reduction that converts the from-0 principle to the from-1 application. The from-1 derivation uses NAT-closure's `0 + 1 = 1` (left identity at `n := 1`) and NAT-zero's `0 ∈ ℕ` for the `k = 0` branch; D-INJ already cites both.
+
+VERDICT: OBSERVE
