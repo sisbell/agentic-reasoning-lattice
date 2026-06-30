@@ -1,0 +1,27 @@
+I'll read the foundation statements and then trace the ASN claims as a system, checking precondition chains and proof logic across claim boundaries.
+
+**V-sub → S8-depth → S8-fin → NAT-induction → D-MIN dependency chain**
+
+The chain is internally coherent: V-sub defines V_1(d) using subspace and dom(Σ.M(d)); S8-depth provides the per-subspace common depth m from which D-MIN constructs the all-ones tuple; S8-fin provides the enumerating bijection over which D-MIN runs the existence induction; NAT-induction supplies the induction principle. The cited dependencies match the inference steps consumed in D-MIN's body.
+
+**D-MIN existence proof (least-index principle)**
+
+The induction on N: base P(0) holds vacuously (the empty index segment admits no non-empty Q); step N → N+1 splits via the segment identity {j : 1 ≤ j ≤ N+1} = {j : 1 ≤ j ≤ N} ∪ {N+1}, and the ⊇/⊆ directions are correctly grounded in NAT-addcompat (N < N+1), NAT-zero (floor 0 ≤ N seeding 1 ≤ N+1), NAT-closure (left identity rewriting 0+1 to 1), NAT-order (transitivity, irreflexivity, trichotomy), and NAT-discrete (m < n ⇒ m+1 ≤ n in the ⊆ direction). The mixed ≤-chain g.(N+1) < g.J' ≤ g.j is resolved by splitting the ≤ via T1's definition and handling both cases cleanly. Uniqueness follows from T1's trichotomy correctly applied to two putative least elements. The proof is sound.
+
+**S8-fin → D-MIN cross-claim interface**
+
+D-MIN invokes S8-fin's surjectivity clause — for v ∈ V_1(d) ⊆ dom(Σ.M(d)), some j satisfies f.j = v — and then places j in Q₀ = {j : 1 ≤ j ≤ N ∧ f.j ∈ V_1(d)}, which requires j ∈ ℕ. This is the cross-claim seam where the precision gap below bites.
+
+---
+
+### S8-fin formal axiom: injectivity and surjectivity bound variables untyped
+
+**Class**: REVISE
+**Foundation**: NAT-carrier (NatCarrierSet), NAT-order (NatStrictTotalOrder) — the arithmetic bounds `1 ≤ i < j ≤ n` require `≤` and `<` to be applied to elements whose carrier is ℕ; those relations are defined on ℕ × ℕ.
+**ASN**: S8-fin (FiniteArrangement) formal axiom, injectivity clause `(A i, j : 1 ≤ i < j ≤ n : f.i ≠ f.j)` and surjectivity inner existential `(E j : 1 ≤ j ≤ n : f.j = v)`.
+**Issue**: The bound variables `i` and `j` in the injectivity clause and `j` in the surjectivity existential carry no explicit carrier declaration. Every other bounded quantifier with arithmetic range in the document declares its variable `∈ ℕ`: T0 writes `(A i ∈ ℕ : 1 ≤ i ≤ p : tᵢ = r(i))`; NAT-induction writes `(A k ∈ ℕ : k ∈ S : k + 1 ∈ S)`; T1 writes `∃ k ∈ ℕ` and `(A i ∈ ℕ : 1 ≤ i < k : aᵢ = bᵢ)`. The outermost binder in the same axiom types its variable explicitly: `(E n : n ∈ ℕ : ...)`. Without the `∈ ℕ` declaration, the formal clauses are syntactically incomplete: `1 ≤ i` requires `≤` to operate between an undeclared type and the natural number 1. The cross-claim consequence: D-MIN's existence proof invokes S8-fin's surjectivity to extract a witness j from `(E j : 1 ≤ j ≤ n : f.j = v)` and then places j in Q₀ ⊆ {j ∈ ℕ : 1 ≤ j ≤ N} — which presupposes j ∈ ℕ. The formal clause does not commit to that membership.
+**What needs resolving**: Add `∈ ℕ` to the bound variables in both clauses: `(A i, j ∈ ℕ : 1 ≤ i < j ≤ n : f.i ≠ f.j)` and `(E j ∈ ℕ : 1 ≤ j ≤ n : f.j = v)`, matching the convention established by every other arithmetic quantifier in the document.
+
+---
+
+VERDICT: REVISE
