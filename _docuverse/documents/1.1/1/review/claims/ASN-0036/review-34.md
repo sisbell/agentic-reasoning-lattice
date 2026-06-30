@@ -1,0 +1,22 @@
+I read the foundation statements, then traced ASN-0036 as a system — focusing on the interfaces no per-claim check sees. A summary of what I verified, then my findings.
+
+## Audit narrative
+
+**Precondition chains across claim boundaries hold.** OrdShiftHom (a)'s `m ≥ 2` guard is discharged at every call site by S8a (`#v ≥ 2`); OrdShiftHom is never invoked with `n = 0` (S8's `shift(v,0)` is the local convention, S8a covers `k=0`). The shift-algebra integration in S8 is sound: TS2 is applied at a *locally derived* common depth (`#u = #u'` from `shift(u,1)=shift(u',1)` plus frame), not via S8-depth; TS3 is applied to both `v` (V-position) and `a` (I-address) — legitimate since TS3 needs only `T`-membership — and the `i=0` boundary is handled by convention since TS3's `n₁≥1` fails there. The `shift(a,k) ∈ dom(C)` obligation is routed through S3 (range inclusion), not OrdShiftHom, which would not apply to a non-V-position.
+
+**The two structurally-dual inductions are correctly differentiated.** D-MIN's least-index induction runs over tumbler-valued `g := f` under T1; D-SEQ's greatest-element induction runs over ℕ-valued `e` under NAT-order; both third-trichotomy cases read correctly (I confirmed the previously-flagged corruption is absent in both). D-INJ's count is genuinely unconditioned on `P ≤ n`, which is exactly what licenses the `P := N+1, n := N` pigeonhole in D-CTG-depth.
+
+**D-CTG-depth's contradiction is robust.** The witness `w` copies `u` through the disagreement point `j` (so `w < x` is decided at `j`, independent of `n`) and varies `j+1` (so `w > u` for `n > uⱼ₊₁`); large `n` cannot push `w` past `x`. T0(a) is used only to extract the natural `n > M`, not to build `w`. The N+1 distinct witnesses contradict S8-fin's bijection via D-INJ + NAT-card.
+
+**Definitions are stable across sections:** `subspace(v)=v₁`, `depth=#v=m`, `V_1(d)` carry one meaning throughout; D-SEQ's `[1,…,1,k]` form, D-MIN's `[1,…,1]` minimum, and ValidInsertionPosition's `shift(min,j)=[1,…,1,1+j]` are mutually consistent (min at `k=1`, N+1 satisfying positions at `k=1..N+1`). S7's `origin(a)` truncation (zeros 3→2) matches S7d's document-level addresses, and the GlobalUniqueness lift from distinct *events* (S7d) to distinct *addresses* is correctly attributed (S7d explicitly disclaims doing the lift itself). The S7d version-allocator treatment (base ends in `1` by TA5(d); versions child-spawned into distinct allocators sharing `(node,user)`) is correct.
+
+I found no correctness defect.
+
+### Design-posit axioms carry repeated non-derivability / methodological essays in their explanatory slots
+**Class**: OBSERVE
+**Foundation**: N/A (ASN-0036 posits: D-CTG, S8a, S8-depth)
+**ASN**: D-CTG and S8a each contain the verbatim sentence *"We posit it rather than derive it; the point of naming it is methodological,"* preceded by a multi-sentence argument that the restriction *"cannot follow from"* S0–S3/AX-1/AX-2, and followed by a consumer inventory — e.g. S8a: *"Two downstream consumers read S8a as a load-bearing precondition... Knowing S8a is a posit and not a theorem is exactly what tells such a consumer — a formalization tool included — that the restriction is an implementation obligation..."* S8-depth and D-CTG-depth's D-CTG discussion carry parallel non-derivability framing.
+**Issue**: The axiom statement plus a single clause ("posit, not derived; consumed by OrdShiftHom (b) and S8") conveys what a consumer needs. The surrounding non-derivability proof-sketch and the "knowing it is a posit tells a tool..." passage explain *why the axiom is needed* and *what its epistemic status implies*, not *what it constrains*, and the wording is templated across claims. A precise reader skips these to reach the axiom and its Formal Contract — reading burden of the kind the project's anti-sprawl discipline targets. No claim is wrong.
+**What needs resolving**: Compress the methodological framing to one canonical clause per posit (e.g., "Design posit on permitted arrangements, not derived from S0–S3/AX-1/AX-2; consumed by [claims] as a load-bearing precondition"), dropping the repeated multi-sentence non-derivability arguments and consumer-status essays. Pure framing; soundness is unaffected.
+
+VERDICT: OBSERVE
