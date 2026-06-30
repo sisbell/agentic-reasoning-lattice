@@ -1,0 +1,20 @@
+Reading through the full dependency cone — foundations through NAT-induction, D-PRED, D-INJ, and the final D-CTG-depth proof — with attention to every case boundary, every mixed transitivity chain, and every dependency attribution.
+
+**NAT-induction.** Axiom is well-formed: quantifies over S ⊆ ℕ, cites NAT-carrier for ℕ, NAT-zero for 0 ∈ S, and NAT-closure for the successor map n ↦ n+1. The metamathematical note — that induction is independent of the order-and-addition axioms — is stated without exhibiting a separating model, which is acceptable for an axiomatic posit.
+
+**D-PRED.** The H = {n ∈ ℕ : n = 0 ∨ (E i :: i+1 = n)} argument is sound. The closure step uses i = k as witness for k+1 ∈ H without consulting k ∈ H — this correctly provides the stronger condition NAT-induction needs. The "chain 0 < 1 ≤ j gives 0 < j" step is correctly built by the two-case split on NAT-order's ≤-definition (pure <-transitivity when 1 < j, indiscernibility of = when 1 = j). No mixing of NAT-order's strictly-typed transitivity with the mixed chain.
+
+**D-INJ.** The base P=1 is handled correctly: the strictly-increasing clause vacuously holds on the empty domain {a,b : 1 ≤ a < b ≤ 1} (impossible since b ≤ 1 ≤ a < b collapses). The step P→P+1: the renumbering ρ is well-defined on {1..P}, its injectivity covers all three placement cases (same-branch upper case correctly requires NAT-cancel since right order-compatibility only gives a+1 ≤ b+1, too weak alone), its surjectivity onto the punctured segment uses D-PRED for the above-k₀ predecessor and NAT-discrete + successor reflection for the domain bounds. The successor reflection `n+1 ≤ m+1 ⟹ n ≤ m` is correctly derived inline. The prepended enumeration g is strictly increasing: across the seam by μ ≤ g'.1 (minimality) + μ ≠ g'.1 (g'.1 ∈ S') + trichotomy; spanning the seam by the two-case split on g'.1 ≤ g'.r. NAT-card's value clause closes the cardinality at P+1.
+
+**D-CTG-depth.** The proof is structurally sound throughout.
+
+- The WLOG u < x relabeling is valid: the interior disagreement set and the witness construction are symmetric in u and x.
+- The first-disagreement j from NAT-wellorder is in the interior range (2 ≤ j ∧ j+1 ≤ m). The prefix agreement below j is established correctly — component 1 directly from V_1(d) membership, components 2..j-1 from NAT-discrete descending k < m to k+1 ≤ m for j's minimality to apply.
+- The k = j pinning is tight: k < j gives uₖ = xₖ from the independent prefix agreement, contradicting T1(i)'s uₖ < xₖ; k > j gives uⱼ = xⱼ from T1's agreement clause, contradicting uⱼ ≠ xⱼ from j's membership in the disagreement set.
+- The witness w is ℕ-valued at every component (S8a positivity for 1..j; 0 < uⱼ₊₁ < n by transitivity for j+1; 0 < 1 by NAT-closure's Consequence for j+2..m), T0 comprehension gives w ∈ T, and D-CTG applies with subspace(w) = w₁ = u₁ = 1 (j ≥ 2 so first component is copied), zeros(w) = 0 (by NAT-card's k=0 case on the empty zero-filter), #w = m = #u, and u < w < x.
+- The counting argument is correctly bounded: S8-fin's N is read first, T0(a) is applied exactly N+1 times (finite iteration, no choice principle), yielding N+1 distinct witnesses w⁽¹⁾,...,w⁽ᴺ⁺¹⁾ in dom(Σ.M(d)). The map k↦rₖ (pulled back through S8-fin's surjectivity) is injective by f's single-valuedness + w-distinctness. D-INJ at P:=N+1, n:=N gives |{rₖ}| = N+1; NAT-card's upper bound gives |{rₖ}| ≤ N; NAT-addcompat's N < N+1 against N+1 ≤ N gives N < N, which NAT-order's irreflexivity refutes.
+- Depends correctly exclude D-PRED and NAT-cancel (transitive through D-INJ, per the prior resolved finding).
+
+All posits (S8a, D-CTG, S8-depth, S8-fin) are correctly labeled as protocol design constraints rather than derived theorems, with their non-derivability from AX-1, AX-2, and S0–S3 accurately characterized.
+
+VERDICT: CONVERGED
