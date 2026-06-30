@@ -1,0 +1,16 @@
+Reading through the foundation statements and each claim systematically.
+
+The posits (S8a, D-CTG, S8-depth, S8-fin) are well-formed and their Depends entries correctly enumerate only the symbols that appear in the formal statements. The definitions (subspace, V-sub, Σ.M(d)) ground their notation correctly at the foundation layer. D-PRED's proof explicitly instantiates NAT-induction in the canonical set form (H = {n ∈ ℕ : n = 0 ∨ ...}, verifying 0 ∈ H and closure, concluding H = ℕ). D-CTG-depth's proof is sound: the WLOG for ordering, the minimality pinning k = j, the witness construction, the zero-freeness argument via S8a's exported Consequence, the application of D-CTG, and the finiteness contradiction via D-INJ and NAT-card's upper bound all trace correctly. D-INJ's ρ construction, its injectivity and surjectivity arguments (including the predecessor existence step via D-PRED), and the prepend-μ strictly-increasing enumeration are sound. The Depends lists for D-CTG-depth and D-INJ match the proof steps.
+
+One gap stands out.
+
+---
+
+### D-INJ's from-1 induction is invoked without derivation from NAT-induction's from-0 principle
+**Class**: REVISE
+**Foundation**: NAT-induction (NatInduction, ASN-0036)
+**ASN**: D-INJ proof structure and its Depends entry for NAT-induction: "it supplies the induction principle on P ≥ 1 (base P = 1, step P → P + 1) that structures the whole proof, the from-'1' specialization of its generation-from-'0' principle"
+**Issue**: NAT-induction's formal contract is the set form `(A S : S ⊆ ℕ ∧ 0 ∈ S ∧ (A k ∈ ℕ : k ∈ S : k + 1 ∈ S) : S = ℕ)` — a generation-from-0 principle. D-INJ's proof is structured as from-1 induction (base P = 1, step P → P+1 for P ≥ 1). The Depends entry asserts NAT-induction "supplies" this from-1 form as a "specialization," but provides no derivation. Contrast with D-PRED, which is the established pattern for this ASN: define the set H explicitly, verify `0 ∈ H` and closure under successor separately, apply NAT-induction's set form to conclude H = ℕ, then extract the predicate of interest for the relevant range. D-INJ omits this packaging entirely. The phrase "the from-1 specialization of its generation-from-0 principle" is the kind of hand-wave Dijkstra's discipline flags: *which* reasoning, applied to *which* case? Specifically, the from-0 step at k = 0 — which forces lemma(1) as a consequence of the closure condition — is absent. A formalization tool reading D-INJ's proof would halt at the induction setup before reaching the base or step cases.
+**What needs resolving**: Derive the from-1 form from NAT-induction's set form, following D-PRED's pattern. Concretely: let `S = {P ∈ ℕ : P < 1 ∨ lemma_D_INJ(P)}`. Show `0 ∈ S` (since `0 < 1` by NAT-closure's Consequence `0 < 1`). Show S is closed under successor: for k = 0, the closure clause requires k+1 = 1 ≥ 1, so lemma(1) = the base case proved in D-INJ; for k ≥ 1 with `k ∈ S`, the `k < 1` branch is false so lemma(k) holds, and the step gives lemma(k+1). By NAT-induction, S = ℕ; for P ≥ 1, `P ∈ S` and `P < 1` is false, so lemma_D_INJ(P). This derivation additionally uses NAT-closure's Consequence `0 < 1` (for `0 ∈ S`) and should appear explicitly in D-INJ's proof body and in the NAT-induction Depends entry, replacing the bare "from-1 specialization" claim.
+
+VERDICT: REVISE
