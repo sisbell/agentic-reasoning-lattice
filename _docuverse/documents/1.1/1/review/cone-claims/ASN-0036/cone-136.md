@@ -1,0 +1,24 @@
+Audit of ASN-0036 as a system. I read each claim and its inter-claim dependencies, then traced every cross-claim precondition chain.
+
+The posit cluster (S8a, D-CTG, S8-depth, S8-fin) is internally consistent. Each posit is correctly labelled as a design constraint, correctly explains why it cannot be derived from the existing axioms, and correctly identifies which downstream claims treat it as load-bearing.
+
+The definitional cluster (Σ.M(d), subspace, V-sub) grounds its symbols accurately. Every `dom(Σ.M(d))` reference chains back to Σ.M(d); every `subspace(v)=v₁` read chains back through T0's component-projection signature grounded at NAT-closure and NAT-order.
+
+NAT-induction is correctly identified as independent of the order-and-addition axioms. D-PRED's proof uses it in its native from-0 form (via the set H). D-INJ invokes the from-1 specialisation citing NAT-induction; that bridge (set P(n):=claim(n+1), apply NAT-induction) is a one-substitution standard derivation, correctly flagged by name rather than spelled out.
+
+D-PRED: the predecessor existence proof is sound. The `H={n∈ℕ:n=0∨(E i::i+1=n)}` argument correctly uses NAT-induction in its from-0 form, correctly discharges the zero branch via 0<1 (NAT-addcompat at n:=0 + NAT-closure left-identity at n:=1), and the Depends accurately omits NAT-wellorder from direct listing.
+
+D-INJ: the proof is sound. The three injectivity cases for ρ (both below k₀, straddling, both above k₀) are exhaustive and each case is fully walked. The surjectivity sub-cases (j<k₀ hit by itself via NAT-discrete + successor reflection; j>k₀ hit as predecessor + successor via D-PRED + NAT-discrete + successor reflection) are complete. Successor reflection is correctly assembled from NAT-order's ≤-definition, NAT-addcompat, and NAT-cancel rather than cited as a named postcondition. The prepend-μ enumeration's three monotonicity sub-cases (across seam, beyond seam, spanning seam) are each explicitly closed.
+
+D-CTG-depth: the proof is sound. The k=j pinning (ruling out k<j by prefix agreement grounded in j's minimality + NAT-discrete, ruling out k>j by T1's agreement clause at the disagreement site j) is complete. The witness w satisfies all four D-CTG guards: subspace(w)=w₁=u₁=1, #w=m=#u, zeros(w)=0 (positivity from S8a Consequence + n>uⱼ₊₁>0 by NAT-order transitivity + wᵢ=1>0 from NAT-closure's 0<1 Consequence → zero-filter empty by NAT-card), u<w<x (T1 clause (i) at k=j+1 for the lower bound, at k=j with j<m for the upper bound — the strict j<m obtained from j+1≤m via NAT-addcompat's j<j+1 and the two-case ≤-split, which is all NAT-order provides). The N+1-step T0(a) iteration is finite and fixed in length by S8-fin's N before iteration begins. The pull-back k↦rₖ is injective by f's single-valuedness. D-INJ at P:=N+1, n:=N provides the exact count N+1; NAT-card's upper bound provides ≤N; the mixed chain N<N+1≤N→N<N is closed by the same two-case ≤-split and refuted by NAT-order's irreflexivity. The Depends list is accurate: D-PRED and NAT-cancel are correctly absent (transitive through D-INJ); NAT-discrete's entry correctly describes D-CTG-depth's own direct use at (i,m).
+
+One structural observation:
+
+### "Definition" slot in D-CTG-depth's Formal Contract documents a proof-internal construction
+**Class**: OBSERVE
+**Foundation**: D-CTG-depth (SharedPrefixReduction) Formal Contract
+**ASN**: D-CTG-depth Formal Contract — "Definition: For positions u, x∈V_1(d) (u<x, both depth m) whose first disagreement is at component j with 2≤j∧j+1≤m, and for any n>uⱼ₊₁, the intermediate witness w of depth m is constructed by..."
+**Issue**: Every other "Definition" slot in ASN-0036 introduces a symbol that is exported and referenced by downstream claims (subspace referenced by D-CTG, V-sub, etc.; V_S(d) referenced by D-CTG, D-CTG-depth, D-MIN, D-SEQ; Σ.M(d) referenced by AX-1, AX-2, S8a, S8-depth, V-sub). D-CTG-depth's "Definition" introduces the intermediate tumbler w, which is internal to D-CTG-depth's contradiction argument and is referenced by no other claim. The slot is also absent from D-INJ and D-PRED, the other proof-type claims in the ASN. A formalization tool scanning formal contract fields for exportable symbols would encounter w as though it were a new exported concept; a reader expecting "Definition" to mark an introduced named object would be momentarily misled.
+**What needs resolving**: No soundness change required. Consider whether the w construction belongs in the proof body rather than in a Formal Contract "Definition" slot, or whether the slot should be labelled "Construction" or "Witness" to distinguish it from exported symbols.
+
+VERDICT: OBSERVE
