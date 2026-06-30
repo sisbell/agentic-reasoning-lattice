@@ -1,0 +1,11 @@
+The dependency chains across V-sub → S8-fin → D-MIN are structurally intact, NAT-induction's least-index principle is correctly applied over the enumerating bijection's length, and the segment-identity proof in D-MIN traces correctly through NAT-zero, NAT-addcompat, NAT-discrete, and NAT-order. The uniqueness argument via T1's trichotomy is sound. The grounding of NAT-order's ≤-transitivity as an exported consequence (not a raw axiom) is used correctly. The Q⁻ = ∅ branch at N = 0 correctly bridges P(0) ⇒ P(1) without a shortcut around the vacuous base.
+
+### S8-fin formal axiom: document variable d carries no range restriction
+
+**Class**: REVISE
+**Foundation**: Σ.M(d) (Arrangement) — declares `Σ.M` assigns an arrangement to each `d ∈ T`
+**ASN**: S8-fin formal contract, Axiom bullet — `(A d :: (E n : n ∈ ℕ : (E f :: f : {j ∈ ℕ : 1 ≤ j ≤ n} → dom(Σ.M(d)) ∧ ...)))`
+**Issue**: The outer quantifier `(A d :: ...)` binds `d` with an empty range restriction (`::` = no guard), making `d` range over all mathematical objects. The body immediately uses `dom(Σ.M(d))`, which the Σ.M(d) claim defines only for `d ∈ T` (document-level tumblers). For `d ∉ T`, `Σ.M(d)` is undefined and `dom(Σ.M(d))` is not a set; the subsequent type `f : {j ∈ ℕ : 1 ≤ j ≤ n} → dom(Σ.M(d))` is syntactically ill-formed. Compare S8-depth's convention: its `d` is implicitly restricted because the range guard `u ∈ dom(Σ.M(d)) ∧ w ∈ dom(Σ.M(d))` makes `d`'s typing evident from the guard — S8-fin provides no such guard. Every other bound variable in this ASN carries an explicit or range-guard-derived restriction (NAT-closure's `(A n ∈ ℕ :: ...)`, T0's `(A a ∈ T :: ...)`, NAT-induction's `S ⊆ ℕ` range, etc.). The prose says "for each document d," i.e. `d ∈ T`, but the formal statement asserts more.
+**What needs resolving**: Replace `(A d :: ...)` with `(A d ∈ T :: ...)` (or equivalently `(A d : d ∈ T : ...)`) in S8-fin's axiom, so the quantifier's bound matches the prose, the declared scope of Σ.M, and the convention used by S8-depth and every other claim in the ASN.
+
+VERDICT: REVISE
