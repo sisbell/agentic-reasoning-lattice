@@ -16,3 +16,4 @@ This is a foundation-level posit: it belongs with the NAT-* group of ASN-0034 an
 - *Forward References:*
   - D-PRED (PredecessorExistence) — downstream consumer; its proof that every natural is `0` or a successor is the immediate application of this principle to the set of zeros-and-successors
   - D-INJ (InjectiveImageCardinality) — downstream consumer; the induction on segment length `P` that drives its image count rests on this principle
+  - D-MIN (VMinimumPosition) — downstream consumer; its existence proof for min(V_1(d)) applies this principle, in its from-`1` specialization of the generation-from-`0` schema, to the least-index predicate P(N) over the length of S8-fin's enumerating bijection
