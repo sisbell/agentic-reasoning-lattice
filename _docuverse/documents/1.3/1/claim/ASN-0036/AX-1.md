@@ -6,3 +6,6 @@ Every reachable state is generated from `Σ₀` by the transition relation `Σ �
 
 *Formal Contract:*
 - *Axiom:* The base state `Σ₀` satisfies `(A d :: dom(Σ₀.M(d)) = ∅)` — no V-position is mapped by any arrangement in the initial configuration. This is a protocol design posit on the designated start state of the state signature, not derived from any other claim.
+
+- *Depends:*
+  - Σ.M(d) (Arrangement) — supplies the arrangement family `Σ.M` and its per-document domain `dom(Σ.M(d))`, here read at the base state `Σ₀` as `dom(Σ₀.M(d))`; this axiom fixes that domain empty in the initial configuration. The emptiness is posited, not derived, but the arrangement-domain symbol it constrains is grounded here at its defining claim, as V-sub grounds the `dom(Σ.M(d))` it ranges over

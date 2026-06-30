@@ -6,3 +6,7 @@ The range selects exactly those positions whose image in `Σ'` is not inherited 
 
 *Formal Contract:*
 - *Axiom:* For every transition `Σ → Σ'`, `(A d, v : v ∈ dom(Σ'.M(d)) ∧ (v ∉ dom(Σ.M(d)) ∨ (v ∈ dom(Σ.M(d)) ∧ Σ'.M(d)(v) ≠ Σ.M(d)(v))) : Σ'.M(d)(v) ∈ dom(Σ'.C))` — every newly established or redirected V-mapping targets an address already in the post-state content store. This is a protocol design posit on the transition relation, not derived from any other claim.
+
+- *Depends:*
+  - Σ.M(d) (Arrangement) — supplies the arrangement family `Σ.M` and its domain `dom(Σ.M(d))`, read here at both `Σ` and `Σ'` (`dom(Σ.M(d))`, `dom(Σ'.M(d))`) and applied as `Σ.M(d)(v)`, `Σ'.M(d)(v)`; the axiom's range selects newly established or redirected V-mappings by membership and application against this component. Grounded here at its defining claim, as V-sub grounds it
+  - Σ.C (ContentStore) — supplies the content store `Σ.C` and its domain `dom(Σ.C)`, read here at the post-state as `dom(Σ'.C)`, the address set the axiom requires every new or redirected mapping to target (`Σ'.M(d)(v) ∈ dom(Σ'.C)`). Grounded here at its defining claim, as S7 grounds it
