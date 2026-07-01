@@ -1,0 +1,19 @@
+I reviewed the ASN-0036 claims (V-sub, S8-depth, S8-fin, NAT-induction, subspace, Σ.M(d), AX-1, D-MIN) against the ASN-0034 foundation statements, tracing quantifier scopes, the Depends citation discipline this ASN enforces elsewhere, and the D-MIN existence/uniqueness proof step by step.
+
+The D-MIN induction (least-index principle, base case, successor case with its segment-identity sub-proof, and the final uniqueness argument via trichotomy plus the incompatibility clauses) is fully gap-free — every case is covered and every arithmetic step traces to a specific NAT-* clause. Two issues remain outside that proof.
+
+### D-MIN's base-state paragraph invokes AX-1 without citing it
+**Class**: REVISE
+**Foundation**: AX-1 (InitialEmpty)
+**ASN**: D-MIN (VMinimumPosition), "**The base state and downstream use.**" paragraph: *"Before any operation, dom(Σ.M(d)) = ∅ for every d, so V_1(d) = ∅ and the requirement is vacuous..."*
+**Issue**: The fact "dom(Σ.M(d)) = ∅ for every d" at the base state is exactly AX-1's axiom content (`(A d ∈ T :: dom(Σ₀.M(d)) = ∅)`), not something D-MIN derives independently. This ASN enforces a "strict direct-citation discipline" — stated explicitly in D-MIN's own NAT-carrier Depends entry — under which any fact used directly in a claim's text must be grounded at its defining claim rather than left to transitive availability. S8-fin follows this discipline for the structurally identical argument ("At the base state itself, where AX-1 fixes `dom(Σ₀.M(d)) = ∅`, the witness is necessarily `n = 0`...") and lists AX-1 in its Depends accordingly. D-MIN's parallel base-state discussion relies on the same AX-1 fact but omits AX-1 from its Depends list entirely (D-MIN's transitive path to AX-1 via S8-fin does not satisfy the direct-citation standard this ASN applies to itself elsewhere).
+**What needs resolving**: Add AX-1 (InitialEmpty) to D-MIN's Depends list, grounding the base-state vacuity claim directly, consistent with the citation discipline S8-fin already applies to the identical argument.
+
+### NAT-induction is declared foundation-level but lives inside ASN-0036
+**Class**: REVISE
+**Foundation**: NAT-carrier, NAT-zero, NAT-closure (all ASN-0034)
+**ASN**: NAT-induction (NatInduction): *"This is a foundation-level posit: it belongs with the NAT-* group of ASN-0034 and is stated here only because ASN-0036 is where its absence first bites. It carries no dependence on any ASN-0036 construction."*
+**Issue**: ASN-0036's metadata declares `Declared depends: ASN-0034` — a claim about which foundation this ASN builds on. NAT-induction is a general fact about ℕ (independent of tumblers, arrangements, or any ASN-0036 construction, as the claim itself states) yet is physically filed as an ASN-0036 claim rather than an ASN-0034 one. Any future ASN that needs induction over ℕ and correctly declares a dependency on ASN-0034 alone will not have access to it — it would have to either duplicate the axiom or acquire a spurious dependency on the Xanadu-specific ASN-0036 purely to obtain a foundational arithmetic fact. The ASN's own prose acknowledges the mismatch but does not resolve it; disclosure in commentary does not fix the dependency-graph placement a downstream consumer or tool would actually read.
+**What needs resolving**: Relocate NAT-induction into the NAT-* group of ASN-0034 (a Promote operation, since it depends on nothing in ASN-0036), or, if immediate relocation isn't feasible this cycle, record the placement gap where the lattice's cross-ASN promotion backlog is tracked so it isn't silently load-bearing for other ASNs that only declare ASN-0034 as a dependency.
+
+VERDICT: REVISE
