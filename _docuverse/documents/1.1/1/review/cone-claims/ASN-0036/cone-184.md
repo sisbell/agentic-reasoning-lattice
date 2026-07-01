@@ -1,0 +1,14 @@
+I did a full pass over this cone — foundation statements, then S8a, D-CTG, subspace, V-sub, S8-depth, D-INJ, S8-fin, Σ.M(d), D-PRED, NAT-induction, AX-1, and D-CTG-depth's very long proof — checking precondition chains, quantifier scoping, and dependency attributions across claim boundaries, not just within-claim correctness.
+
+The two previously-declined findings are confirmed stale/fixed as recorded (D-CTG-depth's Depends no longer names D-PRED/NAT-cancel directly, and its NAT-discrete entry already describes the direct interior-range use; S8's body already grounds the depth step in OrdShiftHom's frame, not S8-depth). I did not find a new correctness gap: the D-INJ ρ-construction, the D-CTG-depth pigeonhole contradiction, the zero-freeness/positivity chaining through S8a→NAT-card→NAT-zero, and the WLOG relabeling argument at the top of D-CTG-depth's proof all check out on close reading, including the less-obvious steps (successor reflection, the mixed `<`/`≤` chains built via `≤`-definition case splits, the N≥1 floor derivation via S8-fin's surjectivity).
+
+One structural observation worth logging:
+
+### D-CTG-depth's Preconditions field embeds proof narrative rather than stating assumptions
+**Class**: OBSERVE
+**Foundation**: N/A (structural/exposition, not a foundation dependency)
+**ASN**: D-CTG-depth Formal Contract, *Preconditions* bullets for S8-fin and T0(a) — e.g. "The proof reads off this N first to fix the count and, since S8-fin admits the empty-arrangement witness `n = 0`, secures N ≥ 1 from the precondition V_1(d) ≠ ∅ … then builds N + 1 distinct positions by N + 1 applications of T0(a) and pulls them back through its surjectivity to N + 1 pairwise-distinct indices … the impossible N + 1 ≤ N being the contradiction."
+**Issue**: The *Preconditions* slot is meant to state what is assumed (here: the bijection `f` with its typing/injectivity/surjectivity clauses, and T0(a)'s existence guarantee), but these two bullets continue on to summarize the entire downstream proof strategy (the N≥1 derivation, the N+1-fold iteration, the final contradiction). A reader consulting Preconditions to check what D-CTG-depth assumes has to read past a compressed re-narration of the proof body to find the actual assumption, which is stated correctly but buried at the start of each bullet.
+**What needs resolving**: N/A — this is a placement/style observation; the assumption itself is stated correctly and nothing here is factually wrong. Trimming the post-assumption narrative out of the Preconditions bullets (leaving it to the body proof, which already carries it) would tighten the slot but is not required for soundness.
+
+VERDICT: OBSERVE
