@@ -1,0 +1,14 @@
+I read through the full foundation chain (NAT-carrier → NAT-order/zero/closure/discrete/addcompat → NAT-induction → T0/T1) and the ASN-0036 content (Σ.M(d), AX-1, subspace, V-sub, S8-depth, S8-fin, D-MIN), tracing every dependency citation and re-deriving the D-MIN existence/uniqueness induction step by step, including the segment-identity split and the non-derivability witness.
+
+The core mathematics holds up: the least-index induction (base N=0 vacuous, step N→N+1 via Q⁻ case split and T1 trichotomy) is fully justified, every NAT-* citation in D-MIN's dependency list matches the inference it's invoked for, and the non-derivability witness `{[1,5],[1,6],[1,7]}` correctly satisfies D-CTG/S8a/S8-depth/S8-fin while violating D-MIN. The previously-declined S8-depth/OrdShiftHom circularity finding does not recur here (S8's body isn't in this cone, and S8-depth's commentary already routes that step through OrdShiftHom's frame).
+
+One structural inconsistency stood out relative to this ASN's own established discipline:
+
+### D-MIN's Design Requirement lacks the explicit quantifier/domain-restriction the ASN requires of every other posit
+**Class**: REVISE
+**Foundation**: Σ.M(d) (Arrangement); T0 (CarrierSetDefinition)
+**ASN**: D-MIN (VMinimumPosition), *Formal Contract* → *Design Requirement*: "For every reachable state Σ and each document d with V_1(d) ≠ ∅, min(V_1(d)) = [1, 1, ..., 1] ..."
+**Issue**: Every other posit in this cone (AX-1, S8-fin, S8-depth) states its axiom as an explicit bracketed quantifier — `(A d ∈ T :: ...)` — and each accompanies it with a paragraph justifying *why* `d` must be restricted to `T` (so that `Σ.M(d)` and `dom(Σ.M(d))` remain defined objects, admitting no `d ∉ T`). D-MIN's Design Requirement is stated only in prose, with no `(A Σ :: (A d ∈ T : V_1(d) ≠ ∅ :: min(V_1(d)) = [1,...,1]))`-style formalization and no accompanying grounding of the `d ∈ T` restriction. This is also the only claim in the cone labeled "Design Requirement" rather than "Axiom," compounding the drift from the sibling posits' notation. Since `V_1(d)` is undefined for `d ∉ T` (it unfolds through `dom(Σ.M(d))`, itself undefined outside `T`), the restriction is real and load-bearing — it's just left implicit here where every sibling claim makes it explicit and argued.
+**What needs resolving**: State the Design Requirement with the same explicit quantifier-and-domain-restriction form used by AX-1/S8-fin/S8-depth, and ground the `d ∈ T` restriction the same way those claims do (via Σ.M(d)'s declaration), so the posit's formalization matches the rigor standard the rest of the cone holds itself to.
+
+VERDICT: REVISE
