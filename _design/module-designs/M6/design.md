@@ -28,23 +28,29 @@ impl<'s, W: M6World> Query<'s, W> {
 }
 ```
 
+**Derive policy (the marshaling seam M10 codes against — stated, not guessed).** Every M6-owned public request/result/error type is a plain all-`pub`-field value. The declared set: `Spec`, `Region`, `Delivery`, `DeliveryItem`, `Deletions`, and the six error enums derive **`Clone + PartialEq + Eq + Serialize`**; the payload-free `SpecFault`/`Operand` additionally derive **`Copy + Debug`**. Every leaf these carry (`Address`, `Span`, `Val`, `Nat`, `usize`) is itself `Serialize` per M1/M4, so the derives compile as stated. **No `Debug`** on any type carrying `Address`/`Span` — M1's `Tumbler`/`Address`/`Span` are not `Debug` (the same fact that forces `debug_assert!` over `debug_assert_eq!` in COMPARE). **No `Deserialize` anywhere** — M10 constructs requests through M1's validating front doors (`validate`, `Span::new`/`from_endpoints`), never by deserializing untrusted addresses. The two exceptions are **`CorrPair`/`CompareReport`**: they carry M5's `VPos`, whose as-given declaration names no derives, so M6 declares none on them — they are **move-only, destructure-only** values that M10 marshals **field-by-field** (every leaf still serializes individually, including `VPos`'s `pub Nat` fields).
+
 ### Shared request types
 
 ```rust
 /// One document + one ordinal-level depth-2 V-span. RETRIEVEV's spec-set is the ORDERED `&[Spec]` —
 /// per-spec order is denotational (R5) and each spec carries a single span. This is the single-span,
 /// order-bearing idiom; the SET-shaped operations (COMPARE, FINDDOCSCONTAINING) use `Region` instead.
+#[derive(Clone, PartialEq, Eq, Serialize)]
 pub struct Spec  { pub doc: Address, pub span: Span }
 /// One document + a finite V-region (set of spans) — the shared "(document, span-set)" idiom for the
 /// two SET-shaped operations: COMPARE (content only; the unordered set ASN-0122's `ρ` is) and
 /// FINDDOCSCONTAINING (FD-CONVEX wants multi-span). Both take `&[Region]`.
+#[derive(Clone, PartialEq, Eq, Serialize)]
 pub struct Region { pub doc: Address, pub spans: Vec<Span> }
 ```
 
 ### A. Content delivery
 
 ```rust
+#[derive(Clone, PartialEq, Eq, Serialize)]
 pub enum DeliveryItem { Content(Val), Ref(Address) }   // content position ⇒ value; link position ⇒ address-as-reference
+#[derive(Clone, PartialEq, Eq, Serialize)]
 pub struct Delivery(pub Vec<DeliveryItem>);            // per-spec concatenation, ascending-V within, no merge, no global sort
 
 impl<'s, W: M6World> Query<'s, W> {
@@ -86,10 +92,13 @@ impl<'s, W: M6World> Query<'s, W> {
 ### D. Provenance comparison
 
 ```rust
+#[derive(Clone, PartialEq, Eq, Serialize)]
 pub struct Deletions { pub a_with_b: Vec<Address>, pub b_with_a: Vec<Address> }  // deleted-from-one ∧ current-in-other; the existing I-addresses (D-IDENT), deduped + Tumbler-ordered (D-ORD)
 
 pub use m5::VPos;   // CorrPair/CompareReport carry M5's VPos; re-export so M10's marshaler names it through M6, not by reaching into M5's crate
 
+// NO DERIVES (deliberate): these two carry M5's VPos, whose as-given declaration names no derives —
+// so they are move-only, destructure-only values; M10 marshals field-by-field (derive policy above).
 pub struct CorrPair { pub d1: Address, pub u1: VPos, pub d2: Address, pub u2: VPos, pub width: Nat }
 pub struct CompareReport(pub Vec<CorrPair>);   // canonical order; slot i drawn from operand i
 
@@ -122,16 +131,24 @@ impl<'s, W: M6World> Query<'s, W> {
 ### Errors (all typed; M10 surfaces verbatim — never a silent skip)
 
 ```rust
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize)]
 pub enum SpecFault { NotOrdinalLevel, NotLevelUniform, StartNotZeroFree, StartTooShallow }  // StartTooShallow: #start < 2
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize)]
 pub enum Operand   { First, Second }   // which COMPARE spec-set (ρ₁/ρ₂) a fault came from — Copy, captured into the gate closure
 // Every `DocNotRegistered` uniformly carries the offending document — one marshaling shape for M10
 // (recoverable from the request for the single-document ops; carried anyway for uniformity).
+// All six derive Clone + PartialEq + Eq + Serialize; NONE derives Debug (they carry Address — derive policy above).
+#[derive(Clone, PartialEq, Eq, Serialize)]
 pub enum RetrieveError  { DocNotRegistered(Address), MalformedSpec { index: usize, fault: SpecFault } }
+#[derive(Clone, PartialEq, Eq, Serialize)]
 pub enum ExtentError    { DocNotRegistered(Address) }
+#[derive(Clone, PartialEq, Eq, Serialize)]
 pub enum OriginError    { DocNotRegistered(Address), NoSuchSubspace, EmptySubspace, DepthIncompatible, RangeNotPresent, MalformedSpan(SpecFault) }
+#[derive(Clone, PartialEq, Eq, Serialize)]
 pub enum DeletionsError { DocNotRegistered(Address) }
+#[derive(Clone, PartialEq, Eq, Serialize)]
 pub enum CompareError   { DocNotRegistered(Address), NotContentSubspace { operand: Operand, region: usize, index: usize }, MalformedSpan { operand: Operand, region: usize, index: usize, fault: SpecFault } }
+#[derive(Clone, PartialEq, Eq, Serialize)]
 pub enum FindError      { DocNotRegistered(Address), MalformedSpan { region: usize, index: usize, fault: SpecFault } }
 ```
 
@@ -260,9 +277,11 @@ pub fn retrieve_v(&self, specs: &[Spec]) -> Result<Delivery, RetrieveError> {
                 } else {
                     // UNREACHABLE for an ACTIVE position: S3★-aux confines every bound V-position to
                     // subspace ∈ {s_C, s_L}, and `resolve` yields NO runs for any other start subspace
-                    // (M5 holds only content/link positions), so this branch never executes when a run
-                    // exists. Documented silent-drop intent, not an oversight.
-                    debug_assert!(false, "active V-position must be content or link subspace (S3★-aux)");
+                    // (M5 holds only content/link positions), so executing here means upstream
+                    // corruption. PANIC IN ALL PROFILES — one read-path policy with the S3★ `expect`
+                    // above: observed referential-integrity corruption panics; silently dropping an
+                    // active position would violate exactness (R3).
+                    unreachable!("active V-position must be content or link subspace (S3★-aux)");
                 }
                 k += 1u8;
             }
@@ -273,9 +292,9 @@ pub fn retrieve_v(&self, specs: &[Spec]) -> Result<Delivery, RetrieveError> {
 ```
 
 - **Common case:** a single content spec over a contiguous run — one M5 range scan, *w* M4 point lookups (one `Val` per address, each an `Arc` clone). Links never touch M4.
-- **Gaps / depth-incompat / foreign subspaces** all funnel through M5's defensive `resolve` returning fewer-or-zero runs → silent empty contribution; the request still succeeds (R6). The `m_S ≡ 2` simplification means depth-incompatibility *is* `#start ≥ 3`: such a start is **well-formed** (ASN-0115 admits `#s ≥ 2`), so `gate_vspec` *passes* it and `resolve` force-empties it — the R6 silent-empty contribution, never a rejection (depth-compatibility is consulting-state, *not* well-formedness). A start subspace ∉ {1,2} is likewise force-empted upstream (M5 holds no such positions), so the closed `else` arm is unreachable while a run exists — its `debug_assert` records that as intent.
+- **Gaps / depth-incompat / foreign subspaces** all funnel through M5's defensive `resolve` returning fewer-or-zero runs → silent empty contribution; the request still succeeds (R6). The `m_S ≡ 2` simplification means depth-incompatibility *is* `#start ≥ 3`: such a start is **well-formed** (ASN-0115 admits `#s ≥ 2`), so `gate_vspec` *passes* it and `resolve` force-empties it — the R6 silent-empty contribution, never a rejection (depth-compatibility is consulting-state, *not* well-formedness). A start subspace ∉ {1,2} is likewise force-empted upstream (M5 holds no such positions), so the closed `else` arm cannot execute while a run exists — and if it ever does, it `unreachable!`-panics in **all profiles**, the same policy as the S3★ `expect` (observed corruption on the read path panics, never silently drops an active position).
 - **Tradeoff:** I deliver **one item per active V-position** (one `Val` or one `Ref`), not coalesced segments. This is the exact, no-dedup form (R3/R8) and sidesteps byte-clipping entirely — at M4's granularity each address holds one opaque `Val`, so there is no intra-position byte boundary for M6 to realize. Streamed/segmented delivery is an open decision; M5's runs are already gap-aligned, so a segment form would also be safe.
-- The `expect` trusts S3★ (M5's content-side referential integrity); a `None` there means upstream corruption, and panicking is the correct read-path response (silently skipping would violate exactness).
+- The `expect` trusts S3★ (M5's content-side referential integrity); a `None` there means upstream corruption, and panicking is the correct read-path response (silently skipping would violate exactness). The `unreachable!` else-arm applies the identical policy to S3★-aux — the read path has one broken-invariant response (panic in all profiles), not two.
 
 ### RETRIEVEDOCVSPAN & RETRIEVEDOCVSPANSET — synthesize from counts
 
@@ -476,9 +495,10 @@ fn overlap_pair(pb: &Block, qb: &Block) -> Option<CorrPair> {
 }
 
 fn interval_join(p: &[Block], q: &[Block]) -> Vec<CorrPair> {
-    // Simplicity-oracle form: full O(|P|·|Q|) cross-product, emit EVERY I-overlap (X8 fan-out
-    // completeness). Production may sort both sides by i_start and sweep / interval-tree for the
-    // same pair multiset.
+    // v1 REFERENCE IMPLEMENTATION: exhaustive O(|P|·|Q|) double-loop block join — emit EVERY
+    // I-overlap (X8 fan-out completeness). Sort-by-i_start + sweep (or an interval tree) is a
+    // drop-in optimization of this SAME join (same pair multiset); the independent TEST ORACLE is
+    // a per-position hash join on address. One vocabulary — see Open build decisions (canonical).
     let mut out = Vec::new();
     for pb in p { for qb in q { if let Some(c) = overlap_pair(pb, qb) { out.push(c); } } }
     out
@@ -512,7 +532,7 @@ fn fold_adjacent(pairs: Vec<CorrPair>) -> Vec<CorrPair> { pairs }   // identity 
 - **Co-chain totality of the ordinal arithmetic.** Every `ordinal_gap` in `overlap_pair` runs only after the `lo < hi` overlap guard, hence only on addresses sharing one content chain (equal-length, equal prefix below the action point) — so the bare `ordinal(·) − ordinal(·)` subtractions are total `Nat` operations. Different-chain block pairs have disjoint I-intervals and are rejected by the guard before any subtraction. The helpers (`reach_i`/`ordinal_gap`/`max_tumbler`/`min_tumbler`/`vpos_shift`/`vpos_of`) all operate on `Tumbler` (callers thread `.tumbler()` off the `Address`), so the I-axis comparison typechecks uniformly (no `Address`/`Tumbler` mixing).
 - **V-reconstruction lemma (load-bearing for X12-R1 soundness).** `resolve_blocks` sets the first run's `v_start = span.start()` and accumulates `v_start` by each run's width. This is correct **only because content is gap-free** (D-CTG★, the dense-slice occupancy ASN-0113 W4 proves): the first bound V-position of a content span *is* `span.start()`, and `resolve`'s runs tile the bound prefix contiguously in V, so there are no V-gaps to skip. The code states this as the lemma it is and **`debug_assert`s it on *every* run** (`M(d)(v-cursor) == this run's i_start`, via `m5.point`), so a future M5 regression to V-gapped content runs fails loudly **at the exact mis-aligning run** rather than silently mis-aligning `u1`/`u2` (it would then need per-position `point` resolution or a V-carrying run type). Asserting per-run, not first-run-only, is what localizes the failure: under D-CTG★ a first-run check would transitively cover the rest, but a per-run check pins a regression to the precise run that broke density. The tripwire is a `debug_assert!` with `==` (not `debug_assert_eq!`) precisely because `Address`/`Tumbler` are `PartialEq` but not `Debug` — the `*_eq!` form's failure-path `{:?}` formatting would fail to compile in every profile.
 - **Report granularity is deterministic because M5's block decomposition is canonical (the second determinism reliance, beside D-CTG★).** X12 R3 demands the emitted report be a function of `(ρ₁, ρ₂, res_Σ|P, res_Σ|Q)` — "no hidden input and no nondeterminism." M6 emits finer-than-maximal pairs, one per I-overlap of resolved runs, so the pair *granularity* inherits `resolve`'s run splits. That is R3-conforming only because M5's POOM block decomposition is **canonical** — unique maximal runs (ASN-0058 split/merge/canonicalize) — which makes the run splits a pure function of the arrangement restriction `res_Σ|P` / `res_Σ|Q`, never of the edit history that built it. A future M5 relaxation of run canonicality would leave `⟦Γ⟧` correct (R1/R2 are denotational) but make the *listed* pairs history-dependent — an R3 violation. Named here and in the *Delegated* list so it is caught at the seam, not silently.
-- **Fan-out completeness is the whole game** (the place a naïve implementation goes wrong): when an address occurs in multiple P-blocks and/or Q-blocks, `interval_join` must emit the **full cross-product** over each I-overlap, not a lockstep merge. The recommended structure is sort-by-`i_start` + sweep (or interval tree); the O(|P|·|Q|) double loop is the simplicity oracle. Either consumes blocks directly and reads only addresses (never bytes) — simultaneously the correctness property (value-matching over-reports) and the perf property (no content fault).
+- **Fan-out completeness is the whole game** (the place a naïve implementation goes wrong): when an address occurs in multiple P-blocks and/or Q-blocks, `interval_join` must emit the **full cross-product** over each I-overlap, not a lockstep merge. v1 ships the exhaustive double-loop block join as the **reference implementation**; sort-by-`i_start` + sweep (or an interval tree) is a drop-in optimization of the *same* join, and the independent **test oracle** is a per-position hash join on address (*Open build decisions* carries the one canonical statement of this vocabulary). All three consume blocks/addresses only and never read bytes — simultaneously the correctness property (value-matching over-reports) and the perf property (no content fault).
 - **Overlapping windows within one operand are redundant, not wrong.** ASN-0122 X12 permits a spec-set to name overlapping (or repeated) windows; `resolve_blocks` then double-covers the shared V-positions, and `interval_join` emits the overlap pair more than once. This is **denotationally conforming** — `⟦Γ⟧` is a set-union, so duplicates collapse in the denotation (R1/R2 hold), and the *stable* `sort_by_cached_key` in `canonicalize` keeps the listed order deterministic (R3) regardless of duplicate count. A builder may pre-dedupe each operand's regions to shrink the cross-product; correctness does not require it.
 - **`canonicalize`** sorts the pairs lexicographically by `(d1, u1, d2, u2)`, then applies `fold_adjacent`. This is a **deterministic** presentation (X12 R3) of the **complete and sound** relation (R1/R2); it is **not** claimed to be the X11 **maximal** form — X12 **R4 (maximal pairs) is explicitly not required for conformance**. In v1 `fold_adjacent` is the **identity** (a finer-than-maximal, per-overlap report fully conforms under R1–R3); a builder wanting maximal output merges feet-successor-adjacent pairs (pair₂'s feet are the unit-successors of pair₁'s last positions *and* their I-addresses are consecutive) into one wider pair — a pure presentation post-pass that never changes `⟦Γ⟧`. The second-foot tie-break in the sort key is load-bearing under fan-out.
 
@@ -547,7 +567,7 @@ pub fn find_docs_containing(&self, regions: &[Region]) -> Result<Vec<Address>, F
 }
 ```
 
-- The filter is the only difference between the live answer and the historical "ever-contained" answer (`docs_containing` alone) — exactly the step the reference omits. `project(d, coverage)` is an I→V lookup, not a re-search; cost is proportional to the candidate set. Emptiness is tested with **`!= SpanSet::empty()`** (derived structural `PartialEq`), not a fabricated `.is_empty()` — and this structural test is a valid *denotational* emptiness check **only** because of M1's span-set guarantee that **no algebra result ever carries a zero-width member**. Every span member therefore denotes at least one position, so a denotationally-empty `project` result must have *zero* members — i.e. it is exactly the length-0 `SpanSet::empty()`, never a structurally-non-empty vector with an empty denotation. The check rests on that named M1 invariant; should M1/M5 ever expose a `SpanSet`-level, `denotes`-free emptiness predicate (an `is_empty`), switching to it would be strictly more robust, since it would not lean on the canonical-structural-form argument at all.
+- The filter is the only difference between the live answer and the historical "ever-contained" answer (`docs_containing` alone) — exactly the step the reference omits. `project(d, coverage)` is an I→V lookup, not a re-search; cost is proportional to the candidate set. Emptiness is tested with **`!= SpanSet::empty()`** (derived structural `PartialEq`), not a fabricated `.is_empty()` — and this structural test is a valid *denotational* emptiness check **only** because of M1's span-set guarantee that **no algebra result ever carries a zero-width member**. Every span member therefore denotes at least one position, so a denotationally-empty `project` result must have *zero* members — i.e. it is exactly the length-0 `SpanSet::empty()`, never a structurally-non-empty vector with an empty denotation. The check rests on that named M1 invariant; the ask for exactly this — a `SpanSet`-level, `denotes`-free emptiness predicate (`is_empty`) — is **recorded on the M1 seam** (*Dependencies & seams*), and switching to it when it lands would be strictly more robust, since it would not lean on the canonical-structural-form argument at all.
 - **Each region span is well-formedness-gated** (`gate_vspec`), so a malformed or non-ordinal-level span is a typed `MalformedSpan { region, index, fault }` rejection rather than a silent under-resolution that drops containers (FD-COMPLETE). The gate checks *well-formedness only*, never subspace — a link/foreign-subspace span passes and stays inert downstream (it adds nothing to the content-only R⁻¹/`project` machinery), and a depth-incompatible (`#start ≥ 3`) span passes and resolves to empty coverage (consulting-state, contributing nothing — never a rejection).
 - `resolve_coverage` returns raw, possibly mixed-length covers; `docs_containing`/`project` apply the level-class discipline **internally** (M5 contract), so M6 passes the raw union straight through — M6 owns no level-class discipline anywhere.
 - Bare deduplicated identities, no positions/counts (FD codomain), tumbler-ordered (deterministic).
@@ -575,18 +595,18 @@ pub fn find_docs_containing(&self, regions: &[Region]) -> Result<Vec<Address>, F
 - *Completeness under fan-out; deterministic canonical order* — cross-product `interval_join` + `canonicalize`. (X8/R1/R2/R3 0122; X11 maximal / R4 not required.)
 - *Present-tense soundness filter* — `project`-narrowing of `docs_containing`. (FD-SOUND 0124.)
 
-**Delegated (M6 relies on, does not enforce):** contiguity D-CTG★ (the dense-occupancy reliance — a theorem of ASN-0113 W4 — stated once under *Core data model*); **run canonicality** — M5's POOM block decomposition is the unique maximal-run form (ASN-0058 split/merge/canonicalize), which makes `resolve`'s run splits, and with them COMPARE's finer-than-maximal report granularity, a pure function of the arrangement restriction (X12 R3's "no hidden input"), never of edit history — a future M5 relaxation would silently make COMPARE's *listed* pairs history-dependent; and referential integrity S3★ (M5 write path); R permanence/monotonicity, the J-couplings, the **level-class discipline on every coverage set-op**, the R⁻¹ index `docs_containing`, and the per-document `deletions`/`content_runs` covers from which M6 composes the cross-document SHOWDELETIONS combine (M5); durability/recovery (M2). M6 trusts these and panics (not silently skips) if S3★ is observed broken on the content side. Every primitive M6 calls is in M1–M5's interface as given — no upstream amendment is required.
+**Delegated (M6 relies on, does not enforce):** contiguity D-CTG★ (the dense-occupancy reliance — a theorem of ASN-0113 W4 — stated once under *Core data model*); **run canonicality** — M5's POOM block decomposition is the unique maximal-run form (ASN-0058 split/merge/canonicalize), which makes `resolve`'s run splits, and with them COMPARE's finer-than-maximal report granularity, a pure function of the arrangement restriction (X12 R3's "no hidden input"), never of edit history — a future M5 relaxation would silently make COMPARE's *listed* pairs history-dependent; and referential integrity S3★ (M5 write path); R permanence/monotonicity, the J-couplings, the **level-class discipline on every coverage set-op**, the R⁻¹ index `docs_containing`, and the per-document `deletions`/`content_runs` covers from which M6 composes the cross-document SHOWDELETIONS combine (M5); durability/recovery (M2). M6 trusts these and panics (not silently skips) if S3★ or S3★-aux is observed broken on the read path — a content position with no stored value (RETRIEVEV's `expect`) or an active position outside both subspaces (RETRIEVEV's `unreachable!` arm) — one policy in all build profiles. Every primitive M6 calls is in M1–M5's interface as given — no upstream amendment is required.
 
 ## Dependencies & seams
 
 **Upstream calls (concrete):**
-- **M1** — `document_of` (origin projection, SHOWORIGIN_V; I-address → origin Document in `run_addr`); `shift`/`shift_ordinal`+`ElemPos`/`elem_addr` (run-address enumeration, V-cursor advance, COMPARE `reach_i`); `from_endpoints`/`Span::new` (extent synthesis); `action_point`/`zeros`/`ordinal`/`Tumbler::get`/`Tumbler::new`/`is_level_uniform`/`element_field` (gates, the depth-agnostic count read, the `run_addr` element-field tripwire, COMPARE ordinal arithmetic); `union`/`SpanSet::singleton`/`SpanSet::empty`/`SpanSet::is_normalized`/`SpanSet::denotes`/`SpanSet` `PartialEq` and tumbler `Ord` (set algebra, COMPARE overlaps, the FINDDOCSCONTAINING filter test, the **SHOWDELETIONS membership test**, dedup ordering, normal-form assert). The FINDDOCSCONTAINING `!= SpanSet::empty()` test leans on M1's *no-zero-width-member* span-set boundary (denotation-empty ⇒ structurally `empty()`).
+- **M1** — `document_of` (origin projection, SHOWORIGIN_V; I-address → origin Document in `run_addr`); `shift`/`shift_ordinal`+`ElemPos`/`elem_addr` (run-address enumeration, V-cursor advance, COMPARE `reach_i`); `from_endpoints`/`Span::new` (extent synthesis); `action_point`/`zeros`/`ordinal`/`Tumbler::get`/`Tumbler::new`/`is_level_uniform`/`element_field` (gates, the depth-agnostic count read, the `run_addr` element-field tripwire, COMPARE ordinal arithmetic); `union`/`SpanSet::singleton`/`SpanSet::empty`/`SpanSet::is_normalized`/`SpanSet::denotes`/`SpanSet` `PartialEq` and tumbler `Ord` (set algebra, COMPARE overlaps, the FINDDOCSCONTAINING filter test, the **SHOWDELETIONS membership test**, dedup ordering, normal-form assert). The FINDDOCSCONTAINING `!= SpanSet::empty()` test leans on M1's *no-zero-width-member* span-set boundary (denotation-empty ⇒ structurally `empty()`). **One ask rides this seam** (M6's third upstream ask, beside the two on M5 below): that M1 surface a denotational, `denotes`-free **`SpanSet::is_empty()`** (zero members ⇔ empty denotation, which no-zero-width-member already forces), so the FINDDOCSCONTAINING emptiness test can stop leaning on the structural-`PartialEq` argument; until then `!= SpanSet::empty()` stands on the named invariant.
 - **M2** — `snapshot()` (one per logical query; M10 takes it), `Snapshot::world()`/`seq()`. No `transact`, no `Kernel` — M6 never writes.
 - **M3** — `is_registered_document` (the universal allocation gate). Not `effective_owner` (authorization is M10's; SHOWORIGIN reports origin *documents*, not owners).
 - **M4** — `value_at` (RETRIEVEV content only). `contains` available as a defensive S3★ check but not needed (M5 guarantees it). Never touched by COMPARE/extent/containment/deletions.
-- **M5** — the workhorse: `resolve` (RETRIEVEV, SHOWORIGIN_V, COMPARE), `resolve_coverage` (FINDDOCSCONTAINING phase 1), `content_count`/`link_count` (extent queries, SHOWORIGIN_V subspace gate), `point` (COMPARE's per-run debug-assert of the V-reconstruction lemma), `project` (FINDDOCSCONTAINING present-tense filter), `docs_containing` (FINDDOCSCONTAINING phase 2), `content_runs` + `deletions` (SHOWDELETIONS: enumerate `content_image` and membership-test the per-document deleted cover; `ever_placed` is the defensive exactness-independent cross-check). M6's public `CompareReport`/`CorrPair` also carry M5's `VPos`, re-exported (`pub use m5::VPos;`) so M10 marshals it through M6's surface. All of these are in M5's interface **as given** — no amendment; **two documentation asks ride this seam:** (a) that M5 surface **D-CTG★** as a named interface invariant (the dense-slice occupancy ASN-0113 W4 proves), since COMPARE's `u1`/`u2` soundness rests on it; (b) that M5 state explicitly that **`resolve` serves link-subspace V-spans** — its defensive conditions name no subspace (unlike `project`, which is explicitly content-only), and M6 leans on that reading: RETRIEVEV's `DeliveryItem::Ref` items and SHOWORIGIN_V's `s_L` arity are correct only if a link-subspace depth-2 span resolves to its runs; a content-only `resolve` would silently violate R3 exactness for link specs.
+- **M5** — the workhorse: `resolve` (RETRIEVEV, SHOWORIGIN_V, COMPARE), `resolve_coverage` (FINDDOCSCONTAINING phase 1), `content_count`/`link_count` (extent queries, SHOWORIGIN_V subspace gate), `point` (COMPARE's per-run debug-assert of the V-reconstruction lemma), `project` (FINDDOCSCONTAINING present-tense filter), `docs_containing` (FINDDOCSCONTAINING phase 2), `content_runs` + `deletions` (SHOWDELETIONS: enumerate `content_image` and membership-test the per-document deleted cover; `ever_placed` is the defensive exactness-independent cross-check). M6's public `CompareReport`/`CorrPair` also carry M5's `VPos`, re-exported (`pub use m5::VPos;`) so M10 marshals it through M6's surface. All of these are in M5's interface **as given** — no amendment; **two documentation asks ride this seam** (M6's third ask — the denotational `SpanSet::is_empty` — rides the M1 bullet above): (a) that M5 surface **D-CTG★** as a named interface invariant (the dense-slice occupancy ASN-0113 W4 proves), since COMPARE's `u1`/`u2` soundness rests on it; (b) that M5 state explicitly that **`resolve` serves link-subspace V-spans** — its defensive conditions name no subspace (unlike `project`, which is explicitly content-only), and M6 leans on that reading: RETRIEVEV's `DeliveryItem::Ref` items and SHOWORIGIN_V's `s_L` arity are correct only if a link-subspace depth-2 span resolves to its runs; a content-only `resolve` would silently violate R3 exactness for link specs.
 
-**Downstream seam (what M6 exposes — only M10 consumes it):** the seven read methods on `Query<'s, W>`. The contract M10 codes against: take a snapshot, build a `Query`, call the op, **marshal the returned value, and surface any `Err(_)` as a typed rejection** (these are precondition/well-formedness failures, never silent skips); a registered-empty document yields the operation's empty form (`⟨⟩`/empty `Delivery`/empty halves/`[]`), an unallocated one yields the op's `DocNotRegistered(Address)` error (uniform payload across all seven error enums). M6 returns by value and never commits, so there is no commit-before-acknowledge step for reads. All seven operations ship against the upstream interfaces as given; M10's reader surface carries no SHOWORIGIN-over-I (it cannot — M6 exposes only the V-arity), so the V-arity-only origin path is settled (Conflicts resolved 2).
+**Downstream seam (what M6 exposes — only M10 consumes it):** the seven read methods on `Query<'s, W>`. The contract M10 codes against: take a snapshot, build a `Query`, call the op, **marshal the returned value** (per the derive policy stated in *Public interface*: serde-derived except `CorrPair`/`CompareReport`, which M10 destructures field-by-field), **and surface any `Err(_)` as a typed rejection** (these are precondition/well-formedness failures, never silent skips); a registered-empty document yields the operation's empty form (`⟨⟩`/empty `Delivery`/empty halves/`[]`), an unallocated one yields the op's `DocNotRegistered(Address)` error (uniform payload across all seven error enums). M6 returns by value and never commits, so there is no commit-before-acknowledge step for reads. All seven operations ship against the upstream interfaces as given; M10's reader surface carries no SHOWORIGIN-over-I (it cannot — M6 exposes only the V-arity), so the V-arity-only origin path is settled (Conflicts resolved 2).
 
 **Engine assembly:** M6 contributes **no slice, no record variant, no accessor trait, no fold** — it is a pure consumer of `HasM3 + HasContent + HasM5`. Nothing in the engine's `World`/`Record` comes from M6, and no `apply`/`rebuild_derived` obligation attaches to it. (It therefore trivially satisfies the composition contract by being generic over `W` and naming no concrete `World`/`Record`.)
 
@@ -610,7 +630,7 @@ pub fn find_docs_containing(&self, regions: &[Region]) -> Result<Vec<Address>, F
 
 ## Open build decisions
 
-- **COMPARE matcher structure.** Sort-by-`i_start` + sweep (or interval tree) for the cross-product join — the production default, consumes M5's blocks directly — vs. a per-position hash join on address (obviously fan-out-complete; the simplicity oracle to validate against). Pick the block interval join; keep the hash join as the test oracle.
+- **COMPARE matcher structure** *(the one canonical statement — the `interval_join` comment and the fan-out bullet defer here)*. v1's **reference implementation** is the exhaustive O(|P|·|Q|) double-loop block join, shipped as `interval_join`. **Sort-by-`i_start` + sweep** (or an interval tree) is a drop-in *optimization of the same join* — same pair multiset — to adopt when profiles demand it (an optimization path, not the shipped form). The **independent test oracle** is a per-position hash join on address (obviously fan-out-complete), used to validate whichever join ships. One vocabulary throughout: "reference implementation" = the shipped double loop; "optimization" = sweep/interval tree; "oracle" = the hash join, and only the hash join.
 - **COMPARE maximal output.** Ship `fold_adjacent` as the identity (per-overlap, finer-than-maximal — fully conforming, R4 not required) vs. the feet-successor-adjacency merge for literal X11 maximal pairs. Default to identity; add the merge only if a consumer demands maximal form (it changes presentation, never `⟦Γ⟧`).
 - **RETRIEVEV delivery shape.** Per-position items (chosen default — exact, simplest) vs. coalesced gap-aligned segments vs. lazy streaming for large spec-sets. If streaming, decide how back-pressure interacts with partial-delivery (a stream still "succeeds" while emitting nothing for gaps), and whether `DeliveryItem::Content` borrows through the snapshot (zero-copy) instead of cloning the `Arc`.
 - **Snapshot ownership.** M6 methods take `&Snapshot` so M10 controls the consistency scope (recommended); a convenience that snapshots per call is possible but couples M6 to `&Kernel`.
