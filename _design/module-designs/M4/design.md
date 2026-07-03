@@ -30,7 +30,12 @@ pub struct ContentStore { map: im::HashMap<Tumbler, Val, FixedHasher> }
 /// constructor, so no caller can hand-build a record into the total fold and skip
 /// the AlreadyPresent guard. serde deserializes the private fields for M2's replay
 /// (derive expands at the definition site); the engine only `From`-lifts and folds,
-/// never constructs one from scratch.
+/// never constructs one from scratch. This SATISFIES the composition-contract
+/// checklist's "constructible by upstream producers, readable by downstream
+/// consumers" item: the one sanctioned producer (`stage_write`) is public to M5,
+/// the engine lifts/folds without constructing, and serde replays at the
+/// definition site — every seam crossing works; the field privacy is the S0(b)
+/// guard, not an unusable type.
 #[derive(Clone, Serialize, Deserialize)]
 pub struct ContentWrite { addr: Tumbler, val: Val }
 
@@ -98,12 +103,19 @@ pub fn stage_write(c: &ContentStore, addr: &Address, val: Val)
 /// `#[doc(hidden)]` — exists ONLY to satisfy the contract's two-composable-forms rule; hidden
 /// from docs so callers reach for M5's J0-coupled composite instead. The symbol is KEPT in the
 /// production build (NOT `#[cfg(test)]`-gated) — the contract requires the form to exist.
-/// Body: `let home = document_of(addr).expect("content address ⇒ zeros=3");` then
+/// Body: with `content-addr-guard` ON, the routing check is PREPENDED here too, BEFORE
+/// lock-key derivation (mirroring the sub-choice: full-guard returns
+/// `Err(TxnError::Rejected(ContentError::NotContentAddress(..)))`, debug_assert! panics) —
+/// without this hoist a zeros<2 (Node/Account) input would panic at the `.expect` below
+/// during key derivation before `stage_write`'s guard could fire, and "routing rejected on
+/// its own terms" would hold on this path only for wrong-subspace *element* addresses.
+/// Then (all builds): `let home = document_of(addr).expect("content address ⇒ zeros=3");` then
 /// `k.transact(&[key(&home, s_C)], |stg| { let r = stage_write(stg.working().content(), addr, val)?;
 /// stg.push(r.into()); Ok(addr.tumbler().clone()) })` — deriving the lock key via the shared
 /// `key(...)` constructor with the `s_C` LockKey space-tag. A content address has zeros = 3, so
-/// `document_of(addr)` is always `Some`; the `.expect` above turns the unreachable `None` into a
-/// documented internal-invariant violation on this trusted-address-only op, never a domain rejection.
+/// `document_of(addr)` is always `Some`; in the base build (guard off) the `.expect` IS the
+/// trusted-address contract — it turns the unreachable `None` into a documented internal-invariant
+/// violation on this trusted-address-only op, never a domain rejection.
 #[doc(hidden)]
 pub fn write<W>(k: &Kernel<W>, addr: &Address, val: Val)
     -> Result<(Tumbler, Seq), TxnError<ContentError>>
@@ -121,6 +133,16 @@ where W: WorldState + HasContent, W::Record: From<ContentWrite>;
 pub struct Val(Arc<[u8]>);
 impl Val { pub fn new(b: impl Into<Arc<[u8]>>) -> Val; pub fn as_bytes(&self) -> &[u8]; pub fn len(&self) -> usize; }
 
+/// Content-subspace numeral — ASN-0093's SubspaceConventionAxiom fixes s_C = 1, matching M1's
+/// documented `subspace()` convention (1 = text, 2 = link). Defined HERE, M4-locally, cfg-gated
+/// with its only consumer (Open #4's routing guard): the feature is M4-local and off by default,
+/// so a debug-only assertion does not warrant a shared-base-crate export, and the axiom-pinned
+/// value cannot drift. `Nat` (BigUint) has no const constructor, hence a lazy static, not a
+/// `const`. NOT the skep-kernel `s_C` LockKey space-tag — different constant, different layer.
+#[cfg(feature = "content-addr-guard")]
+pub(crate) static S_C_SUBSPACE: std::sync::LazyLock<Nat> =
+    std::sync::LazyLock::new(|| Nat::from(1u32));
+
 /// `#[non_exhaustive]`: the `content-addr-guard` feature adds/removes `NotContentAddress`,
 /// changing the variant set across build configs, so every downstream matcher — chiefly M10's
 /// surfacing of `TxnError::Rejected(ContentError)` — must carry a wildcard arm; flipping the
@@ -135,8 +157,8 @@ pub enum ContentError {
     /// Optional defense-in-depth (debug/off by default): not a content-subspace element
     /// address. Routing is M5's job, mint-conformance M3's — see Open build decision #4.
     /// SHIPS ONLY with Open #4: `cfg`-gated behind `content-addr-guard` so the base build
-    /// carries no dead variant (and no dead `S_C_SUBSPACE`-numeral / `subspace` / `classify`
-    /// import). Off by default; debug-only when on.
+    /// carries no dead variant (and no dead `S_C_SUBSPACE` static / `subspace` / `Level`
+    /// usage). Off by default; debug-only when on.
     #[cfg(feature = "content-addr-guard")]
     NotContentAddress(Tumbler),
 }
@@ -198,9 +220,9 @@ M4 is deliberately thin in mechanism; each component is a few lines, but the dis
 
 **Upstream — concrete use:**
 
-- **M1.** `Tumbler` (slice/record key — M4 relies only on its `Eq + Hash` for the `im::HashMap`, never `Ord`; see Conflict #3 for why ordering is deliberately unused), `Address` (the value `stage_write`/`write` accept — fresh from M3's `checked_inc`), `document_of` (derive the lock key for the standalone op), and — *only if* the optional content-address assertion is on (Open #4, `cfg(content-addr-guard)`) — `subspace`/`classify`/`Level` plus the content-subspace numeral `S_C_SUBSPACE: Nat` (sourced as a shared address-level constant matching M1's documented `subspace`==1 / ASN-0093's `s_C = 1` convention — *not* the skep-kernel LockKey tag). These last imports are cfg-gated behind `content-addr-guard`, so the base build carries none of them dead. No span/span-set use: M4 stores scalar values, not spans.
+- **M1.** `Tumbler` (slice/record key — M4 relies only on its `Eq + Hash` for the `im::HashMap`, never `Ord`; see Conflict #3 for why ordering is deliberately unused), `Address` (the value `stage_write`/`write` accept — fresh from M3's `checked_inc`), `document_of` (derive the lock key for the standalone op), and — *only if* the optional content-address assertion is on (Open #4, `cfg(content-addr-guard)`) — `subspace`/`Level` (the guard body uses only `level()` and `subspace()`; `classify` is not needed). The content-subspace numeral `S_C_SUBSPACE: Nat` the guard compares against is **defined M4-locally** under the same gate (see Types & errors), not imported: the feature is M4-local and off by default, so a debug-only guard warrants no shared-crate export, and the value (1) is pinned by ASN-0093's SubspaceConventionAxiom — matching M1's documented `subspace()` convention (1 = text) — so local definition cannot drift; it is *not* the skep-kernel LockKey tag. These guard usages are cfg-gated behind `content-addr-guard`, so the base build carries none of them dead. No span/span-set use: M4 stores scalar values, not spans.
   - **Serde preconditions (M1's part already met; the rest are M4-local).** M4's slice (`ContentStore`) and record (`ContentWrite`) both `#[derive(Serialize, Deserialize)]`, which requires `Tumbler: Serialize + DeserializeOwned` (and transitively `Nat = BigUint: Serialize`). **M1 as given already provides this:** it derives `#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]` on both `Tumbler` and `Address`, and its overview already requires `num-bigint` built with its `serde` feature. M4 relies on that standing M1 guarantee — there is no missing upstream derive and nothing to escalate. The serde knobs M4 must turn on are **local to M4's own dependencies**: (i) the `im` crate's `serde` feature, since `im::HashMap`'s `Serialize`/`Deserialize` impls are feature-gated (this is what makes `ContentStore`'s derive compile); and (ii) serde's `rc` feature for the `Arc<[u8]>` impls behind `Val` (already flagged at `Val`'s definition; the rc-free `&[u8] ⇄ Vec<u8>→Arc::from` round-trip is the alternative). M4 owns the `im` and `serde` dependencies, so it enables both features itself.
-- **M2.** Provides `apply`-driven commit + replay (engine wires `apply_write`), `Snapshot`/`world()` (readers obtain `&ContentStore`), `Kernel::transact` (standalone `write` only), `LockKey`, `Seq`. **M4 owns no journal, replay, snapshot, or recovery** — all M2's. The per-(document, content-subspace) `LockKey` must be byte-identical across M3 alloc / M4 write / M5 placement, so M4 imports both pieces from their composition-contract homes rather than re-spelling either — and those homes are *split* by what each names: the `s_C` **LockKey space-tag** (the 1-byte content-subspace discriminator the key carries) names only M2 types, so it lives in **`skep-kernel`** beside the central 1-byte space-tag enum the key draws its tag from; the `key(home: &Address, …) -> LockKey` *constructor* names **both** `Address` (M1) and `LockKey` (M2), so it cannot live in `skep-kernel` (M2 has no edge to M1) and instead lives in the **shared base crate over `skep-address` + `skep-kernel`**. M4 imports the `s_C` tag from `skep-kernel` and `key(...)` from the shared base crate; it does not re-define `key(...)` or re-spell the `s_C` tag locally, and neither do M3 or M5 — the three modules emit identical bytes precisely because there is exactly one source for each. This `s_C` tag is the *only* `s_C` on M4's core path; the homonymous **address-subspace numeral** (`S_C_SUBSPACE: Nat`, ASN-0093's `s_C = 1`) is a different constant at a different layer (M1 / shared address vocabulary), enters M4 only through Open-#4's optional assertion, and is never the byte the lock key carries — keeping the two apart is what makes that assertion typecheck (`addr.subspace(): Option<Nat>` compares against `S_C_SUBSPACE: Nat`, never the kernel tag).
+- **M2.** Provides `apply`-driven commit + replay (engine wires `apply_write`), `Snapshot`/`world()` (readers obtain `&ContentStore`), `Kernel::transact` (standalone `write` only), `LockKey`, `Seq`. **M4 owns no journal, replay, snapshot, or recovery** — all M2's. The per-(document, content-subspace) `LockKey` must be byte-identical across M3 alloc / M4 write / M5 placement, so M4 imports both pieces from their composition-contract homes rather than re-spelling either — and those homes are *split* by what each names: the `s_C` **LockKey space-tag** (the 1-byte content-subspace discriminator the key carries) names only M2 types, so it lives in **`skep-kernel`** beside the central 1-byte space-tag enum the key draws its tag from; the `key(home: &Address, …) -> LockKey` *constructor* names **both** `Address` (M1) and `LockKey` (M2), so it cannot live in `skep-kernel` (M2 has no edge to M1) and instead lives in the **shared base crate over `skep-address` + `skep-kernel`**. M4 imports the `s_C` tag from `skep-kernel` and `key(...)` from the shared base crate; it does not re-define `key(...)` or re-spell the `s_C` tag locally, and neither do M3 or M5 — the three modules emit identical bytes precisely because there is exactly one source for each. This `s_C` tag is the *only* `s_C` on M4's core path; the homonymous **address-subspace numeral** (`S_C_SUBSPACE: Nat`, ASN-0093's `s_C = 1`) is a different constant at a different layer (an M4-local, cfg-gated lazy static pinned by ASN-0093's SubspaceConventionAxiom — see Types & errors), enters M4 only through Open-#4's optional assertion, and is never the byte the lock key carries — keeping the two apart is what makes that assertion typecheck (`addr.subspace(): Option<Nat>` compares against the `Nat` numeral, never the kernel tag).
 
 **Downstream — seam contracts neighbors build against:**
 
@@ -227,9 +249,9 @@ The two source notes largely agree on M4's territory; the substantive resolution
 
 ## Open build decisions
 
-1. **Inline vs out-of-line values.** Default: inline `Val(Arc<[u8]>)` in record and slice — simplest, bytes durable in M2's journal, good for many small text atoms. Switch to an out-of-line blob store (slice holds `address → blobref`) **when** content volume makes per-checkpoint slice serialization the bottleneck — it shrinks the serialized slice and cheapens M2's checkpoints, at the cost of reintroducing a blob-durability concern (either M4-owned, a deviation from "M2 owns durability," or rebuildable by replaying M2's `ContentWrite` records, which still carry the bytes). Pick under measurement of content-size distribution and checkpoint cost.
+1. **Inline vs out-of-line values.** Default: inline `Val(Arc<[u8]>)` in record and slice — simplest, bytes durable in M2's journal, good for many small text atoms. Switch to an out-of-line blob store (slice holds `address → blobref`) **when** content volume makes per-checkpoint slice serialization the bottleneck — it shrinks the serialized slice and cheapens M2's checkpoints, at the cost of reintroducing a blob-durability concern (either M4-owned, a deviation from "M2 owns durability," or rebuildable by replaying M2's `ContentWrite` records, which still carry the bytes). **Hard constraint on any out-of-line variant:** M2's `apply` obligation — deterministic, total, side-effect-free — forbids blob-file I/O inside the fold, so blobs must be materialized *outside* `apply`: written at stage/commit time before the record reaches the fold, or reconstructed as a `rebuild_derived`-seeded cache; `apply` itself folds only the pure `address → blobref` entry. Pick under measurement of content-size distribution and checkpoint cost.
 2. **Internal value-dedup (CAS-underneath).** Optional `value-hash → blobref` compression layer beneath the map (many addresses → one stored byte-run), naturally paired with out-of-line blobs. Pure optimization; **must never surface as identity** (S4). If skip-serialized, it becomes the one derived hint requiring an engine `rebuild_derived` contribution. Enable only if content has high byte-level duplication and space matters.
 3. **Record granularity.** Single `ContentWrite` per atom (matches K.α, `m` records per INSERT) vs a batched `ContentWriteRun { writes: Vec<(Tumbler, Val)> }` folded as `m` inserts. Default single; batch if per-record overhead in M2's journal dominates for large contiguous inserts. (A batched record keeps private fields + a `stage_write`-style sole constructor for the same S0(b) guarantee.)
-4. **Defensive content-address assertion strength.** `stage_write` can additionally check `addr.level()==Element ∧ addr.subspace()==Some(S_C_SUBSPACE)` (→ `NotContentAddress`), where `S_C_SUBSPACE: Nat` is the content-subspace numeral (ASN-0093's `s_C = 1`, sourced as a shared address-level constant — *not* the `s_C` LockKey space-tag, against which `addr.subspace(): Option<Nat>` would not even typecheck). This whole surface — the added check in `stage_write` (which runs *before* the `AlreadyPresent` overwrite check, per the body sketch), the `NotContentAddress` variant, the `S_C_SUBSPACE` constant, and the `subspace`/`classify`/`Level` imports — is `cfg`-gated behind the `content-addr-guard` feature so the base build stays dead-code/unused-import clean. Choose: full runtime guard (paranoid, couples M4 to `S_C_SUBSPACE`, returns `NotContentAddress`), `debug_assert!` only (recommended — catches routing bugs in test, free in release), or off (trust M5's routing + M3's mint entirely). Recommend debug-only, with the feature off by default.
+4. **Defensive content-address assertion strength.** `stage_write` can additionally check `addr.level()==Element ∧ addr.subspace()==Some(S_C_SUBSPACE)` (→ `NotContentAddress`), where `S_C_SUBSPACE` is the content-subspace numeral defined **M4-locally** under the same feature gate (see Types & errors; value 1, pinned by ASN-0093's SubspaceConventionAxiom and matching M1's documented `subspace()` convention — *not* the `s_C` LockKey space-tag, against which `addr.subspace(): Option<Nat>` would not even typecheck). This whole surface — the added check in `stage_write` (which runs *before* the `AlreadyPresent` overwrite check, per the body sketch), the matching check PREPENDED in the standalone `write` before lock-key derivation (§C — without it, a zeros<2 input would panic at the `.expect` before the guard could fire), the `NotContentAddress` variant, the `S_C_SUBSPACE` static, and the `subspace`/`Level` usage — is `cfg`-gated behind the `content-addr-guard` feature so the base build stays dead-code/unused-import clean. Choose: full runtime guard (paranoid, returns `NotContentAddress`), `debug_assert!` only (recommended — catches routing bugs in test, free in release), or off (trust M5's routing + M3's mint entirely). Recommend debug-only, with the feature off by default.
 5. **HashMap hasher.** A fixed-seed deterministic hasher is decided (reproducible checkpoints), surfaced as the `FixedHasher` alias on `ContentStore`'s `map`; the *specific* type that alias resolves to (`BuildHasherDefault<FxHasher>` / fixed-key SipHash / aHash-fixed-seed) is a minor pick under microbenchmark, constrained only to be `BuildHasher + Default + Clone` so the slice's `Default`/`Clone`/`Deserialize` derives hold.
 6. **`value_at` return type — borrowed vs cloned.** Default `Option<&Val>`, which ties the value's lifetime to the pinning `Snapshot` (caller binds the snapshot first). Since `Val` is `Arc<[u8]>` with O(1) clone, returning `Option<Val>` would decouple the value's lifetime from the snapshot for callers like M6/M9, at the cost of one Arc refcount bump per read. Minor ergonomics call; default to the borrowed form, switch to cloned if the snapshot-lifetime coupling proves awkward at a call site.
