@@ -37,6 +37,10 @@ pub enum DelegateError{ DelegatorUnknown, DuplicateId, NotAncestor, NotAuthorize
 // NotAccountTier now means zeros(new_prefix) != 1 — a node-tier (zeros=0) OR document-tier (zeros≥2)
 //   prefix; (iii) is NARROWED from O15's ≤1 to ==1 (§6 / Conflicts §7) and HOISTED to delegate's
 //   pure pre-work, before namespace()/lock-key construction (§6).
+// Rejection order is PINNED (§6): NotValid → NotAccountTier (pre-work — both Rejected with NO
+//   transaction opened) → DelegatorUnknown → NotAncestor → NotAuthorized → NotTopDown → NotFresh →
+//   DuplicateId → ParentNotRegistered → NotNextForm; a multiply-defective input earns the FIRST
+//   applicable rejection.
 pub enum NodeError    { NotValid, NotNode, NotFresh, NotDescendantOfBootstrap }
 ```
 
@@ -120,9 +124,11 @@ impl<W: WorldState + HasM3> Namespace<W> where W::Record: From<M3Rec> { // the F
     /// BEFORE any namespace()/lock-key construction (a merely-validated prefix can be a parentless
     /// 1-component node — §6) — PLUS id-freshness PLUS P8 (parent registered) PLUS next-form, every
     /// race-prone condition evaluated in-closure under the held principals+namespace locks (§6) — then
-    /// baptize the new account prefix AND register the principal in ONE transaction. A reused `new_id`
-    /// → DuplicateId; a node-tier (or document-tier) `new_prefix` → NotAccountTier. Returns the new
-    /// account address and its commit Seq. [ASN-0042]
+    /// baptize the new account prefix AND register the principal in ONE transaction. The two pre-work
+    /// rejections — NotValid (validate-lift) and NotAccountTier (hoisted (iii)) — return
+    /// Err(TxnError::Rejected(…)) directly, opening NO transaction (as fork's unknown-id path does).
+    /// Rejection order is pinned (§6). A reused `new_id` → DuplicateId; a node-tier (or document-tier)
+    /// `new_prefix` → NotAccountTier. Returns the new account address and its commit Seq. [ASN-0042]
     pub fn delegate(&self, delegator: PrincipalId, new_prefix: Tumbler, new_id: PrincipalId)
         -> Result<(Address, Seq), TxnError<DelegateError>>;
 
@@ -242,11 +248,21 @@ pub enum M3Rec {                                   // M3's journal deltas, lifte
 /// extends a REGISTERED parent, so an Allocate has ≥ 2 components; `delegate` tier-checks (iii)
 /// before staging, so a RegisterPrincipal prefix parses N·0·U). A hand-constructed malformed M3Rec
 /// (e.g. a 1-component Allocate) is OUTSIDE this domain and fail-stops on the expects below by
-/// design — corruption, not a live error path.
+/// design — as does an Allocate that regresses or jumps a frontier (ordinal ≠ count+1), on the
+/// Allocate arm's contiguity debug_assert — corruption, not a live error path.
 pub fn apply_ns(&self, r: &M3Rec) -> M3State {
     let mut s = self.clone();
     match r {
-        M3Rec::Allocate{ addr }            => { let (p, g, n) = decompose(addr); s.frontiers.insert(NsKey{ parent: p, g }, n); }
+        M3Rec::Allocate{ addr } => {
+            let (p, g, n) = decompose(addr);
+            let key = NsKey{ parent: p, g };
+            // Contiguity fail-stop (the frontier mirror of the shape `expect`s): every record M3's
+            // own paths stage mints exactly c_{m+1}, so at fold time the ordinal is frontier+1 —
+            // a regressed or jumped ordinal is OUTSIDE the totality domain, never silently absorbed.
+            debug_assert_eq!(n, s.frontiers.get(&key).cloned().unwrap_or_else(Nat::zero) + 1u32,
+                             "Allocate ordinal must equal its namespace frontier + 1");
+            s.frontiers.insert(key, n);
+        }
         M3Rec::RegisterNode{ addr }        => { s.nodes.insert(addr.clone()); }
         M3Rec::RegisterPrincipal{ prefix, id } => {
             let ad = validate(prefix.clone()).expect("a registered principal prefix is T4-valid");
@@ -472,21 +488,24 @@ The deep point: M3 cannot read M4's `dom(C)` or M7's `dom(L)` (the DAG forbids `
 `owns(prefix, a)` is a pure two-tumbler prefix test (O1) — coordination-free, pushable to the edge, consulting no state — and its signature carries the misuse warning (Public interface §C): it is a containment test, never an authorization check. **`effective_owner` (ω) is the one operation that consults Π**: longest-prefix match.
 
 ```rust
-fn effective_owner(&self, a: &Address) -> Option<Principal> {
-    // Only zeros ≤ 1 prefixes of `a` can be principal prefixes (O1a). Enumerate them
-    // longest-first: account-tier prefixes (N·0·U[..j]) then node-tier (N[..i]).
-    self.principal_tier_prefixes(a)             // ≤ depth candidates, longest first
-        .find_map(|p| self.principals.get(&p).cloned())
+impl M3State {
+    fn effective_owner(&self, a: &Address) -> Option<Principal> {
+        // Only zeros ≤ 1 prefixes of `a` can be principal prefixes (O1a). Enumerate them
+        // longest-first: account-tier prefixes (N·0·U[..j]) then node-tier (N[..i]).
+        principal_tier_prefixes(a)              // ≤ depth candidates, longest first
+            .find_map(|p| self.principals.get(&p).cloned())
+    }
 }
 
-fn principal_tier_prefixes(&self, a: &Address) -> impl Iterator<Item = Tumbler> + '_ {
-    // a's T4-valid, zeros ≤ 1 prefixes, LONGEST FIRST (O1a). For each prefix length L from #a
-    // down to 1, reconstruct a[..L] (via M1 Tumbler::new over a's first L components) and keep it
-    // iff T4-valid ∧ zeros ≤ 1. validate drops the single trailing-zero length (N·0, non-T4) and
-    // the zeros ≤ 1 filter caps the walk at the account field — leaving exactly the account-tier
-    // (N·0·U[..j]) then node-tier (N[..i]) prefixes. Every account-tier prefix is strictly longer
-    // than every node-tier one, so descending L is globally longest-first; ≤ #a (= depth)
-    // candidates, never O(#allocated).
+/// FREE function — pure, consults no state (the house style for pure helpers: `decompose`,
+/// `namespace`, the `*_ns` constructors). a's T4-valid, zeros ≤ 1 prefixes, LONGEST FIRST (O1a).
+/// For each prefix length L from #a down to 1, reconstruct a[..L] (via M1 Tumbler::new over a's
+/// first L components) and keep it iff T4-valid ∧ zeros ≤ 1. validate drops the single
+/// trailing-zero length (N·0, non-T4) and the zeros ≤ 1 filter caps the walk at the account
+/// field — leaving exactly the account-tier (N·0·U[..j]) then node-tier (N[..i]) prefixes. Every
+/// account-tier prefix is strictly longer than every node-tier one, so descending L is globally
+/// longest-first; ≤ #a (= depth) candidates, never O(#allocated).
+fn principal_tier_prefixes(a: &Address) -> impl Iterator<Item = Tumbler> + '_ {
     (1..=a.tumbler().len()).rev().filter_map(move |L| {
         let p = Tumbler::new((1..=L).map(|i| a.tumbler().get(i).clone())).ok()?;
         validate(p).ok().filter(|ad| zeros(ad.tumbler()) <= 1).map(|ad| ad.tumbler().clone())
@@ -504,7 +523,7 @@ The default walk above point-`get`s at most `#a` tier-prefixes. The optional `Or
 
 ### 6. Delegation gate
 
-`delegate` does its **pure** work first, before opening `transact`: it `validate`-lifts the supplied `new_prefix` to an `Address` (`NotValid` otherwise — the T4-valid half of condition (v)), then **immediately discharges condition (iii)** — `zeros(new_prefix) == 1`, else `NotAccountTier` (the `≤1 → ==1` narrowing below). The tier check is **hoisted into this pre-work deliberately**, because the validate-lift alone does *not* make `namespace(new_prefix)`/`parent(new_prefix)` safe to compute: a 1-component tumbler such as `[7]` is T4-valid (a bare node address — M1's `parent` returns `None` exactly there), so building the namespace key from a merely-validated, externally supplied prefix would panic where the interface promises a typed rejection. After (iii), safety is structural: a zeros=1 T4-valid address parses as `N·0·U` (≥ 3 components), so `parent`/`decompose`/`namespace` are total on it. Hoisting is consistent with the in-closure discipline — that discipline exists for the *race-prone* conditions, and (iii) is pure and state-free. From the lifted, tier-checked address it builds the two `LockKey`s it will hold — the new account's namespace key `ns_lock_key(namespace(new_prefix))` (to serialize the `Allocate`) **and** `principals_lock_key()` (to serialize the principal mutation and the ω/id reads, §8) — and hands both to `transact`.
+`delegate` does its **pure** work first, before opening `transact`: it `validate`-lifts the supplied `new_prefix` to an `Address` (`NotValid` otherwise — the T4-valid half of condition (v)), then **immediately discharges condition (iii)** — `zeros(new_prefix) == 1`, else `NotAccountTier` (the `≤1 → ==1` narrowing below). The tier check is **hoisted into this pre-work deliberately**, because the validate-lift alone does *not* make `namespace(new_prefix)`/`parent(new_prefix)` safe to compute: a 1-component tumbler such as `[7]` is T4-valid (a bare node address — M1's `parent` returns `None` exactly there), so building the namespace key from a merely-validated, externally supplied prefix would panic where the interface promises a typed rejection. After (iii), safety is structural: a zeros=1 T4-valid address parses as `N·0·U` (≥ 3 components), so `parent`/`decompose`/`namespace` are total on it. Hoisting is consistent with the in-closure discipline — that discipline exists for the *race-prone* conditions, and (iii) is pure and state-free. **Both pre-work failures — `NotValid`, `NotAccountTier` — surface as `Err(TxnError::Rejected(…))` without opening a transaction** — the same no-transaction rejection shape `fork` gives an unknown id. From the lifted, tier-checked address it builds the two `LockKey`s it will hold — the new account's namespace key `ns_lock_key(namespace(new_prefix))` (to serialize the `Allocate`) **and** `principals_lock_key()` (to serialize the principal mutation and the ω/id reads, §8) — and hands both to `transact`.
 
 **Every race-prone gate condition is then evaluated *inside* the closure, against `stg.base().m3()`, under those held locks** — not on a pre-transaction `snapshot()`. A pre-transaction snapshot read is admissible only as an optional fail-fast (to avoid opening a doomed transaction); it is never authoritative. The closure resolves the delegator (`dp := principal_prefix(delegator)`, `DelegatorUnknown` if the id names no principal — the §5 scan), evaluates the remaining conditions — O15's (i), (ii), (iv), (v) **plus id-freshness plus P8 plus next-form** ((iii) is already discharged in pre-work) — and — iff all pass — baptizes the new account prefix (`Allocate{new_prefix}`, advancing its account-chain frontier) and registers the principal (`RegisterPrincipal`) in that **one transaction** (atomicity is the crux; M2's `transact` gives it; a two-phase baptize-then-register could half-fail). All conditions read the lifted address:
 
@@ -518,6 +537,8 @@ The default walk above point-`get`s at most `#a` tier-prefixes. The optional `Or
       parent-reg    entity_level(parent(new_prefix)).is_some()       P8 → ParentNotRegistered  [monotone — E append-only P1]
       next-form     new_prefix == next_in(namespace(new_prefix))     O17c → NotNextForm      [NON-MONOTONE → in-closure]
 ```
+
+**Rejection order is pinned** to the listing order: pre-work `NotValid` (validate-lift) then `NotAccountTier` ((iii)) — both `Rejected` with no transaction opened; in-closure `DelegatorUnknown` (delegator resolution — (i)/(ii) need `dp`), then `NotAncestor` (i), `NotAuthorized` (ii), `NotTopDown` (iv), `NotFresh` ((v) freshness), `DuplicateId` (id-fresh), `ParentNotRegistered` (parent-reg), `NotNextForm` (next-form). A multiply-defective input earns the **first** applicable rejection; conformance tests and M10's error handling may rely on this order.
 
 **(iv), concretely.** Because `principals` is an `OrdMap` under tumbler order and the extensions of `new_prefix` form a contiguous block (T5), a *single* probe settles top-down: `principals.range(new_prefix.tumbler().clone()..)`, take the first key `k`, and reject `NotTopDown` iff `is_prefix(new_prefix.tumbler(), k) && k != new_prefix.tumbler()` — a registered principal sits strictly under `new_prefix`. If that first key ≥ `new_prefix` is *not* an extension of `new_prefix`, none is (the block is empty). No full scan.
 
@@ -546,7 +567,7 @@ M3 **rides M2** — it builds no WAL of its own. Its three structures are part o
 
 **Correctness must not lean on M2 v1's global applier lock.** That lock currently masks any lock-key defect; per-key concurrency would expose a same-namespace key collision as address reuse — the one fatal error. So the lock keys mirror the frontier keys exactly, **by construction**: each `mint_*` advances `next_in(*_ns(..))` and the caller locks with `Self::*_lock_key(..)`, and `*_lock_key(..) = ns_lock_key(*_ns(..))` — one `*_ns` helper, one injective space-tagged `ns_lock_key` encoding (§1) — so the held lock key and the staged frontier key are the *same bytes*, with nothing in the mint's return to drift. The distinct `Space::Namespace`/`Space::Principals`/`Space::Nodes` tags keep the three key spaces from aliasing each other.
 
-**`delegate`'s race-prone gates are read *inside* the `transact` closure** (off `stg.base().m3()`), within the held-lock region — a pre-transaction `snapshot()` read sits outside every lock and so can only ever be a fail-fast, never authoritative for those. **Two ops (`delegate`, `create_new_document`) hand `transact` *two* keys; the in-closure discipline additionally assumes — as M2's obligation at the `transact(keys, …)` seam — that the whole key set is acquired atomically/deadlock-free and the `base()` root is taken only after acquisition:** trivially true under v1's single applier, and discharged under a per-key M2 realization by acquiring the set in canonical (bytewise) order before the closure runs. `delegate` therefore holds `principals_lock_key()` **load-bearingly**: its `new_prefix` is *fresh*, and the top-down / next-form / authorization reads race against concurrent **same-namespace** delegations while the id-freshness read races against concurrent **same-id** delegations — which may target a *different* namespace (a different `new_prefix` carrying the same `new_id`). Because that id race is **cross-namespace**, only the *single global* principal-registry key serializes it (alongside the same-namespace reads and the `RegisterPrincipal` insert); a per-subtree principal key would let two same-id delegations in different subtrees both pass id-freshness off stale `base()` and both commit `RegisterPrincipal{_, new_id}` — a duplicate id, the O1b-mirror violation. (The prefix-collision race is already covered by the namespace lock `delegate` also holds; see [Open decisions](#open-build-decisions).) `create_new_document` holds the same key only **defensively**: its `ω(account)` read is *stale-safe* (ω of an existing account is stable — freshness (v) + O1a: every account-tier prefix of an existing account is already baptized and the node tier is closed to delegation, so no concurrent delegation can introduce a longer coverer; a sub-account sits *below* the account and never covers it), so the lock is harmless-redundant, not load-bearing. **M5's cross-owner VERSION needs no principal lock at all** — it **pre-reads** the stable `ω(d_src)` off a snapshot, resolves the owned-vs-cross-owner branch, and holds only the single matching namespace lock (`version_lock_key`/`document_lock_key`). `register_node` holds the coarse `node_lock_key()` to keep its `NotFresh` rejection under per-key concurrency, not for safety (the insert is idempotent). All three principal/node locks are redundant under v1's global applier lock.
+**`delegate`'s race-prone gates are read *inside* the `transact` closure** (off `stg.base().m3()`), within the held-lock region — a pre-transaction `snapshot()` read sits outside every lock and so can only ever be a fail-fast, never authoritative for those. **Two ops (`delegate`, `create_new_document`) hand `transact` *two* keys; the in-closure discipline additionally assumes — as M2's obligation at the `transact(keys, …)` seam — that the whole key set is acquired atomically/deadlock-free and the `base()` root is taken only after acquisition:** trivially true under v1's single applier, and discharged under a per-key M2 realization by acquiring the set in canonical (bytewise) order before the closure runs. (This obligation is stated today only here, in a dependent's spec — M2's interface says merely "hold `keys` for the txn's duration" — so it is **flagged for propagation into M2's interface contract / the composition contract at their next revision**, to be owned where it is discharged.) `delegate` therefore holds `principals_lock_key()` **load-bearingly**: its `new_prefix` is *fresh*, and the top-down / next-form / authorization reads race against concurrent **same-namespace** delegations while the id-freshness read races against concurrent **same-id** delegations — which may target a *different* namespace (a different `new_prefix` carrying the same `new_id`). Because that id race is **cross-namespace**, only the *single global* principal-registry key serializes it (alongside the same-namespace reads and the `RegisterPrincipal` insert); a per-subtree principal key would let two same-id delegations in different subtrees both pass id-freshness off stale `base()` and both commit `RegisterPrincipal{_, new_id}` — a duplicate id, the O1b-mirror violation. (The prefix-collision race is already covered by the namespace lock `delegate` also holds; see [Open decisions](#open-build-decisions).) `create_new_document` holds the same key only **defensively**: its `ω(account)` read is *stale-safe* (ω of an existing account is stable — freshness (v) + O1a: every account-tier prefix of an existing account is already baptized and the node tier is closed to delegation, so no concurrent delegation can introduce a longer coverer; a sub-account sits *below* the account and never covers it), so the lock is harmless-redundant, not load-bearing. **M5's cross-owner VERSION needs no principal lock at all** — it **pre-reads** the stable `ω(d_src)` off a snapshot, resolves the owned-vs-cross-owner branch, and holds only the single matching namespace lock (`version_lock_key`/`document_lock_key`). `register_node` holds the coarse `node_lock_key()` to keep its `NotFresh` rejection under per-key concurrency, not for safety (the insert is idempotent). All three principal/node locks are redundant under v1's global applier lock.
 
 The minted address (and its commit `Seq`) is returned only after M2 commits (commit-before-acknowledge), so a crash never loses a handed-out address — over-shooting (a gap) is safe (permanent ghost), reuse is fatal, and we never reuse.
 
@@ -571,7 +592,7 @@ The minted address (and its commit `Seq`) is returned only after M2 commits (com
 - **Account-tier delegation (no node minting)** — `delegate` condition (iii) narrowed `≤1 → ==1` and **hoisted to pure pre-work** (before `namespace()`/lock-key construction — it is also the guard that keeps a parentless 1-component node prefix out of `decompose`); a zeros≠1 `new_prefix` → `NotAccountTier`. [ASN-0047 NodeBaptism, narrowing ASN-0042 O15(iii)] → *§6, Conflicts §7*
 - **Prefix-injectivity & account-floor** — delegation (v) freshness + (iii) tier (`==1`). [ASN-0042 O1b/O1a]
 - **PrincipalId injectivity** — `delegate` rejects a reused id (`principal_by_id(new_id).is_some()` → `DuplicateId`), so `principal_by_id`/`principal_prefix`/the ω-auth gate are single-valued (one id ↦ at most one principal). Enforced under the **single global** `principals_lock_key()`, since the id-freshness race is cross-namespace (a per-subtree lock would not serialize it — §8). [id-axis mirror of ASN-0042 O1b] → *§6, §8*
-- **Delegation gate (5 conditions + id-fresh + P8 + next-form)** — `delegate`; (iii) discharged in pure pre-work, the non-monotone conditions (ii/iv/v-freshness/id-fresh/next-form) evaluated in-closure under the held locks. [ASN-0042 O15] → *§6*
+- **Delegation gate (5 conditions + id-fresh + P8 + next-form)** — `delegate`; (iii) discharged in pure pre-work (the pre-work rejections `NotValid`/`NotAccountTier` open no transaction), the non-monotone conditions (ii/iv/v-freshness/id-fresh/next-form) evaluated in-closure under the held locks; rejection order pinned (§6). [ASN-0042 O15] → *§6*
 - **Authorization by ω (never bare `owns`)** — `create_new_document`/`fork`/`delegate`/M5-VERSION; ω resolves the authorizing/branching principal; the warning is stated at `owns`'s own signature (Public interface §C). For `delegate` the in-closure reads under `principals_lock_key()` are **load-bearing** (fresh prefix); `create_new_document`/`fork`/M5-VERSION authorize/branch on a *stable* ω (defensive lock / pre-read, §8). [ASN-0042 O5, ownership-divergence] → *§5/§7/§8*
 - **Node freshness + bootstrap lineage** — `register_node`. [ASN-0047 NodeBaptism] → *§7*
 - **Commit-before-return** — address (and `Seq`) returned only post-commit. [ASN-0040 finality, ASN-0103 commit point]
